@@ -1,0 +1,1 @@
+export { BlastsPage } from './BlastsPage'

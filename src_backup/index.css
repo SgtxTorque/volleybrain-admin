@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-dark-darker text-white antialiased;
+  }
+  
+  ::selection {
+    @apply bg-gold/30 text-white;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-dark;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-border rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gold text-dark-darker font-semibold px-6 py-3 rounded-xl 
+           hover:bg-gold-light transition-all duration-200 
+           active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-dark-card border border-dark-border text-white font-medium px-6 py-3 rounded-xl 
+           hover:bg-dark-hover hover:border-gray-600 transition-all duration-200 
+           active:scale-[0.98];
+  }
+  
+  .btn-danger {
+    @apply bg-red-500/10 border border-red-500/30 text-red-400 font-medium px-6 py-3 rounded-xl 
+           hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-dark-card border border-dark-border rounded-2xl p-6;
+  }
+  
+  .input {
+    @apply w-full bg-dark border border-dark-border rounded-xl px-4 py-3 
+           text-white placeholder-gray-500 
+           focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 
+           transition-all duration-200;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-gray-400 mb-2;
+  }
+  
+  .textarea {
+    @apply w-full bg-dark border border-dark-border rounded-xl px-4 py-3 
+           text-white placeholder-gray-500 resize-none
+           focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 
+           transition-all duration-200;
+  }
+  
+  .select {
+    @apply w-full bg-dark border border-dark-border rounded-xl px-4 py-3 
+           text-white appearance-none cursor-pointer
+           focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/20 
+           transition-all duration-200;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+  }
+  
+  .wizard-step {
+    @apply flex items-center gap-3;
+  }
+  
+  .wizard-step-number {
+    @apply w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300;
+  }
+  
+  .wizard-step-number.active {
+    @apply bg-gold text-dark-darker;
+  }
+  
+  .wizard-step-number.completed {
+    @apply bg-green-500 text-white;
+  }
+  
+  .wizard-step-number.inactive {
+    @apply bg-dark-border text-gray-500;
+  }
+  
+  .stat-card {
+    @apply card flex flex-col;
+  }
+  
+  .stat-value {
+    @apply text-3xl font-bold text-white;
+  }
+  
+  .stat-label {
+    @apply text-sm text-gray-400 mt-1;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
