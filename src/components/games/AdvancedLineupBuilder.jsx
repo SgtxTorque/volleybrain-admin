@@ -1,0 +1,1189 @@
+import { useState, useEffect } from 'react'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../lib/supabase'
+
+// ============================================
+// INLINE ICONS
+// ============================================
+const XIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+)
+
+const ChevronLeftIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+)
+
+const ChevronRightIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="9 18 15 12 9 6"/>
+  </svg>
+)
+
+const CheckIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+)
+
+const RotateIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+  </svg>
+)
+
+const SaveIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+    <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+  </svg>
+)
+
+const UserIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+
+// ============================================
+// SPORT CONFIGURATIONS
+// ============================================
+const SPORT_CONFIGS = {
+  volleyball: {
+    name: 'Volleyball',
+    icon: '🏐',
+    starterCount: 6,
+    hasRotations: true,
+    rotationCount: 6,
+    hasLibero: true,
+    hasSets: true,
+    maxSets: 5,
+    formations: {
+      '5-1': {
+        name: '5-1 Offense',
+        description: '1 setter runs all rotations',
+        positions: [
+          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'OH', color: '#EF4444', row: 'back' },
+          { id: 2, name: 'P2', label: 'Right Front', role: 'OPP', color: '#6366F1', row: 'front' },
+          { id: 3, name: 'P3', label: 'Middle Front', role: 'MB', color: '#F59E0B', row: 'front' },
+          { id: 4, name: 'P4', label: 'Left Front', role: 'OH', color: '#EF4444', row: 'front' },
+          { id: 5, name: 'P5', label: 'Left Back', role: 'MB', color: '#F59E0B', row: 'back' },
+          { id: 6, name: 'P6', label: 'Middle Back', role: 'S', color: '#10B981', row: 'back' },
+        ],
+      },
+      '6-2': {
+        name: '6-2 Offense',
+        description: '2 setters, setter always back row',
+        positions: [
+          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'S', color: '#10B981', row: 'back' },
+          { id: 2, name: 'P2', label: 'Right Front', role: 'OH', color: '#EF4444', row: 'front' },
+          { id: 3, name: 'P3', label: 'Middle Front', role: 'MB', color: '#F59E0B', row: 'front' },
+          { id: 4, name: 'P4', label: 'Left Front', role: 'OH', color: '#EF4444', row: 'front' },
+          { id: 5, name: 'P5', label: 'Left Back', role: 'MB', color: '#F59E0B', row: 'back' },
+          { id: 6, name: 'P6', label: 'Middle Back', role: 'S', color: '#10B981', row: 'back' },
+        ],
+      },
+      '4-2': {
+        name: '4-2 Simple',
+        description: 'Simple rotation for beginners',
+        positions: [
+          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'S', color: '#10B981', row: 'back' },
+          { id: 2, name: 'P2', label: 'Right Front', role: 'H', color: '#EF4444', row: 'front' },
+          { id: 3, name: 'P3', label: 'Middle Front', role: 'H', color: '#EF4444', row: 'front' },
+          { id: 4, name: 'P4', label: 'Left Front', role: 'S', color: '#10B981', row: 'front' },
+          { id: 5, name: 'P5', label: 'Left Back', role: 'H', color: '#EF4444', row: 'back' },
+          { id: 6, name: 'P6', label: 'Middle Back', role: 'H', color: '#EF4444', row: 'back' },
+        ],
+      },
+      '6-6': {
+        name: '6-6 Recreational',
+        description: 'Everyone rotates all positions',
+        positions: [
+          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'P1', color: '#3B82F6', row: 'back' },
+          { id: 2, name: 'P2', label: 'Right Front', role: 'P2', color: '#10B981', row: 'front' },
+          { id: 3, name: 'P3', label: 'Middle Front', role: 'P3', color: '#F59E0B', row: 'front' },
+          { id: 4, name: 'P4', label: 'Left Front', role: 'P4', color: '#EF4444', row: 'front' },
+          { id: 5, name: 'P5', label: 'Left Back', role: 'P5', color: '#8B5CF6', row: 'back' },
+          { id: 6, name: 'P6', label: 'Middle Back', role: 'P6', color: '#EC4899', row: 'back' },
+        ],
+      },
+    },
+  },
+  basketball: {
+    name: 'Basketball',
+    icon: '🏀',
+    starterCount: 5,
+    hasRotations: false,
+    hasLibero: false,
+    hasSets: false,
+    formations: {
+      'standard': {
+        name: 'Standard',
+        positions: [
+          { id: 1, name: 'PG', label: 'Point Guard', role: 'PG', color: '#3B82F6' },
+          { id: 2, name: 'SG', label: 'Shooting Guard', role: 'SG', color: '#10B981' },
+          { id: 3, name: 'SF', label: 'Small Forward', role: 'SF', color: '#F59E0B' },
+          { id: 4, name: 'PF', label: 'Power Forward', role: 'PF', color: '#EF4444' },
+          { id: 5, name: 'C', label: 'Center', role: 'C', color: '#8B5CF6' },
+        ],
+      },
+    },
+  },
+  soccer: {
+    name: 'Soccer',
+    icon: '⚽',
+    starterCount: 11,
+    hasRotations: false,
+    hasLibero: false,
+    hasSets: false,
+    formations: {
+      '4-4-2': {
+        name: '4-4-2',
+        positions: [
+          { id: 1, name: 'GK', label: 'Goalkeeper', role: 'GK', color: '#F59E0B' },
+          { id: 2, name: 'LB', label: 'Left Back', role: 'DEF', color: '#3B82F6' },
+          { id: 3, name: 'CB1', label: 'Center Back', role: 'DEF', color: '#3B82F6' },
+          { id: 4, name: 'CB2', label: 'Center Back', role: 'DEF', color: '#3B82F6' },
+          { id: 5, name: 'RB', label: 'Right Back', role: 'DEF', color: '#3B82F6' },
+          { id: 6, name: 'LM', label: 'Left Mid', role: 'MID', color: '#10B981' },
+          { id: 7, name: 'CM1', label: 'Center Mid', role: 'MID', color: '#10B981' },
+          { id: 8, name: 'CM2', label: 'Center Mid', role: 'MID', color: '#10B981' },
+          { id: 9, name: 'RM', label: 'Right Mid', role: 'MID', color: '#10B981' },
+          { id: 10, name: 'ST1', label: 'Striker', role: 'FWD', color: '#EF4444' },
+          { id: 11, name: 'ST2', label: 'Striker', role: 'FWD', color: '#EF4444' },
+        ],
+      },
+    },
+  },
+}
+
+// ============================================
+// PLAYER CARD COMPONENT
+// ============================================
+function PlayerCard({ 
+  player, 
+  position, 
+  isServing, 
+  isLibero, 
+  isSelected,
+  showRsvp = true,
+  rsvpStatus,
+  compact = false,
+  onClick,
+  onRemove,
+  draggable = false,
+  onDragStart,
+  onDragEnd
+}) {
+  const rsvpColors = {
+    yes: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    attending: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    no: 'bg-red-100 text-red-700 border-red-300',
+    not_attending: 'bg-red-100 text-red-700 border-red-300',
+    maybe: 'bg-amber-100 text-amber-700 border-amber-300',
+    pending: 'bg-slate-100 text-slate-600 border-slate-300',
+  }
+  
+  const rsvpLabels = {
+    yes: 'Going', attending: 'Going',
+    no: 'No', not_attending: 'No',
+    maybe: 'Maybe', pending: 'Pending'
+  }
+
+  if (compact) {
+    return (
+      <div
+        draggable={draggable}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onClick={onClick}
+        className={`flex items-center gap-2 p-2 rounded-xl bg-white border-2 cursor-pointer transition-all hover:shadow-md ${
+          isSelected ? 'border-indigo-500 shadow-md' : 'border-slate-200 hover:border-slate-300'
+        } ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      >
+        {player.photo_url ? (
+          <img src={player.photo_url} className="w-8 h-8 rounded-full object-cover" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+            <UserIcon className="w-4 h-4 text-slate-500" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-slate-800 text-sm truncate">
+            #{player.jersey_number} {player.first_name}
+          </p>
+          <p className="text-xs text-slate-500">{player.position || position?.role || 'Player'}</p>
+        </div>
+        {showRsvp && rsvpStatus && (
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${rsvpColors[rsvpStatus] || rsvpColors.pending}`}>
+            {rsvpLabels[rsvpStatus] || 'Pending'}
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onClick={onClick}
+      className={`relative bg-white rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg group ${
+        isServing ? 'border-emerald-500 ring-2 ring-emerald-200' :
+        isLibero ? 'border-pink-500 ring-2 ring-pink-200' :
+        isSelected ? 'border-indigo-500 shadow-lg' : 
+        'border-slate-200 hover:border-slate-300'
+      } ${draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+      style={{ minWidth: '140px' }}
+    >
+      {/* Position badge */}
+      {position && (
+        <div 
+          className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold text-white z-10"
+          style={{ backgroundColor: position.color }}
+        >
+          {position.name}
+        </div>
+      )}
+      
+      {/* Serving badge - STAYS at P1 position */}
+      {isServing && (
+        <div className="absolute top-2 right-2 w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg z-10 animate-pulse">
+          🏐
+        </div>
+      )}
+      
+      {/* Libero badge */}
+      {isLibero && !isServing && (
+        <div className="absolute top-2 right-2 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold z-10">
+          L
+        </div>
+      )}
+      
+      {/* Player photo */}
+      <div className="pt-10 pb-2 px-3 flex justify-center">
+        {player.photo_url ? (
+          <img src={player.photo_url} className="w-14 h-14 rounded-full object-cover border-2 border-white shadow" />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center border-2 border-white shadow">
+            <span className="text-xl font-bold text-slate-400">{player.jersey_number || '?'}</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Player info */}
+      <div className="px-2 pb-2 text-center">
+        <p className="font-bold text-slate-800 text-sm truncate">
+          {player.first_name} {player.last_name?.charAt(0)}.
+        </p>
+        <p className="text-[11px] text-slate-500">
+          #{player.jersey_number} • {player.position || position?.role || 'Player'}
+        </p>
+        
+        {/* RSVP status */}
+        {showRsvp && (
+          <div className="mt-1">
+            <span className={`px-2 py-0.5 rounded-full text-[9px] font-medium border ${rsvpColors[rsvpStatus] || rsvpColors.pending}`}>
+              {rsvpLabels[rsvpStatus] || 'Pending'}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// EMPTY POSITION SLOT
+// ============================================
+function EmptySlot({ position, isServing, onDrop, onDragOver }) {
+  return (
+    <div
+      onDragOver={(e) => { e.preventDefault(); onDragOver?.(e); }}
+      onDrop={onDrop}
+      className={`relative bg-slate-50 rounded-2xl border-2 border-dashed transition-all hover:border-indigo-400 hover:bg-indigo-50 ${
+        isServing ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300'
+      }`}
+      style={{ minWidth: '140px', minHeight: '150px' }}
+    >
+      {/* Position badge */}
+      <div 
+        className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold text-white"
+        style={{ backgroundColor: position.color }}
+      >
+        {position.name}
+      </div>
+      
+      {/* Serving indicator - STAYS at P1 */}
+      {isServing && (
+        <div className="absolute top-2 right-2 w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse">
+          🏐
+        </div>
+      )}
+      
+      <div className="h-full flex flex-col items-center justify-center p-4 pt-10">
+        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center mb-2">
+          <UserIcon className="w-6 h-6 text-slate-400" />
+        </div>
+        <p className="text-xs text-slate-500 text-center font-medium">{position.label}</p>
+        <p className="text-[10px] text-slate-400 mt-1">Drop player here</p>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// PLAYER STATS MODAL
+// ============================================
+function PlayerStatsModal({ player, onClose }) {
+  const stats = {
+    skill_rating: player.skill_rating || Math.floor(Math.random() * 30) + 70,
+    serve_rating: player.serve_rating || Math.floor(Math.random() * 30) + 70,
+    attack_rating: player.attack_rating || Math.floor(Math.random() * 30) + 70,
+    defense_rating: player.defense_rating || Math.floor(Math.random() * 30) + 70,
+  }
+  
+  function StatBar({ label, value, color }) {
+    return (
+      <div className="space-y-1">
+        <div className="flex justify-between text-sm">
+          <span className="text-slate-600">{label}</span>
+          <span className="font-semibold" style={{ color }}>{value}</span>
+        </div>
+        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+          <div 
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${value}%`, backgroundColor: color }}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white text-center">
+          {player.photo_url ? (
+            <img src={player.photo_url} className="w-20 h-20 rounded-full mx-auto border-4 border-white/30 object-cover" />
+          ) : (
+            <div className="w-20 h-20 rounded-full mx-auto bg-white/20 flex items-center justify-center text-3xl font-bold">
+              {player.jersey_number || '?'}
+            </div>
+          )}
+          <h3 className="text-xl font-bold mt-3">{player.first_name} {player.last_name}</h3>
+          <p className="text-white/70">#{player.jersey_number} • {player.position || 'Player'}</p>
+        </div>
+        
+        {/* Stats */}
+        <div className="p-6 space-y-4">
+          <h4 className="font-semibold text-slate-800 mb-4">📊 Skill Ratings</h4>
+          <StatBar label="Overall" value={stats.skill_rating} color="#6366F1" />
+          <StatBar label="Serving" value={stats.serve_rating} color="#10B981" />
+          <StatBar label="Attacking" value={stats.attack_rating} color="#EF4444" />
+          <StatBar label="Defense" value={stats.defense_rating} color="#3B82F6" />
+        </div>
+        
+        <div className="p-4 border-t border-slate-200">
+          <button 
+            onClick={onClose} 
+            className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// MAIN LINEUP BUILDER
+// ============================================
+function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onSave, showToast }) {
+  const { user } = useAuth()
+  
+  // Data
+  const [roster, setRoster] = useState([])
+  const [rsvps, setRsvps] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  
+  // Lineup state
+  const [formation, setFormation] = useState(null)
+  const [lineup, setLineup] = useState({}) // { positionId: playerId }
+  const [liberoId, setLiberoId] = useState(null)
+  const [subs, setSubs] = useState({}) // { positionId: benchPlayerId }
+  
+  // Multi-set support
+  const [currentSet, setCurrentSet] = useState(1)
+  const [setLineups, setSetLineups] = useState({})
+  const [totalSets, setTotalSets] = useState(3)
+  
+  // Rotation
+  const [currentRotation, setCurrentRotation] = useState(0)
+  
+  // UI
+  const [selectedPlayer, setSelectedPlayer] = useState(null)
+  const [draggedPlayer, setDraggedPlayer] = useState(null)
+  
+  const sportConfig = SPORT_CONFIGS[sport] || SPORT_CONFIGS.volleyball
+  const formations = sportConfig.formations
+  const defaultFormation = Object.keys(formations)[0]
+  
+  useEffect(() => {
+    loadData()
+    setFormation(defaultFormation)
+  }, [event.id, team.id])
+  
+  async function loadData() {
+    setLoading(true)
+    
+    try {
+      // Load roster
+      const { data: players } = await supabase
+        .from('team_players')
+        .select('*, players(*)')
+        .eq('team_id', team.id)
+      
+      const rosterData = (players || [])
+        .map(tp => ({ 
+          ...tp.players, 
+          team_jersey: tp.jersey_number, 
+          team_position: tp.position,
+          jersey_number: tp.jersey_number || tp.players?.jersey_number
+        }))
+        .filter(Boolean)
+        .sort((a, b) => (a.jersey_number || 99) - (b.jersey_number || 99))
+      
+      setRoster(rosterData)
+      
+      // Load RSVPs
+      const { data: rsvpData } = await supabase
+        .from('event_rsvps')
+        .select('player_id, status')
+        .eq('event_id', event.id)
+      
+      const rsvpMap = {}
+      rsvpData?.forEach(r => { rsvpMap[r.player_id] = r.status })
+      setRsvps(rsvpMap)
+      
+      // Load existing lineup
+      const { data: existingLineup } = await supabase
+        .from('game_lineups')
+        .select('*')
+        .eq('event_id', event.id)
+      
+      if (existingLineup?.length > 0) {
+        const lineupMap = {}
+        existingLineup.forEach(l => {
+          if (l.rotation_order) lineupMap[l.rotation_order] = l.player_id
+          if (l.is_libero) setLiberoId(l.player_id)
+        })
+        setLineup(lineupMap)
+        setSetLineups({ 1: lineupMap })
+      }
+      
+    } catch (err) {
+      console.error('Error loading data:', err)
+    }
+    
+    setLoading(false)
+  }
+  
+  // Next rotation (right arrow) - increases rotation number, players move clockwise
+  function nextRotation() {
+    if (!sportConfig.hasRotations) return
+    setCurrentRotation(prev => (prev + 1) % sportConfig.rotationCount)
+  }
+  
+  // Previous rotation (left arrow) - decreases rotation number
+  function prevRotation() {
+    if (!sportConfig.hasRotations) return
+    setCurrentRotation(prev => (prev - 1 + sportConfig.rotationCount) % sportConfig.rotationCount)
+  }
+  
+  function resetRotation() {
+    setCurrentRotation(0)
+  }
+  
+  // Get which player is in which position after rotation
+  // Volleyball rotates CLOCKWISE: Player at P1 moves to P6, P2 to P1, etc.
+  function getPlayerAtPosition(positionId) {
+    // When rotation increases, players move clockwise
+    // Position 1 (after 1 rotation) shows player who was at position 2
+    // Position 2 (after 1 rotation) shows player who was at position 3
+    // etc.
+    const rotationOrder = [1, 2, 3, 4, 5, 6]
+    const posIndex = rotationOrder.indexOf(positionId)
+    
+    // After N rotations clockwise, position X shows player from position (X + N) % 6
+    const sourceIndex = (posIndex + currentRotation) % 6
+    const sourcePosition = rotationOrder[sourceIndex]
+    
+    return lineup[sourcePosition]
+  }
+  
+  function handleDrop(positionId, playerId) {
+    // Remove player from any existing position
+    const newLineup = { ...lineup }
+    Object.keys(newLineup).forEach(key => {
+      if (newLineup[key] === playerId) delete newLineup[key]
+    })
+    
+    // For rotated view, we need to figure out the ORIGINAL position
+    // If visual position is X and rotation is N, original position is (X + N) % 6
+    const rotationOrder = [1, 2, 3, 4, 5, 6]
+    const posIndex = rotationOrder.indexOf(positionId)
+    const originalIndex = (posIndex + currentRotation) % 6
+    const originalPosition = rotationOrder[originalIndex]
+    
+    newLineup[originalPosition] = playerId
+    setLineup(newLineup)
+    setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
+  }
+  
+  function handleDragStart(e, player) {
+    e.dataTransfer.setData('playerId', player.id)
+    setDraggedPlayer(player)
+  }
+  
+  function handleDragEnd() {
+    setDraggedPlayer(null)
+  }
+  
+  function removeFromPosition(positionId) {
+    const rotationOrder = [1, 2, 3, 4, 5, 6]
+    const posIndex = rotationOrder.indexOf(positionId)
+    const originalIndex = (posIndex + currentRotation) % 6
+    const originalPosition = rotationOrder[originalIndex]
+    
+    const newLineup = { ...lineup }
+    delete newLineup[originalPosition]
+    setLineup(newLineup)
+    setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
+  }
+  
+  function autoFillLineup() {
+    const available = roster.filter(p => {
+      const status = rsvps[p.id]
+      return status === 'yes' || status === 'attending' || !status
+    })
+    
+    const newLineup = {}
+    const positions = formations[formation]?.positions || []
+    
+    positions.slice(0, sportConfig.starterCount).forEach((pos, i) => {
+      if (available[i]) {
+        newLineup[pos.id] = available[i].id
+      }
+    })
+    
+    setLineup(newLineup)
+    setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
+    showToast?.('Lineup auto-filled!', 'success')
+  }
+  
+  function clearLineup() {
+    setLineup({})
+    setLiberoId(null)
+    setSubs({})
+    setSetLineups(prev => ({ ...prev, [currentSet]: {} }))
+  }
+  
+  function copyLineupToAllSets() {
+    const allSets = {}
+    for (let i = 1; i <= totalSets; i++) {
+      allSets[i] = { ...lineup }
+    }
+    setSetLineups(allSets)
+    showToast?.(`Lineup copied to all ${totalSets} sets`, 'success')
+  }
+  
+  function switchSet(setNum) {
+    setSetLineups(prev => ({ ...prev, [currentSet]: lineup }))
+    setCurrentSet(setNum)
+    setLineup(setLineups[setNum] || {})
+    setCurrentRotation(0)
+  }
+  
+  async function saveLineup() {
+    setSaving(true)
+    
+    try {
+      await supabase.from('game_lineups').delete().eq('event_id', event.id)
+      
+      const records = []
+      const positions = formations[formation]?.positions || []
+      
+      Object.entries(lineup).forEach(([positionId, playerId]) => {
+        const pos = positions.find(p => p.id === parseInt(positionId))
+        records.push({
+          event_id: event.id,
+          player_id: playerId,
+          rotation_order: parseInt(positionId),
+          is_starter: true,
+          is_libero: playerId === liberoId,
+          position: pos?.name
+        })
+      })
+      
+      if (liberoId && !Object.values(lineup).includes(liberoId)) {
+        records.push({
+          event_id: event.id,
+          player_id: liberoId,
+          rotation_order: null,
+          is_starter: false,
+          is_libero: true,
+          position: 'L'
+        })
+      }
+      
+      if (records.length > 0) {
+        const { error } = await supabase.from('game_lineups').insert(records)
+        if (error) throw error
+      }
+      
+      showToast?.('Lineup saved!', 'success')
+      onSave?.()
+      onClose()
+      
+    } catch (err) {
+      console.error('Error saving:', err)
+      showToast?.('Error saving lineup', 'error')
+    }
+    
+    setSaving(false)
+  }
+  
+  const startersCount = Object.keys(lineup).length
+  const benchPlayers = roster.filter(p => !Object.values(lineup).includes(p.id) && p.id !== liberoId)
+  const currentFormation = formations[formation]
+  const positions = currentFormation?.positions || []
+
+  return (
+    <div className="fixed inset-0 bg-slate-100 flex flex-col z-50">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={onClose} 
+              className="p-2 hover:bg-slate-100 rounded-xl transition"
+            >
+              <XIcon className="w-5 h-5 text-slate-600" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <span className="text-2xl">{sportConfig.icon}</span>
+                Lineup Builder
+              </h1>
+              <p className="text-slate-500 text-sm">
+                {team.name} vs {event.opponent_name || 'TBD'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Formation selector */}
+            <select
+              value={formation || ''}
+              onChange={(e) => setFormation(e.target.value)}
+              className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {Object.entries(formations).map(([key, f]) => (
+                <option key={key} value={key}>{f.name}</option>
+              ))}
+            </select>
+            
+            {/* Starters count */}
+            <div className="px-4 py-2 bg-slate-100 rounded-xl text-center min-w-[80px]">
+              <p className="text-xs text-slate-500">Starters</p>
+              <p className="text-lg font-bold text-slate-800">{startersCount}/{sportConfig.starterCount}</p>
+            </div>
+            
+            {/* Save button */}
+            <button
+              onClick={saveLineup}
+              disabled={saving || startersCount === 0}
+              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-emerald-200"
+            >
+              <SaveIcon className="w-4 h-4" />
+              {saving ? 'Saving...' : 'Save Lineup'}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full" />
+        </div>
+      ) : (
+        <div className="flex-1 flex overflow-hidden">
+          {/* Main Content */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-4xl mx-auto space-y-6">
+              
+              {/* Set Selector */}
+              {sportConfig.hasSets && (
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-slate-600 font-medium">Set:</span>
+                    {Array.from({ length: totalSets }, (_, i) => i + 1).map(setNum => (
+                      <button
+                        key={setNum}
+                        onClick={() => switchSet(setNum)}
+                        className={`w-12 h-12 rounded-xl font-bold text-lg transition ${
+                          currentSet === setNum
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {setNum}
+                      </button>
+                    ))}
+                    {totalSets < 5 && (
+                      <button
+                        onClick={() => setTotalSets(prev => prev + 1)}
+                        className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition text-2xl"
+                      >
+                        +
+                      </button>
+                    )}
+                    <button
+                      onClick={copyLineupToAllSets}
+                      className="ml-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition"
+                    >
+                      Copy to all sets
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Rotation Controls */}
+              {sportConfig.hasRotations && (
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-center gap-4">
+                    <button
+                      onClick={prevRotation}
+                      className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                      title="Previous Rotation"
+                    >
+                      <ChevronLeftIcon className="w-6 h-6" />
+                    </button>
+                    
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={resetRotation}
+                        className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                        title="Reset to Rotation 1"
+                      >
+                        <RotateIcon className="w-5 h-5" />
+                      </button>
+                      
+                      <div className="px-6 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <span className="text-indigo-600 font-bold text-lg">
+                          Rotation {currentRotation + 1} / {sportConfig.rotationCount}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={nextRotation}
+                      className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                      title="Next Rotation"
+                    >
+                      <ChevronRightIcon className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <p className="text-center text-xs text-slate-500 mt-2">
+                    Click arrows to cycle through rotations • 🏐 Server always at P1
+                  </p>
+                </div>
+              )}
+              
+              {/* Court Layout - Volleyball */}
+              {sport === 'volleyball' && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                  {/* Net indicator */}
+                  <div className="text-center mb-6">
+                    <div className="inline-block px-8 py-2 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded-lg text-slate-600 text-sm font-bold tracking-wider">
+                      ━━━ NET ━━━
+                    </div>
+                  </div>
+                  
+                  {/* Front Row - P4, P3, P2 */}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    {[4, 3, 2].map(posId => {
+                      const pos = positions.find(p => p.id === posId)
+                      const playerId = getPlayerAtPosition(posId)
+                      const player = roster.find(p => p.id === playerId)
+                      
+                      return (
+                        <div 
+                          key={posId}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const pid = e.dataTransfer.getData('playerId')
+                            if (pid) handleDrop(posId, pid)
+                          }}
+                        >
+                          {player ? (
+                            <div className="group relative">
+                              <PlayerCard
+                                player={player}
+                                position={pos}
+                                isServing={false}
+                                isLibero={player.id === liberoId}
+                                rsvpStatus={rsvps[player.id]}
+                                onClick={() => setSelectedPlayer(player)}
+                              />
+                              <button
+                                onClick={() => removeFromPosition(posId)}
+                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white shadow opacity-0 group-hover:opacity-100 transition"
+                              >
+                                <XIcon className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <EmptySlot position={pos} isServing={false} />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  
+                  {/* Attack Line */}
+                  <div className="flex items-center gap-4 my-4">
+                    <div className="flex-1 border-t-2 border-dashed border-orange-300" />
+                    <span className="text-xs text-orange-500 font-medium">ATTACK LINE</span>
+                    <div className="flex-1 border-t-2 border-dashed border-orange-300" />
+                  </div>
+                  
+                  {/* Back Row - P5, P6, P1 */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {[5, 6, 1].map(posId => {
+                      const pos = positions.find(p => p.id === posId)
+                      const playerId = getPlayerAtPosition(posId)
+                      const player = roster.find(p => p.id === playerId)
+                      const isServing = posId === 1 // P1 is ALWAYS the serving position
+                      
+                      return (
+                        <div 
+                          key={posId}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const pid = e.dataTransfer.getData('playerId')
+                            if (pid) handleDrop(posId, pid)
+                          }}
+                        >
+                          {player ? (
+                            <div className="group relative">
+                              <PlayerCard
+                                player={player}
+                                position={pos}
+                                isServing={isServing}
+                                isLibero={player.id === liberoId}
+                                rsvpStatus={rsvps[player.id]}
+                                onClick={() => setSelectedPlayer(player)}
+                              />
+                              <button
+                                onClick={() => removeFromPosition(posId)}
+                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white shadow opacity-0 group-hover:opacity-100 transition"
+                              >
+                                <XIcon className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <EmptySlot position={pos} isServing={isServing} />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Generic Grid for other sports */}
+              {sport !== 'volleyball' && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                  <div className={`grid gap-4 ${
+                    sportConfig.starterCount <= 5 ? 'grid-cols-3' :
+                    sportConfig.starterCount <= 9 ? 'grid-cols-3' :
+                    'grid-cols-4'
+                  }`}>
+                    {positions.map(pos => {
+                      const playerId = lineup[pos.id]
+                      const player = roster.find(p => p.id === playerId)
+                      
+                      return (
+                        <div 
+                          key={pos.id}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            const pid = e.dataTransfer.getData('playerId')
+                            if (pid) handleDrop(pos.id, pid)
+                          }}
+                        >
+                          {player ? (
+                            <div className="group relative">
+                              <PlayerCard
+                                player={player}
+                                position={pos}
+                                rsvpStatus={rsvps[player.id]}
+                                onClick={() => setSelectedPlayer(player)}
+                              />
+                              <button
+                                onClick={() => removeFromPosition(pos.id)}
+                                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white shadow opacity-0 group-hover:opacity-100 transition"
+                              >
+                                <XIcon className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <EmptySlot position={pos} />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Libero Selector */}
+              {sportConfig.hasLibero && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                  <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-xs text-white font-bold">L</span>
+                    Libero (Defensive Specialist)
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {roster.map(player => (
+                      <button
+                        key={player.id}
+                        onClick={() => setLiberoId(liberoId === player.id ? null : player.id)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+                          liberoId === player.id
+                            ? 'bg-pink-500 text-white shadow-lg shadow-pink-200'
+                            : 'bg-slate-100 text-slate-600 hover:bg-pink-100 hover:text-pink-600'
+                        }`}
+                      >
+                        #{player.jersey_number} {player.first_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Substitutions Panel */}
+              {startersCount > 0 && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                  <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                    <RotateIcon className="w-5 h-5 text-amber-500" />
+                    Substitutions
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-4">Set which bench players will sub in for each starter</p>
+                  
+                  <div className="space-y-3">
+                    {positions.map(pos => {
+                      const starterId = lineup[pos.id]
+                      const starter = roster.find(p => p.id === starterId)
+                      if (!starter) return null
+                      
+                      const subId = subs[pos.id]
+                      const availableForSub = benchPlayers.filter(p => 
+                        !Object.values(subs).includes(p.id) || subs[pos.id] === p.id
+                      )
+                      
+                      return (
+                        <div key={pos.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                          {/* Position badge */}
+                          <span 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold"
+                            style={{ backgroundColor: pos.color }}
+                          >
+                            {pos.name}
+                          </span>
+                          
+                          {/* Starter info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-slate-800">
+                              #{starter.jersey_number} {starter.first_name}
+                            </p>
+                            <p className="text-xs text-slate-500">{pos.label}</p>
+                          </div>
+                          
+                          {/* Arrow */}
+                          <span className="text-slate-400">→</span>
+                          
+                          {/* Sub selector */}
+                          <select
+                            value={subId || ''}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setSubs(prev => ({ ...prev, [pos.id]: e.target.value }))
+                              } else {
+                                setSubs(prev => {
+                                  const newSubs = { ...prev }
+                                  delete newSubs[pos.id]
+                                  return newSubs
+                                })
+                              }
+                            }}
+                            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[140px]"
+                          >
+                            <option value="">No sub</option>
+                            {availableForSub.map(p => (
+                              <option key={p.id} value={p.id}>
+                                #{p.jersey_number} {p.first_name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  
+                  {/* Active subs summary */}
+                  {Object.keys(subs).length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-200">
+                      <p className="text-xs font-semibold text-slate-600 mb-2">Active Substitutions:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(subs).map(([posId, subId]) => {
+                          const pos = positions.find(p => p.id === parseInt(posId))
+                          const starter = roster.find(p => p.id === lineup[parseInt(posId)])
+                          const sub = roster.find(p => p.id === subId)
+                          if (!starter || !sub) return null
+                          
+                          return (
+                            <span 
+                              key={posId}
+                              className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium"
+                            >
+                              {pos?.name}: #{starter.jersey_number} → #{sub.jersey_number}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Roster Sidebar */}
+          <div className="w-80 bg-white border-l border-slate-200 flex flex-col shadow-lg">
+            <div className="p-4 border-b border-slate-200 bg-slate-50">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-slate-800">Roster</h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={autoFillLineup}
+                    className="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-xs font-medium hover:bg-indigo-600 transition shadow"
+                  >
+                    Auto-Fill
+                  </button>
+                  <button
+                    onClick={clearLineup}
+                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition shadow"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              
+              {/* Legend */}
+              <div className="flex gap-3 text-xs text-slate-500">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Going
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Maybe
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500" /> No
+                </span>
+              </div>
+            </div>
+            
+            {/* Available Players */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              <p className="text-xs text-slate-500 mb-2 font-medium">📌 Drag players to positions</p>
+              {benchPlayers.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <CheckIcon className="w-10 h-10 mx-auto mb-2 text-emerald-400" />
+                  <p className="font-medium">All players assigned!</p>
+                </div>
+              ) : (
+                benchPlayers.map(player => (
+                  <PlayerCard
+                    key={player.id}
+                    player={player}
+                    rsvpStatus={rsvps[player.id]}
+                    compact
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, player)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => setSelectedPlayer(player)}
+                  />
+                ))
+              )}
+            </div>
+            
+            {/* In Lineup Summary */}
+            {startersCount > 0 && (
+              <div className="p-4 border-t border-slate-200 bg-emerald-50">
+                <p className="text-xs text-emerald-700 font-semibold mb-2">✓ In Lineup ({startersCount}/{sportConfig.starterCount})</p>
+                <div className="flex flex-wrap gap-1">
+                  {Object.entries(lineup).map(([posId, playerId]) => {
+                    const player = roster.find(p => p.id === playerId)
+                    const pos = positions.find(p => p.id === parseInt(posId))
+                    if (!player) return null
+                    
+                    return (
+                      <span
+                        key={posId}
+                        className="px-2 py-1 rounded-lg text-xs font-medium text-white shadow-sm"
+                        style={{ backgroundColor: pos?.color || '#6366F1' }}
+                      >
+                        {pos?.name}: #{player.jersey_number}
+                      </span>
+                    )
+                  })}
+                  {liberoId && (
+                    <span className="px-2 py-1 rounded-lg bg-pink-500 text-white text-xs font-medium shadow-sm">
+                      L: #{roster.find(p => p.id === liberoId)?.jersey_number}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Player Stats Modal */}
+      {selectedPlayer && (
+        <PlayerStatsModal
+          player={selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+export { AdvancedLineupBuilder, SPORT_CONFIGS }

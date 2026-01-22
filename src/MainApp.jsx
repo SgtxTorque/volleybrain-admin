@@ -54,6 +54,8 @@ import { AttendancePage } from './pages/attendance'
 import { ChatsPage } from './pages/chats'
 import { BlastsPage } from './pages/blasts'
 import { GamePrepPage } from './pages/gameprep'
+import { TeamStandingsPage } from './pages/standings'
+import { SeasonLeaderboardsPage } from './pages/leaderboards'
 import { ReportsPage } from './pages/reports'
 
 // Settings Pages
@@ -100,6 +102,13 @@ function MainApp() {
   const exitTeamWall = () => {
     window.location.hash = ''
     setDirectTeamWallId(null)
+  }
+
+  // Helper to navigate away from team wall to another page
+  const navigateFromTeamWall = (targetPage) => {
+    window.location.hash = ''
+    setDirectTeamWallId(null)
+    setPage(targetPage)
   }
 
   const showToast = (message, type = 'success') => {
@@ -196,6 +205,7 @@ function MainApp() {
   }
 
   const [expandedGroups, setExpandedGroups] = useState({ people: false, operations: false, game: false, communication: false, insights: false, setup: false })
+  const [coachGameDayExpanded, setCoachGameDayExpanded] = useState(true)
 
   const navGroups = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', type: 'single' },
@@ -229,6 +239,8 @@ function MainApp() {
       type: 'group',
       items: [
         { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+        { id: 'standings', label: 'Standings', icon: 'star' },
+        { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
       ]
     },
     { 
@@ -575,13 +587,47 @@ function MainApp() {
                   <span>Schedule</span>
                 </button>
 
-                <button onClick={() => { exitTeamWall(); setPage('gameprep'); }}
+                {/* Game Day Collapsible Section */}
+                <button 
+                  onClick={() => setCoachGameDayExpanded(!coachGameDayExpanded)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'gameprep' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
+                    ['gameprep', 'standings', 'leaderboards'].includes(page) && !directTeamWallId
+                      ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' 
+                      : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}
+                >
                   <Target className="w-5 h-5" />
-                  <span>Game Prep</span>
+                  <span className="flex-1 text-left">Game Day</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${coachGameDayExpanded ? 'rotate-180' : ''}`} />
                 </button>
+                
+                {coachGameDayExpanded && (
+                  <div className="ml-4 space-y-1">
+                    <button onClick={() => { exitTeamWall(); setPage('gameprep'); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm ${
+                        page === 'gameprep' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                      }`}>
+                      <Target className="w-4 h-4" />
+                      <span>Game Prep</span>
+                    </button>
+
+                    <button onClick={() => { exitTeamWall(); setPage('standings'); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm ${
+                        page === 'standings' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                      }`}>
+                      <Star className="w-4 h-4" />
+                      <span>Standings</span>
+                    </button>
+
+                    <button onClick={() => { exitTeamWall(); setPage('leaderboards'); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm ${
+                        page === 'leaderboards' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                      }`}>
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span>Leaderboards</span>
+                    </button>
+                  </div>
+                )}
 
                 <button onClick={() => { exitTeamWall(); setPage('attendance'); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
@@ -673,6 +719,22 @@ function MainApp() {
                   {!sidebarCollapsed && <span>Schedule</span>}
                 </button>
 
+                <button onClick={() => { exitTeamWall(); setPage('standings'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                    page === 'standings' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}>
+                  <Star className="w-5 h-5" />
+                  {!sidebarCollapsed && <span>Standings</span>}
+                </button>
+
+                <button onClick={() => { exitTeamWall(); setPage('leaderboards'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                    page === 'leaderboards' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}>
+                  <LayoutDashboard className="w-5 h-5" />
+                  {!sidebarCollapsed && <span>Leaderboards</span>}
+                </button>
+
                 <button onClick={() => { exitTeamWall(); setPage('chats'); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
                     page === 'chats' || page === 'messages' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
@@ -737,6 +799,22 @@ function MainApp() {
                   <Calendar className="w-5 h-5" />
                   <span>Schedule</span>
                 </button>
+
+                <button onClick={() => { exitTeamWall(); setPage('standings'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                    page === 'standings' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}>
+                  <Star className="w-5 h-5" />
+                  <span>Standings</span>
+                </button>
+
+                <button onClick={() => { exitTeamWall(); setPage('leaderboards'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                    page === 'leaderboards' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}>
+                  <LayoutDashboard className="w-5 h-5" />
+                  <span>Leaderboards</span>
+                </button>
               </>
             )}
           </nav>
@@ -763,6 +841,7 @@ function MainApp() {
               teamId={directTeamWallId}
               showToast={showToast}
               onBack={exitTeamWall}
+              onNavigate={navigateFromTeamWall}
             />
           ) : (
             <>
@@ -783,9 +862,11 @@ function MainApp() {
               {page === 'teams' && <TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
               {page === 'coaches' && <CoachesPage showToast={showToast} />}
               {page === 'jerseys' && <JerseysPage showToast={showToast} />}
-              {page === 'schedule' && <SchedulePage showToast={showToast} activeView={activeView} />}
+              {page === 'schedule' && <SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'attendance' && <AttendancePage showToast={showToast} />}
               {page === 'gameprep' && <GamePrepPage showToast={showToast} />}
+              {page === 'standings' && <TeamStandingsPage showToast={showToast} />}
+              {page === 'leaderboards' && <SeasonLeaderboardsPage showToast={showToast} />}
               {page === 'seasons' && <SeasonsPage showToast={showToast} />}
               {page === 'waivers' && <WaiversPage showToast={showToast} />}
               {page === 'paymentsetup' && <PaymentSetupPage showToast={showToast} />}

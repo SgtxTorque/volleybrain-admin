@@ -11,6 +11,7 @@ import {
 } from '../../constants/icons'
 import { PlayerCard, PlayerCardExpanded } from '../../components/players'
 import { ClickableCoachName, CoachDetailModal } from '../../pages/coaches/CoachesPage'
+import { getSportConfig, SPORT_CONFIGS } from '../../components/games/GameComponents'
 
 // Volleyball icon component
 function VolleyballIcon({ className }) {
@@ -24,18 +25,939 @@ function VolleyballIcon({ className }) {
   )
 }
 
-// Placeholder LineupBuilder - full version available in Game Prep page
-function LineupBuilder({ event, team, onClose, showToast }) {
+// ============================================
+// LINEUP BUILDER - Sport-Aware Implementation
+// ============================================
+function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volleyball' }) {
   const tc = useThemeClasses()
+  const { user } = useAuth()
+  const [roster, setRoster] = useState([])
+  const [lineup, setLineup] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [liberoId, setLiberoId] = useState(null)
+  
+  // Get sport-specific configuration
+  const sportConfig = getSportConfig(sport)
+  const positions = sportConfig.positions
+  const starterCount = sportConfig.starterCount
+  const hasLibero = sportConfig.hasLibero
+  
+  useEffect(() => {
+    loadData()
+  }, [event.id, team.id])
+  
+  async function loadData() {
+    setLoading(true)
+    
+    // Load team roster
+    const { data: players } = await supabase
+      .from('team_players')
+      .select('*, players(*)')
+      .eq('team_id', team.id)
+    
+    const rosterData = (players || []).map(tp => tp.players).filter(Boolean)
+    setRoster(rosterData)
+    
+    // Load existing lineup for this event
+    const { data: existingLineup } = await supabase
+      .from('game_lineups')
+      .select('*')
+      .eq('event_id', event.id)
+    
+    if (existingLineup?.length > 0) {
+      setLineup(existingLineup)
+      const libero = existingLineup.find(l => l.is_libero)
+      if (libero) setLiberoId(libero.player_id)
+    }
+    
+    setLoading(false)
+  }
+  
+  function getPlayerInPosition(positionNum) {
+    const entry = lineup.find(l => l.rotation_order === positionNum && l.is_starter)
+    if (!entry) return null
+    return roster.find(p => p.id === entry.player_id)
+  }
+  
+  function assignPosition(positionNum, playerId) {
+    // Remove player from any existing position
+    let newLineup = lineup.filter(l => l.player_id !== playerId)
+    
+    // Remove any player currently in this position
+    newLineup = newLineup.filter(l => !(l.rotation_order === positionNum && l.is_starter))
+    
+    // Add player to new position
+    if (playerId) {
+      newLineup.push({
+        event_id: event.id,
+        player_id: playerId,
+        rotation_order: positionNum,
+        is_starter: true,
+        is_libero: playerId === liberoId
+      })
+    }
+    
+    setLineup(newLineup)
+  }
+  
+  function toggleLibero(playerId) {
+    if (liberoId === playerId) {
+      setLiberoId(null)
+      setLineup(lineup.map(l => ({ ...l, is_libero: false })))
+    } else {
+      setLiberoId(playerId)
+      setLineup(lineup.map(l => ({ ...l, is_libero: l.player_id === playerId })))
+    }
+  }
+  
+  function isPlayerAssigned(playerId) {
+    return lineup.some(l => l.player_id === playerId && l.is_starter)
+  }
+  
+  async function saveLineup() {
+    setSaving(true)
+    
+    // Delete existing lineup
+    await supabase.from('game_lineups').delete().eq('event_id', event.id)
+    
+    // Insert new lineup
+    if (lineup.length > 0) {
+      const { error } = await supabase.from('game_lineups').insert(
+        lineup.map(l => ({
+          event_id: event.id,
+          player_id: l.player_id,
+          rotation_order: l.rotation_order,
+          is_starter: l.is_starter,
+          is_libero: l.is_libero || false
+        }))
+      )
+      
+      if (error) {
+        showToast?.('Error saving lineup', 'error')
+        setSaving(false)
+        return
+      }
+    }
+    
+    showToast?.('Lineup saved!', 'success')
+    onSave?.()
+    setSaving(false)
+    onClose()
+  }
+  
+  const starters = lineup.filter(l => l.is_starter)
+  const availablePlayers = roster.filter(p => !isPlayerAssigned(p.id))
+
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className={tc.cardBg + ' rounded-2xl w-full max-w-md p-6 text-center'}>
-        <VolleyballIcon className="w-16 h-16 mx-auto mb-4 text-[var(--accent-primary)]" />
-        <h2 className={'text-xl font-bold mb-2 ' + tc.text}>Lineup Builder</h2>
-        <p className={tc.textMuted + ' mb-4'}>Full lineup builder available in Game Prep section</p>
-        <button onClick={onClose} className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-medium">
-          Close
-        </button>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
+          <div>
+            <h2 className={`text-xl font-bold ${tc.text}`}>{sportConfig.icon} Lineup Builder</h2>
+            <p className={tc.textMuted}>{team.name} vs {event.opponent_name || 'TBD'} • {sport}</p>
+          </div>
+          <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg}`}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {loading ? (
+          <div className="p-12 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto" />
+          </div>
+        ) : (
+          <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto">
+            {/* Position Slots - Generic for all sports */}
+            <div>
+              <h3 className={`font-semibold ${tc.text} mb-4`}>Starting Lineup ({starters.length}/{starterCount})</h3>
+              
+              {/* Position Grid - Adaptive based on number of positions */}
+              <div className={`grid gap-3 ${
+                positions.length <= 6 ? 'grid-cols-3' : 
+                positions.length <= 9 ? 'grid-cols-3' : 
+                'grid-cols-4'
+              }`}>
+                {positions.map(pos => {
+                  const player = getPlayerInPosition(pos.id)
+                  return (
+                    <div 
+                      key={pos.id}
+                      className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition ${
+                        player ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]' : `${tc.cardBgAlt} border-slate-600 hover:border-slate-400`
+                      }`}
+                      onClick={() => {
+                        if (player) assignPosition(pos.id, null)
+                      }}
+                    >
+                      {player ? (
+                        <>
+                          <span className="font-bold text-white text-lg">#{player.jersey_number || '?'}</span>
+                          <span className="text-xs text-slate-300 truncate w-full text-center px-1">{player.first_name}</span>
+                          {hasLibero && player.id === liberoId && <span className="text-[10px] text-amber-400">LIBERO</span>}
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-slate-400 font-semibold">{pos.name}</span>
+                          <span className="text-[10px] text-slate-500 text-center px-1">{pos.label}</span>
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+              
+              <p className={`text-xs ${tc.textMuted} mt-3`}>Click a filled position to remove player</p>
+              
+              {/* Starters count */}
+              <div className={`mt-4 p-3 rounded-xl ${tc.cardBgAlt} flex items-center justify-between`}>
+                <span className={tc.text}>Starters: {starters.length}/{starterCount}</span>
+                {starters.length >= starterCount && <span className="text-emerald-400 text-sm">✓ Lineup complete</span>}
+              </div>
+            </div>
+            
+            {/* Available Players */}
+            <div>
+              <h3 className={`font-semibold ${tc.text} mb-4`}>Available Players ({availablePlayers.length})</h3>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {roster.map(player => {
+                  const assigned = isPlayerAssigned(player.id)
+                  const isLibero = player.id === liberoId
+                  
+                  return (
+                    <div 
+                      key={player.id}
+                      className={`p-3 rounded-xl flex items-center justify-between transition ${
+                        assigned 
+                          ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30' 
+                          : `${tc.cardBgAlt} hover:bg-slate-700/50`
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {player.photo_url ? (
+                          <img src={player.photo_url} className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                            {player.jersey_number || '?'}
+                          </div>
+                        )}
+                        <div>
+                          <p className={`font-medium ${tc.text}`}>
+                            {player.first_name} {player.last_name}
+                            {isLibero && <span className="ml-2 text-xs text-amber-400 bg-amber-400/20 px-1.5 py-0.5 rounded">LIBERO</span>}
+                          </p>
+                          <p className={`text-xs ${tc.textMuted}`}>
+                            #{player.jersey_number} • {player.position || 'No position'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Libero toggle - only for sports that have it */}
+                        {hasLibero && (
+                          <button
+                            onClick={() => toggleLibero(player.id)}
+                            className={`px-2 py-1 rounded text-xs font-medium transition ${
+                              isLibero ? 'bg-amber-500 text-black' : `${tc.cardBg} ${tc.textMuted} hover:text-amber-400`
+                            }`}
+                            title="Toggle Libero"
+                          >
+                            L
+                          </button>
+                        )}
+                        
+                        {/* Position assignment dropdown */}
+                        {!assigned && (
+                          <select
+                            onChange={e => {
+                              if (e.target.value) assignPosition(parseInt(e.target.value), player.id)
+                            }}
+                            className={`px-2 py-1 rounded text-sm ${tc.input}`}
+                            defaultValue=""
+                          >
+                            <option value="">Assign...</option>
+                            {positions.map(pos => (
+                              <option key={pos.id} value={pos.id} disabled={!!getPlayerInPosition(pos.id)}>
+                                {pos.name} {getPlayerInPosition(pos.id) ? '(filled)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        
+                        {assigned && (
+                          <span className="text-xs text-[var(--accent-primary)]">
+                            {positions.find(p => p.id === lineup.find(l => l.player_id === player.id)?.rotation_order)?.name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+                
+                {roster.length === 0 && (
+                  <p className={`text-center py-8 ${tc.textMuted}`}>No players on roster</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Footer */}
+        <div className={`p-4 border-t ${tc.border} flex justify-between`}>
+          <button onClick={onClose} className={`px-6 py-2 rounded-xl ${tc.cardBgAlt} ${tc.text}`}>
+            Cancel
+          </button>
+          <button 
+            onClick={saveLineup}
+            disabled={saving}
+            className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save Lineup'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// GAME COMPLETION MODAL - MULTI-SPORT SCORING
+// ============================================
+
+// Volleyball Set Score Input Component
+function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winByTwo, onOurScoreChange, onTheirScoreChange, isDecidingSet, ourTeamName, theirTeamName }) {
+  const [ourInput, setOurInput] = useState(ourScore > 0 ? String(ourScore) : '')
+  const [theirInput, setTheirInput] = useState(theirScore > 0 ? String(theirScore) : '')
+  
+  useEffect(() => {
+    setOurInput(ourScore > 0 ? String(ourScore) : '')
+  }, [ourScore])
+  
+  useEffect(() => {
+    setTheirInput(theirScore > 0 ? String(theirScore) : '')
+  }, [theirScore])
+  
+  function isSetComplete() {
+    if (ourScore < targetScore && theirScore < targetScore) return false
+    if (winByTwo) {
+      const diff = Math.abs(ourScore - theirScore)
+      if (cap && (ourScore >= cap || theirScore >= cap)) return diff >= 1
+      return diff >= 2 && (ourScore >= targetScore || theirScore >= targetScore)
+    }
+    return ourScore >= targetScore || theirScore >= targetScore
+  }
+  
+  const complete = isSetComplete()
+  const ourWon = complete && ourScore > theirScore
+  const theyWon = complete && theirScore > ourScore
+  
+  return (
+    <div className={`p-4 rounded-2xl border-2 transition ${
+      ourWon ? 'bg-emerald-500/10 border-emerald-500/50' :
+      theyWon ? 'bg-red-500/10 border-red-500/50' :
+      'bg-slate-800/50 border-slate-600'
+    }`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className={`text-lg font-bold ${isDecidingSet ? 'text-amber-400' : 'text-white'}`}>
+            Set {setNumber}
+          </span>
+          {isDecidingSet && (
+            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded-full">
+              Deciding
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-slate-400">
+          First to {targetScore} {winByTwo ? '(win by 2)' : ''} {cap ? `• Cap: ${cap}` : ''}
+        </span>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <label className="text-xs text-slate-400 font-medium mb-1 block truncate">{ourTeamName || 'Us'}</label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onOurScoreChange(Math.max(0, ourScore - 1))}
+              className="w-10 h-10 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition"
+            >-</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={ourInput}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setOurInput(val)
+                onOurScoreChange(val === '' ? 0 : parseInt(val, 10))
+              }}
+              placeholder="0"
+              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 bg-slate-800 focus:outline-none ${
+                ourWon ? 'border-emerald-400 text-emerald-400' : 'border-slate-600 text-white focus:border-purple-500'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => onOurScoreChange(ourScore + 1)}
+              className="w-10 h-10 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold transition"
+            >+</button>
+          </div>
+        </div>
+        
+        <div className="text-2xl text-slate-500 font-bold">-</div>
+        
+        <div className="flex-1">
+          <label className="text-xs text-slate-400 font-medium mb-1 block text-right truncate">{theirTeamName || 'Opponent'}</label>
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => onTheirScoreChange(Math.max(0, theirScore - 1))}
+              className="w-10 h-10 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition"
+            >-</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={theirInput}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '')
+                setTheirInput(val)
+                onTheirScoreChange(val === '' ? 0 : parseInt(val, 10))
+              }}
+              placeholder="0"
+              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 bg-slate-800 focus:outline-none ${
+                theyWon ? 'border-red-400 text-red-400' : 'border-slate-600 text-white focus:border-purple-500'
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => onTheirScoreChange(theirScore + 1)}
+              className="w-10 h-10 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition"
+            >+</button>
+          </div>
+        </div>
+      </div>
+      
+      {(ourWon || theyWon) && (
+        <div className={`mt-3 text-center text-sm font-medium ${ourWon ? 'text-emerald-400' : 'text-red-400'}`}>
+          ✓ {ourWon ? `${ourTeamName || 'We'} won this set!` : `${theirTeamName || 'They'} won this set`}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Multi-sport scoring configurations
+const SCORING_CONFIGS = {
+  volleyball: {
+    name: 'Volleyball', icon: '🏐', isSetBased: true,
+    formats: [
+      { id: 'best_of_3', name: 'Best of 3 Sets', description: 'First to win 2 sets', setsToWin: 2, maxSets: 3, setScores: [25, 25, 15], winByTwo: true, caps: [30, 30, 20] },
+      { id: 'best_of_5', name: 'Best of 5 Sets', description: 'First to win 3 sets', setsToWin: 3, maxSets: 5, setScores: [25, 25, 25, 25, 15], winByTwo: true, caps: [30, 30, 30, 30, 20] },
+      { id: 'two_sets', name: '2 Sets (No Winner)', description: 'Play 2 sets, no match winner', setsToWin: null, maxSets: 2, setScores: [25, 25], winByTwo: true, caps: [30, 30], noMatchWinner: true },
+    ],
+  },
+  basketball: {
+    name: 'Basketball', icon: '🏀', isSetBased: false,
+    formats: [
+      { id: 'four_quarters', name: '4 Quarters', description: 'Standard game', periods: 4, periodAbbr: 'Q', hasOvertime: true },
+      { id: 'two_halves', name: '2 Halves', description: 'College/Youth format', periods: 2, periodAbbr: 'H', hasOvertime: true },
+    ],
+  },
+  soccer: {
+    name: 'Soccer', icon: '⚽', isSetBased: false,
+    formats: [
+      { id: 'two_halves', name: '2 Halves', description: 'Standard match', periods: 2, periodAbbr: 'H', allowTie: true },
+      { id: 'four_quarters', name: '4 Quarters', description: 'Youth format', periods: 4, periodAbbr: 'Q', allowTie: true },
+    ],
+  },
+  baseball: {
+    name: 'Baseball', icon: '⚾', isSetBased: false,
+    formats: [
+      { id: 'six_innings', name: '6 Innings', description: 'Youth baseball', periods: 6, periodAbbr: 'Inn', hasOvertime: true },
+      { id: 'seven_innings', name: '7 Innings', description: 'Middle/High school', periods: 7, periodAbbr: 'Inn', hasOvertime: true },
+    ],
+  },
+  softball: {
+    name: 'Softball', icon: '🥎', isSetBased: false,
+    formats: [
+      { id: 'five_innings', name: '5 Innings', description: 'Youth softball', periods: 5, periodAbbr: 'Inn', hasOvertime: true },
+      { id: 'seven_innings', name: '7 Innings', description: 'Standard', periods: 7, periodAbbr: 'Inn', hasOvertime: true },
+    ],
+  },
+  football: {
+    name: 'Football', icon: '🏈', isSetBased: false,
+    formats: [{ id: 'four_quarters', name: '4 Quarters', description: 'Standard game', periods: 4, periodAbbr: 'Q', hasOvertime: true }],
+  },
+  hockey: {
+    name: 'Hockey', icon: '🏒', isSetBased: false,
+    formats: [{ id: 'three_periods', name: '3 Periods', description: 'Standard game', periods: 3, periodAbbr: 'P', hasOvertime: true }],
+  },
+}
+
+function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClose, onComplete, showToast }) {
+  const tc = useThemeClasses()
+  const { user } = useAuth()
+  
+  const sportConfig = SCORING_CONFIGS[sport] || SCORING_CONFIGS.volleyball
+  const isSetBased = sportConfig.isSetBased
+  
+  const [step, setStep] = useState(1) // 1: Format, 2: Score, 3: Attendance, 4: Badges, 5: Confirm
+  const [selectedFormat, setSelectedFormat] = useState(sportConfig.formats[0])
+  const [setScores, setSetScores] = useState([])
+  const [periodScores, setPeriodScores] = useState([])
+  const [attendance, setAttendance] = useState({})
+  const [badges, setBadges] = useState([])
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  
+  const gameBadges = [
+    { id: 'game_mvp', name: 'Game MVP', icon: '🏆' },
+    { id: 'defensive_player', name: 'Defensive Player', icon: '🛡️' },
+    { id: 'best_server', name: 'Ace Machine', icon: '🎯' },
+    { id: 'team_spirit', name: 'Team Spirit', icon: '💪' },
+    { id: 'most_improved', name: 'Most Improved', icon: '📈' },
+    { id: 'clutch_player', name: 'Clutch Player', icon: '⭐' },
+  ]
+  
+  useEffect(() => {
+    if (isSetBased) {
+      setSetScores(Array(selectedFormat.maxSets).fill(null).map(() => ({ our: 0, their: 0 })))
+    } else {
+      setPeriodScores(Array(selectedFormat.periods).fill(null).map(() => ({ our: 0, their: 0 })))
+    }
+  }, [selectedFormat, isSetBased])
+  
+  useEffect(() => {
+    const initial = {}
+    roster.forEach(p => { initial[p.id] = 'present' })
+    setAttendance(initial)
+  }, [roster])
+  
+  // Calculate set-based result (volleyball)
+  function calculateSetBasedResult() {
+    if (selectedFormat.noMatchWinner) {
+      const ourTotal = setScores.reduce((sum, s) => sum + (s.our || 0), 0)
+      const theirTotal = setScores.reduce((sum, s) => sum + (s.their || 0), 0)
+      return { result: 'none', ourSetsWon: 0, theirSetsWon: 0, ourTotalPoints: ourTotal, theirTotalPoints: theirTotal, pointDifferential: ourTotal - theirTotal }
+    }
+    
+    let ourSetsWon = 0, theirSetsWon = 0, ourTotalPoints = 0, theirTotalPoints = 0
+    setScores.forEach((set, idx) => {
+      const target = selectedFormat.setScores[idx], cap = selectedFormat.caps?.[idx]
+      const ourScore = set.our || 0, theirScore = set.their || 0
+      ourTotalPoints += ourScore
+      theirTotalPoints += theirScore
+      
+      let complete = false
+      if (ourScore >= target || theirScore >= target) {
+        if (selectedFormat.winByTwo) {
+          const diff = Math.abs(ourScore - theirScore)
+          complete = (cap && (ourScore >= cap || theirScore >= cap)) ? diff >= 1 : diff >= 2
+        } else complete = true
+      }
+      if (complete) { if (ourScore > theirScore) ourSetsWon++; else theirSetsWon++ }
+    })
+    
+    let result = 'in_progress'
+    if (ourSetsWon >= selectedFormat.setsToWin) result = 'win'
+    else if (theirSetsWon >= selectedFormat.setsToWin) result = 'loss'
+    
+    return { result, ourSetsWon, theirSetsWon, ourTotalPoints, theirTotalPoints, pointDifferential: ourTotalPoints - theirTotalPoints }
+  }
+  
+  // Calculate period-based result
+  function calculatePeriodBasedResult() {
+    let ourTotal = 0, theirTotal = 0
+    periodScores.forEach(p => { ourTotal += p.our || 0; theirTotal += p.their || 0 })
+    
+    let result = 'in_progress'
+    if (ourTotal > theirTotal) result = 'win'
+    else if (theirTotal > ourTotal) result = 'loss'
+    else if (selectedFormat.allowTie && ourTotal === theirTotal && ourTotal > 0) result = 'tie'
+    else if (ourTotal > 0 || theirTotal > 0) result = ourTotal === theirTotal ? 'tie' : 'in_progress'
+    
+    return { result, ourTotalPoints: ourTotal, theirTotalPoints: theirTotal, pointDifferential: ourTotal - theirTotal }
+  }
+  
+  const matchResult = isSetBased ? calculateSetBasedResult() : calculatePeriodBasedResult()
+  
+  function getSetsToShow() {
+    if (!isSetBased) return 0
+    const { ourSetsWon, theirSetsWon } = matchResult
+    if (matchResult.result === 'win' || matchResult.result === 'loss') return ourSetsWon + theirSetsWon
+    let setsPlayed = 0
+    setScores.forEach((set, idx) => { if (set.our > 0 || set.their > 0) setsPlayed = idx + 1 })
+    return Math.min(Math.max(setsPlayed + 1, 2), selectedFormat.maxSets)
+  }
+  
+  function updateSetScore(idx, team, val) { setSetScores(prev => { const u = [...prev]; u[idx] = { ...u[idx], [team]: val }; return u }) }
+  function updatePeriodScore(idx, team, val) { setPeriodScores(prev => { const u = [...prev]; u[idx] = { ...u[idx], [team]: val }; return u }) }
+  function addOvertime() { setPeriodScores(prev => [...prev, { our: 0, their: 0 }]) }
+  
+  function toggleAttendance(playerId) {
+    const current = attendance[playerId] || 'present'
+    const next = current === 'present' ? 'absent' : current === 'absent' ? 'late' : 'present'
+    setAttendance({ ...attendance, [playerId]: next })
+  }
+  
+  function toggleBadge(playerId, badgeType) {
+    const exists = badges.find(b => b.playerId === playerId && b.badgeType === badgeType)
+    if (exists) setBadges(badges.filter(b => !(b.playerId === playerId && b.badgeType === badgeType)))
+    else setBadges([...badges, { playerId, badgeType }])
+  }
+  
+  function getPlayerBadges(playerId) { return badges.filter(b => b.playerId === playerId) }
+  
+  async function completeGame() {
+    setSaving(true)
+    try {
+      const updateData = {
+        game_status: 'completed',
+        scoring_format: selectedFormat.id,
+        our_score: matchResult.ourTotalPoints,
+        opponent_score: matchResult.theirTotalPoints,
+        point_differential: matchResult.pointDifferential,
+        game_result: matchResult.result === 'win' ? 'win' : matchResult.result === 'loss' ? 'loss' : matchResult.result === 'tie' ? 'tie' : null,
+        completed_at: new Date().toISOString(),
+        completed_by: user?.id,
+        notes: notes || null
+      }
+      
+      if (isSetBased) {
+        updateData.set_scores = setScores
+        updateData.our_sets_won = matchResult.ourSetsWon
+        updateData.opponent_sets_won = matchResult.theirSetsWon
+      } else {
+        updateData.period_scores = periodScores
+      }
+      
+      await supabase.from('schedule_events').update(updateData).eq('id', event.id)
+      
+      // Save attendance
+      await supabase.from('event_attendance').delete().eq('event_id', event.id)
+      const attendanceRecords = Object.entries(attendance).map(([playerId, status]) => ({
+        event_id: event.id, player_id: playerId, status, recorded_at: new Date().toISOString(), recorded_by: user?.id
+      }))
+      if (attendanceRecords.length > 0) await supabase.from('event_attendance').insert(attendanceRecords)
+      
+      // Award badges
+      for (const badge of badges) {
+        await supabase.from('player_badges').insert({
+          player_id: badge.playerId, badge_id: badge.badgeType, earned_at: new Date().toISOString(),
+          awarded_by: user?.id, context: `Game vs ${event.opponent_name || 'opponent'} - ${matchResult.result}`, event_id: event.id
+        })
+      }
+      
+      showToast?.(`Game completed! ${matchResult.result === 'win' ? '🎉 Victory!' : ''}`, 'success')
+      onComplete?.()
+      onClose()
+    } catch (err) {
+      console.error('Error completing game:', err)
+      showToast?.('Error completing game', 'error')
+    }
+    setSaving(false)
+  }
+  
+  const presentCount = Object.values(attendance).filter(s => s === 'present' || s === 'late').length
+  const canComplete = matchResult.result === 'win' || matchResult.result === 'loss' || matchResult.result === 'tie' || selectedFormat.noMatchWinner
+  const steps = ['Format', 'Score', 'Attendance', 'Badges', 'Confirm']
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className={`p-4 border-b ${tc.border} ${
+          matchResult.result === 'win' ? 'bg-emerald-500/20' : matchResult.result === 'loss' ? 'bg-red-500/20' : ''
+        }`}>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{sportConfig.icon}</span>
+            <div>
+              <h2 className={`text-xl font-bold ${tc.text}`}>Complete Game</h2>
+              <p className={tc.textMuted}>{team?.name} vs {event.opponent_name || 'TBD'}</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2 mt-4">
+            {steps.map((s, i) => (
+              <button
+                key={s}
+                onClick={() => setStep(i + 1)}
+                className={`flex-1 py-2 rounded-lg text-xs font-medium transition ${
+                  step === i + 1 ? 'bg-[var(--accent-primary)] text-white' : step > i + 1 ? 'bg-emerald-500/20 text-emerald-400' : `${tc.cardBgAlt} ${tc.textMuted}`
+                }`}
+              >
+                {step > i + 1 ? '✓ ' : ''}{s}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex-1 p-6 overflow-y-auto">
+          {/* Step 1: Format */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <p className={tc.textMuted}>Select scoring format for {sportConfig.name}</p>
+              <div className="space-y-2">
+                {sportConfig.formats.map(format => (
+                  <button
+                    key={format.id}
+                    onClick={() => setSelectedFormat(format)}
+                    className={`w-full p-4 rounded-xl text-left transition border-2 ${
+                      selectedFormat.id === format.id ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10' : `${tc.border} hover:border-slate-500`
+                    }`}
+                  >
+                    <p className={`font-semibold ${tc.text}`}>{format.name}</p>
+                    <p className={`text-sm ${tc.textMuted}`}>{format.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Step 2: Score */}
+          {step === 2 && (
+            <div className="space-y-4">
+              {/* Match status */}
+              <div className={`p-4 rounded-2xl text-center ${
+                matchResult.result === 'win' ? 'bg-emerald-500/20' : matchResult.result === 'loss' ? 'bg-red-500/20' : tc.cardBgAlt
+              }`}>
+                <div className="flex items-center justify-center gap-8">
+                  <div className="text-center">
+                    <p className={`text-xs ${tc.textMuted} mb-1`}>{team?.name}</p>
+                    <p className="text-4xl font-bold text-[var(--accent-primary)]">{isSetBased ? matchResult.ourSetsWon : matchResult.ourTotalPoints}</p>
+                    {isSetBased && <p className={`text-xs ${tc.textMuted} mt-1`}>{matchResult.ourTotalPoints} pts</p>}
+                  </div>
+                  <div className="text-center">
+                    {matchResult.result === 'win' && <span className="text-emerald-400 font-bold">🏆 VICTORY!</span>}
+                    {matchResult.result === 'loss' && <span className="text-red-400 font-medium">Defeat</span>}
+                    {matchResult.result === 'tie' && <span className="text-amber-400 font-medium">Tie</span>}
+                    {matchResult.result === 'in_progress' && <span className={tc.textMuted}>In Progress</span>}
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-xs ${tc.textMuted} mb-1`}>{event.opponent_name}</p>
+                    <p className="text-4xl font-bold text-red-400">{isSetBased ? matchResult.theirSetsWon : matchResult.theirTotalPoints}</p>
+                    {isSetBased && <p className={`text-xs ${tc.textMuted} mt-1`}>{matchResult.theirTotalPoints} pts</p>}
+                  </div>
+                </div>
+                <p className={`text-sm ${tc.textMuted} mt-2`}>
+                  Point Differential: <span className={matchResult.pointDifferential > 0 ? 'text-emerald-400' : matchResult.pointDifferential < 0 ? 'text-red-400' : ''}>
+                    {matchResult.pointDifferential > 0 ? '+' : ''}{matchResult.pointDifferential}
+                  </span>
+                </p>
+              </div>
+              
+              {/* Set Summary */}
+              {isSetBased && setScores.some(s => s.our > 0 || s.their > 0) && (
+                <div className={`${tc.cardBgAlt} rounded-xl p-3`}>
+                  <div className="flex flex-wrap gap-3">
+                    {setScores.slice(0, getSetsToShow()).map((set, idx) => {
+                      if (set.our === 0 && set.their === 0) return null
+                      const ourWon = set.our > set.their
+                      return (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className={tc.textMuted}>Set {idx + 1}:</span>
+                          <span className={`font-bold ${ourWon ? 'text-emerald-400' : 'text-red-400'}`}>{set.our}-{set.their}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Set inputs (volleyball) */}
+              {isSetBased && (
+                <div className="space-y-4">
+                  {setScores.slice(0, getSetsToShow()).map((set, idx) => (
+                    <SetScoreInput
+                      key={idx}
+                      setNumber={idx + 1}
+                      ourScore={set.our || 0}
+                      theirScore={set.their || 0}
+                      targetScore={selectedFormat.setScores[idx]}
+                      cap={selectedFormat.caps?.[idx]}
+                      winByTwo={selectedFormat.winByTwo}
+                      isDecidingSet={idx === selectedFormat.maxSets - 1}
+                      ourTeamName={team?.name}
+                      theirTeamName={event.opponent_name}
+                      onOurScoreChange={(val) => updateSetScore(idx, 'our', val)}
+                      onTheirScoreChange={(val) => updateSetScore(idx, 'their', val)}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* Period inputs (other sports) */}
+              {!isSetBased && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
+                    {periodScores.map((period, idx) => (
+                      <div key={idx} className={`p-3 rounded-xl ${idx >= selectedFormat.periods ? 'bg-amber-500/10 border border-amber-500/30' : tc.cardBgAlt}`}>
+                        <div className={`text-center text-xs font-medium mb-2 ${idx >= selectedFormat.periods ? 'text-amber-400' : tc.textMuted}`}>
+                          {idx >= selectedFormat.periods ? 'OT' : `${selectedFormat.periodAbbr}${idx + 1}`}
+                        </div>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={period.our || ''}
+                          onChange={(e) => updatePeriodScore(idx, 'our', parseInt(e.target.value.replace(/\D/g, '')) || 0)}
+                          placeholder="0"
+                          className={`w-full h-10 text-center font-bold rounded-lg border ${tc.border} bg-transparent ${tc.text} mb-2`}
+                        />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={period.their || ''}
+                          onChange={(e) => updatePeriodScore(idx, 'their', parseInt(e.target.value.replace(/\D/g, '')) || 0)}
+                          placeholder="0"
+                          className={`w-full h-10 text-center font-bold rounded-lg border border-red-500/30 bg-transparent text-red-400`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {selectedFormat.hasOvertime && matchResult.ourTotalPoints === matchResult.theirTotalPoints && matchResult.ourTotalPoints > 0 && (
+                    <button onClick={addOvertime} className={`w-full py-2 border-2 border-dashed border-amber-500/50 rounded-xl text-amber-400 hover:bg-amber-500/10 transition text-sm`}>
+                      + Add Overtime
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Step 3: Attendance */}
+          {step === 3 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className={tc.textMuted}>Mark who played</p>
+                <span className={`px-3 py-1 rounded-full text-sm ${presentCount >= 6 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                  {presentCount} present
+                </span>
+              </div>
+              <div className="space-y-2">
+                {roster.map(player => {
+                  const status = attendance[player.id] || 'present'
+                  return (
+                    <div key={player.id} onClick={() => toggleAttendance(player.id)}
+                      className={`p-3 rounded-xl flex items-center justify-between cursor-pointer transition ${
+                        status === 'present' ? 'bg-emerald-500/10 border border-emerald-500/30' :
+                        status === 'late' ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-red-500/10 border border-red-500/30'
+                      }`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                          {player.jersey_number || '?'}
+                        </div>
+                        <p className={`font-medium ${tc.text}`}>{player.first_name} {player.last_name}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                        status === 'present' ? 'bg-emerald-500 text-white' : status === 'late' ? 'bg-amber-500 text-black' : 'bg-red-500 text-white'
+                      }`}>
+                        {status === 'present' ? '✓ Present' : status === 'late' ? '⏰ Late' : '✗ Absent'}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Step 4: Badges */}
+          {step === 4 && (
+            <div className="space-y-4">
+              <p className={tc.textMuted}>Award badges (optional)</p>
+              <div className={`p-3 rounded-xl ${tc.cardBgAlt}`}>
+                <div className="flex flex-wrap gap-2">
+                  {gameBadges.map(b => <span key={b.id} className="px-2 py-1 rounded-full bg-slate-700 text-xs">{b.icon} {b.name}</span>)}
+                </div>
+              </div>
+              <div className="space-y-3">
+                {roster.filter(p => attendance[p.id] === 'present' || attendance[p.id] === 'late').map(player => {
+                  const playerBadges = getPlayerBadges(player.id)
+                  return (
+                    <div key={player.id} className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold text-sm">{player.jersey_number || '?'}</div>
+                        <p className={`font-medium ${tc.text}`}>{player.first_name} {player.last_name}</p>
+                        {playerBadges.length > 0 && <span className="text-xs text-[var(--accent-primary)]">{playerBadges.length} badge(s)</span>}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {gameBadges.map(badge => {
+                          const awarded = playerBadges.some(b => b.badgeType === badge.id)
+                          return (
+                            <button key={badge.id} onClick={() => toggleBadge(player.id, badge.id)}
+                              className={`px-2 py-1 rounded-lg text-xs transition ${awarded ? 'bg-[var(--accent-primary)] text-white' : `${tc.cardBg} ${tc.textMuted} hover:bg-slate-600`}`}>
+                              {badge.icon} {badge.name}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Step 5: Confirm */}
+          {step === 5 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <span className="text-6xl">{matchResult.result === 'win' ? '🏆' : matchResult.result === 'loss' ? '📊' : '🤝'}</span>
+                <h3 className={`text-2xl font-bold ${tc.text} mt-4`}>
+                  {isSetBased ? `${matchResult.ourSetsWon} - ${matchResult.theirSetsWon}` : `${matchResult.ourTotalPoints} - ${matchResult.theirTotalPoints}`}
+                </h3>
+                <p className={tc.textMuted}>{team?.name} vs {event.opponent_name}</p>
+              </div>
+              
+              <div className={`p-4 rounded-xl ${tc.cardBgAlt} space-y-3`}>
+                <div className="flex justify-between"><span className={tc.textMuted}>Format</span><span className={tc.text}>{selectedFormat.name}</span></div>
+                {isSetBased && (
+                  <>
+                    <div className="flex justify-between"><span className={tc.textMuted}>Sets</span><span className={tc.text}>{matchResult.ourSetsWon} - {matchResult.theirSetsWon}</span></div>
+                    <div className="pt-2 border-t border-slate-700">
+                      {setScores.slice(0, getSetsToShow()).map((set, idx) => {
+                        if (set.our === 0 && set.their === 0) return null
+                        return <div key={idx} className="flex justify-between text-sm"><span className={tc.textMuted}>Set {idx + 1}</span><span className={set.our > set.their ? 'text-emerald-400' : 'text-red-400'}>{set.our}-{set.their}</span></div>
+                      })}
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between"><span className={tc.textMuted}>Total Points</span><span className={tc.text}>{matchResult.ourTotalPoints} - {matchResult.theirTotalPoints}</span></div>
+                <div className="flex justify-between"><span className={tc.textMuted}>Point Diff</span><span className={matchResult.pointDifferential > 0 ? 'text-emerald-400' : matchResult.pointDifferential < 0 ? 'text-red-400' : tc.text}>{matchResult.pointDifferential > 0 ? '+' : ''}{matchResult.pointDifferential}</span></div>
+                <div className="flex justify-between"><span className={tc.textMuted}>Result</span><span className={matchResult.result === 'win' ? 'text-emerald-400 font-bold' : matchResult.result === 'loss' ? 'text-red-400' : tc.text}>{matchResult.result?.toUpperCase() || 'N/A'}</span></div>
+                <div className="flex justify-between"><span className={tc.textMuted}>Attendance</span><span className={tc.text}>{presentCount}</span></div>
+                <div className="flex justify-between"><span className={tc.textMuted}>Badges</span><span className={tc.text}>{badges.length}</span></div>
+              </div>
+              
+              <div>
+                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Game Notes (optional)</label>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any notes..." rows={2} className={`w-full px-4 py-3 rounded-xl ${tc.input} resize-none`} />
+              </div>
+              
+              {!canComplete && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-amber-400 text-sm">
+                  ⚠️ Game must have a winner before completing.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Footer */}
+        <div className={`p-4 border-t ${tc.border} flex justify-between`}>
+          <button onClick={() => step > 1 ? setStep(step - 1) : onClose()} className={`px-6 py-2 rounded-xl ${tc.cardBgAlt} ${tc.text}`}>
+            {step > 1 ? '← Back' : 'Cancel'}
+          </button>
+          {step < 5 ? (
+            <button onClick={() => setStep(step + 1)} className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold">
+              Next →
+            </button>
+          ) : (
+            <button onClick={completeGame} disabled={saving || !canComplete} className="px-6 py-2 rounded-xl bg-emerald-500 text-white font-semibold disabled:opacity-50">
+              {saving ? 'Completing...' : '✓ Complete Game'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -67,7 +989,7 @@ function formatTime12(timeStr) {
   return `${hour12}:${minutes} ${ampm}`
 }
 
-function SchedulePage({ showToast, activeView }) {
+function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
   const { organization } = useAuth()
   const { selectedSeason } = useSeason()
@@ -79,6 +1001,10 @@ function SchedulePage({ showToast, activeView }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedTeam, setSelectedTeam] = useState('all')
   const [selectedEventType, setSelectedEventType] = useState('all')
+  
+  // Parent view restrictions
+  const isParentView = activeView === 'parent'
+  const parentChildIds = roleContext?.children?.map(c => c.id) || []
   
   // Modals
   const [showAddEvent, setShowAddEvent] = useState(false)
@@ -318,38 +1244,40 @@ END:VCALENDAR`
           <button onClick={exportToICal} className="bg-slate-700 text-white px-4 py-2 rounded-xl hover:bg-slate-600 flex items-center gap-2">
             📅 Export iCal
           </button>
-          <div className="relative">
-            <button 
-              onClick={() => setShowQuickActions(!showQuickActions)}
-              className="bg-[var(--accent-primary)] text-white font-semibold px-4 py-2 rounded-xl hover:brightness-110 flex items-center gap-2"
-            >
-              ➕ Add Events ▾
-            </button>
-            {showQuickActions && (
-              <div className="absolute right-0 mt-2 w-56 bg-slate-700 border border-slate-700 rounded-xl shadow-xl z-20">
-                <button onClick={() => { setShowAddEvent(true); setShowQuickActions(false) }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 rounded-t-xl flex items-center gap-3">
-                  <span>📝</span> Single Event
-                </button>
-                <button onClick={() => { setShowBulkPractice(true); setShowQuickActions(false) }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
-                  <span>🔄</span> Recurring Practice
-                </button>
-                <button onClick={() => { setShowBulkGames(true); setShowQuickActions(false) }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
-                  <VolleyballIcon className="w-4 h-4" /> Bulk Add Games
-                </button>
-                <button onClick={() => { setShowVenueManager(true); setShowQuickActions(false) }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
-                  <span>📍</span> Manage Venues
-                </button>
-                <button onClick={() => { setShowAvailabilitySurvey(true); setShowQuickActions(false) }}
-                  className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 rounded-b-xl flex items-center gap-3">
-                  <BarChart3 className="w-5 h-5" /> Availability Survey
-                </button>
-              </div>
-            )}
-          </div>
+          {!isParentView && (
+            <div className="relative">
+              <button 
+                onClick={() => setShowQuickActions(!showQuickActions)}
+                className="bg-[var(--accent-primary)] text-white font-semibold px-4 py-2 rounded-xl hover:brightness-110 flex items-center gap-2"
+              >
+                ➕ Add Events ▾
+              </button>
+              {showQuickActions && (
+                <div className="absolute right-0 mt-2 w-56 bg-slate-700 border border-slate-700 rounded-xl shadow-xl z-20">
+                  <button onClick={() => { setShowAddEvent(true); setShowQuickActions(false) }}
+                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 rounded-t-xl flex items-center gap-3">
+                    <span>📝</span> Single Event
+                  </button>
+                  <button onClick={() => { setShowBulkPractice(true); setShowQuickActions(false) }}
+                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
+                    <span>🔄</span> Recurring Practice
+                  </button>
+                  <button onClick={() => { setShowBulkGames(true); setShowQuickActions(false) }}
+                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
+                    <VolleyballIcon className="w-4 h-4" /> Bulk Add Games
+                  </button>
+                  <button onClick={() => { setShowVenueManager(true); setShowQuickActions(false) }}
+                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
+                    <span>📍</span> Manage Venues
+                  </button>
+                  <button onClick={() => { setShowAvailabilitySurvey(true); setShowQuickActions(false) }}
+                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 rounded-b-xl flex items-center gap-3">
+                    <BarChart3 className="w-5 h-5" /> Availability Survey
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -489,6 +1417,8 @@ END:VCALENDAR`
           onUpdate={updateEvent}
           onDelete={deleteEvent}
           activeView={activeView}
+          selectedSeason={selectedSeason}
+          parentChildIds={parentChildIds}
         />
       )}
 
@@ -1803,15 +2733,18 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
 // ============================================
 // EVENT DETAIL MODAL (VIEW/EDIT)
 // ============================================
-function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast }) {
+function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast, selectedSeason, parentChildIds = [] }) {
   const { isAdmin: hasAdminRole, profile, user } = useAuth()
   // Use activeView if provided, otherwise fall back to admin role check
   const isAdminView = activeView ? (activeView === 'admin' || activeView === 'coach') : hasAdminRole
   const isCoachView = activeView === 'coach'
+  const isParentView = activeView === 'parent'
   const [activeTab, setActiveTab] = useState('details')
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [showLineupBuilder, setShowLineupBuilder] = useState(false)
+  const [showGameCompletion, setShowGameCompletion] = useState(false)
+  const [lineupCount, setLineupCount] = useState(0)
   
   // Rich data
   const [roster, setRoster] = useState([])
@@ -1880,6 +2813,16 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
         .select('*, profiles(id, full_name, email)')
         .eq('event_id', event.id)
       setVolunteers(volunteerData || [])
+
+      // Load lineup count for games
+      if (event.event_type === 'game') {
+        const { count } = await supabase
+          .from('game_lineups')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_id', event.id)
+          .eq('is_starter', true)
+        setLineupCount(count || 0)
+      }
 
       // Load available parents for volunteer assignment
       const { data: parentsData } = await supabase
@@ -2318,8 +3261,12 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                     <div className="space-y-2">
                       {roster.map(player => {
                         const rsvp = rsvps[player.id]
+                        // Parents can only RSVP for their own children
+                        const canRsvp = !isParentView || parentChildIds.includes(player.id)
+                        const isOwnChild = parentChildIds.includes(player.id)
+                        
                         return (
-                          <div key={player.id} className="bg-slate-900 rounded-xl p-3 flex items-center justify-between">
+                          <div key={player.id} className={`bg-slate-900 rounded-xl p-3 flex items-center justify-between ${isParentView && isOwnChild ? 'ring-2 ring-[var(--accent-primary)]/50' : ''}`}>
                             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedPlayer(player)}>
                               {showPhotos && (
                                 player.photo_url ? (
@@ -2334,39 +3281,58 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                                 </span>
                               )}
                               <div>
-                                <div className="text-white font-medium">{player.first_name} {player.last_name}</div>
+                                <div className="text-white font-medium">
+                                  {player.first_name} {player.last_name}
+                                  {isParentView && isOwnChild && <span className="ml-2 text-xs text-[var(--accent-primary)]">(Your child)</span>}
+                                </div>
                                 <div className="text-xs text-slate-500">
                                   {player.position && <span className="mr-2">{player.position}</span>}
                                   {player.grade && <span>Grade {player.grade}</span>}
                                 </div>
                               </div>
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => updateRsvp(player.id, 'yes')}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                                  rsvp?.status === 'yes' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400'
-                                }`}
-                              >
-                                ✓ Yes
-                              </button>
-                              <button
-                                onClick={() => updateRsvp(player.id, 'no')}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                                  rsvp?.status === 'no' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-red-500/20 hover:text-red-400'
-                                }`}
-                              >
-                                ✗ No
-                              </button>
-                              <button
-                                onClick={() => updateRsvp(player.id, 'maybe')}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                                  rsvp?.status === 'maybe' ? 'bg-yellow-500 text-black' : 'bg-slate-700 text-slate-400 hover:bg-[var(--accent-primary)]/20 hover:text-[var(--accent-primary)]'
-                                }`}
-                              >
-                                ? Maybe
-                              </button>
-                            </div>
+                            {canRsvp ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => updateRsvp(player.id, 'yes')}
+                                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                    rsvp?.status === 'yes' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400'
+                                  }`}
+                                >
+                                  ✓ Yes
+                                </button>
+                                <button
+                                  onClick={() => updateRsvp(player.id, 'no')}
+                                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                    rsvp?.status === 'no' ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-400 hover:bg-red-500/20 hover:text-red-400'
+                                  }`}
+                                >
+                                  ✗ No
+                                </button>
+                                <button
+                                  onClick={() => updateRsvp(player.id, 'maybe')}
+                                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                                    rsvp?.status === 'maybe' ? 'bg-yellow-500 text-black' : 'bg-slate-700 text-slate-400 hover:bg-[var(--accent-primary)]/20 hover:text-[var(--accent-primary)]'
+                                  }`}
+                                >
+                                  ? Maybe
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                                  rsvp?.status === 'yes' ? 'bg-emerald-500/20 text-emerald-400' :
+                                  rsvp?.status === 'no' ? 'bg-red-500/20 text-red-400' :
+                                  rsvp?.status === 'maybe' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  'bg-slate-700/50 text-slate-500'
+                                }`}>
+                                  {rsvp?.status === 'yes' ? '✓ Going' :
+                                   rsvp?.status === 'no' ? '✗ Not Going' :
+                                   rsvp?.status === 'maybe' ? '? Maybe' :
+                                   'Pending'}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
@@ -2587,55 +3553,131 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
               {/* Game Prep Tab - For coaches/admins on games */}
               {activeTab === 'gameprep' && isGame && (
                 <div className="space-y-4">
-                  {/* Quick Actions for Game Day */}
-                  <div className="bg-slate-900 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-slate-400 uppercase mb-4">Game Day Prep</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => setShowLineupBuilder(true)}
-                        className="flex items-center gap-3 p-4 bg-[var(--accent-primary)]/20 rounded-xl hover:bg-[var(--accent-primary)]/30 transition text-left"
-                      >
-                        <ClipboardList className="w-7 h-7" />
+                  {/* Game Status Banner */}
+                  {event.game_status === 'completed' ? (
+                    <div className={`p-4 rounded-xl ${
+                      event.game_result === 'win' ? 'bg-emerald-500/20 border border-emerald-500/30' :
+                      event.game_result === 'loss' ? 'bg-red-500/20 border border-red-500/30' :
+                      'bg-yellow-500/20 border border-yellow-500/30'
+                    }`}>
+                      <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-white font-semibold">Set Lineup</p>
-                          <p className="text-slate-400 text-xs">Build starting rotation</p>
+                          <span className="text-2xl mr-2">
+                            {event.game_result === 'win' ? '🏆' : event.game_result === 'loss' ? '📊' : '🤝'}
+                          </span>
+                          <span className={`text-lg font-bold ${
+                            event.game_result === 'win' ? 'text-emerald-400' :
+                            event.game_result === 'loss' ? 'text-red-400' :
+                            'text-yellow-400'
+                          }`}>
+                            {event.game_result === 'win' ? 'VICTORY' : event.game_result === 'loss' ? 'DEFEAT' : 'TIE'}
+                          </span>
                         </div>
-                      </button>
-                      
-                      <button
-                        onClick={() => setActiveTab('rsvp')}
-                        className="flex items-center gap-3 p-4 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition text-left"
-                      >
-                        <span className="text-2xl">✓</span>
-                        <div>
-                          <p className="text-white font-semibold">Check Attendance</p>
-                          <p className="text-slate-400 text-xs">{rsvpCounts.yes} confirmed, {rsvpCounts.pending} pending</p>
+                        <div className="text-right">
+                          {/* Set-based scoring (volleyball) */}
+                          {event.set_scores && event.our_sets_won !== undefined ? (
+                            <>
+                              <p className="text-3xl font-bold text-white">
+                                {event.our_sets_won} - {event.opponent_sets_won}
+                              </p>
+                              <p className="text-sm text-slate-300">
+                                {event.set_scores
+                                  .filter(s => s && (s.our > 0 || s.their > 0))
+                                  .map((s, i) => `${s.our}-${s.their}`)
+                                  .join(', ')}
+                              </p>
+                              <p className="text-xs text-slate-400">{event.our_score} total pts</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-3xl font-bold text-white">
+                                {event.our_score} - {event.opponent_score}
+                              </p>
+                              <p className="text-xs text-slate-400">Final Score</p>
+                            </>
+                          )}
                         </div>
-                      </button>
-                      
-                      <button
-                        onClick={() => setActiveTab('roster')}
-                        className="flex items-center gap-3 p-4 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition text-left"
-                      >
-                        <Users className="w-7 h-7" />
-                        <div>
-                          <p className="text-white font-semibold">View Roster</p>
-                          <p className="text-slate-400 text-xs">{roster.length} players</p>
-                        </div>
-                      </button>
-                      
-                      <button
-                        onClick={() => setActiveTab('volunteers')}
-                        className="flex items-center gap-3 p-4 bg-purple-500/20 rounded-xl hover:bg-purple-500/30 transition text-left"
-                      >
-                        <span className="text-2xl">🙋</span>
-                        <div>
-                          <p className="text-white font-semibold">Volunteers</p>
-                          <p className="text-slate-400 text-xs">{volunteers.length} assigned</p>
-                        </div>
-                      </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">⏰</span>
+                          <div>
+                            <p className="text-amber-400 font-semibold">Game Scheduled</p>
+                            <p className="text-slate-400 text-sm">Ready for game day</p>
+                          </div>
+                        </div>
+                        {isAdminView && (
+                          <button
+                            onClick={() => setShowGameCompletion(true)}
+                            className="px-4 py-2 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition"
+                          >
+                            🏁 Complete Game
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Quick Actions for Game Day */}
+                  {event.game_status !== 'completed' && (
+                    <div className="bg-slate-900 rounded-xl p-4">
+                      <h4 className="text-sm font-semibold text-slate-400 uppercase mb-4">Game Day Prep</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => setShowLineupBuilder(true)}
+                          className={`flex items-center gap-3 p-4 rounded-xl transition text-left ${
+                            lineupCount >= 6 
+                              ? 'bg-emerald-500/20 hover:bg-emerald-500/30' 
+                              : 'bg-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/30'
+                          }`}
+                        >
+                          <ClipboardList className="w-7 h-7" />
+                          <div>
+                            <p className="text-white font-semibold">Set Lineup</p>
+                            <p className="text-slate-400 text-xs">
+                              {lineupCount >= 6 ? `✓ ${lineupCount} starters set` : `${lineupCount}/6 positions filled`}
+                            </p>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => setActiveTab('rsvp')}
+                          className="flex items-center gap-3 p-4 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition text-left"
+                        >
+                          <span className="text-2xl">✓</span>
+                          <div>
+                            <p className="text-white font-semibold">Check Attendance</p>
+                            <p className="text-slate-400 text-xs">{rsvpCounts.yes} confirmed, {rsvpCounts.pending} pending</p>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => setActiveTab('roster')}
+                          className="flex items-center gap-3 p-4 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition text-left"
+                        >
+                          <Users className="w-7 h-7" />
+                          <div>
+                            <p className="text-white font-semibold">View Roster</p>
+                            <p className="text-slate-400 text-xs">{roster.length} players</p>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => setActiveTab('volunteers')}
+                          className="flex items-center gap-3 p-4 bg-purple-500/20 rounded-xl hover:bg-purple-500/30 transition text-left"
+                        >
+                          <span className="text-2xl">🙋</span>
+                          <div>
+                            <p className="text-white font-semibold">Volunteers</p>
+                            <p className="text-slate-400 text-xs">{volunteers.length} assigned</p>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Game Info Summary */}
                   <div className="bg-slate-900 rounded-xl p-4">
@@ -2663,7 +3705,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   {/* Coach Notes */}
                   <div className="bg-slate-900 rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-slate-400 uppercase mb-2">📝 Game Notes</h4>
-                    <p className="text-slate-300 text-sm">{event.description || 'No notes added'}</p>
+                    <p className="text-slate-300 text-sm">{event.description || event.notes || 'No notes added'}</p>
                   </div>
                 </div>
               )}
@@ -2720,6 +3762,31 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
           event={event}
           team={teams?.find(t => t.id === event.team_id) || { id: event.team_id, name: event.teams?.name }}
           onClose={() => setShowLineupBuilder(false)}
+          showToast={showToast}
+          sport={selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'}
+          onSave={async () => {
+            // Refresh lineup count
+            const { count } = await supabase
+              .from('game_lineups')
+              .select('*', { count: 'exact', head: true })
+              .eq('event_id', event.id)
+              .eq('is_starter', true)
+            setLineupCount(count || 0)
+          }}
+        />
+      )}
+      
+      {/* Game Completion Modal */}
+      {showGameCompletion && event.team_id && (
+        <GameCompletionModal
+          event={event}
+          team={teams?.find(t => t.id === event.team_id) || { id: event.team_id, name: event.teams?.name }}
+          roster={roster}
+          onClose={() => setShowGameCompletion(false)}
+          onComplete={() => {
+            onUpdate?.(event.id, { game_status: 'completed' })
+            onClose()
+          }}
           showToast={showToast}
         />
       )}

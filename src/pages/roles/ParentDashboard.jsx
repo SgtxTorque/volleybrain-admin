@@ -8,6 +8,7 @@ import {
   Check, AlertTriangle, Plus, RefreshCw, X, ExternalLink, ClipboardList,
   MessageCircle, Megaphone, Target, Copy, CreditCard, Bell
 } from '../../constants/icons'
+import { TeamGamesWidget } from '../../components/games/GameComponents'
 
 // Volleyball icon component
 function VolleyballIcon({ className }) {
@@ -477,6 +478,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [playerDetails, setPlayerDetails] = useState([])
   const [selectedEventDetail, setSelectedEventDetail] = useState(null)
   const [teams, setTeams] = useState([])
+  const [teamIds, setTeamIds] = useState([])
+  const [seasonId, setSeasonId] = useState(null)
   
   // Alerts/Announcements
   const [alerts, setAlerts] = useState([])
@@ -589,6 +592,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             .map(p => [p.team.id, p.team])
         ).values()]
         setTeams(uniqueTeams)
+        setTeamIds(uniqueTeams.map(t => t.id))
+        
+        // Set season from first player with a season
+        const firstSeason = enrichedPlayers.find(p => p.season)?.season
+        if (firstSeason) setSeasonId(firstSeason.id)
 
         // Load payment data
         const { data: payments } = await supabase
@@ -625,10 +633,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         if (teamIds.length > 0) {
           const today = new Date().toISOString().split('T')[0]
           
-          // Try to load events - use schedule table which is more common
+          // Load events from schedule_events
           try {
             const { data: events } = await supabase
-              .from('schedule')
+              .from('schedule_events')
               .select('*, teams(id, name, color)')
               .in('team_id', teamIds)
               .gte('event_date', today)
@@ -949,6 +957,25 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               </div>
             )}
           </div>
+          
+          {/* Games Widget */}
+          {teamIds.length > 0 && seasonId && (
+            <TeamGamesWidget
+              teamIds={teamIds}
+              seasonId={seasonId}
+              sport={primarySport?.name || 'volleyball'}
+              viewerRole="parent"
+              playerIds={roleContext?.children?.map(c => c.id) || []}
+              onViewDetails={(game) => setSelectedEventDetail(game)}
+              onRSVP={(game) => {
+                // Navigate to schedule with game selected
+                onNavigate?.('schedule', { eventId: game.id })
+              }}
+              maxUpcoming={3}
+              maxRecent={3}
+              title="Games"
+            />
+          )}
         </div>
       </div>
 

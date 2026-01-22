@@ -132,8 +132,12 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         }
       })
       
-      // Filter channels based on role (unless admin who sees all)
-      if (!isAdmin && activeView !== 'admin') {
+      // Filter channels based on role
+      // When viewing as admin - show all
+      // When viewing as parent/coach - filter to their teams only
+      const shouldFilter = activeView === 'parent' || activeView === 'coach'
+      
+      if (shouldFilter) {
         processedChannels = processedChannels.filter(ch => {
           // Always show channels user is a member of
           if (ch.my_membership) return true
@@ -143,8 +147,8 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             return ch.channel_members?.some(m => m.user_id === user?.id)
           }
           
-          // Show team chats for user's teams (even if not yet a member)
-          if (ch.channel_type === 'team_chat' && ch.team_id) {
+          // Show team chats and player chats for user's teams (even if not yet a member)
+          if ((ch.channel_type === 'team_chat' || ch.channel_type === 'player_chat') && ch.team_id) {
             return userTeamIds.includes(ch.team_id)
           }
           
@@ -159,7 +163,8 @@ function ChatsPage({ showToast, activeView, roleContext }) {
               channel_id: ch.id,
               user_id: user?.id,
               display_name: profile?.full_name || profile?.email,
-              member_role: activeView === 'coach' ? 'coach' : 'parent'
+              member_role: activeView === 'coach' ? 'coach' : 'parent',
+              can_post: true
             }).then(() => {
               console.log('Auto-added to team chat:', ch.name)
             }).catch(err => console.log('Could not auto-add to chat:', err))
@@ -425,6 +430,8 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                 onClose={() => setSelectedChannel(null)}
                 onRefresh={loadChats}
                 showToast={showToast}
+                activeView={activeView}
+                isAdmin={isAdmin}
               />
             ) : (
               <div className="h-[600px] flex flex-col items-center justify-center">
@@ -453,7 +460,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
 // ============================================
 // CHAT DETAIL PANEL
 // ============================================
-function ChatDetailPanel({ channel, onClose, onRefresh, showToast }) {
+function ChatDetailPanel({ channel, onClose, onRefresh, showToast, activeView, isAdmin }) {
   const { profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
@@ -462,7 +469,16 @@ function ChatDetailPanel({ channel, onClose, onRefresh, showToast }) {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [showMembersModal, setShowMembersModal] = useState(false)
   const messagesEndRef = useRef(null)
+  
+  // Determine if user can post in this channel
+  // - Team Chat: Parents + Coaches + Admin can post
+  // - Player Chat: Only Coaches + Admin can post (parents are view-only)
+  // - DM: All participants can post
+  const isParentView = activeView === 'parent'
+  const isPlayerChat = channel?.channel_type === 'player_chat'
+  const canPost = !isParentView || !isPlayerChat || (isAdmin && activeView === 'admin')
   
   useEffect(() => {
     if (channel?.id) {
@@ -586,18 +602,31 @@ function ChatDetailPanel({ channel, onClose, onRefresh, showToast }) {
             className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
             style={{ backgroundColor: (channel.teams?.color || '#6366F1') + '30' }}
           >
-            {channel.channel_type === 'team_chat' ? '👥' : '💬'}
+            {channel.channel_type === 'player_chat' ? '🏐' : channel.channel_type === 'team_chat' ? '👥' : '💬'}
           </div>
           <div>
             <h3 className={`font-semibold ${tc.text}`}>{channel.name}</h3>
             <p className={`text-xs ${tc.textMuted}`}>
-              {channel.channel_type === 'team_chat' ? 'Team Chat' : 'Direct Message'}
+              {channel.channel_type === 'player_chat' ? 'Player Chat (Coaches Only)' : 
+               channel.channel_type === 'team_chat' ? 'Team Chat' : 'Direct Message'}
+              {isParentView && isPlayerChat && <span className="ml-2 text-amber-400">• View Only</span>}
             </p>
           </div>
         </div>
-        <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg} ${tc.textMuted}`}>
-          ✕
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Admin: Manage Members button */}
+          {isAdmin && activeView === 'admin' && (
+            <button 
+              onClick={() => setShowMembersModal(true)}
+              className={`px-3 py-1.5 rounded-lg text-sm ${tc.cardBgAlt} ${tc.text} hover:brightness-110 transition`}
+            >
+              👥 Members
+            </button>
+          )}
+          <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg} ${tc.textMuted}`}>
+            ✕
+          </button>
+        </div>
       </div>
       
       {/* Messages */}
@@ -666,25 +695,213 @@ function ChatDetailPanel({ channel, onClose, onRefresh, showToast }) {
         <div ref={messagesEndRef} />
       </div>
       
-      {/* Input */}
-      <form onSubmit={sendMessage} className={`p-4 border-t ${tc.border}`}>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={e => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className={`flex-1 px-4 py-3 rounded-xl ${tc.input}`}
-          />
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            className="px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50 hover:brightness-110 transition"
-          >
-            {sending ? '...' : '→'}
+      {/* Input - only show if user can post */}
+      {canPost ? (
+        <form onSubmit={sendMessage} className={`p-4 border-t ${tc.border}`}>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={e => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              className={`flex-1 px-4 py-3 rounded-xl ${tc.input}`}
+            />
+            <button
+              type="submit"
+              disabled={!newMessage.trim() || sending}
+              className="px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50 hover:brightness-110 transition"
+            >
+              {sending ? '...' : '→'}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className={`p-4 border-t ${tc.border} text-center`}>
+          <p className={`${tc.textMuted} text-sm`}>
+            🔒 This is a player chat. Parents can view messages but only coaches can post.
+          </p>
+        </div>
+      )}
+      
+      {/* Manage Members Modal (Admin only) */}
+      {showMembersModal && (
+        <ManageMembersModal
+          channel={channel}
+          onClose={() => setShowMembersModal(false)}
+          onRefresh={onRefresh}
+          showToast={showToast}
+        />
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// MANAGE MEMBERS MODAL (Admin only)
+// ============================================
+function ManageMembersModal({ channel, onClose, onRefresh, showToast }) {
+  const { user } = useAuth()
+  const tc = useThemeClasses()
+  const { selectedSeason } = useSeason()
+  
+  const [members, setMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
+  
+  useEffect(() => {
+    loadMembers()
+  }, [channel?.id])
+  
+  async function loadMembers() {
+    setLoading(true)
+    const { data } = await supabase
+      .from('channel_members')
+      .select('*, profiles:user_id(id, full_name, email, account_type)')
+      .eq('channel_id', channel.id)
+    setMembers(data || [])
+    setLoading(false)
+  }
+  
+  async function searchUsers(query) {
+    if (query.length < 2) {
+      setSearchResults([])
+      return
+    }
+    
+    setSearching(true)
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, account_type')
+      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+      .limit(20)
+    
+    // Filter out users already in the channel
+    const memberUserIds = members.map(m => m.user_id)
+    const filtered = (data || []).filter(u => !memberUserIds.includes(u.id))
+    
+    setSearchResults(filtered)
+    setSearching(false)
+  }
+  
+  async function addMember(targetUser) {
+    const { error } = await supabase.from('channel_members').insert({
+      channel_id: channel.id,
+      user_id: targetUser.id,
+      display_name: targetUser.full_name || targetUser.email,
+      member_role: targetUser.account_type || 'parent',
+      can_post: channel.channel_type !== 'player_chat' || targetUser.account_type !== 'parent'
+    })
+    
+    if (error) {
+      showToast?.('Error adding member', 'error')
+    } else {
+      showToast?.('Member added!', 'success')
+      loadMembers()
+      setSearchQuery('')
+      setSearchResults([])
+    }
+  }
+  
+  async function removeMember(memberId) {
+    if (!confirm('Remove this member from the chat?')) return
+    
+    const { error } = await supabase
+      .from('channel_members')
+      .delete()
+      .eq('id', memberId)
+    
+    if (error) {
+      showToast?.('Error removing member', 'error')
+    } else {
+      showToast?.('Member removed', 'success')
+      loadMembers()
+    }
+  }
+  
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md max-h-[80vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
+          <h2 className={`text-lg font-bold ${tc.text}`}>Manage Members</h2>
+          <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg}`}>
+            <X className="w-4 h-4" />
           </button>
         </div>
-      </form>
+        
+        {/* Add Member Search */}
+        <div className={`p-4 border-b ${tc.border}`}>
+          <p className={`text-sm ${tc.textMuted} mb-2`}>Add someone to this chat:</p>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); searchUsers(e.target.value) }}
+            className={`w-full px-4 py-2 rounded-xl ${tc.input}`}
+          />
+          
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+              {searchResults.map(u => (
+                <button
+                  key={u.id}
+                  onClick={() => addMember(u)}
+                  className={`w-full flex items-center gap-2 p-2 rounded-lg ${tc.hoverBg} text-left text-sm`}
+                >
+                  <div className="w-8 h-8 rounded-full bg-slate-500/20 flex items-center justify-center text-xs font-bold">
+                    {u.full_name?.charAt(0) || '?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium ${tc.text} truncate`}>{u.full_name}</p>
+                    <p className={`text-xs ${tc.textMuted} truncate`}>{u.account_type}</p>
+                  </div>
+                  <span className="text-[var(--accent-primary)] text-xs">+ Add</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Current Members */}
+        <div className="p-4 max-h-[300px] overflow-y-auto">
+          <p className={`text-sm font-medium ${tc.text} mb-3`}>Current Members ({members.length})</p>
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="animate-spin w-6 h-6 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {members.map(member => (
+                <div key={member.id} className={`flex items-center gap-3 p-2 rounded-xl ${tc.cardBgAlt}`}>
+                  <div className="w-10 h-10 rounded-full bg-slate-500/20 flex items-center justify-center font-bold">
+                    {member.profiles?.full_name?.charAt(0) || member.display_name?.charAt(0) || '?'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium ${tc.text} truncate`}>
+                      {member.profiles?.full_name || member.display_name}
+                    </p>
+                    <p className={`text-xs ${tc.textMuted}`}>
+                      {member.member_role}
+                      {member.can_post === false && <span className="ml-2 text-amber-400">• View only</span>}
+                    </p>
+                  </div>
+                  {member.user_id !== user?.id && (
+                    <button
+                      onClick={() => removeMember(member.id)}
+                      className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 text-sm"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
