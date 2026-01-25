@@ -57,8 +57,8 @@ export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = fa
           *,
           player:players(id, first_name, last_name, jersey_number, position)
         `)
-        .eq('game_id', game.id)
-        .order('kills', { ascending: false })
+        .eq('event_id', game.id)
+        .order('kills', { ascending: false, nullsFirst: false })
       
       setPlayerStats(statsData || [])
       
@@ -103,7 +103,7 @@ export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = fa
     { id: 'summary', label: 'Summary', icon: FileText },
     { id: 'attendance', label: `Attendance (${presentCount})`, icon: Users },
     { id: 'badges', label: `Badges (${badges.length})`, icon: Award },
-    { id: 'stats', label: 'Player Stats', icon: BarChart3 }
+    { id: 'stats', label: `Player Stats${playerStats.length > 0 ? ` (${playerStats.length})` : ''}`, icon: BarChart3 }
   ]
   
   return (
@@ -387,47 +387,70 @@ export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = fa
                         <thead>
                           <tr className={`text-xs ${tc.textMuted} border-b ${tc.border}`}>
                             <th className="text-left py-3 px-2">Player</th>
-                            <th className="text-center py-3 px-2">K</th>
-                            <th className="text-center py-3 px-2">A</th>
-                            <th className="text-center py-3 px-2">Aces</th>
-                            <th className="text-center py-3 px-2">Digs</th>
-                            <th className="text-center py-3 px-2">Blks</th>
-                            <th className="text-center py-3 px-2">Err</th>
+                            <th className="text-center py-3 px-1" title="Kills">Kills</th>
+                            <th className="text-center py-3 px-1" title="Service Aces">Aces</th>
+                            <th className="text-center py-3 px-1" title="Assists">Assists</th>
+                            <th className="text-center py-3 px-1" title="Digs">Digs</th>
+                            <th className="text-center py-3 px-1" title="Blocks">Blocks</th>
+                            <th className="text-center py-3 px-1" title="Hitting Percentage">Hit%</th>
+                            <th className="text-center py-3 px-1" title="Serve Percentage">Srv%</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {playerStats.map(stat => (
-                            <tr key={stat.id} className={`border-b ${tc.border}`}>
-                              <td className="py-3 px-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center text-white text-xs font-bold">
-                                    {stat.player?.jersey_number}
-                                  </span>
-                                  <span className={`font-medium ${tc.text}`}>
-                                    {stat.player?.first_name} {stat.player?.last_name?.charAt(0)}.
-                                  </span>
-                                </div>
-                              </td>
-                              <td className={`text-center py-3 px-2 font-semibold ${stat.kills > 0 ? 'text-emerald-400' : tc.textMuted}`}>
-                                {stat.kills || 0}
-                              </td>
-                              <td className={`text-center py-3 px-2 ${stat.assists > 0 ? 'text-blue-400' : tc.textMuted}`}>
-                                {stat.assists || 0}
-                              </td>
-                              <td className={`text-center py-3 px-2 ${stat.aces > 0 ? 'text-purple-400' : tc.textMuted}`}>
-                                {stat.aces || 0}
-                              </td>
-                              <td className={`text-center py-3 px-2 ${stat.digs > 0 ? 'text-amber-400' : tc.textMuted}`}>
-                                {stat.digs || 0}
-                              </td>
-                              <td className={`text-center py-3 px-2 ${stat.blocks > 0 ? 'text-cyan-400' : tc.textMuted}`}>
-                                {stat.blocks || 0}
-                              </td>
-                              <td className={`text-center py-3 px-2 ${stat.errors > 0 ? 'text-red-400' : tc.textMuted}`}>
-                                {stat.errors || 0}
-                              </td>
-                            </tr>
-                          ))}
+                          {playerStats.map(stat => {
+                            // Calculate hitting % = (kills - attack_errors) / attacks
+                            const hittingPct = stat.attacks > 0 
+                              ? Math.round(((stat.kills || 0) - (stat.attack_errors || 0)) / stat.attacks * 100) 
+                              : null
+                            // Calculate serve % = (serves - service_errors) / serves
+                            const servePct = stat.serves > 0 
+                              ? Math.round(((stat.serves || 0) - (stat.service_errors || 0)) / stat.serves * 100) 
+                              : null
+                            
+                            return (
+                              <tr key={stat.id} className={`border-b ${tc.border}`}>
+                                <td className="py-3 px-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center text-white text-xs font-bold">
+                                      {stat.player?.jersey_number}
+                                    </span>
+                                    <span className={`font-medium ${tc.text}`}>
+                                      {stat.player?.first_name} {stat.player?.last_name?.charAt(0)}.
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className={`text-center py-3 px-1 font-semibold ${stat.kills > 0 ? 'text-emerald-400' : tc.textMuted}`}>
+                                  {stat.kills || 0}
+                                </td>
+                                <td className={`text-center py-3 px-1 ${stat.aces > 0 ? 'text-purple-400' : tc.textMuted}`}>
+                                  {stat.aces || 0}
+                                </td>
+                                <td className={`text-center py-3 px-1 ${stat.assists > 0 ? 'text-blue-400' : tc.textMuted}`}>
+                                  {stat.assists || 0}
+                                </td>
+                                <td className={`text-center py-3 px-1 ${stat.digs > 0 ? 'text-amber-400' : tc.textMuted}`}>
+                                  {stat.digs || 0}
+                                </td>
+                                <td className={`text-center py-3 px-1 ${stat.blocks > 0 ? 'text-cyan-400' : tc.textMuted}`}>
+                                  {stat.blocks || 0}
+                                </td>
+                                <td className={`text-center py-3 px-1 text-xs ${
+                                  hittingPct !== null 
+                                    ? hittingPct >= 30 ? 'text-emerald-400' : hittingPct >= 15 ? 'text-amber-400' : 'text-red-400'
+                                    : tc.textMuted
+                                }`}>
+                                  {hittingPct !== null ? `${hittingPct}%` : '-'}
+                                </td>
+                                <td className={`text-center py-3 px-1 text-xs ${
+                                  servePct !== null 
+                                    ? servePct >= 90 ? 'text-emerald-400' : servePct >= 80 ? 'text-amber-400' : 'text-red-400'
+                                    : tc.textMuted
+                                }`}>
+                                  {servePct !== null ? `${servePct}%` : '-'}
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                     </div>

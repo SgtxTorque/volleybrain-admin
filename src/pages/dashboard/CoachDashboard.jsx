@@ -10,6 +10,10 @@ import {
   AlertTriangle, Target, MessageCircle, X, DollarSign, Plus, ClipboardList
 } from '../../constants/icons'
 
+// Import Dashboard Widgets
+import TeamRecordWidget from '../../components/widgets/coach/TeamRecordWidget'
+import TopPlayerWidget from '../../components/widgets/coach/TopPlayerWidget'
+
 // Volleyball icon component
 function VolleyballIcon({ className }) {
   return (
@@ -572,32 +576,18 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             )}
           </div>
 
-          {/* Team Stats Summary */}
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
-            <h3 className={`font-semibold ${tc.text} mb-4`}>📊 Team Overview</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 rounded-xl bg-blue-500/10">
-                <p className="text-2xl font-bold text-blue-400">{roster.length}</p>
-                <p className={`text-xs ${tc.textMuted}`}>Players</p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-emerald-500/10">
-                <p className="text-2xl font-bold text-emerald-400">{upcomingEvents.length}</p>
-                <p className={`text-xs ${tc.textMuted}`}>Upcoming</p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-amber-500/10">
-                <p className="text-2xl font-bold text-amber-400">
-                  {upcomingEvents.filter(e => e.event_type === 'game').length}
-                </p>
-                <p className={`text-xs ${tc.textMuted}`}>Games</p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-purple-500/10">
-                <p className="text-2xl font-bold text-purple-400">
-                  {upcomingEvents.filter(e => e.event_type === 'practice').length}
-                </p>
-                <p className={`text-xs ${tc.textMuted}`}>Practices</p>
-              </div>
-            </div>
-          </div>
+          {/* ========================================== */}
+          {/* NEW: Team Record Widget */}
+          {/* ========================================== */}
+          <TeamRecordWidget teamId={selectedTeam?.id} />
+
+          {/* ========================================== */}
+          {/* NEW: Top Player Widget */}
+          {/* ========================================== */}
+          <TopPlayerWidget 
+            teamId={selectedTeam?.id} 
+            onViewLeaderboards={() => onNavigate?.('leaderboards')}
+          />
         </div>
       </div>
 

@@ -10,6 +10,11 @@ import {
 } from '../../constants/icons'
 import { TeamGamesWidget } from '../../components/games/GameComponents'
 
+// Import Dashboard Widgets
+import TeamStandingsWidget from '../../components/widgets/parent/TeamStandingsWidget'
+import ChildStatsWidget from '../../components/widgets/parent/ChildStatsWidget'
+import ChildAchievementsWidget from '../../components/widgets/parent/ChildAchievementsWidget'
+
 // Volleyball icon component
 function VolleyballIcon({ className }) {
   return (
@@ -498,22 +503,203 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   
   // Get parent's name from profile or first child's parent_name
   const parentName = profile?.full_name?.split(' ')[0] || registrationData[0]?.parent_name?.split(' ')[0] || 'Parent'
-  
-  // Helper to generate registration URL
-  function getRegistrationUrl(season) {
-    const orgSlug = season.organizations?.slug || 'black-hornets'
-    const registrationBaseUrl = season.organizations?.settings?.registration_url || 'https://sgtxtorque.github.io/volleyball-registration'
-    return `${registrationBaseUrl}?org=${orgSlug}&season=${season.id}`
-  }
+
+  // Get primary team and sport for context
+  const primaryTeam = teams[0]
+  const primarySport = registrationData[0]?.season?.sports || { name: 'Volleyball', icon: '🏐' }
+  const primarySeason = registrationData[0]?.season
 
   useEffect(() => {
-    if (roleContext?.children?.length > 0) {
+    if (roleContext?.children) {
       loadParentData()
     } else {
-      setLoading(false)
-      loadOpenSeasons()
+      loadParentDataFromProfile()
     }
-  }, [roleContext?.children])
+  }, [roleContext, profile])
+
+  async function loadParentDataFromProfile() {
+    if (!profile?.id) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      // Get all players where this user is the parent
+      const { data: players } = await supabase
+        .from('players')
+        .select(`
+          *,
+          team_players(team_id, teams(id, name, color, season_id)),
+          season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))
+        `)
+        .eq('parent_account_id', profile.id)
+
+      if (players && players.length > 0) {
+        // Build registration data from players
+        const regData = players.map(p => {
+          const teamPlayer = p.team_players?.[0]
+          return {
+            ...p,
+            team: teamPlayer?.teams,
+            registrationStatus: teamPlayer ? 'active' : 'pending'
+          }
+        })
+        
+        setRegistrationData(regData)
+        
+        // Get unique team IDs and set season
+        const tIds = [...new Set(regData.map(p => p.team?.id).filter(Boolean))]
+        setTeamIds(tIds)
+        
+        if (regData[0]?.season?.id) {
+          setSeasonId(regData[0].season.id)
+        }
+
+        // Load teams
+        if (tIds.length > 0) {
+          const { data: teamsData } = await supabase
+            .from('teams')
+            .select('*')
+            .in('id', tIds)
+          setTeams(teamsData || [])
+        }
+
+        // Load organization for payments
+        if (regData[0]?.season?.organizations) {
+          setOrganization(regData[0].season.organizations)
+        }
+
+        // Load upcoming events
+        await loadUpcomingEvents(tIds)
+        
+        // Load payment summary
+        await loadPaymentSummary(regData)
+        
+        // Load alerts
+        await loadAlerts(regData[0]?.season?.organizations?.id)
+      }
+    } catch (err) {
+      console.error('Error loading parent data:', err)
+    }
+    setLoading(false)
+  }
+
+  async function loadParentData() {
+    try {
+      const children = roleContext.children || []
+      
+      // Build registration data
+      const regData = children.map(c => ({
+        ...c,
+        team: c.team_players?.[0]?.teams,
+        registrationStatus: c.team_players?.[0] ? 'active' : 'pending'
+      }))
+      
+      setRegistrationData(regData)
+      
+      // Get unique team IDs
+      const tIds = [...new Set(children.flatMap(c => 
+        c.team_players?.map(tp => tp.team_id) || []
+      ).filter(Boolean))]
+      setTeamIds(tIds)
+
+      // Load additional data
+      if (tIds.length > 0) {
+        const { data: teamsData } = await supabase
+          .from('teams')
+          .select('*')
+          .in('id', tIds)
+        setTeams(teamsData || [])
+        
+        // Get season from first team
+        if (teamsData?.[0]?.season_id) {
+          setSeasonId(teamsData[0].season_id)
+        }
+      }
+
+      await loadUpcomingEvents(tIds)
+      await loadPaymentSummary(regData)
+      
+      // Load organization
+      if (children[0]?.season?.organizations) {
+        setOrganization(children[0].season.organizations)
+      }
+      
+      // Load alerts
+      const orgId = children[0]?.season?.organizations?.id || children[0]?.season?.organization_id
+      if (orgId) {
+        await loadAlerts(orgId)
+      }
+    } catch (err) {
+      console.error('Error loading parent data:', err)
+    }
+    setLoading(false)
+  }
+
+  async function loadUpcomingEvents(teamIds) {
+    if (!teamIds?.length) return
+    
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const { data } = await supabase
+        .from('schedule_events')
+        .select('*, teams(name, color)')
+        .in('team_id', teamIds)
+        .gte('event_date', today)
+        .order('event_date', { ascending: true })
+        .order('event_time', { ascending: true })
+        .limit(5)
+      
+      setUpcomingEvents(data || [])
+    } catch (err) {
+      console.error('Error loading events:', err)
+    }
+  }
+
+  async function loadPaymentSummary(players) {
+    if (!players?.length) return
+    
+    try {
+      const playerIds = players.map(p => p.id)
+      
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('*')
+        .in('player_id', playerIds)
+
+      if (payments) {
+        const unpaid = payments.filter(p => !p.paid)
+        const totalDue = unpaid.reduce((sum, p) => sum + (p.amount || 0), 0)
+        const totalPaid = payments.filter(p => p.paid).reduce((sum, p) => sum + (p.amount || 0), 0)
+        
+        setPaymentSummary({
+          totalDue,
+          totalPaid,
+          unpaidItems: unpaid
+        })
+      }
+    } catch (err) {
+      console.error('Error loading payments:', err)
+    }
+  }
+
+  async function loadAlerts(orgId) {
+    if (!orgId) return
+    
+    try {
+      const { data } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('organization_id', orgId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      
+      setAlerts(data || [])
+    } catch (err) {
+      console.error('Error loading alerts:', err)
+    }
+  }
 
   async function loadOpenSeasons() {
     try {
@@ -525,214 +711,34 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         .or(`registration_closes.is.null,registration_closes.gte.${now}`)
         .in('status', ['upcoming', 'active'])
       
-      // Filter to seasons that children are NOT already registered for
-      const childSeasonIds = registrationData.map(r => r.season_id)
-      const available = (data || []).filter(s => !childSeasonIds.includes(s.id))
-      setOpenSeasons(available)
+      setOpenSeasons(data || [])
     } catch (err) {
-      console.error('Error loading seasons:', err)
+      console.error('Error loading open seasons:', err)
     }
   }
 
-  async function loadParentData() {
-    setLoading(true)
-    try {
-      const playerIds = roleContext.children.map(c => c.id)
-      
-      // Load player details with registration info
-      const { data: players } = await supabase
-        .from('players')
-        .select(`
-          *,
-          registrations(id, status, season_id, created_at),
-          team_players(team_id, teams(id, name, color))
-        `)
-        .in('id', playerIds)
-      
-      if (players?.length > 0) {
-        // Get season info for each player
-        const seasonIds = [...new Set(players.flatMap(p => p.registrations?.map(r => r.season_id) || []))]
-        const { data: seasons } = await supabase
-          .from('seasons')
-          .select('*, sports(name, icon), organizations(id, name, slug, settings)')
-          .in('id', seasonIds)
-        
-        // Get organization for payment info
-        const orgId = seasons?.[0]?.organization_id
-        if (orgId) {
-          const { data: org } = await supabase
-            .from('organizations')
-            .select('*')
-            .eq('id', orgId)
-            .single()
-          setOrganization(org)
-        }
+  useEffect(() => {
+    loadOpenSeasons()
+  }, [])
 
-        // Build registration data with enriched info
-        const enrichedPlayers = players.map(player => {
-          const reg = player.registrations?.[0]
-          const season = seasons?.find(s => s.id === reg?.season_id)
-          const teamLink = player.team_players?.[0]
-          return {
-            ...player,
-            season,
-            season_id: reg?.season_id,
-            registrationStatus: reg?.status,
-            registrationId: reg?.id,
-            team: teamLink?.teams
-          }
-        })
-        
-        setRegistrationData(enrichedPlayers)
-        
-        // Extract unique teams
-        const uniqueTeams = [...new Map(
-          enrichedPlayers
-            .filter(p => p.team)
-            .map(p => [p.team.id, p.team])
-        ).values()]
-        setTeams(uniqueTeams)
-        setTeamIds(uniqueTeams.map(t => t.id))
-        
-        // Set season from first player with a season
-        const firstSeason = enrichedPlayers.find(p => p.season)?.season
-        if (firstSeason) setSeasonId(firstSeason.id)
-
-        // Load payment data
-        const { data: payments } = await supabase
-          .from('payments')
-          .select('*')
-          .in('player_id', playerIds)
-        
-        if (payments) {
-          const totalDue = payments
-            .filter(p => !p.paid)
-            .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
-          const totalPaid = payments
-            .filter(p => p.paid)
-            .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
-          const unpaidItems = payments.filter(p => !p.paid)
-          
-          setPaymentSummary({ totalDue, totalPaid, unpaidItems })
-        }
-
-        // Load alerts/announcements for this user
-        await loadAlerts(playerIds, uniqueTeams.map(t => t.id))
-      }
-
-      // Load upcoming events for player's teams
-      if (teams.length > 0 || roleContext.children.length > 0) {
-        // Get team IDs from team_players
-        const { data: teamLinks } = await supabase
-          .from('team_players')
-          .select('team_id')
-          .in('player_id', playerIds)
-        
-        const teamIds = [...new Set(teamLinks?.map(tl => tl.team_id) || [])]
-        
-        if (teamIds.length > 0) {
-          const today = new Date().toISOString().split('T')[0]
-          
-          // Load events from schedule_events
-          try {
-            const { data: events } = await supabase
-              .from('schedule_events')
-              .select('*, teams(id, name, color)')
-              .in('team_id', teamIds)
-              .gte('event_date', today)
-              .order('event_date', { ascending: true })
-              .order('event_time', { ascending: true })
-              .limit(5)
-            
-            setUpcomingEvents(events || [])
-          } catch (err) {
-            console.log('Could not load events:', err)
-            setUpcomingEvents([])
-          }
-        }
-      }
-
-      // Load recent team posts
-      if (teams.length > 0) {
-        const teamIds = teams.map(t => t.id)
-        const { data: posts } = await supabase
-          .from('team_posts')
-          .select('*')
-          .in('team_id', teamIds)
-          .order('created_at', { ascending: false })
-          .limit(5)
-        
-        if (posts?.length > 0) {
-          const { data: teamsData } = await supabase
-            .from('teams')
-            .select('id, name, color')
-            .in('id', [...new Set(posts.map(p => p.team_id))])
-          
-          setRecentPosts(posts.map(post => ({
-            ...post,
-            teams: teamsData?.find(t => t.id === post.team_id)
-          })))
-        }
-      }
-
-      await loadOpenSeasons()
-
-    } catch (err) {
-      console.error('Error loading parent data:', err)
-    }
-    setLoading(false)
+  function getRegistrationUrl(season) {
+    const orgSlug = season.organizations?.slug || 'black-hornets'
+    const baseUrl = season.organizations?.settings?.registration_url || 'https://sgtxtorque.github.io/volleyball-registration'
+    return `${baseUrl}?org=${orgSlug}&season=${season.id}`
   }
 
-  async function loadAlerts(playerIds, teamIds) {
-    try {
-      // Try to load messages/blasts - these might not exist in all setups
-      let allAlerts = []
-      
-      // Try messages table first
-      try {
-        if (teamIds.length > 0) {
-          const { data: messages } = await supabase
-            .from('messages')
-            .select('*')
-            .or(`target_type.eq.all,target_team_id.in.(${teamIds.join(',')})`)
-            .order('created_at', { ascending: false })
-            .limit(10)
-          
-          if (messages?.length > 0) {
-            allAlerts = [...allAlerts, ...messages]
-          }
-        }
-      } catch (err) {
-        console.log('Messages table not available')
-      }
-      
-      // Sort by date and take top 5
-      allAlerts = allAlerts
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, 5)
-      
-      setAlerts(allAlerts)
-    } catch (err) {
-      console.log('Could not load alerts:', err)
-      setAlerts([])
-    }
-  }
-
-  // Get status badge
   function getStatusBadge(status) {
-    switch(status) {
-      case 'approved': return { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'Approved' }
-      case 'rostered': case 'assigned': return { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'On Roster' }
-      case 'pending': case 'submitted': case 'new': return { bg: 'bg-[var(--accent-primary)]/20', text: 'text-[var(--accent-primary)]', label: 'Pending' }
-      case 'waitlist': return { bg: 'bg-amber-500/20', text: 'text-amber-400', label: 'Waitlist' }
-      default: return { bg: 'bg-gray-500/20', text: 'text-gray-400', label: status || 'Registered' }
+    switch (status) {
+      case 'active':
+        return { label: 'Active', bg: 'bg-emerald-500/20', text: 'text-emerald-400' }
+      case 'pending':
+        return { label: 'Pending', bg: 'bg-amber-500/20', text: 'text-amber-400' }
+      case 'waitlist':
+        return { label: 'Waitlist', bg: 'bg-blue-500/20', text: 'text-blue-400' }
+      default:
+        return { label: status || 'Unknown', bg: 'bg-gray-500/20', text: 'text-gray-400' }
     }
   }
-
-  // Get primary team for first player
-  const primaryTeam = teams[0]
-  const primarySeason = registrationData[0]?.season
-  const primarySport = primarySeason?.sports
 
   if (loading) {
     return (
@@ -742,11 +748,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     )
   }
 
-  // No players registered yet
-  if (!roleContext?.children?.length) {
+  // Empty state - no registered players
+  if (registrationData.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="text-center py-12">
           <VolleyballIcon className="w-20 h-20 text-[var(--accent-primary)] mb-4" />
           <h2 className={`text-2xl font-bold ${tc.text} mb-2`}>Welcome to VolleyBrain!</h2>
           <p className={tc.textSecondary}>You haven't registered any players yet.</p>
@@ -974,6 +980,36 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               maxUpcoming={3}
               maxRecent={3}
               title="Games"
+            />
+          )}
+
+          {/* ========================================== */}
+          {/* NEW: Team Standings Widget */}
+          {/* ========================================== */}
+          {teamIds.length > 0 && (
+            <TeamStandingsWidget 
+              teamId={teamIds[0]} 
+              onViewStandings={() => onNavigate?.('standings')}
+            />
+          )}
+
+          {/* ========================================== */}
+          {/* NEW: Child Stats Widget */}
+          {/* ========================================== */}
+          {registrationData.length > 0 && (
+            <ChildStatsWidget 
+              children={registrationData}
+              onViewLeaderboards={() => onNavigate?.('leaderboards')}
+            />
+          )}
+        
+         {/* ========================================== */}
+          {/* NEW: Child Achievements Widget */}
+          {/* ========================================== */}
+          {registrationData.length > 0 && (
+            <ChildAchievementsWidget 
+              children={registrationData}
+              onViewAchievements={() => onNavigate?.('achievements')}
             />
           )}
         </div>

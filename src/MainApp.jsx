@@ -10,7 +10,8 @@ import { supabase } from './lib/supabase'
 import { 
   Building2, Users, ChevronDown, ChevronLeft, ChevronRight, Check,
   LogOut, Shield, UserCog, User, Home, Calendar, DollarSign, 
-  MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone
+  MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone,
+  Trophy  // ← Added for Achievements
 } from './constants/icons'
 import { VolleyballIcon } from './constants/icons'
 
@@ -60,6 +61,9 @@ import { ReportsPage } from './pages/reports'
 
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage } from './pages/settings'
+
+// Achievements Pages  ← NEW
+import { AchievementsCatalogPage } from './pages/achievements'
 
 function MainApp() {
   const { profile, organization, signOut, user } = useAuth()
@@ -120,6 +124,9 @@ function MainApp() {
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
+  
+  // Selected player for player view (shared between PlayerDashboard and Achievements)
+  const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
 
   // Load user's role context
   useEffect(() => {
@@ -200,6 +207,10 @@ function MainApp() {
     }
     if (roleContext?.isPlayer) {
       views.push({ id: 'player', label: 'Player', icon: 'volleyball', description: roleContext.playerInfo?.first_name })
+    }
+    // Admin/Coach can preview Player dashboard even without a player account
+    if ((roleContext?.isAdmin || roleContext?.isCoach) && !roleContext?.isPlayer) {
+      views.push({ id: 'player', label: 'Player', icon: 'volleyball', description: 'Preview player view' })
     }
     return views
   }
@@ -735,6 +746,17 @@ function MainApp() {
                   {!sidebarCollapsed && <span>Leaderboards</span>}
                 </button>
 
+                {/* ═══════════════════════════════════════════════════════════════
+                    NEW: Achievements Button for Parent View
+                    ═══════════════════════════════════════════════════════════════ */}
+                <button onClick={() => { exitTeamWall(); setPage('achievements'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                    page === 'achievements' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}>
+                  <Trophy className="w-5 h-5" />
+                  {!sidebarCollapsed && <span>Achievements</span>}
+                </button>
+
                 <button onClick={() => { exitTeamWall(); setPage('chats'); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
                     page === 'chats' || page === 'messages' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
@@ -815,6 +837,17 @@ function MainApp() {
                   <LayoutDashboard className="w-5 h-5" />
                   <span>Leaderboards</span>
                 </button>
+
+                {/* ═══════════════════════════════════════════════════════════════
+                    NEW: Achievements Button for Player View
+                    ═══════════════════════════════════════════════════════════════ */}
+                <button onClick={() => { exitTeamWall(); setPage('achievements'); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                    page === 'achievements' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
+                  }`}>
+                  <Trophy className="w-5 h-5" />
+                  <span>Achievements</span>
+                </button>
               </>
             )}
           </nav>
@@ -848,7 +881,7 @@ function MainApp() {
               {page === 'dashboard' && activeView === 'admin' && <DashboardPage onNavigate={setPage} />}
               {page === 'dashboard' && activeView === 'coach' && <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
               {page === 'dashboard' && activeView === 'parent' && <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
-              {page === 'dashboard' && activeView === 'player' && <PlayerDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
+              {page === 'dashboard' && activeView === 'player' && <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} showToast={showToast} onPlayerChange={setSelectedPlayerForView} />}
               {/* Parent Portal - Player Profile Pages */}
               {page.startsWith('player-') && activeView === 'parent' && <PlayerProfilePage playerId={page.replace('player-', '')} roleContext={roleContext} showToast={showToast} />}
               {/* Parent Portal - Messages */}
@@ -874,6 +907,26 @@ function MainApp() {
               {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'blasts' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'reports' && <ReportsPage showToast={showToast} />}
+              
+              {/* ═══════════════════════════════════════════════════════════════
+                  NEW: Achievements Page Rendering
+                  ═══════════════════════════════════════════════════════════════ */}
+              {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
+                <AchievementsCatalogPage 
+                  playerId={
+                    activeView === 'player' 
+                      ? selectedPlayerForView?.id  // Use the player selected in PlayerDashboard
+                      : roleContext?.children?.[0]?.id  // Parent view uses first child
+                  }
+                  showToast={showToast}
+                  playerName={
+                    activeView === 'player'
+                      ? selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My'
+                      : `${roleContext?.children?.[0]?.first_name}'s`
+                  }
+                  isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
+                />
+              )}
             </>
           )}
         </div>
