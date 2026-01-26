@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { useTheme, useThemeClasses } from './contexts/ThemeContext'
 import { SportProvider, useSport } from './contexts/SportContext'
@@ -11,7 +11,8 @@ import {
   Building2, Users, ChevronDown, ChevronLeft, ChevronRight, Check,
   LogOut, Shield, UserCog, User, Home, Calendar, DollarSign, 
   MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone,
-  Trophy  // ← Added for Achievements
+  Trophy, Bell, Settings, Zap, BarChart3, Moon, Sun, Clock, TrendingUp,
+  Award, CreditCard, UserPlus
 } from './constants/icons'
 import { VolleyballIcon } from './constants/icons'
 
@@ -62,25 +63,964 @@ import { ReportsPage } from './pages/reports'
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage } from './pages/settings'
 
-// Achievements Pages  ← NEW
+// Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
 
+// ============================================
+// NAV DROPDOWN COMPONENT
+// ============================================
+function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTeamWallId }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const tc = useThemeClasses()
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  if (!items || items.length === 0) return null
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-all"
+        style={{
+          background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+          color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.7)',
+        }}
+      >
+        {label}
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className={`absolute top-full left-0 mt-2 w-56 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+          {items.map(item => (
+            <button
+              key={item.id}
+              onClick={() => {
+                onNavigate(item.id, item)
+                setIsOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition ${
+                (item.teamId && directTeamWallId === item.teamId) || currentPage === item.id
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' 
+                  : `${tc.text} ${tc.hoverBg}`
+              }`}
+            >
+              <NavIcon name={item.icon} className="w-4 h-4" />
+              <span>{item.label}</span>
+              {item.hasBadge && <JerseyNavBadge collapsed={false} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// NOTIFICATION DROPDOWN COMPONENT
+// ============================================
+function NotificationDropdown({ tc }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  const notifications = [
+    { id: 1, type: 'payment', title: 'Outstanding balances', message: '22 players have unpaid fees', time: '2 days ago', unread: true },
+    { id: 2, type: 'jersey', title: 'Jersey assignments', message: '3 players need jersey numbers', time: '3 days ago', unread: true },
+    { id: 3, type: 'contact', title: 'Emergency contacts', message: '3 players missing info', time: '5 days ago', unread: true },
+  ]
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-lg hover:bg-white/10 transition">
+        <Bell className="w-5 h-5 text-white" />
+        {notifications.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold"
+            style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+            {notifications.length}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className={`absolute right-0 top-full mt-2 w-80 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+          <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
+            <span className={`font-semibold ${tc.text}`}>Notifications</span>
+            <button className="text-xs text-[var(--accent-primary)] hover:underline">Mark all read</button>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.map(notif => (
+              <div key={notif.id} className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition`}>
+                <div className="flex items-start gap-3">
+                  {notif.unread && <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] mt-2 shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium text-sm ${tc.text}`}>{notif.title}</p>
+                    <p className={`text-xs ${tc.textMuted} mt-0.5`}>{notif.message}</p>
+                    <p className={`text-xs ${tc.textMuted} mt-1`}>{notif.time}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={`p-3 border-t ${tc.border}`}>
+            <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-[var(--accent-primary)]`}>
+              View all notifications
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// USER PROFILE DROPDOWN COMPONENT
+// ============================================
+function UserProfileDropdown({ 
+  profile, activeView, showRoleSwitcher, setShowRoleSwitcher, getAvailableViews,
+  setActiveView, setPage, signOut, tc, accent, accentColor, changeAccent, 
+  accentColors, isDark, toggleTheme
+}) {
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowRoleSwitcher(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [setShowRoleSwitcher])
+
+  const getRoleLabel = () => {
+    switch(activeView) {
+      case 'admin': return 'Admin'
+      case 'coach': return 'Coach'
+      case 'parent': return 'Parent'
+      case 'player': return 'Player'
+      default: return 'User'
+    }
+  }
+
+  const getDisplayName = () => {
+    if (activeView === 'coach') {
+      return `Coach ${profile?.full_name?.split(' ')[1] || profile?.full_name?.split(' ')[0] || 'User'}`
+    }
+    return profile?.full_name || 'User'
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl transition hover:bg-white/10"
+        onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden border-2 border-white/20"
+          style={{ background: profile?.photo_url ? 'transparent' : accent.primary, color: '#000' }}>
+          {profile?.photo_url ? (
+            <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            profile?.full_name?.charAt(0) || '?'
+          )}
+        </div>
+        <span className="text-white text-sm font-medium hidden sm:block">{getDisplayName()}</span>
+        <ChevronDown className={`w-4 h-4 text-white/70 transition-transform ${showRoleSwitcher ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showRoleSwitcher && (
+        <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+          <div className={`p-4 border-b ${tc.border} flex items-center gap-3`}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold overflow-hidden"
+              style={{ background: profile?.photo_url ? 'transparent' : accent.primary, color: '#000' }}>
+              {profile?.photo_url ? (
+                <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">{profile?.full_name?.charAt(0) || '?'}</span>
+              )}
+            </div>
+            <div>
+              <p className={`font-semibold ${tc.text}`}>{profile?.full_name || 'User'}</p>
+              <p className={`text-sm ${tc.textMuted} flex items-center gap-1`}>
+                {activeView === 'admin' && <Shield className="w-3 h-3" />}
+                {activeView === 'coach' && <UserCog className="w-3 h-3" />}
+                {activeView === 'parent' && <Users className="w-3 h-3" />}
+                {activeView === 'player' && <VolleyballIcon className="w-3 h-3" />}
+                {getRoleLabel()}
+              </p>
+            </div>
+          </div>
+
+          <div className={`p-2 border-b ${tc.border}`}>
+            <p className={`text-xs ${tc.textMuted} px-2 py-1`}>Switch View</p>
+            {getAvailableViews().map(view => (
+              <button key={view.id}
+                onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); setPage('dashboard'); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
+                  activeView === view.id ? 'bg-[var(--accent-primary)]/20' : tc.hoverBg
+                }`}>
+                <NavIcon name={view.icon} className="w-5 h-5" />
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium text-sm ${activeView === view.id ? 'text-[var(--accent-primary)]' : tc.text}`}>{view.label}</p>
+                  <p className={`text-xs ${tc.textMuted} truncate`}>{view.description}</p>
+                </div>
+                {activeView === view.id && <Check className="w-4 h-4 text-[var(--accent-primary)]" />}
+              </button>
+            ))}
+          </div>
+
+          <div className={`p-3 border-b ${tc.border}`}>
+            <p className={`text-xs ${tc.textMuted} mb-2`}>Accent Color</p>
+            <div className="flex gap-2">
+              {Object.entries(accentColors).map(([key, value]) => (
+                <button key={key} onClick={() => changeAccent(key)}
+                  className={`w-7 h-7 rounded-full transition-transform hover:scale-110 ${accentColor === key ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800' : ''}`}
+                  style={{ background: value.primary }} title={key.charAt(0).toUpperCase() + key.slice(1)} />
+              ))}
+            </div>
+          </div>
+
+          <div className={`p-2 flex gap-2`}>
+            <button onClick={toggleTheme}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg ${tc.hoverBg} ${tc.textSecondary} text-sm`}>
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span>{isDark ? 'Light' : 'Dark'}</span>
+            </button>
+            <button onClick={signOut}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg hover:bg-red-500/10 text-red-400 text-sm`}>
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// INFO HEADER BAR COMPONENT - 1:1 Mockup Copy
+// ============================================
+function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
+  const { selectedSeason } = useSeason()
+  const [stats, setStats] = useState({
+    nextGame: null,
+    nextPractice: null,
+    record: { wins: 0, losses: 0 },
+    winStreak: 0,
+    totalPlayers: 0,
+    rosteredPlayers: 0,
+    activeTeams: 0,
+    totalCollected: 0,
+    totalExpected: 0,
+    balanceDue: 0,
+  })
+  const [loading, setLoading] = useState(true)
+
+  // Get the coach's primary team
+  const getCoachPrimaryTeam = () => {
+    if (!roleContext?.coachInfo?.team_coaches?.length) return null
+    const teamId = selectedTeamId || roleContext.coachInfo.team_coaches.find(tc => tc.role === 'head')?.team_id || roleContext.coachInfo.team_coaches[0]?.team_id
+    return roleContext.coachInfo.team_coaches.find(tc => tc.team_id === teamId)
+  }
+
+  const primaryTeam = getCoachPrimaryTeam()
+
+  // Fetch real stats based on season and role
+  useEffect(() => {
+    if (selectedSeason?.id) {
+      fetchStats()
+    }
+  }, [selectedSeason?.id, activeView, selectedTeamId, roleContext])
+
+  async function fetchStats() {
+    setLoading(true)
+    try {
+      const seasonId = selectedSeason?.id
+
+      if (activeView === 'admin') {
+        // Fetch admin stats
+        const [playersRes, teamsRes, paymentsRes] = await Promise.all([
+          supabase.from('players').select('id', { count: 'exact' }).eq('season_id', seasonId),
+          supabase.from('teams').select('id', { count: 'exact' }).eq('season_id', seasonId),
+          supabase.from('payments').select('amount_paid, amount_due').eq('season_id', seasonId),
+        ])
+
+        const totalCollected = paymentsRes.data?.reduce((sum, p) => sum + (p.amount_paid || 0), 0) || 0
+        const totalExpected = paymentsRes.data?.reduce((sum, p) => sum + (p.amount_due || 0), 0) || 0
+
+        setStats(prev => ({
+          ...prev,
+          totalPlayers: playersRes.count || 0,
+          activeTeams: teamsRes.count || 0,
+          totalCollected,
+          totalExpected,
+        }))
+      }
+
+      if (activeView === 'coach' && primaryTeam?.team_id) {
+        // Fetch coach stats for selected team
+        const teamId = primaryTeam.team_id
+
+        // Get team record from games
+        const { data: games } = await supabase
+          .from('games')
+          .select('team_score, opponent_score, status')
+          .eq('team_id', teamId)
+          .eq('status', 'completed')
+
+        let wins = 0, losses = 0
+        games?.forEach(g => {
+          if (g.team_score > g.opponent_score) wins++
+          else if (g.team_score < g.opponent_score) losses++
+        })
+
+        // Calculate win streak
+        let streak = 0
+        const sortedGames = games?.sort((a, b) => new Date(b.date) - new Date(a.date)) || []
+        for (const g of sortedGames) {
+          if (g.team_score > g.opponent_score) streak++
+          else break
+        }
+
+        // Get next game
+        const { data: nextGameData } = await supabase
+          .from('games')
+          .select('*, opponent_teams(name)')
+          .eq('team_id', teamId)
+          .in('status', ['scheduled', 'upcoming'])
+          .gte('date', new Date().toISOString().split('T')[0])
+          .order('date', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        // Get next practice
+        const { data: nextPracticeData } = await supabase
+          .from('events')
+          .select('*')
+          .eq('team_id', teamId)
+          .eq('event_type', 'practice')
+          .gte('start_time', new Date().toISOString())
+          .order('start_time', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        setStats(prev => ({
+          ...prev,
+          record: { wins, losses },
+          winStreak: streak,
+          nextGame: nextGameData,
+          nextPractice: nextPracticeData,
+        }))
+      }
+
+      if (activeView === 'parent' && roleContext?.children?.length > 0) {
+        // Get first child's team stats
+        const childTeam = roleContext.children[0]?.team_players?.[0]
+        if (childTeam?.team_id) {
+          const teamId = childTeam.team_id
+
+          // Get team record
+          const { data: games } = await supabase
+            .from('games')
+            .select('team_score, opponent_score')
+            .eq('team_id', teamId)
+            .eq('status', 'completed')
+
+          let wins = 0, losses = 0
+          games?.forEach(g => {
+            if (g.team_score > g.opponent_score) wins++
+            else if (g.team_score < g.opponent_score) losses++
+          })
+
+          // Get balance due for parent
+          const { data: payments } = await supabase
+            .from('payments')
+            .select('amount_due, amount_paid')
+            .eq('parent_id', roleContext.children[0]?.parent_account_id)
+
+          const balanceDue = payments?.reduce((sum, p) => sum + ((p.amount_due || 0) - (p.amount_paid || 0)), 0) || 0
+
+          // Get next game
+          const { data: nextGameData } = await supabase
+            .from('games')
+            .select('*')
+            .eq('team_id', teamId)
+            .in('status', ['scheduled', 'upcoming'])
+            .gte('date', new Date().toISOString().split('T')[0])
+            .order('date', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+
+          // Get next practice
+          const { data: nextPracticeData } = await supabase
+            .from('events')
+            .select('*')
+            .eq('team_id', teamId)
+            .eq('event_type', 'practice')
+            .gte('start_time', new Date().toISOString())
+            .order('start_time', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+
+          setStats(prev => ({
+            ...prev,
+            record: { wins, losses },
+            nextGame: nextGameData,
+            nextPractice: nextPracticeData,
+            balanceDue,
+          }))
+        }
+      }
+
+    } catch (err) {
+      console.error('Error fetching stats:', err)
+    }
+    setLoading(false)
+  }
+
+  // Format date for display
+  const formatEventDate = (dateStr, timeStr) => {
+    if (!dateStr) return 'TBD'
+    const date = new Date(dateStr)
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const dayName = days[date.getDay()]
+    
+    if (timeStr) {
+      const time = new Date(`2000-01-01T${timeStr}`)
+      return `${dayName} ${time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
+    }
+    return dayName
+  }
+
+  // Calculate team morale based on recent performance
+  const getTeamMorale = () => {
+    if (stats.winStreak >= 3) return { label: 'High', color: '#10B981' }
+    if (stats.winStreak >= 1) return { label: 'Good', color: '#F59E0B' }
+    if (stats.record.wins > stats.record.losses) return { label: 'Good', color: '#F59E0B' }
+    return { label: 'Building', color: '#6B7280' }
+  }
+
+  const morale = getTeamMorale()
+
+  return (
+    <div 
+      className="bg-white border-b border-slate-200 shadow-sm"
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+    >
+      {/* Stats Row - Centered */}
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-center gap-0">
+          
+          {/* ═══ COACH VIEW ═══ */}
+          {activeView === 'coach' && (
+            <>
+              {/* Next Game */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Game:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    {stats.nextGame ? formatEventDate(stats.nextGame.date, stats.nextGame.time) : 'No games scheduled'}
+                  </span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Record */}
+              <button 
+                onClick={() => setPage('standings')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Record:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.record.wins}-{stats.record.losses}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Win Streak */}
+              <button 
+                onClick={() => setPage('standings')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
+                  <BarChart3 className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Win Streak:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.winStreak} Wins</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Team Morale */}
+              <div className="flex items-center gap-4 px-6 py-2">
+                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left flex items-center gap-2">
+                  <span className="text-slate-500 text-sm">Team Morale:</span>
+                  <span className="text-lg">👍</span>
+                  <span className="font-bold text-sm" style={{ color: morale.color }}>{morale.label}</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ═══ ADMIN VIEW ═══ */}
+          {activeView === 'admin' && (
+            <>
+              {/* Season/Sport */}
+              <div className="flex items-center gap-4 px-6 py-2">
+                <div className="w-11 h-11 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center shadow-sm">
+                  <VolleyballIcon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Season:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{selectedSeason?.name || 'No Season'}</span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Rostered Players */}
+              <button 
+                onClick={() => setPage('teams')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Rostered Players:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.totalPlayers}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Active Teams */}
+              <button 
+                onClick={() => setPage('teams')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
+                  <LayoutDashboard className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Active Teams:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.activeTeams}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Financials */}
+              <button 
+                onClick={() => setPage('payments')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Collected:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    ${stats.totalCollected.toLocaleString()}
+                    <span className="text-slate-400 font-normal">/${stats.totalExpected.toLocaleString()}</span>
+                  </span>
+                </div>
+              </button>
+            </>
+          )}
+
+          {/* ═══ PARENT VIEW ═══ */}
+          {activeView === 'parent' && (
+            <>
+              {/* Registration Open */}
+              <button 
+                onClick={() => setPage('registrations')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
+                  <UserPlus className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="font-bold text-sm text-[#10B981]">New Registration Open!</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Next Practice */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Practice:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    {stats.nextPractice ? formatEventDate(stats.nextPractice.start_time?.split('T')[0], stats.nextPractice.start_time?.split('T')[1]) : 'TBD'}
+                  </span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Team Record */}
+              <button 
+                onClick={() => setPage('standings')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Team Record:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.record.wins}-{stats.record.losses}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Balance */}
+              <button 
+                onClick={() => setPage('payments')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${stats.balanceDue > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'}`}>
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  {stats.balanceDue > 0 ? (
+                    <>
+                      <span className="text-slate-500 text-sm">Balance Due:</span>
+                      <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue}</span>
+                    </>
+                  ) : (
+                    <span className="text-[#10B981] font-bold text-sm">All Caught Up! ✓</span>
+                  )}
+                </div>
+              </button>
+            </>
+          )}
+
+          {/* ═══ PLAYER VIEW ═══ */}
+          {activeView === 'player' && (
+            <>
+              {/* Next Practice */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Practice:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">Mon 6:00 PM</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Next Game */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Game:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">Sat 10:00 AM</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* My Achievements */}
+              <button 
+                onClick={() => setPage('achievements')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Achievements:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">12 Earned</span>
+                </div>
+              </button>
+            </>
+          )}
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// CheckCircle icon (add since we need it)
+function CheckCircle({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
+}
+
+// ============================================
+// HORIZONTAL NAV BAR COMPONENT
+// ============================================
+function HorizontalNavBar({ 
+  page, setPage, activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
+  getAvailableViews, setActiveView, signOut, exitTeamWall, directTeamWallId,
+  tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
+  roleContext, navigateToTeamWall
+}) {
+  // Admin navigation with dropdowns
+  const adminNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'people', label: 'People', type: 'dropdown', items: [
+      { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
+      { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
+    ]},
+    { id: 'operations', label: 'Operations', type: 'dropdown', items: [
+      { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
+      { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+      { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
+      { id: 'payments', label: 'Payments', icon: 'dollar' },
+    ]},
+    { id: 'game', label: 'Game Day', type: 'dropdown', items: [
+      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'communication', label: 'Communication', type: 'dropdown', items: [
+      { id: 'chats', label: 'Chats', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+    { id: 'insights', label: 'Insights', type: 'dropdown', items: [
+      { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
+    ]},
+    { id: 'setup', label: 'Setup', type: 'dropdown', items: [
+      { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+      { id: 'waivers', label: 'Waivers', icon: 'file-text' },
+      { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+      { id: 'organization', label: 'Organization', icon: 'building' },
+    ]},
+  ]
+
+  // Coach navigation
+  const coachNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'dropdown', items: 
+      roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
+        id: `teamwall-${tc_item.team_id}`,
+        label: tc_item.teams?.name + (tc_item.role === 'head' ? ' ⭐' : ''),
+        icon: 'users',
+        teamId: tc_item.team_id,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'gameday', label: 'Game Day', type: 'dropdown', items: [
+      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'attendance', label: 'Attendance', type: 'single' },
+    { id: 'communication', label: 'Communication', type: 'dropdown', items: [
+      { id: 'chats', label: 'Team Chats', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+  ]
+
+  // Parent navigation
+  const parentNavGroups = [
+    { id: 'dashboard', label: 'Home', type: 'single' },
+    { id: 'myplayers', label: 'My Players', type: 'dropdown', items: 
+      roleContext?.children?.map(child => ({
+        id: `player-${child.id}`,
+        label: child.first_name,
+        icon: 'user',
+        playerId: child.id,
+        teams: child.team_players,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'standings', label: 'Standings', type: 'single' },
+    { id: 'leaderboards', label: 'Leaderboards', type: 'single' },
+    { id: 'achievements', label: 'Achievements', type: 'single' },
+    { id: 'chats', label: 'Chats', type: 'single' },
+    { id: 'payments', label: 'Payments', type: 'single' },
+  ]
+
+  // Player navigation
+  const playerNavGroups = [
+    { id: 'dashboard', label: 'Home', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'dropdown', items:
+      roleContext?.playerInfo?.team_players?.map(tp => ({
+        id: `teamwall-${tp.team_id}`,
+        label: tp.teams?.name,
+        icon: 'users',
+        teamId: tp.team_id,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'standings', label: 'Standings', type: 'single' },
+    { id: 'leaderboards', label: 'Leaderboards', type: 'single' },
+    { id: 'achievements', label: 'Achievements', type: 'single' },
+  ]
+
+  const getNavItems = () => {
+    switch(activeView) {
+      case 'admin': return adminNavGroups
+      case 'coach': return coachNavGroups
+      case 'parent': return parentNavGroups
+      case 'player': return playerNavGroups
+      default: return []
+    }
+  }
+
+  const navItems = getNavItems()
+
+  const isGroupActive = (group) => {
+    if (group.type === 'single') return page === group.id && !directTeamWallId
+    if (group.items) {
+      return group.items.some(item => {
+        if (item.teamId) return directTeamWallId === item.teamId
+        if (item.playerId) return page === `player-${item.playerId}`
+        return item.id === page
+      })
+    }
+    return false
+  }
+
+  const handleNavigate = (itemId, item) => {
+    if (item?.teamId) {
+      navigateToTeamWall(item.teamId)
+      return
+    }
+    if (item?.playerId) {
+      exitTeamWall()
+      setPage(`player-${item.playerId}`)
+      return
+    }
+    exitTeamWall()
+    setPage(itemId)
+  }
+
+  return (
+    <header className="h-14 flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-50"
+      style={{ background: accent.navBar, boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+      
+      {/* LEFT: Logo */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: accent.primary }}>
+          <VolleyballIcon className="w-5 h-5 text-white" />
+        </div>
+        <span className="font-bold text-lg text-white">Volley<span className="text-slate-400">Brain</span></span>
+      </div>
+
+      {/* CENTER: Navigation */}
+      <nav className="flex items-center gap-1">
+        {navItems.map(item => {
+          if (item.type === 'single') {
+            const isActive = page === item.id && !directTeamWallId
+            return (
+              <button key={item.id} onClick={() => handleNavigate(item.id)}
+                className="px-4 py-2 text-sm font-medium rounded-lg transition-all"
+                style={{ background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent', color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.7)' }}>
+                {item.label}
+              </button>
+            )
+          } else if (item.items && item.items.length > 0) {
+            return (
+              <NavDropdown key={item.id} label={item.label} items={item.items} currentPage={page}
+                onNavigate={(id, navItem) => handleNavigate(id, navItem)}
+                isActive={isGroupActive(item)} directTeamWallId={directTeamWallId} />
+            )
+          }
+          return null
+        })}
+      </nav>
+
+      {/* RIGHT: Notifications + Profile */}
+      <div className="flex items-center gap-3">
+        <NotificationDropdown tc={tc} />
+        <UserProfileDropdown 
+          profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
+          setShowRoleSwitcher={setShowRoleSwitcher} getAvailableViews={getAvailableViews}
+          setActiveView={setActiveView} setPage={setPage} signOut={signOut} tc={tc}
+          accent={accent} accentColor={accentColor} changeAccent={changeAccent}
+          accentColors={accentColors} isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
+    </header>
+  )
+}
+
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
 function MainApp() {
   const { profile, organization, signOut, user } = useAuth()
   const tc = useThemeClasses()
-  const { isDark, colors } = useTheme()
+  const { isDark, accent, accentColor, changeAccent, accentColors, toggleTheme } = useTheme()
   const [page, setPage] = useState('dashboard')
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [toast, setToast] = useState(null)
-  
-  // Direct team wall access via URL hash
   const [directTeamWallId, setDirectTeamWallId] = useState(null)
+  const [selectedTeamId, setSelectedTeamId] = useState(null)
 
-  // Parse hash on load and hash changes
   useEffect(() => {
     function handleHashChange() {
       const hash = window.location.hash
-      // Pattern: #/team/<team-id>
       const teamMatch = hash.match(/^#\/team\/(.+)$/)
       if (teamMatch) {
         setDirectTeamWallId(teamMatch[1])
@@ -88,27 +1028,20 @@ function MainApp() {
         setDirectTeamWallId(null)
       }
     }
-    
-    // Check on mount
     handleHashChange()
-    
-    // Listen for changes
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  // Helper to navigate to team wall (updates URL)
   const navigateToTeamWall = (teamId) => {
     window.location.hash = `/team/${teamId}`
   }
 
-  // Helper to exit team wall view
   const exitTeamWall = () => {
     window.location.hash = ''
     setDirectTeamWallId(null)
   }
 
-  // Helper to navigate away from team wall to another page
   const navigateFromTeamWall = (targetPage) => {
     window.location.hash = ''
     setDirectTeamWallId(null)
@@ -119,16 +1052,12 @@ function MainApp() {
     setToast({ message, type })
   }
 
-  // Role switching state
-  const [activeView, setActiveView] = useState('admin') // 'admin', 'coach', 'parent', 'player'
+  const [activeView, setActiveView] = useState('admin')
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
-  
-  // Selected player for player view (shared between PlayerDashboard and Achievements)
   const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
 
-  // Load user's role context
   useEffect(() => {
     if (profile?.id && organization?.id) {
       loadRoleContext()
@@ -137,31 +1066,20 @@ function MainApp() {
 
   async function loadRoleContext() {
     try {
-      // Get all active roles for this user in this org
       const { data: roles } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', profile.id)
-        .eq('organization_id', organization.id)
-        .eq('is_active', true)
+        .from('user_roles').select('*')
+        .eq('user_id', profile.id).eq('organization_id', organization.id).eq('is_active', true)
 
       setUserRoles(roles || [])
 
-      // Check if user is linked as a coach
       const { data: coachLink } = await supabase
-        .from('coaches')
-        .select('*, team_coaches(team_id, role, teams(id, name, color))')
-        .eq('profile_id', profile.id)
-        .maybeSingle()
+        .from('coaches').select('*, team_coaches(team_id, role, teams(id, name, color))')
+        .eq('profile_id', profile.id).maybeSingle()
 
-      // Check if user has children (parent context)
       const { data: children } = await supabase
-        .from('players')
-        .select('id, first_name, last_name, photo_url, team_players(team_id, teams(id, name, color))')
+        .from('players').select('id, first_name, last_name, photo_url, team_players(team_id, teams(id, name, color))')
         .eq('parent_account_id', profile.id)
 
-      // Player self-account feature not yet implemented
-      // (would allow players with their own accounts to access their data)
       const playerSelf = null
 
       setRoleContext({
@@ -175,7 +1093,6 @@ function MainApp() {
         playerInfo: playerSelf
       })
 
-      // Set default view based on available roles
       if (roles?.some(r => r.role === 'league_admin' || r.role === 'admin')) {
         setActiveView('admin')
       } else if (coachLink) {
@@ -185,13 +1102,11 @@ function MainApp() {
       } else if (playerSelf) {
         setActiveView('player')
       }
-
     } catch (err) {
       console.error('Error loading role context:', err)
     }
   }
 
-  // Get available views based on role context
   const getAvailableViews = () => {
     const views = []
     if (roleContext?.isAdmin) {
@@ -208,93 +1123,10 @@ function MainApp() {
     if (roleContext?.isPlayer) {
       views.push({ id: 'player', label: 'Player', icon: 'volleyball', description: roleContext.playerInfo?.first_name })
     }
-    // Admin/Coach can preview Player dashboard even without a player account
     if ((roleContext?.isAdmin || roleContext?.isCoach) && !roleContext?.isPlayer) {
       views.push({ id: 'player', label: 'Player', icon: 'volleyball', description: 'Preview player view' })
     }
     return views
-  }
-
-  const [expandedGroups, setExpandedGroups] = useState({ people: false, operations: false, game: false, communication: false, insights: false, setup: false })
-  const [coachGameDayExpanded, setCoachGameDayExpanded] = useState(true)
-
-  const navGroups = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', type: 'single' },
-    { 
-      id: 'people', 
-      label: 'People', 
-      icon: 'users',
-      type: 'group',
-      items: [
-        { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
-        { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
-      ]
-    },
-    { 
-      id: 'operations', 
-      label: 'Operations', 
-      icon: 'zap',
-      type: 'group',
-      items: [
-        { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
-        { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
-        { id: 'schedule', label: 'Schedule', icon: 'calendar' },
-        { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
-        { id: 'payments', label: 'Payments', icon: 'dollar' },
-      ]
-    },
-    { 
-      id: 'game', 
-      label: 'Game Day', 
-      icon: 'target',
-      type: 'group',
-      items: [
-        { id: 'gameprep', label: 'Game Prep', icon: 'target' },
-        { id: 'standings', label: 'Standings', icon: 'star' },
-        { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-      ]
-    },
-    { 
-      id: 'communication', 
-      label: 'Communication', 
-      icon: 'message',
-      type: 'group',
-      items: [
-        { id: 'chats', label: 'Chats', icon: 'message' },
-        { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
-      ]
-    },
-    { 
-      id: 'insights', 
-      label: 'Insights', 
-      icon: 'bar-chart',
-      type: 'group',
-      items: [
-        { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
-      ]
-    },
-    { 
-      id: 'setup', 
-      label: 'Setup', 
-      icon: 'settings',
-      type: 'group',
-      items: [
-        { id: 'seasons', label: 'Seasons', icon: 'calendar' },
-        { id: 'waivers', label: 'Waivers', icon: 'file-text' },
-        { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
-        { id: 'organization', label: 'Organization', icon: 'building' },
-      ]
-    },
-  ]
-
-  // Accordion-style toggle - only one group open at a time
-  const toggleGroup = (groupId) => {
-    setExpandedGroups(prev => {
-      const isCurrentlyOpen = prev[groupId]
-      // Close all groups, then open clicked one if it was closed
-      const allClosed = { people: false, operations: false, game: false, communication: false, insights: false, setup: false }
-      return isCurrentlyOpen ? allClosed : { ...allClosed, [groupId]: true }
-    })
   }
 
   return (
@@ -303,593 +1135,42 @@ function MainApp() {
       <div className={`flex flex-col min-h-screen ${tc.pageBg}`}>
         <JourneyCelebrations />
         
-        {/* Top Header Bar */}
-        <header className={`h-14 ${tc.cardBg} border-b ${tc.border} flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-50`}>
-          {/* Left: Logo */}
-          <div className="flex items-center gap-3">
-            <VolleyballIcon className="w-7 h-7 text-[var(--accent-primary)]" />
-            <span className={`font-bold text-lg ${tc.text}`}>VolleyBrain</span>
-          </div>
-          
-          {/* Center: Context Breadcrumb (Admin only) */}
-          {activeView === 'admin' && (
-            <div className="flex items-center gap-2">
-              {/* Organization Badge */}
-              {organization && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30">
-                  <Building2 className="w-4 h-4 text-[var(--accent-primary)]" />
-                  <span className="text-sm font-medium text-[var(--accent-primary)]">{organization.name}</span>
-                </div>
-              )}
-              
-              {/* Sport Selector */}
-              <HeaderSportSelector />
-              
-              {/* Season Selector */}
-              <HeaderSeasonSelector />
-            </div>
-          )}
-          
-          {/* Center: Context - Coach View */}
-          {activeView === 'coach' && roleContext?.coachInfo && (
-            <div className="flex items-center gap-2">
-              {/* Team Selector (if coaching multiple teams) */}
-              {roleContext.coachInfo.team_coaches?.length > 1 ? (
-                <HeaderCoachTeamSelector 
-                  teams={roleContext.coachInfo.team_coaches} 
-                  onSelectTeam={navigateToTeamWall}
-                />
-              ) : roleContext.coachInfo.team_coaches?.length === 1 ? (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30">
-                  <Users className="w-4 h-4 text-[var(--accent-primary)]" />
-                  <span className="text-sm font-medium text-[var(--accent-primary)]">
-                    {roleContext.coachInfo.team_coaches[0].teams?.name}
-                  </span>
-                  {roleContext.coachInfo.team_coaches[0].role === 'head' && (
-                    <span className="text-xs bg-[var(--accent-primary)]/20 px-1.5 py-0.5 rounded text-[var(--accent-primary)]">Head Coach</span>
-                  )}
-                </div>
-              ) : null}
-              
-              {/* Season indicator */}
-              <HeaderSeasonSelector />
-            </div>
-          )}
-          
-          {/* Center: Context - Parent View */}
-          {activeView === 'parent' && roleContext?.children && (
-            <div className="flex items-center gap-2">
-              {/* Child/Player Selector */}
-              {roleContext.children.length > 1 ? (
-                <HeaderChildSelector 
-                  children={roleContext.children}
-                  onSelectChild={(childId) => setPage(`player-${childId}`)}
-                  navigateToTeamWall={navigateToTeamWall}
-                />
-              ) : roleContext.children.length === 1 ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30">
-                    {roleContext.children[0].photo_url ? (
-                      <img src={roleContext.children[0].photo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
-                    ) : (
-                      <User className="w-4 h-4 text-[var(--accent-primary)]" />
-                    )}
-                    <span className="text-sm font-medium text-[var(--accent-primary)]">
-                      {roleContext.children[0].first_name} {roleContext.children[0].last_name}
-                    </span>
-                  </div>
-                  {/* Show team if only one */}
-                  {roleContext.children[0].team_players?.length === 1 && (
-                    <button 
-                      onClick={() => navigateToTeamWall(roleContext.children[0].team_players[0].team_id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${tc.hoverBg} transition`}
-                    >
-                      <span 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ background: roleContext.children[0].team_players[0].teams?.color || '#EAB308' }}
-                      />
-                      <span className={`text-sm ${tc.text}`}>
-                        {roleContext.children[0].team_players[0].teams?.name}
-                      </span>
-                    </button>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          )}
-          
-          {/* Center: Context - Player View */}
-          {activeView === 'player' && roleContext?.playerInfo && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30">
-                <VolleyballIcon className="w-4 h-4 text-[var(--accent-primary)]" />
-                <span className="text-sm font-medium text-[var(--accent-primary)]">
-                  {roleContext.playerInfo.team_players?.[0]?.teams?.name || 'My Team'}
-                </span>
-                {roleContext.playerInfo.team_players?.[0]?.jersey_number && (
-                  <span className="text-xs bg-[var(--accent-primary)] text-white px-2 py-0.5 rounded-full font-bold">
-                    #{roleContext.playerInfo.team_players[0].jersey_number}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Right: User Profile & View Switcher */}
-          <div className="relative">
-            <button 
-              className={`flex items-center gap-3 px-3 py-1.5 rounded-xl transition ${tc.hoverBgAlt}`}
-              onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
-            >
-              <div className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-black text-sm">
-                {profile?.full_name?.charAt(0) || '?'}
-              </div>
-              <div className="text-left hidden sm:block">
-                <p className={`text-sm font-medium ${tc.text}`}>{profile?.full_name || 'User'}</p>
-                <p className={`text-xs ${tc.textMuted} flex items-center gap-1`}>
-                  {activeView === 'admin' && <Shield className="w-3 h-3" />}
-                  {activeView === 'coach' && <UserCog className="w-3 h-3" />}
-                  {activeView === 'parent' && <Users className="w-3 h-3" />}
-                  {activeView === 'player' && <VolleyballIcon className="w-3 h-3" />}
-                  {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
-                </p>
-              </div>
-              <ChevronDown className={`w-4 h-4 ${tc.textMuted} transition-transform ${showRoleSwitcher ? 'rotate-180' : ''}`} />
-            </button>
-            
-            {/* Role Switcher Dropdown */}
-            {showRoleSwitcher && (
-              <div className={`absolute right-0 top-full mt-2 w-64 ${tc.cardBg} rounded-xl border ${tc.border} shadow-xl overflow-hidden z-50`}>
-                <div className={`p-2 border-b ${tc.border}`}>
-                  <p className={`text-xs ${tc.textMuted} px-2`}>Switch View</p>
-                </div>
-                {getAvailableViews().map(view => (
-                  <button
-                    key={view.id}
-                    onClick={() => {
-                      setActiveView(view.id)
-                      setShowRoleSwitcher(false)
-                      setPage('dashboard')
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${
-                      activeView === view.id 
-                        ? 'bg-[var(--accent-primary)]/20' 
-                        : `${tc.hoverBg}`
-                    }`}
-                  >
-                    <NavIcon name={view.icon} className="w-5 h-5" />
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-medium text-sm ${activeView === view.id ? 'text-[var(--accent-primary)]' : tc.text}`}>
-                        {view.label}
-                      </p>
-                      <p className={`text-xs ${tc.textMuted} truncate`}>{view.description}</p>
-                    </div>
-                    {activeView === view.id && <Check className="w-4 h-4 text-[var(--accent-primary)]" />}
-                  </button>
-                ))}
-                <div className={`p-2 border-t ${tc.border} flex gap-2`}>
-                  <ThemeToggleButton collapsed={false} />
-                  <button 
-                    onClick={signOut} 
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg ${tc.hoverBg} ${tc.textSecondary} text-sm`}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </header>
+        {/* Horizontal Nav Bar */}
+        <HorizontalNavBar 
+          page={page} setPage={setPage} activeView={activeView} profile={profile}
+          showRoleSwitcher={showRoleSwitcher} setShowRoleSwitcher={setShowRoleSwitcher}
+          getAvailableViews={getAvailableViews} setActiveView={setActiveView} signOut={signOut}
+          exitTeamWall={exitTeamWall} directTeamWallId={directTeamWallId} tc={tc} accent={accent}
+          accentColor={accentColor} changeAccent={changeAccent} accentColors={accentColors}
+          isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
+          navigateToTeamWall={navigateToTeamWall}
+        />
         
-        <div className="flex flex-1 pt-14">
-          {/* Sidebar */}
-          <div className={`${sidebarCollapsed ? 'w-16' : 'w-56'} fixed top-14 left-0 h-[calc(100vh-3.5rem)] ${tc.cardBg} border-r ${tc.border} flex flex-col transition-all duration-300 z-40`}>
-            
-            {/* Collapse Toggle */}
-            <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-end'} px-2 py-2 border-b ${tc.border}`}>
-              <button 
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
-                className={`p-2 rounded-lg ${tc.hoverBgAlt} ${tc.textSecondary}`}
-                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
-                {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-              </button>
-            </div>
-
-            {/* Navigation - varies by active view */}
-            <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-              {activeView === 'admin' && (
-                // Full Admin Navigation
-                <>
-                  {navGroups.map(group => (
-                    group.type === 'single' ? (
-                      <button key={group.id} onClick={() => { exitTeamWall(); setPage(group.id); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                          page === group.id && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                        }`}
-                        title={sidebarCollapsed ? group.label : undefined}
-                      >
-                        <NavIcon name={group.icon} className="w-5 h-5" />
-                        {!sidebarCollapsed && <span>{group.label}</span>}
-                      </button>
-                    ) : (
-                      <div key={group.id} className="mb-1">
-                        <button
-                          onClick={() => !sidebarCollapsed && toggleGroup(group.id)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-sm ${
-                            group.items.some(item => item.id === page) && !directTeamWallId
-                              ? 'text-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                              : `${tc.textMuted} ${tc.hoverBg}`
-                          }`}
-                          title={sidebarCollapsed ? group.label : undefined}
-                        >
-                          <div className="flex items-center gap-3">
-                            <NavIcon name={group.icon} className="w-5 h-5" />
-                            {!sidebarCollapsed && <span className="font-medium text-xs uppercase tracking-wider">{group.label}</span>}
-                          </div>
-                          {!sidebarCollapsed && (
-                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandedGroups[group.id] ? 'rotate-180' : ''}`} />
-                          )}
-                        </button>
-                        {(expandedGroups[group.id] || sidebarCollapsed) && (
-                          <div className={`${sidebarCollapsed ? '' : 'ml-3 mt-1 pl-3 border-l border-slate-700'} space-y-0.5`}>
-                            {group.items.map(item => (
-                              <button key={item.id} onClick={() => { exitTeamWall(); setPage(item.id); }}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
-                                  page === item.id && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                                }`}
-                                title={sidebarCollapsed ? item.label : undefined}
-                              >
-                                <span className="relative">
-                                  <NavIcon name={item.icon} className="w-4 h-4" />
-                                  {item.hasBadge && sidebarCollapsed && <JerseyNavBadge collapsed={true} />}
-                                </span>
-                                {!sidebarCollapsed && (
-                                  <>
-                                    <span className="flex-1 text-left">{item.label}</span>
-                                    {item.hasBadge && <JerseyNavBadge collapsed={false} />}
-                                  </>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  ))}
-                </>
-              )}
-
-            {activeView === 'coach' && (
-              // Coach Navigation
-              <>
-                <button onClick={() => { exitTeamWall(); setPage('dashboard'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'dashboard' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <LayoutDashboard className="w-5 h-5" />
-                  <span>Dashboard</span>
-                </button>
-
-                {/* My Teams */}
-                <p className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${tc.textMuted}`}>My Teams</p>
-                {roleContext?.coachInfo?.team_coaches?.map(tc_item => (
-                  <button 
-                    key={tc_item.team_id}
-                    onClick={() => navigateToTeamWall(tc_item.team_id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                      directTeamWallId === tc_item.team_id ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                    }`}
-                  >
-                    <Users className="w-5 h-5" />
-                    <span>{tc_item.teams?.name}</span>
-                    {tc_item.role === 'head' && <Star className="w-4 h-4 text-[var(--accent-primary)]" />}
-                  </button>
-                ))}
-
-                <div className={`my-3 border-t ${tc.border}`}></div>
-
-                <button onClick={() => { exitTeamWall(); setPage('schedule'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'schedule' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Calendar className="w-5 h-5" />
-                  <span>Schedule</span>
-                </button>
-
-                {/* Game Day Collapsible Section */}
-                <button 
-                  onClick={() => setCoachGameDayExpanded(!coachGameDayExpanded)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    ['gameprep', 'standings', 'leaderboards'].includes(page) && !directTeamWallId
-                      ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' 
-                      : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}
-                >
-                  <Target className="w-5 h-5" />
-                  <span className="flex-1 text-left">Game Day</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${coachGameDayExpanded ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {coachGameDayExpanded && (
-                  <div className="ml-4 space-y-1">
-                    <button onClick={() => { exitTeamWall(); setPage('gameprep'); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm ${
-                        page === 'gameprep' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                      }`}>
-                      <Target className="w-4 h-4" />
-                      <span>Game Prep</span>
-                    </button>
-
-                    <button onClick={() => { exitTeamWall(); setPage('standings'); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm ${
-                        page === 'standings' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                      }`}>
-                      <Star className="w-4 h-4" />
-                      <span>Standings</span>
-                    </button>
-
-                    <button onClick={() => { exitTeamWall(); setPage('leaderboards'); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm ${
-                        page === 'leaderboards' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                      }`}>
-                      <LayoutDashboard className="w-4 h-4" />
-                      <span>Leaderboards</span>
-                    </button>
-                  </div>
-                )}
-
-                <button onClick={() => { exitTeamWall(); setPage('attendance'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'attendance' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <CheckSquare className="w-5 h-5" />
-                  <span>Attendance</span>
-                </button>
-
-                <div className={`my-3 border-t ${tc.border}`}></div>
-                <p className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${tc.textMuted}`}>Communication</p>
-
-                <button onClick={() => { exitTeamWall(); setPage('chats'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'chats' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Team Chats</span>
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('blasts'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'blasts' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Megaphone className="w-5 h-5" />
-                  <span>Announcements</span>
-                </button>
-              </>
-            )}
-
-            {activeView === 'parent' && (
-              // Enhanced Parent Navigation
-              <>
-                <button onClick={() => { exitTeamWall(); setPage('dashboard'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'dashboard' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Home className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Home</span>}
-                </button>
-
-                {/* My Players - Clickable */}
-                {!sidebarCollapsed && (
-                  <p className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${tc.textMuted}`}>My Players</p>
-                )}
-                {roleContext?.children?.map(child => (
-                  <div key={child.id} className="mb-2">
-                    <button
-                      onClick={() => { exitTeamWall(); setPage(`player-${child.id}`); }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl transition ${
-                        page === `player-${child.id}` ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : `${tc.textSecondary} ${tc.hoverBg}`
-                      }`}
-                    >
-                      {child.photo_url ? (
-                        <img src={child.photo_url} alt="" className="w-6 h-6 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-[var(--accent-primary)]/30 flex items-center justify-center text-xs font-bold text-[var(--accent-primary)]">
-                          {child.first_name?.[0]}
-                        </div>
-                      )}
-                      {!sidebarCollapsed && <span className="text-sm font-medium flex-1">{child.first_name}</span>}
-                      {!sidebarCollapsed && <span className="text-xs opacity-50">→</span>}
-                    </button>
-                    {!sidebarCollapsed && child.team_players?.map(tp => (
-                      <button 
-                        key={tp.team_id}
-                        onClick={() => navigateToTeamWall(tp.team_id)}
-                        className={`w-full flex items-center gap-2 px-3 py-1.5 ml-4 rounded-lg transition-all text-xs group ${
-                          directTeamWallId === tp.team_id 
-                            ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' 
-                            : `${tc.textMuted} hover:text-[var(--accent-primary)] ${tc.hoverBg}`
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full" style={{ background: tp.teams?.color || '#EAB308' }} />
-                        <span className="flex-1">{tp.teams?.name}</span>
-                        <span className="text-[10px] opacity-50 group-hover:opacity-100">Team →</span>
-                      </button>
-                    ))}
-                  </div>
-                ))}
-
-                <div className={`my-3 border-t ${tc.border}`}></div>
-
-                <button onClick={() => { exitTeamWall(); setPage('schedule'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'schedule' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Calendar className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Schedule</span>}
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('standings'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'standings' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Star className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Standings</span>}
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('leaderboards'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'leaderboards' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <LayoutDashboard className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Leaderboards</span>}
-                </button>
-
-                {/* ═══════════════════════════════════════════════════════════════
-                    NEW: Achievements Button for Parent View
-                    ═══════════════════════════════════════════════════════════════ */}
-                <button onClick={() => { exitTeamWall(); setPage('achievements'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'achievements' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Trophy className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Achievements</span>}
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('chats'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'chats' || page === 'messages' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <MessageCircle className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Chats</span>}
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('payments'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'payments' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <DollarSign className="w-5 h-5" />
-                  {!sidebarCollapsed && <span>Payments</span>}
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('invite'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'invite' ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <span className="text-lg">🔗</span>
-                  {!sidebarCollapsed && <span>Invite Friends</span>}
-                </button>
-              </>
-            )}
-
-            {activeView === 'player' && (
-              // Player Navigation
-              <>
-                <button onClick={() => { exitTeamWall(); setPage('dashboard'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'dashboard' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Home className="w-5 h-5" />
-                  <span>Home</span>
-                </button>
-
-                {/* My Teams */}
-                <p className={`px-3 py-2 text-xs font-medium uppercase tracking-wider ${tc.textMuted}`}>My Teams</p>
-                {roleContext?.playerInfo?.team_players?.map(tp => (
-                  <button 
-                    key={tp.team_id}
-                    onClick={() => navigateToTeamWall(tp.team_id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                      directTeamWallId === tp.team_id ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                    }`}
-                  >
-                    <span 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ background: tp.teams?.color || '#EAB308' }}
-                    ></span>
-                    <span>{tp.teams?.name}</span>
-                  </button>
-                ))}
-
-                <div className={`my-3 border-t ${tc.border}`}></div>
-
-                <button onClick={() => { exitTeamWall(); setPage('schedule'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'schedule' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Calendar className="w-5 h-5" />
-                  <span>Schedule</span>
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('standings'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'standings' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Star className="w-5 h-5" />
-                  <span>Standings</span>
-                </button>
-
-                <button onClick={() => { exitTeamWall(); setPage('leaderboards'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'leaderboards' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <LayoutDashboard className="w-5 h-5" />
-                  <span>Leaderboards</span>
-                </button>
-
-                {/* ═══════════════════════════════════════════════════════════════
-                    NEW: Achievements Button for Player View
-                    ═══════════════════════════════════════════════════════════════ */}
-                <button onClick={() => { exitTeamWall(); setPage('achievements'); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                    page === 'achievements' && !directTeamWallId ? 'bg-[var(--accent-primary)] text-white font-semibold' : `${tc.textSecondary} ${tc.hoverBg}`
-                  }`}>
-                  <Trophy className="w-5 h-5" />
-                  <span>Achievements</span>
-                </button>
-              </>
-            )}
-          </nav>
-
-          {/* Theme Toggle & Sign Out - shrink-0 keeps it at bottom */}
-          <div className={`p-4 border-t ${tc.border} shrink-0`}>
-            <div className={`flex ${sidebarCollapsed ? 'flex-col' : 'flex-row'} gap-2`}>
-              <AccentColorPicker />
-              <ThemeToggleButton collapsed={sidebarCollapsed} />
-              <button onClick={signOut}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg ${tc.textSecondary} hover:text-red-400 hover:bg-red-500/10 transition text-sm`}>
-                <LogOut className="w-4 h-4" />
-                {!sidebarCollapsed && <span>Sign Out</span>}
-              </button>
-            </div>
-          </div>
+        {/* Info Header Bar */}
+        <div className="mt-14">
+          <InfoHeaderBar 
+            activeView={activeView} roleContext={roleContext} organization={organization}
+            tc={tc} setPage={setPage} selectedTeamId={selectedTeamId}
+            setSelectedTeamId={setSelectedTeamId}
+          />
         </div>
 
-        {/* Main Content */}
-        <div className={`flex-1 p-8 overflow-auto ${sidebarCollapsed ? 'ml-16' : 'ml-56'} transition-all duration-300`}>
-          {/* Direct Team Wall Access via URL */}
+        {/* Main Content Area */}
+        <div className="flex-1 p-8 overflow-auto">
           {directTeamWallId ? (
-            <TeamWallPage 
-              teamId={directTeamWallId}
-              showToast={showToast}
-              onBack={exitTeamWall}
-              onNavigate={navigateFromTeamWall}
-            />
+            <TeamWallPage teamId={directTeamWallId} showToast={showToast} onBack={exitTeamWall} onNavigate={navigateFromTeamWall} />
           ) : (
             <>
               {page === 'dashboard' && activeView === 'admin' && <DashboardPage onNavigate={setPage} />}
               {page === 'dashboard' && activeView === 'coach' && <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
               {page === 'dashboard' && activeView === 'parent' && <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
               {page === 'dashboard' && activeView === 'player' && <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} showToast={showToast} onPlayerChange={setSelectedPlayerForView} />}
-              {/* Parent Portal - Player Profile Pages */}
+              
               {page.startsWith('player-') && activeView === 'parent' && <PlayerProfilePage playerId={page.replace('player-', '')} roleContext={roleContext} showToast={showToast} />}
-              {/* Parent Portal - Messages */}
               {page === 'messages' && activeView === 'parent' && <ParentMessagesPage roleContext={roleContext} showToast={showToast} />}
-              {/* Parent Portal - Invite Friends */}
               {page === 'invite' && activeView === 'parent' && <InviteFriendsPage roleContext={roleContext} showToast={showToast} />}
-              {/* Parent Portal - Payments (privacy-aware) */}
               {page === 'payments' && activeView === 'parent' && <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />}
+              
               {page === 'registrations' && <RegistrationsPage showToast={showToast} />}
               {page === 'payments' && activeView === 'admin' && <PaymentsPage showToast={showToast} />}
               {page === 'teams' && <TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
@@ -908,34 +1189,19 @@ function MainApp() {
               {page === 'blasts' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'reports' && <ReportsPage showToast={showToast} />}
               
-              {/* ═══════════════════════════════════════════════════════════════
-                  NEW: Achievements Page Rendering
-                  ═══════════════════════════════════════════════════════════════ */}
               {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
                 <AchievementsCatalogPage 
-                  playerId={
-                    activeView === 'player' 
-                      ? selectedPlayerForView?.id  // Use the player selected in PlayerDashboard
-                      : roleContext?.children?.[0]?.id  // Parent view uses first child
-                  }
+                  playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
                   showToast={showToast}
-                  playerName={
-                    activeView === 'player'
-                      ? selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My'
-                      : `${roleContext?.children?.[0]?.first_name}'s`
-                  }
+                  playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : `${roleContext?.children?.[0]?.first_name}'s`}
                   isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
                 />
               )}
             </>
           )}
         </div>
-        </div>
 
-        {/* Toast */}
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        
-        {/* Blast Alert Checker - Handles its own state inside SeasonProvider */}
         <BlastAlertChecker />
       </div>
     </SeasonProvider>

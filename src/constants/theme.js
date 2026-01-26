@@ -1,14 +1,58 @@
 // Accent color options for user customization
+// Each accent now includes a navBar gradient for the horizontal navigation
 export const accentColors = {
-  orange: { primary: '#F97316', light: '#FFEDD5', lighter: '#FFF7ED', dark: '#C2410C' },
-  blue: { primary: '#0EA5E9', light: '#E0F2FE', lighter: '#F0F9FF', dark: '#0369A1' },
-  purple: { primary: '#8B5CF6', light: '#EDE9FE', lighter: '#F5F3FF', dark: '#6D28D9' },
-  green: { primary: '#10B981', light: '#D1FAE5', lighter: '#ECFDF5', dark: '#047857' },
-  rose: { primary: '#F43F5E', light: '#FFE4E6', lighter: '#FFF1F2', dark: '#BE123C' },
-  slate: { primary: '#64748B', light: '#F1F5F9', lighter: '#F8FAFC', dark: '#475569' },
+  orange: { 
+    primary: '#F97316', 
+    light: '#FFEDD5', 
+    lighter: '#FFF7ED', 
+    dark: '#C2410C',
+    navBar: 'linear-gradient(135deg, #2C3E50 0%, #1a252f 100%)',
+    navBarSolid: '#2C3E50',
+  },
+  blue: { 
+    primary: '#0EA5E9', 
+    light: '#E0F2FE', 
+    lighter: '#F0F9FF', 
+    dark: '#0369A1',
+    navBar: 'linear-gradient(135deg, #1E3A5F 0%, #0C4A6E 100%)',
+    navBarSolid: '#1E3A5F',
+  },
+  purple: { 
+    primary: '#8B5CF6', 
+    light: '#EDE9FE', 
+    lighter: '#F5F3FF', 
+    dark: '#6D28D9',
+    navBar: 'linear-gradient(135deg, #2E1065 0%, #1E1B4B 100%)',
+    navBarSolid: '#2E1065',
+  },
+  green: { 
+    primary: '#10B981', 
+    light: '#D1FAE5', 
+    lighter: '#ECFDF5', 
+    dark: '#047857',
+    navBar: 'linear-gradient(135deg, #134E4A 0%, #0F172A 100%)',
+    navBarSolid: '#134E4A',
+  },
+  rose: { 
+    primary: '#F43F5E', 
+    light: '#FFE4E6', 
+    lighter: '#FFF1F2', 
+    dark: '#BE123C',
+    navBar: 'linear-gradient(135deg, #4C1D30 0%, #1F1020 100%)',
+    navBarSolid: '#4C1D30',
+  },
+  slate: { 
+    primary: '#64748B', 
+    light: '#F1F5F9', 
+    lighter: '#F8FAFC', 
+    dark: '#475569',
+    navBar: 'linear-gradient(135deg, #334155 0%, #1E293B 100%)',
+    navBarSolid: '#334155',
+  },
 }
 
-// Theme color definitions - Enhanced slate palette
+// Theme color definitions
+// Light mode uses Apple-inspired warm off-white (#F5F5F7) for floating card effect
 export const themes = {
   dark: {
     name: 'dark',
@@ -32,22 +76,23 @@ export const themes = {
   },
   light: {
     name: 'light',
-    bg: 'bg-slate-50',
+    // Apple-inspired warm off-white background - makes cards float
+    bg: 'bg-[#F5F5F7]',
     bgSecondary: 'bg-white',
     bgTertiary: 'bg-slate-100',
-    bgHover: 'hover:bg-slate-100',
-    border: 'border-slate-200',
-    text: 'text-slate-900',
+    bgHover: 'hover:bg-slate-50',
+    border: 'border-slate-200/60',
+    text: 'text-slate-800',
     textSecondary: 'text-slate-600',
     textMuted: 'text-slate-500',
     colors: {
-      bg: '#F8FAFC',
+      bg: '#F5F5F7',
       bgSecondary: '#FFFFFF',
       bgTertiary: '#F1F5F9',
       border: '#E2E8F0',
-      text: '#0F172A',
-      textSecondary: '#475569',
-      textMuted: '#64748B',
+      text: '#1D1D1F',
+      textSecondary: '#515154',
+      textMuted: '#86868B',
     }
   }
 }

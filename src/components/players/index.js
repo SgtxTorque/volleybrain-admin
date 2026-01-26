@@ -8,5 +8,7 @@ export {
   ContactRow,
   DocumentRow,
   PlayerCard,
-  PlayerCardExpanded
 } from './PlayerComponents'
+
+// New premium player card from separate file
+export { PlayerCardExpanded } from './PlayerCardExpanded'

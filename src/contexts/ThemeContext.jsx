@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { accentColors, themes } from '../constants/theme'
 
 // ============================================
-// THEME CONTEXT - Enhanced with Accent Colors
+// THEME CONTEXT - Enhanced with Accent Colors & NavBar
 // ============================================
 const ThemeContext = createContext(null)
 
@@ -34,6 +34,8 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = document.documentElement
     const colors = currentTheme.colors
+    
+    // Theme colors
     root.style.setProperty('--bg-primary', colors.bg)
     root.style.setProperty('--bg-secondary', colors.bgSecondary)
     root.style.setProperty('--bg-tertiary', colors.bgTertiary)
@@ -41,9 +43,16 @@ export function ThemeProvider({ children }) {
     root.style.setProperty('--text-primary', colors.text)
     root.style.setProperty('--text-secondary', colors.textSecondary)
     root.style.setProperty('--text-muted', colors.textMuted)
+    
+    // Accent colors
     root.style.setProperty('--accent-primary', currentAccent.primary)
     root.style.setProperty('--accent-light', currentAccent.light)
     root.style.setProperty('--accent-dark', currentAccent.dark)
+    
+    // NavBar colors (new)
+    root.style.setProperty('--navbar-bg', currentAccent.navBar)
+    root.style.setProperty('--navbar-bg-solid', currentAccent.navBarSolid)
+    
     document.body.setAttribute('data-theme', theme)
   }, [theme, currentTheme, accentColor, currentAccent])
 
@@ -77,6 +86,9 @@ export function useThemeClasses() {
     input: isDark ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
     modal: isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200',
     colors: isDark ? themes.dark.colors : themes.light.colors,
-    accent: accent
+    accent: accent,
+    // NavBar specific
+    navBar: accent.navBar,
+    navBarSolid: accent.navBarSolid,
   }
 }
