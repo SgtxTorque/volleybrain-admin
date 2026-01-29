@@ -178,7 +178,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             : null,
           prefilled_from_player_id: form.prefilled_from_player_id,
           season_id: seasonId,
-          status: 'pending',
+          status: 'active',
           registration_date: new Date().toISOString()
         })
         .select()
