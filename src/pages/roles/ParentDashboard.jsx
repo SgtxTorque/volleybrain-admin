@@ -261,11 +261,11 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
   
   function getSiblingRegistrationUrl(season) {
     const orgSlug = season.organizations?.slug || 'black-hornets'
-    const registrationBaseUrl = season.organizations?.settings?.registration_url || 'https://sgtxtorque.github.io/volleyball-registration'
+    const registrationBaseUrl = season.organizations?.settings?.registration_url || window.location.origin
     
+    // Note: Prefill params are stored in localStorage via registration-prefill.js
+    // The URL params below are kept for backwards compatibility but may not be read
     const prefillParams = new URLSearchParams({
-      org: orgSlug,
-      season: season.id,
       prefill: 'true',
       parent_name: templateChild?.parent_name || '',
       parent_email: templateChild?.parent_email || '',
@@ -277,7 +277,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
       if (value) cleanParams.append(key, value)
     })
     
-    return `${registrationBaseUrl}?${cleanParams.toString()}`
+    return `${registrationBaseUrl}/register/${orgSlug}/${season.id}?${cleanParams.toString()}`
   }
 
   return (
@@ -347,11 +347,10 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
   const [copied, setCopied] = useState(false)
 
   const orgSlug = season.organizations?.slug || 'black-hornets'
-  const registrationBaseUrl = season.organizations?.settings?.registration_url || 'https://sgtxtorque.github.io/volleyball-registration'
+  const registrationBaseUrl = season.organizations?.settings?.registration_url || window.location.origin
 
+  // Prefill params for re-registration
   const prefillParams = new URLSearchParams({
-    org: orgSlug,
-    season: season.id,
     prefill: 'true',
     first_name: player.first_name || '',
     last_name: player.last_name || '',
@@ -369,7 +368,7 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
     if (value) cleanParams.append(key, value)
   })
 
-  const registrationUrl = `${registrationBaseUrl}?${cleanParams.toString()}`
+  const registrationUrl = `${registrationBaseUrl}/register/${orgSlug}/${season.id}?${cleanParams.toString()}`
   
   const copyLink = async () => {
     try {
@@ -723,8 +722,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
   function getRegistrationUrl(season) {
     const orgSlug = season.organizations?.slug || 'black-hornets'
-    const baseUrl = season.organizations?.settings?.registration_url || 'https://sgtxtorque.github.io/volleyball-registration'
-    return `${baseUrl}?org=${orgSlug}&season=${season.id}`
+    const baseUrl = season.organizations?.settings?.registration_url || window.location.origin
+    return `${baseUrl}/register/${orgSlug}/${season.id}`
   }
 
   function getStatusBadge(status) {

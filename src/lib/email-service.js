@@ -70,8 +70,10 @@ export const EmailService = {
     const email = player.parent_email
     if (!email) return { success: false, error: 'No parent email' }
     
-    const registrationUrl = organization.settings?.registration_url 
-      || `https://sgtxtorque.github.io/volleyball-registration?org=${organization.slug}&season=${season.id}`
+    // Note: organization.settings.registration_url should be set to the deployed app URL
+    // e.g., https://your-app.vercel.app
+    const baseUrl = organization.settings?.registration_url || organization.settings?.app_url || ''
+    const registrationUrl = baseUrl ? `${baseUrl}/register/${organization.slug}/${season.id}` : null
     
     return this.queueEmail('waitlist_spot_available', email, player.parent_name, {
       player_name: `${player.first_name} ${player.last_name}`,

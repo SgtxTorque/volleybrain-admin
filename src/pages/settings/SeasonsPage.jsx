@@ -211,9 +211,9 @@ function SeasonsPage({ showToast }) {
               const isRegOpen = season.status === 'active' || 
                 (season.registration_opens && new Date(season.registration_opens) <= new Date() && 
                  (!season.registration_closes || new Date(season.registration_closes) >= new Date()))
-              // Use configured registration URL or default to GitHub Pages
-              const registrationBaseUrl = organization.settings?.registration_url || `https://sgtxtorque.github.io/volleyball-registration`
-              const regLink = `${registrationBaseUrl}/?org=${organization.slug}&season=${season.id}`
+              // Use configured registration URL or default to current origin
+              const registrationBaseUrl = organization.settings?.registration_url || window.location.origin
+              const regLink = `${registrationBaseUrl}/register/${organization.slug}/${season.id}`
               
               return (
                 <div key={season.id} className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
@@ -755,8 +755,8 @@ function SeasonsPage({ showToast }) {
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               {/* Registration Link */}
               {(() => {
-                const registrationBaseUrl = organization.settings?.registration_url || `https://sgtxtorque.github.io/volleyball-registration`
-                const shareLink = `${registrationBaseUrl}/?org=${organization.slug}&season=${shareSeason.id}`
+                const registrationBaseUrl = organization.settings?.registration_url || window.location.origin
+                const shareLink = `${registrationBaseUrl}/register/${organization.slug}/${shareSeason.id}`
                 const totalFee = (parseFloat(shareSeason.fee_registration) || 0) + (parseFloat(shareSeason.fee_uniform) || 0) + ((parseFloat(shareSeason.fee_monthly) || 0) * (parseInt(shareSeason.months_in_season) || 0))
                 
                 return (
