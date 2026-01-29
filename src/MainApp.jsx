@@ -851,11 +851,12 @@ function HorizontalNavBar({
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
     ]},
     { id: 'setup', label: 'Setup', type: 'dropdown', items: [
-      { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
-      { id: 'waivers', label: 'Waivers', icon: 'file-text' },
-      { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
-      { id: 'organization', label: 'Organization', icon: 'building' },
-    ]},
+  { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+  { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
+  { id: 'waivers', label: 'Waivers', icon: 'file-text' },
+  { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+  { id: 'organization', label: 'Organization', icon: 'building' },
+]},
   ]
 
   // Coach navigation
