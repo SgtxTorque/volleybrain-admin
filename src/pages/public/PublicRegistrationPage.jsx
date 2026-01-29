@@ -151,20 +151,22 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       }
 
       // Create player record
+      // Convert grade to integer (K = 0, otherwise parse as number)
+      const gradeInt = form.grade === 'K' ? 0 : (form.grade ? parseInt(form.grade) : null)
+      
       const { data: player, error: playerError } = await supabase
         .from('players')
         .insert({
-          organization_id: organization.id,
           first_name: form.first_name,
           last_name: form.last_name,
           birth_date: form.birth_date || null,
-          grade: form.grade || null,
+          grade: gradeInt,
           gender: form.gender || null,
           school: form.school || null,
           parent_name: form.parent_name,
           parent_email: form.parent_email,
           parent_phone: form.parent_phone || null,
-          emergency_contact: form.emergency_contact || null,
+          emergency_name: form.emergency_contact || null,
           emergency_phone: form.emergency_phone || null,
           medical_notes: form.medical_notes || null,
           waiver_liability: form.waiver_liability,
@@ -176,7 +178,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             : null,
           prefilled_from_player_id: form.prefilled_from_player_id,
           season_id: seasonId,
-          status: 'active'
+          status: 'pending',
+          registration_date: new Date().toISOString()
         })
         .select()
         .single()
