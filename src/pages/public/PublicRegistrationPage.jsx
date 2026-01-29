@@ -184,9 +184,12 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         .select()
         .single()
 
-      if (playerError) throw playerError
+      if (playerError) {
+        console.error('Player creation error:', playerError)
+        throw new Error('Could not create player record. Please try again.')
+      }
 
-      // Create registration record (minimal fields to avoid schema mismatches)
+      // Create registration record
       const { error: regError } = await supabase
         .from('registrations')
         .insert({
@@ -196,12 +199,32 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           submitted_at: new Date().toISOString()
         })
 
-      if (regError) throw regError
+      if (regError) {
+        // Handle duplicate registration gracefully
+        if (regError.code === '23505' || regError.message?.includes('duplicate')) {
+          // Registration already exists - that's actually fine, show success
+          console.log('Registration already exists, showing success')
+          setSubmitted(true)
+          setSubmitting(false)
+          return
+        }
+        console.error('Registration error:', regError)
+        throw new Error('Could not complete registration. Please try again.')
+      }
 
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)
-      setError(err.message || 'Registration failed. Please try again.')
+      // Provide user-friendly error messages
+      let message = 'Registration failed. Please try again.'
+      if (err.message?.includes('duplicate') || err.code === '23505') {
+        message = 'This player is already registered for this season.'
+      } else if (err.message?.includes('violates check constraint')) {
+        message = 'There was a data validation error. Please check your entries and try again.'
+      } else if (err.message) {
+        message = err.message
+      }
+      setError(message)
     }
     setSubmitting(false)
   }
