@@ -10,6 +10,7 @@ import {
 import { getSportConfig, GameStatsModal } from '../../components/games/GameComponents'
 import { AdvancedLineupBuilder } from '../../components/games/AdvancedLineupBuilder'
 import { GameDetailModal } from '../../components/games/GameDetailModal'
+import { GameDayCommandCenter } from './GameDayCommandCenter'
 
 // ============================================
 // HELPER FUNCTIONS
@@ -45,7 +46,7 @@ function isTomorrow(dateStr) {
 // ============================================
 // GAME CARD COMPONENT
 // ============================================
-function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onCompleteClick }) {
+function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onCompleteClick, onGameDayClick }) {
   const tc = useThemeClasses()
   const gameDate = new Date(game.event_date)
   const today = isToday(game.event_date)
@@ -153,30 +154,49 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
           )}
         </div>
         
-        {/* Status & Action */}
-        <div className="flex items-center justify-between">
+        {/* Status & Actions */}
+        <div className="flex items-center justify-between gap-2">
           <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${status.bg} ${status.text}`}>
             {status.icon} {status.label}
           </span>
           
           {!isCompleted && (
-            <button
-              onClick={(e) => { 
-                e.stopPropagation()
-                if (isPast) {
-                  onCompleteClick?.()
-                } else {
-                  onPrepClick()
-                }
-              }}
-              className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
-                isPast 
-                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:shadow-lg hover:shadow-emerald-500/25'
-                  : 'bg-gradient-to-r from-[var(--accent-primary)] to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
-              }`}
-            >
-              {isPast ? '✓ Complete Game' : status.hasLineup ? 'Edit Lineup →' : 'Set Lineup →'}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Game Day Mode Button - Only for today's games or games with lineups */}
+              {(today || status.hasLineup) && (
+                <button
+                  onClick={(e) => { 
+                    e.stopPropagation()
+                    onGameDayClick?.()
+                  }}
+                  className="px-3 py-2 rounded-xl font-semibold text-sm transition-all
+                             bg-gradient-to-r from-slate-800 to-slate-700 text-amber-400 
+                             hover:shadow-lg hover:shadow-amber-500/20 border border-amber-500/30
+                             flex items-center gap-1.5"
+                >
+                  🏐 Game Day
+                </button>
+              )}
+              
+              {/* Standard Prep/Complete Button */}
+              <button
+                onClick={(e) => { 
+                  e.stopPropagation()
+                  if (isPast) {
+                    onCompleteClick?.()
+                  } else {
+                    onPrepClick()
+                  }
+                }}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
+                  isPast 
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:shadow-lg hover:shadow-emerald-500/25'
+                    : 'bg-gradient-to-r from-[var(--accent-primary)] to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25'
+                }`}
+              >
+                {isPast ? '✓ Complete' : status.hasLineup ? 'Edit Lineup →' : 'Set Lineup →'}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -1131,6 +1151,7 @@ function GamePrepPage({ showToast }) {
   const [showGameCompletion, setShowGameCompletion] = useState(false)
   const [showStatsModal, setShowStatsModal] = useState(false)
   const [showGameDetail, setShowGameDetail] = useState(false)
+  const [showGameDayMode, setShowGameDayMode] = useState(false)
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
   
@@ -1364,6 +1385,10 @@ function GamePrepPage({ showToast }) {
                       setSelectedGame(game)
                       setShowGameCompletion(true)
                     }}
+                    onGameDayClick={() => {
+                      setSelectedGame(game)
+                      setShowGameDayMode(true)
+                    }}
                   />
                 ))}
               </div>
@@ -1405,6 +1430,10 @@ function GamePrepPage({ showToast }) {
                     onCompleteClick={() => {
                       setSelectedGame(game)
                       setShowGameCompletion(true)
+                    }}
+                    onGameDayClick={() => {
+                      setSelectedGame(game)
+                      setShowGameDayMode(true)
                     }}
                   />
                 ))}
@@ -1472,6 +1501,19 @@ function GamePrepPage({ showToast }) {
             setShowGameDetail(false)
             setShowStatsModal(true)
           }}
+        />
+      )}
+      
+      {showGameDayMode && selectedGame && selectedTeam && (
+        <GameDayCommandCenter
+          event={selectedGame}
+          team={selectedTeam}
+          onClose={() => {
+            setShowGameDayMode(false)
+            loadGames()
+          }}
+          onSave={() => loadGames()}
+          showToast={showToast}
         />
       )}
     </div>

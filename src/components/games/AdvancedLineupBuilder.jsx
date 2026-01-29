@@ -195,7 +195,14 @@ function PlayerCard({
     no: 'No', not_attending: 'No',
     maybe: 'Maybe', pending: 'Pending'
   }
+  
+  const positionColors = {
+    'OH': '#FF6B6B', 'S': '#4ECDC4', 'MB': '#45B7D1', 'OPP': '#96CEB4',
+    'L': '#FFEAA7', 'DS': '#DDA0DD', 'RS': '#FF9F43', 'H': '#EF4444'
+  }
+  const posColor = positionColors[player.position] || positionColors[position?.role] || '#6366F1'
 
+  // Compact mode - for sidebar roster list
   if (compact) {
     return (
       <div
@@ -203,23 +210,43 @@ function PlayerCard({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onClick={onClick}
-        className={`flex items-center gap-2 p-2 rounded-xl bg-white border-2 cursor-pointer transition-all hover:shadow-md ${
+        className={`flex items-center gap-3 p-2.5 rounded-xl bg-white border-2 cursor-pointer transition-all hover:shadow-md ${
           isSelected ? 'border-indigo-500 shadow-md' : 'border-slate-200 hover:border-slate-300'
         } ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
       >
-        {player.photo_url ? (
-          <img src={player.photo_url} className="w-8 h-8 rounded-full object-cover" />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-            <UserIcon className="w-4 h-4 text-slate-500" />
+        {/* Photo with position badge */}
+        <div className="relative">
+          {player.photo_url ? (
+            <img 
+              src={player.photo_url} 
+              className="w-12 h-12 rounded-xl object-cover object-top" 
+            />
+          ) : (
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: posColor + '30' }}
+            >
+              <span className="text-lg font-bold" style={{ color: posColor }}>
+                {player.jersey_number || '?'}
+              </span>
+            </div>
+          )}
+          {/* Position badge */}
+          <div 
+            className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2 border-white"
+            style={{ backgroundColor: position?.color || posColor }}
+          >
+            {player.position || position?.role || '?'}
           </div>
-        )}
+        </div>
+        
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-slate-800 text-sm truncate">
             #{player.jersey_number} {player.first_name}
           </p>
           <p className="text-xs text-slate-500">{player.position || position?.role || 'Player'}</p>
         </div>
+        
         {showRsvp && rsvpStatus && (
           <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${rsvpColors[rsvpStatus] || rsvpColors.pending}`}>
             {rsvpLabels[rsvpStatus] || 'Pending'}
@@ -229,67 +256,90 @@ function PlayerCard({
     )
   }
 
+  // Full card mode - for court positions (Game Day style)
   return (
     <div
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onClick={onClick}
-      className={`relative bg-white rounded-2xl border-2 overflow-hidden transition-all hover:shadow-lg group ${
-        isServing ? 'border-emerald-500 ring-2 ring-emerald-200' :
-        isLibero ? 'border-pink-500 ring-2 ring-pink-200' :
-        isSelected ? 'border-indigo-500 shadow-lg' : 
-        'border-slate-200 hover:border-slate-300'
+      className={`relative rounded-2xl overflow-hidden transition-all hover:shadow-xl group h-[160px] ${
+        isServing ? 'ring-2 ring-emerald-400 ring-offset-2' :
+        isLibero ? 'ring-2 ring-pink-400 ring-offset-2' :
+        isSelected ? 'ring-2 ring-indigo-400 ring-offset-2' : ''
       } ${draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
-      style={{ minWidth: '140px' }}
+      style={{ minWidth: '130px' }}
     >
-      {/* Position badge */}
-      {position && (
+      {/* Full bleed photo background */}
+      {player.photo_url ? (
+        <img 
+          src={player.photo_url} 
+          className="absolute inset-0 w-full h-full object-cover object-top" 
+        />
+      ) : (
         <div 
-          className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold text-white z-10"
-          style={{ backgroundColor: position.color }}
+          className="absolute inset-0"
+          style={{ 
+            background: `linear-gradient(135deg, ${posColor}40 0%, #1e293b 100%)`
+          }}
         >
-          {position.name}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-5xl font-black" style={{ color: posColor + '80' }}>
+              {player.jersey_number || '?'}
+            </span>
+          </div>
         </div>
       )}
       
-      {/* Serving badge - STAYS at P1 position */}
+      {/* Gradient overlay for text readability */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 40%, transparent 70%)'
+        }}
+      />
+      
+      {/* Position badge - top left */}
+      {position && (
+        <div 
+          className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-xs font-bold text-white shadow-lg"
+          style={{ backgroundColor: position.color }}
+        >
+          {position.role || position.name}
+        </div>
+      )}
+      
+      {/* Jersey number - top right */}
+      <div className="absolute top-2 right-2 text-white text-xl font-black opacity-90">
+        #{player.jersey_number || '?'}
+      </div>
+      
+      {/* Serving badge */}
       {isServing && (
-        <div className="absolute top-2 right-2 w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg z-10 animate-pulse">
+        <div className="absolute top-2 right-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse">
           🏐
         </div>
       )}
       
       {/* Libero badge */}
       {isLibero && !isServing && (
-        <div className="absolute top-2 right-2 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold z-10">
+        <div className="absolute top-2 right-10 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
           L
         </div>
       )}
       
-      {/* Player photo */}
-      <div className="pt-10 pb-2 px-3 flex justify-center">
-        {player.photo_url ? (
-          <img src={player.photo_url} className="w-14 h-14 rounded-full object-cover border-2 border-white shadow" />
-        ) : (
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center border-2 border-white shadow">
-            <span className="text-xl font-bold text-slate-400">{player.jersey_number || '?'}</span>
-          </div>
-        )}
-      </div>
-      
-      {/* Player info */}
-      <div className="px-2 pb-2 text-center">
-        <p className="font-bold text-slate-800 text-sm truncate">
-          {player.first_name} {player.last_name?.charAt(0)}.
+      {/* Player info - bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="text-amber-400 text-sm font-semibold leading-tight">
+          {player.first_name}
         </p>
-        <p className="text-[11px] text-slate-500">
-          #{player.jersey_number} • {player.position || position?.role || 'Player'}
+        <p className="text-white text-lg font-black uppercase leading-tight tracking-tight">
+          {player.last_name?.toUpperCase() || ''}
         </p>
         
         {/* RSVP status */}
         {showRsvp && (
-          <div className="mt-1">
+          <div className="mt-1.5">
             <span className={`px-2 py-0.5 rounded-full text-[9px] font-medium border ${rsvpColors[rsvpStatus] || rsvpColors.pending}`}>
               {rsvpLabels[rsvpStatus] || 'Pending'}
             </span>
@@ -301,24 +351,24 @@ function PlayerCard({
 }
 
 // ============================================
-// EMPTY POSITION SLOT
+// EMPTY POSITION SLOT - Card Style
 // ============================================
 function EmptySlot({ position, isServing, onDrop, onDragOver }) {
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); onDragOver?.(e); }}
       onDrop={onDrop}
-      className={`relative bg-slate-50 rounded-2xl border-2 border-dashed transition-all hover:border-indigo-400 hover:bg-indigo-50 ${
-        isServing ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300'
+      className={`relative rounded-2xl border-2 border-dashed transition-all hover:border-indigo-400 hover:bg-indigo-50/50 h-[160px] flex flex-col items-center justify-center ${
+        isServing ? 'border-emerald-400 bg-emerald-50/50' : 'border-slate-300 bg-slate-50/50'
       }`}
-      style={{ minWidth: '140px', minHeight: '150px' }}
+      style={{ minWidth: '130px' }}
     >
-      {/* Position badge */}
+      {/* Position badge - top left */}
       <div 
-        className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-bold text-white"
+        className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-xs font-bold text-white"
         style={{ backgroundColor: position.color }}
       >
-        {position.name}
+        {position.role || position.name}
       </div>
       
       {/* Serving indicator - STAYS at P1 */}
@@ -328,12 +378,15 @@ function EmptySlot({ position, isServing, onDrop, onDragOver }) {
         </div>
       )}
       
-      <div className="h-full flex flex-col items-center justify-center p-4 pt-10">
-        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center mb-2">
-          <UserIcon className="w-6 h-6 text-slate-400" />
+      {/* Empty state content */}
+      <div className="text-center">
+        <div 
+          className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center opacity-50"
+          style={{ backgroundColor: position.color + '30' }}
+        >
+          <UserIcon className="w-6 h-6" style={{ color: position.color }} />
         </div>
-        <p className="text-xs text-slate-500 text-center font-medium">{position.label}</p>
-        <p className="text-[10px] text-slate-400 mt-1">Drop player here</p>
+        <p className="text-xs text-slate-400 font-medium">{position.label || 'Drag player here'}</p>
       </div>
     </div>
   )

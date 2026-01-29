@@ -537,60 +537,76 @@ export function PlayerCardExpanded({
         style={{ backgroundColor: theme.modalBg }}
       >
         {/* ═══════════════════════════════════════════════════
-            HEADER SECTION
+            HERO HEADER SECTION - Full Bleed Photo
             ═══════════════════════════════════════════════════ */}
-        <div className="relative">
-          {/* Background with gradient */}
-          <div 
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(135deg, ${posColor}${theme.isDark ? '30' : '20'} 0%, transparent 50%)`,
-            }}
-          />
-          
-          {/* Left accent bar */}
-          <div 
-            className="absolute left-0 top-0 bottom-0 w-1"
-            style={{ backgroundColor: posColor }}
-          />
-          
-          {/* Content */}
-          <div className="relative flex p-6">
-            {/* Player Photo */}
-            <div className="w-48 h-64 rounded-2xl overflow-hidden shrink-0 mr-6 shadow-xl">
-              {p.photo_url ? (
-                <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
-              ) : (
+        <div className="relative flex" style={{ minHeight: '280px' }}>
+          {/* HERO Photo - Left Side Full Bleed */}
+          <div className="w-[280px] shrink-0 relative overflow-hidden">
+            {p.photo_url ? (
+              <>
+                <img 
+                  src={p.photo_url} 
+                  alt="" 
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                />
+                {/* Gradient overlay for text readability on photo edge */}
                 <div 
-                  className="w-full h-full flex items-center justify-center"
-                  style={{ 
-                    background: theme.isDark 
-                      ? 'linear-gradient(180deg, #475569 0%, #1e293b 100%)' 
-                      : 'linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%)' 
+                  className="absolute inset-0"
+                  style={{
+                    background: theme.isDark
+                      ? 'linear-gradient(to right, transparent 60%, rgba(15, 23, 42, 0.8) 100%)'
+                      : 'linear-gradient(to right, transparent 60%, rgba(255, 255, 255, 0.9) 100%)'
                   }}
-                >
-                  <User className="w-20 h-20" style={{ color: theme.textMuted }} />
+                />
+              </>
+            ) : (
+              <div 
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ 
+                  background: theme.isDark 
+                    ? `linear-gradient(135deg, ${posColor}40 0%, #1e293b 100%)` 
+                    : `linear-gradient(135deg, ${posColor}30 0%, #f1f5f9 100%)` 
+                }}
+              >
+                <div className="text-center">
+                  <span className="text-8xl font-black" style={{ color: posColor }}>
+                    {p.jersey_number || '?'}
+                  </span>
+                  <p className="text-sm font-bold mt-2" style={{ color: theme.textMuted }}>
+                    {p.first_name?.[0]}{p.last_name?.[0]}
+                  </p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Player Info - Right Side */}
+          <div className="flex-1 p-6 flex flex-col justify-between relative">
+            {/* Background gradient accent */}
+            <div 
+              className="absolute inset-0 opacity-30"
+              style={{
+                background: `linear-gradient(135deg, ${posColor}${theme.isDark ? '20' : '15'} 0%, transparent 50%)`,
+              }}
+            />
             
-            {/* Player Info */}
-            <div className="flex-1 flex flex-col justify-between py-2">
-              {/* Top Row: Team Badge + Top Stat + Close */}
-              <div className="flex items-start justify-between">
+            {/* Content */}
+            <div className="relative">
+              {/* Top Row: Team Badge + Close */}
+              <div className="flex items-start justify-between mb-4">
                 <span 
-                  className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
+                  className="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
                   style={{ backgroundColor: posColor, color: '#000' }}
                 >
                   {seasonName ? `${seasonName.split(' ')[0]} ` : ''}{teamName}
                 </span>
                 
                 <div className="flex items-center gap-4">
-                  {/* Top Stat */}
+                  {/* Top Stat - Large Display */}
                   {topStat[1] > 0 && (
                     <div className="text-right">
-                      <span className="text-5xl font-black text-amber-400">{topStat[1]}</span>
-                      <p className="text-xs uppercase tracking-wider" style={{ color: theme.textMuted }}>{topStat[0]}</p>
+                      <span className="text-6xl font-black text-amber-400 leading-none">{topStat[1]}</span>
+                      <p className="text-xs uppercase tracking-wider font-semibold" style={{ color: theme.textMuted }}>{topStat[0]}</p>
                     </div>
                   )}
                   
