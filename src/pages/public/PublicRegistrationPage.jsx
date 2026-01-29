@@ -186,14 +186,14 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
 
       if (playerError) throw playerError
 
-      // Create registration record
+      // Create registration record (minimal fields to avoid schema mismatches)
       const { error: regError } = await supabase
         .from('registrations')
         .insert({
           player_id: player.id,
           season_id: seasonId,
-          status: 'pending',
-          registration_type: form.prefilled_from_player_id ? 're-registration' : 'new'
+          status: 'new',
+          submitted_at: new Date().toISOString()
         })
 
       if (regError) throw regError
