@@ -22,6 +22,7 @@ function SeasonsPage({ showToast }) {
   const [modalTab, setModalTab] = useState('basic') // 'basic', 'registration', 'fees'
   const [showShareModal, setShowShareModal] = useState(false)
   const [shareSeason, setShareSeason] = useState(null)
+  const [templates, setTemplates] = useState([])
   const [form, setForm] = useState({ 
     name: '', status: 'upcoming', start_date: '', end_date: '', 
     fee_registration: 150, fee_uniform: 35, fee_monthly: 50, fee_per_family: 0, months_in_season: 3, 
@@ -29,16 +30,26 @@ function SeasonsPage({ showToast }) {
     sport_id: null, registration_opens: '', registration_closes: '',
     early_bird_deadline: '', early_bird_discount: 25, late_registration_deadline: '',
     late_registration_fee: 25, capacity: null, waitlist_enabled: true, waitlist_capacity: 20,
-    description: ''
+    description: '',
+    registration_template_id: null,
+    registration_config: null
   })
 
-  useEffect(() => { if (organization?.id) loadSeasons() }, [organization?.id])
+  useEffect(() => { 
+  if (organization?.id) {
+    loadSeasons()
+    loadTemplates()
+  }
+}, [organization?.id])
 
-  async function loadSeasons() {
-    setLoading(true)
-    const { data } = await supabase.from('seasons').select('*, sports(id, name, icon)').eq('organization_id', organization.id).order('created_at', { ascending: false })
-    setSeasons(data || [])
-    setLoading(false)
+  async function loadTemplates() {
+    const { data } = await supabase
+      .from('registration_templates')
+      .select('*, sports(id, name, icon)')
+      .eq('organization_id', organization.id)
+      .eq('is_active', true)
+      .order('is_default', { ascending: false })
+    setTemplates(data || [])
   }
 
   function openNew() {
@@ -69,6 +80,8 @@ function SeasonsPage({ showToast }) {
       waitlist_enabled: true,
       waitlist_capacity: 20,
       description: '',
+      registration_template_id: null,
+      registration_config: null,
     })
     setShowModal(true)
   }
@@ -100,7 +113,9 @@ function SeasonsPage({ showToast }) {
       waitlist_enabled: season.waitlist_enabled ?? true,
       waitlist_capacity: season.waitlist_capacity || 20,
       description: season.description || '',
-    })
+      registration_template_id: season.registration_template_id || null,
+      registration_config: season.registration_config || null,
+    }))
     setShowModal(true)
   }
 
@@ -377,6 +392,44 @@ function SeasonsPage({ showToast }) {
               {/* Registration Tab */}
               {modalTab === 'registration' && (
                 <>
+                  {/* Registration Form Template */}
+                  <div className="mb-6">
+                    <label className="block text-sm text-slate-400 mb-2">📋 Registration Form Template</label>
+                    <select
+                      value={form.registration_template_id || ''}
+                      onChange={e => {
+                        const templateId = e.target.value || null
+                        const template = templates.find(t => t.id === templateId)
+                        setForm({
+                          ...form, 
+                          registration_template_id: templateId,
+                          registration_config: template ? {
+                            player_fields: template.player_fields,
+                            parent_fields: template.parent_fields,
+                            emergency_fields: template.emergency_fields,
+                            medical_fields: template.medical_fields,
+                            waivers: template.waivers,
+                            custom_questions: template.custom_questions
+                          } : null
+                        })
+                      }}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white"
+                    >
+                      <option value="">Use default form</option>
+                      {templates.map(t => (
+                        <option key={t.id} value={t.id}>
+                          {t.sports?.icon || '📋'} {t.name} {t.is_default ? '(Default)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Select which registration form to use for this season. 
+                      <a href="#" onClick={(e) => { e.preventDefault(); window.open('/templates', '_blank') }} className="text-[var(--accent-primary)] hover:underline ml-1">
+                        Manage templates →
+                      </a>
+                    </p>
+                  </div>
+
                   <div className="bg-slate-900/50 rounded-xl p-4 mb-4">
                     <p className="text-sm text-slate-300">
                       📅 Set when families can register. Leave dates blank to use season status instead.
