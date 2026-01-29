@@ -61,7 +61,7 @@ import { SeasonLeaderboardsPage } from './pages/leaderboards'
 import { ReportsPage } from './pages/reports'
 
 // Settings Pages
-import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage } from './pages/settings'
+import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage } from './pages/settings'
 
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
@@ -851,7 +851,7 @@ function HorizontalNavBar({
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
     ]},
     { id: 'setup', label: 'Setup', type: 'dropdown', items: [
-      { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+      { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
       { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
       { id: 'organization', label: 'Organization', icon: 'building' },
@@ -1181,7 +1181,7 @@ function MainApp() {
               {page === 'gameprep' && <GamePrepPage showToast={showToast} />}
               {page === 'standings' && <TeamStandingsPage showToast={showToast} />}
               {page === 'leaderboards' && <SeasonLeaderboardsPage showToast={showToast} />}
-              {page === 'seasons' && <SeasonsPage showToast={showToast} />}
+              {page === 'templates' && <RegistrationTemplatesPage showToast={showToast} />}
               {page === 'waivers' && <WaiversPage showToast={showToast} />}
               {page === 'paymentsetup' && <PaymentSetupPage showToast={showToast} />}
               {page === 'organization' && <OrganizationPage showToast={showToast} />}
