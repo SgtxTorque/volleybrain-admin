@@ -1182,6 +1182,7 @@ function MainApp() {
               {page === 'gameprep' && <GamePrepPage showToast={showToast} />}
               {page === 'standings' && <TeamStandingsPage showToast={showToast} />}
               {page === 'leaderboards' && <SeasonLeaderboardsPage showToast={showToast} />}
+              {page === 'seasons' && <SeasonsPage showToast={showToast} />}
               {page === 'templates' && <RegistrationTemplatesPage showToast={showToast} />}
               {page === 'waivers' && <WaiversPage showToast={showToast} />}
               {page === 'paymentsetup' && <PaymentSetupPage showToast={showToast} />}
