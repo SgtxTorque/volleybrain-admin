@@ -238,7 +238,7 @@ function getStatShortName(key) {
     // Football
     pass_attempts: 'Pass Att', completions: 'Comp', passing_yards: 'Pass Yds', passing_tds: 'Pass TD',
     interceptions: 'INT', rush_attempts: 'Rush Att', rushing_yards: 'Rush Yds', rushing_tds: 'Rush TD',
-    receptions: 'Rec', targets: 'Targets', receiving_yards: 'Rec Yds', receiving_tds: 'Rec TD',
+    targets: 'Targets', receiving_yards: 'Rec Yds', receiving_tds: 'Rec TD',
     tackles: 'Tackles', sacks: 'Sacks',
     // Hockey
     plus_minus: '+/-', penalty_minutes: 'PIM', power_play_goals: 'PPG', short_handed_goals: 'SHG'
