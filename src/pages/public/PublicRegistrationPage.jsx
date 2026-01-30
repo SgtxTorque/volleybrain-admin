@@ -78,6 +78,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   const [sharedInfo, setSharedInfo] = useState({})
   const [waiverState, setWaiverState] = useState({})
   const [customAnswers, setCustomAnswers] = useState({})
+  const [signature, setSignature] = useState('')
   
   // App state
   const [season, setSeason] = useState(null)
@@ -262,6 +263,15 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         }
       }
 
+      // Validate signature if any waivers are enabled
+      const hasEnabledWaivers = Object.values(waivers).some(w => w?.enabled)
+      if (hasEnabledWaivers && !signature.trim()) {
+        throw new Error('Please sign by typing your full name')
+      }
+
+      // Capture signature timestamp
+      const signatureDate = new Date().toISOString()
+
       // Create player and registration records for each child
       for (const child of allChildren) {
         const gradeValue = child.grade ? (child.grade === 'K' ? 0 : parseInt(child.grade)) : null
@@ -307,11 +317,17 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             submitted_at: new Date().toISOString(),
             waivers_accepted: waiverState,
             custom_answers: customAnswers,
+            signature_name: signature.trim() || null,
+            signature_date: signatureDate,
             registration_data: {
               player: child,
               shared: sharedInfo,
               waivers: waiverState,
-              custom_questions: customAnswers
+              custom_questions: customAnswers,
+              signature: {
+                name: signature.trim(),
+                date: signatureDate
+              }
             }
           })
           .select()
@@ -887,6 +903,45 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
                     </div>
                   )
                 })}
+              </div>
+
+              {/* Signature */}
+              <div className="mt-6 pt-6" style={{ borderTop: `1px solid ${colors.border}` }}>
+                <h3 className="font-semibold mb-3 flex items-center gap-2" style={{ color: colors.text }}>
+                  ✍️ Electronic Signature <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-sm mb-4" style={{ color: colors.textMuted }}>
+                  By typing your name below, you acknowledge that you have read and agree to all waivers and agreements above. 
+                  This constitutes a legally binding electronic signature.
+                </p>
+                <div className="mb-3">
+                  <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+                    Type your full legal name
+                  </label>
+                  <input
+                    type="text"
+                    value={signature}
+                    onChange={e => setSignature(e.target.value)}
+                    placeholder="e.g., John Smith"
+                    className="w-full rounded-xl px-4 py-3 text-lg"
+                    style={{ 
+                      backgroundColor: colors.cardAlt, 
+                      border: `2px solid ${signature.trim() ? accentColor : colors.border}`, 
+                      color: colors.text,
+                      fontFamily: 'cursive, serif'
+                    }}
+                  />
+                </div>
+                {signature.trim() && (
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                    <p className="text-sm" style={{ color: '#22C55E' }}>
+                      ✓ I, <strong style={{ fontFamily: 'cursive, serif' }}>{signature}</strong>, agree to all waivers and agreements listed above.
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: colors.textMuted }}>
+                      Signed on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
