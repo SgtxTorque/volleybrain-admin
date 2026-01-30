@@ -48,13 +48,13 @@ export function ClickablePlayerName({ player, className = '', children, onPlayer
 }
 
 // ============================================
-// INFO ROW (for detail modals)
+// INFO ROW (for detail modals) - Compact version
 // ============================================
 function InfoRow({ label, value, tc }) {
   return (
-    <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-slate-900'} rounded-lg p-3`}>
-      <p className={`text-xs ${tc?.textMuted || 'text-slate-500'}`}>{label}</p>
-      <p className={`${tc?.text || 'text-slate-900 dark:text-white'} text-sm mt-1`}>{value}</p>
+    <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-slate-900'} rounded-lg px-3 py-2`}>
+      <p className={`text-xs ${tc?.textMuted || 'text-slate-400'} uppercase tracking-wide`}>{label}</p>
+      <p className={`${tc?.text || 'text-slate-900 dark:text-white'} font-semibold mt-0.5`}>{value || '—'}</p>
     </div>
   )
 }
@@ -160,32 +160,67 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
     setSaving(false)
   }
 
+  // Section Header component for consistency
+  const SectionHeader = ({ children }) => (
+    <h3 className={`text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2 pb-1 border-b ${tc.border}`}>
+      {children}
+    </h3>
+  )
+
+  // Compact info display
+  const InfoItem = ({ label, value }) => (
+    <div className="min-w-0">
+      <p className={`text-[10px] uppercase tracking-wide ${tc.textMuted}`}>{label}</p>
+      <p className={`${tc.text} font-medium truncate`}>{value || '—'}</p>
+    </div>
+  )
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
-        <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg}`}>
-          <div>
-            <h2 className={`text-xl font-semibold ${tc.text}`}>
-              {isEditing ? 'Edit Player' : 'Player Details'}
-            </h2>
-            <p className={`text-sm ${tc.textMuted}`}>{player.first_name} {player.last_name}</p>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl`}>
+        {/* Header */}
+        <div className={`px-6 py-4 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg} z-10`}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
+              <span className="text-[var(--accent-primary)] font-bold text-lg">
+                {player.first_name?.[0]}{player.last_name?.[0]}
+              </span>
+            </div>
+            <div>
+              <h2 className={`text-xl font-bold ${tc.text}`}>
+                {player.first_name} {player.last_name}
+              </h2>
+              <div className="flex items-center gap-3 mt-0.5">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  reg?.status === 'submitted' || reg?.status === 'new' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' :
+                  reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                  reg?.status === 'rostered' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                  reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
+                  'bg-gray-500/20 text-slate-500'
+                }`}>{reg?.status === 'submitted' || reg?.status === 'new' ? 'pending' : reg?.status || 'unknown'}</span>
+                <span className={`text-xs ${tc.textMuted}`}>
+                  Registered {reg?.submitted_at ? new Date(reg.submitted_at).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-500/30 flex items-center gap-2">
+              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-500/30 flex items-center gap-2 font-medium">
                 <Edit className="w-4 h-4" /> Edit
               </button>
             )}
-            <button onClick={onClose} className={`${tc.textMuted} hover:${tc.text} text-2xl`}>×</button>
+            <button onClick={onClose} className={`w-8 h-8 rounded-lg ${tc.cardBgAlt} ${tc.textMuted} hover:${tc.text} flex items-center justify-center text-xl`}>×</button>
           </div>
         </div>
         
-        <div className="p-6 space-y-6">
-          {/* Player Info */}
-          <div>
-            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Player Information</h3>
-            {isEditing ? (
-              <div className="grid grid-cols-2 gap-4">
+        {/* Content */}
+        {isEditing ? (
+          /* Edit Mode - Keep original 2-column layout */
+          <div className="p-6 space-y-6">
+            <div>
+              <SectionHeader>Player Information</SectionHeader>
+              <div className="grid grid-cols-3 gap-4">
                 <EditField tc={tc} label="First Name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} />
                 <EditField tc={tc} label="Last Name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} />
                 <EditField tc={tc} label="Date of Birth" value={form.birth_date} onChange={v => setForm({...form, birth_date: v})} type="date" />
@@ -196,26 +231,10 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                 <EditField tc={tc} label="Jersey Number" value={form.jersey_number} onChange={v => setForm({...form, jersey_number: v})} type="number" />
                 <EditField tc={tc} label="Jersey Size" value={form.jersey_size} onChange={v => setForm({...form, jersey_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <InfoRow tc={tc} label="Name" value={`${player.first_name} ${player.last_name}`} />
-                <InfoRow tc={tc} label="DOB" value={player.birth_date || player.dob || 'N/A'} />
-                <InfoRow tc={tc} label="Grade" value={player.grade || 'N/A'} />
-                <InfoRow tc={tc} label="Gender" value={player.gender || 'N/A'} />
-                <InfoRow tc={tc} label="School" value={player.school || 'N/A'} />
-                <InfoRow tc={tc} label="Experience" value={player.experience_level || player.experience || 'N/A'} />
-                <InfoRow tc={tc} label="Jersey #" value={player.jersey_number || 'N/A'} />
-                <InfoRow tc={tc} label="Jersey Prefs" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || 'N/A'} />
-                <InfoRow tc={tc} label="Jersey Size" value={player.jersey_size || 'N/A'} />
-              </div>
-            )}
-          </div>
-
-          {/* Parent Info */}
-          <div>
-            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Parent/Guardian</h3>
-            {isEditing ? (
-              <div className="grid grid-cols-2 gap-4">
+            </div>
+            <div>
+              <SectionHeader>Parent/Guardian</SectionHeader>
+              <div className="grid grid-cols-3 gap-4">
                 <EditField tc={tc} label="Parent Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
                 <EditField tc={tc} label="Parent Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
                 <EditField tc={tc} label="Parent Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
@@ -223,114 +242,129 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                 <EditField tc={tc} label="Parent 2 Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
                 <EditField tc={tc} label="Parent 2 Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
               </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <InfoRow tc={tc} label="Name" value={player.parent_name || 'N/A'} />
-                <InfoRow tc={tc} label="Email" value={player.parent_email || 'N/A'} />
-                <InfoRow tc={tc} label="Phone" value={player.parent_phone || 'N/A'} />
-                <InfoRow tc={tc} label="Address" value={player.address || 'N/A'} />
-                {player.parent_2_name && <InfoRow tc={tc} label="Parent 2" value={player.parent_2_name} />}
-                {player.parent_2_phone && <InfoRow tc={tc} label="Parent 2 Phone" value={player.parent_2_phone} />}
-              </div>
-            )}
-          </div>
-
-          {/* Emergency Contact */}
-          <div>
-            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Emergency Contact</h3>
-            {isEditing ? (
+            </div>
+            <div>
+              <SectionHeader>Emergency Contact</SectionHeader>
               <div className="grid grid-cols-3 gap-4">
                 <EditField tc={tc} label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
                 <EditField tc={tc} label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
                 <EditField tc={tc} label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
               </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-4">
-                <InfoRow tc={tc} label="Name" value={player.emergency_contact_name || player.emergency_name || 'N/A'} />
-                <InfoRow tc={tc} label="Phone" value={player.emergency_contact_phone || player.emergency_phone || 'N/A'} />
-                <InfoRow tc={tc} label="Relation" value={player.emergency_contact_relation || player.emergency_relation || 'N/A'} />
-              </div>
-            )}
-          </div>
-
-          {/* Medical */}
-          <div>
-            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Medical Information</h3>
-            {isEditing ? (
-              <div className="grid grid-cols-1 gap-4">
-                <EditField tc={tc} label="Medical Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} multiline />
-                <EditField tc={tc} label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} multiline />
-                <EditField tc={tc} label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} multiline />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <InfoRow tc={tc} label="Conditions" value={player.medical_conditions || 'None'} />
-                <InfoRow tc={tc} label="Allergies" value={player.allergies || 'None'} />
-                <InfoRow tc={tc} label="Medications" value={player.medications || 'None'} />
-              </div>
-            )}
-          </div>
-
-          {/* Waivers (view only) */}
-          {!isEditing && (
-            <div>
-              <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Waivers</h3>
-              <div className="flex gap-4">
-                <WaiverBadge label="Liability" signed={player.waiver_liability} />
-                <WaiverBadge label="Photo" signed={player.waiver_photo} />
-                <WaiverBadge label="Conduct" signed={player.waiver_conduct} />
-              </div>
-              {player.waiver_signed_by && (
-                <p className={`text-xs ${tc.textMuted} mt-2`}>
-                  Signed by {player.waiver_signed_by} on {player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : 'N/A'}
-                </p>
-              )}
             </div>
-          )}
-
-          {/* Notes */}
-          {isEditing && (
             <div>
-              <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Admin Notes</h3>
+              <SectionHeader>Medical Information</SectionHeader>
+              <div className="grid grid-cols-3 gap-4">
+                <EditField tc={tc} label="Medical Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} />
+                <EditField tc={tc} label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} />
+                <EditField tc={tc} label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} />
+              </div>
+            </div>
+            <div>
+              <SectionHeader>Admin Notes</SectionHeader>
               <EditField tc={tc} label="Notes" value={form.notes} onChange={v => setForm({...form, notes: v})} multiline />
             </div>
-          )}
-
-          {/* Registration Status (view only) */}
-          {!isEditing && (
-            <div>
-              <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Registration Status</h3>
-              <div className="flex items-center gap-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  reg?.status === 'submitted' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' :
-                  reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
-                  reg?.status === 'rostered' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                  reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
-                  'bg-gray-500/20 text-slate-500'
-                }`}>{reg?.status || 'unknown'}</span>
-                <span className={`text-xs ${tc.textMuted}`}>
-                  Submitted {reg?.submitted_at ? new Date(reg.submitted_at).toLocaleDateString() : 'N/A'}
-                </span>
+          </div>
+        ) : (
+          /* View Mode - Wide landscape layout */
+          <div className="p-6">
+            {/* Top row - Player info in card grid */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
+              {/* Player Info Card */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Player Information</SectionHeader>
+                <div className="grid grid-cols-3 gap-x-4 gap-y-3">
+                  <InfoItem label="Date of Birth" value={player.birth_date || player.dob} />
+                  <InfoItem label="Grade" value={player.grade} />
+                  <InfoItem label="Gender" value={player.gender} />
+                  <InfoItem label="School" value={player.school} />
+                  <InfoItem label="Experience" value={player.experience_level || player.experience} />
+                  <InfoItem label="Jersey Size" value={player.jersey_size} />
+                </div>
               </div>
-              {reg?.denial_reason && (
-                <p className="text-sm text-red-500 mt-2">Denial Reason: {reg.denial_reason}</p>
-              )}
-            </div>
-          )}
-        </div>
 
-        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3 sticky bottom-0 ${tc.cardBg}`}>
+              {/* Parent Info Card */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Parent/Guardian</SectionHeader>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <InfoItem label="Name" value={player.parent_name} />
+                  <InfoItem label="Email" value={player.parent_email} />
+                  <InfoItem label="Phone" value={player.parent_phone} />
+                  <InfoItem label="Address" value={player.address} />
+                  {player.parent_2_name && <InfoItem label="Parent 2" value={player.parent_2_name} />}
+                  {player.parent_2_phone && <InfoItem label="Parent 2 Phone" value={player.parent_2_phone} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom row - Emergency, Medical, Waivers */}
+            <div className="grid grid-cols-3 gap-6">
+              {/* Emergency Contact Card */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Emergency Contact</SectionHeader>
+                <div className="space-y-3">
+                  <InfoItem label="Name" value={player.emergency_contact_name || player.emergency_name} />
+                  <InfoItem label="Phone" value={player.emergency_contact_phone || player.emergency_phone} />
+                  <InfoItem label="Relation" value={player.emergency_contact_relation || player.emergency_relation} />
+                </div>
+              </div>
+
+              {/* Medical Card */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Medical Information</SectionHeader>
+                <div className="space-y-3">
+                  <InfoItem label="Conditions" value={player.medical_conditions || 'None'} />
+                  <InfoItem label="Allergies" value={player.allergies || 'None'} />
+                  <InfoItem label="Medications" value={player.medications || 'None'} />
+                </div>
+              </div>
+
+              {/* Waivers Card */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Waivers & Signature</SectionHeader>
+                <div className="flex gap-2 mb-3">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_liability ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-500'}`}>
+                    {player.waiver_liability ? '✓' : '✗'} Liability
+                  </span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_photo ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-500/20 text-slate-500'}`}>
+                    {player.waiver_photo ? '✓' : '—'} Photo
+                  </span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_conduct ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-500'}`}>
+                    {player.waiver_conduct ? '✓' : '✗'} Conduct
+                  </span>
+                </div>
+                {player.waiver_signed_by && (
+                  <div className="space-y-1">
+                    <InfoItem label="Signed By" value={player.waiver_signed_by} />
+                    <InfoItem label="Signed Date" value={player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : null} />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Denial reason if applicable */}
+            {reg?.denial_reason && (
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  <span className="font-semibold">Denial Reason:</span> {reg.denial_reason}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className={`px-6 py-4 border-t ${tc.border} flex justify-end gap-3 sticky bottom-0 ${tc.cardBg}`}>
           {isEditing ? (
             <>
-              <button onClick={() => setIsEditing(false)} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
+              <button onClick={() => setIsEditing(false)} className={`px-5 py-2 rounded-lg border ${tc.border} ${tc.text} font-medium`}>
                 Cancel
               </button>
-              <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50">
+              <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-lg bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </>
           ) : (
-            <button onClick={onClose} className={`px-6 py-2 rounded-xl ${tc.cardBgAlt} ${tc.text} hover:opacity-80`}>
+            <button onClick={onClose} className={`px-5 py-2 rounded-lg ${tc.cardBgAlt} ${tc.text} font-medium hover:opacity-80`}>
               Close
             </button>
           )}
