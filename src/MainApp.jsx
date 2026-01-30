@@ -543,7 +543,7 @@ function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization,
 // INFO HEADER BAR COMPONENT - 1:1 Mockup Copy
 // ============================================
 function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, seasons: allSeasons, selectSeason } = useSeason()
   const [stats, setStats] = useState({
     nextGame: null,
     nextPractice: null,
@@ -558,6 +558,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
   })
   const [loading, setLoading] = useState(true)
   const [showRegModal, setShowRegModal] = useState(false)
+  const [showSeasonSelector, setShowSeasonSelector] = useState(false)
 
   // Get the coach's primary team
   const getCoachPrimaryTeam = () => {
@@ -581,19 +582,24 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
       const seasonId = selectedSeason?.id
 
       if (activeView === 'admin') {
-        // Fetch admin stats
-        const [playersRes, teamsRes, paymentsRes] = await Promise.all([
-          supabase.from('players').select('id', { count: 'exact' }).eq('season_id', seasonId),
+        // Fetch admin stats - count ROSTERED registrations, not players table
+        const [registrationsRes, teamsRes, paymentsRes] = await Promise.all([
+          supabase.from('registrations').select('status').eq('season_id', seasonId),
           supabase.from('teams').select('id', { count: 'exact' }).eq('season_id', seasonId),
-          supabase.from('payments').select('amount_paid, amount_due').eq('season_id', seasonId),
+          supabase.from('payments').select('amount, paid').eq('season_id', seasonId),
         ])
 
-        const totalCollected = paymentsRes.data?.reduce((sum, p) => sum + (p.amount_paid || 0), 0) || 0
-        const totalExpected = paymentsRes.data?.reduce((sum, p) => sum + (p.amount_due || 0), 0) || 0
+        // Count only rostered players
+        const rosteredCount = registrationsRes.data?.filter(r => r.status === 'rostered').length || 0
+        
+        // Calculate financials correctly
+        const paidPayments = paymentsRes.data?.filter(p => p.paid) || []
+        const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        const totalExpected = paymentsRes.data?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
 
         setStats(prev => ({
           ...prev,
-          totalPlayers: playersRes.count || 0,
+          totalPlayers: rosteredCount,
           activeTeams: teamsRes.count || 0,
           totalCollected,
           totalExpected,
@@ -827,15 +833,60 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           {/* ═══ ADMIN VIEW ═══ */}
           {activeView === 'admin' && (
             <>
-              {/* Season/Sport */}
-              <div className="flex items-center gap-4 px-6 py-2">
-                <div className="w-11 h-11 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center shadow-sm">
-                  <VolleyballIcon className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <span className="text-slate-500 text-sm">Season:</span>
-                  <span className="text-slate-900 font-bold text-sm ml-2">{selectedSeason?.name || 'No Season'}</span>
-                </div>
+              {/* Season/Sport Selector */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowSeasonSelector(!showSeasonSelector)}
+                  className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                >
+                  <div className="w-11 h-11 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center shadow-sm">
+                    {selectedSeason?.sports?.icon ? (
+                      <span className="text-xl">{selectedSeason.sports.icon}</span>
+                    ) : (
+                      <VolleyballIcon className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <span className="text-slate-500 text-sm">Season:</span>
+                    <span className="text-slate-900 font-bold text-sm ml-2">{selectedSeason?.name || 'Select Season'}</span>
+                    <ChevronDown className={`inline w-3 h-3 ml-1 text-slate-400 transition-transform ${showSeasonSelector ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+                
+                {/* Season Dropdown */}
+                {showSeasonSelector && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowSeasonSelector(false)} />
+                    <div className="absolute top-full left-0 mt-1 w-72 rounded-xl shadow-xl border border-slate-200 bg-white overflow-hidden z-50 max-h-80 overflow-y-auto">
+                      {allSeasons.length === 0 ? (
+                        <div className="p-4 text-center text-slate-500 text-sm">No seasons found</div>
+                      ) : (
+                        allSeasons.map(s => (
+                          <button
+                            key={s.id}
+                            onClick={() => { 
+                              selectSeason(s)
+                              setShowSeasonSelector(false)
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-slate-50 ${
+                              selectedSeason?.id === s.id ? 'bg-[var(--accent-primary)]/10' : ''
+                            }`}
+                          >
+                            <span className="text-lg">{s.sports?.icon || '🏆'}</span>
+                            <div className="flex-1 text-left">
+                              <p className={`font-medium ${selectedSeason?.id === s.id ? 'text-[var(--accent-primary)]' : 'text-slate-800'}`}>{s.name}</p>
+                              <p className="text-xs text-slate-500">{s.sports?.name || 'Sport'}</p>
+                            </div>
+                            {s.status === 'active' && (
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">Active</span>
+                            )}
+                            {selectedSeason?.id === s.id && <Check className="w-4 h-4 text-[var(--accent-primary)]" />}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Divider */}
