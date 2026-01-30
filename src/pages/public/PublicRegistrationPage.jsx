@@ -1,110 +1,73 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { getRegistrationPrefillData } from '../../lib/registration-prefill'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
-// Light theme colors (always used for public registration)
-const lightColors = {
-  bg: '#F5F5F7',
+// Default field configuration (fallback if no template selected)
+const DEFAULT_CONFIG = {
+  player_fields: {
+    first_name: { enabled: true, required: true, label: 'First Name' },
+    last_name: { enabled: true, required: true, label: 'Last Name' },
+    birth_date: { enabled: true, required: true, label: 'Date of Birth' },
+    gender: { enabled: true, required: false, label: 'Gender' },
+    grade: { enabled: true, required: false, label: 'Grade' },
+    school: { enabled: true, required: false, label: 'School' },
+  },
+  parent_fields: {
+    parent1_name: { enabled: true, required: true, label: 'Parent/Guardian Name' },
+    parent1_email: { enabled: true, required: true, label: 'Email' },
+    parent1_phone: { enabled: true, required: true, label: 'Phone' },
+  },
+  emergency_fields: {
+    emergency_name: { enabled: true, required: true, label: 'Emergency Contact Name' },
+    emergency_phone: { enabled: true, required: true, label: 'Emergency Phone' },
+    emergency_relation: { enabled: true, required: false, label: 'Relationship' },
+  },
+  medical_fields: {
+    medical_conditions: { enabled: true, required: false, label: 'Medical Conditions/Allergies' },
+  },
+  waivers: {
+    liability: { enabled: true, required: true, title: 'Liability Waiver', text: 'I understand and accept the risks associated with participation in athletic activities.' },
+    photo_release: { enabled: true, required: false, title: 'Photo/Video Release', text: 'I consent to photos and videos being taken and used for promotional purposes.' },
+    code_of_conduct: { enabled: true, required: false, title: 'Code of Conduct', text: 'I agree to follow the organization\'s code of conduct and sportsmanship guidelines.' },
+  },
+  custom_questions: []
+}
+
+// Light theme colors (hardcoded for public form)
+const colors = {
+  bg: '#F8FAFC',
   card: '#FFFFFF',
   cardAlt: '#F1F5F9',
   border: '#E2E8F0',
-  text: '#1D1D1F',
-  textSecondary: '#515154',
-  textMuted: '#86868B',
+  text: '#1E293B',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
+  accent: '#EAB308'
 }
 
 function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
-  const [form, setForm] = useState({
-    first_name: '',
-    last_name: '',
-    birth_date: '',
-    grade: '',
-    gender: '',
-    school: '',
-    parent_name: '',
-    parent_email: '',
-    parent_phone: '',
-    emergency_contact: '',
-    emergency_phone: '',
-    medical_notes: '',
-    waiver_liability: false,
-    waiver_photo: false,
-    waiver_conduct: false,
-    waiver_signed_by: '',
-    prefilled_from_player_id: null
-  })
+  const [form, setForm] = useState({})
+  const [waiverState, setWaiverState] = useState({})
+  const [customAnswers, setCustomAnswers] = useState({})
   
   const [season, setSeason] = useState(null)
   const [organization, setOrganization] = useState(null)
+  const [config, setConfig] = useState(DEFAULT_CONFIG)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
-  const [prefillNotice, setPrefillNotice] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
-
-  // Get org accent color or default
-  const accentColor = organization?.primary_color || '#F97316'
-  const accentColorDark = organization?.primary_color ? adjustColor(organization.primary_color, -20) : '#EA580C'
-
-  // Darken/lighten color utility
-  function adjustColor(color, amount) {
-    const hex = color.replace('#', '')
-    const num = parseInt(hex, 16)
-    const r = Math.min(255, Math.max(0, (num >> 16) + amount))
-    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount))
-    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount))
-    return `#${(1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1)}`
-  }
 
   // Load season and org info
   useEffect(() => {
     loadSeasonData()
-    applyPrefillData()
   }, [orgIdOrSlug, seasonId])
-
-  function applyPrefillData() {
-    const prefillData = getRegistrationPrefillData()
-    if (!prefillData) return
-    
-    const updates = {}
-    
-    if (prefillData.prefillType === 'reregister') {
-      Object.keys(prefillData).forEach(key => {
-        if (prefillData[key] && key !== 'prefillType' && key !== 'source_player_id') {
-          updates[key] = prefillData[key]
-        }
-      })
-      setPrefillNotice({
-        type: 'reregister',
-        playerName: prefillData.first_name,
-        message: `Welcome back! We've pre-filled ${prefillData.first_name}'s information.`
-      })
-    } else if (prefillData.prefillType === 'sibling') {
-      if (prefillData.parent_name) updates.parent_name = prefillData.parent_name
-      if (prefillData.parent_email) updates.parent_email = prefillData.parent_email
-      if (prefillData.parent_phone) updates.parent_phone = prefillData.parent_phone
-      setPrefillNotice({
-        type: 'sibling',
-        message: `Adding a sibling? We've pre-filled your contact information.`
-      })
-    }
-    
-    if (prefillData.source_player_id) {
-      updates.prefilled_from_player_id = prefillData.source_player_id
-    }
-    
-    if (Object.keys(updates).length > 0) {
-      setForm(prev => ({ ...prev, ...updates }))
-    }
-  }
 
   async function loadSeasonData() {
     try {
-      // Try to find org by ID or slug
+      // Find org by ID or slug
       let orgQuery = supabase.from('organizations').select('*')
-      
-      // Check if it's a UUID or slug
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orgIdOrSlug)
       if (isUUID) {
         orgQuery = orgQuery.eq('id', orgIdOrSlug)
@@ -117,7 +80,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       if (orgData) {
         setOrganization(orgData)
         
-        // Load season
+        // Load season with registration_config
         const { data: seasonData } = await supabase
           .from('seasons')
           .select('*, sports(name, icon)')
@@ -127,6 +90,30 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         
         if (seasonData) {
           setSeason(seasonData)
+          
+          // Use season's registration_config or fall back to default
+          if (seasonData.registration_config) {
+            setConfig(seasonData.registration_config)
+          }
+          
+          // Initialize waiver state
+          const waiverInit = {}
+          const waiverConfig = seasonData.registration_config?.waivers || DEFAULT_CONFIG.waivers
+          Object.keys(waiverConfig).forEach(key => {
+            if (waiverConfig[key]?.enabled) {
+              waiverInit[key] = false
+            }
+          })
+          setWaiverState(waiverInit)
+          
+          // Initialize custom questions answers
+          const customInit = {}
+          const customQs = seasonData.registration_config?.custom_questions || []
+          customQs.forEach(q => {
+            customInit[q.id] = q.type === 'checkbox' ? false : ''
+          })
+          setCustomAnswers(customInit)
+          
         } else {
           setError('Season not found')
         }
@@ -140,53 +127,92 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     setLoading(false)
   }
 
+  // Calculate total fee
+  const totalFee = season ? (
+    (season.fee_registration || 0) + 
+    (season.fee_uniform || 0) + 
+    ((season.fee_monthly || 0) * (season.months_in_season || 1))
+  ) : 0
+
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
 
     try {
-      if (!form.first_name || !form.last_name || !form.parent_email) {
-        throw new Error('Please fill in all required fields')
+      // Validate required fields
+      const playerFields = config.player_fields || {}
+      const parentFields = config.parent_fields || {}
+      const emergencyFields = config.emergency_fields || {}
+      const waivers = config.waivers || {}
+      const customQs = config.custom_questions || []
+
+      // Check required player fields
+      for (const [key, field] of Object.entries(playerFields)) {
+        if (field.enabled && field.required && !form[key]) {
+          throw new Error(`${field.label} is required`)
+        }
       }
 
+      // Check required parent fields
+      for (const [key, field] of Object.entries(parentFields)) {
+        if (field.enabled && field.required && !form[key]) {
+          throw new Error(`${field.label} is required`)
+        }
+      }
+
+      // Check required emergency fields
+      for (const [key, field] of Object.entries(emergencyFields)) {
+        if (field.enabled && field.required && !form[key]) {
+          throw new Error(`${field.label} is required`)
+        }
+      }
+
+      // Check required waivers
+      for (const [key, waiver] of Object.entries(waivers)) {
+        if (waiver.enabled && waiver.required && !waiverState[key]) {
+          throw new Error(`${waiver.title} must be accepted`)
+        }
+      }
+
+      // Check required custom questions
+      for (const q of customQs) {
+        if (q.required && !customAnswers[q.id]) {
+          throw new Error(`"${q.question}" is required`)
+        }
+      }
+
+      // Map form fields to database columns
+      const gradeValue = form.grade ? (form.grade === 'K' ? 0 : parseInt(form.grade)) : null
+
       // Create player record
-      // Convert grade to integer (K = 0, otherwise parse as number)
-      const gradeInt = form.grade === 'K' ? 0 : (form.grade ? parseInt(form.grade) : null)
-      
       const { data: player, error: playerError } = await supabase
         .from('players')
         .insert({
           first_name: form.first_name,
           last_name: form.last_name,
           birth_date: form.birth_date || null,
-          grade: gradeInt,
+          grade: gradeValue,
           gender: form.gender || null,
           school: form.school || null,
-          parent_name: form.parent_name,
-          parent_email: form.parent_email,
-          parent_phone: form.parent_phone || null,
-          emergency_name: form.emergency_contact || null,
+          parent_name: form.parent1_name || null,
+          parent_email: form.parent1_email || null,
+          parent_phone: form.parent1_phone || null,
+          emergency_name: form.emergency_name || null,
           emergency_phone: form.emergency_phone || null,
-          medical_notes: form.medical_notes || null,
-          waiver_liability: form.waiver_liability,
-          waiver_photo: form.waiver_photo,
-          waiver_conduct: form.waiver_conduct,
-          waiver_signed_by: form.waiver_signed_by || null,
-          waiver_signed_date: (form.waiver_liability || form.waiver_photo || form.waiver_conduct) 
-            ? new Date().toISOString() 
-            : null,
-          prefilled_from_player_id: form.prefilled_from_player_id,
-          season_id: seasonId,
+          medical_notes: form.medical_conditions || null,
           status: 'new',
-          registration_date: new Date().toISOString()
+          season_id: seasonId
         })
         .select()
         .single()
 
       if (playerError) {
-        console.error('Player creation error:', playerError)
-        throw new Error('Could not create player record. Please try again.')
+        console.error('Player insert error:', playerError)
+        if (playerError.code === '23505') {
+          throw new Error('This player may already be registered for this season.')
+        }
+        throw new Error('Failed to create player record')
       }
 
       // Create registration record
@@ -196,117 +222,188 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           player_id: player.id,
           season_id: seasonId,
           status: 'new',
-          submitted_at: new Date().toISOString()
+          submitted_at: new Date().toISOString(),
+          waivers_accepted: waiverState,
+          custom_answers: customAnswers,
+          registration_data: {
+            ...form,
+            waivers: waiverState,
+            custom_questions: customAnswers
+          }
         })
 
       if (regError) {
-        // Handle duplicate registration gracefully
-        if (regError.code === '23505' || regError.message?.includes('duplicate')) {
-          // Registration already exists - that's actually fine, show success
-          console.log('Registration already exists, showing success')
+        console.error('Registration insert error:', regError)
+        if (regError.code === '23505') {
+          // Already registered - show success anyway
           setSubmitted(true)
-          setSubmitting(false)
           return
         }
-        console.error('Registration error:', regError)
-        throw new Error('Could not complete registration. Please try again.')
+        throw new Error('Failed to create registration')
       }
 
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)
-      // Provide user-friendly error messages
-      let message = 'Registration failed. Please try again.'
-      if (err.message?.includes('duplicate') || err.code === '23505') {
-        message = 'This player is already registered for this season.'
-      } else if (err.message?.includes('violates check constraint')) {
-        message = 'There was a data validation error. Please check your entries and try again.'
-      } else if (err.message) {
-        message = err.message
-      }
-      setError(message)
+      setError(err.message || 'Registration failed. Please try again.')
     }
     setSubmitting(false)
   }
 
-  // Calculate fee breakdown
-  function getFeeBreakdown() {
-    if (!season) return { items: [], total: 0 }
+  // Helper to render a field
+  function renderField(key, fieldConfig, type = 'text') {
+    if (!fieldConfig?.enabled) return null
     
-    const items = []
-    const seasonStart = season.start_date ? new Date(season.start_date) : new Date()
-    const registrationFee = parseFloat(season.fee_registration) || 0
-    const uniformFee = parseFloat(season.fee_uniform) || 0
-    const monthlyFee = parseFloat(season.fee_monthly) || 0
-    const monthsInSeason = parseInt(season.months_in_season) || 0
-    const earlyBirdDiscount = parseFloat(season.early_bird_discount) || 0
-    const earlyBirdDeadline = season.early_bird_deadline ? new Date(season.early_bird_deadline) : null
-    const isEarlyBird = earlyBirdDeadline && new Date() < earlyBirdDeadline
+    const isRequired = fieldConfig.required
+    const label = fieldConfig.label || key
 
-    // Registration fee
-    if (registrationFee > 0) {
-      items.push({
-        name: 'Registration Fee',
-        amount: registrationFee,
-        dueDate: 'Due upon approval',
-        icon: '📋'
-      })
+    // Special handling for certain field types
+    if (key === 'grade') {
+      return (
+        <div key={key}>
+          <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+            {label} {isRequired && <span className="text-red-500">*</span>}
+          </label>
+          <select
+            value={form[key] || ''}
+            onChange={e => setForm({...form, [key]: e.target.value})}
+            required={isRequired}
+            className="w-full rounded-xl px-4 py-3"
+            style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+          >
+            <option value="">Select grade</option>
+            {['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
+              <option key={g} value={g}>{g === 'K' ? 'Kindergarten' : `Grade ${g}`}</option>
+            ))}
+          </select>
+        </div>
+      )
     }
 
-    // Uniform fee
-    if (uniformFee > 0) {
-      const uniformDue = new Date(seasonStart)
-      uniformDue.setDate(uniformDue.getDate() - 14) // 2 weeks before season
-      items.push({
-        name: 'Uniform Fee',
-        amount: uniformFee,
-        dueDate: `Due by ${uniformDue.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-        icon: '👕'
-      })
+    if (key === 'gender') {
+      return (
+        <div key={key}>
+          <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+            {label} {isRequired && <span className="text-red-500">*</span>}
+          </label>
+          <select
+            value={form[key] || ''}
+            onChange={e => setForm({...form, [key]: e.target.value})}
+            required={isRequired}
+            className="w-full rounded-xl px-4 py-3"
+            style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+          >
+            <option value="">Select gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+      )
     }
 
-    // Monthly dues
-    if (monthlyFee > 0 && monthsInSeason > 0) {
-      for (let i = 0; i < monthsInSeason; i++) {
-        const dueDate = new Date(seasonStart)
-        dueDate.setMonth(dueDate.getMonth() + i)
-        dueDate.setDate(1) // 1st of month
-        
-        const monthName = dueDate.toLocaleDateString('en-US', { month: 'long' })
-        items.push({
-          name: `${monthName} Dues`,
-          amount: monthlyFee,
-          dueDate: `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
-          icon: '📅'
-        })
-      }
+    if (key === 'birth_date') {
+      return (
+        <div key={key}>
+          <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+            {label} {isRequired && <span className="text-red-500">*</span>}
+          </label>
+          <input
+            type="date"
+            value={form[key] || ''}
+            onChange={e => setForm({...form, [key]: e.target.value})}
+            required={isRequired}
+            className="w-full rounded-xl px-4 py-3"
+            style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+          />
+        </div>
+      )
     }
 
-    // Early bird discount
-    if (isEarlyBird && earlyBirdDiscount > 0) {
-      items.push({
-        name: 'Early Bird Discount',
-        amount: -earlyBirdDiscount,
-        dueDate: `Register by ${earlyBirdDeadline.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-        icon: '🎉',
-        isDiscount: true
-      })
+    // Select type fields
+    if (fieldConfig.type === 'select' && fieldConfig.options?.length > 0) {
+      return (
+        <div key={key}>
+          <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+            {label} {isRequired && <span className="text-red-500">*</span>}
+          </label>
+          <select
+            value={form[key] || ''}
+            onChange={e => setForm({...form, [key]: e.target.value})}
+            required={isRequired}
+            className="w-full rounded-xl px-4 py-3"
+            style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+          >
+            <option value="">Select...</option>
+            {fieldConfig.options.map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </div>
+      )
     }
 
-    const total = items.reduce((sum, item) => sum + item.amount, 0)
-    return { items, total }
+    // Textarea fields
+    if (fieldConfig.type === 'textarea' || key.includes('medical') || key.includes('notes') || key.includes('conditions')) {
+      return (
+        <div key={key} className="col-span-2">
+          <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+            {label} {isRequired && <span className="text-red-500">*</span>}
+          </label>
+          <textarea
+            value={form[key] || ''}
+            onChange={e => setForm({...form, [key]: e.target.value})}
+            required={isRequired}
+            rows={3}
+            className="w-full rounded-xl px-4 py-3 resize-none"
+            style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+          />
+        </div>
+      )
+    }
+
+    // Default text/email/tel input
+    const inputType = key.includes('email') ? 'email' : key.includes('phone') ? 'tel' : type
+    
+    return (
+      <div key={key}>
+        <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+          {label} {isRequired && <span className="text-red-500">*</span>}
+        </label>
+        <input
+          type={inputType}
+          value={form[key] || ''}
+          onChange={e => setForm({...form, [key]: e.target.value})}
+          required={isRequired}
+          className="w-full rounded-xl px-4 py-3"
+          style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+        />
+      </div>
+    )
   }
 
-  const feeBreakdown = getFeeBreakdown()
+  // Render section if it has any enabled fields
+  function renderSection(title, fields, icon) {
+    if (!fields) return null
+    const enabledFields = Object.entries(fields).filter(([_, f]) => f?.enabled)
+    if (enabledFields.length === 0) return null
+
+    return (
+      <div>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
+          <span>{icon}</span> {title}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {enabledFields.map(([key, fieldConfig]) => renderField(key, fieldConfig))}
+        </div>
+      </div>
+    )
+  }
 
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: lightColors.bg }}>
-        <div 
-          className="w-10 h-10 border-4 rounded-full animate-spin" 
-          style={{ borderColor: lightColors.border, borderTopColor: accentColor }} 
-        />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}>
+        <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -314,544 +411,242 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   // Success state
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: lightColors.bg }}>
-        <div className="rounded-2xl p-8 max-w-md text-center shadow-lg" style={{ backgroundColor: lightColors.card }}>
-          <div 
-            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-            style={{ backgroundColor: `${accentColor}20` }}
-          >
-            <span className="text-4xl">🎉</span>
-          </div>
-          <h1 className="text-2xl font-bold" style={{ color: lightColors.text }}>Registration Submitted!</h1>
-          <p className="mt-2" style={{ color: lightColors.textSecondary }}>
-            Thank you for registering <strong>{form.first_name}</strong> for {season?.name}!
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: colors.bg }}>
+        <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+          <span className="text-6xl">🎉</span>
+          <h1 className="text-2xl font-bold mt-4" style={{ color: colors.text }}>Registration Submitted!</h1>
+          <p className="mt-2" style={{ color: colors.textSecondary }}>
+            Thank you for registering {form.first_name} for {season?.name}!
           </p>
-          <p className="text-sm mt-4" style={{ color: lightColors.textMuted }}>
-            You'll receive a confirmation email at <strong>{form.parent_email}</strong> once your registration is reviewed.
+          <p className="text-sm mt-4" style={{ color: colors.textMuted }}>
+            You'll receive a confirmation email once your registration is reviewed.
           </p>
-          
-          {feeBreakdown.total > 0 && (
-            <div className="mt-6 p-4 rounded-xl text-left" style={{ backgroundColor: lightColors.cardAlt }}>
-              <p className="text-sm font-medium mb-3" style={{ color: lightColors.textSecondary }}>Payment Summary</p>
-              {feeBreakdown.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2 border-b last:border-0" style={{ borderColor: lightColors.border }}>
-                  <div>
-                    <span className="mr-2">{item.icon}</span>
-                    <span style={{ color: item.isDiscount ? '#10B981' : lightColors.text }}>{item.name}</span>
-                  </div>
-                  <span className="font-medium" style={{ color: item.isDiscount ? '#10B981' : lightColors.text }}>
-                    {item.isDiscount ? '-' : ''}${Math.abs(item.amount).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-              <div className="flex justify-between items-center pt-3 mt-2 border-t-2" style={{ borderColor: accentColor }}>
-                <span className="font-bold" style={{ color: lightColors.text }}>Total</span>
-                <span className="text-xl font-bold" style={{ color: accentColor }}>${feeBreakdown.total.toFixed(2)}</span>
-              </div>
-              <p className="text-xs mt-3" style={{ color: lightColors.textMuted }}>
-                Payment details will be sent after your registration is approved.
-              </p>
+          {totalFee > 0 && (
+            <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: colors.cardAlt }}>
+              <p style={{ color: colors.textSecondary }}>Estimated fees</p>
+              <p className="text-2xl font-bold" style={{ color: colors.accent }}>${totalFee.toFixed(2)}</p>
+              <p className="text-xs mt-1" style={{ color: colors.textMuted }}>Payment details will be sent after approval</p>
             </div>
           )}
-
-          <button
-            onClick={() => window.location.href = '/'}
-            className="mt-6 px-6 py-3 font-semibold rounded-xl transition hover:brightness-110"
-            style={{ backgroundColor: accentColor, color: '#fff' }}
-          >
-            Done
-          </button>
         </div>
       </div>
     )
   }
 
-  // Error state (no season/org found)
+  // Error state (no season found)
   if (error && !season) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: lightColors.bg }}>
-        <div className="rounded-2xl p-8 max-w-md text-center shadow-lg" style={{ backgroundColor: lightColors.card }}>
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: colors.bg }}>
+        <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
           <span className="text-6xl">😕</span>
-          <h1 className="text-2xl font-bold mt-4" style={{ color: lightColors.text }}>Registration Not Found</h1>
-          <p className="mt-2" style={{ color: lightColors.textSecondary }}>{error}</p>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="mt-6 px-6 py-3 font-semibold rounded-xl"
-            style={{ backgroundColor: lightColors.cardAlt, color: lightColors.text }}
-          >
-            Go Home
-          </button>
+          <h1 className="text-2xl font-bold mt-4" style={{ color: colors.text }}>Registration Not Found</h1>
+          <p className="mt-2" style={{ color: colors.textSecondary }}>{error}</p>
         </div>
       </div>
     )
   }
 
-  // Main form
+  const accentColor = organization?.primary_color || colors.accent
+
   return (
-    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: lightColors.bg }}>
+    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: colors.bg }}>
       <div className="max-w-2xl mx-auto">
-        {/* Header with org branding */}
+        {/* Header */}
         <div className="text-center mb-8">
-          {organization?.logo_url ? (
-            <img 
-              src={organization.logo_url} 
-              alt={organization.name} 
-              className="w-20 h-20 mx-auto rounded-xl mb-4 object-cover shadow-md" 
-            />
-          ) : (
-            <div 
-              className="w-20 h-20 mx-auto rounded-xl mb-4 flex items-center justify-center shadow-md"
-              style={{ backgroundColor: accentColor }}
-            >
-              <span className="text-3xl text-white">{organization?.name?.charAt(0) || '⚽'}</span>
-            </div>
+          {organization?.logo_url && (
+            <img src={organization.logo_url} alt={organization.name} className="w-20 h-20 mx-auto rounded-xl mb-4 object-cover" />
           )}
-          <h1 className="text-3xl font-bold" style={{ color: lightColors.text }}>
-            {organization?.name || 'Registration'}
-          </h1>
-          <p className="mt-2 text-lg" style={{ color: lightColors.textSecondary }}>
+          <h1 className="text-3xl font-bold" style={{ color: colors.text }}>{organization?.name || 'Registration'}</h1>
+          <p className="mt-2" style={{ color: colors.textSecondary }}>
             {season?.sports?.icon} {season?.name}
           </p>
           {season?.start_date && (
-            <p className="text-sm mt-1" style={{ color: lightColors.textMuted }}>
-              Season starts {new Date(season.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            <p className="text-sm mt-1" style={{ color: colors.textMuted }}>
+              Starts {new Date(season.start_date).toLocaleDateString()}
             </p>
           )}
         </div>
 
-        {/* Fee Breakdown Card */}
-        {feeBreakdown.total > 0 && (
-          <div 
-            className="mb-6 rounded-2xl overflow-hidden shadow-md" 
-            style={{ backgroundColor: lightColors.card }}
-          >
-            {/* Total header */}
+        {/* Fee Preview */}
+        {totalFee > 0 && (
+          <div className="mb-6 rounded-xl overflow-hidden" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
             <div 
-              className="p-4 text-center cursor-pointer"
-              style={{ backgroundColor: `${accentColor}10` }}
+              className="p-4 flex items-center justify-between cursor-pointer"
               onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
             >
-              <p className="text-sm font-medium" style={{ color: lightColors.textSecondary }}>
-                Total Registration Cost
-              </p>
-              <p className="text-4xl font-bold mt-1" style={{ color: accentColor }}>
-                ${feeBreakdown.total.toFixed(2)}
-              </p>
-              <button 
-                className="mt-2 text-sm flex items-center justify-center mx-auto gap-1"
-                style={{ color: accentColor }}
-              >
-                {showFeeBreakdown ? 'Hide' : 'View'} payment breakdown
-                <span className={`transition-transform ${showFeeBreakdown ? 'rotate-180' : ''}`}>▼</span>
+              <div>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>Total Registration Fee</p>
+                <p className="text-3xl font-bold" style={{ color: accentColor }}>${totalFee.toFixed(2)}</p>
+              </div>
+              <button className="p-2 rounded-lg" style={{ backgroundColor: colors.cardAlt }}>
+                {showFeeBreakdown ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </button>
             </div>
             
-            {/* Breakdown details */}
             {showFeeBreakdown && (
-              <div className="p-4 border-t" style={{ borderColor: lightColors.border }}>
-                {feeBreakdown.items.map((item, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`flex justify-between items-start py-3 ${idx > 0 ? 'border-t' : ''}`}
-                    style={{ borderColor: lightColors.border }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-xl">{item.icon}</span>
-                      <div>
-                        <p 
-                          className="font-medium"
-                          style={{ color: item.isDiscount ? '#10B981' : lightColors.text }}
-                        >
-                          {item.name}
-                        </p>
-                        <p className="text-xs" style={{ color: lightColors.textMuted }}>
-                          {item.dueDate}
-                        </p>
-                      </div>
+              <div className="px-4 pb-4 space-y-2" style={{ borderTop: `1px solid ${colors.border}` }}>
+                <div className="pt-3">
+                  {season?.fee_registration > 0 && (
+                    <div className="flex justify-between py-2">
+                      <span style={{ color: colors.textSecondary }}>Registration Fee</span>
+                      <span style={{ color: colors.text }}>${season.fee_registration}</span>
                     </div>
-                    <span 
-                      className="font-semibold"
-                      style={{ color: item.isDiscount ? '#10B981' : lightColors.text }}
-                    >
-                      {item.isDiscount ? '-' : ''}${Math.abs(item.amount).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+                  )}
+                  {season?.fee_uniform > 0 && (
+                    <div className="flex justify-between py-2">
+                      <span style={{ color: colors.textSecondary }}>Uniform Fee</span>
+                      <span style={{ color: colors.text }}>${season.fee_uniform}</span>
+                    </div>
+                  )}
+                  {season?.fee_monthly > 0 && (
+                    <div className="flex justify-between py-2">
+                      <span style={{ color: colors.textSecondary }}>Monthly Dues ({season.months_in_season || 1} months)</span>
+                      <span style={{ color: colors.text }}>${season.fee_monthly * (season.months_in_season || 1)}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs pt-2" style={{ color: colors.textMuted }}>
+                  Payment due after registration is approved
+                </p>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Pre-fill Notice */}
-        {prefillNotice && (
-          <div 
-            className="mb-6 p-4 rounded-xl"
-            style={{ 
-              backgroundColor: prefillNotice.type === 'reregister' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-              border: `1px solid ${prefillNotice.type === 'reregister' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
-            }}
-          >
-            <p style={{ color: prefillNotice.type === 'reregister' ? '#059669' : '#2563EB' }}>
-              ✨ {prefillNotice.message}
-            </p>
           </div>
         )}
 
         {/* Error */}
         {error && (
-          <div 
-            className="mb-6 p-4 rounded-xl"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}
-          >
-            <p style={{ color: '#DC2626' }}>⚠️ {error}</p>
+          <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            <p style={{ color: '#EF4444' }}>⚠️ {error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form 
-          onSubmit={handleSubmit} 
-          className="rounded-2xl p-6 space-y-6 shadow-md"
-          style={{ backgroundColor: lightColors.card }}
-        >
+        <form onSubmit={handleSubmit} className="rounded-2xl p-6 space-y-8" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+          
           {/* Player Information */}
-          <div>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: lightColors.text }}>
-              Player Information
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  First Name <span style={{ color: '#DC2626' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.first_name}
-                  onChange={e => setForm({...form, first_name: e.target.value})}
-                  required
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text,
-                    '--tw-ring-color': accentColor
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Last Name <span style={{ color: '#DC2626' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.last_name}
-                  onChange={e => setForm({...form, last_name: e.target.value})}
-                  required
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  value={form.birth_date}
-                  onChange={e => setForm({...form, birth_date: e.target.value})}
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Grade
-                </label>
-                <select
-                  value={form.grade}
-                  onChange={e => setForm({...form, grade: e.target.value})}
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                >
-                  <option value="">Select grade</option>
-                  {['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map(g => (
-                    <option key={g} value={g}>{g === 'K' ? 'Kindergarten' : `Grade ${g}`}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Gender
-                </label>
-                <select
-                  value={form.gender}
-                  onChange={e => setForm({...form, gender: e.target.value})}
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                >
-                  <option value="">Select gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  School
-                </label>
-                <input
-                  type="text"
-                  value={form.school}
-                  onChange={e => setForm({...form, school: e.target.value})}
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          {renderSection('Player Information', config.player_fields, '👤')}
 
           {/* Parent/Guardian Information */}
-          <div>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: lightColors.text }}>
-              Parent/Guardian Information
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Parent/Guardian Name <span style={{ color: '#DC2626' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.parent_name}
-                  onChange={e => setForm({...form, parent_name: e.target.value})}
-                  required
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={form.parent_phone}
-                  onChange={e => setForm({...form, parent_phone: e.target.value})}
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Email Address <span style={{ color: '#DC2626' }}>*</span>
-                </label>
-                <input
-                  type="email"
-                  value={form.parent_email}
-                  onChange={e => setForm({...form, parent_email: e.target.value})}
-                  required
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          {renderSection('Parent/Guardian', config.parent_fields, '👨‍👩‍👧')}
 
           {/* Emergency Contact */}
-          <div>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: lightColors.text }}>
-              Emergency Contact
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Contact Name
-                </label>
-                <input
-                  type="text"
-                  value={form.emergency_contact}
-                  onChange={e => setForm({...form, emergency_contact: e.target.value})}
-                  placeholder="Someone other than parent"
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Contact Phone
-                </label>
-                <input
-                  type="tel"
-                  value={form.emergency_phone}
-                  onChange={e => setForm({...form, emergency_phone: e.target.value})}
-                  className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `1px solid ${lightColors.border}`, 
-                    color: lightColors.text 
-                  }}
-                />
+          {renderSection('Emergency Contact', config.emergency_fields, '🚨')}
+
+          {/* Medical Information */}
+          {renderSection('Medical Information', config.medical_fields, '🏥')}
+
+          {/* Custom Questions */}
+          {config.custom_questions?.length > 0 && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
+                <span>❓</span> Additional Questions
+              </h2>
+              <div className="space-y-4">
+                {config.custom_questions.map(q => (
+                  <div key={q.id}>
+                    <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
+                      {q.question} {q.required && <span className="text-red-500">*</span>}
+                    </label>
+                    {q.type === 'textarea' ? (
+                      <textarea
+                        value={customAnswers[q.id] || ''}
+                        onChange={e => setCustomAnswers({...customAnswers, [q.id]: e.target.value})}
+                        required={q.required}
+                        rows={3}
+                        className="w-full rounded-xl px-4 py-3 resize-none"
+                        style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+                      />
+                    ) : q.type === 'select' ? (
+                      <select
+                        value={customAnswers[q.id] || ''}
+                        onChange={e => setCustomAnswers({...customAnswers, [q.id]: e.target.value})}
+                        required={q.required}
+                        className="w-full rounded-xl px-4 py-3"
+                        style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+                      >
+                        <option value="">Select...</option>
+                        {q.options?.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    ) : q.type === 'checkbox' ? (
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={customAnswers[q.id] || false}
+                          onChange={e => setCustomAnswers({...customAnswers, [q.id]: e.target.checked})}
+                          className="w-5 h-5 rounded"
+                        />
+                        <span style={{ color: colors.text }}>Yes</span>
+                      </label>
+                    ) : (
+                      <input
+                        type="text"
+                        value={customAnswers[q.id] || ''}
+                        onChange={e => setCustomAnswers({...customAnswers, [q.id]: e.target.value})}
+                        required={q.required}
+                        className="w-full rounded-xl px-4 py-3"
+                        style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="mt-4">
-              <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                Medical Notes / Allergies
-              </label>
-              <textarea
-                value={form.medical_notes}
-                onChange={e => setForm({...form, medical_notes: e.target.value})}
-                rows={3}
-                placeholder="Any medical conditions, allergies, or special needs we should know about..."
-                className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2"
-                style={{ 
-                  backgroundColor: lightColors.cardAlt, 
-                  border: `1px solid ${lightColors.border}`, 
-                  color: lightColors.text 
-                }}
-              />
-            </div>
-          </div>
+          )}
 
           {/* Waivers */}
-          <div>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: lightColors.text }}>
-              Waivers & Agreements
-            </h2>
-            <div className="space-y-3">
-              <label 
-                className="flex items-start gap-3 p-4 rounded-xl cursor-pointer transition hover:shadow-sm"
-                style={{ backgroundColor: lightColors.cardAlt, border: `1px solid ${lightColors.border}` }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.waiver_liability}
-                  onChange={e => setForm({...form, waiver_liability: e.target.checked})}
-                  className="mt-1 w-5 h-5 rounded"
-                  style={{ accentColor: accentColor }}
-                />
-                <div>
-                  <p className="font-medium" style={{ color: lightColors.text }}>Liability Waiver</p>
-                  <p className="text-sm" style={{ color: lightColors.textSecondary }}>
-                    I understand and accept the risks associated with participation in athletic activities.
-                  </p>
-                </div>
-              </label>
-              
-              <label 
-                className="flex items-start gap-3 p-4 rounded-xl cursor-pointer transition hover:shadow-sm"
-                style={{ backgroundColor: lightColors.cardAlt, border: `1px solid ${lightColors.border}` }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.waiver_photo}
-                  onChange={e => setForm({...form, waiver_photo: e.target.checked})}
-                  className="mt-1 w-5 h-5 rounded"
-                  style={{ accentColor: accentColor }}
-                />
-                <div>
-                  <p className="font-medium" style={{ color: lightColors.text }}>Photo/Video Release</p>
-                  <p className="text-sm" style={{ color: lightColors.textSecondary }}>
-                    I consent to photos and videos being taken and used for promotional purposes.
-                  </p>
-                </div>
-              </label>
-              
-              <label 
-                className="flex items-start gap-3 p-4 rounded-xl cursor-pointer transition hover:shadow-sm"
-                style={{ backgroundColor: lightColors.cardAlt, border: `1px solid ${lightColors.border}` }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.waiver_conduct}
-                  onChange={e => setForm({...form, waiver_conduct: e.target.checked})}
-                  className="mt-1 w-5 h-5 rounded"
-                  style={{ accentColor: accentColor }}
-                />
-                <div>
-                  <p className="font-medium" style={{ color: lightColors.text }}>Code of Conduct</p>
-                  <p className="text-sm" style={{ color: lightColors.textSecondary }}>
-                    I agree to follow the organization's code of conduct and sportsmanship guidelines.
-                  </p>
-                </div>
-              </label>
-            </div>
-            
-            {(form.waiver_liability || form.waiver_photo || form.waiver_conduct) && (
-              <div className="mt-4">
-                <label className="block text-sm font-medium mb-2" style={{ color: lightColors.textSecondary }}>
-                  Electronic Signature (type your full legal name)
-                </label>
-                <input
-                  type="text"
-                  value={form.waiver_signed_by}
-                  onChange={e => setForm({...form, waiver_signed_by: e.target.value})}
-                  placeholder="Type your full name to sign"
-                  className="w-full rounded-xl px-4 py-3 font-medium focus:outline-none focus:ring-2"
-                  style={{ 
-                    backgroundColor: lightColors.cardAlt, 
-                    border: `2px dashed ${lightColors.border}`, 
-                    color: lightColors.text,
-                    fontStyle: 'italic'
-                  }}
-                />
+          {config.waivers && Object.entries(config.waivers).some(([_, w]) => w?.enabled) && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
+                <span>📝</span> Waivers & Agreements
+              </h2>
+              <div className="space-y-4">
+                {Object.entries(config.waivers).map(([key, waiver]) => {
+                  if (!waiver?.enabled) return null
+                  return (
+                    <div 
+                      key={key} 
+                      className="p-4 rounded-xl"
+                      style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}` }}
+                    >
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={waiverState[key] || false}
+                          onChange={e => setWaiverState({...waiverState, [key]: e.target.checked})}
+                          className="w-5 h-5 rounded mt-0.5"
+                          style={{ accentColor: accentColor }}
+                        />
+                        <div>
+                          <p className="font-medium" style={{ color: colors.text }}>
+                            {waiver.title} {waiver.required && <span className="text-red-500">*</span>}
+                          </p>
+                          <p className="text-sm mt-1" style={{ color: colors.textMuted }}>
+                            {waiver.text}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-4 font-bold rounded-xl transition hover:brightness-110 disabled:opacity-50 shadow-md"
-            style={{ backgroundColor: accentColor, color: '#fff' }}
+            className="w-full py-4 rounded-xl font-semibold text-lg transition hover:brightness-110 disabled:opacity-50"
+            style={{ backgroundColor: accentColor, color: '#000' }}
           >
-            {submitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Submitting...
-              </span>
-            ) : (
-              'Submit Registration'
-            )}
+            {submitting ? 'Submitting...' : 'Submit Registration'}
           </button>
         </form>
 
         {/* Footer */}
-        <p className="text-center mt-6 text-sm" style={{ color: lightColors.textMuted }}>
+        <p className="text-center text-sm mt-6" style={{ color: colors.textMuted }}>
           Powered by VolleyBrain
         </p>
       </div>
@@ -859,4 +654,4 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   )
 }
 
-export { PublicRegistrationPage }
+export default PublicRegistrationPage
