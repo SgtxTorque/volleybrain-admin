@@ -8,7 +8,7 @@ import { generateFeesForPlayer } from '../../lib/fee-calculator'
 import { EmailService, isEmailEnabled } from '../../lib/email-service'
 import { exportToCSV } from '../../lib/csv-export'
 import { 
-  ClipboardList, Table, BarChart3, List, Calendar, Check, DollarSign, Edit
+  ClipboardList, Table, BarChart3, List, Calendar, Check, DollarSign, Edit, Trash2
 } from '../../constants/icons'
 
 // ============================================
@@ -417,6 +417,78 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
 }
 
 // ============================================
+// DELETE REGISTRATION MODAL
+// ============================================
+export function DeleteRegistrationModal({ player, onClose, onDelete, processing }) {
+  const tc = useThemeClasses()
+  const [confirmText, setConfirmText] = useState('')
+  const reg = player?.registrations?.[0]
+  
+  const canDelete = confirmText.toLowerCase() === 'delete'
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
+        <div className={`p-6 border-b ${tc.border}`}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <h2 className={`text-xl font-semibold ${tc.text}`}>Delete Registration</h2>
+              <p className={`${tc.textMuted} text-sm`}>{player?.first_name} {player?.last_name}</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className={`${tc.cardBgAlt} border ${tc.border} rounded-xl p-4`}>
+            <p className={`text-sm ${tc.textSecondary}`}>
+              This will <span className="text-red-400 font-semibold">permanently delete</span> this registration including:
+            </p>
+            <ul className={`text-sm ${tc.textMuted} mt-2 space-y-1 ml-4`}>
+              <li>• Player record and all data</li>
+              <li>• Registration history</li>
+              <li>• Associated payment records</li>
+              <li>• Waiver signatures</li>
+            </ul>
+          </div>
+          
+          <div>
+            <label className={`block text-sm ${tc.textMuted} mb-2`}>
+              Type <span className="font-mono text-red-400">delete</span> to confirm
+            </label>
+            <input 
+              type="text"
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              placeholder="delete"
+              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
+          <button 
+            onClick={onClose} 
+            className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}
+            disabled={processing}
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onDelete}
+            disabled={!canDelete || processing}
+            className="px-6 py-2 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {processing ? 'Deleting...' : 'Delete Forever'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
 // REGISTRATION ANALYTICS
 // ============================================
 export function RegistrationAnalytics({ registrations, season, statusCounts, showToast }) {
@@ -785,6 +857,8 @@ export function RegistrationsPage({ showToast }) {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkProcessing, setBulkProcessing] = useState(false)
   const [showBulkDenyModal, setShowBulkDenyModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(null) // Player object to delete
+  const [deleteProcessing, setDeleteProcessing] = useState(false)
   
   // View mode: 'table' or 'analytics'
   const [viewMode, setViewMode] = useState('table')
@@ -890,6 +964,52 @@ export function RegistrationsPage({ showToast }) {
     } catch (err) {
       showToast('Error: ' + err.message, 'error')
     }
+  }
+
+  async function deleteRegistration(player) {
+    setDeleteProcessing(true)
+    try {
+      const reg = player.registrations?.[0]
+      
+      // Delete associated payments first (foreign key constraint)
+      if (reg?.id) {
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .delete()
+          .eq('registration_id', reg.id)
+        
+        if (paymentError) {
+          console.warn('Error deleting payments:', paymentError)
+          // Continue anyway - payments might not exist
+        }
+      }
+
+      // Delete the registration record
+      if (reg?.id) {
+        const { error: regError } = await supabase
+          .from('registrations')
+          .delete()
+          .eq('id', reg.id)
+        
+        if (regError) throw regError
+      }
+
+      // Delete the player record
+      const { error: playerError } = await supabase
+        .from('players')
+        .delete()
+        .eq('id', player.id)
+      
+      if (playerError) throw playerError
+
+      showToast(`Deleted ${player.first_name} ${player.last_name}`, 'success')
+      setShowDeleteModal(null)
+      loadRegistrations()
+    } catch (err) {
+      console.error('Delete error:', err)
+      showToast('Error deleting: ' + err.message, 'error')
+    }
+    setDeleteProcessing(false)
   }
 
   // ========== BULK ACTIONS ==========
@@ -1094,6 +1214,49 @@ export function RegistrationsPage({ showToast }) {
     loadRegistrations()
   }
 
+  async function bulkDelete() {
+    setBulkProcessing(true)
+    const selectedPlayers = filteredRegs.filter(p => selectedIds.has(p.id))
+    const deletablePlayers = selectedPlayers.filter(p => 
+      ['withdrawn', 'denied'].includes(p.registrations?.[0]?.status)
+    )
+    
+    if (deletablePlayers.length === 0) {
+      showToast('No withdrawn/denied registrations selected', 'warning')
+      setBulkProcessing(false)
+      return
+    }
+
+    let deleted = 0
+
+    for (const player of deletablePlayers) {
+      const reg = player.registrations?.[0]
+
+      try {
+        // Delete payments first
+        if (reg?.id) {
+          await supabase.from('payments').delete().eq('registration_id', reg.id)
+        }
+        
+        // Delete registration
+        if (reg?.id) {
+          await supabase.from('registrations').delete().eq('id', reg.id)
+        }
+        
+        // Delete player
+        await supabase.from('players').delete().eq('id', player.id)
+        deleted++
+      } catch (err) {
+        console.error('Error deleting player:', player.id, err)
+      }
+    }
+
+    showToast(`Permanently deleted ${deleted} registrations`, 'success')
+    setSelectedIds(new Set())
+    setBulkProcessing(false)
+    loadRegistrations()
+  }
+
   function bulkExport() {
     const selectedPlayers = filteredRegs.filter(p => selectedIds.has(p.id))
     if (selectedPlayers.length === 0) {
@@ -1126,6 +1289,10 @@ export function RegistrationsPage({ showToast }) {
 
   const selectedPendingCount = filteredRegs.filter(p => 
     selectedIds.has(p.id) && ['submitted', 'pending', 'new'].includes(p.registrations?.[0]?.status)
+  ).length
+
+  const selectedDeniedCount = filteredRegs.filter(p => 
+    selectedIds.has(p.id) && ['withdrawn', 'denied'].includes(p.registrations?.[0]?.status)
   ).length
 
   const csvColumns = [
@@ -1240,6 +1407,19 @@ export function RegistrationsPage({ showToast }) {
                 >
                   ✗ Deny
                 </button>
+                {selectedDeniedCount > 0 && (
+                  <button 
+                    onClick={() => {
+                      if (window.confirm(`Permanently delete ${selectedDeniedCount} registration(s)? This cannot be undone.`)) {
+                        bulkDelete()
+                      }
+                    }}
+                    disabled={bulkProcessing}
+                    className="bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-900 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete ({selectedDeniedCount})
+                  </button>
+                )}
                 <button 
                   onClick={bulkExport}
                   className={`${tc.cardBgAlt} ${tc.text} px-4 py-2 rounded-xl text-sm font-medium ${tc.hoverBgAlt}`}
@@ -1385,6 +1565,15 @@ export function RegistrationsPage({ showToast }) {
                                 ⬆️ Promote
                               </button>
                             )}
+                            {['withdrawn', 'denied'].includes(reg?.status) && (
+                              <button 
+                                onClick={() => setShowDeleteModal(player)} 
+                                className="px-3 py-1 bg-red-500/20 rounded-lg text-xs text-red-400 hover:bg-red-500/30 flex items-center gap-1"
+                                title="Permanently delete this registration"
+                              >
+                                <Trash2 className="w-3 h-3" /> Delete
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1424,6 +1613,16 @@ export function RegistrationsPage({ showToast }) {
           onClose={() => setShowBulkDenyModal(false)}
           onDeny={bulkDeny}
           processing={bulkProcessing}
+        />
+      )}
+
+      {/* Delete Registration Modal */}
+      {showDeleteModal && (
+        <DeleteRegistrationModal
+          player={showDeleteModal}
+          onClose={() => setShowDeleteModal(null)}
+          onDelete={() => deleteRegistration(showDeleteModal)}
+          processing={deleteProcessing}
         />
       )}
     </div>
