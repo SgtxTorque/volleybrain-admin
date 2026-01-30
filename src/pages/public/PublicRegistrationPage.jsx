@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus, Trash2, Edit2, Check, Users } from 'lucide-react'
 
 // Default field configuration (fallback if no template selected)
 const DEFAULT_CONFIG = {
@@ -33,7 +33,7 @@ const DEFAULT_CONFIG = {
   custom_questions: []
 }
 
-// Light theme colors (hardcoded for public form)
+// Light theme colors
 const colors = {
   bg: '#F8FAFC',
   card: '#FFFFFF',
@@ -45,11 +45,40 @@ const colors = {
   accent: '#EAB308'
 }
 
+// Define field order for each section
+const FIELD_ORDER = {
+  player_fields: [
+    'first_name', 'last_name', 'birth_date', 'gender', 'grade', 'school',
+    'shirt_size', 'jersey_size', 'shorts_size', 'preferred_number', 
+    'position_preference', 'experience_level', 'previous_teams', 'height', 'weight'
+  ],
+  parent_fields: [
+    'parent1_name', 'parent1_email', 'parent1_phone',
+    'parent2_name', 'parent2_email', 'parent2_phone',
+    'address', 'city', 'state', 'zip'
+  ],
+  emergency_fields: [
+    'emergency_name', 'emergency_phone', 'emergency_relation',
+    'emergency2_name', 'emergency2_phone'
+  ],
+  medical_fields: [
+    'medical_conditions', 'allergies', 'medications', 
+    'doctor_name', 'doctor_phone', 'insurance_provider', 'insurance_policy'
+  ]
+}
+
 function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
-  const [form, setForm] = useState({})
+  // Multi-child state
+  const [children, setChildren] = useState([]) // Array of saved children
+  const [currentChild, setCurrentChild] = useState({}) // Current child being edited
+  const [editingChildIndex, setEditingChildIndex] = useState(null) // null = adding new, number = editing existing
+  
+  // Shared info (parent, emergency, medical)
+  const [sharedInfo, setSharedInfo] = useState({})
   const [waiverState, setWaiverState] = useState({})
   const [customAnswers, setCustomAnswers] = useState({})
   
+  // App state
   const [season, setSeason] = useState(null)
   const [organization, setOrganization] = useState(null)
   const [config, setConfig] = useState(DEFAULT_CONFIG)
@@ -59,14 +88,12 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   const [error, setError] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
 
-  // Load season and org info
   useEffect(() => {
     loadSeasonData()
   }, [orgIdOrSlug, seasonId])
 
   async function loadSeasonData() {
     try {
-      // Find org by ID or slug
       let orgQuery = supabase.from('organizations').select('*')
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orgIdOrSlug)
       if (isUUID) {
@@ -80,7 +107,6 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       if (orgData) {
         setOrganization(orgData)
         
-        // Load season with registration_config
         const { data: seasonData } = await supabase
           .from('seasons')
           .select('*, sports(name, icon)')
@@ -91,7 +117,6 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         if (seasonData) {
           setSeason(seasonData)
           
-          // Use season's registration_config or fall back to default
           if (seasonData.registration_config) {
             setConfig(seasonData.registration_config)
           }
@@ -106,7 +131,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           })
           setWaiverState(waiverInit)
           
-          // Initialize custom questions answers
+          // Initialize custom answers
           const customInit = {}
           const customQs = seasonData.registration_config?.custom_questions || []
           customQs.forEach(q => {
@@ -127,12 +152,72 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     setLoading(false)
   }
 
-  // Calculate total fee
-  const totalFee = season ? (
+  // Calculate total fee (per child * number of children)
+  const feePerChild = season ? (
     (season.fee_registration || 0) + 
     (season.fee_uniform || 0) + 
     ((season.fee_monthly || 0) * (season.months_in_season || 1))
   ) : 0
+  
+  const totalChildren = children.length + (Object.keys(currentChild).length > 0 ? 1 : 0)
+  const totalFee = feePerChild * Math.max(children.length, 1)
+
+  // Validate player fields for current child
+  function validateCurrentChild() {
+    const playerFields = config.player_fields || {}
+    for (const [key, field] of Object.entries(playerFields)) {
+      if (field.enabled && field.required && !currentChild[key]) {
+        return `${field.label} is required for this child`
+      }
+    }
+    return null
+  }
+
+  // Add current child to list
+  function addChild() {
+    const validationError = validateCurrentChild()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+    
+    if (editingChildIndex !== null) {
+      // Update existing child
+      const updated = [...children]
+      updated[editingChildIndex] = { ...currentChild }
+      setChildren(updated)
+      setEditingChildIndex(null)
+    } else {
+      // Add new child
+      setChildren([...children, { ...currentChild }])
+    }
+    
+    setCurrentChild({})
+    setError(null)
+  }
+
+  // Edit a child from the list
+  function editChild(index) {
+    setCurrentChild({ ...children[index] })
+    setEditingChildIndex(index)
+  }
+
+  // Remove a child from the list
+  function removeChild(index) {
+    const updated = children.filter((_, i) => i !== index)
+    setChildren(updated)
+    if (editingChildIndex === index) {
+      setCurrentChild({})
+      setEditingChildIndex(null)
+    }
+  }
+
+  // Cancel editing
+  function cancelEdit() {
+    setCurrentChild({})
+    setEditingChildIndex(null)
+    setError(null)
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -140,106 +225,99 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     setError(null)
 
     try {
-      // Validate required fields
-      const playerFields = config.player_fields || {}
+      // If there's a current child being edited, add them first
+      let allChildren = [...children]
+      if (Object.keys(currentChild).length > 0 && currentChild.first_name) {
+        const validationError = validateCurrentChild()
+        if (validationError) {
+          throw new Error(validationError)
+        }
+        allChildren = [...children, currentChild]
+      }
+
+      if (allChildren.length === 0) {
+        throw new Error('Please add at least one child to register')
+      }
+
+      // Validate shared info
       const parentFields = config.parent_fields || {}
       const emergencyFields = config.emergency_fields || {}
       const waivers = config.waivers || {}
-      const customQs = config.custom_questions || []
 
-      // Check required player fields
-      for (const [key, field] of Object.entries(playerFields)) {
-        if (field.enabled && field.required && !form[key]) {
-          throw new Error(`${field.label} is required`)
-        }
-      }
-
-      // Check required parent fields
       for (const [key, field] of Object.entries(parentFields)) {
-        if (field.enabled && field.required && !form[key]) {
+        if (field.enabled && field.required && !sharedInfo[key]) {
           throw new Error(`${field.label} is required`)
         }
       }
 
-      // Check required emergency fields
       for (const [key, field] of Object.entries(emergencyFields)) {
-        if (field.enabled && field.required && !form[key]) {
+        if (field.enabled && field.required && !sharedInfo[key]) {
           throw new Error(`${field.label} is required`)
         }
       }
 
-      // Check required waivers
       for (const [key, waiver] of Object.entries(waivers)) {
         if (waiver.enabled && waiver.required && !waiverState[key]) {
           throw new Error(`${waiver.title} must be accepted`)
         }
       }
 
-      // Check required custom questions
-      for (const q of customQs) {
-        if (q.required && !customAnswers[q.id]) {
-          throw new Error(`"${q.question}" is required`)
-        }
-      }
+      // Create player and registration records for each child
+      for (const child of allChildren) {
+        const gradeValue = child.grade ? (child.grade === 'K' ? 0 : parseInt(child.grade)) : null
 
-      // Map form fields to database columns
-      const gradeValue = form.grade ? (form.grade === 'K' ? 0 : parseInt(form.grade)) : null
+        const { data: player, error: playerError } = await supabase
+          .from('players')
+          .insert({
+            first_name: child.first_name,
+            last_name: child.last_name,
+            birth_date: child.birth_date || null,
+            grade: gradeValue,
+            gender: child.gender || null,
+            school: child.school || null,
+            parent_name: sharedInfo.parent1_name || null,
+            parent_email: sharedInfo.parent1_email || null,
+            parent_phone: sharedInfo.parent1_phone || null,
+            emergency_name: sharedInfo.emergency_name || null,
+            emergency_phone: sharedInfo.emergency_phone || null,
+            medical_notes: sharedInfo.medical_conditions || null,
+            status: 'new',
+            season_id: seasonId
+          })
+          .select()
+          .single()
 
-      // Create player record
-      const { data: player, error: playerError } = await supabase
-        .from('players')
-        .insert({
-          first_name: form.first_name,
-          last_name: form.last_name,
-          birth_date: form.birth_date || null,
-          grade: gradeValue,
-          gender: form.gender || null,
-          school: form.school || null,
-          parent_name: form.parent1_name || null,
-          parent_email: form.parent1_email || null,
-          parent_phone: form.parent1_phone || null,
-          emergency_name: form.emergency_name || null,
-          emergency_phone: form.emergency_phone || null,
-          medical_notes: form.medical_conditions || null,
-          status: 'new',
-          season_id: seasonId
-        })
-        .select()
-        .single()
-
-      if (playerError) {
-        console.error('Player insert error:', playerError)
-        if (playerError.code === '23505') {
-          throw new Error('This player may already be registered for this season.')
-        }
-        throw new Error('Failed to create player record')
-      }
-
-      // Create registration record
-      const { error: regError } = await supabase
-        .from('registrations')
-        .insert({
-          player_id: player.id,
-          season_id: seasonId,
-          status: 'new',
-          submitted_at: new Date().toISOString(),
-          waivers_accepted: waiverState,
-          custom_answers: customAnswers,
-          registration_data: {
-            ...form,
-            waivers: waiverState,
-            custom_questions: customAnswers
+        if (playerError) {
+          console.error('Player insert error:', playerError)
+          if (playerError.code === '23505') {
+            throw new Error(`${child.first_name} may already be registered for this season.`)
           }
-        })
-
-      if (regError) {
-        console.error('Registration insert error:', regError)
-        if (regError.code === '23505') {
-          // Already registered - show success anyway
-          setSubmitted(true)
-          return
+          throw new Error(`Failed to register ${child.first_name}`)
         }
-        throw new Error('Failed to create registration')
+
+        const { error: regError } = await supabase
+          .from('registrations')
+          .insert({
+            player_id: player.id,
+            season_id: seasonId,
+            status: 'new',
+            submitted_at: new Date().toISOString(),
+            waivers_accepted: waiverState,
+            custom_answers: customAnswers,
+            registration_data: {
+              player: child,
+              shared: sharedInfo,
+              waivers: waiverState,
+              custom_questions: customAnswers
+            }
+          })
+
+        if (regError) {
+          console.error('Registration insert error:', regError)
+          if (regError.code !== '23505') {
+            throw new Error(`Failed to create registration for ${child.first_name}`)
+          }
+        }
       }
 
       setSubmitted(true)
@@ -251,13 +329,12 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   }
 
   // Helper to render a field
-  function renderField(key, fieldConfig, type = 'text') {
+  function renderField(key, fieldConfig, formState, setFormState) {
     if (!fieldConfig?.enabled) return null
     
     const isRequired = fieldConfig.required
     const label = fieldConfig.label || key
 
-    // Special handling for certain field types
     if (key === 'grade') {
       return (
         <div key={key}>
@@ -265,8 +342,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             {label} {isRequired && <span className="text-red-500">*</span>}
           </label>
           <select
-            value={form[key] || ''}
-            onChange={e => setForm({...form, [key]: e.target.value})}
+            value={formState[key] || ''}
+            onChange={e => setFormState({...formState, [key]: e.target.value})}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -287,8 +364,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             {label} {isRequired && <span className="text-red-500">*</span>}
           </label>
           <select
-            value={form[key] || ''}
-            onChange={e => setForm({...form, [key]: e.target.value})}
+            value={formState[key] || ''}
+            onChange={e => setFormState({...formState, [key]: e.target.value})}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -309,8 +386,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           </label>
           <input
             type="date"
-            value={form[key] || ''}
-            onChange={e => setForm({...form, [key]: e.target.value})}
+            value={formState[key] || ''}
+            onChange={e => setFormState({...formState, [key]: e.target.value})}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -319,7 +396,6 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       )
     }
 
-    // Select type fields
     if (fieldConfig.type === 'select' && fieldConfig.options?.length > 0) {
       return (
         <div key={key}>
@@ -327,8 +403,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             {label} {isRequired && <span className="text-red-500">*</span>}
           </label>
           <select
-            value={form[key] || ''}
-            onChange={e => setForm({...form, [key]: e.target.value})}
+            value={formState[key] || ''}
+            onChange={e => setFormState({...formState, [key]: e.target.value})}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -342,7 +418,6 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       )
     }
 
-    // Textarea fields
     if (fieldConfig.type === 'textarea' || key.includes('medical') || key.includes('notes') || key.includes('conditions')) {
       return (
         <div key={key} className="col-span-2">
@@ -350,8 +425,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             {label} {isRequired && <span className="text-red-500">*</span>}
           </label>
           <textarea
-            value={form[key] || ''}
-            onChange={e => setForm({...form, [key]: e.target.value})}
+            value={formState[key] || ''}
+            onChange={e => setFormState({...formState, [key]: e.target.value})}
             required={isRequired}
             rows={3}
             className="w-full rounded-xl px-4 py-3 resize-none"
@@ -361,8 +436,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       )
     }
 
-    // Default text/email/tel input
-    const inputType = key.includes('email') ? 'email' : key.includes('phone') ? 'tel' : type
+    const inputType = key.includes('email') ? 'email' : key.includes('phone') ? 'tel' : 'text'
     
     return (
       <div key={key}>
@@ -371,8 +445,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         </label>
         <input
           type={inputType}
-          value={form[key] || ''}
-          onChange={e => setForm({...form, [key]: e.target.value})}
+          value={formState[key] || ''}
+          onChange={e => setFormState({...formState, [key]: e.target.value})}
           required={isRequired}
           className="w-full rounded-xl px-4 py-3"
           style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -381,11 +455,20 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     )
   }
 
-  // Render section if it has any enabled fields
-  function renderSection(title, fields, icon) {
+  function renderSection(title, fields, icon, sectionKey, formState, setFormState) {
     if (!fields) return null
     const enabledFields = Object.entries(fields).filter(([_, f]) => f?.enabled)
     if (enabledFields.length === 0) return null
+
+    const order = FIELD_ORDER[sectionKey] || []
+    const sortedFields = [...enabledFields].sort((a, b) => {
+      const indexA = order.indexOf(a[0])
+      const indexB = order.indexOf(b[0])
+      if (indexA === -1 && indexB === -1) return 0
+      if (indexA === -1) return 1
+      if (indexB === -1) return -1
+      return indexA - indexB
+    })
 
     return (
       <div>
@@ -393,7 +476,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           <span>{icon}</span> {title}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {enabledFields.map(([key, fieldConfig]) => renderField(key, fieldConfig))}
+          {sortedFields.map(([key, fieldConfig]) => renderField(key, fieldConfig, formState, setFormState))}
         </div>
       </div>
     )
@@ -416,14 +499,14 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           <span className="text-6xl">🎉</span>
           <h1 className="text-2xl font-bold mt-4" style={{ color: colors.text }}>Registration Submitted!</h1>
           <p className="mt-2" style={{ color: colors.textSecondary }}>
-            Thank you for registering {form.first_name} for {season?.name}!
+            Thank you for registering {children.length + (currentChild.first_name ? 1 : 0)} {children.length === 1 ? 'child' : 'children'} for {season?.name}!
           </p>
           <p className="text-sm mt-4" style={{ color: colors.textMuted }}>
             You'll receive a confirmation email once your registration is reviewed.
           </p>
           {totalFee > 0 && (
             <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: colors.cardAlt }}>
-              <p style={{ color: colors.textSecondary }}>Estimated fees</p>
+              <p style={{ color: colors.textSecondary }}>Estimated total fees</p>
               <p className="text-2xl font-bold" style={{ color: colors.accent }}>${totalFee.toFixed(2)}</p>
               <p className="text-xs mt-1" style={{ color: colors.textMuted }}>Payment details will be sent after approval</p>
             </div>
@@ -468,15 +551,19 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         </div>
 
         {/* Fee Preview */}
-        {totalFee > 0 && (
+        {feePerChild > 0 && (
           <div className="mb-6 rounded-xl overflow-hidden" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
             <div 
               className="p-4 flex items-center justify-between cursor-pointer"
               onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
             >
               <div>
-                <p className="text-sm" style={{ color: colors.textSecondary }}>Total Registration Fee</p>
-                <p className="text-3xl font-bold" style={{ color: accentColor }}>${totalFee.toFixed(2)}</p>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  {children.length > 0 ? `Total for ${children.length} ${children.length === 1 ? 'child' : 'children'}` : 'Fee per child'}
+                </p>
+                <p className="text-3xl font-bold" style={{ color: accentColor }}>
+                  ${(feePerChild * Math.max(children.length, 1)).toFixed(2)}
+                </p>
               </div>
               <button className="p-2 rounded-lg" style={{ backgroundColor: colors.cardAlt }}>
                 {showFeeBreakdown ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -486,20 +573,21 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             {showFeeBreakdown && (
               <div className="px-4 pb-4 space-y-2" style={{ borderTop: `1px solid ${colors.border}` }}>
                 <div className="pt-3">
+                  <p className="text-sm font-medium mb-2" style={{ color: colors.text }}>Per child:</p>
                   {season?.fee_registration > 0 && (
-                    <div className="flex justify-between py-2">
+                    <div className="flex justify-between py-1">
                       <span style={{ color: colors.textSecondary }}>Registration Fee</span>
                       <span style={{ color: colors.text }}>${season.fee_registration}</span>
                     </div>
                   )}
                   {season?.fee_uniform > 0 && (
-                    <div className="flex justify-between py-2">
+                    <div className="flex justify-between py-1">
                       <span style={{ color: colors.textSecondary }}>Uniform Fee</span>
                       <span style={{ color: colors.text }}>${season.fee_uniform}</span>
                     </div>
                   )}
                   {season?.fee_monthly > 0 && (
-                    <div className="flex justify-between py-2">
+                    <div className="flex justify-between py-1">
                       <span style={{ color: colors.textSecondary }}>Monthly Dues ({season.months_in_season || 1} months)</span>
                       <span style={{ color: colors.text }}>${season.fee_monthly * (season.months_in_season || 1)}</span>
                     </div>
@@ -521,23 +609,106 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="rounded-2xl p-6 space-y-8" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
-          
-          {/* Player Information */}
-          {renderSection('Player Information', config.player_fields, '👤')}
+        <form onSubmit={handleSubmit}>
+          {/* Children List */}
+          {children.length > 0 && (
+            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
+                <Users className="w-5 h-5" /> Children to Register ({children.length})
+              </h2>
+              <div className="space-y-3">
+                {children.map((child, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between p-3 rounded-xl"
+                    style={{ backgroundColor: colors.cardAlt }}
+                  >
+                    <div>
+                      <p className="font-medium" style={{ color: colors.text }}>
+                        {child.first_name} {child.last_name}
+                      </p>
+                      <p className="text-sm" style={{ color: colors.textMuted }}>
+                        {child.grade && `Grade ${child.grade}`} {child.birth_date && `• ${new Date(child.birth_date).toLocaleDateString()}`}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => editChild(index)}
+                        className="p-2 rounded-lg hover:bg-white/50 transition"
+                      >
+                        <Edit2 className="w-4 h-4" style={{ color: colors.textSecondary }} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeChild(index)}
+                        className="p-2 rounded-lg hover:bg-red-100 transition"
+                      >
+                        <Trash2 className="w-4 h-4" style={{ color: '#EF4444' }} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {/* Parent/Guardian Information */}
-          {renderSection('Parent/Guardian', config.parent_fields, '👨‍👩‍👧')}
+          {/* Current Child Form */}
+          <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: colors.text }}>
+                👤 {editingChildIndex !== null ? 'Edit Child' : children.length > 0 ? 'Add Another Child' : 'Child Information'}
+              </h2>
+              {editingChildIndex !== null && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="text-sm px-3 py-1 rounded-lg"
+                  style={{ backgroundColor: colors.cardAlt, color: colors.textSecondary }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+            
+            {renderSection(null, config.player_fields, null, 'player_fields', currentChild, setCurrentChild)}
+            
+            {/* Add Child Button */}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={addChild}
+                className="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition hover:brightness-110"
+                style={{ backgroundColor: colors.cardAlt, color: colors.text, border: `2px solid ${accentColor}` }}
+              >
+                {editingChildIndex !== null ? (
+                  <>
+                    <Check className="w-5 h-5" /> Save Changes
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5" /> {children.length > 0 ? 'Add This Child' : 'Save & Add Another Child'}
+                  </>
+                )}
+              </button>
+            </div>
+            {children.length === 0 && (
+              <p className="text-center text-sm mt-2" style={{ color: colors.textMuted }}>
+                Or continue below to register just this child
+              </p>
+            )}
+          </div>
 
-          {/* Emergency Contact */}
-          {renderSection('Emergency Contact', config.emergency_fields, '🚨')}
-
-          {/* Medical Information */}
-          {renderSection('Medical Information', config.medical_fields, '🏥')}
+          {/* Shared Information */}
+          <div className="rounded-2xl p-6 mb-6 space-y-8" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+            {renderSection('Parent/Guardian', config.parent_fields, '👨‍👩‍👧', 'parent_fields', sharedInfo, setSharedInfo)}
+            {renderSection('Emergency Contact', config.emergency_fields, '🚨', 'emergency_fields', sharedInfo, setSharedInfo)}
+            {renderSection('Medical Information', config.medical_fields, '🏥', 'medical_fields', sharedInfo, setSharedInfo)}
+          </div>
 
           {/* Custom Questions */}
           {config.custom_questions?.length > 0 && (
-            <div>
+            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
                 <span>❓</span> Additional Questions
               </h2>
@@ -597,7 +768,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
 
           {/* Waivers */}
           {config.waivers && Object.entries(config.waivers).some(([_, w]) => w?.enabled) && (
-            <div>
+            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
                 <span>📝</span> Waivers & Agreements
               </h2>
@@ -637,11 +808,11 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           {/* Submit */}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (children.length === 0 && !currentChild.first_name)}
             className="w-full py-4 rounded-xl font-semibold text-lg transition hover:brightness-110 disabled:opacity-50"
             style={{ backgroundColor: accentColor, color: '#000' }}
           >
-            {submitting ? 'Submitting...' : 'Submit Registration'}
+            {submitting ? 'Submitting...' : `Submit Registration${children.length > 1 ? ` (${children.length} children)` : ''}`}
           </button>
         </form>
 
@@ -654,5 +825,4 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   )
 }
 
-export default PublicRegistrationPage
 export { PublicRegistrationPage }
