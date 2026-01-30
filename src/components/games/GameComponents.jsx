@@ -266,7 +266,7 @@ function getStatIcon(key) {
     // Football
     pass_attempts: '🏈', completions: '✅', passing_yards: '📏', passing_tds: '🎉',
     interceptions: '❌', rush_attempts: '🏃', rushing_yards: '📏', rushing_tds: '🎉',
-    receptions: '🙌', targets: '🎯', receiving_yards: '📏', receiving_tds: '🎉', tackles: '💪', sacks: '💥',
+    targets: '🎯', receiving_yards: '📏', receiving_tds: '🎉', tackles: '💪', sacks: '💥',
     // Hockey
     plus_minus: '📊', penalty_minutes: '⏱️', power_play_goals: '⚡', short_handed_goals: '🛡️'
   }
