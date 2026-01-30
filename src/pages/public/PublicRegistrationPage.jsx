@@ -655,3 +655,4 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
 }
 
 export default PublicRegistrationPage
+export { PublicRegistrationPage }
