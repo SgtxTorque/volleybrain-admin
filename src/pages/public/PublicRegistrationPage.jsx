@@ -72,6 +72,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   const [children, setChildren] = useState([]) // Array of saved children
   const [currentChild, setCurrentChild] = useState({}) // Current child being edited
   const [editingChildIndex, setEditingChildIndex] = useState(null) // null = adding new, number = editing existing
+  const [showAddChildForm, setShowAddChildForm] = useState(false) // Show form for adding another child
   
   // Shared info (parent, emergency, medical)
   const [sharedInfo, setSharedInfo] = useState({})
@@ -193,6 +194,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     }
     
     setCurrentChild({})
+    setShowAddChildForm(false)
     setError(null)
   }
 
@@ -200,6 +202,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   function editChild(index) {
     setCurrentChild({ ...children[index] })
     setEditingChildIndex(index)
+    setShowAddChildForm(true)
   }
 
   // Remove a child from the list
@@ -212,17 +215,14 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     }
   }
 
-  // Cancel editing
-  function cancelEdit() {
-    setCurrentChild({})
-    setEditingChildIndex(null)
-    setError(null)
-  }
-
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
+
+    // Track created records for rollback
+    const createdPlayerIds = []
+    const createdRegistrationIds = []
 
     try {
       // If there's a current child being edited, add them first
@@ -239,7 +239,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         throw new Error('Please add at least one child to register')
       }
 
-      // Validate shared info
+      // Validate shared info BEFORE any inserts
       const parentFields = config.parent_fields || {}
       const emergencyFields = config.emergency_fields || {}
       const waivers = config.waivers || {}
@@ -290,12 +290,15 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         if (playerError) {
           console.error('Player insert error:', playerError)
           if (playerError.code === '23505') {
-            throw new Error(`${child.first_name} may already be registered for this season.`)
+            throw new Error(`${child.first_name} ${child.last_name} may already be registered for this season.`)
           }
           throw new Error(`Failed to register ${child.first_name}`)
         }
 
-        const { error: regError } = await supabase
+        // Track for potential rollback
+        createdPlayerIds.push(player.id)
+
+        const { data: registration, error: regError } = await supabase
           .from('registrations')
           .insert({
             player_id: player.id,
@@ -311,18 +314,33 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
               custom_questions: customAnswers
             }
           })
+          .select()
+          .single()
 
         if (regError) {
           console.error('Registration insert error:', regError)
           if (regError.code !== '23505') {
             throw new Error(`Failed to create registration for ${child.first_name}`)
           }
+        } else if (registration) {
+          createdRegistrationIds.push(registration.id)
         }
       }
 
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)
+      
+      // ROLLBACK: Delete any records that were created before the error
+      if (createdRegistrationIds.length > 0) {
+        console.log('Rolling back registrations:', createdRegistrationIds)
+        await supabase.from('registrations').delete().in('id', createdRegistrationIds)
+      }
+      if (createdPlayerIds.length > 0) {
+        console.log('Rolling back players:', createdPlayerIds)
+        await supabase.from('players').delete().in('id', createdPlayerIds)
+      }
+      
       setError(err.message || 'Registration failed. Please try again.')
     }
     setSubmitting(false)
@@ -653,55 +671,123 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             </div>
           )}
 
-          {/* Current Child Form */}
-          <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: colors.text }}>
-                👤 {editingChildIndex !== null ? 'Edit Child' : children.length > 0 ? 'Add Another Child' : 'Child Information'}
-              </h2>
-              {editingChildIndex !== null && (
+          {/* Current Child Form - Only show if actively adding/editing */}
+          {(children.length === 0 || editingChildIndex !== null || showAddChildForm) && (
+            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: colors.text }}>
+                  👤 {editingChildIndex !== null ? 'Edit Child' : children.length > 0 ? 'Add Another Child' : 'Child Information'}
+                </h2>
+                {(editingChildIndex !== null || (children.length > 0 && showAddChildForm)) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentChild({})
+                      setEditingChildIndex(null)
+                      setShowAddChildForm(false)
+                      setError(null)
+                    }}
+                    className="text-sm px-3 py-1 rounded-lg"
+                    style={{ backgroundColor: colors.cardAlt, color: colors.textSecondary }}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+              
+              {renderSection(null, config.player_fields, null, 'player_fields', currentChild, setCurrentChild)}
+              
+              {/* Save Child Button */}
+              <div className="mt-6">
                 <button
                   type="button"
-                  onClick={cancelEdit}
-                  className="text-sm px-3 py-1 rounded-lg"
-                  style={{ backgroundColor: colors.cardAlt, color: colors.textSecondary }}
+                  onClick={addChild}
+                  className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition hover:brightness-110"
+                  style={{ backgroundColor: accentColor, color: '#000' }}
                 >
-                  Cancel
+                  <Check className="w-5 h-5" /> 
+                  {editingChildIndex !== null ? 'Save Changes' : 'Save Child'}
                 </button>
+              </div>
+              {children.length === 0 && (
+                <p className="text-center text-sm mt-2" style={{ color: colors.textMuted }}>
+                  You can add more children after saving
+                </p>
               )}
             </div>
-            
-            {renderSection(null, config.player_fields, null, 'player_fields', currentChild, setCurrentChild)}
-            
-            {/* Add Child Button */}
-            <div className="mt-6 flex gap-3">
+          )}
+
+          {/* Add Another Child Button - Show when children exist and not currently adding */}
+          {children.length > 0 && !showAddChildForm && editingChildIndex === null && (
+            <div className="mb-6">
               <button
                 type="button"
-                onClick={addChild}
-                className="flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition hover:brightness-110"
-                style={{ backgroundColor: colors.cardAlt, color: colors.text, border: `2px solid ${accentColor}` }}
+                onClick={() => setShowAddChildForm(true)}
+                className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition"
+                style={{ backgroundColor: colors.card, color: colors.text, border: `2px dashed ${colors.border}` }}
               >
-                {editingChildIndex !== null ? (
-                  <>
-                    <Check className="w-5 h-5" /> Save Changes
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-5 h-5" /> {children.length > 0 ? 'Add This Child' : 'Save & Add Another Child'}
-                  </>
-                )}
+                <Plus className="w-5 h-5" /> Add Another Child
               </button>
             </div>
-            {children.length === 0 && (
-              <p className="text-center text-sm mt-2" style={{ color: colors.textMuted }}>
-                Or continue below to register just this child
-              </p>
-            )}
-          </div>
+          )}
 
           {/* Shared Information */}
           <div className="rounded-2xl p-6 mb-6 space-y-8" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
-            {renderSection('Parent/Guardian', config.parent_fields, '👨‍👩‍👧', 'parent_fields', sharedInfo, setSharedInfo)}
+            {/* Parent/Guardian Section - Custom grouped layout */}
+            {config.parent_fields && Object.entries(config.parent_fields).some(([_, f]) => f?.enabled) && (
+              <div>
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
+                  <span>👨‍👩‍👧</span> Parent/Guardian Information
+                </h2>
+                
+                {/* Parent/Guardian 1 */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium mb-3 px-1" style={{ color: colors.textSecondary }}>
+                    Primary Parent/Guardian
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {['parent1_name', 'parent1_email', 'parent1_phone'].map(key => {
+                      const field = config.parent_fields[key]
+                      if (!field?.enabled) return null
+                      return renderField(key, field, sharedInfo, setSharedInfo)
+                    })}
+                  </div>
+                </div>
+                
+                {/* Parent/Guardian 2 - only if any parent2 fields are enabled */}
+                {['parent2_name', 'parent2_email', 'parent2_phone'].some(key => config.parent_fields[key]?.enabled) && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium mb-3 px-1" style={{ color: colors.textSecondary }}>
+                      Second Parent/Guardian (Optional)
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {['parent2_name', 'parent2_email', 'parent2_phone'].map(key => {
+                        const field = config.parent_fields[key]
+                        if (!field?.enabled) return null
+                        return renderField(key, field, sharedInfo, setSharedInfo)
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Address - only if any address fields are enabled */}
+                {['address', 'city', 'state', 'zip'].some(key => config.parent_fields[key]?.enabled) && (
+                  <div>
+                    <h3 className="text-sm font-medium mb-3 px-1" style={{ color: colors.textSecondary }}>
+                      Address
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {['address', 'city', 'state', 'zip'].map(key => {
+                        const field = config.parent_fields[key]
+                        if (!field?.enabled) return null
+                        return renderField(key, field, sharedInfo, setSharedInfo)
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
             {renderSection('Emergency Contact', config.emergency_fields, '🚨', 'emergency_fields', sharedInfo, setSharedInfo)}
             {renderSection('Medical Information', config.medical_fields, '🏥', 'medical_fields', sharedInfo, setSharedInfo)}
           </div>
