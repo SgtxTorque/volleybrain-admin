@@ -121,7 +121,7 @@ function SeasonsPage({ showToast }) {
       description: season.description || '',
       registration_template_id: season.registration_template_id || null,
       registration_config: season.registration_config || null,
-    }))
+    })
     setShowModal(true)
   }
 
