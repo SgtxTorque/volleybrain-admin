@@ -22,6 +22,11 @@ export function calculateFeesForPlayer(player, season, options = {}) {
   const isEarlyBird = earlyBirdDeadline && registrationDate <= earlyBirdDeadline
   const earlyBirdDiscount = isEarlyBird ? (parseFloat(season.early_bird_discount) || 0) : 0
   
+  // Determine if late fee applies
+  const lateDeadline = season.late_registration_deadline ? new Date(season.late_registration_deadline) : null
+  const isLate = lateDeadline && registrationDate > lateDeadline
+  const lateFee = isLate ? (parseFloat(season.late_registration_fee) || 0) : 0
+  
   // Calculate sibling discount
   const siblingDiscountType = season.sibling_discount_type || 'none'
   const siblingDiscountAmount = parseFloat(season.sibling_discount_amount) || 0
@@ -62,7 +67,13 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     return { amount: newAmount, discountApplied, description }
   }
   
-  // 1. Registration Fee (per player) - sibling discount applies here
+  // Build discount/fee labels for clarity
+  const discountLabels = []
+  if (isEarlyBird && earlyBirdDiscount > 0) discountLabels.push(`Early Bird -$${earlyBirdDiscount}`)
+  if (getsSiblingDiscount) discountLabels.push('Sibling Discount')
+  if (isLate && lateFee > 0) discountLabels.push(`Late Fee +$${lateFee}`)
+  
+  // 1. Registration Fee (per player) - sibling discount and early bird applies here
   const registrationFee = parseFloat(season.fee_registration) || 0
   if (registrationFee > 0) {
     let adjustedAmount = Math.max(0, registrationFee - earlyBirdDiscount)
@@ -72,15 +83,17 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     let feeName = 'Registration'
     let description = 'Season registration fee'
     
-    if (isEarlyBird && siblingResult.discountApplied > 0) {
-      feeName = 'Registration (Early Bird + Sibling)'
-      description = `Early bird -$${earlyBirdDiscount}, Sibling -$${siblingResult.discountApplied.toFixed(2)}`
-    } else if (isEarlyBird) {
-      feeName = 'Registration (Early Bird)'
-      description = `Registration fee with $${earlyBirdDiscount} early bird discount`
-    } else if (siblingResult.discountApplied > 0) {
-      feeName = 'Registration (Sibling Discount)'
-      description = `Registration fee with $${siblingResult.discountApplied.toFixed(2)} sibling discount`
+    // Build dynamic name and description based on what applies
+    const appliedDiscounts = []
+    if (isEarlyBird && earlyBirdDiscount > 0) appliedDiscounts.push('Early Bird')
+    if (siblingResult.discountApplied > 0) appliedDiscounts.push('Sibling')
+    
+    if (appliedDiscounts.length > 0) {
+      feeName = `Registration (${appliedDiscounts.join(' + ')})`
+      const descParts = []
+      if (isEarlyBird && earlyBirdDiscount > 0) descParts.push(`Early bird -$${earlyBirdDiscount}`)
+      if (siblingResult.discountApplied > 0) descParts.push(`Sibling -$${siblingResult.discountApplied.toFixed(2)}`)
+      description = descParts.join(', ')
     }
     
     fees.push({
@@ -89,11 +102,29 @@ export function calculateFeesForPlayer(player, season, options = {}) {
       fee_name: feeName,
       fee_category: 'per_player',
       amount: adjustedAmount,
-      description
+      description,
+      // Track discount metadata
+      early_bird_applied: isEarlyBird,
+      early_bird_amount: earlyBirdDiscount,
+      sibling_discount_applied: siblingResult.discountApplied > 0,
+      sibling_discount_amount: siblingResult.discountApplied,
+      sibling_index: siblingIndex
     })
   }
   
-  // 2. Uniform Fee (per player) - no sibling discount typically
+  // 2. Late Registration Fee (per player) - charged separately so it's visible
+  if (lateFee > 0) {
+    fees.push({
+      ...baseFee,
+      fee_type: 'late_fee',
+      fee_name: 'Late Registration Fee',
+      fee_category: 'per_player',
+      amount: lateFee,
+      description: `Late registration fee (registered after ${lateDeadline.toLocaleDateString()})`
+    })
+  }
+  
+  // 3. Uniform Fee (per player) - no sibling discount typically
   const uniformFee = parseFloat(season.fee_uniform) || 0
   if (uniformFee > 0) {
     fees.push({
@@ -106,7 +137,7 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     })
   }
   
-  // 3. Monthly Fees (per player) - sibling discount can apply
+  // 4. Monthly Fees (per player) - sibling discount can apply
   const monthlyFee = parseFloat(season.fee_monthly) || 0
   const monthsInSeason = parseInt(season.months_in_season) || 0
   if (monthlyFee > 0 && monthsInSeason > 0) {
@@ -127,11 +158,13 @@ export function calculateFeesForPlayer(player, season, options = {}) {
       fee_name: feeName,
       fee_category: 'per_player',
       amount: siblingResult.amount,
-      description
+      description,
+      sibling_discount_applied: siblingResult.discountApplied > 0,
+      sibling_discount_amount: siblingResult.discountApplied
     })
   }
   
-  // 4. Per-Family Fee (only if not already charged for this family in this season)
+  // 5. Per-Family Fee (only if not already charged for this family in this season)
   const familyFee = parseFloat(season.fee_per_family) || 0
   if (familyFee > 0 && familyEmail) {
     const familyAlreadyCharged = checkExistingFamilyFee && 
@@ -150,6 +183,39 @@ export function calculateFeesForPlayer(player, season, options = {}) {
   }
   
   return fees
+}
+
+/**
+ * Preview fees for a player (before approval) - useful for showing parents what they'll owe
+ */
+export function previewFeesForPlayer(player, season, siblingCount = 0) {
+  return calculateFeesForPlayer(player, season, {
+    checkExistingFamilyFee: siblingCount > 0, // If they have siblings, family fee may already be charged
+    existingFamilyEmails: siblingCount > 0 ? [player.parent_email?.toLowerCase()] : [],
+    siblingIndex: siblingCount
+  })
+}
+
+/**
+ * Get fee summary for display
+ */
+export function getFeeSummary(fees) {
+  const subtotal = fees.reduce((sum, f) => sum + f.amount, 0)
+  const discounts = fees.reduce((sum, f) => {
+    return sum + (f.early_bird_amount || 0) + (f.sibling_discount_amount || 0)
+  }, 0)
+  const lateFees = fees.filter(f => f.fee_type === 'late_fee').reduce((sum, f) => sum + f.amount, 0)
+  
+  return {
+    subtotal,
+    discounts,
+    lateFees,
+    total: subtotal,
+    hasEarlyBird: fees.some(f => f.early_bird_applied),
+    hasSiblingDiscount: fees.some(f => f.sibling_discount_applied),
+    hasLateFee: lateFees > 0,
+    feeCount: fees.length
+  }
 }
 
 /**
