@@ -316,6 +316,230 @@ function UserProfileDropdown({
 }
 
 // ============================================
+// REGISTRATION SELECTOR MODAL - For Parents
+// ============================================
+function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization, tc }) {
+  const [openSeasons, setOpenSeasons] = useState([])
+  const [loading, setLoading] = useState(true)
+  
+  const children = roleContext?.children || []
+
+  useEffect(() => {
+    if (isOpen) {
+      loadOpenSeasons()
+    }
+  }, [isOpen])
+
+  async function loadOpenSeasons() {
+    setLoading(true)
+    try {
+      const now = new Date().toISOString()
+      
+      // Get all open seasons for orgs the parent is connected to
+      const orgIds = [...new Set(children.map(c => c.organization_id).filter(Boolean))]
+      if (organization?.id && !orgIds.includes(organization.id)) {
+        orgIds.push(organization.id)
+      }
+      
+      let query = supabase
+        .from('seasons')
+        .select('*, sports(id, name, icon), organizations(id, name, slug, settings)')
+        .lte('registration_opens', now)
+        .or(`registration_closes.is.null,registration_closes.gte.${now}`)
+        .in('status', ['upcoming', 'active'])
+      
+      if (orgIds.length > 0) {
+        query = query.in('organization_id', orgIds)
+      }
+      
+      const { data } = await query.order('registration_opens', { ascending: false })
+      setOpenSeasons(data || [])
+    } catch (err) {
+      console.error('Error loading seasons:', err)
+    }
+    setLoading(false)
+  }
+
+  function getRegistrationUrl(season, child = null) {
+    const orgSlug = season.organizations?.slug || organization?.slug || 'register'
+    const baseUrl = season.organizations?.settings?.registration_url || window.location.origin
+    
+    // Build prefill params if we have a child template
+    const templateChild = child || children[0]
+    if (templateChild) {
+      const prefillParams = new URLSearchParams({
+        prefill: 'true',
+        parent_name: templateChild.parent_name || '',
+        parent_email: templateChild.parent_email || '',
+        parent_phone: templateChild.parent_phone || '',
+      })
+      
+      // If registering for specific child, include their info
+      if (child) {
+        prefillParams.append('first_name', child.first_name || '')
+        prefillParams.append('last_name', child.last_name || '')
+        prefillParams.append('birth_date', child.birth_date || child.dob || '')
+      }
+      
+      const cleanParams = new URLSearchParams()
+      prefillParams.forEach((value, key) => {
+        if (value) cleanParams.append(key, value)
+      })
+      
+      return `${baseUrl}/register/${orgSlug}/${season.id}?${cleanParams.toString()}`
+    }
+    
+    return `${baseUrl}/register/${orgSlug}/${season.id}`
+  }
+
+  // Check if child is already registered for this season
+  function isChildRegistered(child, season) {
+    return child.season_id === season.id
+  }
+
+  // Group seasons by sport
+  const seasonsBySport = openSeasons.reduce((acc, season) => {
+    const sportName = season.sports?.name || 'Other'
+    const sportIcon = season.sports?.icon || '🏆'
+    const key = `${sportIcon} ${sportName}`
+    if (!acc[key]) acc[key] = []
+    acc[key].push(season)
+    return acc
+  }, {})
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg shadow-2xl`}>
+        {/* Header */}
+        <div className={`p-5 border-b ${tc.border}`}>
+          <h2 className={`text-xl font-bold ${tc.text}`}>Register for a Season</h2>
+          <p className={`${tc.textMuted} text-sm mt-1`}>Select a season to register your child</p>
+        </div>
+        
+        <div className="p-5 max-h-[60vh] overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className={`${tc.textMuted} mt-2`}>Loading seasons...</p>
+            </div>
+          ) : Object.keys(seasonsBySport).length === 0 ? (
+            <div className={`text-center py-8 ${tc.cardBgAlt} rounded-xl`}>
+              <p className="text-4xl mb-2">📅</p>
+              <p className={`font-medium ${tc.text}`}>No Open Registrations</p>
+              <p className={`text-sm ${tc.textMuted} mt-1`}>Check back later for new seasons!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(seasonsBySport).map(([sportLabel, seasons]) => (
+                <div key={sportLabel}>
+                  <h3 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3`}>
+                    {sportLabel}
+                  </h3>
+                  <div className="space-y-3">
+                    {seasons.map(season => (
+                      <div key={season.id} className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h4 className={`font-semibold ${tc.text}`}>{season.name}</h4>
+                            <p className={`text-sm ${tc.textMuted}`}>
+                              {season.organizations?.name}
+                              {season.start_date && ` • Starts ${new Date(season.start_date).toLocaleDateString()}`}
+                            </p>
+                          </div>
+                          {season.early_bird_deadline && new Date(season.early_bird_deadline) > new Date() && (
+                            <span className="px-2 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs rounded-full font-medium">
+                              🐦 Early Bird
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Registration buttons for each child */}
+                        <div className="space-y-2">
+                          {children.length > 0 ? (
+                            <>
+                              {children.map(child => {
+                                const registered = isChildRegistered(child, season)
+                                return (
+                                  <a
+                                    key={child.id}
+                                    href={registered ? undefined : getRegistrationUrl(season, child)}
+                                    target={registered ? undefined : "_blank"}
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center justify-between p-2 rounded-lg transition ${
+                                      registered 
+                                        ? `${tc.cardBg} cursor-default` 
+                                        : 'bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 cursor-pointer'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
+                                        registered 
+                                          ? 'bg-emerald-500/20 text-emerald-600' 
+                                          : 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                                      }`}>
+                                        {child.first_name?.[0]}{child.last_name?.[0]}
+                                      </div>
+                                      <span className={`text-sm font-medium ${registered ? tc.textMuted : tc.text}`}>
+                                        {child.first_name} {child.last_name}
+                                      </span>
+                                    </div>
+                                    {registered ? (
+                                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">✓ Registered</span>
+                                    ) : (
+                                      <span className="text-xs text-[var(--accent-primary)] font-medium">Register →</span>
+                                    )}
+                                  </a>
+                                )
+                              })}
+                              {/* Add new child option */}
+                              <a
+                                href={getRegistrationUrl(season)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-center justify-center gap-2 p-2 rounded-lg border-2 border-dashed ${tc.border} hover:border-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/5 transition`}
+                              >
+                                <UserPlus className="w-4 h-4 text-[var(--accent-primary)]" />
+                                <span className="text-sm font-medium text-[var(--accent-primary)]">Register New Child</span>
+                              </a>
+                            </>
+                          ) : (
+                            <a
+                              href={getRegistrationUrl(season)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 p-3 rounded-lg bg-[var(--accent-primary)] text-white hover:opacity-90 transition"
+                            >
+                              <UserPlus className="w-4 h-4" />
+                              <span className="font-medium">Register Now</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Footer */}
+        <div className={`p-5 border-t ${tc.border}`}>
+          <button 
+            onClick={onClose} 
+            className={`w-full py-2.5 rounded-xl ${tc.cardBgAlt} ${tc.text} font-medium hover:opacity-80 transition`}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
 // INFO HEADER BAR COMPONENT - 1:1 Mockup Copy
 // ============================================
 function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
@@ -333,6 +557,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
     balanceDue: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [showRegModal, setShowRegModal] = useState(false)
 
   // Get the coach's primary team
   const getCoachPrimaryTeam = () => {
@@ -672,9 +897,9 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           {/* ═══ PARENT VIEW ═══ */}
           {activeView === 'parent' && (
             <>
-              {/* Registration Open - For parents, go to dashboard which has proper registration flow */}
+              {/* Registration Open - Opens modal to show available seasons */}
               <button 
-                onClick={() => setPage('dashboard')}
+                onClick={() => setShowRegModal(true)}
                 className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
               >
                 <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
@@ -801,6 +1026,15 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
         </div>
       </div>
+      
+      {/* Registration Selector Modal for Parents */}
+      <RegistrationSelectorModal
+        isOpen={showRegModal}
+        onClose={() => setShowRegModal(false)}
+        roleContext={roleContext}
+        organization={organization}
+        tc={tc}
+      />
     </div>
   )
 }
