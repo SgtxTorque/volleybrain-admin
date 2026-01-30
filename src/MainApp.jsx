@@ -672,9 +672,9 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           {/* ═══ PARENT VIEW ═══ */}
           {activeView === 'parent' && (
             <>
-              {/* Registration Open */}
+              {/* Registration Open - For parents, go to dashboard which has proper registration flow */}
               <button 
-                onClick={() => setPage('registrations')}
+                onClick={() => setPage('dashboard')}
                 className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
               >
                 <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
@@ -1172,24 +1172,24 @@ function MainApp() {
               {page === 'invite' && activeView === 'parent' && <InviteFriendsPage roleContext={roleContext} showToast={showToast} />}
               {page === 'payments' && activeView === 'parent' && <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />}
               
-              {page === 'registrations' && <RegistrationsPage showToast={showToast} />}
+              {page === 'registrations' && (activeView === 'admin' || activeView === 'coach') && <RegistrationsPage showToast={showToast} />}
               {page === 'payments' && activeView === 'admin' && <PaymentsPage showToast={showToast} />}
-              {page === 'teams' && <TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
-              {page === 'coaches' && <CoachesPage showToast={showToast} />}
-              {page === 'jerseys' && <JerseysPage showToast={showToast} />}
+              {page === 'teams' && (activeView === 'admin' || activeView === 'coach') && <TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
+              {page === 'coaches' && activeView === 'admin' && <CoachesPage showToast={showToast} />}
+              {page === 'jerseys' && activeView === 'admin' && <JerseysPage showToast={showToast} />}
               {page === 'schedule' && <SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
-              {page === 'attendance' && <AttendancePage showToast={showToast} />}
-              {page === 'gameprep' && <GamePrepPage showToast={showToast} />}
+              {page === 'attendance' && (activeView === 'admin' || activeView === 'coach') && <AttendancePage showToast={showToast} />}
+              {page === 'gameprep' && (activeView === 'admin' || activeView === 'coach') && <GamePrepPage showToast={showToast} />}
               {page === 'standings' && <TeamStandingsPage showToast={showToast} />}
               {page === 'leaderboards' && <SeasonLeaderboardsPage showToast={showToast} />}
-              {page === 'seasons' && <SeasonsPage showToast={showToast} />}
-              {page === 'templates' && <RegistrationTemplatesPage showToast={showToast} />}
-              {page === 'waivers' && <WaiversPage showToast={showToast} />}
-              {page === 'paymentsetup' && <PaymentSetupPage showToast={showToast} />}
-              {page === 'organization' && <OrganizationPage showToast={showToast} />}
+              {page === 'seasons' && activeView === 'admin' && <SeasonsPage showToast={showToast} />}
+              {page === 'templates' && activeView === 'admin' && <RegistrationTemplatesPage showToast={showToast} />}
+              {page === 'waivers' && activeView === 'admin' && <WaiversPage showToast={showToast} />}
+              {page === 'paymentsetup' && activeView === 'admin' && <PaymentSetupPage showToast={showToast} />}
+              {page === 'organization' && activeView === 'admin' && <OrganizationPage showToast={showToast} />}
               {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
-              {page === 'blasts' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
-              {page === 'reports' && <ReportsPage showToast={showToast} />}
+              {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
+              {page === 'reports' && activeView === 'admin' && <ReportsPage showToast={showToast} />}
               
               {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
                 <AchievementsCatalogPage 
