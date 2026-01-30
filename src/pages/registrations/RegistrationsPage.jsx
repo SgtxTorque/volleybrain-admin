@@ -50,11 +50,11 @@ export function ClickablePlayerName({ player, className = '', children, onPlayer
 // ============================================
 // INFO ROW (for detail modals)
 // ============================================
-function InfoRow({ label, value }) {
+function InfoRow({ label, value, tc }) {
   return (
-    <div className="bg-slate-900 rounded-lg p-3">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-white text-sm mt-1">{value}</p>
+    <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-slate-900'} rounded-lg p-3`}>
+      <p className={`text-xs ${tc?.textMuted || 'text-slate-500'}`}>{label}</p>
+      <p className={`${tc?.text || 'text-slate-900 dark:text-white'} text-sm mt-1`}>{value}</p>
     </div>
   )
 }
@@ -75,13 +75,14 @@ function WaiverBadge({ label, signed }) {
 // ============================================
 // EDIT FIELD (for edit modals)
 // ============================================
-function EditField({ label, value, onChange, type = 'text', options, multiline }) {
+function EditField({ label, value, onChange, type = 'text', options, multiline, tc }) {
+  const inputClasses = `w-full ${tc?.inputBg || 'bg-white dark:bg-slate-900'} border ${tc?.border || 'border-slate-300 dark:border-slate-700'} rounded-lg px-3 py-2 ${tc?.text || 'text-slate-900 dark:text-white'} text-sm`
+  
   if (options) {
     return (
       <div>
-        <label className="block text-xs text-slate-500 mb-1">{label}</label>
-        <select value={value} onChange={e => onChange(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+        <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
+        <select value={value} onChange={e => onChange(e.target.value)} className={inputClasses}>
           <option value="">Select...</option>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
@@ -91,17 +92,16 @@ function EditField({ label, value, onChange, type = 'text', options, multiline }
   if (multiline) {
     return (
       <div>
-        <label className="block text-xs text-slate-500 mb-1">{label}</label>
+        <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
         <textarea value={value} onChange={e => onChange(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm min-h-[80px]" />
+          className={`${inputClasses} min-h-[80px]`} />
       </div>
     )
   }
   return (
     <div>
-      <label className="block text-xs text-slate-500 mb-1">{label}</label>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)}
-        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
+      <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} className={inputClasses} />
     </div>
   )
 }
@@ -110,6 +110,7 @@ function EditField({ label, value, onChange, type = 'text', options, multiline }
 // PLAYER DETAIL/EDIT MODAL
 // ============================================
 export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToast }) {
+  const tc = useThemeClasses()
   const reg = player.registrations?.[0]
   const [isEditing, setIsEditing] = useState(editMode)
   const [saving, setSaving] = useState(false)
@@ -160,112 +161,112 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
+        <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg}`}>
           <div>
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className={`text-xl font-semibold ${tc.text}`}>
               {isEditing ? 'Edit Player' : 'Player Details'}
             </h2>
-            <p className="text-sm text-slate-400">{player.first_name} {player.last_name}</p>
+            <p className={`text-sm ${tc.textMuted}`}>{player.first_name} {player.last_name}</p>
           </div>
           <div className="flex items-center gap-2">
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 flex items-center gap-2">
+              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-500/30 flex items-center gap-2">
                 <Edit className="w-4 h-4" /> Edit
               </button>
             )}
-            <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl">×</button>
+            <button onClick={onClose} className={`${tc.textMuted} hover:${tc.text} text-2xl`}>×</button>
           </div>
         </div>
         
         <div className="p-6 space-y-6">
           {/* Player Info */}
           <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-3">Player Information</h3>
+            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Player Information</h3>
             {isEditing ? (
               <div className="grid grid-cols-2 gap-4">
-                <EditField label="First Name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} />
-                <EditField label="Last Name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} />
-                <EditField label="Date of Birth" value={form.birth_date} onChange={v => setForm({...form, birth_date: v})} type="date" />
-                <EditField label="Grade" value={form.grade} onChange={v => setForm({...form, grade: v})} type="number" />
-                <EditField label="Gender" value={form.gender} onChange={v => setForm({...form, gender: v})} options={['Male', 'Female', 'Other']} />
-                <EditField label="School" value={form.school} onChange={v => setForm({...form, school: v})} />
-                <EditField label="Experience" value={form.experience_level} onChange={v => setForm({...form, experience_level: v})} options={['Beginner', 'Intermediate', 'Advanced']} />
-                <EditField label="Jersey Number" value={form.jersey_number} onChange={v => setForm({...form, jersey_number: v})} type="number" />
-                <EditField label="Jersey Size" value={form.jersey_size} onChange={v => setForm({...form, jersey_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
+                <EditField tc={tc} label="First Name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} />
+                <EditField tc={tc} label="Last Name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} />
+                <EditField tc={tc} label="Date of Birth" value={form.birth_date} onChange={v => setForm({...form, birth_date: v})} type="date" />
+                <EditField tc={tc} label="Grade" value={form.grade} onChange={v => setForm({...form, grade: v})} type="number" />
+                <EditField tc={tc} label="Gender" value={form.gender} onChange={v => setForm({...form, gender: v})} options={['Male', 'Female', 'Other']} />
+                <EditField tc={tc} label="School" value={form.school} onChange={v => setForm({...form, school: v})} />
+                <EditField tc={tc} label="Experience" value={form.experience_level} onChange={v => setForm({...form, experience_level: v})} options={['Beginner', 'Intermediate', 'Advanced']} />
+                <EditField tc={tc} label="Jersey Number" value={form.jersey_number} onChange={v => setForm({...form, jersey_number: v})} type="number" />
+                <EditField tc={tc} label="Jersey Size" value={form.jersey_size} onChange={v => setForm({...form, jersey_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
-                <InfoRow label="Name" value={`${player.first_name} ${player.last_name}`} />
-                <InfoRow label="DOB" value={player.birth_date || player.dob || 'N/A'} />
-                <InfoRow label="Grade" value={player.grade || 'N/A'} />
-                <InfoRow label="Gender" value={player.gender || 'N/A'} />
-                <InfoRow label="School" value={player.school || 'N/A'} />
-                <InfoRow label="Experience" value={player.experience_level || player.experience || 'N/A'} />
-                <InfoRow label="Jersey #" value={player.jersey_number || 'N/A'} />
-                <InfoRow label="Jersey Prefs" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || 'N/A'} />
-                <InfoRow label="Jersey Size" value={player.jersey_size || 'N/A'} />
+                <InfoRow tc={tc} label="Name" value={`${player.first_name} ${player.last_name}`} />
+                <InfoRow tc={tc} label="DOB" value={player.birth_date || player.dob || 'N/A'} />
+                <InfoRow tc={tc} label="Grade" value={player.grade || 'N/A'} />
+                <InfoRow tc={tc} label="Gender" value={player.gender || 'N/A'} />
+                <InfoRow tc={tc} label="School" value={player.school || 'N/A'} />
+                <InfoRow tc={tc} label="Experience" value={player.experience_level || player.experience || 'N/A'} />
+                <InfoRow tc={tc} label="Jersey #" value={player.jersey_number || 'N/A'} />
+                <InfoRow tc={tc} label="Jersey Prefs" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || 'N/A'} />
+                <InfoRow tc={tc} label="Jersey Size" value={player.jersey_size || 'N/A'} />
               </div>
             )}
           </div>
 
           {/* Parent Info */}
           <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-3">Parent/Guardian</h3>
+            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Parent/Guardian</h3>
             {isEditing ? (
               <div className="grid grid-cols-2 gap-4">
-                <EditField label="Parent Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
-                <EditField label="Parent Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
-                <EditField label="Parent Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
-                <EditField label="Address" value={form.address} onChange={v => setForm({...form, address: v})} />
-                <EditField label="Parent 2 Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
-                <EditField label="Parent 2 Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
+                <EditField tc={tc} label="Parent Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
+                <EditField tc={tc} label="Parent Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
+                <EditField tc={tc} label="Parent Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
+                <EditField tc={tc} label="Address" value={form.address} onChange={v => setForm({...form, address: v})} />
+                <EditField tc={tc} label="Parent 2 Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
+                <EditField tc={tc} label="Parent 2 Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
-                <InfoRow label="Name" value={player.parent_name || 'N/A'} />
-                <InfoRow label="Email" value={player.parent_email || 'N/A'} />
-                <InfoRow label="Phone" value={player.parent_phone || 'N/A'} />
-                <InfoRow label="Address" value={player.address || 'N/A'} />
-                {player.parent_2_name && <InfoRow label="Parent 2" value={player.parent_2_name} />}
-                {player.parent_2_phone && <InfoRow label="Parent 2 Phone" value={player.parent_2_phone} />}
+                <InfoRow tc={tc} label="Name" value={player.parent_name || 'N/A'} />
+                <InfoRow tc={tc} label="Email" value={player.parent_email || 'N/A'} />
+                <InfoRow tc={tc} label="Phone" value={player.parent_phone || 'N/A'} />
+                <InfoRow tc={tc} label="Address" value={player.address || 'N/A'} />
+                {player.parent_2_name && <InfoRow tc={tc} label="Parent 2" value={player.parent_2_name} />}
+                {player.parent_2_phone && <InfoRow tc={tc} label="Parent 2 Phone" value={player.parent_2_phone} />}
               </div>
             )}
           </div>
 
           {/* Emergency Contact */}
           <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-3">Emergency Contact</h3>
+            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Emergency Contact</h3>
             {isEditing ? (
               <div className="grid grid-cols-3 gap-4">
-                <EditField label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
-                <EditField label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
-                <EditField label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
+                <EditField tc={tc} label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
+                <EditField tc={tc} label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
+                <EditField tc={tc} label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-4">
-                <InfoRow label="Name" value={player.emergency_contact_name || player.emergency_name || 'N/A'} />
-                <InfoRow label="Phone" value={player.emergency_contact_phone || player.emergency_phone || 'N/A'} />
-                <InfoRow label="Relation" value={player.emergency_contact_relation || player.emergency_relation || 'N/A'} />
+                <InfoRow tc={tc} label="Name" value={player.emergency_contact_name || player.emergency_name || 'N/A'} />
+                <InfoRow tc={tc} label="Phone" value={player.emergency_contact_phone || player.emergency_phone || 'N/A'} />
+                <InfoRow tc={tc} label="Relation" value={player.emergency_contact_relation || player.emergency_relation || 'N/A'} />
               </div>
             )}
           </div>
 
           {/* Medical */}
           <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-3">Medical Information</h3>
+            <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Medical Information</h3>
             {isEditing ? (
               <div className="grid grid-cols-1 gap-4">
-                <EditField label="Medical Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} multiline />
-                <EditField label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} multiline />
-                <EditField label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} multiline />
+                <EditField tc={tc} label="Medical Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} multiline />
+                <EditField tc={tc} label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} multiline />
+                <EditField tc={tc} label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} multiline />
               </div>
             ) : (
               <div className="space-y-2">
-                <InfoRow label="Conditions" value={player.medical_conditions || 'None'} />
-                <InfoRow label="Allergies" value={player.allergies || 'None'} />
-                <InfoRow label="Medications" value={player.medications || 'None'} />
+                <InfoRow tc={tc} label="Conditions" value={player.medical_conditions || 'None'} />
+                <InfoRow tc={tc} label="Allergies" value={player.allergies || 'None'} />
+                <InfoRow tc={tc} label="Medications" value={player.medications || 'None'} />
               </div>
             )}
           </div>
@@ -273,14 +274,14 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
           {/* Waivers (view only) */}
           {!isEditing && (
             <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-3">Waivers</h3>
+              <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Waivers</h3>
               <div className="flex gap-4">
                 <WaiverBadge label="Liability" signed={player.waiver_liability} />
                 <WaiverBadge label="Photo" signed={player.waiver_photo} />
                 <WaiverBadge label="Conduct" signed={player.waiver_conduct} />
               </div>
               {player.waiver_signed_by && (
-                <p className="text-xs text-slate-500 mt-2">
+                <p className={`text-xs ${tc.textMuted} mt-2`}>
                   Signed by {player.waiver_signed_by} on {player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : 'N/A'}
                 </p>
               )}
@@ -290,38 +291,38 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
           {/* Notes */}
           {isEditing && (
             <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-3">Admin Notes</h3>
-              <EditField label="Notes" value={form.notes} onChange={v => setForm({...form, notes: v})} multiline />
+              <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Admin Notes</h3>
+              <EditField tc={tc} label="Notes" value={form.notes} onChange={v => setForm({...form, notes: v})} multiline />
             </div>
           )}
 
           {/* Registration Status (view only) */}
           {!isEditing && (
             <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-3">Registration Status</h3>
+              <h3 className={`text-sm font-medium ${tc.textMuted} mb-3`}>Registration Status</h3>
               <div className="flex items-center gap-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   reg?.status === 'submitted' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' :
-                  reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-400' :
-                  reg?.status === 'rostered' ? 'bg-emerald-500/20 text-emerald-400' :
-                  reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-400' :
-                  'bg-gray-500/20 text-slate-400'
+                  reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
+                  reg?.status === 'rostered' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                  reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
+                  'bg-gray-500/20 text-slate-500'
                 }`}>{reg?.status || 'unknown'}</span>
-                <span className="text-xs text-slate-500">
+                <span className={`text-xs ${tc.textMuted}`}>
                   Submitted {reg?.submitted_at ? new Date(reg.submitted_at).toLocaleDateString() : 'N/A'}
                 </span>
               </div>
               {reg?.denial_reason && (
-                <p className="text-sm text-red-400 mt-2">Denial Reason: {reg.denial_reason}</p>
+                <p className="text-sm text-red-500 mt-2">Denial Reason: {reg.denial_reason}</p>
               )}
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-slate-700 flex justify-end gap-3 sticky bottom-0 bg-slate-800">
+        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3 sticky bottom-0 ${tc.cardBg}`}>
           {isEditing ? (
             <>
-              <button onClick={() => setIsEditing(false)} className="px-6 py-2 rounded-xl border border-slate-700 text-white">
+              <button onClick={() => setIsEditing(false)} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
                 Cancel
               </button>
               <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50">
@@ -329,7 +330,7 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
               </button>
             </>
           ) : (
-            <button onClick={onClose} className="px-6 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-600">
+            <button onClick={onClose} className={`px-6 py-2 rounded-xl ${tc.cardBgAlt} ${tc.text} hover:opacity-80`}>
               Close
             </button>
           )}
@@ -343,26 +344,27 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
 // DENY REGISTRATION MODAL
 // ============================================
 export function DenyRegistrationModal({ player, onClose, onDeny }) {
+  const tc = useThemeClasses()
   const [reason, setReason] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md">
-        <div className="p-6 border-b border-slate-700">
-          <h2 className="text-xl font-semibold text-white">Deny Registration</h2>
-          <p className="text-slate-400 text-sm mt-1">{player.first_name} {player.last_name}</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
+        <div className={`p-6 border-b ${tc.border}`}>
+          <h2 className={`text-xl font-semibold ${tc.text}`}>Deny Registration</h2>
+          <p className={`${tc.textMuted} text-sm mt-1`}>{player.first_name} {player.last_name}</p>
         </div>
         <div className="p-6">
-          <label className="block text-sm text-slate-400 mb-2">Reason for denial (optional)</label>
+          <label className={`block text-sm ${tc.textMuted} mb-2`}>Reason for denial (optional)</label>
           <textarea 
             value={reason} 
             onChange={e => setReason(e.target.value)}
             placeholder="Enter reason..."
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white min-h-[100px]"
+            className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} min-h-[100px]`}
           />
         </div>
-        <div className="p-6 border-t border-slate-700 flex justify-end gap-3">
-          <button onClick={onClose} className="px-6 py-2 rounded-xl border border-slate-700 text-white">
+        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
+          <button onClick={onClose} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
             Cancel
           </button>
           <button onClick={() => onDeny(reason)} className="px-6 py-2 rounded-xl bg-red-500 text-white font-semibold">
@@ -382,7 +384,7 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
   const [reason, setReason] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Deny {count} Registrations</h2>
@@ -427,7 +429,7 @@ export function DeleteRegistrationModal({ player, onClose, onDelete, processing 
   const canDelete = confirmText.toLowerCase() === 'delete'
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center gap-3">
