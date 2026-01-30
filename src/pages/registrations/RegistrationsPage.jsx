@@ -109,11 +109,12 @@ function EditField({ label, value, onChange, type = 'text', options, multiline, 
 // ============================================
 // PLAYER DETAIL/EDIT MODAL
 // ============================================
-export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToast }) {
+export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToast, allPlayers = [], onPlayerSelect }) {
   const tc = useThemeClasses()
   const reg = player.registrations?.[0]
   const [isEditing, setIsEditing] = useState(editMode)
   const [saving, setSaving] = useState(false)
+  const [siblings, setSiblings] = useState([])
   const [form, setForm] = useState({
     first_name: player.first_name || '',
     last_name: player.last_name || '',
@@ -126,19 +127,46 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
     parent_email: player.parent_email || '',
     parent_phone: player.parent_phone || '',
     address: player.address || '',
+    city: player.city || '',
+    state: player.state || '',
+    zip: player.zip || '',
     parent_2_name: player.parent_2_name || '',
     parent_2_email: player.parent_2_email || '',
     parent_2_phone: player.parent_2_phone || '',
     emergency_contact_name: player.emergency_contact_name || player.emergency_name || '',
     emergency_contact_phone: player.emergency_contact_phone || player.emergency_phone || '',
     emergency_contact_relation: player.emergency_contact_relation || player.emergency_relation || '',
+    emergency_2_name: player.emergency_2_name || '',
+    emergency_2_phone: player.emergency_2_phone || '',
     medical_conditions: player.medical_conditions || '',
     allergies: player.allergies || '',
     medications: player.medications || '',
+    doctor_name: player.doctor_name || '',
+    doctor_phone: player.doctor_phone || '',
+    insurance_provider: player.insurance_provider || '',
+    insurance_policy: player.insurance_policy || '',
     jersey_number: player.jersey_number || '',
     jersey_size: player.jersey_size || '',
+    shirt_size: player.shirt_size || '',
+    shorts_size: player.shorts_size || '',
+    preferred_number: player.preferred_number || '',
+    position_preference: player.position_preference || '',
+    previous_teams: player.previous_teams || '',
+    height: player.height || '',
+    weight: player.weight || '',
     notes: player.notes || '',
   })
+
+  // Find siblings (other players with same parent email)
+  useEffect(() => {
+    if (player.parent_email && allPlayers.length > 0) {
+      const sibs = allPlayers.filter(p => 
+        p.id !== player.id && 
+        p.parent_email?.toLowerCase() === player.parent_email?.toLowerCase()
+      )
+      setSiblings(sibs)
+    }
+  }, [player, allPlayers])
 
   async function handleSave() {
     setSaving(true)
@@ -160,37 +188,40 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
     setSaving(false)
   }
 
-  // Section Header component for consistency
+  // Section Header component
   const SectionHeader = ({ children }) => (
-    <h3 className={`text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2 pb-1 border-b ${tc.border}`}>
+    <h3 className={`text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-3 pb-1 border-b ${tc.border}`}>
       {children}
     </h3>
   )
 
-  // Compact info display
-  const InfoItem = ({ label, value }) => (
-    <div className="min-w-0">
+  // Info display component
+  const InfoItem = ({ label, value, wide }) => (
+    <div className={wide ? 'col-span-2' : ''}>
       <p className={`text-[10px] uppercase tracking-wide ${tc.textMuted}`}>{label}</p>
-      <p className={`${tc.text} font-medium truncate`}>{value || '—'}</p>
+      <p className={`${tc.text} font-medium`}>{value || '—'}</p>
     </div>
   )
 
+  // Format full address
+  const fullAddress = [player.address, player.city, player.state, player.zip].filter(Boolean).join(', ')
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-2xl`}>
         {/* Header */}
         <div className={`px-6 py-4 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg} z-10`}>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
-              <span className="text-[var(--accent-primary)] font-bold text-lg">
+            <div className="w-14 h-14 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
+              <span className="text-[var(--accent-primary)] font-bold text-xl">
                 {player.first_name?.[0]}{player.last_name?.[0]}
               </span>
             </div>
             <div>
-              <h2 className={`text-xl font-bold ${tc.text}`}>
+              <h2 className={`text-2xl font-bold ${tc.text}`}>
                 {player.first_name} {player.last_name}
               </h2>
-              <div className="flex items-center gap-3 mt-0.5">
+              <div className="flex items-center gap-3 mt-1">
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   reg?.status === 'submitted' || reg?.status === 'new' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' :
                   reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
@@ -198,9 +229,14 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                   reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
                   'bg-gray-500/20 text-slate-500'
                 }`}>{reg?.status === 'submitted' || reg?.status === 'new' ? 'pending' : reg?.status || 'unknown'}</span>
-                <span className={`text-xs ${tc.textMuted}`}>
+                <span className={`text-sm ${tc.textMuted}`}>
                   Registered {reg?.submitted_at ? new Date(reg.submitted_at).toLocaleDateString() : 'N/A'}
                 </span>
+                {siblings.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-600 dark:text-purple-400">
+                    👨‍👩‍👧‍👦 {siblings.length} sibling{siblings.length > 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -210,53 +246,79 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                 <Edit className="w-4 h-4" /> Edit
               </button>
             )}
-            <button onClick={onClose} className={`w-8 h-8 rounded-lg ${tc.cardBgAlt} ${tc.textMuted} hover:${tc.text} flex items-center justify-center text-xl`}>×</button>
+            <button onClick={onClose} className={`w-8 h-8 rounded-lg ${tc.cardBgAlt} ${tc.textMuted} hover:opacity-70 flex items-center justify-center text-xl`}>×</button>
           </div>
         </div>
         
         {/* Content */}
         {isEditing ? (
-          /* Edit Mode - Keep original 2-column layout */
+          /* Edit Mode */
           <div className="p-6 space-y-6">
             <div>
               <SectionHeader>Player Information</SectionHeader>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <EditField tc={tc} label="First Name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} />
                 <EditField tc={tc} label="Last Name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} />
                 <EditField tc={tc} label="Date of Birth" value={form.birth_date} onChange={v => setForm({...form, birth_date: v})} type="date" />
-                <EditField tc={tc} label="Grade" value={form.grade} onChange={v => setForm({...form, grade: v})} type="number" />
                 <EditField tc={tc} label="Gender" value={form.gender} onChange={v => setForm({...form, gender: v})} options={['Male', 'Female', 'Other']} />
+                <EditField tc={tc} label="Grade" value={form.grade} onChange={v => setForm({...form, grade: v})} type="number" />
                 <EditField tc={tc} label="School" value={form.school} onChange={v => setForm({...form, school: v})} />
                 <EditField tc={tc} label="Experience" value={form.experience_level} onChange={v => setForm({...form, experience_level: v})} options={['Beginner', 'Intermediate', 'Advanced']} />
-                <EditField tc={tc} label="Jersey Number" value={form.jersey_number} onChange={v => setForm({...form, jersey_number: v})} type="number" />
+                <EditField tc={tc} label="Position Preference" value={form.position_preference} onChange={v => setForm({...form, position_preference: v})} />
                 <EditField tc={tc} label="Jersey Size" value={form.jersey_size} onChange={v => setForm({...form, jersey_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
+                <EditField tc={tc} label="Shirt Size" value={form.shirt_size} onChange={v => setForm({...form, shirt_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
+                <EditField tc={tc} label="Preferred Number" value={form.preferred_number} onChange={v => setForm({...form, preferred_number: v})} />
+                <EditField tc={tc} label="Previous Teams" value={form.previous_teams} onChange={v => setForm({...form, previous_teams: v})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <SectionHeader>Parent/Guardian 1</SectionHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <EditField tc={tc} label="Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
+                  <EditField tc={tc} label="Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
+                  <EditField tc={tc} label="Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
+                </div>
+              </div>
+              <div>
+                <SectionHeader>Parent/Guardian 2</SectionHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <EditField tc={tc} label="Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
+                  <EditField tc={tc} label="Email" value={form.parent_2_email} onChange={v => setForm({...form, parent_2_email: v})} type="email" />
+                  <EditField tc={tc} label="Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
+                </div>
               </div>
             </div>
             <div>
-              <SectionHeader>Parent/Guardian</SectionHeader>
-              <div className="grid grid-cols-3 gap-4">
-                <EditField tc={tc} label="Parent Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
-                <EditField tc={tc} label="Parent Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
-                <EditField tc={tc} label="Parent Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
-                <EditField tc={tc} label="Address" value={form.address} onChange={v => setForm({...form, address: v})} />
-                <EditField tc={tc} label="Parent 2 Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
-                <EditField tc={tc} label="Parent 2 Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
+              <SectionHeader>Address</SectionHeader>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-2">
+                  <EditField tc={tc} label="Street Address" value={form.address} onChange={v => setForm({...form, address: v})} />
+                </div>
+                <EditField tc={tc} label="City" value={form.city} onChange={v => setForm({...form, city: v})} />
+                <div className="grid grid-cols-2 gap-4">
+                  <EditField tc={tc} label="State" value={form.state} onChange={v => setForm({...form, state: v})} />
+                  <EditField tc={tc} label="ZIP" value={form.zip} onChange={v => setForm({...form, zip: v})} />
+                </div>
               </div>
             </div>
-            <div>
-              <SectionHeader>Emergency Contact</SectionHeader>
-              <div className="grid grid-cols-3 gap-4">
-                <EditField tc={tc} label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
-                <EditField tc={tc} label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
-                <EditField tc={tc} label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <SectionHeader>Emergency Contact</SectionHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <EditField tc={tc} label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
+                  <EditField tc={tc} label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
+                  <EditField tc={tc} label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
+                </div>
               </div>
-            </div>
-            <div>
-              <SectionHeader>Medical Information</SectionHeader>
-              <div className="grid grid-cols-3 gap-4">
-                <EditField tc={tc} label="Medical Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} />
-                <EditField tc={tc} label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} />
-                <EditField tc={tc} label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} />
+              <div>
+                <SectionHeader>Medical Information</SectionHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <EditField tc={tc} label="Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} />
+                  <EditField tc={tc} label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} />
+                  <EditField tc={tc} label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} />
+                  <EditField tc={tc} label="Doctor Name" value={form.doctor_name} onChange={v => setForm({...form, doctor_name: v})} />
+                </div>
               </div>
             </div>
             <div>
@@ -265,40 +327,63 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
             </div>
           </div>
         ) : (
-          /* View Mode - Wide landscape layout */
-          <div className="p-6">
-            {/* Top row - Player info in card grid */}
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              {/* Player Info Card */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Player Information</SectionHeader>
-                <div className="grid grid-cols-3 gap-x-4 gap-y-3">
-                  <InfoItem label="Date of Birth" value={player.birth_date || player.dob} />
-                  <InfoItem label="Grade" value={player.grade} />
-                  <InfoItem label="Gender" value={player.gender} />
-                  <InfoItem label="School" value={player.school} />
-                  <InfoItem label="Experience" value={player.experience_level || player.experience} />
-                  <InfoItem label="Jersey Size" value={player.jersey_size} />
-                </div>
-              </div>
-
-              {/* Parent Info Card */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Parent/Guardian</SectionHeader>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                  <InfoItem label="Name" value={player.parent_name} />
-                  <InfoItem label="Email" value={player.parent_email} />
-                  <InfoItem label="Phone" value={player.parent_phone} />
-                  <InfoItem label="Address" value={player.address} />
-                  {player.parent_2_name && <InfoItem label="Parent 2" value={player.parent_2_name} />}
-                  {player.parent_2_phone && <InfoItem label="Parent 2 Phone" value={player.parent_2_phone} />}
-                </div>
+          /* View Mode */
+          <div className="p-6 space-y-4">
+            {/* Row 1: Player Information (full width) */}
+            <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+              <SectionHeader>Player Information</SectionHeader>
+              <div className="grid grid-cols-6 gap-x-6 gap-y-3">
+                <InfoItem label="Date of Birth" value={player.birth_date || player.dob} />
+                <InfoItem label="Gender" value={player.gender} />
+                <InfoItem label="Grade" value={player.grade} />
+                <InfoItem label="School" value={player.school} />
+                <InfoItem label="Experience" value={player.experience_level || player.experience} />
+                <InfoItem label="Position" value={player.position_preference} />
+                <InfoItem label="Jersey Size" value={player.jersey_size} />
+                <InfoItem label="Shirt Size" value={player.shirt_size} />
+                <InfoItem label="Shorts Size" value={player.shorts_size} />
+                <InfoItem label="Preferred #" value={player.preferred_number || player.jersey_pref_1} />
+                <InfoItem label="Height" value={player.height} />
+                <InfoItem label="Weight" value={player.weight} />
+                {player.previous_teams && <InfoItem label="Previous Teams" value={player.previous_teams} wide />}
               </div>
             </div>
 
-            {/* Bottom row - Emergency, Medical, Waivers */}
-            <div className="grid grid-cols-3 gap-6">
-              {/* Emergency Contact Card */}
+            {/* Row 2: Parents side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Parent/Guardian 1 */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Parent/Guardian 1</SectionHeader>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                  <InfoItem label="Name" value={player.parent_name} />
+                  <InfoItem label="Email" value={player.parent_email} />
+                  <InfoItem label="Phone" value={player.parent_phone} />
+                </div>
+                {fullAddress && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                    <InfoItem label="Address" value={fullAddress} />
+                  </div>
+                )}
+              </div>
+
+              {/* Parent/Guardian 2 */}
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Parent/Guardian 2</SectionHeader>
+                {player.parent_2_name || player.parent_2_email || player.parent_2_phone ? (
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                    <InfoItem label="Name" value={player.parent_2_name} />
+                    <InfoItem label="Email" value={player.parent_2_email} />
+                    <InfoItem label="Phone" value={player.parent_2_phone} />
+                  </div>
+                ) : (
+                  <p className={`text-sm ${tc.textMuted} italic`}>No second parent on file</p>
+                )}
+              </div>
+            </div>
+
+            {/* Row 3: Emergency, Medical, Waivers */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Emergency Contact */}
               <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
                 <SectionHeader>Emergency Contact</SectionHeader>
                 <div className="space-y-3">
@@ -306,9 +391,16 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                   <InfoItem label="Phone" value={player.emergency_contact_phone || player.emergency_phone} />
                   <InfoItem label="Relation" value={player.emergency_contact_relation || player.emergency_relation} />
                 </div>
+                {(player.emergency_2_name || player.emergency2_name) && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                    <p className={`text-[10px] uppercase tracking-wide ${tc.textMuted} mb-1`}>Backup Contact</p>
+                    <InfoItem label="Name" value={player.emergency_2_name || player.emergency2_name} />
+                    <InfoItem label="Phone" value={player.emergency_2_phone || player.emergency2_phone} />
+                  </div>
+                )}
               </div>
 
-              {/* Medical Card */}
+              {/* Medical Information */}
               <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
                 <SectionHeader>Medical Information</SectionHeader>
                 <div className="space-y-3">
@@ -316,12 +408,18 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                   <InfoItem label="Allergies" value={player.allergies || 'None'} />
                   <InfoItem label="Medications" value={player.medications || 'None'} />
                 </div>
+                {(player.doctor_name || player.insurance_provider) && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                    {player.doctor_name && <InfoItem label="Doctor" value={`${player.doctor_name}${player.doctor_phone ? ` • ${player.doctor_phone}` : ''}`} />}
+                    {player.insurance_provider && <InfoItem label="Insurance" value={`${player.insurance_provider}${player.insurance_policy ? ` • ${player.insurance_policy}` : ''}`} />}
+                  </div>
+                )}
               </div>
 
-              {/* Waivers Card */}
+              {/* Waivers & Signature */}
               <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
                 <SectionHeader>Waivers & Signature</SectionHeader>
-                <div className="flex gap-2 mb-3">
+                <div className="flex flex-wrap gap-2 mb-3">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_liability ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-500'}`}>
                     {player.waiver_liability ? '✓' : '✗'} Liability
                   </span>
@@ -332,18 +430,50 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                     {player.waiver_conduct ? '✓' : '✗'} Conduct
                   </span>
                 </div>
-                {player.waiver_signed_by && (
-                  <div className="space-y-1">
-                    <InfoItem label="Signed By" value={player.waiver_signed_by} />
-                    <InfoItem label="Signed Date" value={player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : null} />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <InfoItem label="Signed By" value={player.waiver_signed_by} />
+                  <InfoItem label="Signed Date" value={player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : null} />
+                </div>
               </div>
             </div>
 
+            {/* Siblings Section */}
+            {siblings.length > 0 && (
+              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                <SectionHeader>Registered Siblings</SectionHeader>
+                <div className="flex flex-wrap gap-3">
+                  {siblings.map(sib => {
+                    const sibReg = sib.registrations?.[0]
+                    return (
+                      <button
+                        key={sib.id}
+                        onClick={() => onPlayerSelect?.(sib)}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-lg ${tc.cardBg} border ${tc.border} hover:border-[var(--accent-primary)] transition-colors group`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                          <span className="text-purple-600 dark:text-purple-400 font-medium text-sm">
+                            {sib.first_name?.[0]}{sib.last_name?.[0]}
+                          </span>
+                        </div>
+                        <div className="text-left">
+                          <p className={`${tc.text} font-medium group-hover:text-[var(--accent-primary)]`}>
+                            {sib.first_name} {sib.last_name}
+                          </p>
+                          <p className={`text-xs ${tc.textMuted}`}>
+                            Grade {sib.grade || '?'} • {sibReg?.status === 'submitted' || sibReg?.status === 'new' ? 'pending' : sibReg?.status || 'unknown'}
+                          </p>
+                        </div>
+                        <span className={`text-xs ${tc.textMuted} group-hover:text-[var(--accent-primary)]`}>→</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Denial reason if applicable */}
             {reg?.denial_reason && (
-              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                 <p className="text-sm text-red-600 dark:text-red-400">
                   <span className="font-semibold">Denial Reason:</span> {reg.denial_reason}
                 </p>
@@ -1630,6 +1760,8 @@ export function RegistrationsPage({ showToast }) {
           onClose={() => { setSelectedPlayer(null); setEditMode(false) }} 
           onUpdate={() => { loadRegistrations(); setSelectedPlayer(null); setEditMode(false) }}
           showToast={showToast}
+          allPlayers={registrations}
+          onPlayerSelect={(p) => { setSelectedPlayer(p); setEditMode(false) }}
         />
       )}
 
