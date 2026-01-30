@@ -172,7 +172,7 @@ function formatStatLabel(key) {
     // Football
     pass_attempts: 'ATT', completions: 'CMP', passing_yards: 'YDS', passing_tds: 'TD',
     interceptions: 'INT', rush_attempts: 'CAR', rushing_yards: 'YDS', rushing_tds: 'TD',
-    receptions: 'REC', targets: 'TGT', receiving_yards: 'YDS', receiving_tds: 'TD', tackles: 'TKL', sacks: 'SCK',
+    fb_receptions: 'REC', targets: 'TGT', receiving_yards: 'YDS', receiving_tds: 'TD', tackles: 'TKL', sacks: 'SCK',
     // Hockey
     plus_minus: '+/-', penalty_minutes: 'PIM', power_play_goals: 'PPG', short_handed_goals: 'SHG'
   }
@@ -206,7 +206,7 @@ function getStatFullName(key) {
     passing_yards: 'Passing Yards', passing_tds: 'Passing TDs',
     interceptions: 'Interceptions', rush_attempts: 'Rush Attempts',
     rushing_yards: 'Rushing Yards', rushing_tds: 'Rushing TDs',
-    receptions: 'Receptions', targets: 'Targets',
+    fb_receptions: 'Receptions', targets: 'Targets',
     receiving_yards: 'Receiving Yards', receiving_tds: 'Receiving TDs',
     tackles: 'Tackles', sacks: 'Sacks',
     // Hockey
