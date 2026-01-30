@@ -113,111 +113,220 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 // ============================================
 // PAYMENT OPTIONS MODAL
 // ============================================
-function PaymentOptionsModal({ amount, organization, onClose, showToast }) {
+function PaymentOptionsModal({ amount, organization, fees = [], players = [], onClose, showToast, onRequestPaymentPlan }) {
   const tc = useThemeClasses()
   const [copied, setCopied] = useState(null)
+  const [showFeeBreakdown, setShowFeeBreakdown] = useState(true)
+
+  // Get player name by ID
+  const getPlayerName = (playerId) => {
+    const player = players.find(p => p.id === playerId)
+    return player ? `${player.first_name} ${player.last_name}` : 'Unknown'
+  }
+
+  // Get player first name by ID
+  const getPlayerFirstName = (playerId) => {
+    const player = players.find(p => p.id === playerId)
+    return player?.first_name || 'Player'
+  }
+
+  // Generate payment note
+  const seasonName = players[0]?.season?.name || 'Season'
+  const playerNames = [...new Set(fees.map(f => getPlayerFirstName(f.player_id)))].join(', ')
+  const paymentNote = `${playerNames} - ${seasonName}`
 
   const copyToClipboard = async (text, label) => {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(label)
-      showToast?.(`${label} copied to clipboard!`)
+      showToast?.(`${label} copied!`, 'success')
       setTimeout(() => setCopied(null), 2000)
     } catch (err) {
       console.error('Copy failed:', err)
     }
   }
 
+  // Group fees by player
+  const feesByPlayer = fees.reduce((acc, fee) => {
+    const name = getPlayerName(fee.player_id)
+    if (!acc[name]) acc[name] = []
+    acc[name].push(fee)
+    return acc
+  }, {})
+
+  const hasPaymentMethods = organization?.payment_venmo || organization?.payment_zelle || organization?.payment_cashapp
+
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
-        <div className={`p-6 border-b ${tc.border}`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>Make a Payment</h2>
-          <p className={`${tc.textMuted} text-sm mt-1`}>Total Due: <span className="text-[var(--accent-primary)] font-bold">${amount?.toFixed(2) || '0.00'}</span></p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg shadow-2xl`}>
+        {/* Header */}
+        <div className={`p-5 border-b ${tc.border}`}>
+          <h2 className={`text-xl font-bold ${tc.text}`}>Make a Payment</h2>
+          <div className="flex items-center justify-between mt-2">
+            <p className={`${tc.textMuted} text-sm`}>Total Due</p>
+            <p className="text-2xl font-bold text-[var(--accent-primary)]">${amount?.toFixed(2) || '0.00'}</p>
+          </div>
         </div>
         
-        <div className="p-6 space-y-4">
-          {/* Venmo */}
-          {organization?.payment_venmo && (
-            <a 
-              href={`https://venmo.com/${organization.payment_venmo}?txn=pay&amount=${amount?.toFixed(2) || '0'}&note=VolleyBrain%20Payment`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-[#3D95CE]/20 rounded-xl hover:bg-[#3D95CE]/30 transition"
-            >
-              <span className="text-2xl">💳</span>
-              <div className="flex-1">
-                <p className="font-medium text-[#3D95CE]">Venmo</p>
-                <p className={`text-sm ${tc.textMuted}`}>@{organization.payment_venmo}</p>
-              </div>
-              <span className="text-[#3D95CE]">→</span>
-            </a>
-          )}
-          
-          {/* Zelle */}
-          {organization?.payment_zelle && (
-            <div className="flex items-center gap-3 p-4 bg-purple-500/20 rounded-xl">
-              <span className="text-2xl">💸</span>
-              <div className="flex-1">
-                <p className="font-medium text-purple-400">Zelle</p>
-                <p className={`text-sm ${tc.textMuted}`}>{organization.payment_zelle}</p>
-              </div>
+        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+          {/* Fee Breakdown */}
+          {fees.length > 0 && (
+            <div className={`${tc.cardBgAlt} rounded-xl overflow-hidden`}>
               <button 
-                onClick={() => copyToClipboard(organization.payment_zelle, 'Zelle email')}
-                className={`text-sm px-3 py-1 rounded-lg ${copied === 'Zelle email' ? 'bg-emerald-500/20 text-emerald-400' : 'text-purple-400 hover:bg-purple-500/20'} transition`}
+                onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
+                className={`w-full p-3 flex items-center justify-between ${tc.text} hover:opacity-80`}
               >
-                {copied === 'Zelle email' ? '✓ Copied' : 'Copy'}
+                <span className="font-medium text-sm">📋 Fee Breakdown</span>
+                <span className={`transition-transform ${showFeeBreakdown ? 'rotate-180' : ''}`}>▼</span>
               </button>
+              {showFeeBreakdown && (
+                <div className={`px-3 pb-3 border-t ${tc.border}`}>
+                  {Object.entries(feesByPlayer).map(([playerName, playerFees]) => (
+                    <div key={playerName} className="mt-3">
+                      <p className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wide mb-1`}>{playerName}</p>
+                      {playerFees.map((fee, idx) => (
+                        <div key={idx} className="flex justify-between text-sm py-1">
+                          <span className={tc.textSecondary}>{fee.fee_name}</span>
+                          <span className={tc.text}>${fee.amount?.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  <div className={`flex justify-between font-semibold pt-2 mt-2 border-t ${tc.border}`}>
+                    <span className={tc.text}>Total</span>
+                    <span className="text-[var(--accent-primary)]">${amount?.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-          
-          {/* CashApp */}
-          {organization?.payment_cashapp && (
-            <a 
-              href={`https://cash.app/${organization.payment_cashapp}/${amount?.toFixed(2) || '0'}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-emerald-500/20 rounded-xl hover:bg-emerald-500/30 transition"
-            >
-              <span className="text-2xl">💵</span>
-              <div className="flex-1">
-                <p className="font-medium text-emerald-400">Cash App</p>
-                <p className={`text-sm ${tc.textMuted}`}>{organization.payment_cashapp}</p>
+
+          {/* Payment Note */}
+          {hasPaymentMethods && (
+            <div className={`${tc.cardBgAlt} rounded-xl p-3`}>
+              <p className={`text-xs ${tc.textMuted} mb-1`}>Include this note with your payment:</p>
+              <div className="flex items-center gap-2">
+                <code className={`flex-1 text-sm ${tc.text} bg-black/10 dark:bg-white/10 px-2 py-1 rounded`}>
+                  {paymentNote}
+                </code>
+                <button 
+                  onClick={() => copyToClipboard(paymentNote, 'Note')}
+                  className={`text-xs px-2 py-1 rounded ${copied === 'Note' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'}`}
+                >
+                  {copied === 'Note' ? '✓' : 'Copy'}
+                </button>
               </div>
-              <span className="text-emerald-400">→</span>
-            </a>
+            </div>
+          )}
+
+          {/* Payment Methods */}
+          {hasPaymentMethods && (
+            <div className="space-y-2">
+              <p className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wide`}>Payment Methods</p>
+              
+              {/* Venmo */}
+              {organization?.payment_venmo && (
+                <a 
+                  href={`https://venmo.com/${organization.payment_venmo.replace('@', '')}?txn=pay&amount=${amount?.toFixed(2) || '0'}&note=${encodeURIComponent(paymentNote)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-[#008CFF]/10 hover:bg-[#008CFF]/20 rounded-xl transition group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#008CFF] flex items-center justify-center text-white font-bold text-lg">V</div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-[#008CFF]">Venmo</p>
+                    <p className={`text-sm ${tc.textMuted}`}>@{organization.payment_venmo.replace('@', '')}</p>
+                  </div>
+                  <span className="text-[#008CFF] group-hover:translate-x-1 transition-transform">→</span>
+                </a>
+              )}
+              
+              {/* Zelle */}
+              {organization?.payment_zelle && (
+                <div className="flex items-center gap-3 p-3 bg-[#6D1ED4]/10 rounded-xl">
+                  <div className="w-10 h-10 rounded-full bg-[#6D1ED4] flex items-center justify-center text-white font-bold text-lg">Z</div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-[#6D1ED4]">Zelle</p>
+                    <p className={`text-sm ${tc.textMuted}`}>{organization.payment_zelle}</p>
+                  </div>
+                  <button 
+                    onClick={() => copyToClipboard(organization.payment_zelle, 'Zelle')}
+                    className={`text-sm px-3 py-1 rounded-lg transition ${copied === 'Zelle' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[#6D1ED4]/20 text-[#6D1ED4] hover:bg-[#6D1ED4]/30'}`}
+                  >
+                    {copied === 'Zelle' ? '✓ Copied' : 'Copy'}
+                  </button>
+                </div>
+              )}
+              
+              {/* Cash App */}
+              {organization?.payment_cashapp && (
+                <a 
+                  href={`https://cash.app/${organization.payment_cashapp.replace('$', '')}/${amount?.toFixed(2) || '0'}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-[#00D632]/10 hover:bg-[#00D632]/20 rounded-xl transition group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#00D632] flex items-center justify-center text-white font-bold text-lg">$</div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-[#00D632]">Cash App</p>
+                    <p className={`text-sm ${tc.textMuted}`}>{organization.payment_cashapp}</p>
+                  </div>
+                  <span className="text-[#00D632] group-hover:translate-x-1 transition-transform">→</span>
+                </a>
+              )}
+            </div>
           )}
 
           {/* Other Instructions */}
           {organization?.payment_instructions && (
-            <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-              <p className={`text-sm font-medium ${tc.text} mb-2`}>Other Payment Options:</p>
+            <div className={`${tc.cardBgAlt} rounded-xl p-3`}>
+              <p className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wide mb-2`}>Additional Instructions</p>
               <p className={`text-sm ${tc.textSecondary} whitespace-pre-wrap`}>{organization.payment_instructions}</p>
             </div>
           )}
 
           {/* No payment methods configured */}
-          {!organization?.payment_venmo && !organization?.payment_zelle && !organization?.payment_cashapp && !organization?.payment_instructions && (
-            <div className={`${tc.cardBgAlt} rounded-xl p-4 text-center`}>
-              <p className={tc.textMuted}>Contact your league administrator for payment options.</p>
+          {!hasPaymentMethods && !organization?.payment_instructions && (
+            <div className={`${tc.cardBgAlt} rounded-xl p-6 text-center`}>
+              <p className="text-3xl mb-2">💳</p>
+              <p className={`font-medium ${tc.text}`}>Payment methods coming soon!</p>
+              <p className={`text-sm ${tc.textMuted} mt-1`}>Contact your league administrator for payment options.</p>
             </div>
           )}
 
-          {/* Tip */}
-          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-            <p className="text-amber-400 text-sm">
-              💡 After sending payment, your admin will mark it as paid within 1-2 business days.
-            </p>
-          </div>
+          {/* Confirmation Note */}
+          {hasPaymentMethods && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2">
+              <span className="text-amber-500">💡</span>
+              <p className="text-amber-600 dark:text-amber-400 text-sm">
+                After sending payment, your admin will mark it as paid within 1-2 business days.
+              </p>
+            </div>
+          )}
         </div>
         
-        <div className={`p-6 border-t ${tc.border}`}>
-          <button onClick={onClose} className={`w-full py-2 rounded-xl border ${tc.border} ${tc.text}`}>
+        {/* Footer */}
+        <div className={`p-5 border-t ${tc.border} space-y-2`}>
+          {/* Request Payment Plan - future feature */}
+          {amount > 100 && (
+            <button 
+              onClick={() => {
+                showToast?.('Payment plan requests coming soon!', 'info')
+                // onRequestPaymentPlan?.()
+              }}
+              className={`w-full py-2 rounded-xl border ${tc.border} ${tc.textMuted} text-sm hover:bg-black/5 dark:hover:bg-white/5 transition`}
+            >
+              💬 Need a payment plan? Contact admin
+            </button>
+          )}
+          <button onClick={onClose} className={`w-full py-2.5 rounded-xl ${tc.cardBgAlt} ${tc.text} font-medium hover:opacity-80 transition`}>
             Close
           </button>
         </div>
       </div>
     </div>
+  )
+}
   )
 }
 
@@ -1119,6 +1228,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         <PaymentOptionsModal
           amount={paymentSummary.totalDue}
           organization={organization}
+          fees={paymentSummary.unpaidItems}
+          players={registrationData}
           onClose={() => setShowPaymentModal(false)}
           showToast={showToast}
         />
