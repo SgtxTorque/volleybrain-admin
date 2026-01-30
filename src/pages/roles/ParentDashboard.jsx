@@ -327,8 +327,6 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
     </div>
   )
 }
-  )
-}
 
 // ============================================
 // ADD CHILD MODAL
