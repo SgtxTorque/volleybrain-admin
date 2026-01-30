@@ -823,6 +823,7 @@ export function DashboardPage({ onNavigate }) {
   })
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [monthlyPayments, setMonthlyPayments] = useState([])
+  const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -837,49 +838,64 @@ export function DashboardPage({ onNavigate }) {
     setLoading(true)
     try {
       const seasonId = selectedSeason.id
+      const orgId = selectedSeason.organization_id
 
-      // Fetch teams
-      const { count: teamCount } = await supabase
+      // Fetch teams for this season
+      const { data: teams, count: teamCount } = await supabase
         .from('teams')
-        .select('*', { count: 'exact', head: true })
+        .select('id, name, roster_size', { count: 'exact' })
         .eq('season_id', seasonId)
 
-      // Fetch players
-      const { count: playerCount } = await supabase
-        .from('players')
-        .select('*', { count: 'exact', head: true })
-        .eq('season_id', seasonId)
-
-      // Fetch registrations by status
+      // Fetch ALL registrations for this season with full status breakdown
       const { data: registrations } = await supabase
         .from('registrations')
-        .select('status')
+        .select('id, status, first_name, last_name, created_at, team_id')
         .eq('season_id', seasonId)
 
+      // Calculate registration stats correctly
       const regStats = {
-        approved: registrations?.filter(r => r.status === 'approved').length || 0,
+        total: registrations?.length || 0,
         pending: registrations?.filter(r => ['pending', 'submitted'].includes(r.status)).length || 0,
+        approved: registrations?.filter(r => r.status === 'approved').length || 0,
+        rostered: registrations?.filter(r => r.status === 'rostered').length || 0,
         waitlisted: registrations?.filter(r => r.status === 'waitlisted').length || 0,
         denied: registrations?.filter(r => r.status === 'denied').length || 0,
+        withdrawn: registrations?.filter(r => r.status === 'withdrawn').length || 0,
       }
 
-      // Fetch payments
+      // Calculate capacity from season settings or teams
+      const seasonCapacity = selectedSeason.capacity || selectedSeason.registration_capacity || 0
+      const teamCapacity = teams?.reduce((sum, t) => sum + (t.roster_size || 12), 0) || 0
+      const totalCapacity = seasonCapacity || teamCapacity || (teamCount || 0) * 12
+
+      // Fetch payments for this season
       const { data: payments } = await supabase
         .from('payments')
-        .select('amount, paid, payment_method')
+        .select('amount, paid, payment_method, fee_type, created_at, due_date')
         .eq('season_id', seasonId)
 
       const paidPayments = payments?.filter(p => p.paid) || []
       const unpaidPayments = payments?.filter(p => !p.paid) || []
       
       const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const totalExpected = payments?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
       const pastDue = unpaidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
       const paidOnline = paidPayments.filter(p => p.payment_method === 'stripe').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
       const paidManual = paidPayments.filter(p => p.payment_method !== 'stripe').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
 
-      // Fetch upcoming events
+      // Group payments by fee type for breakdown
+      const paymentsByType = {
+        registration: payments?.filter(p => p.fee_type === 'registration') || [],
+        uniform: payments?.filter(p => p.fee_type === 'uniform') || [],
+        monthly: payments?.filter(p => p.fee_type === 'monthly') || [],
+        other: payments?.filter(p => !['registration', 'uniform', 'monthly'].includes(p.fee_type)) || [],
+      }
+
+      // Fetch upcoming events - include org-wide (null team_id) AND season-specific teams
       const today = new Date().toISOString().split('T')[0]
-      const { data: events } = await supabase
+      const teamIds = teams?.map(t => t.id) || []
+      
+      let eventsQuery = supabase
         .from('schedule_events')
         .select('*, teams(name, color)')
         .gte('event_date', today)
@@ -887,42 +903,115 @@ export function DashboardPage({ onNavigate }) {
         .order('event_time', { ascending: true })
         .limit(10)
 
-      // Get next game
-      const nextGameEvent = events?.find(e => e.event_type === 'game')
+      // Filter by teams in this season OR org-wide events (team_id is null)
+      if (teamIds.length > 0) {
+        eventsQuery = eventsQuery.or(`team_id.in.(${teamIds.join(',')}),team_id.is.null`)
+      } else {
+        eventsQuery = eventsQuery.is('team_id', null)
+      }
+
+      const { data: events } = await eventsQuery
+
+      // Get next game from games table
+      const { data: nextGameData } = await supabase
+        .from('games')
+        .select('*, teams(name)')
+        .in('team_id', teamIds.length > 0 ? teamIds : ['no-teams'])
+        .in('status', ['scheduled', 'upcoming'])
+        .gte('date', today)
+        .order('date', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
       let nextGame = null
-      if (nextGameEvent) {
-        const gameDate = new Date(nextGameEvent.event_date)
+      if (nextGameData) {
+        const gameDate = new Date(nextGameData.date)
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        const time = nextGameEvent.event_time ? 
-          new Date(`2000-01-01T${nextGameEvent.event_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
+        const time = nextGameData.time ? 
+          new Date(`2000-01-01T${nextGameData.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
         nextGame = `${days[gameDate.getDay()]}, ${time}`
       }
 
+      // Fetch recent activity (real data from multiple sources)
+      const recentActivity = []
+      
+      // Recent registrations
+      const recentRegs = registrations
+        ?.filter(r => r.created_at)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 3) || []
+      
+      recentRegs.forEach(r => {
+        recentActivity.push({
+          type: 'registration',
+          name: `${r.first_name} ${r.last_name}`,
+          initials: `${r.first_name?.[0] || ''}${r.last_name?.[0] || ''}`,
+          action: r.status === 'pending' ? 'submitted registration' : `registration ${r.status}`,
+          timestamp: r.created_at,
+        })
+      })
+
+      // Recent payments
+      const recentPays = paidPayments
+        .filter(p => p.created_at)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 2)
+      
+      recentPays.forEach(p => {
+        recentActivity.push({
+          type: 'payment',
+          name: 'Payment received',
+          initials: '$',
+          action: 'paid',
+          highlight: `$${parseFloat(p.amount).toFixed(0)}`,
+          timestamp: p.created_at,
+        })
+      })
+
       setUpcomingEvents(events || [])
+      setRecentActivity(recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5))
+      
       setStats({
         teams: teamCount || 0,
-        rosteredPlayers: playerCount || 0,
-        totalCapacity: (teamCount || 0) * 15,
+        rosteredPlayers: regStats.rostered,
+        approvedPlayers: regStats.approved,
+        pendingPlayers: regStats.pending,
+        totalCapacity,
         nextGame,
         totalCollected,
+        totalExpected,
         pastDue,
         paidOnline,
         paidManual,
         overdueFees: pastDue,
         overdueStripe: 0,
-        totalRegistrations: registrations?.length || 0,
+        totalRegistrations: regStats.total,
         ...regStats,
-        capacity: (teamCount || 0) * 15,
+        capacity: totalCapacity,
         passTypeName: selectedSeason?.name || 'Season Pass',
+        paymentsByType,
       })
 
-      // Generate monthly payment data for chart
-      const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-      const monthlyData = months.slice(-6).map((label, i) => ({
-        label,
-        value: Math.round(totalCollected * (0.1 + Math.random() * 0.2))
-      }))
-      monthlyData[monthlyData.length - 1].value = totalCollected
+      // Generate monthly payment data for chart (real data based on payments)
+      const now = new Date()
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      const monthlyData = []
+      
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+        
+        const monthPayments = paidPayments.filter(p => {
+          const payDate = new Date(p.created_at)
+          return payDate >= monthDate && payDate <= monthEnd
+        })
+        
+        monthlyData.push({
+          label: monthNames[monthDate.getMonth()],
+          value: monthPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        })
+      }
+      
       setMonthlyPayments(monthlyData)
 
     } catch (err) {
@@ -955,13 +1044,9 @@ export function DashboardPage({ onNavigate }) {
     },
   ]
 
-  // Activity feed
-  const activities = [
-    { name: 'Kelly Thompson', initials: 'KT', action: 'updated registration settings' },
-    { name: 'Brooke Anderson', initials: 'BA', action: 'submitted', highlight: '$145', target: 'for Olivia A.' },
-    { name: 'Emma Harrison', initials: 'EH', action: 'completed RSU Pilots' },
-    { name: 'Hailey Foster', initials: 'HF', action: 'submitted Emma F-5' },
-    { name: 'Kelly Thompson', initials: 'KT', action: 'revealed', highlight: '9 waitlist', target: 'players' },
+  // Activity feed - use real data from recentActivity state
+  const activities = recentActivity.length > 0 ? recentActivity : [
+    { name: 'No recent activity', initials: '—', action: 'Start approving registrations to see activity here' },
   ]
 
   if (!seasonLoading && !selectedSeason) {
