@@ -42,6 +42,12 @@ function SeasonsPage({ showToast }) {
   }
 }, [organization?.id])
 
+    async function loadSeasons() {
+    setLoading(true)
+    const { data } = await supabase.from('seasons').select('*, sports(id, name, icon)').eq('organization_id', organization.id).order('created_at', { ascending: false })
+    setSeasons(data || [])
+    setLoading(false)
+  }
   async function loadTemplates() {
     const { data } = await supabase
       .from('registration_templates')
