@@ -89,6 +89,94 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
+  const [prefillApplied, setPrefillApplied] = useState(false)
+
+  // Read URL parameters for prefill
+  useEffect(() => {
+    if (prefillApplied) return
+    
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('prefill') === 'true') {
+      // Build prefill data from URL params
+      const playerPrefill = {}
+      const sharedPrefill = {}
+      
+      // Player fields mapping (URL param -> form field)
+      const playerFieldMap = {
+        'first_name': 'first_name',
+        'last_name': 'last_name',
+        'dob': 'birth_date',
+        'birth_date': 'birth_date',
+        'grade': 'grade',
+        'gender': 'gender',
+        'school': 'school',
+        'shirt_size': 'shirt_size',
+        'jersey_size': 'jersey_size',
+        'shorts_size': 'shorts_size',
+        'preferred_number': 'preferred_number',
+        'position_preference': 'position_preference',
+        'experience_level': 'experience_level',
+        'previous_teams': 'previous_teams',
+        'height': 'height',
+        'weight': 'weight',
+      }
+      
+      // Parent/shared fields mapping
+      const sharedFieldMap = {
+        'parent_name': 'parent1_name',
+        'parent1_name': 'parent1_name',
+        'parent_email': 'parent1_email',
+        'parent1_email': 'parent1_email',
+        'parent_phone': 'parent1_phone',
+        'parent1_phone': 'parent1_phone',
+        'parent2_name': 'parent2_name',
+        'parent2_email': 'parent2_email',
+        'parent2_phone': 'parent2_phone',
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'zip': 'zip',
+        'emergency_name': 'emergency_name',
+        'emergency_phone': 'emergency_phone',
+        'emergency_relation': 'emergency_relation',
+        'medical_conditions': 'medical_conditions',
+        'allergies': 'allergies',
+        'medications': 'medications',
+      }
+      
+      // Extract player data
+      for (const [urlKey, formKey] of Object.entries(playerFieldMap)) {
+        const value = params.get(urlKey)
+        if (value) {
+          playerPrefill[formKey] = value
+        }
+      }
+      
+      // Extract shared data
+      for (const [urlKey, formKey] of Object.entries(sharedFieldMap)) {
+        const value = params.get(urlKey)
+        if (value) {
+          sharedPrefill[formKey] = value
+        }
+      }
+      
+      // Apply prefill data
+      if (Object.keys(playerPrefill).length > 0) {
+        setCurrentChild(prev => ({ ...prev, ...playerPrefill }))
+      }
+      if (Object.keys(sharedPrefill).length > 0) {
+        setSharedInfo(prev => ({ ...prev, ...sharedPrefill }))
+      }
+      
+      // If we have player info, show the form
+      if (playerPrefill.first_name || playerPrefill.last_name) {
+        setShowAddChildForm(true)
+      }
+      
+      setPrefillApplied(true)
+      console.log('Prefill applied:', { playerPrefill, sharedPrefill })
+    }
+  }, [prefillApplied])
 
   useEffect(() => {
     loadSeasonData()
