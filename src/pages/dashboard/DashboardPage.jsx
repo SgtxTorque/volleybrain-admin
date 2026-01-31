@@ -13,12 +13,12 @@ import { VolleyballIcon } from '../../constants/icons'
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
 // ============================================
-function DashCard({ children, className = '', onClick }) {
+function DashCard({ children, className = '', onClick, headerColor }) {
   return (
     <div 
       onClick={onClick}
       className={`
-        bg-white rounded-2xl 
+        bg-white rounded-2xl overflow-hidden
         shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]
         border border-slate-100
         ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}
@@ -30,25 +30,46 @@ function DashCard({ children, className = '', onClick }) {
   )
 }
 
-// Card Header with title and menu
-function CardHeader({ title, action, onAction, children }) {
+// Card Header with colored accent bar
+function CardHeader({ title, action, onAction, children, color = 'blue', icon: Icon }) {
+  const colorClasses = {
+    blue: 'bg-gradient-to-r from-blue-500 to-blue-600',
+    green: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+    purple: 'bg-gradient-to-r from-purple-500 to-purple-600',
+    orange: 'bg-gradient-to-r from-orange-500 to-orange-600',
+    red: 'bg-gradient-to-r from-red-500 to-red-600',
+    teal: 'bg-gradient-to-r from-teal-500 to-teal-600',
+    indigo: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+    slate: 'bg-gradient-to-r from-slate-500 to-slate-600',
+  }
+  
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-      <h3 className="font-semibold text-slate-800 text-[15px]">{title}</h3>
-      <div className="flex items-center gap-2">
-        {children}
-        {action && (
-          <button 
-            onClick={onAction}
-            className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1"
-          >
-            {action}
-            <ChevronRight className="w-4 h-4" />
+    <div className="border-b border-slate-100">
+      {/* Colored accent bar */}
+      <div className={`h-1.5 ${colorClasses[color] || colorClasses.blue}`} />
+      
+      {/* Header content */}
+      <div className="flex items-center justify-between px-5 py-3">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className="w-4 h-4 text-slate-500" />}
+          <h3 className="font-semibold text-slate-800 text-[15px]">{title}</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          {children}
+          {action && (
+            <button 
+              onClick={onAction}
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1
+                ${colorClasses[color] || colorClasses.blue} text-white hover:brightness-110`}
+            >
+              {action}
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          )}
+          <button className="p-1 hover:bg-slate-100 rounded-lg transition">
+            <MoreHorizontal className="w-4 h-4 text-slate-400" />
           </button>
-        )}
-        <button className="p-1 hover:bg-slate-100 rounded-lg transition">
-          <MoreHorizontal className="w-4 h-4 text-slate-400" />
-        </button>
+        </div>
       </div>
     </div>
   )
@@ -334,7 +355,7 @@ function FinancialSummary({ stats, onNavigate }) {
 
   return (
     <DashCard>
-      <CardHeader title="Financial Summary">
+      <CardHeader title="Financial Summary" color="green" icon={DollarSign}>
         <button className="p-1 hover:bg-slate-100 rounded-lg transition">
           <Users className="w-4 h-4 text-slate-400" />
         </button>
@@ -393,7 +414,7 @@ function FinancialSummary({ stats, onNavigate }) {
         {/* Action Button */}
         <button 
           onClick={() => onNavigate('payments')}
-          className="mt-5 px-4 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition flex items-center gap-2"
+          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-xl hover:brightness-110 transition flex items-center justify-center gap-2"
         >
           View Payments
           <ChevronRight className="w-4 h-4" />
@@ -409,7 +430,7 @@ function FinancialSummary({ stats, onNavigate }) {
 function FinancialOverview({ monthlyData, totalCollected }) {
   return (
     <DashCard>
-      <CardHeader title="Financial Overview">
+      <CardHeader title="Financial Overview" color="teal" icon={TrendingUp}>
         <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">All Seasons</span>
       </CardHeader>
       
@@ -462,7 +483,7 @@ function RegistrationStats({ stats, onNavigate }) {
   
   return (
     <DashCard>
-      <CardHeader title="Registration Stats" />
+      <CardHeader title="Registration Stats" color="blue" icon={ClipboardList} />
       
       <div className="p-5">
         {/* Main Stats Row */}
@@ -549,7 +570,7 @@ function RegistrationStats({ stats, onNavigate }) {
         {/* Action Button */}
         <button 
           onClick={() => onNavigate('registrations')}
-          className="mt-5 w-full px-4 py-2.5 border border-slate-200 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2"
+          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-xl hover:brightness-110 transition flex items-center justify-center gap-2"
         >
           View Registrations
           <ChevronRight className="w-4 h-4" />
@@ -565,7 +586,7 @@ function RegistrationStats({ stats, onNavigate }) {
 function RecentActivity({ tasks, onNavigate }) {
   return (
     <DashCard>
-      <CardHeader title="Recent Activity" action="View All" onAction={() => onNavigate('registrations')} />
+      <CardHeader title="Recent Activity" color="purple" icon={Clock} action="View All" onAction={() => onNavigate('registrations')} />
       
       <div className="p-5">
         {/* Filter Dropdown */}
@@ -608,7 +629,7 @@ function RecentActivity({ tasks, onNavigate }) {
         {/* Manage Link */}
         <button 
           onClick={() => onNavigate('registrations')}
-          className="mt-4 text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1"
+          className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
         >
           Manage All Tasks
           <ChevronRight className="w-4 h-4" />
@@ -648,7 +669,7 @@ function UpcomingEvents({ events, onNavigate }) {
 
   return (
     <DashCard>
-      <CardHeader title="Upcoming Events" action="View All" onAction={() => onNavigate('schedule')} />
+      <CardHeader title="Upcoming Events" color="orange" icon={Calendar} action="View All" onAction={() => onNavigate('schedule')} />
       
       <div className="p-5 space-y-4">
         {Object.entries(groupedEvents).slice(0, 2).map(([date, dateEvents]) => (
@@ -696,9 +717,9 @@ function UpcomingEvents({ events, onNavigate }) {
         {/* View All Link */}
         <button 
           onClick={() => onNavigate('schedule')}
-          className="w-full text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center justify-center gap-1 pt-2"
+          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
         >
-          View All
+          View All Events
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -712,7 +733,7 @@ function UpcomingEvents({ events, onNavigate }) {
 function QuickActionsWidget({ activities }) {
   return (
     <DashCard>
-      <CardHeader title="Quick Actions" />
+      <CardHeader title="Quick Actions" color="slate" icon={Star} />
       
       <div className="p-5 space-y-3">
         {activities.map((activity, i) => (
@@ -747,7 +768,7 @@ function OverduePayments({ stats, onNavigate }) {
   
   return (
     <DashCard>
-      <CardHeader title="Payment Recovery" />
+      <CardHeader title="Payment Recovery" color="red" icon={AlertCircle} />
       
       <div className="p-5">
         <div className="flex items-start gap-4">
