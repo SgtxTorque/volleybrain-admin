@@ -176,6 +176,7 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     }
   }
   
+  console.log('Calculated fees:', fees.length, fees.map(f => ({ type: f.fee_type, amount: f.amount })))
   return fees
 }
 
@@ -217,6 +218,16 @@ export function getFeeSummary(fees) {
  */
 export async function generateFeesForPlayer(supabase, player, season, showToast) {
   try {
+    console.log('=== FEE GENERATION DEBUG ===')
+    console.log('Player:', player?.id, player?.first_name, player?.last_name)
+    console.log('Season:', season?.id, season?.name)
+    console.log('Season fees:', {
+      registration: season?.fee_registration,
+      uniform: season?.fee_uniform,
+      monthly: season?.fee_monthly,
+      family: season?.fee_per_family
+    })
+    
     // Check if fees already exist for this player in this season
     const { data: existingFees } = await supabase
       .from('payments')
