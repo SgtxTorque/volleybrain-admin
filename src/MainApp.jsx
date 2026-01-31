@@ -1,1153 +1,1499 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
-import { useJourney } from '../../contexts/JourneyContext'
-import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
-import { supabase } from '../../lib/supabase'
-import { exportToCSV } from '../../lib/csv-export'
+import { useState, useEffect, useRef } from 'react'
+import { useAuth } from './contexts/AuthContext'
+import { useTheme, useThemeClasses } from './contexts/ThemeContext'
+import { SportProvider, useSport } from './contexts/SportContext'
+import { SeasonProvider, useSeason } from './contexts/SeasonContext'
+import { JourneyProvider } from './contexts/JourneyContext'
+import { supabase } from './lib/supabase'
+
+// Icons
 import { 
-  Users, User, Calendar, Trash2, X, MessageCircle, ClipboardList
-} from '../../constants/icons'
-import { PlayerCard, PlayerCardExpanded, positionColors } from '../../components/players'
-import { ClickablePlayerName } from '../registrations/RegistrationsPage'
+  Building2, Users, ChevronDown, ChevronLeft, ChevronRight, Check,
+  LogOut, Shield, UserCog, User, Home, Calendar, DollarSign, 
+  MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone,
+  Trophy, Bell, Settings, Zap, BarChart3, Moon, Sun, Clock, TrendingUp,
+  Award, CreditCard, UserPlus
+} from './constants/icons'
+import { VolleyballIcon } from './constants/icons'
+
+// UI Components
+import { Toast, Icon } from './components/ui'
+
+// Layout Components
+import { 
+  NavIcon, 
+  HeaderSportSelector, 
+  HeaderSeasonSelector, 
+  HeaderCoachTeamSelector, 
+  HeaderChildSelector,
+  ThemeToggleButton,
+  AccentColorPicker,
+  JerseyNavBadge,
+  BlastAlertChecker,
+  JourneyCelebrations
+} from './components/layout'
+
+// Dashboard Pages
+import { DashboardPage } from './pages/dashboard'
+
+// Role-specific Dashboards
+import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
+
+// Parent Portal Pages
+import { PlayerProfilePage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage } from './pages/parent'
+
+// Public Pages
+import { TeamWallPage } from './pages/public'
+
+// Core Admin Pages
+import { RegistrationsPage } from './pages/registrations'
+import { PaymentsPage } from './pages/payments'
+import { TeamsPage } from './pages/teams'
+import { CoachesPage } from './pages/coaches'
+import { JerseysPage } from './pages/jerseys'
+import { SchedulePage } from './pages/schedule'
+import { AttendancePage } from './pages/attendance'
+import { ChatsPage } from './pages/chats'
+import { BlastsPage } from './pages/blasts'
+import { GamePrepPage } from './pages/gameprep'
+import { TeamStandingsPage } from './pages/standings'
+import { SeasonLeaderboardsPage } from './pages/leaderboards'
+import { ReportsPage } from './pages/reports'
+
+// Settings Pages
+import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage } from './pages/settings'
+
+// Achievements Pages
+import { AchievementsCatalogPage } from './pages/achievements'
 
 // ============================================
-// TEAMS PAGE
+// NAV DROPDOWN COMPONENT
 // ============================================
-export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
-  const journey = useJourney()
-  const { selectedSeason, seasons, loading: seasonLoading, selectSeason } = useSeason()
-  const { user } = useAuth()
-  const [teams, setTeams] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showNewTeamModal, setShowNewTeamModal] = useState(false)
-  const [unrosteredPlayers, setUnrosteredPlayers] = useState([])
-  
-  // View controls
-  const [viewMode, setViewMode] = useState('list') // 'list', 'cards', 'compact'
-  const [showPhotos, setShowPhotos] = useState(true)
-  const [selectedPlayer, setSelectedPlayer] = useState(null)
-  const [expandedTeam, setExpandedTeam] = useState(null)
+function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTeamWallId }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const tc = useThemeClasses()
 
   useEffect(() => {
-    if (selectedSeason?.id) {
-      loadTeams()
-      loadUnrosteredPlayers()
-    }
-  }, [selectedSeason?.id])
-
-  async function loadTeams() {
-    if (!selectedSeason?.id) return
-    setLoading(true)
-    const { data } = await supabase
-      .from('teams')
-      .select('*, team_players(*, players(id, first_name, last_name, jersey_number, position, photo_url, grade, status, uniform_size_jersey))')
-      .eq('season_id', selectedSeason.id)
-      .order('name')
-    setTeams(data || [])
-    setLoading(false)
-  }
-
-  async function loadUnrosteredPlayers() {
-    if (!selectedSeason?.id) return
-    const { data: allPlayers } = await supabase
-      .from('players')
-      .select('id, first_name, last_name, position, jersey_number, photo_url, grade')
-      .eq('season_id', selectedSeason.id)
-    
-    const { data: rostered } = await supabase
-      .from('team_players')
-      .select('player_id, teams!inner(season_id)')
-      .eq('teams.season_id', selectedSeason.id)
-    
-    const rosteredIds = new Set(rostered?.map(r => r.player_id) || [])
-    setUnrosteredPlayers((allPlayers || []).filter(p => !rosteredIds.has(p.id)))
-  }
-
-  async function createTeam(formData) {
-    try {
-      // Create the team with all the new fields
-      const { data: newTeam, error } = await supabase
-        .from('teams')
-        .insert({ 
-          season_id: selectedSeason.id, 
-          name: formData.name,
-          abbreviation: formData.abbreviation || null,
-          color: formData.color,
-          logo_url: formData.logo_url || null,
-          age_group: formData.age_group,
-          age_group_type: formData.age_group_type,
-          team_type: formData.team_type,
-          skill_level: formData.skill_level,
-          gender: formData.gender,
-          max_roster_size: formData.max_roster_size,
-          min_roster_size: formData.min_roster_size,
-          roster_open: formData.roster_open,
-          description: formData.description || null,
-          internal_notes: formData.internal_notes || null
-        })
-        .select()
-        .single()
-      
-      if (error) {
-        console.error('Error creating team:', error)
-        showToast('Error creating team: ' + error.message, 'error')
-        return
-      }
-      
-      const createdItems = ['team']
-      
-      // Auto-create team chat channel (if enabled)
-      if (formData.create_team_chat) {
-        const { error: chatError } = await supabase.from('chat_channels').insert({
-          season_id: selectedSeason.id,
-          team_id: newTeam.id,
-          name: `${formData.name} - Team Chat`,
-          description: 'Chat for parents and coaches',
-          channel_type: 'team_chat',
-          created_by: user?.id
-        })
-        if (chatError) {
-          console.error('Error creating team chat:', chatError)
-        } else {
-          createdItems.push('team chat')
-        }
-      }
-      
-      // Auto-create player chat channel (if enabled)
-      if (formData.create_player_chat) {
-        const { error: playerChatError } = await supabase.from('chat_channels').insert({
-          season_id: selectedSeason.id,
-          team_id: newTeam.id,
-          name: `${formData.name} - Player Chat`,
-          description: 'Chat for players and coaches',
-          channel_type: 'player_chat',
-          created_by: user?.id
-        })
-        if (playerChatError) {
-          console.error('Error creating player chat:', playerChatError)
-        } else {
-          createdItems.push('player chat')
-        }
-      }
-      
-      if (formData.create_team_wall) {
-        createdItems.push('team wall')
-      }
-      
-      showToast(`Created: ${createdItems.join(', ')}!`, 'success')
-      journey?.completeStep('add_teams')
-      setShowNewTeamModal(false)
-      loadTeams()
-    } catch (err) {
-      console.error('Unexpected error creating team:', err)
-      showToast('Unexpected error creating team', 'error')
-      setShowNewTeamModal(false)
-    }
-  }
-
-  async function deleteTeam(teamId) {
-    if (!confirm('Delete this team? Players will be unrostered.')) return
-    await supabase.from('team_players').delete().eq('team_id', teamId)
-    await supabase.from('teams').delete().eq('id', teamId)
-    showToast('Team deleted', 'success')
-    loadTeams()
-    loadUnrosteredPlayers()
-  }
-
-  async function addPlayerToTeam(teamId, playerId) {
-    await supabase.from('team_players').insert({ team_id: teamId, player_id: playerId })
-    
-    // Update registration status to 'rostered'
-    const { data: reg } = await supabase
-      .from('registrations')
-      .select('id')
-      .eq('player_id', playerId)
-      .maybeSingle()
-    
-    if (reg) {
-      await supabase.from('registrations').update({ 
-        status: 'rostered',
-        updated_at: new Date().toISOString()
-      }).eq('id', reg.id)
-    }
-    
-    // Auto-add player and parent to appropriate chat channels
-    await autoAddMemberToTeamChannels(teamId, playerId)
-    
-    showToast('Player added to team and rostered', 'success')
-    loadTeams()
-    loadUnrosteredPlayers()
-  }
-  
-  // Helper function to auto-add members to team chat channels
-  async function autoAddMemberToTeamChannels(teamId, playerId) {
-    try {
-      // Get the player info to find parent
-      const { data: player } = await supabase
-        .from('players')
-        .select('id, first_name, last_name, parent_account_id')
-        .eq('id', playerId)
-        .single()
-      
-      if (!player) return
-      
-      // Get team channels
-      const { data: channels } = await supabase
-        .from('chat_channels')
-        .select('id, channel_type')
-        .eq('team_id', teamId)
-        .in('channel_type', ['team_chat', 'player_chat'])
-      
-      if (!channels || channels.length === 0) return
-      
-      // Add parent to team_chat channel (if they have an account)
-      if (player.parent_account_id) {
-        const teamChat = channels.find(c => c.channel_type === 'team_chat')
-        if (teamChat) {
-          // Check if already a member
-          const { data: existing } = await supabase
-            .from('channel_members')
-            .select('id')
-            .eq('channel_id', teamChat.id)
-            .eq('user_id', player.parent_account_id)
-            .maybeSingle()
-          
-          if (!existing) {
-            await supabase.from('channel_members').insert({
-              channel_id: teamChat.id,
-              user_id: player.parent_account_id,
-              display_name: `${player.first_name}'s Parent`,
-              member_role: 'parent',
-              can_post: true
-            })
-          }
-        }
-        
-        // Add parent to player_chat as view-only
-        const playerChat = channels.find(c => c.channel_type === 'player_chat')
-        if (playerChat) {
-          const { data: existing } = await supabase
-            .from('channel_members')
-            .select('id')
-            .eq('channel_id', playerChat.id)
-            .eq('user_id', player.parent_account_id)
-            .maybeSingle()
-          
-          if (!existing) {
-            await supabase.from('channel_members').insert({
-              channel_id: playerChat.id,
-              user_id: player.parent_account_id,
-              display_name: `${player.first_name}'s Parent`,
-              member_role: 'parent',
-              can_post: false // Parents can't post in player chat
-            })
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error auto-adding member to channels:', err)
-    }
-  }
-
-  async function removePlayerFromTeam(teamPlayerId) {
-    // Get the player_id before deleting
-    const { data: teamPlayer } = await supabase
-      .from('team_players')
-      .select('player_id')
-      .eq('id', teamPlayerId)
-      .single()
-    
-    await supabase.from('team_players').delete().eq('id', teamPlayerId)
-    
-    // Update registration status back to 'approved' (no longer on a team)
-    if (teamPlayer?.player_id) {
-      const { data: reg } = await supabase
-        .from('registrations')
-        .select('id')
-        .eq('player_id', teamPlayer.player_id)
-        .maybeSingle()
-      
-      if (reg) {
-        await supabase.from('registrations').update({ 
-          status: 'approved',
-          updated_at: new Date().toISOString()
-        }).eq('id', reg.id)
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
       }
     }
-    
-    showToast('Player removed from team', 'success')
-    loadTeams()
-    loadUnrosteredPlayers()
-  }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  const csvColumns = [
-    { label: 'Team', accessor: t => t.name },
-    { label: 'Color', accessor: t => t.color },
-    { label: 'Player Count', accessor: t => t.team_players?.length || 0 },
-  ]
-
-  // If no season selected, show helpful state
-  if (!selectedSeason) {
-    // Still loading
-    if (seasonLoading) {
-      return (
-        <div className="flex items-center justify-center h-64">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }}></div>
-            <span className="text-slate-400">Loading seasons...</span>
-          </div>
-        </div>
-      )
-    }
-
-    // No seasons exist at all
-    if (!seasons || seasons.length === 0) {
-      return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center max-w-md">
-            <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-6">
-              <Calendar className="w-10 h-10 text-slate-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Create Your First Season</h2>
-            <p className="text-slate-400 mb-6">
-              Before you can create teams, you need to set up a season. Seasons help you organize your teams, players, and schedules.
-            </p>
-            <button
-              onClick={() => onNavigate && onNavigate('seasons')}
-              className="bg-[var(--accent-primary)] text-white font-semibold px-6 py-3 rounded-xl hover:brightness-110 transition"
-            >
-              ➕ Create First Season
-            </button>
-          </div>
-        </div>
-      )
-    }
-
-    // Seasons exist but none selected - auto-select the first one
-    if (seasons.length > 0) {
-      // Auto-select the first available season
-      const activeSeason = seasons.find(s => s.status === 'active') || seasons[0]
-      if (activeSeason) {
-        selectSeason(activeSeason)
-      }
-      return (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-slate-400 mb-4">Selecting season...</p>
-            <select 
-              value=""
-              onChange={(e) => {
-                const s = seasons.find(s => s.id === e.target.value)
-                if (s) selectSeason(s)
-              }}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-white"
-            >
-              <option value="">Choose a season...</option>
-              {seasons.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400">Please select a season from the sidebar</p>
-      </div>
-    )
-  }
+  if (!items || items.length === 0) return null
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Teams & Rosters</h1>
-          <p className="text-slate-400 mt-1">Manage teams and assign players • {selectedSeason.name}</p>
-        </div>
-        <div className="flex gap-3">
-          {/* View Controls */}
-          <div className="flex bg-slate-800 rounded-xl p-1">
-            {[
-              { id: 'list', icon: '☰', label: 'List' },
-              { id: 'cards', icon: '▦', label: 'Cards' },
-              { id: 'compact', icon: '▤', label: 'Compact' }
-            ].map(v => (
-              <button
-                key={v.id}
-                onClick={() => setViewMode(v.id)}
-                className={`px-3 py-1.5 rounded-lg text-sm transition ${
-                  viewMode === v.id ? 'bg-[var(--accent-primary)] text-white font-semibold' : 'text-slate-400 hover:text-white'
-                }`}
-                title={v.label}
-              >
-                {v.icon}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => setShowPhotos(!showPhotos)}
-            className={`px-3 py-2 rounded-xl text-sm transition ${
-              showPhotos ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-500'
-            }`}
-            title={showPhotos ? 'Hide Photos' : 'Show Photos'}
-          >
-            📷
-          </button>
-          <button 
-            onClick={() => exportToCSV(teams, 'teams', csvColumns)}
-            className="bg-slate-700 text-white px-4 py-2 rounded-xl hover:bg-slate-600 flex items-center gap-2"
-          >
-            📥 Export
-          </button>
-          <button onClick={() => setShowNewTeamModal(true)} className="bg-[var(--accent-primary)] text-white font-semibold px-4 py-2 rounded-xl hover:brightness-110">
-            ➕ New Team
-          </button>
-        </div>
-      </div>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg transition-all"
+        style={{
+          background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
+          color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.7)',
+        }}
+      >
+        {label}
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
 
-      {/* Unrostered Players Alert */}
-      {unrosteredPlayers.length > 0 && (
-        <div className="bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30 rounded-xl p-4 flex items-center gap-3">
-          <span className="text-2xl">⚠️</span>
-          <div className="flex-1">
-            <p className="text-[var(--accent-primary)] font-medium">{unrosteredPlayers.length} Unrostered Players</p>
-            <p className="text-sm text-slate-400">
-              {unrosteredPlayers.slice(0, 3).map(p => `${p.first_name} ${p.last_name}`).join(', ')}
-              {unrosteredPlayers.length > 3 && ` and ${unrosteredPlayers.length - 3} more`}
-            </p>
-          </div>
-          {viewMode === 'cards' && (
-            <div className="flex flex-wrap gap-2 max-w-md">
-              {unrosteredPlayers.slice(0, 4).map(p => (
-                <div key={p.id} className="px-2 py-1 bg-[var(--accent-primary)]/20 rounded text-xs text-[var(--accent-primary)]">
-                  {p.first_name} {p.last_name?.[0]}.
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="text-center py-12 text-slate-400">Loading teams...</div>
-      ) : teams.length === 0 ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-12 text-center">
-          <Users className="w-12 h-12 mx-auto text-slate-500" />
-          <h3 className="text-lg font-medium text-white mt-4">No teams yet</h3>
-          <p className="text-slate-400 mt-2">Create your first team to start building rosters</p>
-          <button onClick={() => setShowNewTeamModal(true)} className="mt-4 bg-[var(--accent-primary)] text-white font-semibold px-6 py-2 rounded-xl">
-            Create Team
-          </button>
-        </div>
-      ) : (
-        <div className={`grid gap-6 ${viewMode === 'compact' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-          {teams.map(team => (
-            <div key={team.id} className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
-              <div 
-                className="p-4 border-b border-slate-700 flex items-center justify-between cursor-pointer"
-                style={{ borderLeftColor: team.color, borderLeftWidth: 4 }}
-                onClick={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}
-              >
-                <div>
-                  <h3 className="font-semibold text-white">{team.name}</h3>
-                  <p className="text-xs text-slate-500">{team.team_players?.length || 0} players</p>
-                </div>
-                <div className="flex gap-1 items-center">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); navigateToTeamWall(team.id); }} 
-                    className="px-2 py-1 rounded-lg text-xs font-medium transition"
-                    style={{ background: `${team.color}20`, color: team.color }}
-                    title="View Team Wall"
-                  >
-                    🏠 Wall
-                  </button>
-                  <span className="text-slate-500 text-sm mx-2">{expandedTeam === team.id ? '▼' : '▶'}</span>
-                  <button onClick={(e) => { e.stopPropagation(); deleteTeam(team.id); }} className="p-2 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 text-sm"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              </div>
-              
-              {(expandedTeam === team.id || viewMode !== 'compact') && (
-                <div className={`p-4 ${viewMode === 'compact' ? '' : 'max-h-80'} overflow-y-auto`}>
-                  {team.team_players?.length === 0 ? (
-                    <p className="text-slate-500 text-sm text-center py-4">No players assigned</p>
-                  ) : viewMode === 'cards' ? (
-                    /* Card View */
-                    <div className="flex flex-wrap gap-3 justify-center">
-                      {team.team_players?.map(tp => (
-                        <PlayerCard
-                          key={tp.id}
-                          player={tp.players}
-                          context="roster"
-                          teamColor={team.color}
-                          showPhoto={showPhotos}
-                          size="small"
-                          onClick={() => setSelectedPlayer(tp.players)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    /* List View */
-                    <div className="space-y-2">
-                      {team.team_players?.map(tp => (
-                        <div 
-                          key={tp.id} 
-                          className="flex items-center justify-between p-2 bg-slate-900 rounded-lg hover:bg-slate-700 transition"
-                        >
-                          <div className="flex items-center gap-3">
-                            {showPhotos && (
-                              tp.players?.photo_url ? (
-                                <img src={tp.players.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-500"><User className="w-5 h-5" /></div>
-                              )
-                            )}
-                            {tp.players?.jersey_number && (
-                              <span className="w-6 h-6 rounded text-xs flex items-center justify-center font-bold" style={{ backgroundColor: team.color + '30', color: team.color }}>
-                                {tp.players.jersey_number}
-                              </span>
-                            )}
-                            <div>
-                              <ClickablePlayerName 
-                                player={tp.players}
-                                onPlayerSelect={setSelectedPlayer}
-                                className="text-white text-sm"
-                              />
-                              {tp.players?.position && (
-                                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ backgroundColor: positionColors[tp.players.position] || '#666', color: '#000' }}>
-                                  {tp.players.position}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {tp.players?.grade && <span className="text-xs text-slate-500">Gr {tp.players.grade}</span>}
-                            <button onClick={(e) => { e.stopPropagation(); removePlayerFromTeam(tp.id); }} className="text-slate-500 hover:text-red-400 text-xs p-1"><X className="w-4 h-4" /></button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {unrosteredPlayers.length > 0 && (expandedTeam === team.id || viewMode !== 'compact') && (
-                <div className="p-4 border-t border-slate-700">
-                  <select onChange={e => { if (e.target.value) addPlayerToTeam(team.id, e.target.value); e.target.value = '' }}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-                    <option value="">+ Add player...</option>
-                    {unrosteredPlayers.map(p => (
-                      <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+      {isOpen && (
+        <div className={`absolute top-full left-0 mt-2 w-56 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+          {items.map(item => (
+            <button
+              key={item.id}
+              onClick={() => {
+                onNavigate(item.id, item)
+                setIsOpen(false)
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition ${
+                (item.teamId && directTeamWallId === item.teamId) || currentPage === item.id
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' 
+                  : `${tc.text} ${tc.hoverBg}`
+              }`}
+            >
+              <NavIcon name={item.icon} className="w-4 h-4" />
+              <span>{item.label}</span>
+              {item.hasBadge && <JerseyNavBadge collapsed={false} />}
+            </button>
           ))}
         </div>
       )}
-
-      {showNewTeamModal && <NewTeamModal onClose={() => setShowNewTeamModal(false)} onCreate={createTeam} />}
-      
-      {/* Player Card Expanded Modal */}
-{selectedPlayer && (
-  <PlayerCardExpanded
-    player={selectedPlayer}
-    visible={!!selectedPlayer}
-    onClose={() => setSelectedPlayer(null)}
-    context="roster"
-    viewerRole="admin"
-    seasonId={selectedSeason?.id}
-    sport={selectedSeason?.sport || 'volleyball'}
-    isOwnChild={false}
-  />
-)}
     </div>
   )
 }
 
 // ============================================
-// NEW TEAM MODAL
+// NOTIFICATION DROPDOWN COMPONENT
 // ============================================
-function NewTeamModal({ onClose, onCreate }) {
-  const tc = useThemeClasses()
-  const { isDark } = useTheme()
-  const [form, setForm] = useState({
-    name: '',
-    abbreviation: '',
-    color: '#FFD700',
-    logo_url: '',
-    age_group_type: 'age', // 'age' or 'grade'
-    age_group: '',
-    team_type: 'recreational',
-    skill_level: 'all',
-    gender: 'coed',
-    max_roster_size: 12,
-    min_roster_size: 6,
-    roster_open: true,
-    description: '',
-    internal_notes: '',
-    create_team_chat: true,
-    create_player_chat: true,
-    create_team_wall: true
-  })
-  const [uploading, setUploading] = useState(false)
-  const [activeTab, setActiveTab] = useState('basic') // basic, classification, roster, settings
-  const [creating, setCreating] = useState(false)
+function NotificationDropdown({ tc }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
 
-  const ageOptions = [
-    '8U', '9U', '10U', '11U', '12U', '13U', '14U', '15U', '16U', '17U', '18U', 'Adult'
-  ]
-  
-  const gradeOptions = [
-    { value: '3rd', label: '3rd Grade' },
-    { value: '4th', label: '4th Grade' },
-    { value: '5th', label: '5th Grade' },
-    { value: '6th', label: '6th Grade' },
-    { value: '7th', label: '7th Grade' },
-    { value: '8th', label: '8th Grade' },
-    { value: '9th', label: '9th Grade (Freshman)' },
-    { value: '10th', label: '10th Grade (Sophomore)' },
-    { value: '11th', label: '11th Grade (Junior)' },
-    { value: '12th', label: '12th Grade (Senior)' },
+  const notifications = [
+    { id: 1, type: 'payment', title: 'Outstanding balances', message: '22 players have unpaid fees', time: '2 days ago', unread: true },
+    { id: 2, type: 'jersey', title: 'Jersey assignments', message: '3 players need jersey numbers', time: '3 days ago', unread: true },
+    { id: 3, type: 'contact', title: 'Emergency contacts', message: '3 players missing info', time: '5 days ago', unread: true },
   ]
 
-  async function handleLogoUpload(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    
-    setUploading(true)
-    try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `team-logo-${Date.now()}.${fileExt}`
-      
-      const { data, error } = await supabase.storage
-        .from('team-assets')
-        .upload(fileName, file)
-      
-      if (error) {
-        console.error('Upload error:', error)
-        // If bucket doesn't exist, just store locally for now
-        const reader = new FileReader()
-        reader.onload = (e) => setForm({ ...form, logo_url: e.target.result })
-        reader.readAsDataURL(file)
-      } else {
-        const { data: { publicUrl } } = supabase.storage
-          .from('team-assets')
-          .getPublicUrl(fileName)
-        setForm({ ...form, logo_url: publicUrl })
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
       }
-    } catch (err) {
-      console.error('Upload error:', err)
     }
-    setUploading(false)
-  }
-
-  async function handleCreate() {
-    if (!form.name.trim() || creating) return
-    setCreating(true)
-    try {
-      await onCreate(form)
-    } catch (err) {
-      console.error('Error creating team:', err)
-    }
-    setCreating(false)
-  }
-
-  const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: '🏐' },
-    { id: 'classification', label: 'Classification', icon: '📋' },
-    { id: 'roster', label: 'Roster', icon: '👥' },
-    { id: 'settings', label: 'Settings', icon: '⚙️' },
-  ]
-
-  const isValid = form.name.trim() && form.age_group
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
-        {/* Header */}
-        <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
-          <h2 className={`text-xl font-bold ${tc.text}`}>Create New Team</h2>
-          <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg} ${tc.textMuted}`}><X className="w-4 h-4" /></button>
-        </div>
-        
-        {/* Tabs */}
-        <div className={`flex border-b ${tc.border}`}>
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition ${
-                activeTab === tab.id
-                  ? `${tc.text} border-b-2 border-[var(--accent-primary)]`
-                  : `${tc.textMuted} hover:${tc.text}`
-              }`}
-            >
-              <span className="mr-1">{tab.icon}</span> {tab.label}
+    <div className="relative" ref={dropdownRef}>
+      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-lg hover:bg-white/10 transition">
+        <Bell className="w-5 h-5 text-white" />
+        {notifications.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold"
+            style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+            {notifications.length}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className={`absolute right-0 top-full mt-2 w-80 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+          <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
+            <span className={`font-semibold ${tc.text}`}>Notifications</span>
+            <button className="text-xs text-[var(--accent-primary)] hover:underline">Mark all read</button>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.map(notif => (
+              <div key={notif.id} className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition`}>
+                <div className="flex items-start gap-3">
+                  {notif.unread && <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] mt-2 shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium text-sm ${tc.text}`}>{notif.title}</p>
+                    <p className={`text-xs ${tc.textMuted} mt-0.5`}>{notif.message}</p>
+                    <p className={`text-xs ${tc.textMuted} mt-1`}>{notif.time}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={`p-3 border-t ${tc.border}`}>
+            <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-[var(--accent-primary)]`}>
+              View all notifications
             </button>
-          ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// USER PROFILE DROPDOWN COMPONENT
+// ============================================
+function UserProfileDropdown({ 
+  profile, activeView, showRoleSwitcher, setShowRoleSwitcher, getAvailableViews,
+  setActiveView, setPage, signOut, tc, accent, accentColor, changeAccent, 
+  accentColors, isDark, toggleTheme
+}) {
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowRoleSwitcher(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [setShowRoleSwitcher])
+
+  const getRoleLabel = () => {
+    switch(activeView) {
+      case 'admin': return 'Admin'
+      case 'coach': return 'Coach'
+      case 'parent': return 'Parent'
+      case 'player': return 'Player'
+      default: return 'User'
+    }
+  }
+
+  const getDisplayName = () => {
+    if (activeView === 'coach') {
+      return `Coach ${profile?.full_name?.split(' ')[1] || profile?.full_name?.split(' ')[0] || 'User'}`
+    }
+    return profile?.full_name || 'User'
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl transition hover:bg-white/10"
+        onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden border-2 border-white/20"
+          style={{ background: profile?.photo_url ? 'transparent' : accent.primary, color: '#000' }}>
+          {profile?.photo_url ? (
+            <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            profile?.full_name?.charAt(0) || '?'
+          )}
+        </div>
+        <span className="text-white text-sm font-medium hidden sm:block">{getDisplayName()}</span>
+        <ChevronDown className={`w-4 h-4 text-white/70 transition-transform ${showRoleSwitcher ? 'rotate-180' : ''}`} />
+      </button>
+
+      {showRoleSwitcher && (
+        <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+          <div className={`p-4 border-b ${tc.border} flex items-center gap-3`}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold overflow-hidden"
+              style={{ background: profile?.photo_url ? 'transparent' : accent.primary, color: '#000' }}>
+              {profile?.photo_url ? (
+                <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg">{profile?.full_name?.charAt(0) || '?'}</span>
+              )}
+            </div>
+            <div>
+              <p className={`font-semibold ${tc.text}`}>{profile?.full_name || 'User'}</p>
+              <p className={`text-sm ${tc.textMuted} flex items-center gap-1`}>
+                {activeView === 'admin' && <Shield className="w-3 h-3" />}
+                {activeView === 'coach' && <UserCog className="w-3 h-3" />}
+                {activeView === 'parent' && <Users className="w-3 h-3" />}
+                {activeView === 'player' && <VolleyballIcon className="w-3 h-3" />}
+                {getRoleLabel()}
+              </p>
+            </div>
+          </div>
+
+          <div className={`p-2 border-b ${tc.border}`}>
+            <p className={`text-xs ${tc.textMuted} px-2 py-1`}>Switch View</p>
+            {getAvailableViews().map(view => (
+              <button key={view.id}
+                onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); setPage('dashboard'); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
+                  activeView === view.id ? 'bg-[var(--accent-primary)]/20' : tc.hoverBg
+                }`}>
+                <NavIcon name={view.icon} className="w-5 h-5" />
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium text-sm ${activeView === view.id ? 'text-[var(--accent-primary)]' : tc.text}`}>{view.label}</p>
+                  <p className={`text-xs ${tc.textMuted} truncate`}>{view.description}</p>
+                </div>
+                {activeView === view.id && <Check className="w-4 h-4 text-[var(--accent-primary)]" />}
+              </button>
+            ))}
+          </div>
+
+          <div className={`p-3 border-b ${tc.border}`}>
+            <p className={`text-xs ${tc.textMuted} mb-2`}>Accent Color</p>
+            <div className="flex gap-2">
+              {Object.entries(accentColors).map(([key, value]) => (
+                <button key={key} onClick={() => changeAccent(key)}
+                  className={`w-7 h-7 rounded-full transition-transform hover:scale-110 ${accentColor === key ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800' : ''}`}
+                  style={{ background: value.primary }} title={key.charAt(0).toUpperCase() + key.slice(1)} />
+              ))}
+            </div>
+          </div>
+
+          <div className={`p-2 flex gap-2`}>
+            <button onClick={toggleTheme}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg ${tc.hoverBg} ${tc.textSecondary} text-sm`}>
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span>{isDark ? 'Light' : 'Dark'}</span>
+            </button>
+            <button onClick={signOut}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg hover:bg-red-500/10 text-red-400 text-sm`}>
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// REGISTRATION SELECTOR MODAL - For Parents
+// ============================================
+function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization, tc }) {
+  const [openSeasons, setOpenSeasons] = useState([])
+  const [loading, setLoading] = useState(true)
+  
+  const children = roleContext?.children || []
+
+  useEffect(() => {
+    if (isOpen) {
+      loadOpenSeasons()
+    }
+  }, [isOpen])
+
+  async function loadOpenSeasons() {
+    setLoading(true)
+    try {
+      const now = new Date().toISOString()
+      
+      // Get all open seasons for orgs the parent is connected to
+      const orgIds = [...new Set(children.map(c => c.organization_id).filter(Boolean))]
+      if (organization?.id && !orgIds.includes(organization.id)) {
+        orgIds.push(organization.id)
+      }
+      
+      let query = supabase
+        .from('seasons')
+        .select('*, sports(id, name, icon), organizations(id, name, slug, settings)')
+        .lte('registration_opens', now)
+        .or(`registration_closes.is.null,registration_closes.gte.${now}`)
+        .in('status', ['upcoming', 'active'])
+      
+      if (orgIds.length > 0) {
+        query = query.in('organization_id', orgIds)
+      }
+      
+      const { data } = await query.order('registration_opens', { ascending: false })
+      setOpenSeasons(data || [])
+    } catch (err) {
+      console.error('Error loading seasons:', err)
+    }
+    setLoading(false)
+  }
+
+  function getRegistrationUrl(season, child = null) {
+    const orgSlug = season.organizations?.slug || organization?.slug || 'register'
+    const baseUrl = season.organizations?.settings?.registration_url || window.location.origin
+    
+    // Build prefill params if we have a child template
+    const templateChild = child || children[0]
+    if (templateChild) {
+      const prefillParams = new URLSearchParams({
+        prefill: 'true',
+        parent_name: templateChild.parent_name || '',
+        parent_email: templateChild.parent_email || '',
+        parent_phone: templateChild.parent_phone || '',
+      })
+      
+      // If registering for specific child, include their info
+      if (child) {
+        prefillParams.append('first_name', child.first_name || '')
+        prefillParams.append('last_name', child.last_name || '')
+        prefillParams.append('birth_date', child.birth_date || child.dob || '')
+      }
+      
+      const cleanParams = new URLSearchParams()
+      prefillParams.forEach((value, key) => {
+        if (value) cleanParams.append(key, value)
+      })
+      
+      return `${baseUrl}/register/${orgSlug}/${season.id}?${cleanParams.toString()}`
+    }
+    
+    return `${baseUrl}/register/${orgSlug}/${season.id}`
+  }
+
+  // Check if child is already registered for this season
+  function isChildRegistered(child, season) {
+    return child.season_id === season.id
+  }
+
+  // Group seasons by sport
+  const seasonsBySport = openSeasons.reduce((acc, season) => {
+    const sportName = season.sports?.name || 'Other'
+    const sportIcon = season.sports?.icon || '🏆'
+    const key = `${sportIcon} ${sportName}`
+    if (!acc[key]) acc[key] = []
+    acc[key].push(season)
+    return acc
+  }, {})
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg shadow-2xl`}>
+        {/* Header */}
+        <div className={`p-5 border-b ${tc.border}`}>
+          <h2 className={`text-xl font-bold ${tc.text}`}>Register for a Season</h2>
+          <p className={`${tc.textMuted} text-sm mt-1`}>Select a season to register your child</p>
         </div>
         
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Basic Info Tab */}
-          {activeTab === 'basic' && (
-            <div className="space-y-5">
-              {/* Team Name */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Team Name *</label>
-                <input 
-                  type="text" 
-                  value={form.name} 
-                  onChange={e => setForm({...form, name: e.target.value})} 
-                  placeholder="e.g., Black Hornets Elite"
-                  className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`} 
-                />
-              </div>
-              
-              {/* Abbreviation */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Abbreviation</label>
-                <input 
-                  type="text" 
-                  value={form.abbreviation} 
-                  onChange={e => setForm({...form, abbreviation: e.target.value.toUpperCase().slice(0, 5)})} 
-                  placeholder="e.g., BHE"
-                  maxLength={5}
-                  className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} uppercase`} 
-                />
-                <p className={`text-xs ${tc.textMuted} mt-1`}>Short code for scoreboards & schedules (max 5 chars)</p>
-              </div>
-              
-              {/* Team Color */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Team Color</label>
-                <div className="flex gap-3">
-                  <div 
-                    className="w-14 h-14 rounded-xl border-2 border-white/20 cursor-pointer overflow-hidden"
-                    style={{ backgroundColor: form.color }}
-                  >
-                    <input 
-                      type="color" 
-                      value={form.color} 
-                      onChange={e => setForm({...form, color: e.target.value})} 
-                      className="w-full h-full cursor-pointer opacity-0" 
-                    />
-                  </div>
-                  <input 
-                    type="text" 
-                    value={form.color} 
-                    onChange={e => setForm({...form, color: e.target.value})}
-                    className={`flex-1 ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} font-mono`} 
-                  />
-                </div>
-                {/* Quick color picks */}
-                <div className="flex gap-2 mt-2">
-                  {['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899', '#000000'].map(c => (
-                    <button
-                      key={c}
-                      onClick={() => setForm({...form, color: c})}
-                      className={`w-8 h-8 rounded-lg border-2 transition ${form.color === c ? 'border-white scale-110' : 'border-transparent'}`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              {/* Team Logo */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Team Logo</label>
-                <div className="flex items-center gap-4">
-                  {form.logo_url ? (
-                    <div className="relative">
-                      <img src={form.logo_url} alt="Logo" className="w-20 h-20 rounded-xl object-cover" />
-                      <button
-                        onClick={() => setForm({...form, logo_url: ''})}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-sm"
-                      >×</button>
-                    </div>
-                  ) : (
-                    <label className={`w-20 h-20 rounded-xl ${tc.cardBgAlt} border-2 border-dashed ${tc.border} flex flex-col items-center justify-center cursor-pointer hover:border-[var(--accent-primary)] transition`}>
-                      <span className="text-2xl">📷</span>
-                      <span className={`text-xs ${tc.textMuted}`}>Upload</span>
-                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                    </label>
-                  )}
-                  <div className={`text-sm ${tc.textMuted}`}>
-                    <p>Recommended: 200x200px</p>
-                    <p>PNG or JPG</p>
-                    {uploading && <p className="text-[var(--accent-primary)]">Uploading...</p>}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Description */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Description</label>
-                <textarea 
-                  value={form.description} 
-                  onChange={e => setForm({...form, description: e.target.value})} 
-                  placeholder="Team bio, goals, or info for parents..."
-                  rows={3}
-                  className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} resize-none`} 
-                />
-              </div>
+        <div className="p-5 max-h-[60vh] overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className={`${tc.textMuted} mt-2`}>Loading seasons...</p>
             </div>
-          )}
-          
-          {/* Classification Tab */}
-          {activeTab === 'classification' && (
-            <div className="space-y-5">
-              {/* Age Group Type Toggle */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Division Type *</label>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setForm({...form, age_group_type: 'age', age_group: ''})}
-                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition ${
-                      form.age_group_type === 'age'
-                        ? 'bg-[var(--accent-primary)] text-white'
-                        : `${tc.cardBgAlt} ${tc.text}`
-                    }`}
-                  >
-                    By Age (8U, 10U, etc.)
-                  </button>
-                  <button
-                    onClick={() => setForm({...form, age_group_type: 'grade', age_group: ''})}
-                    className={`flex-1 px-4 py-3 rounded-xl font-medium transition ${
-                      form.age_group_type === 'grade'
-                        ? 'bg-[var(--accent-primary)] text-white'
-                        : `${tc.cardBgAlt} ${tc.text}`
-                    }`}
-                  >
-                    By Grade Level
-                  </button>
-                </div>
-              </div>
-              
-              {/* Age Group Selection */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>
-                  {form.age_group_type === 'age' ? 'Age Group *' : 'Grade Level *'}
-                </label>
-                {form.age_group_type === 'age' ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {ageOptions.map(age => (
-                      <button
-                        key={age}
-                        onClick={() => setForm({...form, age_group: age})}
-                        className={`px-4 py-3 rounded-xl font-medium transition ${
-                          form.age_group === age
-                            ? 'bg-[var(--accent-primary)] text-white'
-                            : `${tc.cardBgAlt} ${tc.text} ${tc.hoverBg}`
-                        }`}
-                      >
-                        {age}
-                      </button>
+          ) : Object.keys(seasonsBySport).length === 0 ? (
+            <div className={`text-center py-8 ${tc.cardBgAlt} rounded-xl`}>
+              <p className="text-4xl mb-2">📅</p>
+              <p className={`font-medium ${tc.text}`}>No Open Registrations</p>
+              <p className={`text-sm ${tc.textMuted} mt-1`}>Check back later for new seasons!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(seasonsBySport).map(([sportLabel, seasons]) => (
+                <div key={sportLabel}>
+                  <h3 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3`}>
+                    {sportLabel}
+                  </h3>
+                  <div className="space-y-3">
+                    {seasons.map(season => (
+                      <div key={season.id} className={`${tc.cardBgAlt} rounded-xl p-4`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h4 className={`font-semibold ${tc.text}`}>{season.name}</h4>
+                            <p className={`text-sm ${tc.textMuted}`}>
+                              {season.organizations?.name}
+                              {season.start_date && ` • Starts ${new Date(season.start_date).toLocaleDateString()}`}
+                            </p>
+                          </div>
+                          {season.early_bird_deadline && new Date(season.early_bird_deadline) > new Date() && (
+                            <span className="px-2 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs rounded-full font-medium">
+                              🐦 Early Bird
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Registration buttons for each child */}
+                        <div className="space-y-2">
+                          {children.length > 0 ? (
+                            <>
+                              {children.map(child => {
+                                const registered = isChildRegistered(child, season)
+                                return (
+                                  <a
+                                    key={child.id}
+                                    href={registered ? undefined : getRegistrationUrl(season, child)}
+                                    target={registered ? undefined : "_blank"}
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center justify-between p-2 rounded-lg transition ${
+                                      registered 
+                                        ? `${tc.cardBg} cursor-default` 
+                                        : 'bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 cursor-pointer'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
+                                        registered 
+                                          ? 'bg-emerald-500/20 text-emerald-600' 
+                                          : 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                                      }`}>
+                                        {child.first_name?.[0]}{child.last_name?.[0]}
+                                      </div>
+                                      <span className={`text-sm font-medium ${registered ? tc.textMuted : tc.text}`}>
+                                        {child.first_name} {child.last_name}
+                                      </span>
+                                    </div>
+                                    {registered ? (
+                                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">✓ Registered</span>
+                                    ) : (
+                                      <span className="text-xs text-[var(--accent-primary)] font-medium">Register →</span>
+                                    )}
+                                  </a>
+                                )
+                              })}
+                              {/* Add new child option */}
+                              <a
+                                href={getRegistrationUrl(season)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-center justify-center gap-2 p-2 rounded-lg border-2 border-dashed ${tc.border} hover:border-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/5 transition`}
+                              >
+                                <UserPlus className="w-4 h-4 text-[var(--accent-primary)]" />
+                                <span className="text-sm font-medium text-[var(--accent-primary)]">Register New Child</span>
+                              </a>
+                            </>
+                          ) : (
+                            <a
+                              href={getRegistrationUrl(season)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center gap-2 p-3 rounded-lg bg-[var(--accent-primary)] text-white hover:opacity-90 transition"
+                            >
+                              <UserPlus className="w-4 h-4" />
+                              <span className="font-medium">Register Now</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {gradeOptions.map(grade => (
-                      <button
-                        key={grade.value}
-                        onClick={() => setForm({...form, age_group: grade.value})}
-                        className={`px-3 py-2 rounded-xl text-sm font-medium transition ${
-                          form.age_group === grade.value
-                            ? 'bg-[var(--accent-primary)] text-white'
-                            : `${tc.cardBgAlt} ${tc.text} ${tc.hoverBg}`
-                        }`}
-                      >
-                        {grade.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {/* Team Type */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Team Type *</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setForm({...form, team_type: 'recreational'})}
-                    className={`p-4 rounded-xl border-2 transition text-left ${
-                      form.team_type === 'recreational'
-                        ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                        : `border-transparent ${tc.cardBgAlt}`
-                    }`}
-                  >
-                    <span className="text-3xl">🎉</span>
-                    <p className={`font-semibold ${tc.text} mt-2`}>Recreational</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Fun, learning & development</p>
-                  </button>
-                  <button
-                    onClick={() => setForm({...form, team_type: 'competitive'})}
-                    className={`p-4 rounded-xl border-2 transition text-left ${
-                      form.team_type === 'competitive'
-                        ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                        : `border-transparent ${tc.cardBgAlt}`
-                    }`}
-                  >
-                    <span className="text-3xl">🏆</span>
-                    <p className={`font-semibold ${tc.text} mt-2`}>Competitive</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Travel, tournaments & leagues</p>
-                  </button>
                 </div>
-              </div>
-              
-              {/* Gender */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Gender</label>
-                <div className="flex gap-2">
-                  {[
-                    { value: 'girls', label: '♀ Girls' },
-                    { value: 'boys', label: '♂ Boys' },
-                    { value: 'coed', label: '👫 Coed' },
-                  ].map(g => (
-                    <button
-                      key={g.value}
-                      onClick={() => setForm({...form, gender: g.value})}
-                      className={`flex-1 px-4 py-3 rounded-xl font-medium transition ${
-                        form.gender === g.value
-                          ? 'bg-[var(--accent-primary)] text-white'
-                          : `${tc.cardBgAlt} ${tc.text}`
-                      }`}
-                    >
-                      {g.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Skill Level */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Skill Level</label>
-                <div className="flex gap-2">
-                  {[
-                    { value: 'beginner', label: 'Beginner' },
-                    { value: 'intermediate', label: 'Intermediate' },
-                    { value: 'advanced', label: 'Advanced' },
-                    { value: 'all', label: 'All Levels' },
-                  ].map(s => (
-                    <button
-                      key={s.value}
-                      onClick={() => setForm({...form, skill_level: s.value})}
-                      className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition ${
-                        form.skill_level === s.value
-                          ? 'bg-[var(--accent-primary)] text-white'
-                          : `${tc.cardBgAlt} ${tc.text}`
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Roster Tab */}
-          {activeTab === 'roster' && (
-            <div className="space-y-5">
-              {/* Max Roster Size */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>
-                  Maximum Roster Size: <span className="text-[var(--accent-primary)] font-bold text-lg">{form.max_roster_size}</span>
-                </label>
-                <input
-                  type="range"
-                  min="6"
-                  max="16"
-                  value={form.max_roster_size}
-                  onChange={e => setForm({...form, max_roster_size: parseInt(e.target.value)})}
-                  className="w-full h-3 rounded-full appearance-none cursor-pointer accent-[var(--accent-primary)]"
-                  style={{
-                    background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${((form.max_roster_size - 6) / 10) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} ${((form.max_roster_size - 6) / 10) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} 100%)`
-                  }}
-                />
-                <div className={`flex justify-between text-xs ${tc.textMuted} mt-2`}>
-                  <span>6</span>
-                  <span>10</span>
-                  <span className="font-medium">12 (default)</span>
-                  <span>14</span>
-                  <span>16</span>
-                </div>
-              </div>
-              
-              {/* Min Roster Size */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>
-                  Minimum Roster Size: <span className="text-[var(--accent-primary)] font-bold text-lg">{form.min_roster_size}</span>
-                </label>
-                <input
-                  type="range"
-                  min="4"
-                  max={form.max_roster_size}
-                  value={form.min_roster_size}
-                  onChange={e => setForm({...form, min_roster_size: parseInt(e.target.value)})}
-                  className="w-full h-3 rounded-full appearance-none cursor-pointer accent-[var(--accent-primary)]"
-                  style={{
-                    background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${((form.min_roster_size - 4) / (form.max_roster_size - 4)) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} ${((form.min_roster_size - 4) / (form.max_roster_size - 4)) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} 100%)`
-                  }}
-                />
-                <p className={`text-xs ${tc.textMuted} mt-2`}>Minimum players needed to field a team</p>
-              </div>
-              
-              {/* Roster Status */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Roster Status</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setForm({...form, roster_open: true})}
-                    className={`p-4 rounded-xl border-2 transition text-left ${
-                      form.roster_open
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : `border-transparent ${tc.cardBgAlt}`
-                    }`}
-                  >
-                    <span className="text-2xl">🟢</span>
-                    <p className={`font-semibold ${tc.text} mt-2`}>Open</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Accepting new players</p>
-                  </button>
-                  <button
-                    onClick={() => setForm({...form, roster_open: false})}
-                    className={`p-4 rounded-xl border-2 transition text-left ${
-                      !form.roster_open
-                        ? 'border-red-500 bg-red-500/10'
-                        : `border-transparent ${tc.cardBgAlt}`
-                    }`}
-                  >
-                    <span className="text-2xl">🔴</span>
-                    <p className={`font-semibold ${tc.text} mt-2`}>Closed</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Roster is full/locked</p>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Roster Preview */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <p className={`text-sm ${tc.textMuted} mb-2`}>Roster Preview</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-2">
-                    {Array.from({ length: Math.min(form.max_roster_size, 8) }).map((_, i) => (
-                      <div key={i} className={`w-8 h-8 rounded-full ${tc.cardBg} border-2 ${tc.border} flex items-center justify-center text-xs ${tc.textMuted}`}>
-                        {i + 1}
-                      </div>
-                    ))}
-                    {form.max_roster_size > 8 && (
-                      <div className={`w-8 h-8 rounded-full ${tc.cardBg} border-2 ${tc.border} flex items-center justify-center text-xs ${tc.textMuted}`}>
-                        +{form.max_roster_size - 8}
-                      </div>
-                    )}
-                  </div>
-                  <span className={tc.text}>{form.min_roster_size} - {form.max_roster_size} players</span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Settings Tab */}
-          {activeTab === 'settings' && (
-            <div className="space-y-5">
-              {/* Auto-create options */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-3`}>Auto-Create on Team Creation</label>
-                <div className="space-y-3">
-                  <label className={`flex items-center justify-between p-4 rounded-xl ${tc.cardBgAlt} cursor-pointer`}>
-                    <div className="flex items-center gap-3">
-                      <MessageCircle className="w-7 h-7" />
-                      <div>
-                        <p className={`font-medium ${tc.text}`}>Team Chat</p>
-                        <p className={`text-xs ${tc.textMuted}`}>Parents & coaches can message</p>
-                      </div>
-                    </div>
-                    <input 
-                      type="checkbox" 
-                      checked={form.create_team_chat} 
-                      onChange={e => setForm({...form, create_team_chat: e.target.checked})}
-                      className="w-5 h-5 rounded accent-[var(--accent-primary)]"
-                    />
-                  </label>
-                  
-                  <label className={`flex items-center justify-between p-4 rounded-xl ${tc.cardBgAlt} cursor-pointer`}>
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🧒</span>
-                      <div>
-                        <p className={`font-medium ${tc.text}`}>Player Chat</p>
-                        <p className={`text-xs ${tc.textMuted}`}>Players & coaches (parents view-only)</p>
-                      </div>
-                    </div>
-                    <input 
-                      type="checkbox" 
-                      checked={form.create_player_chat} 
-                      onChange={e => setForm({...form, create_player_chat: e.target.checked})}
-                      className="w-5 h-5 rounded accent-[var(--accent-primary)]"
-                    />
-                  </label>
-                  
-                  <label className={`flex items-center justify-between p-4 rounded-xl ${tc.cardBgAlt} cursor-pointer`}>
-                    <div className="flex items-center gap-3">
-                      <ClipboardList className="w-7 h-7" />
-                      <div>
-                        <p className={`font-medium ${tc.text}`}>Team Wall/Page</p>
-                        <p className={`text-xs ${tc.textMuted}`}>Team announcements, events & posts</p>
-                      </div>
-                    </div>
-                    <input 
-                      type="checkbox" 
-                      checked={form.create_team_wall} 
-                      onChange={e => setForm({...form, create_team_wall: e.target.checked})}
-                      className="w-5 h-5 rounded accent-[var(--accent-primary)]"
-                    />
-                  </label>
-                </div>
-              </div>
-              
-              {/* Internal Notes */}
-              <div>
-                <label className={`block text-sm font-medium ${tc.text} mb-2`}>Internal Notes (Admin Only)</label>
-                <textarea 
-                  value={form.internal_notes} 
-                  onChange={e => setForm({...form, internal_notes: e.target.value})} 
-                  placeholder="Notes for coaches/admins only (not visible to parents)..."
-                  rows={3}
-                  className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} resize-none`} 
-                />
-              </div>
+              ))}
             </div>
           )}
         </div>
         
         {/* Footer */}
-        <div className={`p-4 border-t ${tc.border} flex items-center justify-between`}>
-          <div className={`text-sm ${tc.textMuted}`}>
-            {!form.name && <span className="text-amber-500">⚠ Team name required</span>}
-            {form.name && !form.age_group && <span className="text-amber-500">⚠ Age group required</span>}
-            {form.name && form.age_group && !creating && <span className="text-emerald-500">✓ Ready to create</span>}
-            {creating && <span className="text-[var(--accent-primary)]">Creating team...</span>}
-          </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={onClose} 
-              disabled={creating}
-              className={`px-6 py-2 rounded-xl ${tc.cardBgAlt} ${tc.text} font-medium disabled:opacity-50`}
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleCreate} 
-              disabled={!isValid || creating}
-              className="px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-110 transition"
-            >
-              {creating ? 'Creating...' : 'Create Team'}
-            </button>
-          </div>
+        <div className={`p-5 border-t ${tc.border}`}>
+          <button 
+            onClick={onClose} 
+            className={`w-full py-2.5 rounded-xl ${tc.cardBgAlt} ${tc.text} font-medium hover:opacity-80 transition`}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
   )
 }
+
+// ============================================
+// INFO HEADER BAR COMPONENT - 1:1 Mockup Copy
+// ============================================
+function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
+  const { selectedSeason, seasons: allSeasons, selectSeason } = useSeason()
+  const [stats, setStats] = useState({
+    nextGame: null,
+    nextPractice: null,
+    record: { wins: 0, losses: 0 },
+    winStreak: 0,
+    totalPlayers: 0,
+    rosteredPlayers: 0,
+    activeTeams: 0,
+    totalCollected: 0,
+    totalExpected: 0,
+    balanceDue: 0,
+  })
+  const [loading, setLoading] = useState(true)
+  const [showRegModal, setShowRegModal] = useState(false)
+  const [showSeasonSelector, setShowSeasonSelector] = useState(false)
+
+  // Get the coach's primary team
+  const getCoachPrimaryTeam = () => {
+    if (!roleContext?.coachInfo?.team_coaches?.length) return null
+    const teamId = selectedTeamId || roleContext.coachInfo.team_coaches.find(tc => tc.role === 'head')?.team_id || roleContext.coachInfo.team_coaches[0]?.team_id
+    return roleContext.coachInfo.team_coaches.find(tc => tc.team_id === teamId)
+  }
+
+  const primaryTeam = getCoachPrimaryTeam()
+
+  // Fetch real stats based on season and role
+  useEffect(() => {
+    if (selectedSeason?.id) {
+      fetchStats()
+    }
+  }, [selectedSeason?.id, activeView, selectedTeamId, roleContext])
+
+  async function fetchStats() {
+    setLoading(true)
+    try {
+      const seasonId = selectedSeason?.id
+
+      if (activeView === 'admin') {
+        // Fetch admin stats - query players with registrations joined
+        const [playersRes, teamsRes, paymentsRes] = await Promise.all([
+          supabase.from('players').select('*, registrations(status)').eq('season_id', seasonId),
+          supabase.from('teams').select('id', { count: 'exact' }).eq('season_id', seasonId),
+          supabase.from('payments').select('amount, paid').eq('season_id', seasonId),
+        ])
+
+        // Count only rostered players (from registration status)
+        const rosteredCount = playersRes.data?.filter(p => p.registrations?.[0]?.status === 'rostered').length || 0
+        
+        // Calculate financials correctly
+        const paidPayments = paymentsRes.data?.filter(p => p.paid) || []
+        const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        const totalExpected = paymentsRes.data?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+
+        setStats(prev => ({
+          ...prev,
+          totalPlayers: rosteredCount,
+          activeTeams: teamsRes.count || 0,
+          totalCollected,
+          totalExpected,
+        }))
+      }
+
+      if (activeView === 'coach' && primaryTeam?.team_id) {
+        // Fetch coach stats for selected team
+        const teamId = primaryTeam.team_id
+
+        // Get team record from games
+        const { data: games } = await supabase
+          .from('games')
+          .select('team_score, opponent_score, status')
+          .eq('team_id', teamId)
+          .eq('status', 'completed')
+
+        let wins = 0, losses = 0
+        games?.forEach(g => {
+          if (g.team_score > g.opponent_score) wins++
+          else if (g.team_score < g.opponent_score) losses++
+        })
+
+        // Calculate win streak
+        let streak = 0
+        const sortedGames = games?.sort((a, b) => new Date(b.date) - new Date(a.date)) || []
+        for (const g of sortedGames) {
+          if (g.team_score > g.opponent_score) streak++
+          else break
+        }
+
+        // Get next game
+        const { data: nextGameData } = await supabase
+          .from('games')
+          .select('*, opponent_teams(name)')
+          .eq('team_id', teamId)
+          .in('status', ['scheduled', 'upcoming'])
+          .gte('date', new Date().toISOString().split('T')[0])
+          .order('date', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        // Get next practice
+        const { data: nextPracticeData } = await supabase
+          .from('events')
+          .select('*')
+          .eq('team_id', teamId)
+          .eq('event_type', 'practice')
+          .gte('start_time', new Date().toISOString())
+          .order('start_time', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+
+        setStats(prev => ({
+          ...prev,
+          record: { wins, losses },
+          winStreak: streak,
+          nextGame: nextGameData,
+          nextPractice: nextPracticeData,
+        }))
+      }
+
+      if (activeView === 'parent' && roleContext?.children?.length > 0) {
+        // Get first child's team stats
+        const childTeam = roleContext.children[0]?.team_players?.[0]
+        if (childTeam?.team_id) {
+          const teamId = childTeam.team_id
+
+          // Get team record
+          const { data: games } = await supabase
+            .from('games')
+            .select('team_score, opponent_score')
+            .eq('team_id', teamId)
+            .eq('status', 'completed')
+
+          let wins = 0, losses = 0
+          games?.forEach(g => {
+            if (g.team_score > g.opponent_score) wins++
+            else if (g.team_score < g.opponent_score) losses++
+          })
+
+          // Get balance due for parent
+          const { data: payments } = await supabase
+            .from('payments')
+            .select('amount_due, amount_paid')
+            .eq('parent_id', roleContext.children[0]?.parent_account_id)
+
+          const balanceDue = payments?.reduce((sum, p) => sum + ((p.amount_due || 0) - (p.amount_paid || 0)), 0) || 0
+
+          // Get next game
+          const { data: nextGameData } = await supabase
+            .from('games')
+            .select('*')
+            .eq('team_id', teamId)
+            .in('status', ['scheduled', 'upcoming'])
+            .gte('date', new Date().toISOString().split('T')[0])
+            .order('date', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+
+          // Get next practice
+          const { data: nextPracticeData } = await supabase
+            .from('events')
+            .select('*')
+            .eq('team_id', teamId)
+            .eq('event_type', 'practice')
+            .gte('start_time', new Date().toISOString())
+            .order('start_time', { ascending: true })
+            .limit(1)
+            .maybeSingle()
+
+          setStats(prev => ({
+            ...prev,
+            record: { wins, losses },
+            nextGame: nextGameData,
+            nextPractice: nextPracticeData,
+            balanceDue,
+          }))
+        }
+      }
+
+    } catch (err) {
+      console.error('Error fetching stats:', err)
+    }
+    setLoading(false)
+  }
+
+  // Format date for display
+  const formatEventDate = (dateStr, timeStr) => {
+    if (!dateStr) return 'TBD'
+    const date = new Date(dateStr)
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const dayName = days[date.getDay()]
+    
+    if (timeStr) {
+      const time = new Date(`2000-01-01T${timeStr}`)
+      return `${dayName} ${time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
+    }
+    return dayName
+  }
+
+  // Calculate team morale based on recent performance
+  const getTeamMorale = () => {
+    if (stats.winStreak >= 3) return { label: 'High', color: '#10B981' }
+    if (stats.winStreak >= 1) return { label: 'Good', color: '#F59E0B' }
+    if (stats.record.wins > stats.record.losses) return { label: 'Good', color: '#F59E0B' }
+    return { label: 'Building', color: '#6B7280' }
+  }
+
+  const morale = getTeamMorale()
+
+  return (
+    <div 
+      className="bg-white border-b border-slate-200 shadow-sm"
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+    >
+      {/* Stats Row - Centered */}
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex items-center justify-center gap-0">
+          
+          {/* ═══ COACH VIEW ═══ */}
+          {activeView === 'coach' && (
+            <>
+              {/* Next Game */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Game:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    {stats.nextGame ? formatEventDate(stats.nextGame.date, stats.nextGame.time) : 'No games scheduled'}
+                  </span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Record */}
+              <button 
+                onClick={() => setPage('standings')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Record:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.record.wins}-{stats.record.losses}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Win Streak */}
+              <button 
+                onClick={() => setPage('standings')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
+                  <BarChart3 className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Win Streak:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.winStreak} Wins</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Team Morale */}
+              <div className="flex items-center gap-4 px-6 py-2">
+                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left flex items-center gap-2">
+                  <span className="text-slate-500 text-sm">Team Morale:</span>
+                  <span className="text-lg">👍</span>
+                  <span className="font-bold text-sm" style={{ color: morale.color }}>{morale.label}</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ═══ ADMIN VIEW ═══ */}
+          {activeView === 'admin' && (
+            <>
+              {/* Season/Sport Selector */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowSeasonSelector(!showSeasonSelector)}
+                  className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                >
+                  <div className="w-11 h-11 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center shadow-sm">
+                    {selectedSeason?.sports?.icon ? (
+                      <span className="text-xl">{selectedSeason.sports.icon}</span>
+                    ) : (
+                      <VolleyballIcon className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <span className="text-slate-500 text-sm">Season:</span>
+                    <span className="text-slate-900 font-bold text-sm ml-2">{selectedSeason?.name || 'Select Season'}</span>
+                    <ChevronDown className={`inline w-3 h-3 ml-1 text-slate-400 transition-transform ${showSeasonSelector ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+                
+                {/* Season Dropdown */}
+                {showSeasonSelector && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowSeasonSelector(false)} />
+                    <div className="absolute top-full left-0 mt-1 w-72 rounded-xl shadow-xl border border-slate-200 bg-white overflow-hidden z-50 max-h-80 overflow-y-auto">
+                      {allSeasons.length === 0 ? (
+                        <div className="p-4 text-center text-slate-500 text-sm">No seasons found</div>
+                      ) : (
+                        allSeasons.map(s => (
+                          <button
+                            key={s.id}
+                            onClick={() => { 
+                              selectSeason(s)
+                              setShowSeasonSelector(false)
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition hover:bg-slate-50 ${
+                              selectedSeason?.id === s.id ? 'bg-[var(--accent-primary)]/10' : ''
+                            }`}
+                          >
+                            <span className="text-lg">{s.sports?.icon || '🏆'}</span>
+                            <div className="flex-1 text-left">
+                              <p className={`font-medium ${selectedSeason?.id === s.id ? 'text-[var(--accent-primary)]' : 'text-slate-800'}`}>{s.name}</p>
+                              <p className="text-xs text-slate-500">{s.sports?.name || 'Sport'}</p>
+                            </div>
+                            {s.status === 'active' && (
+                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">Active</span>
+                            )}
+                            {selectedSeason?.id === s.id && <Check className="w-4 h-4 text-[var(--accent-primary)]" />}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Rostered Players */}
+              <button 
+                onClick={() => setPage('teams')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Rostered Players:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.totalPlayers}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Active Teams */}
+              <button 
+                onClick={() => setPage('teams')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
+                  <LayoutDashboard className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Active Teams:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.activeTeams}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Financials */}
+              <button 
+                onClick={() => setPage('payments')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Collected:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    ${stats.totalCollected.toLocaleString()}
+                    <span className="text-slate-400 font-normal">/${stats.totalExpected.toLocaleString()}</span>
+                  </span>
+                </div>
+              </button>
+            </>
+          )}
+
+          {/* ═══ PARENT VIEW ═══ */}
+          {activeView === 'parent' && (
+            <>
+              {/* Registration Open - Opens modal to show available seasons */}
+              <button 
+                onClick={() => setShowRegModal(true)}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
+                  <UserPlus className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="font-bold text-sm text-[#10B981]">New Registration Open!</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Next Practice */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Practice:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    {stats.nextPractice ? formatEventDate(stats.nextPractice.start_time?.split('T')[0], stats.nextPractice.start_time?.split('T')[1]) : 'TBD'}
+                  </span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Team Record */}
+              <button 
+                onClick={() => setPage('standings')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Team Record:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.record.wins}-{stats.record.losses}</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Balance */}
+              <button 
+                onClick={() => setPage('payments')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${stats.balanceDue > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'}`}>
+                  <DollarSign className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  {stats.balanceDue > 0 ? (
+                    <>
+                      <span className="text-slate-500 text-sm">Balance Due:</span>
+                      <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue}</span>
+                    </>
+                  ) : (
+                    <span className="text-[#10B981] font-bold text-sm">All Caught Up! ✓</span>
+                  )}
+                </div>
+              </button>
+            </>
+          )}
+
+          {/* ═══ PLAYER VIEW ═══ */}
+          {activeView === 'player' && (
+            <>
+              {/* Next Practice */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Practice:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">Mon 6:00 PM</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* Next Game */}
+              <button 
+                onClick={() => setPage('schedule')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Next Game:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">Sat 10:00 AM</span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="w-px h-10 bg-slate-200 mx-2" />
+
+              {/* My Achievements */}
+              <button 
+                onClick={() => setPage('achievements')}
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+              >
+                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <span className="text-slate-500 text-sm">Achievements:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">12 Earned</span>
+                </div>
+              </button>
+            </>
+          )}
+
+        </div>
+      </div>
+      
+      {/* Registration Selector Modal for Parents */}
+      <RegistrationSelectorModal
+        isOpen={showRegModal}
+        onClose={() => setShowRegModal(false)}
+        roleContext={roleContext}
+        organization={organization}
+        tc={tc}
+      />
+    </div>
+  )
+}
+
+// CheckCircle icon (add since we need it)
+function CheckCircle({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
+    </svg>
+  )
+}
+
+// ============================================
+// HORIZONTAL NAV BAR COMPONENT
+// ============================================
+function HorizontalNavBar({ 
+  page, setPage, activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
+  getAvailableViews, setActiveView, signOut, exitTeamWall, directTeamWallId,
+  tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
+  roleContext, navigateToTeamWall
+}) {
+  // Admin navigation with dropdowns
+  const adminNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'people', label: 'People', type: 'dropdown', items: [
+      { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
+      { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
+    ]},
+    { id: 'operations', label: 'Operations', type: 'dropdown', items: [
+      { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
+      { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+      { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
+      { id: 'payments', label: 'Payments', icon: 'dollar' },
+    ]},
+    { id: 'game', label: 'Game Day', type: 'dropdown', items: [
+      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'communication', label: 'Communication', type: 'dropdown', items: [
+      { id: 'chats', label: 'Chats', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+    { id: 'insights', label: 'Insights', type: 'dropdown', items: [
+      { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
+    ]},
+    { id: 'setup', label: 'Setup', type: 'dropdown', items: [
+  { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+  { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
+  { id: 'waivers', label: 'Waivers', icon: 'file-text' },
+  { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+  { id: 'organization', label: 'Organization', icon: 'building' },
+]},
+  ]
+
+  // Coach navigation
+  const coachNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'dropdown', items: 
+      roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
+        id: `teamwall-${tc_item.team_id}`,
+        label: tc_item.teams?.name + (tc_item.role === 'head' ? ' ⭐' : ''),
+        icon: 'users',
+        teamId: tc_item.team_id,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'gameday', label: 'Game Day', type: 'dropdown', items: [
+      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'attendance', label: 'Attendance', type: 'single' },
+    { id: 'communication', label: 'Communication', type: 'dropdown', items: [
+      { id: 'chats', label: 'Team Chats', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+  ]
+
+  // Parent navigation
+  const parentNavGroups = [
+    { id: 'dashboard', label: 'Home', type: 'single' },
+    { id: 'myplayers', label: 'My Players', type: 'dropdown', items: 
+      roleContext?.children?.map(child => ({
+        id: `player-${child.id}`,
+        label: child.first_name,
+        icon: 'user',
+        playerId: child.id,
+        teams: child.team_players,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'standings', label: 'Standings', type: 'single' },
+    { id: 'leaderboards', label: 'Leaderboards', type: 'single' },
+    { id: 'achievements', label: 'Achievements', type: 'single' },
+    { id: 'chats', label: 'Chats', type: 'single' },
+    { id: 'payments', label: 'Payments', type: 'single' },
+  ]
+
+  // Player navigation
+  const playerNavGroups = [
+    { id: 'dashboard', label: 'Home', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'dropdown', items:
+      roleContext?.playerInfo?.team_players?.map(tp => ({
+        id: `teamwall-${tp.team_id}`,
+        label: tp.teams?.name,
+        icon: 'users',
+        teamId: tp.team_id,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'standings', label: 'Standings', type: 'single' },
+    { id: 'leaderboards', label: 'Leaderboards', type: 'single' },
+    { id: 'achievements', label: 'Achievements', type: 'single' },
+  ]
+
+  const getNavItems = () => {
+    switch(activeView) {
+      case 'admin': return adminNavGroups
+      case 'coach': return coachNavGroups
+      case 'parent': return parentNavGroups
+      case 'player': return playerNavGroups
+      default: return []
+    }
+  }
+
+  const navItems = getNavItems()
+
+  const isGroupActive = (group) => {
+    if (group.type === 'single') return page === group.id && !directTeamWallId
+    if (group.items) {
+      return group.items.some(item => {
+        if (item.teamId) return directTeamWallId === item.teamId
+        if (item.playerId) return page === `player-${item.playerId}`
+        return item.id === page
+      })
+    }
+    return false
+  }
+
+  const handleNavigate = (itemId, item) => {
+    if (item?.teamId) {
+      navigateToTeamWall(item.teamId)
+      return
+    }
+    if (item?.playerId) {
+      exitTeamWall()
+      setPage(`player-${item.playerId}`)
+      return
+    }
+    exitTeamWall()
+    setPage(itemId)
+  }
+
+  return (
+    <header className="h-14 flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-50"
+      style={{ background: accent.navBar, boxShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+      
+      {/* LEFT: Logo */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: accent.primary }}>
+          <VolleyballIcon className="w-5 h-5 text-white" />
+        </div>
+        <span className="font-bold text-lg text-white">Volley<span className="text-slate-400">Brain</span></span>
+      </div>
+
+      {/* CENTER: Navigation */}
+      <nav className="flex items-center gap-1">
+        {navItems.map(item => {
+          if (item.type === 'single') {
+            const isActive = page === item.id && !directTeamWallId
+            return (
+              <button key={item.id} onClick={() => handleNavigate(item.id)}
+                className="px-4 py-2 text-sm font-medium rounded-lg transition-all"
+                style={{ background: isActive ? 'rgba(255,255,255,0.15)' : 'transparent', color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.7)' }}>
+                {item.label}
+              </button>
+            )
+          } else if (item.items && item.items.length > 0) {
+            return (
+              <NavDropdown key={item.id} label={item.label} items={item.items} currentPage={page}
+                onNavigate={(id, navItem) => handleNavigate(id, navItem)}
+                isActive={isGroupActive(item)} directTeamWallId={directTeamWallId} />
+            )
+          }
+          return null
+        })}
+      </nav>
+
+      {/* RIGHT: Notifications + Profile */}
+      <div className="flex items-center gap-3">
+        <NotificationDropdown tc={tc} />
+        <UserProfileDropdown 
+          profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
+          setShowRoleSwitcher={setShowRoleSwitcher} getAvailableViews={getAvailableViews}
+          setActiveView={setActiveView} setPage={setPage} signOut={signOut} tc={tc}
+          accent={accent} accentColor={accentColor} changeAccent={changeAccent}
+          accentColors={accentColors} isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
+    </header>
+  )
+}
+
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
+function MainApp() {
+  const { profile, organization, signOut, user } = useAuth()
+  const tc = useThemeClasses()
+  const { isDark, accent, accentColor, changeAccent, accentColors, toggleTheme } = useTheme()
+  const [page, setPage] = useState('dashboard')
+  const [toast, setToast] = useState(null)
+  const [directTeamWallId, setDirectTeamWallId] = useState(null)
+  const [selectedTeamId, setSelectedTeamId] = useState(null)
+
+  useEffect(() => {
+    function handleHashChange() {
+      const hash = window.location.hash
+      const teamMatch = hash.match(/^#\/team\/(.+)$/)
+      if (teamMatch) {
+        setDirectTeamWallId(teamMatch[1])
+      } else {
+        setDirectTeamWallId(null)
+      }
+    }
+    handleHashChange()
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
+
+  const navigateToTeamWall = (teamId) => {
+    window.location.hash = `/team/${teamId}`
+  }
+
+  const exitTeamWall = () => {
+    window.location.hash = ''
+    setDirectTeamWallId(null)
+  }
+
+  const navigateFromTeamWall = (targetPage) => {
+    window.location.hash = ''
+    setDirectTeamWallId(null)
+    setPage(targetPage)
+  }
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type })
+  }
+
+  const [activeView, setActiveView] = useState('admin')
+  const [userRoles, setUserRoles] = useState([])
+  const [roleContext, setRoleContext] = useState(null)
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
+  const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
+
+  useEffect(() => {
+    if (profile?.id && organization?.id) {
+      loadRoleContext()
+    }
+  }, [profile?.id, organization?.id])
+
+  async function loadRoleContext() {
+    try {
+      const { data: roles } = await supabase
+        .from('user_roles').select('*')
+        .eq('user_id', profile.id).eq('organization_id', organization.id).eq('is_active', true)
+
+      setUserRoles(roles || [])
+
+      const { data: coachLink } = await supabase
+        .from('coaches').select('*, team_coaches(team_id, role, teams(id, name, color))')
+        .eq('profile_id', profile.id).maybeSingle()
+
+      const { data: children } = await supabase
+        .from('players').select('id, first_name, last_name, photo_url, team_players(team_id, teams(id, name, color))')
+        .eq('parent_account_id', profile.id)
+
+      const playerSelf = null
+
+      setRoleContext({
+        roles: roles || [],
+        isAdmin: roles?.some(r => r.role === 'league_admin' || r.role === 'admin'),
+        isCoach: !!coachLink,
+        coachInfo: coachLink,
+        isParent: roles?.some(r => r.role === 'parent') && children?.length > 0,
+        children: children || [],
+        isPlayer: !!playerSelf,
+        playerInfo: playerSelf
+      })
+
+      if (roles?.some(r => r.role === 'league_admin' || r.role === 'admin')) {
+        setActiveView('admin')
+      } else if (coachLink) {
+        setActiveView('coach')
+      } else if (children?.length > 0) {
+        setActiveView('parent')
+      } else if (playerSelf) {
+        setActiveView('player')
+      }
+    } catch (err) {
+      console.error('Error loading role context:', err)
+    }
+  }
+
+  const getAvailableViews = () => {
+    const views = []
+    if (roleContext?.isAdmin) {
+      views.push({ id: 'admin', label: 'Admin', icon: 'shield', description: 'Full league management' })
+    }
+    if (roleContext?.isCoach) {
+      const teamNames = roleContext.coachInfo?.team_coaches?.map(tc => tc.teams?.name).filter(Boolean).join(', ')
+      views.push({ id: 'coach', label: 'Coach', icon: 'user-cog', description: teamNames || 'Team management' })
+    }
+    if (roleContext?.isParent && roleContext.children?.length > 0) {
+      const childNames = roleContext.children.map(c => c.first_name).join(', ')
+      views.push({ id: 'parent', label: 'Parent', icon: 'users', description: childNames })
+    }
+    if (roleContext?.isPlayer) {
+      views.push({ id: 'player', label: 'Player', icon: 'volleyball', description: roleContext.playerInfo?.first_name })
+    }
+    if ((roleContext?.isAdmin || roleContext?.isCoach) && !roleContext?.isPlayer) {
+      views.push({ id: 'player', label: 'Player', icon: 'volleyball', description: 'Preview player view' })
+    }
+    return views
+  }
+
+  return (
+    <SportProvider>
+    <SeasonProvider>
+      <div className={`flex flex-col min-h-screen ${tc.pageBg}`}>
+        <JourneyCelebrations />
+        
+        {/* Horizontal Nav Bar */}
+        <HorizontalNavBar 
+          page={page} setPage={setPage} activeView={activeView} profile={profile}
+          showRoleSwitcher={showRoleSwitcher} setShowRoleSwitcher={setShowRoleSwitcher}
+          getAvailableViews={getAvailableViews} setActiveView={setActiveView} signOut={signOut}
+          exitTeamWall={exitTeamWall} directTeamWallId={directTeamWallId} tc={tc} accent={accent}
+          accentColor={accentColor} changeAccent={changeAccent} accentColors={accentColors}
+          isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
+          navigateToTeamWall={navigateToTeamWall}
+        />
+        
+        {/* Info Header Bar */}
+        <div className="mt-14">
+          <InfoHeaderBar 
+            activeView={activeView} roleContext={roleContext} organization={organization}
+            tc={tc} setPage={setPage} selectedTeamId={selectedTeamId}
+            setSelectedTeamId={setSelectedTeamId}
+          />
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 p-8 overflow-auto">
+          {directTeamWallId ? (
+            <TeamWallPage teamId={directTeamWallId} showToast={showToast} onBack={exitTeamWall} onNavigate={navigateFromTeamWall} />
+          ) : (
+            <>
+              {page === 'dashboard' && activeView === 'admin' && <DashboardPage onNavigate={setPage} />}
+              {page === 'dashboard' && activeView === 'coach' && <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
+              {page === 'dashboard' && activeView === 'parent' && <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
+              {page === 'dashboard' && activeView === 'player' && <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} showToast={showToast} onPlayerChange={setSelectedPlayerForView} />}
+              
+              {page.startsWith('player-') && activeView === 'parent' && <PlayerProfilePage playerId={page.replace('player-', '')} roleContext={roleContext} showToast={showToast} />}
+              {page === 'messages' && activeView === 'parent' && <ParentMessagesPage roleContext={roleContext} showToast={showToast} />}
+              {page === 'invite' && activeView === 'parent' && <InviteFriendsPage roleContext={roleContext} showToast={showToast} />}
+              {page === 'payments' && activeView === 'parent' && <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />}
+              
+              {page === 'registrations' && (activeView === 'admin' || activeView === 'coach') && <RegistrationsPage showToast={showToast} />}
+              {page === 'payments' && activeView === 'admin' && <PaymentsPage showToast={showToast} />}
+              {page === 'teams' && (activeView === 'admin' || activeView === 'coach') && <TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
+              {page === 'coaches' && activeView === 'admin' && <CoachesPage showToast={showToast} />}
+              {page === 'jerseys' && activeView === 'admin' && <JerseysPage showToast={showToast} />}
+              {page === 'schedule' && <SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
+              {page === 'attendance' && (activeView === 'admin' || activeView === 'coach') && <AttendancePage showToast={showToast} />}
+              {page === 'gameprep' && (activeView === 'admin' || activeView === 'coach') && <GamePrepPage showToast={showToast} />}
+              {page === 'standings' && <TeamStandingsPage showToast={showToast} />}
+              {page === 'leaderboards' && <SeasonLeaderboardsPage showToast={showToast} />}
+              {page === 'seasons' && activeView === 'admin' && <SeasonsPage showToast={showToast} />}
+              {page === 'templates' && activeView === 'admin' && <RegistrationTemplatesPage showToast={showToast} />}
+              {page === 'waivers' && activeView === 'admin' && <WaiversPage showToast={showToast} />}
+              {page === 'paymentsetup' && activeView === 'admin' && <PaymentSetupPage showToast={showToast} />}
+              {page === 'organization' && activeView === 'admin' && <OrganizationPage showToast={showToast} />}
+              {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
+              {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
+              {page === 'reports' && activeView === 'admin' && <ReportsPage showToast={showToast} />}
+              
+              {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
+                <AchievementsCatalogPage 
+                  playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
+                  showToast={showToast}
+                  playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : `${roleContext?.children?.[0]?.first_name}'s`}
+                  isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        <BlastAlertChecker />
+      </div>
+    </SeasonProvider>
+    </SportProvider>
+  )
+}
+
+export { MainApp }
