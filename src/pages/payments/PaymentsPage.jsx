@@ -120,17 +120,33 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
       // Insert all fees in one batch
       const { error: insertError } = await supabase.from('payments').insert(allFees)
       if (insertError) throw insertError
-    }
-    
-    const message = `Generated ${totalFeesCreated} fees for ${playersNeedingFees.length} players totaling $${totalAmount.toFixed(2)}`
-    if (showToast) showToast(message, 'success')
-    
-    return { 
-      success: true, 
-      playersProcessed: playersNeedingFees.length,
-      feesCreated: totalFeesCreated, 
-      totalAmount,
-      message 
+      
+      const message = `Generated ${totalFeesCreated} fees for ${playersNeedingFees.length} players totaling $${totalAmount.toFixed(2)}`
+      if (showToast) showToast(message, 'success')
+      
+      return { 
+        success: true, 
+        playersProcessed: playersNeedingFees.length,
+        feesCreated: totalFeesCreated, 
+        totalAmount,
+        message 
+      }
+    } else {
+      // No fees generated - check if season has fees configured
+      const hasAnyFees = (parseFloat(season.fee_registration) || 0) > 0 ||
+                         (parseFloat(season.fee_uniform) || 0) > 0 ||
+                         (parseFloat(season.fee_monthly) || 0) > 0 ||
+                         (parseFloat(season.fee_per_family) || 0) > 0
+      
+      if (!hasAnyFees) {
+        const message = '⚠️ No fees configured for this season. Go to Setup → Seasons to add fees.'
+        if (showToast) showToast(message, 'warning')
+        return { success: true, noFeesConfigured: true, message }
+      } else {
+        const message = `Found ${playersNeedingFees.length} players but no fees to generate`
+        if (showToast) showToast(message, 'info')
+        return { success: true, playersProcessed: 0, feesCreated: 0, message }
+      }
     }
   } catch (err) {
     console.error('Error generating fees for existing players:', err)
