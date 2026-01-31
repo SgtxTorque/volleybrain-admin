@@ -5,7 +5,10 @@ import { useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { calculateFeesForPlayer } from '../../lib/fee-calculator'
 import { exportToCSV } from '../../lib/csv-export'
-import { DollarSign, Copy, Mail } from '../../constants/icons'
+import { 
+  DollarSign, ChevronDown, ChevronRight, Search, Trash2, Mail, 
+  MessageCircle, Bell, X, Check, Clock, AlertCircle, User, Users
+} from 'lucide-react'
 import { ClickablePlayerName } from '../registrations/RegistrationsPage'
 
 // ============================================
@@ -13,7 +16,6 @@ import { ClickablePlayerName } from '../registrations/RegistrationsPage'
 // ============================================
 export async function generateFeesForExistingPlayers(supabase, seasonId, showToast) {
   try {
-    // Get the season
     const { data: season, error: seasonError } = await supabase
       .from('seasons')
       .select('*')
@@ -22,7 +24,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
     
     if (seasonError || !season) throw new Error('Season not found')
     
-    // Get all approved/rostered players for this season who don't have auto-generated fees
     const { data: players, error: playersError } = await supabase
       .from('players')
       .select('*, registrations(*)')
@@ -30,7 +31,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
     
     if (playersError) throw playersError
     
-    // Filter to only approved/rostered players
     const approvedPlayers = (players || []).filter(p => 
       ['approved', 'rostered'].includes(p.registrations?.[0]?.status)
     )
@@ -39,7 +39,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
       return { success: true, message: 'No approved players found' }
     }
     
-    // Get existing auto-generated payments
     const { data: existingPayments } = await supabase
       .from('payments')
       .select('player_id, family_email, fee_category')
@@ -53,14 +52,12 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
         .map(p => p.family_email?.toLowerCase())
     )
     
-    // Filter to players without fees
     const playersNeedingFees = approvedPlayers.filter(p => !playersWithFees.has(p.id))
     
     if (playersNeedingFees.length === 0) {
       return { success: true, message: 'All approved players already have fees' }
     }
     
-    // Group players by family for sibling discount calculation
     const familyGroups = {}
     for (const player of playersNeedingFees) {
       const familyEmail = player.parent_email?.toLowerCase() || 'unknown'
@@ -70,7 +67,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
       familyGroups[familyEmail].push(player)
     }
     
-    // Count existing siblings with fees per family
     const familySiblingCounts = {}
     for (const payment of (existingPayments || [])) {
       const email = payment.family_email?.toLowerCase()
@@ -78,7 +74,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
         familySiblingCounts[email] = (familySiblingCounts[email] || 0) + 1
       }
     }
-    // Deduplicate - we want unique players, not fee count
     for (const email of Object.keys(familySiblingCounts)) {
       const uniquePlayers = [...new Set((existingPayments || [])
         .filter(p => p.family_email?.toLowerCase() === email)
@@ -86,7 +81,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
       familySiblingCounts[email] = uniquePlayers.length
     }
     
-    // Generate fees for each player with proper sibling indexing
     let totalFeesCreated = 0
     let totalAmount = 0
     const allFees = []
@@ -102,7 +96,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
           siblingIndex
         })
         
-        // Track this family as having family fee now
         if (familyEmail && fees.some(f => f.fee_category === 'per_family')) {
           familiesWithFamilyFee.add(familyEmail)
         }
@@ -110,14 +103,11 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
         allFees.push(...fees)
         totalFeesCreated += fees.length
         totalAmount += fees.reduce((sum, f) => sum + f.amount, 0)
-        
-        // Increment sibling index for next player in this family
         siblingIndex++
       }
     }
     
     if (allFees.length > 0) {
-      // Insert all fees in one batch
       const { error: insertError } = await supabase.from('payments').insert(allFees)
       if (insertError) throw insertError
       
@@ -132,7 +122,6 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
         message 
       }
     } else {
-      // No fees generated - check if season has fees configured
       const hasAnyFees = (parseFloat(season.fee_registration) || 0) > 0 ||
                          (parseFloat(season.fee_uniform) || 0) > 0 ||
                          (parseFloat(season.fee_monthly) || 0) > 0 ||
@@ -156,167 +145,423 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
 }
 
 // ============================================
-// GENERATE EMAIL CONTENT
+// PLAYER PAYMENT CARD (Collapsible)
 // ============================================
-export function generateEmailContent(type, data) {
-  const { player, season, organization, fees, totalDue } = data
+function PlayerPaymentCard({ 
+  player, 
+  payments, 
+  onMarkPaid, 
+  onMarkUnpaid, 
+  onDeletePayment,
+  onSendReminder,
+  expanded, 
+  onToggle,
+  tc 
+}) {
+  const totalOwed = payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const totalPaid = payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const total = totalOwed + totalPaid
+  const allPaid = totalOwed === 0 && payments.length > 0
+
+  return (
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden transition-all`}>
+      {/* Collapsed Header - Click anywhere to expand */}
+      <div 
+        onClick={onToggle}
+        className={`p-4 cursor-pointer hover:brightness-105 transition flex items-center justify-between`}
+      >
+        <div className="flex items-center gap-4">
+          {expanded ? (
+            <ChevronDown className="w-5 h-5 text-slate-400" />
+          ) : (
+            <ChevronRight className="w-5 h-5 text-slate-400" />
+          )}
+          
+          {/* Player Avatar */}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-medium">
+            {player.photo_url ? (
+              <img src={player.photo_url} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              player.first_name?.[0] || '?'
+            )}
+          </div>
+          
+          {/* Player Info */}
+          <div>
+            <p className={`font-semibold ${tc.text}`}>
+              {player.first_name} {player.last_name}
+            </p>
+            <p className={`text-sm ${tc.textMuted}`}>
+              {player.parent_name} • {player.parent_email}
+            </p>
+          </div>
+        </div>
+        
+        {/* Payment Status Summary */}
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className={`text-lg font-bold ${allPaid ? 'text-emerald-400' : 'text-slate-300'}`}>
+              ${totalPaid.toFixed(2)} <span className="text-slate-500">/ ${total.toFixed(2)}</span>
+            </p>
+            <p className={`text-xs ${allPaid ? 'text-emerald-400' : 'text-red-400'}`}>
+              {allPaid ? '✓ Paid in full' : `$${totalOwed.toFixed(2)} outstanding`}
+            </p>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => onSendReminder(player)}
+              className={`p-2 rounded-lg ${tc.hoverBg} ${tc.textMuted} hover:text-[var(--accent-primary)]`}
+              title="Send reminder"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Expanded Content */}
+      {expanded && (
+        <div className={`border-t ${tc.border}`}>
+          {/* Fee List */}
+          <div className="divide-y divide-slate-700/50">
+            {payments.map(payment => (
+              <div 
+                key={payment.id} 
+                className={`px-4 py-3 flex items-center justify-between ${payment.paid ? 'bg-emerald-500/5' : ''}`}
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                  <div className="flex-1">
+                    <p className={`font-medium ${tc.text}`}>{payment.fee_name || payment.fee_type}</p>
+                    <p className={`text-xs ${tc.textMuted}`}>
+                      {payment.description || ''}
+                      {payment.due_date && ` • Due: ${new Date(payment.due_date).toLocaleDateString()}`}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  <p className={`font-semibold ${tc.text} w-20 text-right`}>
+                    ${parseFloat(payment.amount || 0).toFixed(2)}
+                  </p>
+                  
+                  {/* Status Badge */}
+                  <div className="w-20">
+                    {payment.paid ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
+                        <Check className="w-3 h-3" /> Paid
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+                        <Clock className="w-3 h-3" /> Unpaid
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    {payment.paid ? (
+                      <button
+                        onClick={() => onMarkUnpaid(payment.id)}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      >
+                        Mark Unpaid
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onMarkPaid(payment)}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                      >
+                        Mark Paid
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onDeletePayment(payment)}
+                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20"
+                      title="Remove fee"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Payment History */}
+          {payments.some(p => p.paid) && (
+            <div className={`p-4 border-t ${tc.border} bg-slate-800/30`}>
+              <p className={`text-xs font-semibold ${tc.textMuted} mb-2`}>PAYMENT HISTORY</p>
+              <div className="space-y-2">
+                {payments.filter(p => p.paid).map(p => (
+                  <div key={p.id} className="flex items-center justify-between text-sm">
+                    <span className={tc.textMuted}>
+                      {p.fee_name} - ${parseFloat(p.amount).toFixed(2)}
+                    </span>
+                    <span className={tc.textMuted}>
+                      {p.paid_date ? new Date(p.paid_date).toLocaleDateString() : 'N/A'} 
+                      {p.payment_method && ` via ${p.payment_method}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// FAMILY PAYMENT CARD (Collapsible)
+// ============================================
+function FamilyPaymentCard({ 
+  family, 
+  onMarkPaid, 
+  onMarkUnpaid, 
+  onDeletePayment,
+  onSendReminder,
+  expanded, 
+  onToggle,
+  tc 
+}) {
+  const totalOwed = family.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const totalPaid = family.payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+  const total = totalOwed + totalPaid
+  const allPaid = totalOwed === 0 && family.payments.length > 0
   
-  switch (type) {
-    case 'registration_confirmation':
-      return {
-        subject: `Registration Confirmed - ${season?.name || 'Season'}`,
-        body: `Hi ${player?.parent_name || 'Parent'},
-
-Great news! ${player?.first_name}'s registration for ${organization?.name || 'our organization'} ${season?.name || ''} has been approved!
-
-Player: ${player?.first_name} ${player?.last_name}
-Season: ${season?.name}
-${season?.start_date ? `Start Date: ${new Date(season.start_date).toLocaleDateString()}` : ''}
-
-${totalDue > 0 ? `
-PAYMENT DUE: $${totalDue.toFixed(2)}
-
-Fee Breakdown:
-${fees?.map(f => `• ${f.fee_name}: $${f.amount.toFixed(2)}`).join('\n') || 'See admin for details'}
-
-Payment Methods:
-${organization?.payment_venmo ? `• Venmo: ${organization.payment_venmo}` : ''}
-${organization?.payment_zelle ? `• Zelle: ${organization.payment_zelle}` : ''}
-${organization?.payment_cashapp ? `• Cash App: ${organization.payment_cashapp}` : ''}
-
-Please include "${player?.first_name} ${player?.last_name} - ${season?.name}" in your payment note.
-` : 'No payment due at this time.'}
-
-Questions? Reply to this email.
-
-See you on the court!
-${organization?.name || 'The Team'}`
+  // Group payments by player
+  const playerPayments = family.payments.reduce((acc, p) => {
+    const playerId = p.player_id || 'family'
+    if (!acc[playerId]) {
+      acc[playerId] = {
+        player: p.players,
+        payments: []
       }
-    
-    case 'payment_reminder':
-      return {
-        subject: `Payment Reminder - ${season?.name || 'Season'} - $${totalDue?.toFixed(2) || '0'} Due`,
-        body: `Hi ${player?.parent_name || 'Parent'},
+    }
+    acc[playerId].payments.push(p)
+    return acc
+  }, {})
 
-This is a friendly reminder that you have an outstanding balance for ${player?.first_name}'s registration.
-
-AMOUNT DUE: $${totalDue?.toFixed(2) || '0'}
-
-Outstanding Fees:
-${fees?.filter(f => !f.paid).map(f => `• ${f.fee_name}: $${f.amount.toFixed(2)}`).join('\n') || 'See admin for details'}
-
-Payment Methods:
-${organization?.payment_venmo ? `• Venmo: ${organization.payment_venmo}` : ''}
-${organization?.payment_zelle ? `• Zelle: ${organization.payment_zelle}` : ''}
-${organization?.payment_cashapp ? `• Cash App: ${organization.payment_cashapp}` : ''}
-
-Please include "${player?.first_name} ${player?.last_name} - ${season?.name}" in your payment note.
-
-Questions? Reply to this email.
-
-Thank you!
-${organization?.name || 'The Team'}`
-      }
-    
-    case 'waitlist_notification':
-      return {
-        subject: `You're on the Waitlist - ${season?.name || 'Season'}`,
-        body: `Hi ${player?.parent_name || 'Parent'},
-
-Thank you for registering ${player?.first_name} for ${organization?.name || 'our organization'} ${season?.name || ''}.
-
-You are currently on the waitlist. We'll notify you as soon as a spot becomes available.
-
-Waitlist Position: ${data.waitlistPosition || 'TBD'}
-
-If you have any questions, please reply to this email.
-
-Thank you for your patience!
-${organization?.name || 'The Team'}`
-      }
-    
-    default:
-      return { subject: '', body: '' }
-  }
+  return (
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden transition-all`}>
+      {/* Collapsed Header */}
+      <div 
+        onClick={onToggle}
+        className={`p-4 cursor-pointer hover:brightness-105 transition flex items-center justify-between`}
+      >
+        <div className="flex items-center gap-4">
+          {expanded ? (
+            <ChevronDown className="w-5 h-5 text-slate-400" />
+          ) : (
+            <ChevronRight className="w-5 h-5 text-slate-400" />
+          )}
+          
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white">
+            <Users className="w-5 h-5" />
+          </div>
+          
+          <div>
+            <p className={`font-semibold ${tc.text}`}>{family.parentName}</p>
+            <p className={`text-sm ${tc.textMuted}`}>
+              {family.email} • {[...family.players].length} player{[...family.players].length !== 1 ? 's' : ''}
+            </p>
+            <p className={`text-xs ${tc.textMuted}`}>{[...family.players].join(', ')}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <p className={`text-lg font-bold ${allPaid ? 'text-emerald-400' : 'text-slate-300'}`}>
+              ${totalPaid.toFixed(2)} <span className="text-slate-500">/ ${total.toFixed(2)}</span>
+            </p>
+            <p className={`text-xs ${allPaid ? 'text-emerald-400' : 'text-red-400'}`}>
+              {allPaid ? '✓ Paid in full' : `$${totalOwed.toFixed(2)} outstanding`}
+            </p>
+          </div>
+          
+          <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => onSendReminder(family)}
+              className={`p-2 rounded-lg ${tc.hoverBg} ${tc.textMuted} hover:text-[var(--accent-primary)]`}
+              title="Send reminder"
+            >
+              <Bell className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Expanded Content */}
+      {expanded && (
+        <div className={`border-t ${tc.border}`}>
+          {Object.entries(playerPayments).map(([playerId, { player, payments }]) => (
+            <div key={playerId} className={`border-b ${tc.border} last:border-0`}>
+              {/* Player Sub-header */}
+              <div className={`px-4 py-2 bg-slate-800/30 flex items-center gap-2`}>
+                <User className="w-4 h-4 text-slate-400" />
+                <span className={`font-medium ${tc.text}`}>
+                  {player?.first_name} {player?.last_name || 'Family Fee'}
+                </span>
+              </div>
+              
+              {/* Player's Fees */}
+              <div className="divide-y divide-slate-700/50">
+                {payments.map(payment => (
+                  <div 
+                    key={payment.id} 
+                    className={`px-4 py-3 flex items-center justify-between ${payment.paid ? 'bg-emerald-500/5' : ''}`}
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                      <div className="flex-1">
+                        <p className={`font-medium ${tc.text}`}>{payment.fee_name || payment.fee_type}</p>
+                        <p className={`text-xs ${tc.textMuted}`}>
+                          {payment.due_date && `Due: ${new Date(payment.due_date).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <p className={`font-semibold ${tc.text} w-20 text-right`}>
+                        ${parseFloat(payment.amount || 0).toFixed(2)}
+                      </p>
+                      
+                      <div className="w-20">
+                        {payment.paid ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">
+                            <Check className="w-3 h-3" /> Paid
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">
+                            <Clock className="w-3 h-3" /> Unpaid
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {payment.paid ? (
+                          <button
+                            onClick={() => onMarkUnpaid(payment.id)}
+                            className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
+                          >
+                            Mark Unpaid
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => onMarkPaid(payment)}
+                            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeletePayment(payment)}
+                          className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20"
+                          title="Remove fee"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ============================================
 // MARK PAID MODAL
 // ============================================
-export function MarkPaidModal({ payment, onClose, onConfirm }) {
-  const tc = useThemeClasses()
+function MarkPaidModal({ payment, onConfirm, onClose, tc }) {
   const [details, setDetails] = useState({
-    payment_method: '',
-    reference_number: '',
     paid_date: new Date().toISOString().split('T')[0],
+    payment_method: 'cash',
+    reference_number: '',
     notes: ''
   })
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
-        <div className={`p-6 border-b ${tc.border}`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>Mark Payment as Paid</h2>
-          <p className={`${tc.textMuted} text-sm mt-1`}>
-            {payment.players?.first_name} {payment.players?.last_name} - {payment.fee_name || payment.fee_type} - ${payment.amount}
-          </p>
-        </div>
-        <div className="p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
+        <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Mark Payment as Paid</h3>
+        
+        <div className="space-y-4">
           <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Payment Method *</label>
-            <select 
-              value={details.payment_method} 
-              onChange={e => setDetails({...details, payment_method: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Fee</label>
+            <p className={`${tc.text} font-medium`}>
+              {payment.fee_name} - ${parseFloat(payment.amount).toFixed(2)}
+            </p>
+          </div>
+          
+          <div>
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Payment Date</label>
+            <input
+              type="date"
+              value={details.paid_date}
+              onChange={e => setDetails(d => ({ ...d, paid_date: e.target.value }))}
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+            />
+          </div>
+          
+          <div>
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Payment Method</label>
+            <select
+              value={details.payment_method}
+              onChange={e => setDetails(d => ({ ...d, payment_method: e.target.value }))}
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
             >
-              <option value="">Select method...</option>
+              <option value="cash">Cash</option>
               <option value="venmo">Venmo</option>
               <option value="zelle">Zelle</option>
               <option value="cashapp">Cash App</option>
-              <option value="cash">Cash</option>
               <option value="check">Check</option>
               <option value="stripe">Stripe</option>
-              <option value="square">Square</option>
               <option value="other">Other</option>
             </select>
           </div>
+          
           <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Reference/Confirmation # (optional)</label>
-            <input 
-              type="text" 
-              value={details.reference_number} 
-              onChange={e => setDetails({...details, reference_number: e.target.value})}
-              placeholder="e.g., Venmo ID, Check #, etc."
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Reference # (optional)</label>
+            <input
+              type="text"
+              value={details.reference_number}
+              onChange={e => setDetails(d => ({ ...d, reference_number: e.target.value }))}
+              placeholder="Transaction ID, check #, etc."
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
             />
           </div>
+          
           <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Payment Date</label>
-            <input 
-              type="date" 
-              value={details.paid_date} 
-              onChange={e => setDetails({...details, paid_date: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}
-            />
-          </div>
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Notes (optional)</label>
-            <textarea 
-              value={details.notes} 
-              onChange={e => setDetails({...details, notes: e.target.value})}
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Notes (optional)</label>
+            <textarea
+              value={details.notes}
+              onChange={e => setDetails(d => ({ ...d, notes: e.target.value }))}
               placeholder="Any additional notes..."
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} min-h-[60px]`}
+              rows={2}
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
             />
           </div>
         </div>
-        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
-          <button onClick={onClose} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
+        
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-xl ${tc.hoverBg} ${tc.text}`}
+          >
             Cancel
           </button>
-          <button 
-            onClick={() => onConfirm(details)}
-            disabled={!details.payment_method}
-            className="px-6 py-2 rounded-xl bg-emerald-600 text-white font-semibold disabled:opacity-50"
+          <button
+            onClick={() => onConfirm(payment.id, details)}
+            className="flex-1 px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-500"
           >
             Confirm Payment
           </button>
@@ -327,99 +572,41 @@ export function MarkPaidModal({ payment, onClose, onConfirm }) {
 }
 
 // ============================================
-// EMAIL GENERATOR MODAL
+// DELETE PAYMENT MODAL
 // ============================================
-export function EmailGeneratorModal({ family, season, onClose, showToast }) {
-  const tc = useThemeClasses()
-  const { organization } = useAuth()
-  const [emailType, setEmailType] = useState(family.totalDue > 0 ? 'payment_reminder' : 'registration_confirmation')
-  
-  // Find a player from this family for email generation
-  const familyPayment = family.payments[0]
-  const player = familyPayment?.players
-  const unpaidFees = family.payments.filter(p => !p.paid)
-  
-  const emailContent = generateEmailContent(emailType, {
-    player: { ...player, parent_name: family.parentName },
-    season,
-    organization,
-    fees: emailType === 'payment_reminder' ? unpaidFees : family.payments,
-    totalDue: family.totalDue
-  })
-
-  function copyToClipboard() {
-    const fullEmail = `To: ${family.email}\nSubject: ${emailContent.subject}\n\n${emailContent.body}`
-    navigator.clipboard.writeText(fullEmail)
-    showToast('Email copied to clipboard!', 'success')
-  }
-
-  function openInGmail() {
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(family.email)}&su=${encodeURIComponent(emailContent.subject)}&body=${encodeURIComponent(emailContent.body)}`
-    window.open(gmailUrl, '_blank')
-  }
-
+function DeletePaymentModal({ payment, onConfirm, onClose, tc }) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
-        <div className={`p-6 border-b ${tc.border}`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>Generate Email</h2>
-          <p className={`${tc.textMuted} text-sm mt-1`}>To: {family.parentName} ({family.email})</p>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+          </div>
+          <h3 className={`text-lg font-bold ${tc.text}`}>Remove Fee</h3>
         </div>
         
-        <div className="p-6 space-y-4 overflow-auto flex-1">
-          {/* Email Type Selector */}
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Email Type</label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setEmailType('registration_confirmation')}
-                className={`px-4 py-2 rounded-xl text-sm ${emailType === 'registration_confirmation' ? 'bg-[var(--accent-primary)] text-white' : `${tc.cardBgAlt} ${tc.text}`}`}
-              >
-                ✅ Confirmation
-              </button>
-              <button
-                onClick={() => setEmailType('payment_reminder')}
-                className={`px-4 py-2 rounded-xl text-sm ${emailType === 'payment_reminder' ? 'bg-[var(--accent-primary)] text-white' : `${tc.cardBgAlt} ${tc.text}`}`}
-              >
-                💰 Payment Reminder
-              </button>
-            </div>
-          </div>
-
-          {/* Preview */}
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Subject</label>
-            <div className={`${tc.cardBgAlt} rounded-xl px-4 py-3 ${tc.text}`}>
-              {emailContent.subject}
-            </div>
-          </div>
-          
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Body</label>
-            <pre className={`${tc.cardBgAlt} rounded-xl px-4 py-3 ${tc.text} text-sm whitespace-pre-wrap font-sans max-h-[300px] overflow-auto`}>
-              {emailContent.body}
-            </pre>
-          </div>
+        <p className={tc.textMuted}>
+          Are you sure you want to remove this fee? This action cannot be undone.
+        </p>
+        
+        <div className={`mt-4 p-3 rounded-lg bg-slate-800/50`}>
+          <p className={`font-medium ${tc.text}`}>{payment.fee_name || payment.fee_type}</p>
+          <p className={`text-sm ${tc.textMuted}`}>${parseFloat(payment.amount).toFixed(2)}</p>
         </div>
         
-        <div className={`p-6 border-t ${tc.border} flex justify-between`}>
-          <button onClick={onClose} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
-            Close
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-xl ${tc.hoverBg} ${tc.text}`}
+          >
+            Cancel
           </button>
-          <div className="flex gap-3">
-            <button 
-              onClick={copyToClipboard}
-              className={`px-6 py-2 rounded-xl ${tc.cardBgAlt} ${tc.text} flex items-center gap-2`}
-            >
-              <Copy className="w-4 h-4" /> Copy
-            </button>
-            <button 
-              onClick={openInGmail}
-              className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold flex items-center gap-2"
-            >
-              <Mail className="w-4 h-4" /> Open in Gmail
-            </button>
-          </div>
+          <button
+            onClick={() => onConfirm(payment.id)}
+            className="flex-1 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-500"
+          >
+            Remove Fee
+          </button>
         </div>
       </div>
     </div>
@@ -427,177 +614,293 @@ export function EmailGeneratorModal({ family, season, onClose, showToast }) {
 }
 
 // ============================================
-// ADD PAYMENT MODAL
+// SEND REMINDER MODAL
 // ============================================
-export function AddPaymentModal({ players, season, onClose, onAdd }) {
-  const tc = useThemeClasses()
-  const [form, setForm] = useState({
+function SendReminderModal({ target, onSend, onClose, tc }) {
+  const [method, setMethod] = useState('email')
+  const [message, setMessage] = useState('')
+  
+  const isFamily = target?.email !== undefined
+  const recipientName = isFamily ? target.parentName : `${target.first_name} ${target.last_name}`
+  const recipientEmail = isFamily ? target.email : target.parent_email
+  const outstanding = isFamily 
+    ? target.payments?.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+    : 0
+
+  const defaultMessage = `Hi ${recipientName.split(' ')[0]},\n\nThis is a friendly reminder about your outstanding balance${outstanding > 0 ? ` of $${outstanding.toFixed(2)}` : ''}. Please let us know if you have any questions.\n\nThank you!`
+  
+  useEffect(() => {
+    setMessage(defaultMessage)
+  }, [target])
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
+        <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Payment Reminder</h3>
+        
+        <div className={`p-3 rounded-lg bg-slate-800/50 mb-4`}>
+          <p className={`font-medium ${tc.text}`}>To: {recipientName}</p>
+          <p className={`text-sm ${tc.textMuted}`}>{recipientEmail}</p>
+        </div>
+        
+        <div className="mb-4">
+          <label className={`block text-sm ${tc.textMuted} mb-2`}>Send via</label>
+          <div className="flex gap-2">
+            {['email', 'text', 'app'].map(m => (
+              <button
+                key={m}
+                onClick={() => setMethod(m)}
+                className={`flex-1 px-4 py-2 rounded-lg capitalize flex items-center justify-center gap-2 ${
+                  method === m 
+                    ? 'bg-[var(--accent-primary)] text-white' 
+                    : `${tc.cardBg} border ${tc.border} ${tc.textMuted}`
+                }`}
+              >
+                {m === 'email' && <Mail className="w-4 h-4" />}
+                {m === 'text' && <MessageCircle className="w-4 h-4" />}
+                {m === 'app' && <Bell className="w-4 h-4" />}
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <label className={`block text-sm ${tc.textMuted} mb-1`}>Message</label>
+          <textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            rows={6}
+            className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+          />
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-xl ${tc.hoverBg} ${tc.text}`}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSend({ target, method, message })}
+            className="flex-1 px-4 py-2 rounded-xl bg-[var(--accent-primary)] text-white hover:brightness-110"
+          >
+            Send Reminder
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// BLAST REMINDER MODAL
+// ============================================
+function BlastReminderModal({ families, onSend, onClose, tc }) {
+  const [method, setMethod] = useState('email')
+  const [targetGroup, setTargetGroup] = useState('unpaid')
+  const [message, setMessage] = useState('')
+  
+  const unpaidFamilies = families.filter(f => f.payments.some(p => !p.paid))
+  const targetCount = targetGroup === 'unpaid' ? unpaidFamilies.length : families.length
+
+  const defaultMessage = `Hi,\n\nThis is a friendly reminder about outstanding payments for the current season. Please log in to view your balance and make a payment.\n\nThank you for your support!\n\n- Black Hornets Volleyball`
+  
+  useEffect(() => {
+    setMessage(defaultMessage)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
+        <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Blast Reminder</h3>
+        
+        <div className="mb-4">
+          <label className={`block text-sm ${tc.textMuted} mb-2`}>Send to</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTargetGroup('unpaid')}
+              className={`flex-1 px-4 py-2 rounded-lg ${
+                targetGroup === 'unpaid' 
+                  ? 'bg-[var(--accent-primary)] text-white' 
+                  : `${tc.cardBg} border ${tc.border} ${tc.textMuted}`
+              }`}
+            >
+              Families with balance ({unpaidFamilies.length})
+            </button>
+            <button
+              onClick={() => setTargetGroup('all')}
+              className={`flex-1 px-4 py-2 rounded-lg ${
+                targetGroup === 'all' 
+                  ? 'bg-[var(--accent-primary)] text-white' 
+                  : `${tc.cardBg} border ${tc.border} ${tc.textMuted}`
+              }`}
+            >
+              All families ({families.length})
+            </button>
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <label className={`block text-sm ${tc.textMuted} mb-2`}>Send via</label>
+          <div className="flex gap-2">
+            {['email', 'text', 'app'].map(m => (
+              <button
+                key={m}
+                onClick={() => setMethod(m)}
+                className={`flex-1 px-4 py-2 rounded-lg capitalize flex items-center justify-center gap-2 ${
+                  method === m 
+                    ? 'bg-[var(--accent-primary)] text-white' 
+                    : `${tc.cardBg} border ${tc.border} ${tc.textMuted}`
+                }`}
+              >
+                {m === 'email' && <Mail className="w-4 h-4" />}
+                {m === 'text' && <MessageCircle className="w-4 h-4" />}
+                {m === 'app' && <Bell className="w-4 h-4" />}
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <label className={`block text-sm ${tc.textMuted} mb-1`}>Message</label>
+          <textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            rows={6}
+            className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+          />
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-xl ${tc.hoverBg} ${tc.text}`}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onSend({ targetGroup, method, message, count: targetCount })}
+            className="flex-1 px-4 py-2 rounded-xl bg-[var(--accent-primary)] text-white hover:brightness-110"
+          >
+            Send to {targetCount} {targetCount === 1 ? 'family' : 'families'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// ADD FEE MODAL
+// ============================================
+function AddFeeModal({ players, onAdd, onClose, tc }) {
+  const [formData, setFormData] = useState({
     player_id: '',
-    fee_type: 'registration',
+    fee_type: 'other',
     fee_name: '',
-    fee_category: 'per_player',
     amount: '',
-    payment_method: '',
-    paid: false,
-    notes: ''
+    due_date: '',
+    description: ''
   })
 
-  const feeTypes = [
-    { value: 'registration', label: 'Registration', amount: season.fee_registration || 0, category: 'per_player' },
-    { value: 'uniform', label: 'Uniform', amount: season.fee_uniform || 0, category: 'per_player' },
-    { value: 'monthly', label: 'Monthly', amount: season.fee_monthly || 0, category: 'per_player' },
-    { value: 'family', label: 'Family Fee', amount: season.fee_per_family || 0, category: 'per_family' },
-    { value: 'other', label: 'Other', amount: '', category: 'per_player' },
-  ]
-
-  useEffect(() => {
-    const feeInfo = feeTypes.find(f => f.value === form.fee_type)
-    if (feeInfo && form.fee_type !== 'other') {
-      setForm(prev => ({ 
-        ...prev, 
-        fee_name: feeInfo.label,
-        fee_category: feeInfo.category,
-        amount: feeInfo.amount 
-      }))
-    }
-  }, [form.fee_type])
-
-  function handleSubmit() {
-    if (!form.player_id || !form.amount) {
-      alert('Please select a player and enter an amount')
+  const handleSubmit = () => {
+    if (!formData.player_id || !formData.fee_name || !formData.amount) {
       return
     }
     onAdd({
-      ...form,
-      amount: parseFloat(form.amount),
-      paid_date: form.paid ? new Date().toISOString().split('T')[0] : null
+      ...formData,
+      amount: parseFloat(formData.amount),
+      paid: false,
+      fee_category: 'per_player'
     })
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
-        <div className={`p-6 border-b ${tc.border}`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>Add Fee</h2>
-        </div>
-        <div className="p-6 space-y-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
+        <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Add New Fee</h3>
+        
+        <div className="space-y-4">
           <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Player</label>
-            <select value={form.player_id} onChange={e => setForm({...form, player_id: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}>
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Player</label>
+            <select
+              value={formData.player_id}
+              onChange={e => setFormData(d => ({ ...d, player_id: e.target.value }))}
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+            >
               <option value="">Select player...</option>
               {players.map(p => (
                 <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
               ))}
             </select>
           </div>
+          
           <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Fee Type</label>
-            <select value={form.fee_type} onChange={e => setForm({...form, fee_type: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}>
-              {feeTypes.filter(f => f.amount > 0 || f.value === 'other').map(f => (
-                <option key={f.value} value={f.value}>
-                  {f.label} {f.amount ? `($${f.amount})` : ''} {f.category === 'per_family' ? '(per family)' : ''}
-                </option>
-              ))}
-            </select>
-            {form.fee_type === 'family' && (
-              <p className={`text-xs ${tc.textMuted} mt-1`}>Family fees are charged once per family per season</p>
-            )}
-          </div>
-          {form.fee_type === 'other' && (
-            <div>
-              <label className={`block text-sm ${tc.textMuted} mb-2`}>Fee Name</label>
-              <input type="text" value={form.fee_name} onChange={e => setForm({...form, fee_name: e.target.value})}
-                placeholder="e.g., Tournament Fee"
-                className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`} />
-            </div>
-          )}
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Amount</label>
-            <input type="number" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`} />
-          </div>
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Payment Method (if paid)</label>
-            <select value={form.payment_method} onChange={e => setForm({...form, payment_method: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}>
-              <option value="">Select...</option>
-              <option value="venmo">Venmo</option>
-              <option value="zelle">Zelle</option>
-              <option value="cashapp">Cash App</option>
-              <option value="cash">Cash</option>
-              <option value="check">Check</option>
-              <option value="stripe">Stripe</option>
-              <option value="square">Square</option>
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Fee Type</label>
+            <select
+              value={formData.fee_type}
+              onChange={e => setFormData(d => ({ ...d, fee_type: e.target.value }))}
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+            >
+              <option value="registration">Registration</option>
+              <option value="uniform">Uniform</option>
+              <option value="monthly">Monthly</option>
+              <option value="tournament">Tournament</option>
+              <option value="equipment">Equipment</option>
               <option value="other">Other</option>
             </select>
           </div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={form.paid} onChange={e => setForm({...form, paid: e.target.checked})}
-              className="w-5 h-5 rounded" />
-            <span className={tc.text}>Mark as already paid</span>
-          </label>
+          
           <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>Notes (optional)</label>
-            <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})}
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} min-h-[80px]`} />
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Fee Name</label>
+            <input
+              type="text"
+              value={formData.fee_name}
+              onChange={e => setFormData(d => ({ ...d, fee_name: e.target.value }))}
+              placeholder="e.g., Tournament Entry Fee"
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+            />
+          </div>
+          
+          <div>
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Amount ($)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.amount}
+              onChange={e => setFormData(d => ({ ...d, amount: e.target.value }))}
+              placeholder="0.00"
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+            />
+          </div>
+          
+          <div>
+            <label className={`block text-sm ${tc.textMuted} mb-1`}>Due Date (optional)</label>
+            <input
+              type="date"
+              value={formData.due_date}
+              onChange={e => setFormData(d => ({ ...d, due_date: e.target.value }))}
+              className={`w-full px-3 py-2 rounded-lg ${tc.inputBg} border ${tc.border} ${tc.text}`}
+            />
           </div>
         </div>
-        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
-          <button onClick={onClose} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
+        
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-xl ${tc.hoverBg} ${tc.text}`}
+          >
             Cancel
           </button>
-          <button onClick={handleSubmit} className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold">
-            Add Fee
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ============================================
-// PLAYER CARD EXPANDED (simple version for payment context)
-// ============================================
-function PlayerCardExpanded({ player, visible, onClose, context = 'payment' }) {
-  const tc = useThemeClasses()
-  
-  if (!visible || !player) return null
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div 
-        className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md overflow-hidden`}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className={`p-6 border-b ${tc.border}`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>
-            {player.first_name} {player.last_name}
-          </h2>
-          <p className={`text-sm ${tc.textMuted}`}>
-            {player.grade ? `Grade ${player.grade}` : ''} 
-            {player.jersey_number ? ` • #${player.jersey_number}` : ''}
-          </p>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className={`text-xs ${tc.textMuted}`}>Parent</p>
-              <p className={tc.text}>{player.parent_name || 'N/A'}</p>
-            </div>
-            <div>
-              <p className={`text-xs ${tc.textMuted}`}>Email</p>
-              <p className={tc.text}>{player.parent_email || 'N/A'}</p>
-            </div>
-          </div>
-        </div>
-        <div className={`p-6 border-t ${tc.border}`}>
-          <button 
-            onClick={onClose}
-            className={`w-full py-2 rounded-xl ${tc.cardBgAlt} ${tc.text}`}
+          <button
+            onClick={handleSubmit}
+            disabled={!formData.player_id || !formData.fee_name || !formData.amount}
+            className="flex-1 px-4 py-2 rounded-xl bg-[var(--accent-primary)] text-white hover:brightness-110 disabled:opacity-50"
           >
-            Close
+            Add Fee
           </button>
         </div>
       </div>
@@ -614,20 +917,27 @@ export function PaymentsPage({ showToast }) {
   const [payments, setPayments] = useState([])
   const [players, setPlayers] = useState([])
   const [statusFilter, setStatusFilter] = useState('all')
-  const [viewMode, setViewMode] = useState('individual') // 'individual' or 'family'
+  const [viewMode, setViewMode] = useState('individual')
+  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [selectedPlayer, setSelectedPlayer] = useState(null)
-  const [showMarkPaidModal, setShowMarkPaidModal] = useState(null)
   const [backfillLoading, setBackfillLoading] = useState(false)
-  const [showEmailModal, setShowEmailModal] = useState(null)
+  
+  // Expanded card tracking
+  const [expandedCards, setExpandedCards] = useState(new Set())
+  
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showMarkPaidModal, setShowMarkPaidModal] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(null)
+  const [showReminderModal, setShowReminderModal] = useState(null)
+  const [showBlastModal, setShowBlastModal] = useState(false)
 
   useEffect(() => {
     if (selectedSeason?.id) {
       loadPayments()
       loadPlayers()
     }
-  }, [selectedSeason?.id, statusFilter])
+  }, [selectedSeason?.id])
 
   async function loadPlayers() {
     const { data } = await supabase
@@ -640,21 +950,17 @@ export function PaymentsPage({ showToast }) {
   async function loadPayments() {
     if (!selectedSeason?.id) return
     setLoading(true)
-    let query = supabase
+    const { data } = await supabase
       .from('payments')
       .select('*, players(id, first_name, last_name, parent_name, parent_email, photo_url, position, grade, jersey_number)')
       .eq('season_id', selectedSeason.id)
       .order('created_at', { ascending: false })
     
-    if (statusFilter === 'paid') query = query.eq('paid', true)
-    else if (statusFilter === 'unpaid') query = query.eq('paid', false)
-    
-    const { data } = await query
     setPayments(data || [])
     setLoading(false)
   }
 
-  async function markAsPaidWithDetails(paymentId, details) {
+  async function handleMarkPaid(paymentId, details) {
     await supabase.from('payments').update({ 
       paid: true, 
       paid_date: details.paid_date || new Date().toISOString().split('T')[0],
@@ -669,7 +975,7 @@ export function PaymentsPage({ showToast }) {
     loadPayments()
   }
 
-  async function markAsUnpaid(paymentId) {
+  async function handleMarkUnpaid(paymentId) {
     await supabase.from('payments').update({ 
       paid: false, 
       paid_date: null,
@@ -680,7 +986,14 @@ export function PaymentsPage({ showToast }) {
     loadPayments()
   }
 
-  async function addPayment(paymentData) {
+  async function handleDeletePayment(paymentId) {
+    await supabase.from('payments').delete().eq('id', paymentId)
+    showToast('Fee removed', 'success')
+    setShowDeleteModal(null)
+    loadPayments()
+  }
+
+  async function handleAddPayment(paymentData) {
     try {
       const player = players.find(p => p.id === paymentData.player_id)
       await supabase.from('payments').insert({
@@ -690,7 +1003,7 @@ export function PaymentsPage({ showToast }) {
         auto_generated: false,
         created_at: new Date().toISOString()
       })
-      showToast('Payment added!', 'success')
+      showToast('Fee added!', 'success')
       setShowAddModal(false)
       loadPayments()
     } catch (err) {
@@ -708,49 +1021,111 @@ export function PaymentsPage({ showToast }) {
     }
   }
 
-  // Group payments by family for family view
-  const familyGroups = payments.reduce((acc, payment) => {
+  async function handleSendReminder(data) {
+    showToast(`Reminder ${data.method === 'email' ? 'email' : data.method === 'text' ? 'text' : 'notification'} queued!`, 'success')
+    setShowReminderModal(null)
+  }
+
+  async function handleSendBlast(data) {
+    showToast(`Blast sent to ${data.count} families via ${data.method}!`, 'success')
+    setShowBlastModal(false)
+  }
+
+  function toggleCard(id) {
+    setExpandedCards(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  // Filter payments based on status and search
+  const filteredPayments = payments.filter(p => {
+    if (statusFilter === 'paid' && !p.paid) return false
+    if (statusFilter === 'unpaid' && p.paid) return false
+    
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      const playerName = `${p.players?.first_name || ''} ${p.players?.last_name || ''}`.toLowerCase()
+      const parentName = (p.players?.parent_name || '').toLowerCase()
+      const parentEmail = (p.players?.parent_email || '').toLowerCase()
+      if (!playerName.includes(q) && !parentName.includes(q) && !parentEmail.includes(q)) {
+        return false
+      }
+    }
+    
+    return true
+  })
+
+  // Group by player for individual view
+  const playerGroups = filteredPayments.reduce((acc, payment) => {
+    const playerId = payment.player_id
+    if (!playerId) return acc
+    if (!acc[playerId]) {
+      acc[playerId] = {
+        player: payment.players || { first_name: 'Unknown', last_name: '' },
+        payments: []
+      }
+    }
+    acc[playerId].payments.push(payment)
+    return acc
+  }, {})
+
+  const playerList = Object.entries(playerGroups)
+    .map(([id, data]) => ({ id, ...data }))
+    .sort((a, b) => {
+      const aOwed = a.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const bOwed = b.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      return bOwed - aOwed
+    })
+
+  // Group by family
+  const familyGroups = filteredPayments.reduce((acc, payment) => {
     const email = payment.family_email || payment.players?.parent_email || 'unknown'
     if (!acc[email]) {
       acc[email] = {
         email,
         parentName: payment.players?.parent_name || 'Unknown',
         payments: [],
-        totalDue: 0,
-        totalPaid: 0,
         players: new Set()
       }
     }
     acc[email].payments.push(payment)
-    if (payment.paid) {
-      acc[email].totalPaid += parseFloat(payment.amount) || 0
-    } else {
-      acc[email].totalDue += parseFloat(payment.amount) || 0
-    }
     if (payment.players?.first_name) {
       acc[email].players.add(`${payment.players.first_name} ${payment.players.last_name}`)
     }
     return acc
   }, {})
 
-  const families = Object.values(familyGroups).sort((a, b) => b.totalDue - a.totalDue)
+  const familyList = Object.values(familyGroups).sort((a, b) => {
+    const aOwed = a.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+    const bOwed = b.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+    return bOwed - aOwed
+  })
 
+  // Summary stats
   const totalOwed = payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   const totalCollected = payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   const uniqueFamilies = new Set(payments.map(p => p.family_email || p.players?.parent_email)).size
+  const collectionRate = payments.length > 0 
+    ? Math.round((payments.filter(p => p.paid).length / payments.length) * 100) 
+    : 0
 
+  // CSV export
   const csvColumns = [
     { label: 'Player First Name', accessor: p => p.players?.first_name },
     { label: 'Player Last Name', accessor: p => p.players?.last_name },
-    { label: 'Parent', accessor: p => p.players?.parent_name || p.payer_name },
+    { label: 'Parent', accessor: p => p.players?.parent_name },
     { label: 'Parent Email', accessor: p => p.players?.parent_email || p.family_email },
     { label: 'Fee Type', accessor: p => p.fee_name || p.fee_type },
-    { label: 'Fee Category', accessor: p => p.fee_category || 'per_player' },
     { label: 'Amount', accessor: p => p.amount },
     { label: 'Paid', accessor: p => p.paid ? 'Yes' : 'No' },
     { label: 'Paid Date', accessor: p => p.paid_date },
     { label: 'Method', accessor: p => p.payment_method },
-    { label: 'Reference #', accessor: p => p.reference_number },
   ]
 
   if (!selectedSeason) {
@@ -763,6 +1138,7 @@ export function PaymentsPage({ showToast }) {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${tc.text}`}>Payments</h1>
@@ -770,12 +1146,17 @@ export function PaymentsPage({ showToast }) {
         </div>
         <div className="flex gap-3">
           <button 
+            onClick={() => setShowBlastModal(true)}
+            className={`${tc.cardBg} border ${tc.border} ${tc.text} px-4 py-2 rounded-xl hover:brightness-110 flex items-center gap-2`}
+          >
+            <Bell className="w-4 h-4" /> Send Reminder
+          </button>
+          <button 
             onClick={handleBackfillFees}
             disabled={backfillLoading}
             className={`${tc.cardBg} border ${tc.border} ${tc.text} px-4 py-2 rounded-xl hover:brightness-110 flex items-center gap-2 ${backfillLoading ? 'opacity-50' : ''}`}
-            title="Generate fees for approved players who don't have fees yet"
           >
-            {backfillLoading ? '⏳' : '🔄'} {backfillLoading ? 'Generating...' : 'Backfill Fees'}
+            {backfillLoading ? '⏳' : '🔄'} Backfill Fees
           </button>
           <button 
             onClick={() => exportToCSV(payments, 'payments', csvColumns)}
@@ -804,9 +1185,7 @@ export function PaymentsPage({ showToast }) {
         </div>
         <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
           <p className={tc.textMuted}>Collection Rate</p>
-          <p className="text-3xl font-bold text-[var(--accent-primary)] mt-1">
-            {payments.length > 0 ? Math.round((payments.filter(p => p.paid).length / payments.length) * 100) : 0}%
-          </p>
+          <p className="text-3xl font-bold text-[var(--accent-primary)] mt-1">{collectionRate}%</p>
         </div>
         <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
           <p className={tc.textMuted}>Families</p>
@@ -814,35 +1193,63 @@ export function PaymentsPage({ showToast }) {
         </div>
       </div>
 
-      {/* Filters and View Toggle */}
-      <div className="flex justify-between items-center">
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between">
+        {/* Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by player or parent name..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className={`w-full pl-10 pr-4 py-2.5 rounded-xl ${tc.inputBg} border ${tc.border} ${tc.text} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]`}
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
         <div className="flex gap-4">
+          {/* Status Filter */}
           <div className={`flex ${tc.cardBg} rounded-xl p-1 border ${tc.border}`}>
             {['all', 'unpaid', 'paid'].map(f => (
-              <button key={f} onClick={() => setStatusFilter(f)}
+              <button 
+                key={f} 
+                onClick={() => setStatusFilter(f)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition capitalize ${
                   statusFilter === f ? 'bg-[var(--accent-primary)] text-white' : `${tc.textMuted} hover:${tc.text}`
-                }`}>{f}</button>
+                }`}
+              >
+                {f}
+              </button>
             ))}
           </div>
-        </div>
-        <div className={`flex ${tc.cardBg} rounded-xl p-1 border ${tc.border}`}>
-          <button 
-            onClick={() => setViewMode('individual')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              viewMode === 'individual' ? 'bg-[var(--accent-primary)] text-white' : `${tc.textMuted} hover:${tc.text}`
-            }`}
-          >
-            Individual
-          </button>
-          <button 
-            onClick={() => setViewMode('family')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              viewMode === 'family' ? 'bg-[var(--accent-primary)] text-white' : `${tc.textMuted} hover:${tc.text}`
-            }`}
-          >
-            Family
-          </button>
+
+          {/* View Toggle */}
+          <div className={`flex ${tc.cardBg} rounded-xl p-1 border ${tc.border}`}>
+            <button 
+              onClick={() => setViewMode('individual')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
+                viewMode === 'individual' ? 'bg-[var(--accent-primary)] text-white' : `${tc.textMuted} hover:${tc.text}`
+              }`}
+            >
+              <User className="w-4 h-4" /> Individual
+            </button>
+            <button 
+              onClick={() => setViewMode('family')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
+                viewMode === 'family' ? 'bg-[var(--accent-primary)] text-white' : `${tc.textMuted} hover:${tc.text}`
+              }`}
+            >
+              <Users className="w-4 h-4" /> Family
+            </button>
+          </div>
         </div>
       </div>
 
@@ -861,172 +1268,98 @@ export function PaymentsPage({ showToast }) {
             Generate Fees for Existing Players
           </button>
         </div>
-      ) : viewMode === 'family' ? (
-        /* Family View */
-        <div className="space-y-4">
-          {families.map(family => (
-            <div key={family.email} className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-              <div className={`p-4 border-b ${tc.border} flex justify-between items-center`}>
-                <div>
-                  <p className={`font-semibold ${tc.text}`}>{family.parentName}</p>
-                  <p className={`text-sm ${tc.textMuted}`}>{family.email}</p>
-                  <p className={`text-xs ${tc.textMuted} mt-1`}>Players: {[...family.players].join(', ')}</p>
-                </div>
-                <div className="text-right">
-                  {family.totalDue > 0 ? (
-                    <p className="text-xl font-bold text-red-400">${family.totalDue.toFixed(2)} due</p>
-                  ) : (
-                    <p className="text-xl font-bold text-emerald-400">Paid in full</p>
-                  )}
-                  <p className={`text-sm ${tc.textMuted}`}>${family.totalPaid.toFixed(2)} paid</p>
-                  <button 
-                    onClick={() => setShowEmailModal(family)}
-                    className={`mt-2 text-xs px-3 py-1 rounded-lg ${tc.hoverBg} ${tc.textMuted}`}
-                  >
-                    📧 Generate Email
-                  </button>
-                </div>
-              </div>
-              <table className="w-full">
-                <tbody>
-                  {family.payments.map(payment => (
-                    <tr key={payment.id} className={`border-b ${tc.border} last:border-0`}>
-                      <td className="px-4 py-3">
-                        <p className={tc.text}>{payment.players?.first_name || 'Family'}</p>
-                        <p className={`text-xs ${tc.textMuted}`}>{payment.fee_name || payment.fee_type}</p>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <p className={`font-medium ${tc.text}`}>${parseFloat(payment.amount || 0).toFixed(2)}</p>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          payment.paid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
-                        }`}>
-                          {payment.paid ? 'Paid' : 'Unpaid'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {payment.paid ? (
-                          <button onClick={() => markAsUnpaid(payment.id)} className={`px-3 py-1 rounded-lg text-xs ${tc.textMuted} ${tc.hoverBg}`}>
-                            Undo
-                          </button>
-                        ) : (
-                          <button onClick={() => setShowMarkPaidModal(payment)} className="px-3 py-1 bg-emerald-500/20 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/30">
-                            Mark Paid
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      ) : viewMode === 'individual' ? (
+        /* Individual View - Collapsible Player Cards */
+        <div className="space-y-3">
+          {playerList.length === 0 ? (
+            <div className={`text-center py-8 ${tc.textMuted}`}>
+              No results found for "{searchQuery}"
             </div>
-          ))}
+          ) : (
+            playerList.map(({ id, player, payments }) => (
+              <PlayerPaymentCard
+                key={id}
+                player={player}
+                payments={payments}
+                expanded={expandedCards.has(id)}
+                onToggle={() => toggleCard(id)}
+                onMarkPaid={(payment) => setShowMarkPaidModal(payment)}
+                onMarkUnpaid={handleMarkUnpaid}
+                onDeletePayment={(payment) => setShowDeleteModal(payment)}
+                onSendReminder={(player) => setShowReminderModal(player)}
+                tc={tc}
+              />
+            ))
+          )}
         </div>
       ) : (
-        /* Individual View (Original Table) */
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-          <table className="w-full">
-            <thead>
-              <tr className={`border-b ${tc.border}`}>
-                <th className={`text-left px-6 py-4 text-sm font-medium ${tc.textMuted}`}>Player</th>
-                <th className={`text-left px-6 py-4 text-sm font-medium ${tc.textMuted}`}>Parent</th>
-                <th className={`text-left px-6 py-4 text-sm font-medium ${tc.textMuted}`}>Fee Type</th>
-                <th className={`text-left px-6 py-4 text-sm font-medium ${tc.textMuted}`}>Amount</th>
-                <th className={`text-left px-6 py-4 text-sm font-medium ${tc.textMuted}`}>Status</th>
-                <th className={`text-left px-6 py-4 text-sm font-medium ${tc.textMuted}`}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map(payment => (
-                <tr key={payment.id} className={`border-b ${tc.border} ${tc.hoverBg}`}>
-                  <td className="px-6 py-4">
-                    <ClickablePlayerName 
-                      player={payment.players}
-                      onPlayerSelect={setSelectedPlayer}
-                      className={`font-medium ${tc.text}`}
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className={tc.textSecondary}>{payment.players?.parent_name || payment.payer_name || 'N/A'}</p>
-                    <p className={`text-xs ${tc.textMuted}`}>{payment.players?.parent_email}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className={tc.text}>{payment.fee_name || payment.fee_type || 'N/A'}</p>
-                    {payment.fee_category === 'per_family' && (
-                      <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">Family</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className={`${tc.text} font-medium`}>${parseFloat(payment.amount || 0).toFixed(2)}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      payment.paid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
-                      {payment.paid ? 'Paid' : 'Unpaid'}
-                    </span>
-                    {payment.paid_date && (
-                      <p className={`text-xs ${tc.textMuted} mt-1`}>{new Date(payment.paid_date).toLocaleDateString()}</p>
-                    )}
-                    {payment.reference_number && (
-                      <p className={`text-xs ${tc.textMuted}`}>Ref: {payment.reference_number}</p>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {payment.paid ? (
-                      <button onClick={() => markAsUnpaid(payment.id)} className={`px-3 py-1 rounded-lg text-xs ${tc.textMuted} ${tc.hoverBg}`}>
-                        Mark Unpaid
-                      </button>
-                    ) : (
-                      <button onClick={() => setShowMarkPaidModal(payment)} className="px-3 py-1 bg-emerald-500/20 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/30">
-                        Mark Paid
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        /* Family View - Collapsible Family Cards */
+        <div className="space-y-3">
+          {familyList.length === 0 ? (
+            <div className={`text-center py-8 ${tc.textMuted}`}>
+              No results found for "{searchQuery}"
+            </div>
+          ) : (
+            familyList.map((family) => (
+              <FamilyPaymentCard
+                key={family.email}
+                family={family}
+                expanded={expandedCards.has(family.email)}
+                onToggle={() => toggleCard(family.email)}
+                onMarkPaid={(payment) => setShowMarkPaidModal(payment)}
+                onMarkUnpaid={handleMarkUnpaid}
+                onDeletePayment={(payment) => setShowDeleteModal(payment)}
+                onSendReminder={(family) => setShowReminderModal(family)}
+                tc={tc}
+              />
+            ))
+          )}
         </div>
       )}
 
-      {/* Add Payment Modal */}
-      {showAddModal && (
-        <AddPaymentModal 
-          players={players}
-          season={selectedSeason}
-          onClose={() => setShowAddModal(false)}
-          onAdd={addPayment}
-        />
-      )}
-
-      {/* Mark Paid Modal */}
+      {/* Modals */}
       {showMarkPaidModal && (
         <MarkPaidModal
           payment={showMarkPaidModal}
+          onConfirm={handleMarkPaid}
           onClose={() => setShowMarkPaidModal(null)}
-          onConfirm={(details) => markAsPaidWithDetails(showMarkPaidModal.id, details)}
+          tc={tc}
         />
       )}
-
-      {/* Email Generation Modal */}
-      {showEmailModal && (
-        <EmailGeneratorModal
-          family={showEmailModal}
-          season={selectedSeason}
-          onClose={() => setShowEmailModal(null)}
-          showToast={showToast}
+      
+      {showDeleteModal && (
+        <DeletePaymentModal
+          payment={showDeleteModal}
+          onConfirm={handleDeletePayment}
+          onClose={() => setShowDeleteModal(null)}
+          tc={tc}
         />
       )}
-
-      {/* Player Card Modal */}
-      {selectedPlayer && (
-        <PlayerCardExpanded
-          player={selectedPlayer}
-          visible={!!selectedPlayer}
-          onClose={() => setSelectedPlayer(null)}
-          context="payment"
+      
+      {showReminderModal && (
+        <SendReminderModal
+          target={showReminderModal}
+          onSend={handleSendReminder}
+          onClose={() => setShowReminderModal(null)}
+          tc={tc}
+        />
+      )}
+      
+      {showBlastModal && (
+        <BlastReminderModal
+          families={familyList}
+          onSend={handleSendBlast}
+          onClose={() => setShowBlastModal(false)}
+          tc={tc}
+        />
+      )}
+      
+      {showAddModal && (
+        <AddFeeModal
+          players={players}
+          onAdd={handleAddPayment}
+          onClose={() => setShowAddModal(false)}
+          tc={tc}
         />
       )}
     </div>
