@@ -139,14 +139,14 @@ function RegistrationDonut({ data, total, size = 120 }) {
 function MiniLineChart({ data, width = 300, height = 120 }) {
   if (!data || data.length === 0) return null
   
-  const maxValue = Math.max(...data.map(d => d.value)) * 1.2
+  const maxValue = Math.max(...data.map(d => d.value || 0), 1) * 1.2 // Ensure min of 1 to avoid division by zero
   const minValue = 0
-  const range = maxValue - minValue
+  const range = maxValue - minValue || 1 // Ensure range is at least 1
   
   const points = data.map((d, i) => {
-    const x = (i / (data.length - 1)) * width
+    const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
     const y = height - ((d.value - minValue) / range) * height
-    return `${x},${y}`
+    return `${x},${isNaN(y) ? height : y}`
   }).join(' ')
 
   return (
@@ -176,8 +176,9 @@ function MiniLineChart({ data, width = 300, height = 120 }) {
       
       {/* Data points */}
       {data.map((d, i) => {
-        const x = (i / (data.length - 1)) * width
-        const y = height - ((d.value - minValue) / range) * height
+        const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+        const rawY = height - ((d.value - minValue) / range) * height
+        const y = isNaN(rawY) ? height : rawY
         return (
           <g key={i}>
             <circle cx={x} cy={y} r="4" fill="#10B981" />
@@ -199,7 +200,7 @@ function MiniLineChart({ data, width = 300, height = 120 }) {
                   fontSize="11" 
                   fontWeight="600"
                 >
-                  ${d.value.toLocaleString()}
+                  ${(d.value || 0).toLocaleString()}
                 </text>
               </g>
             )}
@@ -209,7 +210,7 @@ function MiniLineChart({ data, width = 300, height = 120 }) {
       
       {/* X-axis labels */}
       {data.map((d, i) => {
-        const x = (i / (data.length - 1)) * width
+        const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
         return (
           <text 
             key={i}
@@ -843,13 +844,13 @@ export function DashboardPage({ onNavigate }) {
       // Fetch teams for this season
       const { data: teams, count: teamCount } = await supabase
         .from('teams')
-        .select('id, name, roster_size', { count: 'exact' })
+        .select('id, name', { count: 'exact' })
         .eq('season_id', seasonId)
 
       // Fetch ALL registrations for this season with full status breakdown
       const { data: registrations } = await supabase
         .from('registrations')
-        .select('id, status, first_name, last_name, created_at, team_id')
+        .select('id, status, first_name, last_name, created_at')
         .eq('season_id', seasonId)
 
       // Calculate registration stats correctly
@@ -863,10 +864,9 @@ export function DashboardPage({ onNavigate }) {
         withdrawn: registrations?.filter(r => r.status === 'withdrawn').length || 0,
       }
 
-      // Calculate capacity from season settings or teams
+      // Calculate capacity from season settings or default per team
       const seasonCapacity = selectedSeason.capacity || selectedSeason.registration_capacity || 0
-      const teamCapacity = teams?.reduce((sum, t) => sum + (t.roster_size || 12), 0) || 0
-      const totalCapacity = seasonCapacity || teamCapacity || (teamCount || 0) * 12
+      const totalCapacity = seasonCapacity || (teamCount || 0) * 12
 
       // Fetch payments for this season
       const { data: payments } = await supabase
@@ -912,23 +912,14 @@ export function DashboardPage({ onNavigate }) {
 
       const { data: events } = await eventsQuery
 
-      // Get next game from games table
-      const { data: nextGameData } = await supabase
-        .from('games')
-        .select('*, teams(name)')
-        .in('team_id', teamIds.length > 0 ? teamIds : ['no-teams'])
-        .in('status', ['scheduled', 'upcoming'])
-        .gte('date', today)
-        .order('date', { ascending: true })
-        .limit(1)
-        .maybeSingle()
-
+      // Get next game from schedule_events (not games table which doesn't exist)
+      const nextGameEvent = events?.find(e => e.event_type === 'game')
       let nextGame = null
-      if (nextGameData) {
-        const gameDate = new Date(nextGameData.date)
+      if (nextGameEvent) {
+        const gameDate = new Date(nextGameEvent.event_date)
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        const time = nextGameData.time ? 
-          new Date(`2000-01-01T${nextGameData.time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
+        const time = nextGameEvent.event_time ? 
+          new Date(`2000-01-01T${nextGameEvent.event_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
         nextGame = `${days[gameDate.getDay()]}, ${time}`
       }
 
