@@ -931,15 +931,17 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className="text-slate-500 text-sm">Rostered:</span>
-                  <span className="text-slate-900 font-bold text-sm ml-2">
-                    {stats.totalPlayers}
-                    <span className="text-slate-400 font-normal">/{stats.eligiblePlayers || stats.totalRegistrations || 0}</span>
-                  </span>
-                  {stats.eligiblePlayers > stats.totalPlayers && (
-                    <span className="text-xs text-orange-500 ml-2 group-hover:underline">
-                      ({stats.eligiblePlayers - stats.totalPlayers} unrostered)
+                  <div className="flex items-center">
+                    <span className="text-slate-500 text-sm">Rostered:</span>
+                    <span className="text-slate-900 font-bold text-sm ml-2">
+                      {stats.totalPlayers}
+                      <span className="text-slate-400 font-normal">/{stats.eligiblePlayers || stats.totalRegistrations || 0}</span>
                     </span>
+                  </div>
+                  {stats.eligiblePlayers > stats.totalPlayers && (
+                    <div className="text-xs text-orange-500 group-hover:underline">
+                      ({stats.eligiblePlayers - stats.totalPlayers} unrostered)
+                    </div>
                   )}
                 </div>
               </button>
