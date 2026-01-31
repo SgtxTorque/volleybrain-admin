@@ -133,29 +133,49 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     })
   }
   
-  // 4. Monthly Fees (per player) - sibling discount can apply
+  // 4. Monthly Fees (per player) - split into individual months with proper names
   const monthlyFee = parseFloat(season.fee_monthly) || 0
   const monthsInSeason = parseInt(season.months_in_season) || 0
   if (monthlyFee > 0 && monthsInSeason > 0) {
-    const totalMonthly = monthlyFee * monthsInSeason
-    const siblingResult = applySiblingDiscount(totalMonthly, 'Monthly')
+    // Calculate sibling discount per month if applicable
+    const perMonthSiblingResult = applySiblingDiscount(monthlyFee, 'Monthly')
+    const monthlyWithDiscount = perMonthSiblingResult.amount
+    const monthlyDiscountPerMonth = perMonthSiblingResult.discountApplied / monthsInSeason
     
-    let feeName = `Monthly Fees (${monthsInSeason} months)`
-    let description = `$${monthlyFee}/month × ${monthsInSeason} months`
+    // Determine start month from season start_date or default to current month
+    const seasonStart = season.start_date ? new Date(season.start_date) : new Date()
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December']
     
-    if (siblingResult.discountApplied > 0) {
-      feeName = `Monthly Fees (${monthsInSeason} months, Sibling)`
-      description = `$${monthlyFee}/month × ${monthsInSeason} months, Sibling -$${siblingResult.discountApplied.toFixed(2)}`
+    // Generate individual monthly fees
+    for (let i = 0; i < monthsInSeason; i++) {
+      const monthDate = new Date(seasonStart)
+      monthDate.setMonth(monthDate.getMonth() + i)
+      const monthName = monthNames[monthDate.getMonth()]
+      const year = monthDate.getFullYear()
+      
+      // Set due date to 1st of that month
+      const dueDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
+      
+      let feeName = `${monthName} Monthly`
+      let description = `Monthly dues for ${monthName} ${year}`
+      
+      if (perMonthSiblingResult.discountApplied > 0) {
+        feeName = `${monthName} Monthly (Sibling)`
+        description = `Monthly dues for ${monthName} ${year}, Sibling discount applied`
+      }
+      
+      fees.push({
+        ...baseFee,
+        fee_type: 'monthly',
+        fee_name: feeName,
+        fee_category: 'per_player',
+        amount: monthlyWithDiscount / monthsInSeason, // Divide evenly
+        due_date: dueDate.toISOString().split('T')[0],
+        description,
+        month_index: i + 1 // Track which month this is (1, 2, 3...)
+      })
     }
-    
-    fees.push({
-      ...baseFee,
-      fee_type: 'monthly',
-      fee_name: feeName,
-      fee_category: 'per_player',
-      amount: siblingResult.amount,
-      description
-    })
   }
   
   // 5. Per-Family Fee (only if not already charged for this family in this season)
