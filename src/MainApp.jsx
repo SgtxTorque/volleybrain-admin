@@ -582,25 +582,54 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
       const seasonId = selectedSeason?.id
 
       if (activeView === 'admin') {
-        // Fetch admin stats - query players with registrations joined
-        const [playersRes, teamsRes, paymentsRes] = await Promise.all([
-          supabase.from('players').select('*, registrations(status)').eq('season_id', seasonId),
-          supabase.from('teams').select('id', { count: 'exact' }).eq('season_id', seasonId),
-          supabase.from('payments').select('amount, paid').eq('season_id', seasonId),
-        ])
-
-        // Count only rostered players (from registration status)
-        const rosteredCount = playersRes.data?.filter(p => p.registrations?.[0]?.status === 'rostered').length || 0
+        // Fetch teams for this season
+        const { data: teams, count: teamCount } = await supabase
+          .from('teams')
+          .select('id', { count: 'exact' })
+          .eq('season_id', seasonId)
         
-        // Calculate financials correctly
-        const paidPayments = paymentsRes.data?.filter(p => p.paid) || []
+        const teamIds = teams?.map(t => t.id) || []
+        
+        // Get ACTUAL rostered count from team_players (source of truth)
+        let rosteredCount = 0
+        if (teamIds.length > 0) {
+          const { data: teamPlayers } = await supabase
+            .from('team_players')
+            .select('player_id')
+            .in('team_id', teamIds)
+          // Count unique players (a player could theoretically be on multiple teams)
+          rosteredCount = new Set(teamPlayers?.map(tp => tp.player_id) || []).size
+        }
+        
+        // Get total registered players for this season
+        const { data: allPlayers } = await supabase
+          .from('players')
+          .select('id, registrations(status)')
+          .eq('season_id', seasonId)
+        
+        // Count players who are approved/rostered/active (eligible to be on a team)
+        const eligiblePlayers = allPlayers?.filter(p => 
+          ['approved', 'rostered', 'active'].includes(p.registrations?.[0]?.status)
+        ).length || 0
+        
+        const totalPlayers = allPlayers?.length || 0
+        
+        // Fetch payments
+        const { data: payments } = await supabase
+          .from('payments')
+          .select('amount, paid')
+          .eq('season_id', seasonId)
+
+        const paidPayments = payments?.filter(p => p.paid) || []
         const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-        const totalExpected = paymentsRes.data?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+        const totalExpected = payments?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
 
         setStats(prev => ({
           ...prev,
           totalPlayers: rosteredCount,
-          activeTeams: teamsRes.count || 0,
+          eligiblePlayers,
+          totalRegistrations: totalPlayers,
+          activeTeams: teamCount || 0,
           totalCollected,
           totalExpected,
         }))
@@ -892,17 +921,26 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               {/* Divider */}
               <div className="w-px h-10 bg-slate-200 mx-2" />
 
-              {/* Rostered Players */}
+              {/* Rostered Players - Shows X/Y format */}
               <button 
                 onClick={() => setPage('teams')}
-                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg group"
+                title="Click to manage rosters"
               >
                 <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className="text-slate-500 text-sm">Rostered Players:</span>
-                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.totalPlayers}</span>
+                  <span className="text-slate-500 text-sm">Rostered:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    {stats.totalPlayers}
+                    <span className="text-slate-400 font-normal">/{stats.eligiblePlayers || stats.totalRegistrations || 0}</span>
+                  </span>
+                  {stats.eligiblePlayers > stats.totalPlayers && (
+                    <span className="text-xs text-orange-500 ml-2 group-hover:underline">
+                      ({stats.eligiblePlayers - stats.totalPlayers} unrostered)
+                    </span>
+                  )}
                 </div>
               </button>
 
