@@ -103,18 +103,44 @@ function PaymentSetupPage({ showToast }) {
     
     try {
       const key = stripeSettings.stripe_publishable_key
+      
+      // First validate format
       if (!key) {
         setTestResult({ success: false, message: 'Please enter a publishable key' })
-      } else if (!key.startsWith('pk_')) {
+        setTesting(false)
+        return
+      }
+      if (!key.startsWith('pk_')) {
         setTestResult({ success: false, message: 'Invalid key format. Publishable key should start with pk_' })
-      } else if (stripeSettings.stripe_mode === 'test' && !key.includes('_test_')) {
+        setTesting(false)
+        return
+      }
+      if (stripeSettings.stripe_mode === 'test' && !key.includes('_test_')) {
         setTestResult({ success: false, message: 'You selected Test mode but entered a Live key' })
-      } else if (stripeSettings.stripe_mode === 'live' && key.includes('_test_')) {
+        setTesting(false)
+        return
+      }
+      if (stripeSettings.stripe_mode === 'live' && key.includes('_test_')) {
         setTestResult({ success: false, message: 'You selected Live mode but entered a Test key' })
-      } else {
+        setTesting(false)
+        return
+      }
+
+      // Call Edge Function to test actual connection
+      const { data, error } = await supabase.functions.invoke('stripe-test-connection')
+      
+      if (error) {
+        setTestResult({ success: false, message: error.message || 'Connection test failed' })
+      } else if (data?.success) {
         setTestResult({ 
           success: true, 
-          message: `Key format valid! ${key.includes('_test_') ? '(Test Mode)' : '(Live Mode)'}` 
+          message: data.message || 'Connection successful!',
+          accountName: data.account_name
+        })
+      } else {
+        setTestResult({ 
+          success: false, 
+          message: data?.message || 'Connection test failed' 
         })
       }
     } catch (err) {
