@@ -102,13 +102,9 @@ export function calculateFeesForPlayer(player, season, options = {}) {
       fee_name: feeName,
       fee_category: 'per_player',
       amount: adjustedAmount,
-      description,
-      // Track discount metadata
-      early_bird_applied: isEarlyBird,
-      early_bird_amount: earlyBirdDiscount,
-      sibling_discount_applied: siblingResult.discountApplied > 0,
-      sibling_discount_amount: siblingResult.discountApplied,
-      sibling_index: siblingIndex
+      description
+      // Note: early_bird_applied, early_bird_amount, sibling_discount_applied, 
+      // sibling_discount_amount, sibling_index columns don't exist in payments table yet
     })
   }
   
@@ -158,9 +154,7 @@ export function calculateFeesForPlayer(player, season, options = {}) {
       fee_name: feeName,
       fee_category: 'per_player',
       amount: siblingResult.amount,
-      description,
-      sibling_discount_applied: siblingResult.discountApplied > 0,
-      sibling_discount_amount: siblingResult.discountApplied
+      description
     })
   }
   
@@ -201,18 +195,18 @@ export function previewFeesForPlayer(player, season, siblingCount = 0) {
  */
 export function getFeeSummary(fees) {
   const subtotal = fees.reduce((sum, f) => sum + f.amount, 0)
-  const discounts = fees.reduce((sum, f) => {
-    return sum + (f.early_bird_amount || 0) + (f.sibling_discount_amount || 0)
-  }, 0)
+  // Check for discounts based on fee names since metadata columns don't exist
+  const hasEarlyBird = fees.some(f => f.fee_name?.includes('Early Bird'))
+  const hasSiblingDiscount = fees.some(f => f.fee_name?.includes('Sibling'))
   const lateFees = fees.filter(f => f.fee_type === 'late_fee').reduce((sum, f) => sum + f.amount, 0)
   
   return {
     subtotal,
-    discounts,
+    discounts: 0, // Can't calculate without metadata columns
     lateFees,
     total: subtotal,
-    hasEarlyBird: fees.some(f => f.early_bird_applied),
-    hasSiblingDiscount: fees.some(f => f.sibling_discount_applied),
+    hasEarlyBird,
+    hasSiblingDiscount,
     hasLateFee: lateFees > 0,
     feeCount: fees.length
   }
