@@ -1180,7 +1180,6 @@ function HorizontalNavBar({
   { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
   { id: 'waivers', label: 'Waivers', icon: 'file-text' },
   { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
-  { id: 'stripe', label: 'Online Payments (Stripe)', icon: 'credit-card' },
   { id: 'organization', label: 'Organization', icon: 'building' },
 ]},
   ]
