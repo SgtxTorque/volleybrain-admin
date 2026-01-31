@@ -46,6 +46,44 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       .order('name')
     setTeams(data || [])
     setLoading(false)
+    
+    // Auto-sync rostered status for players on teams
+    await syncRosteredStatus(data || [])
+  }
+
+  // Sync registration status to 'rostered' for all players currently on teams
+  async function syncRosteredStatus(teamsData) {
+    try {
+      // Get all player IDs currently on teams
+      const rosteredPlayerIds = []
+      teamsData.forEach(team => {
+        team.team_players?.forEach(tp => {
+          if (tp.player_id) rosteredPlayerIds.push(tp.player_id)
+        })
+      })
+      
+      if (rosteredPlayerIds.length === 0) return
+      
+      // Get registrations for these players that aren't already 'rostered'
+      const { data: regs } = await supabase
+        .from('registrations')
+        .select('id, player_id, status')
+        .in('player_id', rosteredPlayerIds)
+        .neq('status', 'rostered')
+      
+      if (!regs || regs.length === 0) return
+      
+      // Update them to rostered
+      const regIds = regs.map(r => r.id)
+      await supabase
+        .from('registrations')
+        .update({ status: 'rostered', updated_at: new Date().toISOString() })
+        .in('id', regIds)
+      
+      console.log(`Synced ${regs.length} players to rostered status`)
+    } catch (err) {
+      console.error('Error syncing rostered status:', err)
+    }
   }
 
   async function loadUnrosteredPlayers() {
