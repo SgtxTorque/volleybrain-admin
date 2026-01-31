@@ -32,7 +32,7 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
     if (playersError) throw playersError
     
     const approvedPlayers = (players || []).filter(p => 
-      ['approved', 'rostered'].includes(p.registrations?.[0]?.status)
+      ['approved', 'rostered', 'active'].includes(p.registrations?.[0]?.status)
     )
     
     if (approvedPlayers.length === 0) {
