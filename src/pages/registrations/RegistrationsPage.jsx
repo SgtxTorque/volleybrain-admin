@@ -8,7 +8,7 @@ import { generateFeesForPlayer } from '../../lib/fee-calculator'
 import { EmailService, isEmailEnabled } from '../../lib/email-service'
 import { exportToCSV } from '../../lib/csv-export'
 import { 
-  ClipboardList, Table, BarChart3, List, Calendar, Check, DollarSign, Edit, Trash2
+  ClipboardList, Table, BarChart3, List, Calendar, Check, DollarSign, Edit
 } from '../../constants/icons'
 
 // ============================================
@@ -48,13 +48,13 @@ export function ClickablePlayerName({ player, className = '', children, onPlayer
 }
 
 // ============================================
-// INFO ROW (for detail modals) - Compact version
+// INFO ROW (for detail modals)
 // ============================================
-function InfoRow({ label, value, tc }) {
+function InfoRow({ label, value }) {
   return (
-    <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-slate-900'} rounded-lg px-3 py-2`}>
-      <p className={`text-xs ${tc?.textMuted || 'text-slate-400'} uppercase tracking-wide`}>{label}</p>
-      <p className={`${tc?.text || 'text-slate-900 dark:text-white'} font-semibold mt-0.5`}>{value || '—'}</p>
+    <div className="bg-slate-900 rounded-lg p-3">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="text-white text-sm mt-1">{value}</p>
     </div>
   )
 }
@@ -75,14 +75,13 @@ function WaiverBadge({ label, signed }) {
 // ============================================
 // EDIT FIELD (for edit modals)
 // ============================================
-function EditField({ label, value, onChange, type = 'text', options, multiline, tc }) {
-  const inputClasses = `w-full ${tc?.inputBg || 'bg-white dark:bg-slate-900'} border ${tc?.border || 'border-slate-300 dark:border-slate-700'} rounded-lg px-3 py-2 ${tc?.text || 'text-slate-900 dark:text-white'} text-sm`
-  
+function EditField({ label, value, onChange, type = 'text', options, multiline }) {
   if (options) {
     return (
       <div>
-        <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
-        <select value={value} onChange={e => onChange(e.target.value)} className={inputClasses}>
+        <label className="block text-xs text-slate-500 mb-1">{label}</label>
+        <select value={value} onChange={e => onChange(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
           <option value="">Select...</option>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
@@ -92,16 +91,17 @@ function EditField({ label, value, onChange, type = 'text', options, multiline, 
   if (multiline) {
     return (
       <div>
-        <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
+        <label className="block text-xs text-slate-500 mb-1">{label}</label>
         <textarea value={value} onChange={e => onChange(e.target.value)}
-          className={`${inputClasses} min-h-[80px]`} />
+          className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm min-h-[80px]" />
       </div>
     )
   }
   return (
     <div>
-      <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)} className={inputClasses} />
+      <label className="block text-xs text-slate-500 mb-1">{label}</label>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)}
+        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
     </div>
   )
 }
@@ -109,12 +109,10 @@ function EditField({ label, value, onChange, type = 'text', options, multiline, 
 // ============================================
 // PLAYER DETAIL/EDIT MODAL
 // ============================================
-export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToast, allPlayers = [], onPlayerSelect }) {
-  const tc = useThemeClasses()
+export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToast }) {
   const reg = player.registrations?.[0]
   const [isEditing, setIsEditing] = useState(editMode)
   const [saving, setSaving] = useState(false)
-  const [siblings, setSiblings] = useState([])
   const [form, setForm] = useState({
     first_name: player.first_name || '',
     last_name: player.last_name || '',
@@ -127,46 +125,19 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
     parent_email: player.parent_email || '',
     parent_phone: player.parent_phone || '',
     address: player.address || '',
-    city: player.city || '',
-    state: player.state || '',
-    zip: player.zip || '',
     parent_2_name: player.parent_2_name || '',
     parent_2_email: player.parent_2_email || '',
     parent_2_phone: player.parent_2_phone || '',
     emergency_contact_name: player.emergency_contact_name || player.emergency_name || '',
     emergency_contact_phone: player.emergency_contact_phone || player.emergency_phone || '',
     emergency_contact_relation: player.emergency_contact_relation || player.emergency_relation || '',
-    emergency_2_name: player.emergency_2_name || '',
-    emergency_2_phone: player.emergency_2_phone || '',
     medical_conditions: player.medical_conditions || '',
     allergies: player.allergies || '',
     medications: player.medications || '',
-    doctor_name: player.doctor_name || '',
-    doctor_phone: player.doctor_phone || '',
-    insurance_provider: player.insurance_provider || '',
-    insurance_policy: player.insurance_policy || '',
     jersey_number: player.jersey_number || '',
     jersey_size: player.jersey_size || '',
-    shirt_size: player.shirt_size || '',
-    shorts_size: player.shorts_size || '',
-    preferred_number: player.preferred_number || '',
-    position_preference: player.position_preference || '',
-    previous_teams: player.previous_teams || '',
-    height: player.height || '',
-    weight: player.weight || '',
     notes: player.notes || '',
   })
-
-  // Find siblings (other players with same parent email)
-  useEffect(() => {
-    if (player.parent_email && allPlayers.length > 0) {
-      const sibs = allPlayers.filter(p => 
-        p.id !== player.id && 
-        p.parent_email?.toLowerCase() === player.parent_email?.toLowerCase()
-      )
-      setSiblings(sibs)
-    }
-  }, [player, allPlayers])
 
   async function handleSave() {
     setSaving(true)
@@ -188,313 +159,177 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
     setSaving(false)
   }
 
-  // Section Header component
-  const SectionHeader = ({ children }) => (
-    <h3 className={`text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-3 pb-1 border-b ${tc.border}`}>
-      {children}
-    </h3>
-  )
-
-  // Info display component
-  const InfoItem = ({ label, value, wide }) => (
-    <div className={wide ? 'col-span-2' : ''}>
-      <p className={`text-[10px] uppercase tracking-wide ${tc.textMuted}`}>{label}</p>
-      <p className={`${tc.text} font-medium`}>{value || '—'}</p>
-    </div>
-  )
-
-  // Format full address
-  const fullAddress = [player.address, player.city, player.state, player.zip].filter(Boolean).join(', ')
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-2xl`}>
-        {/* Header */}
-        <div className={`px-6 py-4 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg} z-10`}>
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
-              <span className="text-[var(--accent-primary)] font-bold text-xl">
-                {player.first_name?.[0]}{player.last_name?.[0]}
-              </span>
-            </div>
-            <div>
-              <h2 className={`text-2xl font-bold ${tc.text}`}>
-                {player.first_name} {player.last_name}
-              </h2>
-              <div className="flex items-center gap-3 mt-1">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  reg?.status === 'submitted' || reg?.status === 'new' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' :
-                  reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' :
-                  reg?.status === 'rostered' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                  reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-600 dark:text-red-400' :
-                  'bg-gray-500/20 text-slate-500'
-                }`}>{reg?.status === 'submitted' || reg?.status === 'new' ? 'pending' : reg?.status || 'unknown'}</span>
-                <span className={`text-sm ${tc.textMuted}`}>
-                  Registered {reg?.submitted_at ? new Date(reg.submitted_at).toLocaleDateString() : 'N/A'}
-                </span>
-                {siblings.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-600 dark:text-purple-400">
-                    👨‍👩‍👧‍👦 {siblings.length} sibling{siblings.length > 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-            </div>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
+          <div>
+            <h2 className="text-xl font-semibold text-white">
+              {isEditing ? 'Edit Player' : 'Player Details'}
+            </h2>
+            <p className="text-sm text-slate-400">{player.first_name} {player.last_name}</p>
           </div>
           <div className="flex items-center gap-2">
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-500/30 flex items-center gap-2 font-medium">
+              <button onClick={() => setIsEditing(true)} className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 flex items-center gap-2">
                 <Edit className="w-4 h-4" /> Edit
               </button>
             )}
-            <button onClick={onClose} className={`w-8 h-8 rounded-lg ${tc.cardBgAlt} ${tc.textMuted} hover:opacity-70 flex items-center justify-center text-xl`}>×</button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl">×</button>
           </div>
         </div>
         
-        {/* Content */}
-        {isEditing ? (
-          /* Edit Mode */
-          <div className="p-6 space-y-6">
-            <div>
-              <SectionHeader>Player Information</SectionHeader>
-              <div className="grid grid-cols-4 gap-4">
-                <EditField tc={tc} label="First Name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} />
-                <EditField tc={tc} label="Last Name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} />
-                <EditField tc={tc} label="Date of Birth" value={form.birth_date} onChange={v => setForm({...form, birth_date: v})} type="date" />
-                <EditField tc={tc} label="Gender" value={form.gender} onChange={v => setForm({...form, gender: v})} options={['Male', 'Female', 'Other']} />
-                <EditField tc={tc} label="Grade" value={form.grade} onChange={v => setForm({...form, grade: v})} type="number" />
-                <EditField tc={tc} label="School" value={form.school} onChange={v => setForm({...form, school: v})} />
-                <EditField tc={tc} label="Experience" value={form.experience_level} onChange={v => setForm({...form, experience_level: v})} options={['Beginner', 'Intermediate', 'Advanced']} />
-                <EditField tc={tc} label="Position Preference" value={form.position_preference} onChange={v => setForm({...form, position_preference: v})} />
-                <EditField tc={tc} label="Jersey Size" value={form.jersey_size} onChange={v => setForm({...form, jersey_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
-                <EditField tc={tc} label="Shirt Size" value={form.shirt_size} onChange={v => setForm({...form, shirt_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
-                <EditField tc={tc} label="Preferred Number" value={form.preferred_number} onChange={v => setForm({...form, preferred_number: v})} />
-                <EditField tc={tc} label="Previous Teams" value={form.previous_teams} onChange={v => setForm({...form, previous_teams: v})} />
+        <div className="p-6 space-y-6">
+          {/* Player Info */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-400 mb-3">Player Information</h3>
+            {isEditing ? (
+              <div className="grid grid-cols-2 gap-4">
+                <EditField label="First Name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} />
+                <EditField label="Last Name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} />
+                <EditField label="Date of Birth" value={form.birth_date} onChange={v => setForm({...form, birth_date: v})} type="date" />
+                <EditField label="Grade" value={form.grade} onChange={v => setForm({...form, grade: v})} type="number" />
+                <EditField label="Gender" value={form.gender} onChange={v => setForm({...form, gender: v})} options={['Male', 'Female', 'Other']} />
+                <EditField label="School" value={form.school} onChange={v => setForm({...form, school: v})} />
+                <EditField label="Experience" value={form.experience_level} onChange={v => setForm({...form, experience_level: v})} options={['Beginner', 'Intermediate', 'Advanced']} />
+                <EditField label="Jersey Number" value={form.jersey_number} onChange={v => setForm({...form, jersey_number: v})} type="number" />
+                <EditField label="Jersey Size" value={form.jersey_size} onChange={v => setForm({...form, jersey_size: v})} options={['YS', 'YM', 'YL', 'AS', 'AM', 'AL', 'AXL']} />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <SectionHeader>Parent/Guardian 1</SectionHeader>
-                <div className="grid grid-cols-2 gap-4">
-                  <EditField tc={tc} label="Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
-                  <EditField tc={tc} label="Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
-                  <EditField tc={tc} label="Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
-                </div>
-              </div>
-              <div>
-                <SectionHeader>Parent/Guardian 2</SectionHeader>
-                <div className="grid grid-cols-2 gap-4">
-                  <EditField tc={tc} label="Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
-                  <EditField tc={tc} label="Email" value={form.parent_2_email} onChange={v => setForm({...form, parent_2_email: v})} type="email" />
-                  <EditField tc={tc} label="Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
-                </div>
-              </div>
-            </div>
-            <div>
-              <SectionHeader>Address</SectionHeader>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-2">
-                  <EditField tc={tc} label="Street Address" value={form.address} onChange={v => setForm({...form, address: v})} />
-                </div>
-                <EditField tc={tc} label="City" value={form.city} onChange={v => setForm({...form, city: v})} />
-                <div className="grid grid-cols-2 gap-4">
-                  <EditField tc={tc} label="State" value={form.state} onChange={v => setForm({...form, state: v})} />
-                  <EditField tc={tc} label="ZIP" value={form.zip} onChange={v => setForm({...form, zip: v})} />
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <SectionHeader>Emergency Contact</SectionHeader>
-                <div className="grid grid-cols-2 gap-4">
-                  <EditField tc={tc} label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
-                  <EditField tc={tc} label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
-                  <EditField tc={tc} label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
-                </div>
-              </div>
-              <div>
-                <SectionHeader>Medical Information</SectionHeader>
-                <div className="grid grid-cols-2 gap-4">
-                  <EditField tc={tc} label="Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} />
-                  <EditField tc={tc} label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} />
-                  <EditField tc={tc} label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} />
-                  <EditField tc={tc} label="Doctor Name" value={form.doctor_name} onChange={v => setForm({...form, doctor_name: v})} />
-                </div>
-              </div>
-            </div>
-            <div>
-              <SectionHeader>Admin Notes</SectionHeader>
-              <EditField tc={tc} label="Notes" value={form.notes} onChange={v => setForm({...form, notes: v})} multiline />
-            </div>
-          </div>
-        ) : (
-          /* View Mode */
-          <div className="p-6 space-y-4">
-            {/* Row 1: Player Information (full width) */}
-            <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-              <SectionHeader>Player Information</SectionHeader>
-              <div className="grid grid-cols-6 gap-x-6 gap-y-3">
-                <InfoItem label="Date of Birth" value={player.birth_date || player.dob} />
-                <InfoItem label="Gender" value={player.gender} />
-                <InfoItem label="Grade" value={player.grade} />
-                <InfoItem label="School" value={player.school} />
-                <InfoItem label="Experience" value={player.experience_level || player.experience} />
-                <InfoItem label="Position" value={player.position_preference} />
-                <InfoItem label="Jersey Size" value={player.jersey_size} />
-                <InfoItem label="Shirt Size" value={player.shirt_size} />
-                <InfoItem label="Shorts Size" value={player.shorts_size} />
-                <InfoItem label="Preferred #" value={player.preferred_number || player.jersey_pref_1} />
-                <InfoItem label="Height" value={player.height} />
-                <InfoItem label="Weight" value={player.weight} />
-                {player.previous_teams && <InfoItem label="Previous Teams" value={player.previous_teams} wide />}
-              </div>
-            </div>
-
-            {/* Row 2: Parents side by side */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Parent/Guardian 1 */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Parent/Guardian 1</SectionHeader>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                  <InfoItem label="Name" value={player.parent_name} />
-                  <InfoItem label="Email" value={player.parent_email} />
-                  <InfoItem label="Phone" value={player.parent_phone} />
-                </div>
-                {fullAddress && (
-                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                    <InfoItem label="Address" value={fullAddress} />
-                  </div>
-                )}
-              </div>
-
-              {/* Parent/Guardian 2 */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Parent/Guardian 2</SectionHeader>
-                {player.parent_2_name || player.parent_2_email || player.parent_2_phone ? (
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                    <InfoItem label="Name" value={player.parent_2_name} />
-                    <InfoItem label="Email" value={player.parent_2_email} />
-                    <InfoItem label="Phone" value={player.parent_2_phone} />
-                  </div>
-                ) : (
-                  <p className={`text-sm ${tc.textMuted} italic`}>No second parent on file</p>
-                )}
-              </div>
-            </div>
-
-            {/* Row 3: Emergency, Medical, Waivers */}
-            <div className="grid grid-cols-3 gap-4">
-              {/* Emergency Contact */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Emergency Contact</SectionHeader>
-                <div className="space-y-3">
-                  <InfoItem label="Name" value={player.emergency_contact_name || player.emergency_name} />
-                  <InfoItem label="Phone" value={player.emergency_contact_phone || player.emergency_phone} />
-                  <InfoItem label="Relation" value={player.emergency_contact_relation || player.emergency_relation} />
-                </div>
-                {(player.emergency_2_name || player.emergency2_name) && (
-                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                    <p className={`text-[10px] uppercase tracking-wide ${tc.textMuted} mb-1`}>Backup Contact</p>
-                    <InfoItem label="Name" value={player.emergency_2_name || player.emergency2_name} />
-                    <InfoItem label="Phone" value={player.emergency_2_phone || player.emergency2_phone} />
-                  </div>
-                )}
-              </div>
-
-              {/* Medical Information */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Medical Information</SectionHeader>
-                <div className="space-y-3">
-                  <InfoItem label="Conditions" value={player.medical_conditions || 'None'} />
-                  <InfoItem label="Allergies" value={player.allergies || 'None'} />
-                  <InfoItem label="Medications" value={player.medications || 'None'} />
-                </div>
-                {(player.doctor_name || player.insurance_provider) && (
-                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
-                    {player.doctor_name && <InfoItem label="Doctor" value={`${player.doctor_name}${player.doctor_phone ? ` • ${player.doctor_phone}` : ''}`} />}
-                    {player.insurance_provider && <InfoItem label="Insurance" value={`${player.insurance_provider}${player.insurance_policy ? ` • ${player.insurance_policy}` : ''}`} />}
-                  </div>
-                )}
-              </div>
-
-              {/* Waivers & Signature */}
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Waivers & Signature</SectionHeader>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_liability ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-500'}`}>
-                    {player.waiver_liability ? '✓' : '✗'} Liability
-                  </span>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_photo ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-500/20 text-slate-500'}`}>
-                    {player.waiver_photo ? '✓' : '—'} Photo
-                  </span>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${player.waiver_conduct ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-500'}`}>
-                    {player.waiver_conduct ? '✓' : '✗'} Conduct
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <InfoItem label="Signed By" value={player.waiver_signed_by} />
-                  <InfoItem label="Signed Date" value={player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : null} />
-                </div>
-              </div>
-            </div>
-
-            {/* Siblings Section */}
-            {siblings.length > 0 && (
-              <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
-                <SectionHeader>Registered Siblings</SectionHeader>
-                <div className="flex flex-wrap gap-3">
-                  {siblings.map(sib => {
-                    const sibReg = sib.registrations?.[0]
-                    return (
-                      <button
-                        key={sib.id}
-                        onClick={() => onPlayerSelect?.(sib)}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-lg ${tc.cardBg} border ${tc.border} hover:border-[var(--accent-primary)] transition-colors group`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                          <span className="text-purple-600 dark:text-purple-400 font-medium text-sm">
-                            {sib.first_name?.[0]}{sib.last_name?.[0]}
-                          </span>
-                        </div>
-                        <div className="text-left">
-                          <p className={`${tc.text} font-medium group-hover:text-[var(--accent-primary)]`}>
-                            {sib.first_name} {sib.last_name}
-                          </p>
-                          <p className={`text-xs ${tc.textMuted}`}>
-                            Grade {sib.grade || '?'} • {sibReg?.status === 'submitted' || sibReg?.status === 'new' ? 'pending' : sibReg?.status || 'unknown'}
-                          </p>
-                        </div>
-                        <span className={`text-xs ${tc.textMuted} group-hover:text-[var(--accent-primary)]`}>→</span>
-                      </button>
-                    )
-                  })}
-                </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <InfoRow label="Name" value={`${player.first_name} ${player.last_name}`} />
+                <InfoRow label="DOB" value={player.birth_date || player.dob || 'N/A'} />
+                <InfoRow label="Grade" value={player.grade || 'N/A'} />
+                <InfoRow label="Gender" value={player.gender || 'N/A'} />
+                <InfoRow label="School" value={player.school || 'N/A'} />
+                <InfoRow label="Experience" value={player.experience_level || player.experience || 'N/A'} />
+                <InfoRow label="Jersey #" value={player.jersey_number || 'N/A'} />
+                <InfoRow label="Jersey Prefs" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || 'N/A'} />
+                <InfoRow label="Jersey Size" value={player.jersey_size || 'N/A'} />
               </div>
             )}
+          </div>
 
-            {/* Denial reason if applicable */}
-            {reg?.denial_reason && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  <span className="font-semibold">Denial Reason:</span> {reg.denial_reason}
+          {/* Parent Info */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-400 mb-3">Parent/Guardian</h3>
+            {isEditing ? (
+              <div className="grid grid-cols-2 gap-4">
+                <EditField label="Parent Name" value={form.parent_name} onChange={v => setForm({...form, parent_name: v})} />
+                <EditField label="Parent Email" value={form.parent_email} onChange={v => setForm({...form, parent_email: v})} type="email" />
+                <EditField label="Parent Phone" value={form.parent_phone} onChange={v => setForm({...form, parent_phone: v})} type="tel" />
+                <EditField label="Address" value={form.address} onChange={v => setForm({...form, address: v})} />
+                <EditField label="Parent 2 Name" value={form.parent_2_name} onChange={v => setForm({...form, parent_2_name: v})} />
+                <EditField label="Parent 2 Phone" value={form.parent_2_phone} onChange={v => setForm({...form, parent_2_phone: v})} type="tel" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <InfoRow label="Name" value={player.parent_name || 'N/A'} />
+                <InfoRow label="Email" value={player.parent_email || 'N/A'} />
+                <InfoRow label="Phone" value={player.parent_phone || 'N/A'} />
+                <InfoRow label="Address" value={player.address || 'N/A'} />
+                {player.parent_2_name && <InfoRow label="Parent 2" value={player.parent_2_name} />}
+                {player.parent_2_phone && <InfoRow label="Parent 2 Phone" value={player.parent_2_phone} />}
+              </div>
+            )}
+          </div>
+
+          {/* Emergency Contact */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-400 mb-3">Emergency Contact</h3>
+            {isEditing ? (
+              <div className="grid grid-cols-3 gap-4">
+                <EditField label="Name" value={form.emergency_contact_name} onChange={v => setForm({...form, emergency_contact_name: v})} />
+                <EditField label="Phone" value={form.emergency_contact_phone} onChange={v => setForm({...form, emergency_contact_phone: v})} type="tel" />
+                <EditField label="Relation" value={form.emergency_contact_relation} onChange={v => setForm({...form, emergency_contact_relation: v})} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-4">
+                <InfoRow label="Name" value={player.emergency_contact_name || player.emergency_name || 'N/A'} />
+                <InfoRow label="Phone" value={player.emergency_contact_phone || player.emergency_phone || 'N/A'} />
+                <InfoRow label="Relation" value={player.emergency_contact_relation || player.emergency_relation || 'N/A'} />
+              </div>
+            )}
+          </div>
+
+          {/* Medical */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-400 mb-3">Medical Information</h3>
+            {isEditing ? (
+              <div className="grid grid-cols-1 gap-4">
+                <EditField label="Medical Conditions" value={form.medical_conditions} onChange={v => setForm({...form, medical_conditions: v})} multiline />
+                <EditField label="Allergies" value={form.allergies} onChange={v => setForm({...form, allergies: v})} multiline />
+                <EditField label="Medications" value={form.medications} onChange={v => setForm({...form, medications: v})} multiline />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <InfoRow label="Conditions" value={player.medical_conditions || 'None'} />
+                <InfoRow label="Allergies" value={player.allergies || 'None'} />
+                <InfoRow label="Medications" value={player.medications || 'None'} />
+              </div>
+            )}
+          </div>
+
+          {/* Waivers (view only) */}
+          {!isEditing && (
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-3">Waivers</h3>
+              <div className="flex gap-4">
+                <WaiverBadge label="Liability" signed={player.waiver_liability} />
+                <WaiverBadge label="Photo" signed={player.waiver_photo} />
+                <WaiverBadge label="Conduct" signed={player.waiver_conduct} />
+              </div>
+              {player.waiver_signed_by && (
+                <p className="text-xs text-slate-500 mt-2">
+                  Signed by {player.waiver_signed_by} on {player.waiver_signed_date ? new Date(player.waiver_signed_date).toLocaleDateString() : 'N/A'}
                 </p>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
 
-        {/* Footer */}
-        <div className={`px-6 py-4 border-t ${tc.border} flex justify-end gap-3 sticky bottom-0 ${tc.cardBg}`}>
+          {/* Notes */}
+          {isEditing && (
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-3">Admin Notes</h3>
+              <EditField label="Notes" value={form.notes} onChange={v => setForm({...form, notes: v})} multiline />
+            </div>
+          )}
+
+          {/* Registration Status (view only) */}
+          {!isEditing && (
+            <div>
+              <h3 className="text-sm font-medium text-slate-400 mb-3">Registration Status</h3>
+              <div className="flex items-center gap-4">
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  reg?.status === 'submitted' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' :
+                  reg?.status === 'approved' ? 'bg-blue-500/20 text-blue-400' :
+                  reg?.status === 'rostered' ? 'bg-emerald-500/20 text-emerald-400' :
+                  reg?.status === 'withdrawn' ? 'bg-red-500/20 text-red-400' :
+                  'bg-gray-500/20 text-slate-400'
+                }`}>{reg?.status || 'unknown'}</span>
+                <span className="text-xs text-slate-500">
+                  Submitted {reg?.submitted_at ? new Date(reg.submitted_at).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+              {reg?.denial_reason && (
+                <p className="text-sm text-red-400 mt-2">Denial Reason: {reg.denial_reason}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 border-t border-slate-700 flex justify-end gap-3 sticky bottom-0 bg-slate-800">
           {isEditing ? (
             <>
-              <button onClick={() => setIsEditing(false)} className={`px-5 py-2 rounded-lg border ${tc.border} ${tc.text} font-medium`}>
+              <button onClick={() => setIsEditing(false)} className="px-6 py-2 rounded-xl border border-slate-700 text-white">
                 Cancel
               </button>
-              <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-lg bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50">
+              <button onClick={handleSave} disabled={saving} className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </>
           ) : (
-            <button onClick={onClose} className={`px-5 py-2 rounded-lg ${tc.cardBgAlt} ${tc.text} font-medium hover:opacity-80`}>
+            <button onClick={onClose} className="px-6 py-2 rounded-xl bg-slate-700 text-white hover:bg-slate-600">
               Close
             </button>
           )}
@@ -508,27 +343,26 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
 // DENY REGISTRATION MODAL
 // ============================================
 export function DenyRegistrationModal({ player, onClose, onDeny }) {
-  const tc = useThemeClasses()
   const [reason, setReason] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
-        <div className={`p-6 border-b ${tc.border}`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>Deny Registration</h2>
-          <p className={`${tc.textMuted} text-sm mt-1`}>{player.first_name} {player.last_name}</p>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md">
+        <div className="p-6 border-b border-slate-700">
+          <h2 className="text-xl font-semibold text-white">Deny Registration</h2>
+          <p className="text-slate-400 text-sm mt-1">{player.first_name} {player.last_name}</p>
         </div>
         <div className="p-6">
-          <label className={`block text-sm ${tc.textMuted} mb-2`}>Reason for denial (optional)</label>
+          <label className="block text-sm text-slate-400 mb-2">Reason for denial (optional)</label>
           <textarea 
             value={reason} 
             onChange={e => setReason(e.target.value)}
             placeholder="Enter reason..."
-            className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} min-h-[100px]`}
+            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white min-h-[100px]"
           />
         </div>
-        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
-          <button onClick={onClose} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
+        <div className="p-6 border-t border-slate-700 flex justify-end gap-3">
+          <button onClick={onClose} className="px-6 py-2 rounded-xl border border-slate-700 text-white">
             Cancel
           </button>
           <button onClick={() => onDeny(reason)} className="px-6 py-2 rounded-xl bg-red-500 text-white font-semibold">
@@ -548,7 +382,7 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
   const [reason, setReason] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Deny {count} Registrations</h2>
@@ -575,78 +409,6 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
             className="px-6 py-2 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-50"
           >
             {processing ? 'Processing...' : `Deny ${count} Registrations`}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ============================================
-// DELETE REGISTRATION MODAL
-// ============================================
-export function DeleteRegistrationModal({ player, onClose, onDelete, processing }) {
-  const tc = useThemeClasses()
-  const [confirmText, setConfirmText] = useState('')
-  const reg = player?.registrations?.[0]
-  
-  const canDelete = confirmText.toLowerCase() === 'delete'
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
-        <div className={`p-6 border-b ${tc.border}`}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-              <Trash2 className="w-5 h-5 text-red-400" />
-            </div>
-            <div>
-              <h2 className={`text-xl font-semibold ${tc.text}`}>Delete Registration</h2>
-              <p className={`${tc.textMuted} text-sm`}>{player?.first_name} {player?.last_name}</p>
-            </div>
-          </div>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className={`${tc.cardBgAlt} border ${tc.border} rounded-xl p-4`}>
-            <p className={`text-sm ${tc.textSecondary}`}>
-              This will <span className="text-red-400 font-semibold">permanently delete</span> this registration including:
-            </p>
-            <ul className={`text-sm ${tc.textMuted} mt-2 space-y-1 ml-4`}>
-              <li>• Player record and all data</li>
-              <li>• Registration history</li>
-              <li>• Associated payment records</li>
-              <li>• Waiver signatures</li>
-            </ul>
-          </div>
-          
-          <div>
-            <label className={`block text-sm ${tc.textMuted} mb-2`}>
-              Type <span className="font-mono text-red-400">delete</span> to confirm
-            </label>
-            <input 
-              type="text"
-              value={confirmText}
-              onChange={e => setConfirmText(e.target.value)}
-              placeholder="delete"
-              className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text}`}
-              autoFocus
-            />
-          </div>
-        </div>
-        <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
-          <button 
-            onClick={onClose} 
-            className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}
-            disabled={processing}
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={onDelete}
-            disabled={!canDelete || processing}
-            className="px-6 py-2 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {processing ? 'Deleting...' : 'Delete Forever'}
           </button>
         </div>
       </div>
@@ -1023,8 +785,6 @@ export function RegistrationsPage({ showToast }) {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkProcessing, setBulkProcessing] = useState(false)
   const [showBulkDenyModal, setShowBulkDenyModal] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(null) // Player object to delete
-  const [deleteProcessing, setDeleteProcessing] = useState(false)
   
   // View mode: 'table' or 'analytics'
   const [viewMode, setViewMode] = useState('table')
@@ -1094,7 +854,12 @@ export function RegistrationsPage({ showToast }) {
                 .catch(e => console.error('Email queue error:', e))
             }
           } else if (result.skipped) {
-            showToast('Registration approved!', 'success')
+            // Warn if no fees configured
+            if (result.noFeesConfigured) {
+              showToast('Approved! ⚠️ No fees configured - go to Setup → Seasons to add fees', 'warning')
+            } else {
+              showToast('Registration approved!', 'success')
+            }
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
               EmailService.sendApprovalNotification(playerData, selectedSeason, organization, [])
                 .then(r => r.success && console.log('Approval email queued'))
@@ -1130,52 +895,6 @@ export function RegistrationsPage({ showToast }) {
     } catch (err) {
       showToast('Error: ' + err.message, 'error')
     }
-  }
-
-  async function deleteRegistration(player) {
-    setDeleteProcessing(true)
-    try {
-      const reg = player.registrations?.[0]
-      
-      // Delete associated payments first (foreign key constraint)
-      if (reg?.id) {
-        const { error: paymentError } = await supabase
-          .from('payments')
-          .delete()
-          .eq('registration_id', reg.id)
-        
-        if (paymentError) {
-          console.warn('Error deleting payments:', paymentError)
-          // Continue anyway - payments might not exist
-        }
-      }
-
-      // Delete the registration record
-      if (reg?.id) {
-        const { error: regError } = await supabase
-          .from('registrations')
-          .delete()
-          .eq('id', reg.id)
-        
-        if (regError) throw regError
-      }
-
-      // Delete the player record
-      const { error: playerError } = await supabase
-        .from('players')
-        .delete()
-        .eq('id', player.id)
-      
-      if (playerError) throw playerError
-
-      showToast(`Deleted ${player.first_name} ${player.last_name}`, 'success')
-      setShowDeleteModal(null)
-      loadRegistrations()
-    } catch (err) {
-      console.error('Delete error:', err)
-      showToast('Error deleting: ' + err.message, 'error')
-    }
-    setDeleteProcessing(false)
   }
 
   // ========== BULK ACTIONS ==========
@@ -1380,49 +1099,6 @@ export function RegistrationsPage({ showToast }) {
     loadRegistrations()
   }
 
-  async function bulkDelete() {
-    setBulkProcessing(true)
-    const selectedPlayers = filteredRegs.filter(p => selectedIds.has(p.id))
-    const deletablePlayers = selectedPlayers.filter(p => 
-      ['withdrawn', 'denied'].includes(p.registrations?.[0]?.status)
-    )
-    
-    if (deletablePlayers.length === 0) {
-      showToast('No withdrawn/denied registrations selected', 'warning')
-      setBulkProcessing(false)
-      return
-    }
-
-    let deleted = 0
-
-    for (const player of deletablePlayers) {
-      const reg = player.registrations?.[0]
-
-      try {
-        // Delete payments first
-        if (reg?.id) {
-          await supabase.from('payments').delete().eq('registration_id', reg.id)
-        }
-        
-        // Delete registration
-        if (reg?.id) {
-          await supabase.from('registrations').delete().eq('id', reg.id)
-        }
-        
-        // Delete player
-        await supabase.from('players').delete().eq('id', player.id)
-        deleted++
-      } catch (err) {
-        console.error('Error deleting player:', player.id, err)
-      }
-    }
-
-    showToast(`Permanently deleted ${deleted} registrations`, 'success')
-    setSelectedIds(new Set())
-    setBulkProcessing(false)
-    loadRegistrations()
-  }
-
   function bulkExport() {
     const selectedPlayers = filteredRegs.filter(p => selectedIds.has(p.id))
     if (selectedPlayers.length === 0) {
@@ -1455,10 +1131,6 @@ export function RegistrationsPage({ showToast }) {
 
   const selectedPendingCount = filteredRegs.filter(p => 
     selectedIds.has(p.id) && ['submitted', 'pending', 'new'].includes(p.registrations?.[0]?.status)
-  ).length
-
-  const selectedDeniedCount = filteredRegs.filter(p => 
-    selectedIds.has(p.id) && ['withdrawn', 'denied'].includes(p.registrations?.[0]?.status)
   ).length
 
   const csvColumns = [
@@ -1573,19 +1245,6 @@ export function RegistrationsPage({ showToast }) {
                 >
                   ✗ Deny
                 </button>
-                {selectedDeniedCount > 0 && (
-                  <button 
-                    onClick={() => {
-                      if (window.confirm(`Permanently delete ${selectedDeniedCount} registration(s)? This cannot be undone.`)) {
-                        bulkDelete()
-                      }
-                    }}
-                    disabled={bulkProcessing}
-                    className="bg-red-800 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-900 disabled:opacity-50 flex items-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" /> Delete ({selectedDeniedCount})
-                  </button>
-                )}
                 <button 
                   onClick={bulkExport}
                   className={`${tc.cardBgAlt} ${tc.text} px-4 py-2 rounded-xl text-sm font-medium ${tc.hoverBgAlt}`}
@@ -1731,15 +1390,6 @@ export function RegistrationsPage({ showToast }) {
                                 ⬆️ Promote
                               </button>
                             )}
-                            {['withdrawn', 'denied'].includes(reg?.status) && (
-                              <button 
-                                onClick={() => setShowDeleteModal(player)} 
-                                className="px-3 py-1 bg-red-500/20 rounded-lg text-xs text-red-400 hover:bg-red-500/30 flex items-center gap-1"
-                                title="Permanently delete this registration"
-                              >
-                                <Trash2 className="w-3 h-3" /> Delete
-                              </button>
-                            )}
                           </div>
                         </td>
                       </tr>
@@ -1760,8 +1410,6 @@ export function RegistrationsPage({ showToast }) {
           onClose={() => { setSelectedPlayer(null); setEditMode(false) }} 
           onUpdate={() => { loadRegistrations(); setSelectedPlayer(null); setEditMode(false) }}
           showToast={showToast}
-          allPlayers={registrations}
-          onPlayerSelect={(p) => { setSelectedPlayer(p); setEditMode(false) }}
         />
       )}
 
@@ -1781,16 +1429,6 @@ export function RegistrationsPage({ showToast }) {
           onClose={() => setShowBulkDenyModal(false)}
           onDeny={bulkDeny}
           processing={bulkProcessing}
-        />
-      )}
-
-      {/* Delete Registration Modal */}
-      {showDeleteModal && (
-        <DeleteRegistrationModal
-          player={showDeleteModal}
-          onClose={() => setShowDeleteModal(null)}
-          onDelete={() => deleteRegistration(showDeleteModal)}
-          processing={deleteProcessing}
         />
       )}
     </div>
