@@ -447,11 +447,16 @@ function FinancialOverview({ monthlyData, totalCollected }) {
 // REGISTRATION STATS WIDGET
 // ============================================
 function RegistrationStats({ stats, onNavigate }) {
+  // Calculate unrostered first for chart
+  const rostered = stats.rostered || 0
+  const unrostered = stats.unrostered || Math.max(0, (stats.totalRegistrations || 0) - rostered - (stats.pending || 0) - (stats.waitlisted || 0) - (stats.denied || 0))
+  
   const chartData = [
-    { value: stats.approved || 0, color: '#3B82F6' },
-    { value: stats.pending || 0, color: '#F59E0B' },
-    { value: stats.waitlisted || 0, color: '#8B5CF6' },
-    { value: stats.denied || 0, color: '#EF4444' },
+    { value: stats.pending || 0, color: '#F59E0B', label: 'Pending' },
+    { value: unrostered, color: '#3B82F6', label: 'Unrostered' },
+    { value: rostered, color: '#10B981', label: 'Rostered' },
+    { value: stats.waitlisted || 0, color: '#8B5CF6', label: 'Waitlisted' },
+    { value: stats.denied || 0, color: '#EF4444', label: 'Denied' },
   ]
   const total = chartData.reduce((sum, d) => sum + d.value, 0)
   
@@ -460,49 +465,83 @@ function RegistrationStats({ stats, onNavigate }) {
       <CardHeader title="Registration Stats" />
       
       <div className="p-5">
-        {/* Pass Type Row */}
-        <div className="flex items-center gap-3 mb-5 p-3 bg-slate-50 rounded-xl">
-          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-            <ClipboardList className="w-5 h-5 text-blue-600" />
+        {/* Main Stats Row */}
+        <div className="flex items-stretch gap-4 mb-5">
+          {/* Total Registrations */}
+          <div className="flex-1 p-4 bg-slate-50 rounded-xl text-center">
+            <p className="text-3xl font-bold text-slate-800">{stats.totalRegistrations || 0}</p>
+            <p className="text-sm text-slate-500 mt-1">Total Registrations</p>
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-800">{stats.totalRegistrations || 0}</span>
-              <span className="text-slate-600">{stats.passTypeName || 'Season Pass'}</span>
-              <AlertCircle className="w-4 h-4 text-slate-400" />
-            </div>
-            <span className="text-sm text-slate-500">{stats.approved || 0} of {stats.capacity || 0}</span>
+          
+          {/* Rostered */}
+          <div className="flex-1 p-4 bg-emerald-50 rounded-xl text-center">
+            <p className="text-3xl font-bold text-emerald-600">
+              {rostered}
+              <span className="text-lg text-emerald-400">/{stats.totalRegistrations || 0}</span>
+            </p>
+            <p className="text-sm text-emerald-600 mt-1">Rostered</p>
           </div>
         </div>
         
-        {/* Chart and Stats */}
+        {/* Capacity Bar */}
+        {stats.capacity > 0 && (
+          <div className="mb-5">
+            <div className="flex justify-between text-xs text-slate-500 mb-1">
+              <span>Capacity</span>
+              <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-500 rounded-full transition-all"
+                style={{ width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Chart and Breakdown */}
         <div className="flex items-start gap-6">
           <RegistrationDonut data={chartData} total={total} />
           
-          <div className="flex-1 space-y-2">
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex items-center gap-2 mb-1">
+          <div className="flex-1 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-amber-400" />
-                <span className="text-sm text-slate-600">{stats.pending || 0} New</span>
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="text-sm text-slate-600">Pending Review</span>
               </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-emerald-500 rounded-full transition-all"
-                  style={{ width: `${((stats.approved || 0) / (stats.capacity || 1)) * 100}%` }}
-                />
-              </div>
+              <span className="text-sm font-semibold text-slate-700">{stats.pending || 0}</span>
             </div>
             
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-purple-500" />
-              <span className="text-sm text-slate-600">{stats.waitlisted || 0} Waitlisted</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-sm text-slate-600">Approved (Unrostered)</span>
+              </div>
+              <span className="text-sm font-semibold text-slate-700">{unrostered}</span>
             </div>
             
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <span className="text-sm text-slate-600">{stats.denied || 0} Denied</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-sm text-slate-600">On Roster</span>
+              </div>
+              <span className="text-sm font-semibold text-slate-700">{rostered}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-500" />
+                <span className="text-sm text-slate-600">Waitlisted</span>
+              </div>
+              <span className="text-sm font-semibold text-slate-700">{stats.waitlisted || 0}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="text-sm text-slate-600">Denied/Withdrawn</span>
+              </div>
+              <span className="text-sm font-semibold text-slate-700">{stats.denied || 0}</span>
             </div>
           </div>
         </div>
@@ -847,6 +886,17 @@ export function DashboardPage({ onNavigate }) {
         .select('id, name', { count: 'exact' })
         .eq('season_id', seasonId)
 
+      // Get ACTUAL rostered count from team_players (source of truth)
+      const teamIds = teams?.map(t => t.id) || []
+      let actualRosteredCount = 0
+      if (teamIds.length > 0) {
+        const { data: teamPlayers } = await supabase
+          .from('team_players')
+          .select('player_id')
+          .in('team_id', teamIds)
+        actualRosteredCount = new Set(teamPlayers?.map(tp => tp.player_id) || []).size
+      }
+
       // Fetch ALL players with registrations for this season (matching RegistrationsPage query)
       const { data: players } = await supabase
         .from('players')
@@ -863,16 +913,20 @@ export function DashboardPage({ onNavigate }) {
         player_id: p.id
       })) || []
 
-      // Calculate registration stats correctly
+      // Calculate registration stats correctly (include 'active' as rostered)
       const regStats = {
         total: registrations.length,
         pending: registrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length,
         approved: registrations.filter(r => r.status === 'approved').length,
-        rostered: registrations.filter(r => r.status === 'rostered').length,
+        rostered: actualRosteredCount, // Use actual team_players count
+        registrationRostered: registrations.filter(r => ['rostered', 'active'].includes(r.status)).length,
         waitlisted: registrations.filter(r => r.status === 'waitlisted').length,
         denied: registrations.filter(r => r.status === 'withdrawn').length,
         withdrawn: registrations.filter(r => r.status === 'withdrawn').length,
       }
+
+      // Unrostered = approved/active but not on a team
+      regStats.unrostered = regStats.total - regStats.rostered - regStats.pending - regStats.waitlisted - regStats.denied
 
       // Calculate capacity from season settings or default per team
       const seasonCapacity = selectedSeason.capacity || selectedSeason.registration_capacity || 0
