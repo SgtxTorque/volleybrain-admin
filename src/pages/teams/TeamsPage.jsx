@@ -22,6 +22,16 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const [loading, setLoading] = useState(true)
   const [showNewTeamModal, setShowNewTeamModal] = useState(false)
   const [unrosteredPlayers, setUnrosteredPlayers] = useState([])
+  const [showUnrosteredPanel, setShowUnrosteredPanel] = useState(false)
+  const [unrosteredSearch, setUnrosteredSearch] = useState('')
+  
+  // Filter unrostered players by search
+  const filteredUnrostered = unrosteredPlayers.filter(p => {
+    if (!unrosteredSearch) return true
+    const search = unrosteredSearch.toLowerCase()
+    return `${p.first_name} ${p.last_name}`.toLowerCase().includes(search) ||
+           p.position?.toLowerCase().includes(search)
+  })
   
   // View controls
   const [viewMode, setViewMode] = useState('list') // 'list', 'cards', 'compact'
@@ -88,18 +98,30 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
 
   async function loadUnrosteredPlayers() {
     if (!selectedSeason?.id) return
+    
+    // Get all players with their registration status
     const { data: allPlayers } = await supabase
       .from('players')
-      .select('id, first_name, last_name, position, jersey_number, photo_url, grade')
+      .select('id, first_name, last_name, position, jersey_number, photo_url, grade, registrations(status)')
       .eq('season_id', selectedSeason.id)
     
+    // Filter to only APPROVED players (not pending, denied, waitlisted, etc.)
+    // These are players ready to be rostered
+    const approvedPlayers = (allPlayers || []).filter(p => {
+      const status = p.registrations?.[0]?.status
+      return ['approved', 'rostered', 'active'].includes(status)
+    })
+    
+    // Get players already on teams
     const { data: rostered } = await supabase
       .from('team_players')
       .select('player_id, teams!inner(season_id)')
       .eq('teams.season_id', selectedSeason.id)
     
     const rosteredIds = new Set(rostered?.map(r => r.player_id) || [])
-    setUnrosteredPlayers((allPlayers || []).filter(p => !rosteredIds.has(p.id)))
+    
+    // Unrostered = approved but not on a team yet
+    setUnrosteredPlayers(approvedPlayers.filter(p => !rosteredIds.has(p.id)))
   }
 
   async function createTeam(formData) {
@@ -446,24 +468,105 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
         </div>
       </div>
 
-      {/* Unrostered Players Alert */}
+      {/* Unrostered Players Alert - Collapsible Quick-Assign Panel */}
       {unrosteredPlayers.length > 0 && (
-        <div className="bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30 rounded-xl p-4 flex items-center gap-3">
-          <span className="text-2xl">⚠️</span>
-          <div className="flex-1">
-            <p className="text-[var(--accent-primary)] font-medium">{unrosteredPlayers.length} Unrostered Players</p>
-            <p className="text-sm text-slate-400">
-              {unrosteredPlayers.slice(0, 3).map(p => `${p.first_name} ${p.last_name}`).join(', ')}
-              {unrosteredPlayers.length > 3 && ` and ${unrosteredPlayers.length - 3} more`}
-            </p>
-          </div>
-          {viewMode === 'cards' && (
-            <div className="flex flex-wrap gap-2 max-w-md">
-              {unrosteredPlayers.slice(0, 4).map(p => (
-                <div key={p.id} className="px-2 py-1 bg-[var(--accent-primary)]/20 rounded text-xs text-[var(--accent-primary)]">
-                  {p.first_name} {p.last_name?.[0]}.
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl overflow-hidden">
+          {/* Header - Always visible */}
+          <button 
+            onClick={() => setShowUnrosteredPanel(!showUnrosteredPanel)}
+            className="w-full p-4 flex items-center justify-between hover:bg-amber-500/5 transition"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="text-left">
+                <p className="text-amber-500 font-semibold">
+                  {unrosteredPlayers.length} Unrostered Player{unrosteredPlayers.length !== 1 ? 's' : ''}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {showUnrosteredPanel ? 'Click to collapse' : 'Click to assign to teams'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {!showUnrosteredPanel && unrosteredPlayers.length <= 5 && (
+                <div className="hidden sm:flex gap-1">
+                  {unrosteredPlayers.map(p => (
+                    <span key={p.id} className="px-2 py-1 bg-amber-500/20 rounded text-xs text-amber-400">
+                      {p.first_name} {p.last_name?.[0]}.
+                    </span>
+                  ))}
                 </div>
-              ))}
+              )}
+              <span className={`text-amber-500 transition-transform ${showUnrosteredPanel ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </div>
+          </button>
+          
+          {/* Expanded Panel - Quick Assign Interface */}
+          {showUnrosteredPanel && (
+            <div className="border-t border-amber-500/20 p-4 bg-slate-800/50">
+              {/* Search/Filter */}
+              <div className="flex gap-4 mb-4">
+                <input
+                  type="text"
+                  placeholder="Search unrostered players..."
+                  value={unrosteredSearch}
+                  onChange={e => setUnrosteredSearch(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <span className="text-sm text-slate-400 self-center">
+                  {filteredUnrostered.length} player{filteredUnrostered.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              
+              {/* Player List with Quick-Assign */}
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {filteredUnrostered.map(player => (
+                  <div 
+                    key={player.id} 
+                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white text-sm font-medium">
+                        {player.photo_url ? (
+                          <img src={player.photo_url} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          player.first_name?.[0]
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-white font-medium text-sm">{player.first_name} {player.last_name}</p>
+                        <p className="text-xs text-slate-400">
+                          {player.position && <span className="mr-2">{player.position}</span>}
+                          {player.grade && <span>Gr {player.grade}</span>}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Quick-Assign Dropdown */}
+                    <select
+                      onChange={e => {
+                        if (e.target.value) {
+                          addPlayerToTeam(e.target.value, player.id)
+                          e.target.value = ''
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-slate-600 border border-slate-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Assign to...</option>
+                      {teams.map(team => (
+                        <option key={team.id} value={team.id}>{team.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+                
+                {filteredUnrostered.length === 0 && (
+                  <p className="text-center text-slate-400 py-4">No players match your search</p>
+                )}
+              </div>
             </div>
           )}
         </div>
