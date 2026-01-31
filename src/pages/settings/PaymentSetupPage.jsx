@@ -237,6 +237,34 @@ function PaymentSetupPage({ showToast }) {
       {/* Stripe Tab */}
       {activeTab === 'stripe' && (
         <div className="space-y-6">
+          {/* Help Section - Show at top */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
+            <h3 className="text-blue-400 font-semibold mb-3 flex items-center gap-2">
+              <HelpCircle className="w-5 h-5" />
+              Getting Started with Stripe
+            </h3>
+            <div className="space-y-2 text-sm text-blue-300">
+              <p>
+                <strong>1.</strong> Create a free{' '}
+                <a href="https://dashboard.stripe.com/register" target="_blank" rel="noopener noreferrer" className="underline">
+                  Stripe account
+                </a>
+              </p>
+              <p>
+                <strong>2.</strong> Get your Publishable Key from{' '}
+                <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="underline">
+                  Developers → API Keys
+                </a>
+              </p>
+              <p>
+                <strong>3.</strong> Start with Test mode to try payments without real charges
+              </p>
+              <p>
+                <strong>4.</strong> Use test card: <code className="bg-blue-500/20 px-1 rounded">4242 4242 4242 4242</code>
+              </p>
+            </div>
+          </div>
+
           {/* Enable/Disable Toggle */}
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <div className="flex items-center justify-between">
@@ -479,34 +507,6 @@ function PaymentSetupPage({ showToast }) {
                       <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
                     </label>
                   </div>
-                </div>
-              </div>
-
-              {/* Help Section */}
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
-                <h3 className="text-blue-400 font-semibold mb-3 flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5" />
-                  Getting Started with Stripe
-                </h3>
-                <div className="space-y-2 text-sm text-blue-300">
-                  <p>
-                    <strong>1.</strong> Create a free{' '}
-                    <a href="https://dashboard.stripe.com/register" target="_blank" rel="noopener noreferrer" className="underline">
-                      Stripe account
-                    </a>
-                  </p>
-                  <p>
-                    <strong>2.</strong> Get your Publishable Key from{' '}
-                    <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="underline">
-                      Developers → API Keys
-                    </a>
-                  </p>
-                  <p>
-                    <strong>3.</strong> Start with Test mode to try payments without real charges
-                  </p>
-                  <p>
-                    <strong>4.</strong> Use test card: <code className="bg-blue-500/20 px-1 rounded">4242 4242 4242 4242</code>
-                  </p>
                 </div>
               </div>
             </>
