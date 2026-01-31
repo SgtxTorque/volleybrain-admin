@@ -1,5 +1,4 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import Stripe from 'https://esm.sh/stripe@13.10.0?target=deno'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,18 +17,33 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false,
-          message: 'STRIPE_SECRET_KEY not configured'
+          message: 'STRIPE_SECRET_KEY not configured in Edge Function secrets'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       )
     }
 
-    const stripe = new Stripe(secretKey, {
-      apiVersion: '2023-10-16',
-      httpClient: Stripe.createFetchHttpClient(),
+    // Use fetch directly instead of Stripe SDK for better Deno compatibility
+    const response = await fetch('https://api.stripe.com/v1/account', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${secretKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     })
 
-    const account = await stripe.accounts.retrieve()
+    if (!response.ok) {
+      const errorData = await response.json()
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: errorData.error?.message || 'Invalid API key' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
+    }
+
+    const account = await response.json()
     const isTestMode = secretKey.includes('_test_')
     
     return new Response(
