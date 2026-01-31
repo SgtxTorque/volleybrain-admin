@@ -290,7 +290,18 @@ export async function generateFeesForPlayer(supabase, player, season, showToast)
     })
     
     if (fees.length === 0) {
-      return { success: true, skipped: true, message: 'No fees to generate' }
+      // Check if it's because no fees are configured
+      const hasAnyFees = (parseFloat(season.fee_registration) || 0) > 0 ||
+                         (parseFloat(season.fee_uniform) || 0) > 0 ||
+                         (parseFloat(season.fee_monthly) || 0) > 0 ||
+                         (parseFloat(season.fee_per_family) || 0) > 0
+      
+      return { 
+        success: true, 
+        skipped: true, 
+        noFeesConfigured: !hasAnyFees,
+        message: hasAnyFees ? 'No fees to generate' : 'No fees configured for this season'
+      }
     }
     
     // Insert fees
