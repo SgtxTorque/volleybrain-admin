@@ -62,6 +62,7 @@ import { ReportsPage } from './pages/reports'
 
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage } from './pages/settings'
+import { StripeSettingsPage } from './pages/settings/StripeSettingsPage'
 
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
@@ -1180,6 +1181,7 @@ function HorizontalNavBar({
   { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
   { id: 'waivers', label: 'Waivers', icon: 'file-text' },
   { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+  { id: 'stripe', label: 'Online Payments (Stripe)', icon: 'credit-card' },
   { id: 'organization', label: 'Organization', icon: 'building' },
 ]},
   ]
@@ -1511,6 +1513,7 @@ function MainApp() {
               {page === 'templates' && activeView === 'admin' && <RegistrationTemplatesPage showToast={showToast} />}
               {page === 'waivers' && activeView === 'admin' && <WaiversPage showToast={showToast} />}
               {page === 'paymentsetup' && activeView === 'admin' && <PaymentSetupPage showToast={showToast} />}
+              {page === 'stripe' && activeView === 'admin' && <StripeSettingsPage organization={organization} showToast={showToast} />}
               {page === 'organization' && activeView === 'admin' && <OrganizationPage showToast={showToast} />}
               {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
