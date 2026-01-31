@@ -97,14 +97,13 @@ function PaymentSetupPage({ showToast }) {
     setSaving(false)
   }
 
-  async function testStripeConnection() {
+async function testStripeConnection() {
     setTesting(true)
     setTestResult(null)
     
     try {
       const key = stripeSettings.stripe_publishable_key
       
-      // First validate format
       if (!key) {
         setTestResult({ success: false, message: 'Please enter a publishable key' })
         setTesting(false)
@@ -126,22 +125,14 @@ function PaymentSetupPage({ showToast }) {
         return
       }
 
-      // Call Edge Function to test actual connection
       const { data, error } = await supabase.functions.invoke('stripe-test-connection')
       
       if (error) {
         setTestResult({ success: false, message: error.message || 'Connection test failed' })
       } else if (data?.success) {
-        setTestResult({ 
-          success: true, 
-          message: data.message || 'Connection successful!',
-          accountName: data.account_name
-        })
+        setTestResult({ success: true, message: data.message || 'Connection successful!' })
       } else {
-        setTestResult({ 
-          success: false, 
-          message: data?.message || 'Connection test failed' 
-        })
+        setTestResult({ success: false, message: data?.message || 'Connection test failed' })
       }
     } catch (err) {
       setTestResult({ success: false, message: err.message })
