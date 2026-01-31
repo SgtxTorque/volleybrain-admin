@@ -847,21 +847,31 @@ export function DashboardPage({ onNavigate }) {
         .select('id, name', { count: 'exact' })
         .eq('season_id', seasonId)
 
-      // Fetch ALL registrations for this season with full status breakdown
-      const { data: registrations } = await supabase
-        .from('registrations')
-        .select('id, status, first_name, last_name, created_at')
+      // Fetch ALL players with registrations for this season (matching RegistrationsPage query)
+      const { data: players } = await supabase
+        .from('players')
+        .select('*, registrations(*)')
         .eq('season_id', seasonId)
+
+      // Get registration status from the joined registrations
+      const registrations = players?.map(p => ({
+        id: p.registrations?.[0]?.id,
+        status: p.registrations?.[0]?.status,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        created_at: p.registrations?.[0]?.created_at || p.created_at,
+        player_id: p.id
+      })) || []
 
       // Calculate registration stats correctly
       const regStats = {
-        total: registrations?.length || 0,
-        pending: registrations?.filter(r => ['pending', 'submitted'].includes(r.status)).length || 0,
-        approved: registrations?.filter(r => r.status === 'approved').length || 0,
-        rostered: registrations?.filter(r => r.status === 'rostered').length || 0,
-        waitlisted: registrations?.filter(r => r.status === 'waitlisted').length || 0,
-        denied: registrations?.filter(r => r.status === 'denied').length || 0,
-        withdrawn: registrations?.filter(r => r.status === 'withdrawn').length || 0,
+        total: registrations.length,
+        pending: registrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length,
+        approved: registrations.filter(r => r.status === 'approved').length,
+        rostered: registrations.filter(r => r.status === 'rostered').length,
+        waitlisted: registrations.filter(r => r.status === 'waitlisted').length,
+        denied: registrations.filter(r => r.status === 'withdrawn').length,
+        withdrawn: registrations.filter(r => r.status === 'withdrawn').length,
       }
 
       // Calculate capacity from season settings or default per team
