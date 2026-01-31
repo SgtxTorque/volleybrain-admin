@@ -957,7 +957,7 @@ export function DashboardPage({ onNavigate }) {
 
       // Fetch upcoming events - include org-wide (null team_id) AND season-specific teams
       const today = new Date().toISOString().split('T')[0]
-      const teamIds = teams?.map(t => t.id) || []
+      // teamIds already declared above when fetching rostered count
       
       let eventsQuery = supabase
         .from('schedule_events')
