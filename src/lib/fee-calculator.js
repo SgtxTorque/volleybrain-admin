@@ -172,8 +172,7 @@ export function calculateFeesForPlayer(player, season, options = {}) {
         fee_category: 'per_player',
         amount: monthlyWithDiscount / monthsInSeason, // Divide evenly
         due_date: dueDate.toISOString().split('T')[0],
-        description,
-        month_index: i + 1 // Track which month this is (1, 2, 3...)
+        description
       })
     }
   }
