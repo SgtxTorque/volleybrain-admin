@@ -158,10 +158,24 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   async function addPlayerToTeam(teamId, playerId) {
     await supabase.from('team_players').insert({ team_id: teamId, player_id: playerId })
     
+    // Update registration status to 'rostered'
+    const { data: reg } = await supabase
+      .from('registrations')
+      .select('id')
+      .eq('player_id', playerId)
+      .maybeSingle()
+    
+    if (reg) {
+      await supabase.from('registrations').update({ 
+        status: 'rostered',
+        updated_at: new Date().toISOString()
+      }).eq('id', reg.id)
+    }
+    
     // Auto-add player and parent to appropriate chat channels
     await autoAddMemberToTeamChannels(teamId, playerId)
     
-    showToast('Player added to team', 'success')
+    showToast('Player added to team and rostered', 'success')
     loadTeams()
     loadUnrosteredPlayers()
   }
@@ -237,7 +251,31 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   }
 
   async function removePlayerFromTeam(teamPlayerId) {
+    // Get the player_id before deleting
+    const { data: teamPlayer } = await supabase
+      .from('team_players')
+      .select('player_id')
+      .eq('id', teamPlayerId)
+      .single()
+    
     await supabase.from('team_players').delete().eq('id', teamPlayerId)
+    
+    // Update registration status back to 'approved' (no longer on a team)
+    if (teamPlayer?.player_id) {
+      const { data: reg } = await supabase
+        .from('registrations')
+        .select('id')
+        .eq('player_id', teamPlayer.player_id)
+        .maybeSingle()
+      
+      if (reg) {
+        await supabase.from('registrations').update({ 
+          status: 'approved',
+          updated_at: new Date().toISOString()
+        }).eq('id', reg.id)
+      }
+    }
+    
     showToast('Player removed from team', 'success')
     loadTeams()
     loadUnrosteredPlayers()
