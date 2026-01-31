@@ -62,7 +62,6 @@ import { ReportsPage } from './pages/reports'
 
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage } from './pages/settings'
-import { StripeSettingsPage } from './pages/settings/StripeSettingsPage'
 
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
