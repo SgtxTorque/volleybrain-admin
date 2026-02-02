@@ -692,59 +692,40 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
       }
 
       if (activeView === 'parent' && roleContext?.children?.length > 0) {
-        // Get first child's team stats
-        const childTeam = roleContext.children[0]?.team_players?.[0]
-        if (childTeam?.team_id) {
-          const teamId = childTeam.team_id
+        // Get all team IDs across all children
+        const allTeamIds = [...new Set(
+          roleContext.children.flatMap(c => c.team_players?.map(tp => tp.team_id) || []).filter(Boolean)
+        )]
+        const playerIds = roleContext.children.map(c => c.id)
 
-          // Get team record
-          const { data: games } = await supabase
-            .from('games')
-            .select('team_score, opponent_score')
-            .eq('team_id', teamId)
-            .eq('status', 'completed')
+        if (allTeamIds.length > 0) {
+          // Get next upcoming event across all children's teams
+          const today = new Date().toISOString().split('T')[0]
+          const { data: nextEvent } = await supabase
+            .from('schedule_events')
+            .select('*, teams(name, color)')
+            .in('team_id', allTeamIds)
+            .gte('event_date', today)
+            .order('event_date', { ascending: true })
+            .order('event_time', { ascending: true })
+            .limit(1)
+            .maybeSingle()
 
-          let wins = 0, losses = 0
-          games?.forEach(g => {
-            if (g.team_score > g.opponent_score) wins++
-            else if (g.team_score < g.opponent_score) losses++
-          })
-
-          // Get balance due for parent
+          // Get balance due from payments (correct columns: amount + paid boolean)
           const { data: payments } = await supabase
             .from('payments')
-            .select('amount_due, amount_paid')
-            .eq('parent_id', roleContext.children[0]?.parent_account_id)
+            .select('amount, paid')
+            .in('player_id', playerIds)
 
-          const balanceDue = payments?.reduce((sum, p) => sum + ((p.amount_due || 0) - (p.amount_paid || 0)), 0) || 0
-
-          // Get next game
-          const { data: nextGameData } = await supabase
-            .from('games')
-            .select('*')
-            .eq('team_id', teamId)
-            .in('status', ['scheduled', 'upcoming'])
-            .gte('date', new Date().toISOString().split('T')[0])
-            .order('date', { ascending: true })
-            .limit(1)
-            .maybeSingle()
-
-          // Get next practice
-          const { data: nextPracticeData } = await supabase
-            .from('events')
-            .select('*')
-            .eq('team_id', teamId)
-            .eq('event_type', 'practice')
-            .gte('start_time', new Date().toISOString())
-            .order('start_time', { ascending: true })
-            .limit(1)
-            .maybeSingle()
+          const balanceDue = (payments || [])
+            .filter(p => !p.paid)
+            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
 
           setStats(prev => ({
             ...prev,
-            record: { wins, losses },
-            nextGame: nextGameData,
-            nextPractice: nextPracticeData,
+            record: { wins: 0, losses: 0 },
+            nextPractice: nextEvent,
+            nextGame: null,
             balanceDue,
           }))
         }
@@ -988,34 +969,24 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           {/* ═══ PARENT VIEW ═══ */}
           {activeView === 'parent' && (
             <>
-              {/* Registration Open - Opens modal to show available seasons */}
-              <button 
-                onClick={() => setShowRegModal(true)}
-                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
-              >
-                <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
-                  <UserPlus className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <span className="font-bold text-sm text-[#10B981]">New Registration Open!</span>
-                </div>
-              </button>
-
-              {/* Divider */}
-              <div className="w-px h-10 bg-slate-200 mx-2" />
-
-              {/* Next Practice */}
+              {/* Next Event */}
               <button 
                 onClick={() => setPage('schedule')}
                 className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
               >
-                <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
+                <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${
+                  stats.nextPractice?.event_type === 'game' ? 'bg-[#F59E0B]' : 'bg-[#3B82F6]'
+                }`}>
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className="text-slate-500 text-sm">Next Practice:</span>
+                  <span className="text-slate-500 text-sm">
+                    {stats.nextPractice?.event_type === 'game' ? 'Next Game:' : 'Next Event:'}
+                  </span>
                   <span className="text-slate-900 font-bold text-sm ml-2">
-                    {stats.nextPractice ? formatEventDate(stats.nextPractice.start_time?.split('T')[0], stats.nextPractice.start_time?.split('T')[1]) : 'TBD'}
+                    {stats.nextPractice 
+                      ? formatEventDate(stats.nextPractice.event_date, stats.nextPractice.event_time) 
+                      : 'Nothing scheduled'}
                   </span>
                 </div>
               </button>
@@ -1023,17 +994,19 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               {/* Divider */}
               <div className="w-px h-10 bg-slate-200 mx-2" />
 
-              {/* Team Record */}
+              {/* My Players Count */}
               <button 
-                onClick={() => setPage('standings')}
+                onClick={() => setPage('dashboard')}
                 className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
               >
-                <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
-                  <Trophy className="w-6 h-6 text-white" />
+                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
+                  <Users className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className="text-slate-500 text-sm">Team Record:</span>
-                  <span className="text-slate-900 font-bold text-sm ml-2">{stats.record.wins}-{stats.record.losses}</span>
+                  <span className="text-slate-500 text-sm">Players:</span>
+                  <span className="text-slate-900 font-bold text-sm ml-2">
+                    {roleContext?.children?.length || 0} {(roleContext?.children?.length || 0) === 1 ? 'Child' : 'Children'}
+                  </span>
                 </div>
               </button>
 
@@ -1052,7 +1025,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                   {stats.balanceDue > 0 ? (
                     <>
                       <span className="text-slate-500 text-sm">Balance Due:</span>
-                      <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue}</span>
+                      <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue.toFixed(2)}</span>
                     </>
                   ) : (
                     <span className="text-[#10B981] font-bold text-sm">All Caught Up! ✓</span>
