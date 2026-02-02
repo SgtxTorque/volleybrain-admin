@@ -969,7 +969,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           {/* ═══ PARENT VIEW ═══ */}
           {activeView === 'parent' && (
             <>
-              {/* Next Event */}
+              {/* Next Event - with type, day, date, time */}
               <button 
                 onClick={() => setPage('schedule')}
                 className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
@@ -977,15 +977,13 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                 <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${
                   stats.nextPractice?.event_type === 'game' ? 'bg-[#F59E0B]' : 'bg-[#3B82F6]'
                 }`}>
-                  <Calendar className="w-6 h-6 text-white" />
+                  <span className="text-lg">{stats.nextPractice?.event_type === 'game' ? '🏐' : '📅'}</span>
                 </div>
                 <div className="text-left">
-                  <span className="text-slate-500 text-sm">
-                    {stats.nextPractice?.event_type === 'game' ? 'Next Game:' : 'Next Event:'}
-                  </span>
+                  <span className="text-slate-500 text-sm">Next:</span>
                   <span className="text-slate-900 font-bold text-sm ml-2">
                     {stats.nextPractice 
-                      ? formatEventDate(stats.nextPractice.event_date, stats.nextPractice.event_time) 
+                      ? `${stats.nextPractice.event_type === 'game' ? 'Game' : 'Practice'} — ${formatEventDate(stats.nextPractice.event_date, stats.nextPractice.event_time)}`
                       : 'Nothing scheduled'}
                   </span>
                 </div>
@@ -994,19 +992,16 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               {/* Divider */}
               <div className="w-px h-10 bg-slate-200 mx-2" />
 
-              {/* My Players Count */}
+              {/* Messages */}
               <button 
-                onClick={() => setPage('dashboard')}
+                onClick={() => setPage('chats')}
                 className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
               >
                 <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
-                  <Users className="w-6 h-6 text-white" />
+                  <span className="text-lg">💬</span>
                 </div>
                 <div className="text-left">
-                  <span className="text-slate-500 text-sm">Players:</span>
-                  <span className="text-slate-900 font-bold text-sm ml-2">
-                    {roleContext?.children?.length || 0} {(roleContext?.children?.length || 0) === 1 ? 'Child' : 'Children'}
-                  </span>
+                  <span className="text-slate-500 text-sm">Messages</span>
                 </div>
               </button>
 
