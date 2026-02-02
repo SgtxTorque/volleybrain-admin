@@ -1023,10 +1023,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         }}
       >
         {/* ── Hero Top: Photo + Player Identity ── */}
-        <div className="flex" style={{ minHeight: '300px' }}>
+        <div className="flex" style={{ minHeight: '340px' }}>
           
-          {/* Photo Column */}
-          <div className="w-[260px] min-w-[260px] relative overflow-hidden flex-shrink-0">
+          {/* Photo Column — wider for visual impact */}
+          <div className="w-[320px] min-w-[320px] relative overflow-hidden flex-shrink-0 group">
             {/* Rich gradient background */}
             <div className="absolute inset-0" style={{
               background: `linear-gradient(135deg, ${activeTeamColor} 0%, ${activeTeamColor}cc 40%, ${isDark ? '#0f172a' : '#1e293b'} 100%)`
@@ -1046,6 +1046,60 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 </span>
               </div>
             )}
+
+            {/* Upload photo button — overlays on hover */}
+            <label className="absolute inset-0 z-[3] flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-all cursor-pointer opacity-0 group-hover:opacity-100">
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file || !activeChild?.id) return
+                  
+                  const ext = file.name.split('.').pop()
+                  const filePath = `${activeChild.id}.${ext}`
+                  
+                  // Upload to player-photos bucket
+                  const { error: uploadError } = await supabase.storage
+                    .from('player-photos')
+                    .upload(filePath, file, { upsert: true })
+                  
+                  if (uploadError) {
+                    showToast?.('Upload failed: ' + uploadError.message, 'error')
+                    return
+                  }
+                  
+                  // Get public URL
+                  const { data: urlData } = supabase.storage
+                    .from('player-photos')
+                    .getPublicUrl(filePath)
+                  
+                  const photoUrl = urlData?.publicUrl + '?t=' + Date.now()
+                  
+                  // Update player record
+                  const { error: updateError } = await supabase
+                    .from('players')
+                    .update({ photo_url: photoUrl })
+                    .eq('id', activeChild.id)
+                  
+                  if (updateError) {
+                    showToast?.('Failed to save: ' + updateError.message, 'error')
+                    return
+                  }
+                  
+                  // Update local state
+                  setRegistrationData(prev => prev.map(p => 
+                    p.id === activeChild.id ? { ...p, photo_url: photoUrl } : p
+                  ))
+                  showToast?.('Photo updated!', 'success')
+                }}
+              />
+              <div className="text-center text-white">
+                <div className="text-3xl mb-1">📷</div>
+                <div className="text-xs font-bold">{activeChild?.photo_url ? 'Change Photo' : 'Upload Photo'}</div>
+              </div>
+            </label>
             {/* Jersey number floating badge */}
             {activeChild?.jersey_number && (
               <div className="absolute top-4 right-4 z-[3]">
