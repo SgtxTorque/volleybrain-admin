@@ -605,6 +605,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [showAddChildModal, setShowAddChildModal] = useState(false)
   const [showReRegisterModal, setShowReRegisterModal] = useState(null)
   
+  // Active child state for multi-child tabs
+  const [activeChildIdx, setActiveChildIdx] = useState(0)
+  const [dismissedAlerts, setDismissedAlerts] = useState([])
+
   // Get parent's name from profile or first child's parent_name
   const parentName = profile?.full_name?.split(' ')[0] || registrationData[0]?.parent_name?.split(' ')[0] || 'Parent'
 
@@ -894,15 +898,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
 
   // =============================================
-  // Active child state for multi-child tabs
+  // Derived state for active child
   // =============================================
-  const [activeChildIdx, setActiveChildIdx] = useState(0)
   const activeChild = registrationData[activeChildIdx] || registrationData[0]
   const activeTeam = activeChild?.team
   const activeTeamColor = activeTeam?.color || '#6366F1'
 
-  // Dismissed alert IDs
-  const [dismissedAlerts, setDismissedAlerts] = useState([])
   const visibleAlerts = alerts.filter(a => !dismissedAlerts.includes(a.id))
 
   // Find active child's events
