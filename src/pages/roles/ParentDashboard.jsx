@@ -892,382 +892,473 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     )
   }
 
+
+  // =============================================
+  // Active child state for multi-child tabs
+  // =============================================
+  const [activeChildIdx, setActiveChildIdx] = useState(0)
+  const activeChild = registrationData[activeChildIdx] || registrationData[0]
+  const activeTeam = activeChild?.team
+  const activeTeamColor = activeTeam?.color || '#6366F1'
+
+  // Dismissed alert IDs
+  const [dismissedAlerts, setDismissedAlerts] = useState([])
+  const visibleAlerts = alerts.filter(a => !dismissedAlerts.includes(a.id))
+
+  // Find active child's events
+  const activeChildEvents = upcomingEvents.filter(e => activeTeam && e.team_id === activeTeam.id)
+  const nextChildEvent = activeChildEvents[0]
+
+  // Active child's unpaid items
+  const activeChildUnpaid = paymentSummary.unpaidItems.filter(p => p.player_id === activeChild?.id)
+
   return (
-    <div className="space-y-5">
-      {/* ═══ WELCOME HEADER ═══ */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          {primarySport && <span className="text-2xl">{primarySport.icon}</span>}
-          <span className={`text-sm ${tc.textMuted}`}>
-            {primarySport?.name || 'Sports'} • {primarySeason?.name || 'Current Season'}
-          </span>
-        </div>
-        <h1 className={`text-3xl font-bold ${tc.text}`}>Welcome back, {parentName}! 👋</h1>
-        <p className={tc.textSecondary}>
-          Here's what's happening with {registrationData.length === 1 ? registrationData[0].first_name : 'your players'}
-        </p>
-      </div>
+    <div className="space-y-4">
 
       {/* ═══ ALERTS ═══ */}
-      {alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.slice(0, 3).map(alert => (
-            <div 
-              key={alert.id}
-              onClick={() => setSelectedAlert(alert)}
-              className={`rounded-xl p-3 cursor-pointer transition flex items-center gap-3 ${
-                alert.priority === 'urgent'
-                  ? 'bg-red-500/10 border border-red-500/30 hover:bg-red-500/15'
-                  : `${tc.cardBg} border ${tc.border} hover:border-[var(--accent-primary)]/40`
-              }`}
+      {visibleAlerts.map(alert => (
+        <div 
+          key={alert.id}
+          className={`rounded-xl px-4 py-3 flex items-center gap-3 ${
+            alert.priority === 'urgent'
+              ? 'bg-gradient-to-r from-red-900/80 to-red-800/60 border border-red-500/40'
+              : `${tc.cardBg} border ${tc.border}`
+          }`}
+          style={alert.priority === 'urgent' ? { animation: 'pulse 3s ease-in-out infinite' } : {}}
+        >
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-sm ${
+            alert.priority === 'urgent' ? 'bg-white/15' : 'bg-[var(--accent-primary)]/15'
+          }`}>
+            {alert.priority === 'urgent' ? '⚠️' : '📣'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-bold ${alert.priority === 'urgent' ? 'text-white' : tc.text}`}>{alert.title}</p>
+            <p className={`text-xs ${alert.priority === 'urgent' ? 'text-red-200' : tc.textMuted}`}>{alert.content}</p>
+          </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setDismissedAlerts(prev => [...prev, alert.id]); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex-shrink-0 transition ${
+              alert.priority === 'urgent' 
+                ? 'bg-white/20 text-white hover:bg-white/30' 
+                : `${tc.cardBgAlt} ${tc.textSecondary} hover:bg-white/10`
+            }`}
+          >
+            {alert.priority === 'urgent' ? 'Got It ✓' : 'Dismiss'}
+          </button>
+        </div>
+      ))}
+
+      {/* ═══ WELCOME + QUICK ACTIONS ═══ */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className={`flex items-center gap-2 mb-1`}>
+            {primarySport && <span className="text-xl">{primarySport.icon}</span>}
+            <span className={`text-xs ${tc.textMuted}`}>
+              {primarySport?.name || 'Sports'} • {primarySeason?.name || 'Current Season'}
+              {organization?.name && ` • ${organization.name}`}
+            </span>
+          </div>
+          <h1 className={`text-2xl font-extrabold ${tc.text}`}>Welcome back, {parentName}! 👋</h1>
+          <p className={`text-sm ${tc.textSecondary}`}>
+            Here's what's happening with {registrationData.length === 1 ? registrationData[0].first_name : 'your players'}
+          </p>
+        </div>
+        <div className="flex gap-2 flex-shrink-0 mt-2">
+          {[
+            { id: 'schedule', icon: '📅', label: 'Schedule' },
+            { id: 'messages', icon: '💬', label: 'Messages' },
+            { id: 'payments', icon: '💳', label: 'Payments' },
+            { id: 'standings', icon: '📊', label: 'Standings' },
+          ].map(qa => (
+            <button
+              key={qa.id}
+              onClick={() => onNavigate(qa.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition
+                ${tc.cardBg} border ${tc.border} ${tc.textSecondary} hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                alert.priority === 'urgent' ? 'bg-red-500/20 text-red-400' : 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-              }`}>
-                {alert.priority === 'urgent' ? <AlertTriangle className="w-4 h-4" /> : <Megaphone className="w-4 h-4" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`font-medium text-sm ${tc.text} truncate`}>{alert.title}</p>
-                <p className={`text-xs ${tc.textMuted} truncate`}>{alert.content}</p>
-              </div>
-              <ChevronRight className={`w-4 h-4 ${tc.textMuted} flex-shrink-0`} />
-            </div>
+              <span>{qa.icon}</span> {qa.label}
+            </button>
           ))}
+        </div>
+      </div>
+
+      {/* ═══ CHILD TABS (only show if 2+ children) ═══ */}
+      {registrationData.length > 1 && (
+        <div className="flex gap-1 -mb-[1px] relative z-[2]">
+          {registrationData.map((child, idx) => {
+            const childTeamColor = child.team?.color || '#6366F1'
+            const isActive = idx === activeChildIdx
+            return (
+              <button
+                key={child.id}
+                onClick={() => setActiveChildIdx(idx)}
+                className={`flex items-center gap-2 px-5 py-2 rounded-t-xl text-sm font-semibold transition border border-b-0 ${
+                  isActive 
+                    ? `${tc.cardBg} ${tc.text}` 
+                    : `${tc.cardBgAlt} ${tc.textMuted} hover:${tc.textSecondary}`
+                }`}
+                style={isActive ? { borderColor: childTeamColor, borderBottomColor: 'transparent' } : { borderColor: 'transparent' }}
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: childTeamColor }} />
+                {child.season?.sports?.icon || '🏐'} {child.first_name}
+              </button>
+            )
+          })}
         </div>
       )}
 
-      {/* ═══ HERO ROW: Next Up + Balance ═══ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Next Event Card */}
-        <button
-          onClick={() => upcomingEvents[0] ? setSelectedEventDetail(upcomingEvents[0]) : onNavigate('schedule')}
-          className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5 text-left hover:border-[var(--accent-primary)]/50 transition group`}
-        >
-          {upcomingEvents.length > 0 ? (() => {
-            const evt = upcomingEvents[0]
-            const eventDate = new Date(evt.event_date)
-            const isGame = evt.event_type === 'game'
-            const today = new Date()
-            today.setHours(0,0,0,0)
-            const evtDay = new Date(eventDate)
-            evtDay.setHours(0,0,0,0)
-            const daysUntil = Math.ceil((evtDay - today) / (1000 * 60 * 60 * 24))
-            const dayLabel = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : eventDate.toLocaleDateString('en-US', { weekday: 'long' })
-            return (
-              <>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-xs font-semibold uppercase tracking-wider ${isGame ? 'text-amber-400' : 'text-blue-400'}`}>
-                    {isGame ? '🏐 Next Game' : '🏋️ Next Event'}
-                  </span>
-                  {daysUntil <= 1 && (
-                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded-full text-xs font-bold animate-pulse">
-                      {dayLabel}!
-                    </span>
-                  )}
-                </div>
-                <p className={`text-xl font-bold ${tc.text}`}>
-                  {dayLabel}{evt.event_time && ` at ${formatTime12(evt.event_time)}`}
-                </p>
-                <div className="flex items-center gap-3 mt-2">
-                  {evt.venue_name && (
-                    <span className={`text-sm ${tc.textMuted} flex items-center gap-1`}>
-                      <MapPin className="w-3.5 h-3.5" /> {evt.venue_name}
-                    </span>
-                  )}
-                  {evt.opponent && <span className={`text-sm ${tc.textSecondary}`}>vs {evt.opponent}</span>}
-                </div>
-                <p className="text-xs mt-2" style={{ color: evt.teams?.color || 'var(--accent-primary)' }}>
-                  {evt.teams?.name}
-                </p>
-              </>
-            )
-          })() : (
-            <div className="flex flex-col items-center justify-center py-4">
-              <Calendar className={`w-10 h-10 ${tc.textMuted} mb-2`} />
-              <p className={`font-semibold ${tc.text}`}>No upcoming events</p>
-              <p className={`text-sm ${tc.textMuted}`}>Check the schedule →</p>
+      {/* ═══ PLAYER HERO CARD ═══ */}
+      <div 
+        className={`${tc.cardBg} border ${tc.border} overflow-hidden flex`}
+        style={{ 
+          borderRadius: registrationData.length > 1 ? '0 16px 16px 16px' : '16px',
+          minHeight: '360px'
+        }}
+      >
+        {/* Photo Column */}
+        <div className="w-[280px] min-w-[280px] relative overflow-hidden flex-shrink-0">
+          {/* Gradient background */}
+          <div className="absolute inset-0" style={{ 
+            background: `linear-gradient(180deg, ${activeTeamColor} 0%, ${activeTeamColor}44 50%, ${isDark ? '#0f1117' : '#f8fafc'} 100%)`
+          }} />
+          {/* Player photo or fallback initials */}
+          {activeChild?.photo_url ? (
+            <img 
+              src={activeChild.photo_url} 
+              alt={activeChild.first_name} 
+              className="absolute inset-0 w-full h-full object-cover z-[1]"
+            />
+          ) : (
+            <div className="absolute inset-0 z-[1] flex items-center justify-center text-[80px] font-extrabold text-white/20">
+              {activeChild?.first_name?.[0]}{activeChild?.last_name?.[0]}
             </div>
           )}
-        </button>
+          {/* Name overlay at bottom */}
+          <div className="absolute bottom-0 left-0 right-0 z-[2] px-5 pb-4 pt-16" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }}>
+            <div className="uppercase font-extrabold leading-tight tracking-tight">
+              <span className="block text-lg text-white/70">{activeChild?.first_name}</span>
+              <span className="block text-2xl text-white">{activeChild?.last_name}</span>
+            </div>
+          </div>
+        </div>
 
-        {/* Balance Card */}
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
-          {paymentSummary.totalDue > 0 ? (
-            <>
-              <p className={`text-xs font-semibold uppercase tracking-wider text-red-400 mb-2`}>💰 Balance Due</p>
-              <p className="text-3xl font-bold text-red-400">${paymentSummary.totalDue.toFixed(2)}</p>
-              <p className={`text-sm ${tc.textMuted} mb-3`}>{paymentSummary.unpaidItems.length} unpaid fees</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onNavigate('payments')}
-                  className="flex-1 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition flex items-center justify-center gap-2"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Pay Now
-                </button>
-                <button
-                  onClick={() => setShowPaymentModal(true)}
-                  className={`px-4 py-2.5 rounded-xl border ${tc.border} ${tc.text} text-sm hover:bg-white/5 transition`}
-                >
-                  Details
-                </button>
+        {/* Info Column */}
+        <div className="flex-1 flex flex-col min-w-0">
+          
+          {/* Top Bar: Jersey | Team+Position | Season+Sport | Status */}
+          <div className={`flex items-stretch border-b ${tc.border} ${isDark ? 'bg-slate-800/60' : 'bg-slate-50'}`}>
+            {/* Jersey Number */}
+            <div className={`flex items-center justify-center px-5 border-r ${tc.border}`} style={{ minWidth: '80px' }}>
+              <span className="text-3xl font-extrabold" style={{ color: activeTeamColor }}>
+                {activeChild?.jersey_number ? `#${activeChild.jersey_number}` : '—'}
+              </span>
+            </div>
+            {/* Team + Position */}
+            <div className={`flex-1 px-4 py-3 border-r ${tc.border}`}>
+              <div className={`text-[10px] uppercase tracking-wider font-semibold ${tc.textMuted}`}>Team</div>
+              <div className={`text-sm font-bold ${tc.text}`}>{activeTeam?.name || 'Unassigned'}</div>
+              <div className={`text-xs ${tc.textSecondary}`}>{activeChild?.position || 'Player'}</div>
+            </div>
+            {/* Season + Sport */}
+            <div className={`flex-1 px-4 py-3 border-r ${tc.border}`}>
+              <div className={`text-[10px] uppercase tracking-wider font-semibold ${tc.textMuted}`}>Season</div>
+              <div className={`text-sm font-bold ${tc.text}`}>{primarySeason?.name || 'Current Season'}</div>
+              <div className={`text-xs ${tc.textSecondary}`}>{primarySport?.name || 'Volleyball'}</div>
+            </div>
+            {/* Status */}
+            <div className={`flex items-center justify-center px-5`} style={{ minWidth: '110px' }}>
+              <div className="text-center">
+                <div className={`text-[10px] uppercase tracking-wider font-semibold ${tc.textMuted} mb-1`}>Status</div>
+                {(() => {
+                  const badge = getStatusBadge(activeChild?.registrationStatus)
+                  return (
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${badge.bg} ${badge.text}`}>
+                      ● {badge.label}
+                    </span>
+                  )
+                })()}
               </div>
-            </>
-          ) : (
-            <div className="flex items-center gap-4 h-full">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <Check className="w-8 h-8 text-emerald-500" />
+            </div>
+          </div>
+
+          {/* Action Buttons Row */}
+          <div className={`flex border-b ${tc.border}`}>
+            {[
+              { label: 'Player Card', icon: '🪪', action: () => onNavigate(`player-${activeChild?.id}`) },
+              { label: 'Team Hub', icon: '👥', action: () => navigateToTeamWall?.(activeTeam?.id) },
+              { label: 'Profile', icon: '👤', action: () => onNavigate(`player-${activeChild?.id}`) },
+              { label: 'Stats', icon: '📊', action: () => onNavigate('leaderboards') },
+              { label: 'Achievements', icon: '🏆', action: () => onNavigate('achievements') },
+            ].map((btn, i, arr) => (
+              <button
+                key={btn.label}
+                onClick={btn.action}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition
+                  ${tc.textSecondary} hover:text-[var(--accent-primary)] ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'}
+                  ${i < arr.length - 1 ? `border-r ${tc.border}` : ''}`}
+              >
+                <span className="text-sm">{btn.icon}</span> {btn.label}
+              </button>
+            ))}
+          </div>
+
+          {/* What's New */}
+          <div className={`px-5 py-3 border-b ${tc.border}`}>
+            <div className={`text-[10px] uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>✨ What's New</div>
+            <div className="flex gap-2 flex-wrap">
+              {/* Next event chip */}
+              {nextChildEvent ? (
+                <button 
+                  onClick={() => setSelectedEventDetail(nextChildEvent)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border transition ${tc.cardBgAlt} ${tc.border} ${tc.textSecondary} hover:border-[var(--accent-primary)]`}
+                >
+                  <span>📅</span> Next: <strong className={tc.text}>
+                    {new Date(nextChildEvent.event_date).toLocaleDateString('en-US', { weekday: 'short' })} {formatTime12(nextChildEvent.event_time)}
+                    {nextChildEvent.opponent ? ` vs ${nextChildEvent.opponent}` : ''}
+                  </strong>
+                </button>
+              ) : (
+                <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs ${tc.cardBgAlt} ${tc.textMuted}`}>
+                  📅 No upcoming events
+                </span>
+              )}
+              {/* Balance chip */}
+              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs ${
+                activeChildUnpaid.length > 0 
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/30' 
+                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+              }`}>
+                {activeChildUnpaid.length > 0 
+                  ? `💰 $${activeChildUnpaid.reduce((s,p) => s + (parseFloat(p.amount)||0), 0).toFixed(2)} due`
+                  : '✅ All fees paid'
+                }
+              </span>
+              {/* Placeholder chips for stats/badges - will be dynamic */}
+              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border ${tc.cardBgAlt} ${tc.border} ${tc.textSecondary}`}>
+                🏐 {activeChildEvents.length} upcoming events
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom: Badges + Leaderboard */}
+          <div className="flex flex-1 min-h-0">
+            {/* Badges */}
+            <div className={`flex-1 px-5 py-3 border-r ${tc.border}`}>
+              <div className={`text-[10px] uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>🏆 Badges Earned</div>
+              <div className="flex gap-3 flex-wrap">
+                {/* Placeholder badges — will be replaced with real data */}
+                {[
+                  { icon: '🔥', name: 'Kill Machine', earned: false },
+                  { icon: '🎯', name: 'Ace Sniper', earned: false },
+                  { icon: '💪', name: 'Iron Player', earned: false },
+                  { icon: '🛡️', name: 'Fortress', earned: false },
+                ].map((badge, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                      badge.earned ? 'bg-[var(--accent-primary)]/15' : `${isDark ? 'bg-slate-700/50' : 'bg-slate-100'} opacity-40 grayscale`
+                    }`}>
+                      {badge.icon}
+                    </div>
+                    <span className={`text-[9px] font-semibold ${tc.textMuted} text-center max-w-[56px]`}>{badge.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Leaderboard Rankings */}
+            <div className="w-[220px] flex-shrink-0 px-5 py-3">
+              <div className={`text-[10px] uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>📊 Leaderboard</div>
+              <div className="space-y-1">
+                {['Kills', 'Aces', 'Digs', 'Assists'].map(cat => (
+                  <div key={cat} className={`flex items-center justify-between py-1.5 border-b ${tc.border} last:border-b-0`}>
+                    <span className={`text-xs ${tc.textSecondary}`}>{cat}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-100'} ${tc.textMuted}`}>—</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Add Another Child */}
+      <button
+        onClick={() => setShowAddChildModal(true)}
+        className={`w-full py-3 rounded-xl border-2 border-dashed ${tc.border} ${tc.textMuted} text-sm font-medium transition
+          hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]`}
+      >
+        + Add Another Child
+      </button>
+
+      {/* ═══ TEAM HUB PREVIEW ═══ */}
+      {activeTeam && (
+        <>
+          <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-2 mt-2`}>
+            TEAM <span className={`flex-1 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+          </div>
+          <button 
+            onClick={() => navigateToTeamWall?.(activeTeam.id)}
+            className={`w-full ${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden text-left transition hover:border-[var(--accent-primary)]`}
+          >
+            <div className="h-12 flex items-center px-5 gap-3" style={{ background: `linear-gradient(90deg, ${activeTeamColor}, ${activeTeamColor}88)` }}>
+              <span className="text-lg">🏐</span>
+              <span className="text-white font-bold text-sm flex-1">{activeTeam.name} — Team Hub</span>
+              <span className="text-white/60 text-lg">→</span>
+            </div>
+            <div className="px-5 py-3 flex items-center gap-3">
+              <p className={`flex-1 text-sm ${tc.textSecondary} truncate`}>
+                <strong className={tc.text}>Latest:</strong> Tap to see team updates, chat, and game info
+              </p>
+            </div>
+          </button>
+        </>
+      )}
+
+      {/* ═══ PARENT BADGES ═══ */}
+      <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-2 mt-2`}>
+        YOUR BADGES <span className={`flex-1 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+      </div>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className={`text-sm font-bold ${tc.text} flex items-center gap-2`}>⭐ Parent Badges</h4>
+          <button onClick={() => onNavigate('achievements')} className="text-xs text-[var(--accent-primary)] font-medium hover:underline">View All →</button>
+        </div>
+        <div className="flex gap-3 flex-wrap">
+          {[
+            { icon: '📋', name: 'RSVP Champ', desc: 'RSVP to 10+ events', progress: null },
+            { icon: '🤝', name: 'Volunteer Beast', desc: 'Volunteer 5+ times', progress: 60 },
+            { icon: '📊', name: 'Scorekeeper', desc: 'Keep score 3+ games', progress: 33 },
+            { icon: '🏅', name: 'Super Fan', desc: 'Attend every game', progress: 80, locked: true },
+          ].map((badge, i) => (
+            <div 
+              key={i} 
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition ${tc.cardBgAlt} ${tc.border} ${badge.locked ? 'opacity-40 grayscale' : ''} hover:border-[var(--accent-primary)]`}
+            >
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+                {badge.icon}
               </div>
               <div>
-                <p className={`text-xl font-bold ${tc.text}`}>All Paid Up! 🎉</p>
-                <p className={`text-sm ${tc.textMuted}`}>{paymentSummary.totalPaid > 0 ? `$${paymentSummary.totalPaid.toFixed(2)} paid this season` : "You're all set"}</p>
+                <div className={`text-xs font-bold ${tc.text}`}>{badge.name}</div>
+                <div className={`text-[10px] ${tc.textMuted}`}>{badge.desc}</div>
+                {badge.progress !== null && (
+                  <div className={`w-20 h-1 rounded-full mt-1 ${isDark ? 'bg-slate-700' : 'bg-slate-200'} overflow-hidden`}>
+                    <div className="h-full rounded-full bg-[var(--accent-primary)]" style={{ width: `${badge.progress}%` }} />
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
 
-      {/* ═══ MY PLAYERS ═══ */}
-      <div>
-        <h2 className={`font-semibold ${tc.text} flex items-center gap-2 mb-3`}>
-          <Users className="w-5 h-5" /> My Players
-        </h2>
-        <div className="space-y-3">
-          {registrationData.map(player => {
-            const statusBadge = getStatusBadge(player.registrationStatus)
-            const teamColor = player.team?.color || '#6366F1'
-            const playerEvent = upcomingEvents.find(e => player.team && e.team_id === player.team.id)
-            const playerUnpaid = paymentSummary.unpaidItems.filter(p => p.player_id === player.id)
-            
+      {/* ═══ SCHEDULE ═══ */}
+      <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-2 mt-2`}>
+        SCHEDULE <span className={`flex-1 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+      </div>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className={`text-sm font-bold ${tc.text}`}>📅 Upcoming</h3>
+        <button onClick={() => onNavigate('schedule')} className="text-xs text-[var(--accent-primary)] font-medium hover:underline">View All →</button>
+      </div>
+      {upcomingEvents.length > 0 ? (
+        <div className="space-y-2">
+          {upcomingEvents.slice(0, 4).map(event => {
+            const eventDate = new Date(event.event_date)
+            const isGame = event.event_type === 'game'
+            const evtTeamColor = event.teams?.color || activeTeamColor
             return (
-              <div 
-                key={player.id}
-                className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden hover:border-[var(--accent-primary)]/50 transition`}
-                style={{ borderLeftWidth: '4px', borderLeftColor: teamColor }}
+              <button
+                key={event.id}
+                onClick={() => setSelectedEventDetail(event)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition
+                  ${tc.cardBg} border ${tc.border} hover:border-[var(--accent-primary)]`}
               >
-                <div className="p-4">
-                  {/* Top row: Avatar + Name + Status */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <div onClick={() => onNavigate(`player-${player.id}`)} className="cursor-pointer">
-                      {player.photo_url ? (
-                        <img src={player.photo_url} alt={player.first_name} className="w-14 h-14 rounded-xl object-cover" />
-                      ) : (
-                        <div className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold text-white" style={{ backgroundColor: teamColor }}>
-                          {player.first_name?.[0]}{player.last_name?.[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p 
-                          className={`font-bold text-lg ${tc.text} cursor-pointer hover:text-[var(--accent-primary)] transition`}
-                          onClick={() => onNavigate(`player-${player.id}`)}
-                        >
-                          {player.first_name} {player.last_name}
-                        </p>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}>
-                          {statusBadge.label}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium" style={{ color: teamColor }}>
-                        {player.team?.name || player.season?.name || 'Unassigned'}
-                      </p>
-                    </div>
-                    {playerUnpaid.length > 0 ? (
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-red-400">
-                          ${playerUnpaid.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0).toFixed(2)}
-                        </p>
-                        <p className="text-xs text-red-400/70">{playerUnpaid.length} unpaid</p>
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <Check className="w-4 h-4 text-emerald-500" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info row: next event + quick links */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {playerEvent ? (
-                      <button 
-                        onClick={() => setSelectedEventDetail(playerEvent)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                          playerEvent.event_type === 'game' 
-                            ? 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25' 
-                            : 'bg-blue-500/15 text-blue-400 hover:bg-blue-500/25'
-                        }`}
-                      >
-                        <Calendar className="w-3 h-3" />
-                        {playerEvent.event_type === 'game' ? '🏐' : '🏋️'}{' '}
-                        {new Date(playerEvent.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        {playerEvent.event_time && ` ${formatTime12(playerEvent.event_time)}`}
-                      </button>
-                    ) : (
-                      <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs ${tc.textMuted} ${tc.cardBgAlt}`}>
-                        <Calendar className="w-3 h-3" /> No upcoming events
-                      </span>
-                    )}
-                    
-                    {player.jersey_number && (
-                      <span className={`px-3 py-1.5 rounded-lg text-xs font-medium ${tc.cardBgAlt} ${tc.textSecondary}`}>
-                        #{player.jersey_number}
-                      </span>
-                    )}
-                    
-                    {player.team && (
-                      <button 
-                        onClick={() => navigateToTeamWall?.(player.team.id)}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20 transition`}
-                      >
-                        <Users className="w-3 h-3" /> Team Hub
-                      </button>
-                    )}
-                  </div>
+                <div className="text-center w-10 flex-shrink-0">
+                  <div className={`text-[9px] uppercase font-semibold ${tc.textMuted}`}>{eventDate.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                  <div className={`text-lg font-extrabold ${tc.text} leading-tight`}>{eventDate.getDate()}</div>
+                  <div className={`text-[9px] uppercase font-semibold ${tc.textMuted}`}>{eventDate.toLocaleDateString('en-US', { month: 'short' })}</div>
                 </div>
-              </div>
+                <div className="w-[3px] h-8 rounded-full flex-shrink-0" style={{ backgroundColor: evtTeamColor }} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isGame ? 'bg-amber-500/15 text-amber-400' : 'bg-blue-500/15 text-blue-400'}`}>
+                      {isGame ? '🏐 Game' : '🏋️ Practice'}
+                    </span>
+                    {event.opponent && <span className={`text-xs ${tc.textSecondary}`}>vs {event.opponent}</span>}
+                  </div>
+                  <div className={`text-xs ${tc.textMuted} mt-0.5`}>
+                    {event.event_time && formatTime12(event.event_time)}
+                    {event.venue_name && ` • ${event.venue_name}`}
+                  </div>
+                  <div className="text-[10px] font-semibold mt-0.5" style={{ color: evtTeamColor }}>{event.teams?.name}</div>
+                </div>
+                <ChevronRight className={`w-4 h-4 ${tc.textMuted} flex-shrink-0`} />
+              </button>
             )
           })}
-          
-          {/* Add Another Child */}
-          <button
-            onClick={() => setShowAddChildModal(true)}
-            className={`w-full ${tc.cardBg} border ${tc.border} border-dashed rounded-2xl p-4 flex items-center justify-center gap-2 hover:border-[var(--accent-primary)]/50 transition`}
-          >
-            <Plus className={`w-5 h-5 ${tc.textMuted}`} />
-            <span className={tc.textMuted}>Add Another Child</span>
-          </button>
         </div>
-      </div>
+      ) : (
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl py-8 text-center`}>
+          <Calendar className={`w-8 h-8 mx-auto ${tc.textMuted} mb-2`} />
+          <p className={`text-sm ${tc.textSecondary}`}>No upcoming events</p>
+        </div>
+      )}
 
-      {/* ═══ QUICK ACTIONS ═══ */}
-      <div className="grid grid-cols-5 gap-2">
-        {[
-          { id: 'schedule', icon: Calendar, label: 'Schedule', color: '#3B82F6' },
-          { id: 'messages', icon: MessageCircle, label: 'Messages', color: '#8B5CF6' },
-          { id: 'standings', icon: Target, label: 'Standings', color: '#EF4444' },
-          { id: 'leaderboards', icon: ClipboardList, label: 'Stats', color: '#F59E0B' },
-          { id: 'achievements', icon: () => <span className="text-lg">🏆</span>, label: 'Awards', color: '#10B981' },
-        ].map(action => (
-          <button
-            key={action.id}
-            onClick={() => onNavigate(action.id)}
-            className={`${tc.cardBg} border ${tc.border} rounded-xl py-3 px-2 text-center hover:border-[var(--accent-primary)]/50 hover:scale-[1.02] transition`}
-          >
-            <div className="flex justify-center mb-1">
-              {typeof action.icon === 'function' 
-                ? action.icon()
-                : <action.icon className="w-5 h-5" style={{ color: action.color }} />
-              }
-            </div>
-            <p className={`text-xs font-medium ${tc.text}`}>{action.label}</p>
-          </button>
-        ))}
+      {/* ═══ AT A GLANCE: Standings + Season Highlights ═══ */}
+      <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-2 mt-2`}>
+        AT A GLANCE <span className={`flex-1 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Team Standings */}
+        {teamIds.length > 0 && (
+          <TeamStandingsWidget 
+            teamId={activeTeam?.id || teamIds[0]} 
+            onViewStandings={() => onNavigate?.('standings')}
+          />
+        )}
+        {/* Season Highlights */}
+        {registrationData.length > 0 && (
+          <ChildStatsWidget 
+            children={[activeChild]}
+            onViewLeaderboards={() => onNavigate?.('leaderboards')}
+          />
+        )}
       </div>
 
       {/* ═══ REGISTRATION BANNER ═══ */}
       {openSeasons.length > 0 && (
-        <div className="bg-gradient-to-r from-[var(--accent-primary)]/15 to-purple-500/15 border border-[var(--accent-primary)]/30 rounded-2xl p-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🎉</span>
-              <div>
-                <p className={`font-semibold text-sm ${tc.text}`}>New Season Registration Open!</p>
-                <p className={`text-xs ${tc.textSecondary}`}>{openSeasons[0].name} - {openSeasons[0].organizations?.name}</p>
-              </div>
+        <div className="rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap"
+          style={{ background: `linear-gradient(135deg, ${activeTeamColor}15, rgba(168,85,247,0.08))`, border: `1px solid ${activeTeamColor}30` }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🎉</span>
+            <div>
+              <p className={`text-sm font-bold ${tc.text}`}>New Season Registration Open!</p>
+              <p className={`text-xs ${tc.textMuted}`}>{openSeasons[0].name} - {openSeasons[0].organizations?.name}</p>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              {registrationData.map(player => (
-                <button
-                  key={player.id}
-                  onClick={() => setShowReRegisterModal({ player, season: openSeasons[0] })}
-                  className="px-3 py-1.5 bg-[var(--accent-primary)] text-white rounded-lg text-xs font-medium hover:brightness-110 transition"
-                >
-                  Register {player.first_name}
-                </button>
-              ))}
-            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {registrationData.map(player => (
+              <button
+                key={player.id}
+                onClick={() => setShowReRegisterModal({ player, season: openSeasons[0] })}
+                className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-lg text-xs font-semibold hover:brightness-110 transition"
+              >
+                Register {player.first_name}
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* ═══ UPCOMING SCHEDULE ═══ */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-        <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
-          <h2 className={`font-semibold text-sm ${tc.text}`}>📅 Upcoming Schedule</h2>
-          <button onClick={() => onNavigate('schedule')} className={`text-xs text-[var(--accent-primary)] hover:underline`}>
-            View All →
-          </button>
-        </div>
-        {upcomingEvents.length > 0 ? (
-          <div className="divide-y divide-gray-700/30">
-            {upcomingEvents.slice(0, 5).map(event => {
-              const eventDate = new Date(event.event_date)
-              const isGame = event.event_type === 'game'
-              return (
-                <div 
-                  key={event.id}
-                  onClick={() => setSelectedEventDetail(event)}
-                  className="px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition"
-                >
-                  <div className="text-center w-12 flex-shrink-0">
-                    <p className={`text-xs ${tc.textMuted} uppercase leading-tight`}>{eventDate.toLocaleDateString('en-US', { weekday: 'short' })}</p>
-                    <p className={`text-lg font-bold ${tc.text} leading-tight`}>{eventDate.getDate()}</p>
-                    <p className={`text-xs ${tc.textMuted} leading-tight`}>{eventDate.toLocaleDateString('en-US', { month: 'short' })}</p>
-                  </div>
-                  <div className="w-1 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: event.teams?.color || '#6366F1' }} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${isGame ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                        {isGame ? '🏐 Game' : '🏋️ Practice'}
-                      </span>
-                      {event.opponent && <span className={`text-xs ${tc.textSecondary}`}>vs {event.opponent}</span>}
-                    </div>
-                    <p className={`text-xs ${tc.textMuted} mt-0.5`}>
-                      {event.event_time && formatTime12(event.event_time)}
-                      {event.venue_name && ` • ${event.venue_name}`}
-                    </p>
-                    <p className="text-xs font-medium" style={{ color: event.teams?.color || '#EAB308' }}>{event.teams?.name}</p>
-                  </div>
-                  <ChevronRight className={`w-4 h-4 ${tc.textMuted} flex-shrink-0`} />
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-6">
-            <Calendar className={`w-10 h-10 mx-auto ${tc.textMuted} mb-2`} />
-            <p className={`text-sm ${tc.textSecondary}`}>No upcoming events</p>
-          </div>
-        )}
-      </div>
-
-      {/* ═══ STATS & ACHIEVEMENTS ROW ═══ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {teamIds.length > 0 && (
-          <TeamStandingsWidget teamId={teamIds[0]} onViewStandings={() => onNavigate?.('standings')} />
-        )}
-        {registrationData.length > 0 && (
-          <ChildAchievementsWidget children={registrationData} onViewAchievements={() => onNavigate?.('achievements')} />
-        )}
-      </div>
-
-      {registrationData.length > 0 && (
-        <ChildStatsWidget children={registrationData} onViewLeaderboards={() => onNavigate?.('leaderboards')} />
-      )}
-
-      {/* Invite Friends CTA */}
+      {/* ═══ INVITE CTA ═══ */}
       <button
         onClick={() => onNavigate('invite')}
-        className={`w-full ${tc.cardBg} border ${tc.border} rounded-2xl p-4 flex items-center justify-center gap-3 hover:border-[var(--accent-primary)]/50 transition group`}
+        className={`w-full ${tc.cardBg} border ${tc.border} rounded-xl py-3.5 text-center text-sm transition
+          ${tc.textMuted} hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]`}
       >
-        <Megaphone className={`w-5 h-5 ${tc.textMuted} group-hover:text-[var(--accent-primary)] transition`} />
-        <span className={`text-sm font-medium ${tc.textSecondary} group-hover:text-[var(--accent-primary)] transition`}>
-          Know someone who'd love to play? Invite them! →
-        </span>
+        📣 Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>
 
-      {/* Modals */}
+      {/* ═══ MODALS ═══ */}
       {selectedEventDetail && (
         <EventDetailModal
           event={selectedEventDetail}
