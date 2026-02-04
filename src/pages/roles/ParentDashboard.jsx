@@ -731,8 +731,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         const tIds = [...new Set(regData.map(p => p.team?.id).filter(Boolean))]
         setTeamIds(tIds)
         
-        if (regData[0]?.season?.id) {
-          setSeasonId(regData[0].season.id)
+        const currentSeasonId = regData[0]?.season?.id
+        if (currentSeasonId) {
+          setSeasonId(currentSeasonId)
         }
 
         // Load teams
@@ -749,8 +750,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           setOrganization(regData[0].season.organizations)
         }
 
-        // Load upcoming events
-        await loadUpcomingEvents(tIds)
+        // Load upcoming events - pass seasonId directly since setState is async
+        await loadUpcomingEvents(tIds, currentSeasonId)
         
         // Load payment summary
         await loadPaymentSummary(regData)
@@ -793,12 +794,18 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         setTeams(teamsData || [])
         
         // Get season from first team
-        if (teamsData?.[0]?.season_id) {
-          setSeasonId(teamsData[0].season_id)
+        const currentSeasonId = teamsData?.[0]?.season_id
+        if (currentSeasonId) {
+          setSeasonId(currentSeasonId)
         }
+        
+        // Pass seasonId directly since state update is async
+        await loadUpcomingEvents(tIds, currentSeasonId)
+      } else {
+        // No team IDs - still try to load events without team filter
+        await loadUpcomingEvents([], null)
       }
-
-      await loadUpcomingEvents(tIds)
+      
       await loadPaymentSummary(regData)
       
       // Load organization
@@ -817,15 +824,19 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     setLoading(false)
   }
 
-  async function loadUpcomingEvents(teamIds) {
-    if (!teamIds?.length) {
-      console.log('ParentDashboard loadUpcomingEvents - No team IDs provided')
-      return
-    }
+  async function loadUpcomingEvents(teamIds, passedSeasonId = null) {
+    console.log('ParentDashboard loadUpcomingEvents - Team IDs:', teamIds, 'Season ID:', passedSeasonId || seasonId)
     
     try {
       const today = new Date().toISOString().split('T')[0]
-      console.log('ParentDashboard loadUpcomingEvents - Team IDs:', teamIds, 'Today:', today, 'Season ID:', seasonId)
+      const effectiveSeasonId = passedSeasonId || seasonId
+      
+      // If no team IDs, we can't load team-specific events
+      if (!teamIds?.length) {
+        console.log('ParentDashboard loadUpcomingEvents - No team IDs, skipping')
+        setUpcomingEvents([])
+        return
+      }
       
       let query = supabase
         .from('schedule_events')
@@ -837,16 +848,17 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         .limit(10)
       
       // Add season filter if available
-      if (seasonId) {
-        query = query.eq('season_id', seasonId)
+      if (effectiveSeasonId) {
+        query = query.eq('season_id', effectiveSeasonId)
       }
       
       const { data, error } = await query
-      console.log('ParentDashboard loadUpcomingEvents - Result:', data, 'Error:', error)
+      console.log('ParentDashboard loadUpcomingEvents - Result:', data?.length, 'events', 'Error:', error)
       
       setUpcomingEvents(data || [])
     } catch (err) {
       console.error('Error loading events:', err)
+      setUpcomingEvents([])
     }
   }
 
