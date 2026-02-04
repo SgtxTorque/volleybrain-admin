@@ -1069,37 +1069,15 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
       ))}
 
-      {/* ═══ WELCOME + QUICK ACTIONS ═══ */}
-      <div className="flex items-start justify-between gap-4">
+      {/* ═══ INFO HEADER ═══ */}
+      <div className="flex items-center gap-3">
+        {primarySport && <span className="text-xl">{primarySport.icon}</span>}
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            {primarySport && <span className="text-xl">{primarySport.icon}</span>}
-            <span className={`text-xs font-medium ${tc.textMuted}`}>
-              {primarySport?.name || 'Sports'} • {primarySeason?.name || 'Current Season'}
-              {organization?.name && ` • ${organization.name}`}
-            </span>
-          </div>
-          <h1 className={`text-3xl font-extrabold tracking-tight ${tc.text}`}>Welcome back, {parentName}! 👋</h1>
-          <p className={`text-sm ${tc.textSecondary} mt-1`}>
-            Here's what's happening with {registrationData.length === 1 ? registrationData[0].first_name : 'your players'}
-          </p>
-        </div>
-        <div className="flex gap-2 flex-shrink-0 mt-2">
-          {[
-            { id: 'schedule', icon: '📅', label: 'Schedule' },
-            { id: 'chats', icon: '💬', label: 'Messages' },
-            { id: 'payments', icon: '💳', label: 'Payments' },
-            { id: 'standings', icon: '📊', label: 'Standings' },
-          ].map(qa => (
-            <button
-              key={qa.id}
-              onClick={() => onNavigate(qa.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all
-                ${isDark ? 'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white hover:border-slate-500' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 shadow-sm'} border`}
-            >
-              <span className="text-sm">{qa.icon}</span> {qa.label}
-            </button>
-          ))}
+          <h1 className={`text-xl font-extrabold tracking-tight ${tc.text}`}>Welcome back, {parentName}! 👋</h1>
+          <span className={`text-xs font-medium ${tc.textMuted}`}>
+            {primarySport?.name || 'Sports'} • {primarySeason?.name || 'Current Season'}
+            {organization?.name && ` • ${organization.name}`}
+          </span>
         </div>
       </div>
 
@@ -1306,7 +1284,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               </div>
             </div>
 
-            {/* Action Buttons — 4 buttons, no Stats */}
+            {/* Action Buttons */}
             <div className={`flex border-b ${tc.border}`}>
               {[
                 { label: 'Player Card', icon: '🪪', action: () => onNavigate(`player-${activeChild?.id}`) },
