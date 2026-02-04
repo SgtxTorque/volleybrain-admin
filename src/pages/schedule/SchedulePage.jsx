@@ -1055,7 +1055,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     
     const { data, error } = await supabase
       .from('schedule_events')
-      .select('*, teams!schedule_events_team_id_fkey(id, name, color)')
+      .select('*, teams!schedule_events_team_id_fkey(id, name, color, logo_url)')
       .eq('season_id', selectedSeason.id)
       .gte('event_date', startDate)
       .lte('event_date', endDate)
@@ -1459,11 +1459,11 @@ END:VCALENDAR`
                   <div className="flex items-center gap-2 mb-1.5">
                     <div className="w-2 h-8 rounded-full" style={{ backgroundColor: teamCol }} />
                     <div>
-                      <div className={`text-xs font-bold ${tc.text} leading-tight`}>
+                      <div className={`text-sm font-extrabold ${tc.text} leading-tight`}>
                         vs. {game.opponent_name || game.opponent || 'TBD'}
                       </div>
                       {gameTeam?.name && (
-                        <div className={`text-[10px] font-semibold ${tc.textMuted}`}>{gameTeam.name}</div>
+                        <div className={`text-xs font-bold ${tc.textMuted}`}>{gameTeam.name}</div>
                       )}
                     </div>
                   </div>
@@ -1472,7 +1472,7 @@ END:VCALENDAR`
                     {formatGameDate(game.event_date)} • {formatGameTime(game.event_time)}
                   </div>
                   {game.venue_name && (
-                    <div className={`text-[10px] ${tc.textMuted} mt-0.5 truncate max-w-[160px]`}>📍 {game.venue_name}</div>
+                    <div className={`text-[10px] ${tc.textMuted} mt-0.5 truncate max-w-[160px]`}>📍 {game.venue_name}{game.court_number ? ` · ${game.court_number}` : ''}</div>
                   )}
                 </button>
               )
@@ -1768,20 +1768,29 @@ function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) 
                     {day}
                   </div>
                   <div className="space-y-1">
-                    {dayEvents.slice(0, 3).map(event => (
-                      <div 
-                        key={event.id}
-                        onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
-                        className="text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer hover:brightness-110 transition font-medium"
-                        style={{ 
-                          backgroundColor: getEventColor(event.event_type) + (isDark ? '25' : '18'),
-                          color: getEventColor(event.event_type),
-                          borderLeft: `3px solid ${event.teams?.color || getEventColor(event.event_type)}`
-                        }}
-                      >
-                        {formatTime(event.start_time)} {event.title || event.event_type}
-                      </div>
-                    ))}
+                    {dayEvents.slice(0, 3).map(event => {
+                      const teamColor = event.teams?.color
+                      const typeColor = getEventColor(event.event_type)
+                      // Use team color for background/border when available, fall back to event type color
+                      const accentColor = teamColor || typeColor
+                      const teamName = event.teams?.name
+                      return (
+                        <div 
+                          key={event.id}
+                          onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
+                          className="text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer hover:brightness-110 transition font-medium"
+                          style={{ 
+                            backgroundColor: accentColor + (isDark ? '22' : '15'),
+                            color: typeColor,
+                            borderLeft: `4px solid ${accentColor}`
+                          }}
+                        >
+                          {teamName && <span className="font-bold opacity-70" style={{ color: accentColor }}>{teamName.length <= 6 ? teamName : teamName.substring(0, 3)} · </span>}
+                          {formatTime(event.start_time)} {event.title || event.event_type}
+                          {event.court_number && <span className="opacity-50"> · Ct {event.court_number}</span>}
+                        </div>
+                      )
+                    })}
                     {dayEvents.length > 3 && (
                       <div className={`text-xs font-medium ${tc.textMuted}`}>+{dayEvents.length - 3} more</div>
                     )}
@@ -1855,19 +1864,26 @@ function WeekView({ events, currentDate, onSelectEvent, teams }) {
               const hourEvents = getEventsForDayHour(day, hour)
               return (
                 <div key={i} className={`p-1 min-h-[50px] border-l ${isDark ? 'border-slate-700/50' : 'border-slate-100'} ${isToday(day) ? 'bg-[var(--accent-primary)]/5' : ''}`}>
-                  {hourEvents.map(event => (
-                    <div 
-                      key={event.id}
-                      onClick={() => onSelectEvent(event)}
-                      className="text-xs p-1.5 rounded-md truncate cursor-pointer hover:brightness-110 mb-1 font-medium transition"
-                      style={{ 
-                        backgroundColor: getEventColor(event.event_type) + (isDark ? '25' : '18'),
-                        color: getEventColor(event.event_type)
-                      }}
-                    >
-                      {event.title || event.event_type}
-                    </div>
-                  ))}
+                  {hourEvents.map(event => {
+                    const teamColor = event.teams?.color
+                    const typeColor = getEventColor(event.event_type)
+                    const accentColor = teamColor || typeColor
+                    return (
+                      <div 
+                        key={event.id}
+                        onClick={() => onSelectEvent(event)}
+                        className="text-xs p-1.5 rounded-md truncate cursor-pointer hover:brightness-110 mb-1 font-medium transition"
+                        style={{ 
+                          backgroundColor: accentColor + (isDark ? '25' : '18'),
+                          color: typeColor,
+                          borderLeft: `3px solid ${accentColor}`
+                        }}
+                      >
+                        {event.teams?.name && <span className="font-bold opacity-70" style={{ color: accentColor }}>{event.teams.name.length <= 6 ? event.teams.name : event.teams.name.substring(0, 3)} · </span>}
+                        {event.title || event.event_type}
+                      </div>
+                    )
+                  })}
                 </div>
               )
             })}
@@ -1910,19 +1926,23 @@ function DayView({ events, currentDate, onSelectEvent, teams }) {
                 {hour > 12 ? hour - 12 : hour}:00 {hour >= 12 ? 'PM' : 'AM'}
               </div>
               <div className="flex-1 p-2 min-h-[60px]">
-                {hourEvents.map(event => (
+                {hourEvents.map(event => {
+                  const teamColor = event.teams?.color
+                  const typeColor = getEventColor(event.event_type)
+                  const accentColor = teamColor || typeColor
+                  return (
                   <div 
                     key={event.id}
                     onClick={() => onSelectEvent(event)}
                     className={`p-3 rounded-xl cursor-pointer hover:brightness-105 mb-2 transition ${isDark ? '' : 'shadow-sm'}`}
                     style={{ 
-                      backgroundColor: getEventColor(event.event_type) + (isDark ? '15' : '12'),
-                      borderLeft: `4px solid ${event.teams?.color || getEventColor(event.event_type)}`
+                      backgroundColor: accentColor + (isDark ? '15' : '12'),
+                      borderLeft: `4px solid ${accentColor}`
                     }}
                   >
                     <div className="flex items-center justify-between">
                       <span className={`font-bold text-sm ${tc.text}`}>{event.title || event.event_type}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: getEventColor(event.event_type) + '25', color: getEventColor(event.event_type) }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: typeColor + '25', color: typeColor }}>
                         {event.event_type}
                       </span>
                     </div>
@@ -1930,13 +1950,14 @@ function DayView({ events, currentDate, onSelectEvent, teams }) {
                       {formatTime(event.start_time)} - {event.end_time ? formatTime(event.end_time) : 'TBD'}
                     </div>
                     {event.venue_name && (
-                      <div className={`text-sm mt-1 ${tc.textMuted}`}>📍 {event.venue_name}</div>
+                      <div className={`text-sm mt-1 ${tc.textMuted}`}>📍 {event.venue_name}{event.court_number ? ` (${event.court_number})` : ''}</div>
                     )}
                     {event.teams?.name && (
                       <div className="text-sm font-medium mt-1" style={{ color: event.teams.color }}>{event.teams.name}</div>
                     )}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )
@@ -1988,6 +2009,7 @@ function ListView({ events, onSelectEvent, teams }) {
                       <p className={`text-sm ${tc.textMuted}`}>
                         {formatTime(event.start_time)} - {event.end_time ? formatTime(event.end_time) : 'TBD'}
                         {event.venue_name && ` • 📍 ${event.venue_name}`}
+                        {event.court_number && ` (${event.court_number})`}
                       </p>
                     </div>
                   </div>
@@ -2030,6 +2052,7 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
     end_time: '19:00',
     venue_name: '',
     venue_address: '',
+    court_number: '',
     location_type: 'home',
     opponent_name: '',
     arrival_time: '',
@@ -2064,6 +2087,7 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
       end_time: form.end_time || null,  // TIME format: HH:MM
       venue_name: form.venue_name,
       venue_address: form.venue_address,
+      court_number: form.court_number || null,
       location_type: form.location_type,
       opponent_name: form.opponent_name,
       arrival_time: arrivalTimestamp  // TIMESTAMP format: YYYY-MM-DDTHH:MM:SS
@@ -2141,6 +2165,9 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
             <input type="text" value={form.venue_address} onChange={e => setForm({...form, venue_address: e.target.value})}
               placeholder="Address"
               className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+            <input type="text" value={form.court_number} onChange={e => setForm({...form, court_number: e.target.value})}
+              placeholder="Court / Field # (optional)"
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white mt-2" />
           </div>
 
           {form.event_type === 'game' && (
@@ -2229,6 +2256,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
         day: dayValue, 
         venue_name: '', 
         venue_address: '',
+        court_number: '',
         start_time: form.start_time,
         end_time: form.end_time
       }])
@@ -2268,8 +2296,11 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
     }
 
     const events = []
-    const start = new Date(form.start_date)
-    const end = new Date(form.end_date)
+    // Parse as LOCAL dates to avoid UTC timezone offset shifting days
+    const [sy, sm, sd] = form.start_date.split('-').map(Number)
+    const [ey, em, ed] = form.end_date.split('-').map(Number)
+    const start = new Date(sy, sm - 1, sd)
+    const end = new Date(ey, em - 1, ed)
     
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dayConfig = dayConfigs.find(dc => dc.day === d.getDay())
@@ -2280,6 +2311,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
           dayName: dayOptions.find(opt => opt.value === d.getDay())?.label,
           venue_name: dayConfig.venue_name,
           venue_address: dayConfig.venue_address,
+          court_number: dayConfig.court_number || '',
           start_time: dayConfig.start_time || form.start_time,
           end_time: dayConfig.end_time || form.end_time
         })
@@ -2307,8 +2339,11 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
     }
 
     const eventsData = preview.map(p => {
-      // Format date as YYYY-MM-DD
-      const eventDate = p.date.toISOString().split('T')[0]
+      // Format date as YYYY-MM-DD using LOCAL time (not UTC via toISOString)
+      const y = p.date.getFullYear()
+      const m = String(p.date.getMonth() + 1).padStart(2, '0')
+      const dd = String(p.date.getDate()).padStart(2, '0')
+      const eventDate = `${y}-${m}-${dd}`
       
       return {
         team_id: form.team_id || null,
@@ -2320,6 +2355,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
         end_time: p.end_time || form.end_time,  // TIME format: HH:MM
         venue_name: p.venue_name || '',
         venue_address: p.venue_address || '',
+        court_number: p.court_number || null,
         location_type: 'home'
       }
     })
@@ -2429,6 +2465,13 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
                       {venues.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
                     </select>
                     <input 
+                      type="text"
+                      placeholder="Ct #"
+                      value={dc.court_number || ''}
+                      onChange={e => updateDayConfig(dc.day, 'court_number', e.target.value)}
+                      className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-white text-center"
+                    />
+                    <input 
                       type="time" 
                       value={dc.start_time || form.start_time}
                       onChange={e => updateDayConfig(dc.day, 'start_time', e.target.value)}
@@ -2526,12 +2569,12 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
 // ============================================
 function BulkGamesModal({ teams, venues, onClose, onCreate }) {
   const [games, setGames] = useState([
-    { team_id: '', date: '', time: '10:00', opponent: '', venue_name: '', location_type: 'home' }
+    { team_id: '', date: '', time: '10:00', opponent: '', venue_name: '', court_number: '', location_type: 'home' }
   ])
   const [notifyFamilies, setNotifyFamilies] = useState(true)
 
   function addRow() {
-    setGames([...games, { team_id: '', date: '', time: '10:00', opponent: '', venue_name: '', location_type: 'home' }])
+    setGames([...games, { team_id: '', date: '', time: '10:00', opponent: '', venue_name: '', court_number: '', location_type: 'home' }])
   }
 
   function removeRow(index) {
@@ -2570,6 +2613,7 @@ function BulkGamesModal({ teams, venues, onClose, onCreate }) {
         opponent_name: g.opponent,
         venue_name: g.venue_name,
         venue_address: venue?.address || '',
+        court_number: g.court_number || null,
         location_type: g.location_type
       }
     })
@@ -2598,6 +2642,7 @@ function BulkGamesModal({ teams, venues, onClose, onCreate }) {
                   <th className="pb-3 pr-2">Time</th>
                   <th className="pb-3 pr-2">Opponent</th>
                   <th className="pb-3 pr-2">Venue</th>
+                  <th className="pb-3 pr-2">Ct #</th>
                   <th className="pb-3 pr-2">H/A</th>
                   <th className="pb-3 w-10"></th>
                 </tr>
@@ -2631,6 +2676,11 @@ function BulkGamesModal({ teams, venues, onClose, onCreate }) {
                         <option value="">Select venue</option>
                         {venues.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
                       </select>
+                    </td>
+                    <td className="pb-2 pr-2">
+                      <input type="text" value={game.court_number || ''} onChange={e => updateRow(i, 'court_number', e.target.value)}
+                        placeholder="#"
+                        className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-white text-sm text-center" />
                     </td>
                     <td className="pb-2 pr-2">
                       <select value={game.location_type} onChange={e => updateRow(i, 'location_type', e.target.value)}
@@ -3058,6 +3108,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
     end_time: event.end_time || '',
     venue_name: event.venue_name || '',
     venue_address: event.venue_address || '',
+    court_number: event.court_number || '',
     location_type: event.location_type || 'home',
     opponent_name: event.opponent_name || ''
   })
@@ -3190,6 +3241,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
       end_time: form.end_time,
       venue_name: form.venue_name,
       venue_address: form.venue_address,
+      court_number: form.court_number || null,
       location_type: form.location_type,
       opponent_name: form.opponent_name
     })
@@ -3355,6 +3407,13 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                       </div>
                     </div>
 
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-2">Court / Field #</label>
+                      <input type="text" value={form.court_number} onChange={e => setForm({...form, court_number: e.target.value})}
+                        placeholder="e.g., Court 3, Field A"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                    </div>
+
                     {form.event_type === 'game' && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -3392,6 +3451,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                         </div>
                         {event.venue_name && <DetailItem label="Venue" value={event.venue_name} />}
                         {event.venue_address && <DetailItem label="Address" value={event.venue_address} />}
+                        {event.court_number && <DetailItem label="Court / Field" value={event.court_number} />}
                         {event.teams?.name && <DetailItem label="Team" value={event.teams.name} highlight={teamColor} />}
                         {event.opponent_name && <DetailItem label="Opponent" value={event.opponent_name} />}
                         {event.location_type && isGame && <DetailItem label="Location" value={event.location_type.charAt(0).toUpperCase() + event.location_type.slice(1)} />}
