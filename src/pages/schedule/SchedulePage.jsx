@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useJourney } from '../../contexts/JourneyContext'
@@ -7,11 +7,13 @@ import { supabase } from '../../lib/supabase'
 import { 
   Users, Calendar, MapPin, Clock, Edit, Trash2, Check, X,
   ChevronLeft, ChevronRight, BarChart3, Star, CheckSquare, ClipboardList, User,
-  Phone, Mail, Award
+  Phone, Mail, Award, Share2, Download, Printer, Image
 } from '../../constants/icons'
 import { PlayerCard, PlayerCardExpanded } from '../../components/players'
 import { ClickableCoachName, CoachDetailModal } from '../../pages/coaches/CoachesPage'
 import { getSportConfig, SPORT_CONFIGS } from '../../components/games/GameComponents'
+import SchedulePosterModal from './SchedulePosterModal'
+import GameDayShareModal from './GameDayShareModal'
 
 // Volleyball icon component
 function VolleyballIcon({ className }) {
@@ -993,6 +995,8 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
   const { organization } = useAuth()
   const { selectedSeason } = useSeason()
+  const tc = useThemeClasses()
+  const { isDark, accent } = useTheme()
   const [events, setEvents] = useState([])
   const [teams, setTeams] = useState([])
   const [venues, setVenues] = useState([])
@@ -1004,6 +1008,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   
   // Parent view restrictions
   const isParentView = activeView === 'parent'
+  const isPlayerView = activeView === 'player'
   const parentChildIds = roleContext?.children?.map(c => c.id) || []
   
   // Modals
@@ -1014,6 +1019,10 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showAvailabilitySurvey, setShowAvailabilitySurvey] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [showQuickActions, setShowQuickActions] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [showPosterModal, setShowPosterModal] = useState(false)
+  const [showGameDayCard, setShowGameDayCard] = useState(null) // event object or null
+  const [allUpcomingGames, setAllUpcomingGames] = useState([])
 
   useEffect(() => {
     if (selectedSeason?.id) {
@@ -1078,7 +1087,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     if (!selectedSeason?.id) return
     const { data } = await supabase
       .from('teams')
-      .select('id, name, color')
+      .select('id, name, color, logo_url')
       .eq('season_id', selectedSeason.id)
       .order('name')
     setTeams(data || [])
@@ -1224,54 +1233,162 @@ END:VCALENDAR`
     showToast('Calendar exported!', 'success')
   }
 
+  // Load upcoming games for the hero strip
+  useEffect(() => {
+    if (selectedSeason?.id) loadAllUpcoming()
+  }, [selectedSeason?.id, selectedTeam])
+
+  async function loadAllUpcoming() {
+    const today = new Date().toISOString().split('T')[0]
+    let query = supabase
+      .from('schedule_events')
+      .select('*, teams!schedule_events_team_id_fkey(id, name, color, logo_url)')
+      .eq('season_id', selectedSeason.id)
+      .eq('event_type', 'game')
+      .gte('event_date', today)
+      .order('event_date', { ascending: true })
+      .order('event_time', { ascending: true })
+      .limit(6)
+    const { data } = await query
+    setAllUpcomingGames(data || [])
+  }
+
   if (!selectedSeason) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400">Please select a season from the sidebar</p>
+        <p className={tc.textMuted}>Please select a season from the sidebar</p>
       </div>
     )
   }
 
+  const sportIcon = selectedSeason?.sports?.icon || '🏐'
+  const upcomingGames = filteredEvents.filter(e => e.event_type === 'game' && new Date(e.event_date) >= new Date())
+
+  function formatGameDay(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00')
+    const today = new Date(); today.setHours(0,0,0,0)
+    const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
+    if (d.getTime() === today.getTime()) return 'TODAY'
+    if (d.getTime() === tomorrow.getTime()) return 'TOMORROW'
+    return d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+  }
+
+  function formatGameDate(dateStr) {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  function formatGameTime(timeStr) {
+    if (!timeStr) return 'TBD'
+    const [h,m] = timeStr.split(':'); const hr = parseInt(h)
+    return `${hr>12?hr-12:hr===0?12:hr}:${m} ${hr>=12?'PM':'AM'}`
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Schedule</h1>
-          <p className="text-slate-400 mt-1">Manage practices, games, and events • {selectedSeason.name}</p>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
+              {sportIcon}
+            </div>
+            <div>
+              <h1 className={`text-2xl font-extrabold tracking-tight ${tc.text}`}>Schedule</h1>
+              <p className={`text-sm ${tc.textMuted}`}>{selectedSeason.name} • {filteredEvents.length} events this month</p>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <button onClick={exportToICal} className="bg-slate-700 text-white px-4 py-2 rounded-xl hover:bg-slate-600 flex items-center gap-2">
-            📅 Export iCal
-          </button>
-          {!isParentView && (
+        <div className="flex gap-2">
+          {/* Share & Export dropdown — available to ALL roles */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+                isDark 
+                  ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' 
+                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
+              }`}
+            >
+              <Share2 className="w-4 h-4" /> Share & Export ▾
+            </button>
+            {showShareMenu && (
+              <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl z-30 border overflow-hidden ${
+                isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+              }`}>
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-slate-900/50' : 'text-slate-400 bg-slate-50'}`}>
+                  Generate
+                </div>
+                <button onClick={() => { setShowPosterModal(true); setShowShareMenu(false) }}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                  <span className="text-lg">📋</span>
+                  <div>
+                    <div className="font-semibold text-sm">Season Poster</div>
+                    <div className={`text-xs ${tc.textMuted}`}>Branded schedule graphic</div>
+                  </div>
+                </button>
+                {upcomingGames.length > 0 && (
+                  <button onClick={() => { setShowGameDayCard(upcomingGames[0]); setShowShareMenu(false) }}
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    <span className="text-lg">🏟️</span>
+                    <div>
+                      <div className="font-semibold text-sm">Game Day Card</div>
+                      <div className={`text-xs ${tc.textMuted}`}>Share next game on social</div>
+                    </div>
+                  </button>
+                )}
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-slate-900/50 border-slate-700' : 'text-slate-400 bg-slate-50 border-slate-200'}`}>
+                  Export
+                </div>
+                <button onClick={() => { exportToICal(); setShowShareMenu(false) }}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                  <span className="text-lg">📅</span>
+                  <div>
+                    <div className="font-semibold text-sm">Export to Calendar</div>
+                    <div className={`text-xs ${tc.textMuted}`}>iCal (.ics) for Google/Apple</div>
+                  </div>
+                </button>
+                <button onClick={() => { window.print(); setShowShareMenu(false) }}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                  <span className="text-lg">🖨️</span>
+                  <div>
+                    <div className="font-semibold text-sm">Print Schedule</div>
+                    <div className={`text-xs ${tc.textMuted}`}>Print or save as PDF</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+          {/* Add Events — admin/coach only */}
+          {!isParentView && !isPlayerView && (
             <div className="relative">
               <button 
                 onClick={() => setShowQuickActions(!showQuickActions)}
-                className="bg-[var(--accent-primary)] text-white font-semibold px-4 py-2 rounded-xl hover:brightness-110 flex items-center gap-2"
+                className="bg-[var(--accent-primary)] text-white font-semibold px-4 py-2.5 rounded-xl hover:brightness-110 flex items-center gap-2 text-sm shadow-sm"
               >
                 ➕ Add Events ▾
               </button>
               {showQuickActions && (
-                <div className="absolute right-0 mt-2 w-56 bg-slate-700 border border-slate-700 rounded-xl shadow-xl z-20">
+                <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-2xl z-30 border overflow-hidden ${
+                  isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+                }`}>
                   <button onClick={() => { setShowAddEvent(true); setShowQuickActions(false) }}
-                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 rounded-t-xl flex items-center gap-3">
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
                     <span>📝</span> Single Event
                   </button>
                   <button onClick={() => { setShowBulkPractice(true); setShowQuickActions(false) }}
-                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
                     <span>🔄</span> Recurring Practice
                   </button>
                   <button onClick={() => { setShowBulkGames(true); setShowQuickActions(false) }}
-                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
                     <VolleyballIcon className="w-4 h-4" /> Bulk Add Games
                   </button>
                   <button onClick={() => { setShowVenueManager(true); setShowQuickActions(false) }}
-                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 flex items-center gap-3">
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
                     <span>📍</span> Manage Venues
                   </button>
                   <button onClick={() => { setShowAvailabilitySurvey(true); setShowQuickActions(false) }}
-                    className="w-full text-left px-4 py-3 text-white hover:bg-slate-700 rounded-b-xl flex items-center gap-3">
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
                     <BarChart3 className="w-5 h-5" /> Availability Survey
                   </button>
                 </div>
@@ -1281,16 +1398,103 @@ END:VCALENDAR`
         </div>
       </div>
 
+      {/* ═══ UPCOMING GAMES STRIP ═══ */}
+      {allUpcomingGames.length > 0 && (
+        <div className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+          <div className={`px-5 py-3 flex items-center justify-between border-b ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-100 bg-slate-50'}`}>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">🔥</span>
+              <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming Games</span>
+            </div>
+            {upcomingGames.length > 0 && (
+              <button 
+                onClick={() => setShowGameDayCard(allUpcomingGames[0])}
+                className="flex items-center gap-1.5 text-xs font-semibold text-[var(--accent-primary)] hover:underline"
+              >
+                <Share2 className="w-3.5 h-3.5" /> Share Next Game
+              </button>
+            )}
+          </div>
+          <div className="p-3 flex gap-3 overflow-x-auto">
+            {allUpcomingGames.slice(0, 5).map((game, i) => {
+              const gameTeam = game.teams || teams.find(t => t.id === game.team_id)
+              const teamCol = gameTeam?.color || '#6366F1'
+              const isToday = formatGameDay(game.event_date) === 'TODAY'
+              const isTomorrow = formatGameDay(game.event_date) === 'TOMORROW'
+              return (
+                <button 
+                  key={game.id} 
+                  onClick={() => setSelectedEvent(game)}
+                  className={`flex-shrink-0 rounded-xl p-3 text-left transition-all border-2 hover:shadow-md ${
+                    isToday 
+                      ? 'border-amber-400 shadow-amber-100' 
+                      : isTomorrow
+                        ? (isDark ? 'border-slate-600 hover:border-slate-500' : 'border-blue-200 hover:border-blue-300')
+                        : (isDark ? 'border-slate-700 hover:border-slate-600' : 'border-slate-200 hover:border-slate-300')
+                  }`}
+                  style={{ 
+                    minWidth: 180,
+                    background: isToday 
+                      ? (isDark ? `${teamCol}15` : `${teamCol}08`) 
+                      : isDark ? 'rgba(30,41,59,0.5)' : '#fff'
+                  }}
+                >
+                  {/* Day badge */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                      isToday ? 'bg-amber-400 text-amber-900' : isTomorrow ? 'bg-blue-100 text-blue-700' : isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {formatGameDay(game.event_date)}
+                    </span>
+                    {/* Share button */}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setShowGameDayCard(game) }}
+                      className={`p-1 rounded-md transition ${isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-100'}`}
+                      title="Share game"
+                    >
+                      <Share2 className={`w-3.5 h-3.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                    </button>
+                  </div>
+                  {/* Opponent */}
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="w-2 h-8 rounded-full" style={{ backgroundColor: teamCol }} />
+                    <div>
+                      <div className={`text-xs font-bold ${tc.text} leading-tight`}>
+                        vs. {game.opponent_name || game.opponent || 'TBD'}
+                      </div>
+                      {gameTeam?.name && (
+                        <div className={`text-[10px] font-semibold ${tc.textMuted}`}>{gameTeam.name}</div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Date + Time */}
+                  <div className={`text-[11px] font-semibold ${tc.textMuted}`}>
+                    {formatGameDate(game.event_date)} • {formatGameTime(game.event_time)}
+                  </div>
+                  {game.venue_name && (
+                    <div className={`text-[10px] ${tc.textMuted} mt-0.5 truncate max-w-[160px]`}>📍 {game.venue_name}</div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Filters & View Toggle */}
-      <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex gap-4 items-center">
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex gap-3 items-center">
           <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-white">
+            className={`rounded-xl px-4 py-2.5 text-sm font-medium border ${
+              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
+            }`}>
             <option value="all">All Teams</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
           <select value={selectedEventType} onChange={e => setSelectedEventType(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-white">
+            className={`rounded-xl px-4 py-2.5 text-sm font-medium border ${
+              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
+            }`}>
             <option value="all">All Types</option>
             <option value="practice">Practices</option>
             <option value="game">Games</option>
@@ -1298,13 +1502,28 @@ END:VCALENDAR`
             <option value="team_event">Team Events</option>
             <option value="other">Other</option>
           </select>
+          {/* Event type legend dots */}
+          <div className="hidden sm:flex items-center gap-3 ml-2">
+            {[
+              { type: 'practice', label: 'Practice', color: '#10B981' },
+              { type: 'game', label: 'Game', color: '#F59E0B' },
+              { type: 'tournament', label: 'Tourney', color: '#8B5CF6' },
+            ].map(t => (
+              <div key={t.type} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                <span className={`text-xs font-medium ${tc.textMuted}`}>{t.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-slate-800 rounded-xl p-1 border border-slate-700">
+          <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
             {['month', 'week', 'day', 'list'].map(v => (
               <button key={v} onClick={() => setView(v)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition capitalize ${
-                  view === v ? 'bg-[var(--accent-primary)] text-white' : 'text-slate-400 hover:text-white'
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all capitalize ${
+                  view === v 
+                    ? 'bg-[var(--accent-primary)] text-white shadow-sm' 
+                    : `${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`
                 }`}>{v}</button>
             ))}
           </div>
@@ -1312,17 +1531,29 @@ END:VCALENDAR`
       </div>
 
       {/* Calendar Navigation */}
-      <div className="flex items-center justify-between bg-slate-800 border border-slate-700 rounded-xl p-4">
-        <button onClick={prevMonth} className="p-2 hover:bg-slate-700 rounded-lg text-white">← Prev</button>
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-bold text-white">
+      <div className={`flex items-center justify-between rounded-xl p-3 border ${
+        isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'
+      }`}>
+        <button onClick={prevMonth} className={`p-2 rounded-lg transition font-semibold text-sm ${
+          isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'
+        }`}>
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-3">
+          <h2 className={`text-lg font-extrabold ${tc.text}`}>
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
-          <button onClick={goToToday} className="px-3 py-1 bg-slate-700 rounded-lg text-sm text-white hover:bg-slate-600">
+          <button onClick={goToToday} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            isDark ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}>
             Today
           </button>
         </div>
-        <button onClick={nextMonth} className="p-2 hover:bg-slate-700 rounded-lg text-white">Next →</button>
+        <button onClick={nextMonth} className={`p-2 rounded-lg transition font-semibold text-sm ${
+          isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'
+        }`}>
+          <ChevronRight className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Calendar View */}
@@ -1359,7 +1590,7 @@ END:VCALENDAR`
       )}
 
       {/* Event Count */}
-      <div className="text-center text-slate-500 text-sm">
+      <div className={`text-center text-sm ${tc.textMuted}`}>
         {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} this month
       </div>
 
@@ -1419,12 +1650,38 @@ END:VCALENDAR`
           activeView={activeView}
           selectedSeason={selectedSeason}
           parentChildIds={parentChildIds}
+          showToast={showToast}
+          onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }}
         />
       )}
 
-      {/* Click outside to close quick actions */}
-      {showQuickActions && (
-        <div className="fixed inset-0 z-10" onClick={() => setShowQuickActions(false)} />
+      {/* Season Poster Modal */}
+      {showPosterModal && (
+        <SchedulePosterModal
+          season={selectedSeason}
+          team={selectedTeam !== 'all' ? teams.find(t => t.id === selectedTeam) : teams[0]}
+          organization={organization}
+          events={events}
+          onClose={() => setShowPosterModal(false)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Game Day Share Card */}
+      {showGameDayCard && (
+        <GameDayShareModal
+          event={showGameDayCard}
+          team={teams.find(t => t.id === showGameDayCard.team_id) || teams[0]}
+          organization={organization}
+          season={selectedSeason}
+          onClose={() => setShowGameDayCard(null)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Click outside to close menus */}
+      {(showQuickActions || showShareMenu) && (
+        <div className="fixed inset-0 z-10" onClick={() => { setShowQuickActions(false); setShowShareMenu(false) }} />
       )}
     </div>
   )
@@ -1434,6 +1691,8 @@ END:VCALENDAR`
 // CALENDAR VIEWS
 // ============================================
 function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
   const firstDay = new Date(year, month, 1)
@@ -1465,27 +1724,47 @@ function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) 
     return day === today.getDate() && month === today.getMonth() && year === today.getFullYear()
   }
 
+  const isPast = (day) => {
+    if (!day) return false
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    return new Date(year, month, day) < today
+  }
+
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+    <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
       {/* Day headers */}
-      <div className="grid grid-cols-7 border-b border-slate-700">
+      <div className={`grid grid-cols-7 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className="p-3 text-center text-sm font-medium text-slate-400">{d}</div>
+          <div key={d} className={`p-3 text-center text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d}</div>
         ))}
       </div>
       {/* Days grid */}
       <div className="grid grid-cols-7">
         {days.map((day, i) => {
           const dayEvents = getEventsForDay(day)
+          const today = isToday(day)
+          const past = isPast(day)
           return (
             <div 
               key={i} 
-              className={`min-h-[100px] p-2 border-b border-r border-slate-700 ${!day ? 'bg-slate-900' : 'hover:bg-slate-700 cursor-pointer'}`}
+              className={`min-h-[100px] p-2 border-b border-r transition-colors ${
+                isDark ? 'border-slate-700/50' : 'border-slate-100'
+              } ${!day 
+                ? (isDark ? 'bg-slate-900/30' : 'bg-slate-50/50') 
+                : today 
+                  ? (isDark ? 'bg-[var(--accent-primary)]/5' : 'bg-[var(--accent-primary)]/5')
+                  : `${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'} cursor-pointer`
+              } ${past && day ? 'opacity-60' : ''}`}
               onClick={() => day && onSelectDate(new Date(year, month, day))}
             >
               {day && (
                 <>
-                  <div className={`text-sm font-medium mb-1 ${isToday(day) ? 'w-7 h-7 bg-[var(--accent-primary)] text-white rounded-full flex items-center justify-center' : 'text-white'}`}>
+                  <div className={`text-sm font-bold mb-1 ${
+                    today 
+                      ? 'w-7 h-7 bg-[var(--accent-primary)] text-white rounded-full flex items-center justify-center shadow-sm' 
+                      : tc.text
+                  }`}>
                     {day}
                   </div>
                   <div className="space-y-1">
@@ -1493,9 +1772,9 @@ function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) 
                       <div 
                         key={event.id}
                         onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
-                        className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80"
+                        className="text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer hover:brightness-110 transition font-medium"
                         style={{ 
-                          backgroundColor: getEventColor(event.event_type) + '30',
+                          backgroundColor: getEventColor(event.event_type) + (isDark ? '25' : '18'),
                           color: getEventColor(event.event_type),
                           borderLeft: `3px solid ${event.teams?.color || getEventColor(event.event_type)}`
                         }}
@@ -1504,7 +1783,7 @@ function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) 
                       </div>
                     ))}
                     {dayEvents.length > 3 && (
-                      <div className="text-xs text-slate-500">+{dayEvents.length - 3} more</div>
+                      <div className={`text-xs font-medium ${tc.textMuted}`}>+{dayEvents.length - 3} more</div>
                     )}
                   </div>
                 </>
@@ -1518,6 +1797,8 @@ function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) 
 }
 
 function WeekView({ events, currentDate, onSelectEvent, teams }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const startOfWeek = new Date(currentDate)
   startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
   
@@ -1550,14 +1831,14 @@ function WeekView({ events, currentDate, onSelectEvent, teams }) {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+    <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
       {/* Day headers */}
-      <div className="grid grid-cols-8 border-b border-slate-700">
-        <div className="p-3 text-center text-sm font-medium text-slate-400"></div>
+      <div className={`grid grid-cols-8 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+        <div className="p-3 text-center text-sm font-medium"></div>
         {weekDays.map((day, i) => (
           <div key={i} className={`p-3 text-center ${isToday(day) ? 'bg-[var(--accent-primary)]/10' : ''}`}>
-            <div className="text-xs text-slate-400">{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-            <div className={`text-lg font-bold ${isToday(day) ? 'text-[var(--accent-primary)]' : 'text-white'}`}>
+            <div className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+            <div className={`text-lg font-extrabold ${isToday(day) ? 'text-[var(--accent-primary)]' : tc.text}`}>
               {day.getDate()}
             </div>
           </div>
@@ -1566,21 +1847,21 @@ function WeekView({ events, currentDate, onSelectEvent, teams }) {
       {/* Time grid */}
       <div className="max-h-[600px] overflow-y-auto">
         {hours.map(hour => (
-          <div key={hour} className="grid grid-cols-8 border-b border-slate-700">
-            <div className="p-2 text-xs text-slate-500 text-right pr-3">
+          <div key={hour} className={`grid grid-cols-8 border-b ${isDark ? 'border-slate-700/50' : 'border-slate-100'}`}>
+            <div className={`p-2 text-xs text-right pr-3 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               {hour > 12 ? hour - 12 : hour}{hour >= 12 ? 'pm' : 'am'}
             </div>
             {weekDays.map((day, i) => {
               const hourEvents = getEventsForDayHour(day, hour)
               return (
-                <div key={i} className={`p-1 min-h-[50px] border-l border-slate-700 ${isToday(day) ? 'bg-yellow-500/5' : ''}`}>
+                <div key={i} className={`p-1 min-h-[50px] border-l ${isDark ? 'border-slate-700/50' : 'border-slate-100'} ${isToday(day) ? 'bg-[var(--accent-primary)]/5' : ''}`}>
                   {hourEvents.map(event => (
                     <div 
                       key={event.id}
                       onClick={() => onSelectEvent(event)}
-                      className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 mb-1"
+                      className="text-xs p-1.5 rounded-md truncate cursor-pointer hover:brightness-110 mb-1 font-medium transition"
                       style={{ 
-                        backgroundColor: getEventColor(event.event_type) + '30',
+                        backgroundColor: getEventColor(event.event_type) + (isDark ? '25' : '18'),
                         color: getEventColor(event.event_type)
                       }}
                     >
@@ -1598,6 +1879,8 @@ function WeekView({ events, currentDate, onSelectEvent, teams }) {
 }
 
 function DayView({ events, currentDate, onSelectEvent, teams }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const dayEvents = events.filter(e => {
     const eventDate = new Date(e.start_time)
     return eventDate.getDate() === currentDate.getDate() &&
@@ -1611,19 +1894,19 @@ function DayView({ events, currentDate, onSelectEvent, teams }) {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
-      <div className="p-4 border-b border-slate-700">
-        <h3 className="text-lg font-bold text-white">
+    <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+      <div className={`p-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+        <h3 className={`text-lg font-bold ${tc.text}`}>
           {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </h3>
-        <p className="text-sm text-slate-400">{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</p>
+        <p className={`text-sm ${tc.textMuted}`}>{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</p>
       </div>
       <div className="max-h-[600px] overflow-y-auto">
         {hours.map(hour => {
           const hourEvents = dayEvents.filter(e => new Date(e.start_time).getHours() === hour)
           return (
-            <div key={hour} className="flex border-b border-slate-700">
-              <div className="w-20 p-3 text-sm text-slate-500 text-right shrink-0">
+            <div key={hour} className={`flex border-b ${isDark ? 'border-slate-700/50' : 'border-slate-100'}`}>
+              <div className={`w-20 p-3 text-sm text-right shrink-0 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 {hour > 12 ? hour - 12 : hour}:00 {hour >= 12 ? 'PM' : 'AM'}
               </div>
               <div className="flex-1 p-2 min-h-[60px]">
@@ -1631,26 +1914,26 @@ function DayView({ events, currentDate, onSelectEvent, teams }) {
                   <div 
                     key={event.id}
                     onClick={() => onSelectEvent(event)}
-                    className="p-3 rounded-xl cursor-pointer hover:opacity-80 mb-2"
+                    className={`p-3 rounded-xl cursor-pointer hover:brightness-105 mb-2 transition ${isDark ? '' : 'shadow-sm'}`}
                     style={{ 
-                      backgroundColor: getEventColor(event.event_type) + '20',
+                      backgroundColor: getEventColor(event.event_type) + (isDark ? '15' : '12'),
                       borderLeft: `4px solid ${event.teams?.color || getEventColor(event.event_type)}`
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-white">{event.title || event.event_type}</span>
-                      <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: getEventColor(event.event_type) + '30', color: getEventColor(event.event_type) }}>
+                      <span className={`font-bold text-sm ${tc.text}`}>{event.title || event.event_type}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ backgroundColor: getEventColor(event.event_type) + '25', color: getEventColor(event.event_type) }}>
                         {event.event_type}
                       </span>
                     </div>
-                    <div className="text-sm text-slate-400 mt-1">
+                    <div className={`text-sm mt-1 ${tc.textMuted}`}>
                       {formatTime(event.start_time)} - {event.end_time ? formatTime(event.end_time) : 'TBD'}
                     </div>
                     {event.venue_name && (
-                      <div className="text-sm text-slate-500 mt-1">📍 {event.venue_name}</div>
+                      <div className={`text-sm mt-1 ${tc.textMuted}`}>📍 {event.venue_name}</div>
                     )}
                     {event.teams?.name && (
-                      <div className="text-sm mt-1" style={{ color: event.teams.color }}>{event.teams.name}</div>
+                      <div className="text-sm font-medium mt-1" style={{ color: event.teams.color }}>{event.teams.name}</div>
                     )}
                   </div>
                 ))}
@@ -1664,6 +1947,8 @@ function DayView({ events, currentDate, onSelectEvent, teams }) {
 }
 
 function ListView({ events, onSelectEvent, teams }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const sortedEvents = [...events].sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
   
   // Group by date
@@ -1675,10 +1960,10 @@ function ListView({ events, onSelectEvent, teams }) {
   }, {})
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {Object.entries(grouped).map(([date, dayEvents]) => (
         <div key={date}>
-          <h3 className="text-sm font-medium text-slate-400 mb-3">
+          <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${tc.textMuted}`}>
             {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </h3>
           <div className="space-y-2">
@@ -1686,28 +1971,32 @@ function ListView({ events, onSelectEvent, teams }) {
               <div 
                 key={event.id}
                 onClick={() => onSelectEvent(event)}
-                className="bg-slate-800 border border-slate-700 rounded-xl p-4 cursor-pointer hover:border-[var(--accent-primary)]/30 transition"
+                className={`rounded-xl p-4 cursor-pointer transition-all border ${
+                  isDark 
+                    ? 'bg-slate-800 border-slate-700 hover:border-[var(--accent-primary)]/30' 
+                    : 'bg-white border-slate-200 hover:border-[var(--accent-primary)]/40 shadow-sm hover:shadow-md'
+                }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div 
-                      className="w-1 h-12 rounded-full"
+                      className="w-1.5 h-12 rounded-full"
                       style={{ backgroundColor: event.teams?.color || getEventColor(event.event_type) }}
                     />
                     <div>
-                      <p className="font-medium text-white">{event.title || event.event_type}</p>
-                      <p className="text-sm text-slate-400">
+                      <p className={`font-bold text-sm ${tc.text}`}>{event.title || event.event_type}</p>
+                      <p className={`text-sm ${tc.textMuted}`}>
                         {formatTime(event.start_time)} - {event.end_time ? formatTime(event.end_time) : 'TBD'}
-                        {event.venue_name && ` • ${event.venue_name}`}
+                        {event.venue_name && ` • 📍 ${event.venue_name}`}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: getEventColor(event.event_type) + '30', color: getEventColor(event.event_type) }}>
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <span className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ backgroundColor: getEventColor(event.event_type) + '20', color: getEventColor(event.event_type) }}>
                       {event.event_type}
                     </span>
                     {event.teams?.name && (
-                      <p className="text-xs mt-1" style={{ color: event.teams.color }}>{event.teams.name}</p>
+                      <p className="text-xs font-semibold" style={{ color: event.teams.color }}>{event.teams.name}</p>
                     )}
                   </div>
                 </div>
@@ -1717,10 +2006,10 @@ function ListView({ events, onSelectEvent, teams }) {
         </div>
       ))}
       {Object.keys(grouped).length === 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-12 text-center">
+        <div className={`rounded-2xl p-12 text-center border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
           <span className="text-5xl">🗓️</span>
-          <h3 className="text-lg font-medium text-white mt-4">No events this month</h3>
-          <p className="text-slate-400 mt-2">Create your first event to get started</p>
+          <h3 className={`text-lg font-bold mt-4 ${tc.text}`}>No events this month</h3>
+          <p className={`mt-2 ${tc.textMuted}`}>Create your first event to get started</p>
         </div>
       )}
     </div>
@@ -2733,7 +3022,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
 // ============================================
 // EVENT DETAIL MODAL (VIEW/EDIT)
 // ============================================
-function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast, selectedSeason, parentChildIds = [] }) {
+function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay }) {
   const { isAdmin: hasAdminRole, profile, user } = useAuth()
   // Use activeView if provided, otherwise fall back to admin role check
   const isAdminView = activeView ? (activeView === 'admin' || activeView === 'coach') : hasAdminRole
@@ -2939,7 +3228,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
         {/* Header */}
         <div className="p-4 border-b border-slate-700 flex items-center justify-between" style={{ borderLeftColor: teamColor, borderLeftWidth: 4 }}>
           <div className="flex items-center gap-4">
-            <span className="text-3xl">{event.event_type === 'game' ? 'practice' : event.event_type === 'practice' ? '🏃' : event.event_type === 'tournament' ? '🏆' : '📅'}</span>
+            <span className="text-3xl">{event.event_type === 'game' ? '🏐' : event.event_type === 'practice' ? '🏃' : event.event_type === 'tournament' ? '🏆' : '📅'}</span>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-bold text-white">{event.title || (event.event_type === 'game' ? `vs ${event.opponent_name || 'TBD'}` : event.event_type)}</h2>
@@ -2955,6 +3244,16 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Share Game Day Card — for games/tournaments */}
+            {(event.event_type === 'game' || event.event_type === 'tournament') && onShareGameDay && (
+              <button
+                onClick={() => onShareGameDay(event)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/30 transition text-xs font-bold"
+                title="Share Game Day Card"
+              >
+                🏟️ Share
+              </button>
+            )}
             <button
               onClick={() => setShowPhotos(!showPhotos)}
               className={`p-2 rounded-lg transition ${showPhotos ? 'bg-slate-700 text-white' : 'text-slate-500'}`}
