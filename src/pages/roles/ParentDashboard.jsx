@@ -51,8 +51,8 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white`} style={{ backgroundColor: team?.color || '#6366F1' }}>
-              {event.event_type === 'practice' ? <VolleyballIcon className="w-6 h-6" /> : 
-               event.event_type === 'game' ? '🏐' : '📅'}
+              {event.event_type === 'practice' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> : 
+               event.event_type === 'game' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> : '📅'}
             </div>
             <div>
               <h2 className={`text-xl font-semibold ${tc.text}`}>{event.title || event.event_type}</h2>
@@ -598,13 +598,49 @@ const BADGE_DEFS = {
 
 const RARITY_COLORS = { 'Common': '#6B7280', 'Uncommon': '#10B981', 'Rare': '#3B82F6', 'Epic': '#8B5CF6', 'Legendary': '#F59E0B' }
 
+// Sport-aware leaderboard categories
+const SPORT_LEADERBOARD = {
+  volleyball: [
+    { cat: 'Kills', color: '#f59e0b' }, { cat: 'Aces', color: '#3b82f6' },
+    { cat: 'Digs', color: '#8b5cf6' }, { cat: 'Assists', color: '#10b981' },
+  ],
+  basketball: [
+    { cat: 'Points', color: '#f59e0b' }, { cat: 'Rebounds', color: '#06b6d4' },
+    { cat: 'Assists', color: '#10b981' }, { cat: 'Steals', color: '#8b5cf6' },
+  ],
+  soccer: [
+    { cat: 'Goals', color: '#f59e0b' }, { cat: 'Assists', color: '#10b981' },
+    { cat: 'Shots', color: '#06b6d4' }, { cat: 'Saves', color: '#8b5cf6' },
+  ],
+  baseball: [
+    { cat: 'Hits', color: '#f59e0b' }, { cat: 'Runs', color: '#10b981' },
+    { cat: 'RBIs', color: '#06b6d4' }, { cat: 'HRs', color: '#ef4444' },
+  ],
+  softball: [
+    { cat: 'Hits', color: '#f59e0b' }, { cat: 'Runs', color: '#10b981' },
+    { cat: 'RBIs', color: '#06b6d4' }, { cat: 'HRs', color: '#ef4444' },
+  ],
+  football: [
+    { cat: 'Pass Yds', color: '#f59e0b' }, { cat: 'Rush Yds', color: '#06b6d4' },
+    { cat: 'TDs', color: '#ef4444' }, { cat: 'Tackles', color: '#8b5cf6' },
+  ],
+  'flag football': [
+    { cat: 'Pass Yds', color: '#f59e0b' }, { cat: 'Rush Yds', color: '#06b6d4' },
+    { cat: 'TDs', color: '#ef4444' }, { cat: 'Tackles', color: '#8b5cf6' },
+  ],
+  hockey: [
+    { cat: 'Goals', color: '#f59e0b' }, { cat: 'Assists', color: '#10b981' },
+    { cat: 'Shots', color: '#06b6d4' }, { cat: 'Saves', color: '#8b5cf6' },
+  ],
+}
+
 // Starter badges shown when player has no data yet
 const STARTER_BADGES = [
   { badge_id: 'first_practice', hint: 'Attend your first practice' },
   { badge_id: 'first_game', hint: 'Play your first game' },
   { badge_id: 'first_win', hint: 'Win your first game' },
   { badge_id: 'attendance_streak_5', hint: 'Attend 5 events in a row' },
-  { badge_id: 'ace_sniper', hint: 'Rack up aces this season' },
+  { badge_id: 'team_player', hint: 'Be a great teammate this season' },
 ]
 
 function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate }) {
@@ -1304,7 +1340,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                       isDark ? 'bg-slate-700/60 border-slate-600 text-slate-200 hover:border-amber-500/50' : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400 shadow-sm'
                     }`}
                   >
-                    <span className="text-lg">{nextChildEvent.event_type === 'game' ? '🏐' : '🏋️'}</span>
+                    <span className="text-lg">{nextChildEvent.event_type === 'game' ? (primarySport?.icon || '🏐') : '🏋️'}</span>
                     <span>Next: <strong>
                       {new Date(nextChildEvent.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {formatTime12(nextChildEvent.event_time)}
                       {nextChildEvent.opponent ? ` vs ${nextChildEvent.opponent}` : ''}
@@ -1444,12 +1480,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                     📊 Leaderboard
                   </div>
                   <div className="space-y-1">
-                    {[
-                      { cat: 'Kills', rank: null, color: '#f59e0b' },
-                      { cat: 'Aces', rank: null, color: '#3b82f6' },
-                      { cat: 'Digs', rank: null, color: '#8b5cf6' },
-                      { cat: 'Assists', rank: null, color: '#10b981' },
-                    ].map(stat => (
+                    {(SPORT_LEADERBOARD[activeChild?.season?.sports?.name?.toLowerCase()] || SPORT_LEADERBOARD.volleyball).map(stat => (
                       <div key={stat.cat} className={`flex items-center justify-between py-2 border-b last:border-b-0 ${tc.border}`}>
                         <span className={`text-sm font-semibold ${tc.textSecondary}`}>{stat.cat}</span>
                         {stat.rank ? (
