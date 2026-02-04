@@ -544,6 +544,7 @@ function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization,
 // ============================================
 function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
   const { selectedSeason, seasons: allSeasons, selectSeason } = useSeason()
+  const { profile } = useAuth()
   const [stats, setStats] = useState({
     nextGame: null,
     nextPractice: null,
@@ -969,6 +970,18 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           {/* ═══ PARENT VIEW ═══ */}
           {activeView === 'parent' && (
             <>
+              {/* Welcome greeting — left side */}
+              <div className="flex items-center gap-3 mr-auto">
+                {selectedSeason?.sports?.icon && <span className="text-xl">{selectedSeason.sports.icon}</span>}
+                <div>
+                  <div className="text-slate-900 font-extrabold text-base tracking-tight">Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'}! 👋</div>
+                  <div className="text-slate-400 text-xs font-medium">
+                    {selectedSeason?.sports?.name || 'Sports'} • {selectedSeason?.name || 'Current Season'}
+                    {organization?.name && ` • ${organization.name}`}
+                  </div>
+                </div>
+              </div>
+
               {/* Next Event - with type, day, date, time */}
               <button 
                 onClick={() => setPage('schedule')}
