@@ -575,6 +575,38 @@ function AlertDetailModal({ alert, onClose }) {
 // ============================================
 // MAIN PARENT DASHBOARD
 // ============================================
+// Badge definitions — shared with PlayerCardExpanded
+const BADGE_DEFS = {
+  'ace_sniper': { name: 'Ace Sniper', icon: '🏐', color: '#F59E0B', rarity: 'Rare' },
+  'kill_shot': { name: 'Kill Shot', icon: '⚡', color: '#EF4444', rarity: 'Epic' },
+  'heart_breaker': { name: 'Heart Breaker', icon: '💜', color: '#EC4899', rarity: 'Rare' },
+  'ground_zero': { name: 'Ground Zero', icon: '💎', color: '#06B6D4', rarity: 'Uncommon' },
+  'iron_fortress': { name: 'Iron Fortress', icon: '🛡️', color: '#6366F1', rarity: 'Legendary' },
+  'puppet_master': { name: 'Puppet Master', icon: '🎭', color: '#F59E0B', rarity: 'Epic' },
+  'ace_master': { name: 'Ace Master', icon: '🎯', color: '#10B981', rarity: 'Rare' },
+  'dig_machine': { name: 'Dig Machine', icon: '💪', color: '#8B5CF6', rarity: 'Uncommon' },
+  'mvp': { name: 'MVP', icon: '⭐', color: '#EF4444', rarity: 'Legendary' },
+  'team_player': { name: 'Team Player', icon: '🤝', color: '#3B82F6', rarity: 'Common' },
+  'first_practice': { name: 'First Practice', icon: '🌟', color: '#F59E0B', rarity: 'Common' },
+  'perfect_attendance': { name: 'Perfect Attendance', icon: '⭐', color: '#10B981', rarity: 'Rare' },
+  'attendance_streak_5': { name: '5 Game Streak', icon: '🔥', color: '#EF4444', rarity: 'Uncommon' },
+  'attendance_streak_10': { name: '10 Game Streak', icon: '💥', color: '#EF4444', rarity: 'Rare' },
+  'first_game': { name: 'Game Day', icon: '🎮', color: '#3B82F6', rarity: 'Common' },
+  'first_win': { name: 'Winner', icon: '🥇', color: '#F59E0B', rarity: 'Common' },
+  'tournament_ready': { name: 'Tournament Ready', icon: '🎯', color: '#8B5CF6', rarity: 'Rare' },
+}
+
+const RARITY_COLORS = { 'Common': '#6B7280', 'Uncommon': '#10B981', 'Rare': '#3B82F6', 'Epic': '#8B5CF6', 'Legendary': '#F59E0B' }
+
+// Starter badges shown when player has no data yet
+const STARTER_BADGES = [
+  { badge_id: 'first_practice', hint: 'Attend your first practice' },
+  { badge_id: 'first_game', hint: 'Play your first game' },
+  { badge_id: 'first_win', hint: 'Win your first game' },
+  { badge_id: 'attendance_streak_5', hint: 'Attend 5 events in a row' },
+  { badge_id: 'ace_sniper', hint: 'Rack up aces this season' },
+]
+
 function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate }) {
   const { profile } = useAuth()
   const tc = useThemeClasses()
@@ -609,6 +641,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [activeChildIdx, setActiveChildIdx] = useState(0)
   const [dismissedAlerts, setDismissedAlerts] = useState([])
   const [teamRecord, setTeamRecord] = useState(null)
+  const [playerBadges, setPlayerBadges] = useState([])
+  const [badgesInProgress, setBadgesInProgress] = useState([])
 
   // Get parent's name from profile or first child's parent_name
   const parentName = profile?.full_name?.split(' ')[0] || registrationData[0]?.parent_name?.split(' ')[0] || 'Parent'
@@ -853,11 +887,37 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     }
   }
 
-  // Re-load team record when active child tab changes
+  async function loadPlayerBadges(playerId) {
+    if (!playerId) return
+    // Load earned badges
+    try {
+      const { data } = await supabase
+        .from('player_badges')
+        .select('*')
+        .eq('player_id', playerId)
+        .order('earned_at', { ascending: false })
+      setPlayerBadges(data || [])
+    } catch {
+      setPlayerBadges([])
+    }
+    // Load in-progress achievements
+    try {
+      const { data } = await supabase
+        .from('player_achievement_progress')
+        .select('*')
+        .eq('player_id', playerId)
+      setBadgesInProgress(data || [])
+    } catch {
+      setBadgesInProgress([])
+    }
+  }
+
+  // Re-load team record and badges when active child tab changes
   useEffect(() => {
     const activeChild = registrationData[activeChildIdx]
     const teamId = activeChild?.team?.id
     if (teamId) loadTeamRecord(teamId)
+    if (activeChild?.id) loadPlayerBadges(activeChild.id)
   }, [activeChildIdx, registrationData])
 
   function getStatusBadge(status) {
@@ -1263,42 +1323,91 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
             {/* Bottom Section: Badges + Season Record + Leaderboard */}
             <div className="flex flex-1 min-h-0">
-              {/* Badges — 5 recent, bigger icons */}
+              {/* Badges — real data with 3 states */}
               <div className={`flex-1 px-6 py-5`}>
                 <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-4 flex items-center gap-2`}>
-                  🏆 Recent Badges
+                  🏆 {playerBadges.length > 0 ? 'Recent Badges' : badgesInProgress.length > 0 ? 'Badge Progress' : 'Badges to Earn'}
                 </div>
-                <div className="flex gap-4 flex-wrap">
-                  {[
-                    { icon: '🔥', name: 'Kill Machine', color: '#ef4444' },
-                    { icon: '🎯', name: 'Ace Sniper', color: '#f59e0b' },
-                    { icon: '💪', name: 'Iron Player', color: '#3b82f6' },
-                    { icon: '🛡️', name: 'Fortress', color: '#8b5cf6' },
-                    { icon: '⚡', name: 'Streak', color: '#10b981' },
-                  ].map((badge, i) => {
-                    const earned = false // TODO: wire to real data
-                    return (
-                      <div key={i} className="flex flex-col items-center gap-2 group cursor-pointer">
-                        <div 
-                          className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md transition-transform group-hover:scale-110 ${
-                            earned ? '' : 'grayscale opacity-30'
-                          }`}
-                          style={earned ? { 
-                            background: `linear-gradient(135deg, ${badge.color}33, ${badge.color}15)`,
-                            border: `2px solid ${badge.color}44`,
-                            boxShadow: `0 4px 12px ${badge.color}20`
-                          } : {
-                            background: isDark ? '#1e293b' : '#f1f5f9',
-                            border: `2px solid ${isDark ? '#334155' : '#e2e8f0'}`
-                          }}
-                        >
-                          {badge.icon}
+
+                {/* State 1: Has earned badges */}
+                {playerBadges.length > 0 && (
+                  <div className="flex gap-4 flex-wrap">
+                    {playerBadges.slice(0, 5).map((b, i) => {
+                      const def = BADGE_DEFS[b.badge_id] || { name: b.badge_id, icon: '🏅', color: '#6B7280', rarity: 'Common' }
+                      const rarityColor = RARITY_COLORS[def.rarity] || '#6B7280'
+                      return (
+                        <div key={i} className="flex flex-col items-center gap-2 group cursor-pointer">
+                          <div 
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md transition-transform group-hover:scale-110"
+                            style={{ 
+                              background: `linear-gradient(135deg, ${def.color}33, ${def.color}15)`,
+                              border: `2px solid ${rarityColor}`,
+                              boxShadow: `0 4px 12px ${def.color}20`
+                            }}
+                          >
+                            {def.icon}
+                          </div>
+                          <span className={`text-xs font-bold ${tc.textMuted} text-center max-w-[80px] leading-tight`}>{def.name}</span>
                         </div>
-                        <span className={`text-xs font-bold ${tc.textMuted} text-center max-w-[80px] leading-tight`}>{badge.name}</span>
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* State 2: No earned badges but has in-progress */}
+                {playerBadges.length === 0 && badgesInProgress.length > 0 && (
+                  <div className="space-y-3">
+                    {badgesInProgress.slice(0, 3).map((b, i) => {
+                      const def = BADGE_DEFS[b.badge_id] || { name: b.badge_id, icon: '🏅', color: '#6B7280' }
+                      const pct = b.target > 0 ? Math.min((b.progress / b.target) * 100, 100) : 0
+                      return (
+                        <div key={i} className="flex items-center gap-3">
+                          <div 
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                            style={{ background: `${def.color}20`, border: `2px solid ${def.color}44` }}
+                          >
+                            {def.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={`text-xs font-bold ${tc.text} uppercase truncate`}>{def.name}</span>
+                              <span className={`text-[10px] font-semibold ${tc.textMuted} ml-2 flex-shrink-0`}>{b.progress}/{b.target}</span>
+                            </div>
+                            <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                              <div 
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{ width: `${pct}%`, backgroundColor: def.color }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* State 3: Nothing earned, nothing in progress — show starter teasers */}
+                {playerBadges.length === 0 && badgesInProgress.length === 0 && (
+                  <div className="space-y-2.5">
+                    {STARTER_BADGES.slice(0, 4).map((starter, i) => {
+                      const def = BADGE_DEFS[starter.badge_id] || { name: starter.badge_id, icon: '🏅', color: '#6B7280' }
+                      return (
+                        <div key={i} className="flex items-center gap-3">
+                          <div 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-base flex-shrink-0 grayscale opacity-40"
+                            style={{ background: isDark ? '#1e293b' : '#f1f5f9', border: `2px solid ${isDark ? '#334155' : '#e2e8f0'}` }}
+                          >
+                            {def.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className={`text-xs font-bold ${tc.textMuted} block truncate`}>{def.name}</span>
+                            <span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{starter.hint}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
               
               {/* Season Record + Leaderboard */}
