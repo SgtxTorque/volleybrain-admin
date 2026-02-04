@@ -40,7 +40,7 @@ import { DashboardPage } from './pages/dashboard'
 import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
 
 // Parent Portal Pages
-import { PlayerProfilePage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage } from './pages/parent'
+import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage } from './pages/parent'
 
 // Public Pages
 import { TeamWallPage } from './pages/public'
@@ -1460,7 +1460,8 @@ function MainApp() {
               {page === 'dashboard' && activeView === 'parent' && <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
               {page === 'dashboard' && activeView === 'player' && <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} showToast={showToast} onPlayerChange={setSelectedPlayerForView} />}
               
-              {page.startsWith('player-') && activeView === 'parent' && <PlayerProfilePage playerId={page.replace('player-', '')} roleContext={roleContext} showToast={showToast} />}
+              {page.startsWith('player-profile-') && activeView === 'parent' && <PlayerProfilePage playerId={page.replace('player-profile-', '')} roleContext={roleContext} showToast={showToast} onNavigate={setPage} />}
+              {page.startsWith('player-') && !page.startsWith('player-profile-') && activeView === 'parent' && <ParentPlayerCardPage playerId={page.replace('player-', '')} roleContext={roleContext} showToast={showToast} />}
               {page === 'messages' && activeView === 'parent' && <ParentMessagesPage roleContext={roleContext} showToast={showToast} />}
               {page === 'invite' && activeView === 'parent' && <InviteFriendsPage roleContext={roleContext} showToast={showToast} />}
               {page === 'payments' && activeView === 'parent' && <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />}
