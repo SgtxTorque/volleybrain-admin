@@ -840,7 +840,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       
       let query = supabase
         .from('schedule_events')
-        .select('*, teams(name, color)')
+        .select('*, teams!schedule_events_team_id_fkey(name, color)')
         .in('team_id', teamIds)
         .gte('event_date', today)
         .order('event_date', { ascending: true })
