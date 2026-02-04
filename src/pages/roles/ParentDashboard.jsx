@@ -1069,18 +1069,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
       ))}
 
-      {/* ═══ INFO HEADER ═══ */}
-      <div className="flex items-center gap-3">
-        {primarySport && <span className="text-xl">{primarySport.icon}</span>}
-        <div>
-          <h1 className={`text-xl font-extrabold tracking-tight ${tc.text}`}>Welcome back, {parentName}! 👋</h1>
-          <span className={`text-xs font-medium ${tc.textMuted}`}>
-            {primarySport?.name || 'Sports'} • {primarySeason?.name || 'Current Season'}
-            {organization?.name && ` • ${organization.name}`}
-          </span>
-        </div>
-      </div>
-
       {/* ═══ CHILD TABS (2+ children) ═══ */}
       {registrationData.length > 1 && (
         <div className="flex gap-1 -mb-3 relative z-[2]">
