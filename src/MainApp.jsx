@@ -698,11 +698,13 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           roleContext.children.flatMap(c => c.team_players?.map(tp => tp.team_id) || []).filter(Boolean)
         )]
         const playerIds = roleContext.children.map(c => c.id)
+        
+        console.log('InfoHeaderBar Parent Stats - Team IDs:', allTeamIds, 'Player IDs:', playerIds)
 
         if (allTeamIds.length > 0) {
           // Get next upcoming event across all children's teams
           const today = new Date().toISOString().split('T')[0]
-          const { data: nextEvent } = await supabase
+          let query = supabase
             .from('schedule_events')
             .select('*, teams(name, color)')
             .in('team_id', allTeamIds)
@@ -710,7 +712,14 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
             .order('event_date', { ascending: true })
             .order('event_time', { ascending: true })
             .limit(1)
-            .maybeSingle()
+          
+          // Also filter by season if available
+          if (seasonId) {
+            query = query.eq('season_id', seasonId)
+          }
+          
+          const { data: nextEvent, error: eventError } = await query.maybeSingle()
+          console.log('InfoHeaderBar Parent Stats - Next Event:', nextEvent, 'Error:', eventError)
 
           // Get balance due from payments (correct columns: amount + paid boolean)
           const { data: payments } = await supabase
@@ -969,9 +978,9 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
           {/* ═══ PARENT VIEW ═══ */}
           {activeView === 'parent' && (
-            <>
+            <div className="flex items-center w-full">
               {/* Welcome greeting — left side */}
-              <div className="flex items-center gap-3 mr-auto">
+              <div className="flex items-center gap-3">
                 {selectedSeason?.sports?.icon && <span className="text-xl">{selectedSeason.sports.icon}</span>}
                 <div>
                   <div className="text-slate-900 font-extrabold text-base tracking-tight">Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'}! 👋</div>
@@ -982,65 +991,71 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                 </div>
               </div>
 
-              {/* Next Event - with type, day, date, time */}
-              <button 
-                onClick={() => setPage('schedule')}
-                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
-              >
-                <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${
-                  stats.nextPractice?.event_type === 'game' ? 'bg-[#F59E0B]' : 'bg-[#3B82F6]'
-                }`}>
-                  <span className="text-lg">{stats.nextPractice?.event_type === 'game' ? '🏐' : '📅'}</span>
-                </div>
-                <div className="text-left">
-                  <span className="text-slate-500 text-sm">Next:</span>
-                  <span className="text-slate-900 font-bold text-sm ml-2">
-                    {stats.nextPractice 
-                      ? `${stats.nextPractice.event_type === 'game' ? 'Game' : 'Practice'} — ${formatEventDate(stats.nextPractice.event_date, stats.nextPractice.event_time)}`
-                      : 'Nothing scheduled'}
-                  </span>
-                </div>
-              </button>
+              {/* Spacer to push remaining items to center-right */}
+              <div className="flex-1" />
 
-              {/* Divider */}
-              <div className="w-px h-10 bg-slate-200 mx-2" />
+              {/* Center-grouped items */}
+              <div className="flex items-center gap-0">
+                {/* Next Event - with type, day, date, time */}
+                <button 
+                  onClick={() => setPage('schedule')}
+                  className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                >
+                  <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${
+                    stats.nextPractice?.event_type === 'game' ? 'bg-[#F59E0B]' : 'bg-[#3B82F6]'
+                  }`}>
+                    <span className="text-lg">{stats.nextPractice?.event_type === 'game' ? '🏐' : '📅'}</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-slate-500 text-sm">Next:</span>
+                    <span className="text-slate-900 font-bold text-sm ml-2">
+                      {stats.nextPractice 
+                        ? `${stats.nextPractice.event_type === 'game' ? 'Game' : 'Practice'} — ${formatEventDate(stats.nextPractice.event_date, stats.nextPractice.event_time)}`
+                        : 'Nothing scheduled'}
+                    </span>
+                  </div>
+                </button>
 
-              {/* Messages */}
-              <button 
-                onClick={() => setPage('chats')}
-                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
-              >
-                <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
-                  <span className="text-lg">💬</span>
-                </div>
-                <div className="text-left">
-                  <span className="text-slate-500 text-sm">Messages</span>
-                </div>
-              </button>
+                {/* Divider */}
+                <div className="w-px h-10 bg-slate-200 mx-2" />
 
-              {/* Divider */}
-              <div className="w-px h-10 bg-slate-200 mx-2" />
+                {/* Messages */}
+                <button 
+                  onClick={() => setPage('chats')}
+                  className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                >
+                  <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
+                    <span className="text-lg">💬</span>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-slate-500 text-sm">Messages</span>
+                  </div>
+                </button>
 
-              {/* Balance */}
-              <button 
-                onClick={() => setPage('payments')}
-                className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
-              >
-                <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${stats.balanceDue > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'}`}>
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left">
-                  {stats.balanceDue > 0 ? (
-                    <>
-                      <span className="text-slate-500 text-sm">Balance Due:</span>
-                      <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue.toFixed(2)}</span>
-                    </>
-                  ) : (
-                    <span className="text-[#10B981] font-bold text-sm">All Caught Up! ✓</span>
-                  )}
-                </div>
-              </button>
-            </>
+                {/* Divider */}
+                <div className="w-px h-10 bg-slate-200 mx-2" />
+
+                {/* Balance */}
+                <button 
+                  onClick={() => setPage('payments')}
+                  className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                >
+                  <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${stats.balanceDue > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'}`}>
+                    <DollarSign className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    {stats.balanceDue > 0 ? (
+                      <>
+                        <span className="text-slate-500 text-sm">Balance Due:</span>
+                        <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue.toFixed(2)}</span>
+                      </>
+                    ) : (
+                      <span className="text-[#10B981] font-bold text-sm">All Caught Up! ✓</span>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </div>
           )}
 
           {/* ═══ PLAYER VIEW ═══ */}
