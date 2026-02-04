@@ -608,6 +608,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // Active child state for multi-child tabs
   const [activeChildIdx, setActiveChildIdx] = useState(0)
   const [dismissedAlerts, setDismissedAlerts] = useState([])
+  const [teamRecord, setTeamRecord] = useState(null)
 
   // Get parent's name from profile or first child's parent_name
   const parentName = profile?.full_name?.split(' ')[0] || registrationData[0]?.parent_name?.split(' ')[0] || 'Parent'
@@ -637,7 +638,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         .from('players')
         .select(`
           *,
-          team_players(team_id, teams(id, name, color, season_id)),
+          team_players(team_id, jersey_number, teams(id, name, color, season_id)),
           season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))
         `)
         .eq('parent_account_id', profile.id)
@@ -649,6 +650,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           return {
             ...p,
             team: teamPlayer?.teams,
+            jersey_number: teamPlayer?.jersey_number || p.jersey_number,
             registrationStatus: teamPlayer ? 'active' : 'pending'
           }
         })
@@ -700,6 +702,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       const regData = children.map(c => ({
         ...c,
         team: c.team_players?.[0]?.teams,
+        jersey_number: c.team_players?.[0]?.jersey_number || c.jersey_number,
         registrationStatus: c.team_players?.[0] ? 'active' : 'pending'
       }))
       
@@ -834,6 +837,28 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     const baseUrl = season.organizations?.settings?.registration_url || window.location.origin
     return `${baseUrl}/register/${orgSlug}/${season.id}`
   }
+
+  // Load team record/standings for the active child's team
+  async function loadTeamRecord(teamId) {
+    if (!teamId) return
+    try {
+      const { data } = await supabase
+        .from('team_standings')
+        .select('*')
+        .eq('team_id', teamId)
+        .maybeSingle()
+      setTeamRecord(data)
+    } catch (err) {
+      console.error('Error loading team record:', err)
+    }
+  }
+
+  // Re-load team record when active child tab changes
+  useEffect(() => {
+    const activeChild = registrationData[activeChildIdx]
+    const teamId = activeChild?.team?.id
+    if (teamId) loadTeamRecord(teamId)
+  }, [activeChildIdx, registrationData])
 
   function getStatusBadge(status) {
     switch (status) {
@@ -1236,25 +1261,26 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               </div>
             </div>
 
-            {/* Bottom Section: Badges + Leaderboard */}
+            {/* Bottom Section: Badges + Season Record + Leaderboard */}
             <div className="flex flex-1 min-h-0">
-              {/* Badges */}
-              <div className={`flex-1 px-6 py-4 border-r ${tc.border}`}>
-                <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
-                  🏆 Badges Earned
+              {/* Badges — 5 recent, bigger icons */}
+              <div className={`flex-1 px-6 py-5`}>
+                <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-4 flex items-center gap-2`}>
+                  🏆 Recent Badges
                 </div>
-                <div className="flex gap-5 flex-wrap">
+                <div className="flex gap-4 flex-wrap">
                   {[
                     { icon: '🔥', name: 'Kill Machine', color: '#ef4444' },
                     { icon: '🎯', name: 'Ace Sniper', color: '#f59e0b' },
                     { icon: '💪', name: 'Iron Player', color: '#3b82f6' },
                     { icon: '🛡️', name: 'Fortress', color: '#8b5cf6' },
+                    { icon: '⚡', name: 'Streak', color: '#10b981' },
                   ].map((badge, i) => {
                     const earned = false // TODO: wire to real data
                     return (
                       <div key={i} className="flex flex-col items-center gap-2 group cursor-pointer">
                         <div 
-                          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-md transition-transform group-hover:scale-110 ${
+                          className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-md transition-transform group-hover:scale-110 ${
                             earned ? '' : 'grayscale opacity-30'
                           }`}
                           style={earned ? { 
@@ -1268,36 +1294,65 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                         >
                           {badge.icon}
                         </div>
-                        <span className={`text-[10px] font-bold ${tc.textMuted} text-center max-w-[70px] leading-tight`}>{badge.name}</span>
+                        <span className={`text-xs font-bold ${tc.textMuted} text-center max-w-[80px] leading-tight`}>{badge.name}</span>
                       </div>
                     )
                   })}
                 </div>
               </div>
               
-              {/* Leaderboard Rankings */}
-              <div className="w-[260px] flex-shrink-0 px-6 py-4">
-                <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
-                  📊 Leaderboard
-                </div>
-                <div className="space-y-1">
-                  {[
-                    { cat: 'Kills', rank: null, color: '#f59e0b' },
-                    { cat: 'Aces', rank: null, color: '#3b82f6' },
-                    { cat: 'Digs', rank: null, color: '#8b5cf6' },
-                    { cat: 'Assists', rank: null, color: '#10b981' },
-                  ].map(stat => (
-                    <div key={stat.cat} className={`flex items-center justify-between py-2.5 border-b last:border-b-0 ${tc.border}`}>
-                      <span className={`text-sm font-semibold ${tc.textSecondary}`}>{stat.cat}</span>
-                      {stat.rank ? (
-                        <span className="text-sm font-black px-3 py-1 rounded-lg text-white shadow-sm" style={{ backgroundColor: stat.color }}>
-                          #{stat.rank}
-                        </span>
-                      ) : (
-                        <span className={`text-sm font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-slate-700 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
-                      )}
+              {/* Season Record + Leaderboard */}
+              <div className={`w-[260px] flex-shrink-0 border-l ${tc.border}`}>
+                {/* Season Record */}
+                <div className={`px-6 py-4 border-b ${tc.border}`}>
+                  <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
+                    📋 Season Record
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
+                      <div className={`text-[10px] uppercase font-bold ${tc.textMuted}`}>Wins</div>
                     </div>
-                  ))}
+                    <div className={`text-xl font-bold ${tc.textMuted}`}>-</div>
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-red-500">{teamRecord?.losses || 0}</div>
+                      <div className={`text-[10px] uppercase font-bold ${tc.textMuted}`}>Losses</div>
+                    </div>
+                    {(teamRecord?.ties || 0) > 0 && (
+                      <>
+                        <div className={`text-xl font-bold ${tc.textMuted}`}>-</div>
+                        <div className="text-center">
+                          <div className="text-2xl font-black text-amber-500">{teamRecord.ties}</div>
+                          <div className={`text-[10px] uppercase font-bold ${tc.textMuted}`}>Ties</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {/* Leaderboard Rankings */}
+                <div className="px-6 py-4">
+                  <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
+                    📊 Leaderboard
+                  </div>
+                  <div className="space-y-1">
+                    {[
+                      { cat: 'Kills', rank: null, color: '#f59e0b' },
+                      { cat: 'Aces', rank: null, color: '#3b82f6' },
+                      { cat: 'Digs', rank: null, color: '#8b5cf6' },
+                      { cat: 'Assists', rank: null, color: '#10b981' },
+                    ].map(stat => (
+                      <div key={stat.cat} className={`flex items-center justify-between py-2 border-b last:border-b-0 ${tc.border}`}>
+                        <span className={`text-sm font-semibold ${tc.textSecondary}`}>{stat.cat}</span>
+                        {stat.rank ? (
+                          <span className="text-sm font-black px-3 py-1 rounded-lg text-white shadow-sm" style={{ backgroundColor: stat.color }}>
+                            #{stat.rank}
+                          </span>
+                        ) : (
+                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-slate-700 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
