@@ -1215,7 +1215,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               {[
                 { label: 'Player Card', icon: '🪪', action: () => onNavigate(`player-${activeChild?.id}`) },
                 { label: 'Team Hub', icon: '👥', action: () => navigateToTeamWall?.(activeTeam?.id) },
-                { label: 'Profile', icon: '👤', action: () => onNavigate(`player-${activeChild?.id}`) },
+                { label: 'Profile', icon: '👤', action: () => onNavigate(`player-profile-${activeChild?.id}`) },
                 { label: 'Achievements', icon: '🏆', action: () => onNavigate('achievements') },
               ].map((btn, i, arr) => (
                 <button
