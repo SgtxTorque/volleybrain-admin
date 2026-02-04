@@ -706,7 +706,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
           const today = new Date().toISOString().split('T')[0]
           let query = supabase
             .from('schedule_events')
-            .select('*, teams(name, color)')
+            .select('*, teams!schedule_events_team_id_fkey(name, color)')
             .in('team_id', allTeamIds)
             .gte('event_date', today)
             .order('event_date', { ascending: true })
