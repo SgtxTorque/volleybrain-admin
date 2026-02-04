@@ -1371,7 +1371,7 @@ function MainApp() {
         .eq('profile_id', profile.id).maybeSingle()
 
       const { data: children } = await supabase
-        .from('players').select('id, first_name, last_name, photo_url, team_players(team_id, teams(id, name, color))')
+        .from('players').select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
         .eq('parent_account_id', profile.id)
 
       const playerSelf = null
