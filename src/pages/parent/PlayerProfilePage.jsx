@@ -7,6 +7,18 @@ import {
   AlertTriangle, FileText, Heart, Shield
 } from '../../constants/icons'
 
+// Sport-specific position options for dropdown
+const SPORT_POSITIONS = {
+  volleyball: ['Outside Hitter', 'Middle Blocker', 'Setter', 'Libero', 'Opposite', 'Defensive Specialist', 'Right Side'],
+  basketball: ['Point Guard', 'Shooting Guard', 'Small Forward', 'Power Forward', 'Center'],
+  soccer: ['Goalkeeper', 'Defender', 'Midfielder', 'Forward'],
+  baseball: ['Pitcher', 'Catcher', 'First Base', 'Second Base', 'Shortstop', 'Third Base', 'Outfield'],
+  softball: ['Pitcher', 'Catcher', 'First Base', 'Second Base', 'Shortstop', 'Third Base', 'Outfield'],
+  football: ['Quarterback', 'Running Back', 'Wide Receiver', 'Tight End', 'Offensive Line', 'Defensive Line', 'Linebacker', 'Defensive Back', 'Kicker'],
+  'flag football': ['Quarterback', 'Running Back', 'Wide Receiver', 'Center', 'Rusher', 'Defensive Back'],
+  hockey: ['Goalie', 'Defense', 'Center', 'Wing'],
+}
+
 function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const { organization } = useAuth()
   const tc = useThemeClasses()
@@ -31,6 +43,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
   // Season history
   const [seasonHistory, setSeasonHistory] = useState([])
+  const [sportName, setSportName] = useState('volleyball')
 
   useEffect(() => {
     loadPlayerData()
@@ -118,6 +131,10 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
         endDate: tp.teams?.seasons?.end_date,
       }))
       setSeasonHistory(history)
+
+      // Determine sport from team/season data
+      const detectedSport = teamPlayersData?.[0]?.teams?.seasons?.sports?.name || seasonData?.sports?.name || 'volleyball'
+      setSportName(detectedSport)
 
     } catch (err) {
       console.error('Error loading player:', err)
@@ -361,14 +378,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <FormField label="Position" value={infoForm.position} onChange={v => setInfoForm({ ...infoForm, position: v })} 
-                        options={[
-                          { value: 'Outside Hitter', label: 'Outside Hitter' },
-                          { value: 'Middle Blocker', label: 'Middle Blocker' },
-                          { value: 'Setter', label: 'Setter' },
-                          { value: 'Libero', label: 'Libero' },
-                          { value: 'Opposite', label: 'Opposite' },
-                          { value: 'Defensive Specialist', label: 'Defensive Specialist' },
-                        ]} />
+                        options={(SPORT_POSITIONS[sportName.toLowerCase()] || SPORT_POSITIONS.volleyball).map(p => ({ value: p, label: p }))} />
                       <FormField label="Experience Level" value={infoForm.experience_level} onChange={v => setInfoForm({ ...infoForm, experience_level: v })}
                         options={['Beginner', 'Intermediate', 'Advanced', 'Club/Travel']} />
                     </div>
@@ -380,7 +390,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     <InfoRow label="Date of Birth" value={player.date_of_birth ? new Date(player.date_of_birth + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null} icon="🎂" />
                     <InfoRow label="Grade" value={player.grade} icon="🎓" />
                     <InfoRow label="School" value={player.school} icon="🏫" />
-                    <InfoRow label="Position" value={player.position} icon="🏐" />
+                    <InfoRow label="Position" value={player.position} icon={seasonHistory[0]?.sportIcon || '🏐'} />
                     <InfoRow label="Experience" value={player.experience_level || player.experience} icon="📊" />
                     <InfoRow label="Registered" value={player.created_at ? new Date(player.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null} icon="📅" />
                   </div>
