@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { X, Download, Printer, Check, Image } from '../../constants/icons'
+import { X, Download, Check, Image } from '../../constants/icons'
 
 // ============================================
 // SEASON SCHEDULE POSTER GENERATOR v2
@@ -429,7 +429,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
               </button>
               <button onClick={() => { setShowControls(false); setTimeout(()=>{window.print();setShowControls(true)},100) }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition ${isDark?'bg-slate-700 text-white hover:bg-slate-600':'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                <Printer className="w-4 h-4" /> Print / PDF
+                <span>🖨️</span> Print / PDF
               </button>
               <button onClick={onClose} className={`p-2 rounded-lg ${isDark?'hover:bg-slate-700':'hover:bg-slate-100'}`}>
                 <X className={`w-5 h-5 ${tc.textMuted}`} />
