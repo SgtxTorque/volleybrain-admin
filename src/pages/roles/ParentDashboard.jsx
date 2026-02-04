@@ -1138,84 +1138,99 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           {/* Info Column */}
           <div className={`flex-1 flex flex-col min-w-0 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
             
-            {/* Team Info Bar */}
-            <div className={`px-6 py-4 border-b ${tc.border} flex items-center gap-6`}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white shadow-md" style={{ backgroundColor: activeTeamColor }}>
-                  {primarySport?.icon || '🏐'}
-                </div>
-                <div>
-                  <div className={`text-base font-bold ${tc.text}`}>{activeTeam?.name || 'Unassigned'}</div>
-                  <div className={`text-xs ${tc.textMuted}`}>{activeChild?.position || 'Player'} • {primarySeason?.name || 'Current Season'}</div>
-                </div>
+            {/* Top Identity Bar: Jersey # | Team + Position | Season | Status */}
+            <div className={`flex items-stretch border-b ${tc.border}`}>
+              {/* Jersey Number - big and bold */}
+              <div className={`flex items-center justify-center px-6 border-r ${tc.border}`} style={{ minWidth: '90px' }}>
+                <span className="text-4xl font-black" style={{ color: activeTeamColor }}>
+                  {activeChild?.jersey_number ? `#${activeChild.jersey_number}` : '—'}
+                </span>
               </div>
-              <div className="ml-auto flex items-center gap-2">
+              {/* Team + Position */}
+              <div className={`flex-1 px-5 py-4 border-r ${tc.border}`}>
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: activeTeamColor }}>
+                    {primarySport?.icon || '🏐'}
+                  </div>
+                  <div className={`text-lg font-bold ${tc.text}`}>{activeTeam?.name || 'Unassigned'}</div>
+                </div>
+                <div className={`text-sm ${tc.textMuted}`}>{activeChild?.position || 'Player'} • {primarySeason?.name || 'Current Season'}</div>
+              </div>
+              {/* Status + Payment */}
+              <div className="flex items-center gap-3 px-6">
+                {(() => {
+                  const badge = getStatusBadge(activeChild?.registrationStatus)
+                  return (
+                    <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${
+                      badge.label === 'Active' ? (isDark ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200') :
+                      badge.label === 'Pending' ? (isDark ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' : 'bg-amber-50 text-amber-600 border border-amber-200') :
+                      (isDark ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-200')
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${
+                        badge.label === 'Active' ? 'bg-emerald-400' : badge.label === 'Pending' ? 'bg-amber-400' : 'bg-blue-400'
+                      }`} />
+                      {badge.label}
+                    </span>
+                  )
+                })()}
                 {activeChildUnpaid.length > 0 ? (
-                  <button onClick={() => setShowPaymentModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition">
+                  <button onClick={() => setShowPaymentModal(true)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${isDark ? 'bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'} transition`}>
                     💰 ${activeChildUnpaid.reduce((s,p) => s + (parseFloat(p.amount)||0), 0).toFixed(2)} due
                   </button>
                 ) : (
-                  <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${isDark ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                     ✅ Paid Up
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Action Buttons — styled like app navigation, not a toolbar */}
+            {/* Action Buttons — 4 buttons, no Stats */}
             <div className={`flex border-b ${tc.border}`}>
               {[
                 { label: 'Player Card', icon: '🪪', action: () => onNavigate(`player-${activeChild?.id}`) },
                 { label: 'Team Hub', icon: '👥', action: () => navigateToTeamWall?.(activeTeam?.id) },
                 { label: 'Profile', icon: '👤', action: () => onNavigate(`player-${activeChild?.id}`) },
-                { label: 'Stats', icon: '📊', action: () => onNavigate('leaderboards') },
                 { label: 'Achievements', icon: '🏆', action: () => onNavigate('achievements') },
               ].map((btn, i, arr) => (
                 <button
                   key={btn.label}
                   onClick={btn.action}
-                  className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-semibold transition-all
+                  className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 text-sm font-semibold transition-all
                     ${tc.textMuted} hover:text-[var(--accent-primary)] ${isDark ? 'hover:bg-slate-700/60' : 'hover:bg-slate-50'}
                     ${i < arr.length - 1 ? `border-r ${tc.border}` : ''}`}
                 >
-                  <span className="text-lg">{btn.icon}</span>
+                  <span className="text-2xl">{btn.icon}</span>
                   <span>{btn.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* What's New — dynamic feed-style */}
+            {/* What's New — NO payment here (it's in the top bar) */}
             <div className={`px-6 py-4 border-b ${tc.border}`}>
-              <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
-                <span className="text-sm">✨</span> What's New
+              <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
+                ✨ What's New
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-3 flex-wrap">
                 {nextChildEvent ? (
                   <button 
                     onClick={() => setSelectedEventDetail(nextChildEvent)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                      isDark ? 'bg-slate-700/60 border-slate-600 text-slate-200 hover:border-amber-500/50 hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400 hover:shadow-sm shadow-sm'
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                      isDark ? 'bg-slate-700/60 border-slate-600 text-slate-200 hover:border-amber-500/50' : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400 shadow-sm'
                     }`}
                   >
-                    <span className="text-base">{nextChildEvent.event_type === 'game' ? '🏐' : '🏋️'}</span>
-                    Next: <strong>
-                      {new Date(nextChildEvent.event_date).toLocaleDateString('en-US', { weekday: 'short' })} {formatTime12(nextChildEvent.event_time)}
+                    <span className="text-lg">{nextChildEvent.event_type === 'game' ? '🏐' : '🏋️'}</span>
+                    <span>Next: <strong>
+                      {new Date(nextChildEvent.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} {formatTime12(nextChildEvent.event_time)}
                       {nextChildEvent.opponent ? ` vs ${nextChildEvent.opponent}` : ''}
-                    </strong>
+                    </strong></span>
                   </button>
                 ) : (
-                  <span className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium ${isDark ? 'bg-slate-700/40 text-slate-400' : 'bg-slate-50 text-slate-400'}`}>
-                    📅 No upcoming events
+                  <span className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-slate-700/40 text-slate-400' : 'bg-slate-50 text-slate-400'}`}>
+                    📅 No upcoming events scheduled
                   </span>
                 )}
-                <span className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold ${
-                  activeChildUnpaid.length > 0 
-                    ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
-                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                }`}>
-                  {activeChildUnpaid.length > 0 ? '💰' : '✅'} {activeChildUnpaid.length > 0 ? 'Balance due' : 'All fees paid'}
-                </span>
-                <span className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium border ${isDark ? 'bg-slate-700/40 border-slate-600 text-slate-300' : 'bg-white border-slate-200 text-slate-600 shadow-sm'}`}>
+                <span className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border ${isDark ? 'bg-slate-700/40 border-slate-600 text-slate-300' : 'bg-white border-slate-200 text-slate-600 shadow-sm'}`}>
                   🏐 {activeChildEvents.length} upcoming event{activeChildEvents.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -1225,10 +1240,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             <div className="flex flex-1 min-h-0">
               {/* Badges */}
               <div className={`flex-1 px-6 py-4 border-r ${tc.border}`}>
-                <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
-                  <span className="text-sm">🏆</span> Badges Earned
+                <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
+                  🏆 Badges Earned
                 </div>
-                <div className="flex gap-4 flex-wrap">
+                <div className="flex gap-5 flex-wrap">
                   {[
                     { icon: '🔥', name: 'Kill Machine', color: '#ef4444' },
                     { icon: '🎯', name: 'Ace Sniper', color: '#f59e0b' },
@@ -1237,9 +1252,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   ].map((badge, i) => {
                     const earned = false // TODO: wire to real data
                     return (
-                      <div key={i} className="flex flex-col items-center gap-1.5 group cursor-pointer">
+                      <div key={i} className="flex flex-col items-center gap-2 group cursor-pointer">
                         <div 
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-md transition-transform group-hover:scale-110 ${
+                          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-md transition-transform group-hover:scale-110 ${
                             earned ? '' : 'grayscale opacity-30'
                           }`}
                           style={earned ? { 
@@ -1253,7 +1268,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                         >
                           {badge.icon}
                         </div>
-                        <span className={`text-[9px] font-bold ${tc.textMuted} text-center max-w-[60px] leading-tight`}>{badge.name}</span>
+                        <span className={`text-[10px] font-bold ${tc.textMuted} text-center max-w-[70px] leading-tight`}>{badge.name}</span>
                       </div>
                     )
                   })}
@@ -1261,25 +1276,25 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               </div>
               
               {/* Leaderboard Rankings */}
-              <div className="w-[240px] flex-shrink-0 px-6 py-4">
-                <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
-                  <span className="text-sm">📊</span> Leaderboard
+              <div className="w-[260px] flex-shrink-0 px-6 py-4">
+                <div className={`text-xs uppercase tracking-widest font-bold ${tc.textMuted} mb-3 flex items-center gap-2`}>
+                  📊 Leaderboard
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {[
                     { cat: 'Kills', rank: null, color: '#f59e0b' },
                     { cat: 'Aces', rank: null, color: '#3b82f6' },
                     { cat: 'Digs', rank: null, color: '#8b5cf6' },
                     { cat: 'Assists', rank: null, color: '#10b981' },
                   ].map(stat => (
-                    <div key={stat.cat} className={`flex items-center justify-between py-2 border-b last:border-b-0 ${tc.border}`}>
-                      <span className={`text-xs font-semibold ${tc.textSecondary}`}>{stat.cat}</span>
+                    <div key={stat.cat} className={`flex items-center justify-between py-2.5 border-b last:border-b-0 ${tc.border}`}>
+                      <span className={`text-sm font-semibold ${tc.textSecondary}`}>{stat.cat}</span>
                       {stat.rank ? (
-                        <span className="text-xs font-black px-3 py-1 rounded-lg text-white shadow-sm" style={{ backgroundColor: stat.color }}>
+                        <span className="text-sm font-black px-3 py-1 rounded-lg text-white shadow-sm" style={{ backgroundColor: stat.color }}>
                           #{stat.rank}
                         </span>
                       ) : (
-                        <span className={`text-xs font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-slate-700 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
+                        <span className={`text-sm font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-slate-700 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
                       )}
                     </div>
                   ))}
