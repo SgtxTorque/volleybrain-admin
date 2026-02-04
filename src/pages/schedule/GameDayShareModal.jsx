@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { X, Download, Share2, Copy, MapPin, Clock, Calendar } from '../../constants/icons'
+import { X, Download, Share2, Copy } from '../../constants/icons'
 
 // ============================================
 // GAME DAY SHARE CARD v2
