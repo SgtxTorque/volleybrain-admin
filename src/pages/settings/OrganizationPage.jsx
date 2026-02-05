@@ -9,7 +9,7 @@ import {
   CreditCard, Calendar, Clock, Shield, Shirt, Bell, Heart
 } from '../../constants/icons'
 
-function OrganizationPage({ showToast }) {
+function OrganizationPage({ showToast, setPage }) {
   const { organization, setOrganization } = useAuth()
   const tc = useThemeClasses()
   const { accent } = useTheme()
@@ -1358,7 +1358,7 @@ function SetupSectionContent({
                 <button 
                   className="px-4 py-2 rounded-lg text-white font-medium text-sm"
                   style={{ backgroundColor: accent.primary }}
-                  onClick={() => showToast('Opening waiver manager...', 'info')}
+                  onClick={() => setPage ? setPage('waivers') : showToast('Opening waiver manager...', 'info')}
                 >
                   Manage Waivers →
                 </button>
