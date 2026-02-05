@@ -129,15 +129,109 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
 // ============================================
 // NOTIFICATION DROPDOWN COMPONENT
 // ============================================
-function NotificationDropdown({ tc }) {
+function NotificationDropdown({ tc, organization }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(false)
   const dropdownRef = useRef(null)
 
-  const notifications = [
-    { id: 1, type: 'payment', title: 'Outstanding balances', message: '22 players have unpaid fees', time: '2 days ago', unread: true },
-    { id: 2, type: 'jersey', title: 'Jersey assignments', message: '3 players need jersey numbers', time: '3 days ago', unread: true },
-    { id: 3, type: 'contact', title: 'Emergency contacts', message: '3 players missing info', time: '5 days ago', unread: true },
-  ]
+  // Load notifications when dropdown opens
+  useEffect(() => {
+    if (isOpen && organization?.id) {
+      loadNotifications()
+    }
+  }, [isOpen, organization?.id])
+
+  // Poll for unread count every 30 seconds
+  useEffect(() => {
+    if (!organization?.id) return
+    loadUnreadCount()
+    const interval = setInterval(loadUnreadCount, 30000)
+    return () => clearInterval(interval)
+  }, [organization?.id])
+
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  async function loadUnreadCount() {
+    try {
+      const { count } = await supabase
+        .from('admin_notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('organization_id', organization.id)
+        .eq('is_read', false)
+      setUnreadCount(count || 0)
+    } catch (err) {
+      // Table may not exist yet - silently fail
+      console.warn('admin_notifications table may not exist:', err.message)
+    }
+  }
+
+  async function loadNotifications() {
+    setLoading(true)
+    try {
+      const { data } = await supabase
+        .from('admin_notifications')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      setNotifications(data || [])
+    } catch (err) {
+      console.warn('Error loading notifications:', err.message)
+    }
+    setLoading(false)
+  }
+
+  async function markAsRead(notifId) {
+    await supabase
+      .from('admin_notifications')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('id', notifId)
+    setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, is_read: true } : n))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+  }
+
+  async function markAllRead() {
+    if (!organization?.id) return
+    await supabase
+      .from('admin_notifications')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .eq('organization_id', organization.id)
+      .eq('is_read', false)
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+    setUnreadCount(0)
+  }
+
+  async function dismissNotification(notifId, e) {
+    e.stopPropagation()
+    await supabase.from('admin_notifications').delete().eq('id', notifId)
+    setNotifications(prev => prev.filter(n => n.id !== notifId))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+  }
+
+  function getNotifIcon(type) {
+    switch(type) {
+      case 'jersey_change': return '👕'
+      case 'payment_received': return '💰'
+      case 'waiver_signed': return '📝'
+      case 'registration_new': return '🆕'
+      case 'rsvp_update': return '✅'
+      default: return '🔔'
+    }
+  }
+
+  function timeAgo(dateStr) {
+    const now = new Date()
+    const date = new Date(dateStr)
+    const mins = Math.floor((now - date) / 60000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    if (days < 7) return `${days}d ago`
+    return date.toLocaleDateString()
+  }
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -153,39 +247,68 @@ function NotificationDropdown({ tc }) {
     <div className="relative" ref={dropdownRef}>
       <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-lg hover:bg-white/10 transition">
         <Bell className="w-5 h-5 text-white" />
-        {notifications.length > 0 && (
+        {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold"
             style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-            {notifications.length}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 top-full mt-2 w-80 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
+        <div className={`absolute right-0 top-full mt-2 w-96 rounded-xl border shadow-xl overflow-hidden z-50 ${tc.cardBg} ${tc.border}`}>
           <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
-            <span className={`font-semibold ${tc.text}`}>Notifications</span>
-            <button className="text-xs text-[var(--accent-primary)] hover:underline">Mark all read</button>
+            <span className={`font-semibold ${tc.text}`}>Notifications {unreadCount > 0 && `(${unreadCount})`}</span>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} className="text-xs text-[var(--accent-primary)] hover:underline">Mark all read</button>
+            )}
           </div>
-          <div className="max-h-80 overflow-y-auto">
-            {notifications.map(notif => (
-              <div key={notif.id} className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition`}>
-                <div className="flex items-start gap-3">
-                  {notif.unread && <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] mt-2 shrink-0" />}
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-medium text-sm ${tc.text}`}>{notif.title}</p>
-                    <p className={`text-xs ${tc.textMuted} mt-0.5`}>{notif.message}</p>
-                    <p className={`text-xs ${tc.textMuted} mt-1`}>{notif.time}</p>
+          <div className="max-h-96 overflow-y-auto">
+            {loading ? (
+              <div className="p-6 text-center">
+                <div className={`text-sm ${tc.textMuted}`}>Loading...</div>
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="p-6 text-center">
+                <div className="text-3xl mb-2">🔔</div>
+                <div className={`text-sm ${tc.textMuted}`}>No notifications yet</div>
+              </div>
+            ) : (
+              notifications.map(notif => (
+                <div 
+                  key={notif.id} 
+                  onClick={() => !notif.is_read && markAsRead(notif.id)}
+                  className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition ${!notif.is_read ? (tc.isDark ? 'bg-slate-800/60' : 'bg-blue-50/50') : ''}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="text-xl mt-0.5">{getNotifIcon(notif.type)}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] shrink-0" />}
+                        <p className={`font-medium text-sm ${tc.text} truncate`}>{notif.title}</p>
+                      </div>
+                      <p className={`text-xs ${tc.textMuted} mt-0.5 line-clamp-2`}>{notif.message}</p>
+                      <p className={`text-xs ${tc.textMuted} mt-1 opacity-60`}>{timeAgo(notif.created_at)}</p>
+                    </div>
+                    <button 
+                      onClick={(e) => dismissNotification(notif.id, e)}
+                      className={`p-1 rounded ${tc.hoverBg} ${tc.textMuted} hover:text-red-400 opacity-0 group-hover:opacity-100 transition shrink-0`}
+                      title="Dismiss"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
-          <div className={`p-3 border-t ${tc.border}`}>
-            <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-[var(--accent-primary)]`}>
-              View all notifications
-            </button>
-          </div>
+          {notifications.length > 0 && (
+            <div className={`p-3 border-t ${tc.border}`}>
+              <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-[var(--accent-primary)]`}>
+                View all notifications
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1143,7 +1266,7 @@ function HorizontalNavBar({
   page, setPage, activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
   getAvailableViews, setActiveView, signOut, exitTeamWall, directTeamWallId,
   tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
-  roleContext, navigateToTeamWall
+  roleContext, navigateToTeamWall, organization
 }) {
   // Admin navigation with dropdowns
   const adminNavGroups = [
@@ -1316,7 +1439,7 @@ function HorizontalNavBar({
 
       {/* RIGHT: Notifications + Profile */}
       <div className="flex items-center gap-3">
-        <NotificationDropdown tc={tc} />
+        <NotificationDropdown tc={tc} organization={organization} />
         <UserProfileDropdown 
           profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
           setShowRoleSwitcher={setShowRoleSwitcher} getAvailableViews={getAvailableViews}
@@ -1465,7 +1588,7 @@ function MainApp() {
           exitTeamWall={exitTeamWall} directTeamWallId={directTeamWallId} tc={tc} accent={accent}
           accentColor={accentColor} changeAccent={changeAccent} accentColors={accentColors}
           isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
-          navigateToTeamWall={navigateToTeamWall}
+          navigateToTeamWall={navigateToTeamWall} organization={organization}
         />
         
         {/* Info Header Bar */}
