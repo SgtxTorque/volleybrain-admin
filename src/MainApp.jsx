@@ -1631,7 +1631,6 @@ function MainApp() {
               {page === 'templates' && activeView === 'admin' && <RegistrationTemplatesPage showToast={showToast} />}
               {page === 'waivers' && activeView === 'admin' && <WaiversPage showToast={showToast} />}
               {page === 'paymentsetup' && activeView === 'admin' && <PaymentSetupPage showToast={showToast} />}
-              {page === 'stripe' && activeView === 'admin' && <StripeSettingsPage organization={organization} showToast={showToast} />}
               {page === 'organization' && activeView === 'admin' && <OrganizationPage showToast={showToast} setPage={setPage} />}
               {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
