@@ -59,24 +59,22 @@ function AppContent() {
 
   if (!user) return <LoginPage />
   
-  // Show setup wizard for users who haven't completed onboarding
-  if (needsOnboarding) {
-    return <SetupWizard onComplete={completeOnboarding} />
-  }
-  
-  if (!isAdmin) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}>
-      <div className="text-center">
-        <span className="text-5xl">🔒</span>
-        <h2 className="text-xl font-bold mt-4" style={{ color: colors.text }}>Access Denied</h2>
-        <p className="mt-2" style={{ color: colors.textSecondary }}>Admin access required</p>
-      </div>
-    </div>
-  )
-
+  // JourneyProvider wraps everything after auth — SetupWizard needs it for completeStep('create_org')
   return (
     <JourneyProvider>
-      <MainApp />
+      {needsOnboarding ? (
+        <SetupWizard onComplete={completeOnboarding} />
+      ) : !isAdmin ? (
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}>
+          <div className="text-center">
+            <span className="text-5xl">🔒</span>
+            <h2 className="text-xl font-bold mt-4" style={{ color: colors.text }}>Access Denied</h2>
+            <p className="mt-2" style={{ color: colors.textSecondary }}>Admin access required</p>
+          </div>
+        </div>
+      ) : (
+        <MainApp />
+      )}
     </JourneyProvider>
   )
 }
