@@ -41,7 +41,7 @@ function WaiversPage({ showToast }) {
     setLoading(true)
     const { data, error } = await supabase
       .from('waiver_templates')
-      .select('*, sports(name, icon)')
+      .select('*')
       .eq('organization_id', organization.id)
       .order('sort_order', { ascending: true })
     
