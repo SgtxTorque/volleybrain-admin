@@ -12,7 +12,7 @@ import {
   LogOut, Shield, UserCog, User, Home, Calendar, DollarSign, 
   MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone,
   Trophy, Bell, Settings, Zap, BarChart3, Moon, Sun, Clock, TrendingUp,
-  Award, CreditCard, UserPlus
+  Award, CreditCard, UserPlus, X
 } from './constants/icons'
 import { VolleyballIcon } from './constants/icons'
 
