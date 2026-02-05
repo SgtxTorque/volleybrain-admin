@@ -583,14 +583,19 @@ function WaiversPage({ showToast }) {
 function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
   const sport = getSportById(template.sport_id)
   const showLogo = template.org_logo_on_waiver !== false
+  const isPdf = template.pdf_url?.toLowerCase().endsWith('.pdf')
+  const isImage = template.pdf_url && /\.(png|jpg|jpeg|gif|webp)$/i.test(template.pdf_url)
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* Preview Header Bar */}
-        <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-slate-800' : 'bg-slate-100'} rounded-t-2xl`}>
-          <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'}`}>👁️ Preview — How parents will see this waiver</span>
-          <button onClick={onClose} className={`text-lg ${isDark ? 'text-white' : 'text-slate-500'}`}>×</button>
+        <div className="px-5 py-3 flex items-center justify-between bg-slate-100 rounded-t-2xl">
+          <span className="text-sm font-medium text-slate-700">👁️ Preview — How parents will see this waiver</span>
+          <button onClick={onClose} className="text-lg text-slate-500 hover:text-slate-800">×</button>
         </div>
 
         {/* Branded Waiver Document */}
@@ -607,42 +612,76 @@ function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
           {/* Waiver Title */}
           <h2 className="text-xl font-bold text-center text-slate-800 mb-6">{template.name}</h2>
 
-          {/* PDF Link if applicable */}
-          {template.pdf_url && (
-            <div className="mb-6 p-4 bg-blue-50 rounded-xl text-center">
-              <p className="text-sm text-blue-700 font-medium">📎 This waiver has an attached document</p>
-              <a href={template.pdf_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 underline">View / Download Document →</a>
+          {/* Embedded Document — PDF viewer or image inline */}
+          {template.pdf_url && isPdf && (
+            <div className="mb-6 rounded-xl overflow-hidden border border-slate-200">
+              <iframe src={template.pdf_url} className="w-full" style={{ height: '500px' }} title="Waiver Document" />
+            </div>
+          )}
+          {template.pdf_url && isImage && (
+            <div className="mb-6 rounded-xl overflow-hidden border border-slate-200">
+              <img src={template.pdf_url} alt="Waiver Document" className="w-full object-contain" />
+            </div>
+          )}
+          {template.pdf_url && !isPdf && !isImage && (
+            <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <p className="text-sm text-slate-600">📎 Attached document: <a href={template.pdf_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Download</a></p>
             </div>
           )}
 
-          {/* Waiver Content */}
-          <div className="text-slate-700 leading-relaxed whitespace-pre-wrap text-sm mb-8">
-            {template.content || '(No text content)'}
-          </div>
+          {/* Waiver Text Content */}
+          {template.content && (
+            <div className="text-slate-700 leading-relaxed whitespace-pre-wrap text-sm mb-8">
+              {template.content}
+            </div>
+          )}
+          {!template.content && !template.pdf_url && (
+            <div className="text-slate-400 italic text-center text-sm mb-8">(No content yet)</div>
+          )}
 
-          {/* Signature Area */}
+          {/* Electronic Signature Agreement */}
           {template.requires_signature !== false && (
             <div className="pt-6 border-t-2 border-slate-200 mt-8">
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4">Digital Signature</p>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs text-slate-400 mb-1">Parent/Guardian Full Name</p>
-                  <div className="border-b-2 border-slate-300 pb-2 h-8" />
+              {/* Agreement Checkbox */}
+              <div className="flex items-start gap-3 mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-5 h-5 mt-0.5 rounded border-2 border-slate-400 flex items-center justify-center shrink-0">
+                  <span className="text-emerald-600 text-xs font-bold">✓</span>
                 </div>
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  I, the undersigned parent/guardian, have read and agree to the terms outlined above. 
+                  By checking this box, I am providing my electronic signature, which is legally equivalent to a handwritten signature.
+                </p>
+              </div>
+
+              {/* Signature Fields */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-slate-400 mb-1">Relationship to Player</p>
-                  <div className="border-b-2 border-slate-300 pb-2 h-8" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 mb-1">Signature</p>
-                  <div className="border-b-2 border-slate-300 pb-2 h-10 bg-slate-50 rounded" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400 mb-1">Date</p>
-                  <div className="border-b-2 border-slate-300 pb-2 h-8 text-slate-400 text-sm">
-                    {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-1">Parent / Guardian</p>
+                  <div className="border-b-2 border-slate-300 pb-2 h-8 flex items-end">
+                    <span className="text-sm text-slate-400 italic">Jane Smith</span>
                   </div>
                 </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-1">Signature</p>
+                  <div className="border-b-2 border-slate-300 pb-2 h-8 flex items-end">
+                    <span className="text-sm italic" style={{ fontFamily: 'cursive' }}>
+                      <span className="text-slate-400">Jane Smith</span>
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mb-1">Date</p>
+                  <div className="border-b-2 border-slate-300 pb-2 h-8 flex items-end">
+                    <span className="text-sm text-slate-400">{dateStr}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Electronic Fingerprint */}
+              <div className="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <p className="text-[10px] text-emerald-700 font-medium">
+                  ✅ Electronically signed by Jane Smith on {dateStr} at {timeStr} • IP: 192.168.x.x • {organization?.name}
+                </p>
               </div>
             </div>
           )}
