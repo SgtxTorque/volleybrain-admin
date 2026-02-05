@@ -64,7 +64,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       if (seasonIds.length > 0) {
         const { data: seasonsData } = await supabase
           .from('seasons')
-          .select('id, name, organization_id, organizations(id, name, payment_venmo, payment_zelle, payment_cashapp, payment_instructions, stripe_enabled, stripe_publishable_key)')
+          .select('id, name, organization_id, organizations(id, name, payment_venmo, payment_zelle, payment_cashapp, payment_instructions, stripe_enabled, stripe_publishable_key, payment_processing_fee_mode)')
           .in('id', seasonIds)
         
         seasonsMap = (seasonsData || []).reduce((acc, s) => {
@@ -95,6 +95,13 @@ function ParentPaymentsPage({ roleContext, showToast }) {
   const selectedTotal = unpaidPayments
     .filter(p => selectedPayments.has(p.id))
     .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+
+  // Calculate Stripe processing fee when org passes it to parents
+  const passFeesToParent = organization?.payment_processing_fee_mode === 'pass_to_parent'
+  const processingFee = passFeesToParent && selectedTotal > 0
+    ? Math.round((selectedTotal * 0.029 + 0.30) * 100) / 100
+    : 0
+  const selectedTotalWithFee = Math.round((selectedTotal + processingFee) * 100) / 100
 
   function togglePaymentSelection(paymentId) {
     const newSelected = new Set(selectedPayments)
@@ -138,15 +145,18 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
       const { url } = await createCheckoutSession({
         payment_ids: selected.map(p => p.id),
-        amount: Math.round(selectedTotal * 100),
+        amount: Math.round(selectedTotalWithFee * 100),
         customer_email: user?.email,
         customer_name: user?.user_metadata?.full_name || user?.email,
-        description,
+        description: processingFee > 0
+          ? `${description} (includes $${processingFee.toFixed(2)} processing fee)`
+          : description,
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
           organization_id: organization?.id,
           fee_count: selected.length.toString(),
+          processing_fee: processingFee > 0 ? processingFee.toFixed(2) : undefined,
         },
       })
 
@@ -323,7 +333,10 @@ function ParentPaymentsPage({ roleContext, showToast }) {
           <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
             <div className={`p-6 border-b ${tc.border}`}>
               <h2 className={`text-xl font-semibold ${tc.text}`}>Payment Options</h2>
-              <p className={`${tc.textMuted} text-sm mt-1`}>Total: ${selectedTotal.toFixed(2)}</p>
+              <p className={`${tc.textMuted} text-sm mt-1`}>
+                Subtotal: ${selectedTotal.toFixed(2)}
+                {processingFee > 0 && ` • Online total: $${selectedTotalWithFee.toFixed(2)}`}
+              </p>
             </div>
             
             <div className="p-6 space-y-4">
@@ -336,10 +349,19 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                     <span className={tc.text}>${parseFloat(p.amount).toFixed(2)}</span>
                   </div>
                 ))}
+                {processingFee > 0 && (
+                  <div className={`flex justify-between text-sm py-1 ${tc.textMuted}`}>
+                    <span>Processing fee (2.9% + $0.30)</span>
+                    <span>${processingFee.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className={`flex justify-between font-bold pt-2 mt-2 border-t ${tc.border}`}>
                   <span className={tc.text}>Total</span>
-                  <span className="text-[var(--accent-primary)]">${selectedTotal.toFixed(2)}</span>
+                  <span className="text-[var(--accent-primary)]">${selectedTotalWithFee.toFixed(2)}</span>
                 </div>
+                {processingFee > 0 && (
+                  <p className={`text-xs ${tc.textMuted} mt-1`}>Includes processing fee for online payment</p>
+                )}
               </div>
 
               {/* === STRIPE PAY ONLINE === */}
@@ -365,7 +387,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5" />
-                        Pay Online — ${selectedTotal.toFixed(2)}
+                        Pay Online — ${selectedTotalWithFee.toFixed(2)}
                         <ExternalLink className="w-4 h-4 ml-1 opacity-60" />
                       </>
                     )}
