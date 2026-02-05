@@ -19,6 +19,71 @@ const SPORT_POSITIONS = {
   hockey: ['Goalie', 'Defense', 'Center', 'Wing'],
 }
 
+// Sport-specific uniform pieces — defines what sizing fields each sport needs
+const SPORT_UNIFORM_PIECES = {
+  volleyball:      { top: 'Jersey', bottom: 'Shorts', extras: [] },
+  basketball:      { top: 'Jersey', bottom: 'Shorts', extras: [] },
+  soccer:          { top: 'Jersey', bottom: 'Shorts', extras: ['Socks'] },
+  baseball:        { top: 'Jersey', bottom: 'Pants', extras: ['Cap'] },
+  softball:        { top: 'Jersey', bottom: 'Pants', extras: ['Cap'] },
+  football:        { top: 'Jersey', bottom: 'Pants', extras: [] },
+  'flag football': { top: 'Jersey', bottom: 'Shorts', extras: [] },
+  hockey:          { top: 'Jersey', bottom: 'Breezers', extras: ['Socks'] },
+  lacrosse:        { top: 'Jersey', bottom: 'Shorts', extras: [] },
+  wrestling:       { top: 'Singlet', bottom: null, extras: ['Headgear'] },
+  swimming:        { top: 'Swimsuit', bottom: null, extras: ['Cap'] },
+  cheerleading:    { top: 'Top', bottom: 'Skirt', extras: [] },
+  track:           { top: 'Singlet', bottom: 'Shorts', extras: [] },
+  tennis:          { top: 'Shirt', bottom: 'Shorts/Skirt', extras: [] },
+  golf:            { top: 'Polo', bottom: null, extras: ['Cap'] },
+}
+
+// Size options by category
+const SIZE_OPTIONS = {
+  standard: [
+    { group: 'Youth', options: [
+      { value: 'YXS', label: 'Youth XS' }, { value: 'YS', label: 'Youth S' }, { value: 'YM', label: 'Youth M' },
+      { value: 'YL', label: 'Youth L' }, { value: 'YXL', label: 'Youth XL' },
+    ]},
+    { group: 'Adult', options: [
+      { value: 'AS', label: 'Adult S' }, { value: 'AM', label: 'Adult M' }, { value: 'AL', label: 'Adult L' },
+      { value: 'AXL', label: 'Adult XL' }, { value: 'A2XL', label: 'Adult 2XL' },
+    ]},
+  ],
+  hat: [
+    { group: 'Fitted', options: [
+      { value: 'S/M', label: 'S/M' }, { value: 'M/L', label: 'M/L' }, { value: 'L/XL', label: 'L/XL' },
+    ]},
+    { group: 'Adjustable', options: [
+      { value: 'Youth-Adj', label: 'Youth Adjustable' }, { value: 'Adult-Adj', label: 'Adult Adjustable' },
+    ]},
+  ],
+  socks: [
+    { group: 'Sizes', options: [
+      { value: 'YS', label: 'Youth S (1-4)' }, { value: 'YM', label: 'Youth M (4-8)' },
+      { value: 'AS', label: 'Adult S (5-7)' }, { value: 'AM', label: 'Adult M (7-10)' },
+      { value: 'AL', label: 'Adult L (10-13)' },
+    ]},
+  ],
+  oneSize: [
+    { group: 'Sizes', options: [
+      { value: 'Youth', label: 'Youth' }, { value: 'Adult', label: 'Adult' },
+    ]},
+  ],
+}
+
+function getSizeOptionsForPiece(pieceName) {
+  const lower = pieceName.toLowerCase()
+  if (lower === 'cap' || lower === 'hat') return SIZE_OPTIONS.hat
+  if (lower === 'socks') return SIZE_OPTIONS.socks
+  if (lower === 'headgear') return SIZE_OPTIONS.oneSize
+  return SIZE_OPTIONS.standard
+}
+
+function getUniformConfig(sport) {
+  return SPORT_UNIFORM_PIECES[sport?.toLowerCase()] || SPORT_UNIFORM_PIECES.volleyball
+}
+
 function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const { organization } = useAuth()
   const tc = useThemeClasses()
@@ -37,7 +102,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   
   // Form states
   const [infoForm, setInfoForm] = useState({})
-  const [jerseyPrefs, setJerseyPrefs] = useState({ pref1: '', pref2: '', pref3: '', size: '' })
+  const [jerseyPrefs, setJerseyPrefs] = useState({ pref1: '', pref2: '', pref3: '', size: '', bottomSize: '', extras: {} })
   const [medicalForm, setMedicalForm] = useState({ conditions: '', allergies: '' })
   const [emergencyForm, setEmergencyForm] = useState({ name: '', phone: '', relation: '' })
 
@@ -107,7 +172,9 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
         pref1: playerData.jersey_pref_1 || '',
         pref2: playerData.jersey_pref_2 || '',
         pref3: playerData.jersey_pref_3 || '',
-        size: playerData.uniform_size_jersey || ''
+        size: playerData.uniform_size_jersey || '',
+        bottomSize: playerData.uniform_size_shorts || '',
+        extras: playerData.uniform_sizes_extra || {}
       })
       setMedicalForm({
         conditions: playerData.medical_conditions || playerData.medical_notes || '',
@@ -171,17 +238,79 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
   async function saveJerseyPreferences() {
     try {
+      const uniformConfig = getUniformConfig(sportName)
+      
+      // Build the update payload
+      const updates = {
+        jersey_pref_1: jerseyPrefs.pref1 ? parseInt(jerseyPrefs.pref1) : null,
+        jersey_pref_2: jerseyPrefs.pref2 ? parseInt(jerseyPrefs.pref2) : null,
+        jersey_pref_3: jerseyPrefs.pref3 ? parseInt(jerseyPrefs.pref3) : null,
+        uniform_size_jersey: jerseyPrefs.size || null,
+        uniform_size_shorts: jerseyPrefs.bottomSize || null,
+        uniform_sizes_extra: Object.keys(jerseyPrefs.extras || {}).length > 0 ? jerseyPrefs.extras : null
+      }
+      
+      // Detect what changed for the notification
+      const changes = []
+      if ((player.jersey_pref_1 || '') != (jerseyPrefs.pref1 || '') ||
+          (player.jersey_pref_2 || '') != (jerseyPrefs.pref2 || '') ||
+          (player.jersey_pref_3 || '') != (jerseyPrefs.pref3 || '')) {
+        changes.push(`Number prefs: ${[jerseyPrefs.pref1, jerseyPrefs.pref2, jerseyPrefs.pref3].filter(Boolean).join(', ') || 'cleared'}`)
+      }
+      if ((player.uniform_size_jersey || '') !== (jerseyPrefs.size || '')) {
+        changes.push(`${uniformConfig.top} size: ${jerseyPrefs.size || 'cleared'}`)
+      }
+      if (uniformConfig.bottom && (player.uniform_size_shorts || '') !== (jerseyPrefs.bottomSize || '')) {
+        changes.push(`${uniformConfig.bottom} size: ${jerseyPrefs.bottomSize || 'cleared'}`)
+      }
+      // Check extras
+      const oldExtras = player.uniform_sizes_extra || {}
+      for (const extra of uniformConfig.extras) {
+        const key = extra.toLowerCase().replace(/\s+/g, '_')
+        if ((oldExtras[key] || '') !== (jerseyPrefs.extras?.[key] || '')) {
+          changes.push(`${extra} size: ${jerseyPrefs.extras?.[key] || 'cleared'}`)
+        }
+      }
+      
+      // Save player updates
       const { error } = await supabase
         .from('players')
-        .update({
-          jersey_pref_1: jerseyPrefs.pref1 ? parseInt(jerseyPrefs.pref1) : null,
-          jersey_pref_2: jerseyPrefs.pref2 ? parseInt(jerseyPrefs.pref2) : null,
-          jersey_pref_3: jerseyPrefs.pref3 ? parseInt(jerseyPrefs.pref3) : null,
-          uniform_size_jersey: jerseyPrefs.size || null
-        })
+        .update(updates)
         .eq('id', playerId)
       if (error) throw error
-      showToast('Jersey preferences saved!', 'success')
+      
+      // Send admin notification if something changed
+      if (changes.length > 0) {
+        const parentName = roleContext?.children ? 
+          `${player.first_name} ${player.last_name}'s parent` : 'A parent'
+        
+        try {
+          await supabase
+            .from('admin_notifications')
+            .insert({
+              organization_id: organization?.id || player.organization_id,
+              type: 'jersey_change',
+              title: `Uniform update: ${player.first_name} ${player.last_name}`,
+              message: `${parentName} updated uniform preferences: ${changes.join(' | ')}`,
+              player_id: playerId,
+              team_id: primaryTeam?.id || null,
+              is_read: false,
+              metadata: {
+                player_name: `${player.first_name} ${player.last_name}`,
+                sport: sportName,
+                changes,
+                jersey_prefs: [jerseyPrefs.pref1, jerseyPrefs.pref2, jerseyPrefs.pref3].filter(Boolean),
+                top_size: jerseyPrefs.size,
+                bottom_size: jerseyPrefs.bottomSize,
+                extras: jerseyPrefs.extras
+              }
+            })
+        } catch (notifErr) {
+          console.warn('Could not create admin notification (table may not exist):', notifErr)
+        }
+      }
+      
+      showToast('Uniform preferences saved!', 'success')
       setEditingJersey(false)
       loadPlayerData()
     } catch (err) {
@@ -291,7 +420,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
   const tabs = [
     { id: 'info', label: 'Registration', icon: '📋' },
-    { id: 'jersey', label: 'Jersey', icon: '👕' },
+    { id: 'jersey', label: 'Uniform', icon: '👕' },
     { id: 'medical', label: 'Medical & Emergency', icon: '🏥' },
     { id: 'waivers', label: 'Waivers', icon: '📄' },
     { id: 'history', label: 'Season History', icon: '📅' },
@@ -412,11 +541,32 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             </div>
           )}
 
-          {/* ══════ JERSEY ══════ */}
-          {activeTab === 'jersey' && (
+          {/* ══════ UNIFORM / JERSEY ══════ */}
+          {activeTab === 'jersey' && (() => {
+            const uniformConfig = getUniformConfig(sportName)
+            const topLabel = uniformConfig.top
+            const bottomLabel = uniformConfig.bottom
+            const extras = uniformConfig.extras || []
+            
+            // Build all sizing pieces for the read-only grid
+            const sizePieces = [
+              { label: topLabel, value: player.uniform_size_jersey },
+            ]
+            if (bottomLabel) sizePieces.push({ label: bottomLabel, value: player.uniform_size_shorts })
+            extras.forEach(extra => {
+              const key = extra.toLowerCase().replace(/\s+/g, '_')
+              sizePieces.push({ label: extra, value: player.uniform_sizes_extra?.[key] })
+            })
+            
+            const totalReadOnlyCols = 3 + sizePieces.length // 3 prefs + size pieces
+            const gridCols = totalReadOnlyCols <= 4 ? 'grid-cols-4' 
+              : totalReadOnlyCols <= 5 ? 'grid-cols-5' 
+              : totalReadOnlyCols <= 6 ? 'grid-cols-6' : 'grid-cols-4'
+            
+            return (
             <div className="space-y-6">
               <div>
-                <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>👕 Current Jersey</h3>
+                <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>👕 Current {topLabel}</h3>
                 <div className="flex items-center gap-6">
                   <div className="w-28 h-32 rounded-2xl flex flex-col items-center justify-center text-white relative overflow-hidden shadow-lg" style={{ backgroundColor: teamColor }}>
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-3 rounded-b-full" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} />
@@ -425,7 +575,11 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                   </div>
                   <div className="space-y-2">
                     <div className={`text-sm ${tc.text}`}><span className="font-semibold">Number:</span> {assignedJersey ? `#${assignedJersey}` : 'Not assigned yet'}</div>
-                    <div className={`text-sm ${tc.text}`}><span className="font-semibold">Size:</span> {player.uniform_size_jersey || 'Not set'}</div>
+                    {sizePieces.map(piece => (
+                      <div key={piece.label} className={`text-sm ${tc.text}`}>
+                        <span className="font-semibold">{piece.label} Size:</span> {piece.value || 'Not set'}
+                      </div>
+                    ))}
                     <div className={`text-xs ${tc.textMuted}`}>
                       {assignedJersey ? '✅ Assigned by admin' : '⏳ Waiting for admin to assign'}
                     </div>
@@ -441,44 +595,92 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
                 {editingJersey ? (
                   <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
-                    <p className={`text-sm ${tc.textMuted}`}>Set your preferred jersey numbers. The admin will try to honor your choices!</p>
+                    <p className={`text-sm ${tc.textMuted}`}>Set your preferred numbers and uniform sizes. The admin will try to honor your choices!</p>
+                    
+                    {/* Number preferences */}
                     <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>1st Choice</label>
-                        <input type="number" min="1" max="99" value={jerseyPrefs.pref1} onChange={e => setJerseyPrefs({ ...jerseyPrefs, pref1: e.target.value })} placeholder="1-99"
-                          className={`w-full px-3 py-3 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-center text-2xl font-bold`} />
-                      </div>
-                      <div>
-                        <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>2nd Choice</label>
-                        <input type="number" min="1" max="99" value={jerseyPrefs.pref2} onChange={e => setJerseyPrefs({ ...jerseyPrefs, pref2: e.target.value })} placeholder="1-99"
-                          className={`w-full px-3 py-3 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-center text-2xl font-bold`} />
-                      </div>
-                      <div>
-                        <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>3rd Choice</label>
-                        <input type="number" min="1" max="99" value={jerseyPrefs.pref3} onChange={e => setJerseyPrefs({ ...jerseyPrefs, pref3: e.target.value })} placeholder="1-99"
-                          className={`w-full px-3 py-3 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-center text-2xl font-bold`} />
-                      </div>
+                      {[
+                        { key: 'pref1', label: '1st Choice' },
+                        { key: 'pref2', label: '2nd Choice' },
+                        { key: 'pref3', label: '3rd Choice' },
+                      ].map(({ key, label }) => (
+                        <div key={key}>
+                          <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{label}</label>
+                          <input type="number" min="0" max="99" value={jerseyPrefs[key]} 
+                            onChange={e => setJerseyPrefs({ ...jerseyPrefs, [key]: e.target.value })} placeholder="0-99"
+                            className={`w-full px-3 py-3 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-center text-2xl font-bold`} />
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>Jersey Size</label>
-                      <select value={jerseyPrefs.size} onChange={e => setJerseyPrefs({ ...jerseyPrefs, size: e.target.value })}
-                        className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
-                        <option value="">Select size...</option>
-                        <optgroup label="Youth">
-                          <option value="YXS">Youth XS</option><option value="YS">Youth S</option><option value="YM">Youth M</option>
-                          <option value="YL">Youth L</option><option value="YXL">Youth XL</option>
-                        </optgroup>
-                        <optgroup label="Adult">
-                          <option value="AS">Adult S</option><option value="AM">Adult M</option><option value="AL">Adult L</option>
-                          <option value="AXL">Adult XL</option><option value="A2XL">Adult 2XL</option>
-                        </optgroup>
-                      </select>
+                    
+                    {/* Size fields — dynamic per sport */}
+                    <div className={`grid ${(bottomLabel ? 'grid-cols-2' : 'grid-cols-1')} gap-4`}>
+                      {/* Top piece (Jersey/Singlet/Top/etc) */}
+                      <div>
+                        <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{topLabel} Size</label>
+                        <select value={jerseyPrefs.size} onChange={e => setJerseyPrefs({ ...jerseyPrefs, size: e.target.value })}
+                          className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+                          <option value="">Select size...</option>
+                          {getSizeOptionsForPiece(topLabel).map(group => (
+                            <optgroup key={group.group} label={group.group}>
+                              {group.options.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </optgroup>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Bottom piece (Shorts/Pants/Skirt/Breezers) — only if sport has one */}
+                      {bottomLabel && (
+                        <div>
+                          <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{bottomLabel} Size</label>
+                          <select value={jerseyPrefs.bottomSize} onChange={e => setJerseyPrefs({ ...jerseyPrefs, bottomSize: e.target.value })}
+                            className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+                            <option value="">Select size...</option>
+                            {getSizeOptionsForPiece(bottomLabel).map(group => (
+                              <optgroup key={group.group} label={group.group}>
+                                {group.options.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
+                    
+                    {/* Extra pieces (Socks, Cap, Headgear, etc) */}
+                    {extras.length > 0 && (
+                      <div className={`grid ${extras.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                        {extras.map(extra => {
+                          const key = extra.toLowerCase().replace(/\s+/g, '_')
+                          return (
+                            <div key={key}>
+                              <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{extra} Size</label>
+                              <select value={jerseyPrefs.extras?.[key] || ''} 
+                                onChange={e => setJerseyPrefs({ ...jerseyPrefs, extras: { ...jerseyPrefs.extras, [key]: e.target.value } })}
+                                className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+                                <option value="">Select size...</option>
+                                {getSizeOptionsForPiece(extra).map(group => (
+                                  <optgroup key={group.group} label={group.group}>
+                                    {group.options.map(opt => (
+                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                  </optgroup>
+                                ))}
+                              </select>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                    
                     <SaveCancelBtns onSave={saveJerseyPreferences} onCancel={() => setEditingJersey(false)} />
                   </div>
                 ) : (
                   <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5`}>
-                    <div className="grid grid-cols-4 gap-4 text-center">
+                    <div className={`grid ${gridCols} gap-4 text-center`}>
                       <div>
                         <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>1st Choice</p>
                         <p className={`text-3xl font-black ${tc.text}`}>{player.jersey_pref_1 || '—'}</p>
@@ -491,16 +693,18 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                         <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>3rd Choice</p>
                         <p className={`text-3xl font-black ${tc.text}`}>{player.jersey_pref_3 || '—'}</p>
                       </div>
-                      <div>
-                        <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>Size</p>
-                        <p className={`text-3xl font-black ${tc.text}`}>{player.uniform_size_jersey || '—'}</p>
-                      </div>
+                      {sizePieces.map(piece => (
+                        <div key={piece.label}>
+                          <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>{piece.label}</p>
+                          <p className={`text-xl font-black ${tc.text}`}>{piece.value || '—'}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
             </div>
-          )}
+          )})()}
 
           {/* ══════ MEDICAL & EMERGENCY ══════ */}
           {activeTab === 'medical' && (
