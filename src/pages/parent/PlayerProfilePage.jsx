@@ -109,6 +109,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   // Season history
   const [seasonHistory, setSeasonHistory] = useState([])
   const [sportName, setSportName] = useState('volleyball')
+  const [registrationData, setRegistrationData] = useState(null)
 
   useEffect(() => {
     loadPlayerData()
@@ -135,6 +136,17 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
         .select('id, team_id, jersey_number, teams (id, name, color, season_id, seasons(id, name, start_date, end_date, sports(name, icon)))')
         .eq('player_id', playerId)
 
+      // Get registration data (has address, parent2, custom answers, etc.)
+      const { data: regData } = await supabase
+        .from('registrations')
+        .select('id, registration_data, waivers_accepted, signature_name, signature_date, custom_answers, status, submitted_at')
+        .eq('player_id', playerId)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      
+      setRegistrationData(regData || null)
+
       // Get season info
       let seasonData = null
       if (playerData.season_id) {
@@ -156,17 +168,35 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
       setTeams((teamPlayersData || []).map(tp => ({ ...tp.teams, jersey_number: tp.jersey_number })).filter(Boolean))
       
       // Initialize form states
+      // Merge player columns with registration_data JSON for full picture
+      const rd = regData?.registration_data || {}
+      const shared = rd.shared || {}
+      const childData = rd.player || {}
+      
       setInfoForm({
         first_name: playerData.first_name || '',
         last_name: playerData.last_name || '',
-        date_of_birth: playerData.date_of_birth || '',
+        date_of_birth: playerData.date_of_birth || playerData.birth_date || '',
+        gender: playerData.gender || childData.gender || '',
         grade: playerData.grade || '',
         school: playerData.school || '',
-        position: playerData.position || '',
-        experience_level: playerData.experience_level || playerData.experience || '',
-        parent_name: playerData.parent_name || '',
-        parent_email: playerData.parent_email || '',
-        parent_phone: playerData.parent_phone || '',
+        position: playerData.position || childData.position_preference || '',
+        experience_level: playerData.experience_level || playerData.experience || childData.experience_level || '',
+        height: playerData.height || childData.height || '',
+        weight: playerData.weight || childData.weight || '',
+        // Parent 1
+        parent_name: playerData.parent_name || shared.parent1_name || '',
+        parent_email: playerData.parent_email || shared.parent1_email || '',
+        parent_phone: playerData.parent_phone || shared.parent1_phone || '',
+        // Parent 2
+        parent2_name: playerData.parent2_name || shared.parent2_name || '',
+        parent2_email: playerData.parent2_email || shared.parent2_email || '',
+        parent2_phone: playerData.parent2_phone || shared.parent2_phone || '',
+        // Address
+        address: playerData.address || shared.address || '',
+        city: playerData.city || shared.city || '',
+        state: playerData.state || shared.state || '',
+        zip: playerData.zip || shared.zip || '',
       })
       setJerseyPrefs({
         pref1: playerData.jersey_pref_1 || '',
@@ -212,22 +242,72 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   // Save handlers
   async function savePlayerInfo() {
     try {
+      // Save core player fields
+      const playerUpdate = {
+        first_name: infoForm.first_name,
+        last_name: infoForm.last_name,
+        date_of_birth: infoForm.date_of_birth || null,
+        gender: infoForm.gender || null,
+        grade: infoForm.grade || null,
+        school: infoForm.school || null,
+        position: infoForm.position || null,
+        experience_level: infoForm.experience_level || null,
+        parent_name: infoForm.parent_name || null,
+        parent_email: infoForm.parent_email || null,
+        parent_phone: infoForm.parent_phone || null,
+      }
+      
+      // Try to save address-related fields directly on the player
+      // (these columns may or may not exist on the players table — fail gracefully)
+      const extendedFields = {
+        address: infoForm.address || null,
+        city: infoForm.city || null,
+        state: infoForm.state || null,
+        zip: infoForm.zip || null,
+        parent2_name: infoForm.parent2_name || null,
+        parent2_email: infoForm.parent2_email || null,
+        parent2_phone: infoForm.parent2_phone || null,
+      }
+      
+      // Merge — if columns don't exist, Supabase will return error, so we try both ways
       const { error } = await supabase
         .from('players')
-        .update({
-          first_name: infoForm.first_name,
-          last_name: infoForm.last_name,
-          date_of_birth: infoForm.date_of_birth || null,
-          grade: infoForm.grade || null,
-          school: infoForm.school || null,
-          position: infoForm.position || null,
-          experience_level: infoForm.experience_level || null,
-          parent_name: infoForm.parent_name || null,
-          parent_email: infoForm.parent_email || null,
-          parent_phone: infoForm.parent_phone || null,
-        })
+        .update({ ...playerUpdate, ...extendedFields })
         .eq('id', playerId)
-      if (error) throw error
+      
+      if (error) {
+        // If extended fields caused the error, try just the core fields
+        console.warn('Extended fields may not exist, trying core only:', error.message)
+        const { error: coreError } = await supabase
+          .from('players')
+          .update(playerUpdate)
+          .eq('id', playerId)
+        if (coreError) throw coreError
+        
+        // Also update registration_data JSON as fallback for address info
+        if (registrationData?.id) {
+          const existingRD = registrationData.registration_data || {}
+          await supabase
+            .from('registrations')
+            .update({
+              registration_data: {
+                ...existingRD,
+                shared: {
+                  ...(existingRD.shared || {}),
+                  address: infoForm.address,
+                  city: infoForm.city,
+                  state: infoForm.state,
+                  zip: infoForm.zip,
+                  parent2_name: infoForm.parent2_name,
+                  parent2_email: infoForm.parent2_email,
+                  parent2_phone: infoForm.parent2_phone,
+                }
+              }
+            })
+            .eq('id', registrationData.id)
+        }
+      }
+      
       showToast('Player info updated!', 'success')
       setEditingInfo(false)
       loadPlayerData()
@@ -501,11 +581,13 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <FormField label="Date of Birth" value={infoForm.date_of_birth} onChange={v => setInfoForm({ ...infoForm, date_of_birth: v })} type="date" />
+                      <FormField label="Gender" value={infoForm.gender} onChange={v => setInfoForm({ ...infoForm, gender: v })} 
+                        options={[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }, { value: 'non-binary', label: 'Non-binary' }, { value: 'prefer_not_to_say', label: 'Prefer not to say' }]} />
                       <FormField label="Grade" value={infoForm.grade} onChange={v => setInfoForm({ ...infoForm, grade: v })} 
                         options={['K', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']} />
-                      <FormField label="School" value={infoForm.school} onChange={v => setInfoForm({ ...infoForm, school: v })} placeholder="School name" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <FormField label="School" value={infoForm.school} onChange={v => setInfoForm({ ...infoForm, school: v })} placeholder="School name" />
                       <FormField label="Position" value={infoForm.position} onChange={v => setInfoForm({ ...infoForm, position: v })} 
                         options={(SPORT_POSITIONS[sportName.toLowerCase()] || SPORT_POSITIONS.volleyball).map(p => ({ value: p, label: p }))} />
                       <FormField label="Experience Level" value={infoForm.experience_level} onChange={v => setInfoForm({ ...infoForm, experience_level: v })}
@@ -517,6 +599,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                   <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
                     <InfoRow label="Full Name" value={`${player.first_name} ${player.last_name}`} icon="👤" />
                     <InfoRow label="Date of Birth" value={player.date_of_birth ? new Date(player.date_of_birth + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null} icon="🎂" />
+                    <InfoRow label="Gender" value={infoForm.gender ? infoForm.gender.charAt(0).toUpperCase() + infoForm.gender.slice(1).replace(/_/g, ' ') : null} icon="⚧" />
                     <InfoRow label="Grade" value={player.grade} icon="🎓" />
                     <InfoRow label="School" value={player.school} icon="🏫" />
                     <InfoRow label="Position" value={player.position} icon={seasonHistory[0]?.sportIcon || '🏐'} />
@@ -526,18 +609,74 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 )}
               </div>
 
-              {/* Parent / Guardian Info */}
+              {/* Address */}
+              {(infoForm.address || infoForm.city || infoForm.state || infoForm.zip) && !editingInfo && (
+                <div>
+                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
+                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                    {infoForm.address && <InfoRow label="Street" value={infoForm.address} icon="📍" />}
+                    <InfoRow label="City / State / Zip" value={[infoForm.city, infoForm.state, infoForm.zip].filter(Boolean).join(', ') || null} icon="🌐" />
+                  </div>
+                </div>
+              )}
+              {editingInfo && (
+                <div>
+                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
+                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                    <FormField label="Street Address" value={infoForm.address} onChange={v => setInfoForm({ ...infoForm, address: v })} placeholder="123 Main St" />
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormField label="City" value={infoForm.city} onChange={v => setInfoForm({ ...infoForm, city: v })} placeholder="City" />
+                      <FormField label="State" value={infoForm.state} onChange={v => setInfoForm({ ...infoForm, state: v })} placeholder="TX" />
+                      <FormField label="Zip" value={infoForm.zip} onChange={v => setInfoForm({ ...infoForm, zip: v })} placeholder="75068" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Parent / Guardian 1 */}
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>👨‍👩‍👧 Parent / Guardian</h3>
                   {!editingInfo && <EditBtn onClick={() => setEditingInfo(true)} />}
                 </div>
-                <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
-                  <InfoRow label="Parent Name" value={player.parent_name} icon="👤" />
-                  <InfoRow label="Email" value={player.parent_email} icon="✉️" />
-                  <InfoRow label="Phone" value={player.parent_phone} icon="📱" />
-                </div>
+                {editingInfo ? (
+                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                    <FormField label="Parent Name" value={infoForm.parent_name} onChange={v => setInfoForm({ ...infoForm, parent_name: v })} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField label="Email" value={infoForm.parent_email} onChange={v => setInfoForm({ ...infoForm, parent_email: v })} type="email" />
+                      <FormField label="Phone" value={infoForm.parent_phone} onChange={v => setInfoForm({ ...infoForm, parent_phone: v })} type="tel" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                    <InfoRow label="Parent Name" value={infoForm.parent_name} icon="👤" />
+                    <InfoRow label="Email" value={infoForm.parent_email} icon="✉️" />
+                    <InfoRow label="Phone" value={infoForm.parent_phone} icon="📱" />
+                  </div>
+                )}
               </div>
+
+              {/* Parent / Guardian 2 (only show if data exists or editing) */}
+              {(infoForm.parent2_name || infoForm.parent2_email || infoForm.parent2_phone || editingInfo) && (
+                <div>
+                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>👥 Parent / Guardian 2</h3>
+                  {editingInfo ? (
+                    <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                      <FormField label="Parent 2 Name" value={infoForm.parent2_name} onChange={v => setInfoForm({ ...infoForm, parent2_name: v })} placeholder="Optional" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField label="Email" value={infoForm.parent2_email} onChange={v => setInfoForm({ ...infoForm, parent2_email: v })} type="email" placeholder="Optional" />
+                        <FormField label="Phone" value={infoForm.parent2_phone} onChange={v => setInfoForm({ ...infoForm, parent2_phone: v })} type="tel" placeholder="Optional" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                      <InfoRow label="Parent 2 Name" value={infoForm.parent2_name} icon="👤" />
+                      <InfoRow label="Email" value={infoForm.parent2_email} icon="✉️" />
+                      <InfoRow label="Phone" value={infoForm.parent2_phone} icon="📱" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
