@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useJourney } from '../../contexts/JourneyContext'
+import { JourneyTimeline, JourneyWidget } from '../../components/journey'
 import { supabase } from '../../lib/supabase'
 import { 
   Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
@@ -1142,6 +1144,9 @@ export function DashboardPage({ onNavigate }) {
 
   return (
     <div className="space-y-6">
+      {/* Journey Progress */}
+      <JourneyTimeline onNavigate={onNavigate} />
+
       {/* 3-Column Grid Layout */}
       <div className="grid grid-cols-12 gap-6">
         {/* ═══════════════════════════════════════════════════
