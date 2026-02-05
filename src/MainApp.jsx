@@ -3,7 +3,6 @@ import { useAuth } from './contexts/AuthContext'
 import { useTheme, useThemeClasses } from './contexts/ThemeContext'
 import { SportProvider, useSport } from './contexts/SportContext'
 import { SeasonProvider, useSeason } from './contexts/SeasonContext'
-import { JourneyProvider } from './contexts/JourneyContext'
 import { supabase } from './lib/supabase'
 
 // Icons
