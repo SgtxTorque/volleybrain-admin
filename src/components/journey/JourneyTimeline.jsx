@@ -113,8 +113,8 @@ export function JourneyTimeline({ onNavigate, expanded = false }) {
                 <button
                   onClick={() => {
                     const navMap = {
-                      create_org: 'setup',
-                      create_season: 'setup',
+                      create_org: 'seasons',
+                      create_season: 'seasons',
                       add_teams: 'teams',
                       join_create_team: 'teams',
                       add_roster: 'teams',
