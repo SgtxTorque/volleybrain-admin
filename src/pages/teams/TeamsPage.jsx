@@ -236,6 +236,8 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     await autoAddMemberToTeamChannels(teamId, playerId)
     
     showToast('Player added to team and rostered', 'success')
+    journey?.completeStep('register_players')  // org_director journey
+    journey?.completeStep('add_roster')        // team_manager journey
     loadTeams()
     loadUnrosteredPlayers()
   }
