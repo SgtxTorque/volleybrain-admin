@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { createCheckoutSession, getCheckoutResult } from '../../lib/stripe-checkout'
@@ -10,6 +11,7 @@ import {
 
 function ParentPaymentsPage({ roleContext, showToast }) {
   const { user } = useAuth()
+  const parentTutorial = useParentTutorial()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   
@@ -31,6 +33,9 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       url.searchParams.delete('success')
       url.searchParams.delete('session_id')
       window.history.replaceState({}, '', url)
+      
+      // Complete parent journey step for making a payment
+      parentTutorial?.completeStep?.('make_payment')
     } else if (result.canceled) {
       setReturnStatus('canceled')
       const url = new URL(window.location)
