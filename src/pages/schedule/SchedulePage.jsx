@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useJourney } from '../../contexts/JourneyContext'
+import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { 
@@ -993,6 +994,7 @@ function formatTime12(timeStr) {
 
 function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
+  const parentTutorial = useParentTutorial()
   const { organization } = useAuth()
   const { selectedSeason } = useSeason()
   const tc = useThemeClasses()
@@ -1010,6 +1012,13 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const isParentView = activeView === 'parent'
   const isPlayerView = activeView === 'player'
   const parentChildIds = roleContext?.children?.map(c => c.id) || []
+  
+  // Complete "view_schedule" step for parents when they visit this page
+  useEffect(() => {
+    if (isParentView) {
+      parentTutorial?.completeStep?.('view_schedule')
+    }
+  }, [isParentView])
   
   // Modals
   const [showAddEvent, setShowAddEvent] = useState(false)
@@ -1652,6 +1661,7 @@ END:VCALENDAR`
           parentChildIds={parentChildIds}
           showToast={showToast}
           onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }}
+          parentTutorial={parentTutorial}
         />
       )}
 
@@ -3072,7 +3082,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
 // ============================================
 // EVENT DETAIL MODAL (VIEW/EDIT)
 // ============================================
-function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay }) {
+function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, parentTutorial }) {
   const { isAdmin: hasAdminRole, profile, user } = useAuth()
   // Use activeView if provided, otherwise fall back to admin role check
   const isAdminView = activeView ? (activeView === 'admin' || activeView === 'coach') : hasAdminRole
@@ -3202,6 +3212,11 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
     const rsvpMap = {}
     rsvpData?.forEach(r => { rsvpMap[r.player_id] = r })
     setRsvps(rsvpMap)
+    
+    // Complete parent journey step for first RSVP
+    if (activeView === 'parent') {
+      parentTutorial?.completeStep?.('first_rsvp')
+    }
   }
 
   async function removeVolunteer(volunteerId) {
