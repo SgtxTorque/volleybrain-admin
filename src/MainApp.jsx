@@ -686,6 +686,38 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
   const [loading, setLoading] = useState(true)
   const [showRegModal, setShowRegModal] = useState(false)
   const [showSeasonSelector, setShowSeasonSelector] = useState(false)
+  const [openSeasons, setOpenSeasons] = useState([]) // Seasons open for registration
+
+  // Fetch open registration seasons for parents
+  useEffect(() => {
+    if (activeView === 'parent' && organization?.id) {
+      fetchOpenSeasons()
+    }
+  }, [activeView, organization?.id])
+
+  async function fetchOpenSeasons() {
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const { data } = await supabase
+        .from('seasons')
+        .select('*, sports(*), organizations(*)')
+        .eq('organization_id', organization.id)
+        .in('status', ['active', 'upcoming'])
+        .or(`registration_deadline.is.null,registration_deadline.gte.${today}`)
+        .order('start_date', { ascending: true })
+      
+      setOpenSeasons(data || [])
+    } catch (err) {
+      console.error('Error fetching open seasons:', err)
+    }
+  }
+
+  // Get registration URL for a season
+  const getRegistrationUrl = (season) => {
+    const orgSlug = season.organizations?.slug || organization?.slug || 'org'
+    const baseUrl = season.organizations?.settings?.registration_url || organization?.settings?.registration_url || window.location.origin
+    return `${baseUrl}/register/${orgSlug}/${season.id}`
+  }
 
   // Get the coach's primary team
   const getCoachPrimaryTeam = () => {
@@ -1107,14 +1139,90 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
             <div className="flex items-center w-full">
               {/* Welcome greeting — left side */}
               <div className="flex items-center gap-3">
-                {selectedSeason?.sports?.icon && <span className="text-xl">{selectedSeason.sports.icon}</span>}
-                <div>
-                  <div className="text-slate-900 font-extrabold text-base tracking-tight">Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'}! 👋</div>
-                  <div className="text-slate-400 text-xs font-medium">
-                    {selectedSeason?.sports?.name || 'Sports'} • {selectedSeason?.name || 'Current Season'}
-                    {organization?.name && ` • ${organization.name}`}
-                  </div>
-                </div>
+                {/* Get parent's actual seasons from their children */}
+                {(() => {
+                  // Get unique seasons from parent's children (enrolled seasons)
+                  const childSeasons = roleContext?.children?.map(c => c.season).filter(Boolean) || []
+                  const enrolledSeasons = [...new Map(childSeasons.map(s => [s.id, s])).values()]
+                  const displaySeason = enrolledSeasons[0] || selectedSeason
+                  
+                  // Get open seasons that parent is NOT already enrolled in
+                  const enrolledIds = new Set(enrolledSeasons.map(s => s.id))
+                  const availableToRegister = openSeasons.filter(s => !enrolledIds.has(s.id))
+                  
+                  // Determine if we need a dropdown (multiple enrolled OR has registration options)
+                  const showDropdown = enrolledSeasons.length > 1 || availableToRegister.length > 0
+                  
+                  return (
+                    <>
+                      {displaySeason?.sports?.icon && <span className="text-xl">{displaySeason.sports.icon}</span>}
+                      <div>
+                        <div className="text-slate-900 font-extrabold text-base tracking-tight">
+                          Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'}! 👋
+                        </div>
+                        <div className="text-slate-400 text-xs font-medium flex items-center gap-1">
+                          {showDropdown ? (
+                            // Show dropdown with enrolled + registration options
+                            <select
+                              className="bg-transparent text-slate-500 font-medium text-xs border-none focus:ring-0 cursor-pointer hover:text-slate-700 pr-5"
+                              style={{ appearance: 'auto', paddingRight: '16px' }}
+                              value={displaySeason?.id || ''}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                
+                                // Check if it's a registration action
+                                if (value.startsWith('register:')) {
+                                  const seasonId = value.replace('register:', '')
+                                  const season = availableToRegister.find(s => s.id === seasonId)
+                                  if (season) {
+                                    // Navigate to registration
+                                    const url = getRegistrationUrl(season)
+                                    window.open(url, '_blank')
+                                  }
+                                  // Reset dropdown
+                                  e.target.value = displaySeason?.id || ''
+                                  return
+                                }
+                                
+                                // Regular season selection
+                                const season = enrolledSeasons.find(s => s.id === value)
+                                if (season) selectSeason(season)
+                              }}
+                            >
+                              {/* Enrolled seasons group */}
+                              {enrolledSeasons.length > 0 && (
+                                <optgroup label="Your Seasons">
+                                  {enrolledSeasons.map(s => (
+                                    <option key={s.id} value={s.id}>
+                                      {s.sports?.icon || '🏐'} {s.sports?.name || 'Sports'} • {s.name}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                              
+                              {/* Open registration seasons group */}
+                              {availableToRegister.length > 0 && (
+                                <optgroup label="📋 Register for...">
+                                  {availableToRegister.map(s => (
+                                    <option key={`reg-${s.id}`} value={`register:${s.id}`}>
+                                      ➕ {s.sports?.icon || '🏐'} {s.sports?.name || 'Sports'} • {s.name}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </select>
+                          ) : (
+                            // Single season - just display
+                            <span>
+                              {displaySeason?.sports?.name || 'Sports'} • {displaySeason?.name || 'Current Season'}
+                            </span>
+                          )}
+                          {organization?.name && ` • ${organization.name}`}
+                        </div>
+                      </div>
+                    </>
+                  )
+                })()}
               </div>
 
               {/* Spacer to push remaining items to center-right */}
