@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { 
   Search, X, Plus, Send, Image, Smile, MoreVertical, 
   Check, CheckCheck, Reply, Trash2, ChevronLeft, Users, Hash,
-  Paperclip, Gift
+  Paperclip, Gift, Download
 } from '../../constants/icons'
 
 // ============================================
@@ -401,6 +401,10 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const [replyingTo, setReplyingTo] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [lightboxImage, setLightboxImage] = useState(null) // For image preview modal
+  const [showMediaGallery, setShowMediaGallery] = useState(false) // For media gallery modal
+  const [mediaItems, setMediaItems] = useState([])
+  const [loadingMedia, setLoadingMedia] = useState(false)
   const inputRef = useRef(null)
 
   // Determine if user can post
@@ -643,6 +647,27 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     inputRef.current?.focus()
   }
 
+  async function loadMediaGallery() {
+    setLoadingMedia(true)
+    setShowMediaGallery(true)
+    
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select(`
+        id, content, message_type, created_at,
+        sender:sender_id (id, full_name, avatar_url)
+      `)
+      .eq('channel_id', channel.id)
+      .in('message_type', ['image', 'gif'])
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+    
+    if (!error && data) {
+      setMediaItems(data)
+    }
+    setLoadingMedia(false)
+  }
+
   // Group messages by date
   const messageGroups = messages.reduce((groups, msg) => {
     const date = new Date(msg.created_at).toDateString()
@@ -714,6 +739,14 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
                 className="absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg z-50 py-1 overflow-hidden"
                 style={{ background: isDark ? '#1e293b' : '#ffffff' }}
               >
+                <button
+                  onClick={() => { setShowMenu(false); loadMediaGallery() }}
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+                  }`}
+                >
+                  <Image className="w-4 h-4" /> View Media
+                </button>
                 <button
                   onClick={() => { setShowMenu(false); showToast?.('Members feature coming soon', 'info') }}
                   className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
@@ -831,6 +864,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
                   onReact={(emoji) => addReaction(msg.id, emoji)}
                   onDelete={() => deleteMessage(msg.id)}
                   canDelete={msg.sender_id === user?.id}
+                  onImageClick={(url) => setLightboxImage(url)}
                 />
               ))}
             </div>
@@ -968,6 +1002,130 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           </p>
         </div>
       )}
+      
+      {/* Image Lightbox Modal */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          
+          <img 
+            src={lightboxImage} 
+            alt="Full size" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          
+          {/* Download button */}
+          <a
+            href={lightboxImage}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-4 right-4 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Download
+          </a>
+        </div>
+      )}
+      
+      {/* Media Gallery Modal */}
+      {showMediaGallery && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowMediaGallery(false)}
+        >
+          <div 
+            className="w-full max-w-3xl max-h-[85vh] rounded-2xl overflow-hidden flex flex-col"
+            style={{ background: isDark ? '#1e293b' : '#ffffff' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div 
+              className="px-5 py-4 flex items-center justify-between border-b"
+              style={{ borderColor: isDark ? '#ffffff15' : '#00000010' }}
+            >
+              <div>
+                <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  Media Gallery
+                </h2>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {mediaItems.length} {mediaItems.length === 1 ? 'item' : 'items'} in {channel.name}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowMediaGallery(false)}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
+              >
+                <X className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+              </button>
+            </div>
+            
+            {/* Gallery Grid */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingMedia ? (
+                <div className="flex items-center justify-center py-12">
+                  <div 
+                    className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: accent.primary, borderTopColor: 'transparent' }}
+                  />
+                </div>
+              ) : mediaItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-5xl mb-4">📷</div>
+                  <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    No media yet
+                  </p>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Photos and GIFs shared in this chat will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {mediaItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => { setShowMediaGallery(false); setLightboxImage(item.content) }}
+                      className="aspect-square rounded-xl overflow-hidden group relative bg-slate-100 dark:bg-slate-800"
+                    >
+                      <img 
+                        src={item.content}
+                        alt=""
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      {/* Overlay with info */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
+                        <p className="text-white text-xs font-medium truncate">
+                          {item.sender?.full_name || 'Unknown'}
+                        </p>
+                        <p className="text-white/70 text-[10px]">
+                          {new Date(item.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      {/* Type badge */}
+                      {item.message_type === 'gif' && (
+                        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-black/50 text-white">
+                          GIF
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -975,7 +1133,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
 // ============================================
 // MESSAGE BUBBLE
 // ============================================
-function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, onReact, onDelete, canDelete }) {
+function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, onReact, onDelete, canDelete, onImageClick }) {
   const [showActions, setShowActions] = useState(false)
   const [showReactions, setShowReactions] = useState(false)
 
@@ -1004,9 +1162,9 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
         <img 
           src={message.content} 
           alt="Image" 
-          className="max-w-[280px] rounded-xl cursor-pointer hover:opacity-90 transition"
+          className="max-w-[280px] rounded-xl cursor-pointer hover:opacity-90 transition shadow-md"
           loading="lazy"
-          onClick={() => window.open(message.content, '_blank')}
+          onClick={() => onImageClick?.(message.content)}
         />
       )
     }
@@ -1069,37 +1227,35 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
 
   return (
     <div 
-      className={`flex gap-2 mb-2 group ${isOwn ? 'flex-row-reverse' : ''}`}
+      className={`flex gap-2 mb-2 group`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => { setShowActions(false); setShowReactions(false) }}
     >
-      {/* Avatar */}
-      {!isOwn && (
-        <div className="w-8 flex-shrink-0">
-          {showAvatar && (
-            message.sender?.avatar_url ? (
-              <img 
-                src={message.sender.avatar_url} 
-                alt="" 
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20"
-              />
-            ) : (
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: `hsl(${(message.sender?.full_name?.charCodeAt(0) || 0) * 10 % 360}, 60%, 50%)` }}
-              >
-                {message.sender?.full_name?.charAt(0)?.toUpperCase() || '?'}
-              </div>
-            )
-          )}
-        </div>
-      )}
+      {/* Avatar - always show on left */}
+      <div className="w-8 flex-shrink-0">
+        {showAvatar && (
+          message.sender?.avatar_url ? (
+            <img 
+              src={message.sender.avatar_url} 
+              alt="" 
+              className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20"
+            />
+          ) : (
+            <div 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+              style={{ background: `hsl(${(message.sender?.full_name?.charCodeAt(0) || 0) * 10 % 360}, 60%, 50%)` }}
+            >
+              {message.sender?.full_name?.charAt(0)?.toUpperCase() || '?'}
+            </div>
+          )
+        )}
+      </div>
       
-      <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
+      <div className={`max-w-[70%] flex flex-col`}>
         {/* Sender name */}
-        {showAvatar && !isOwn && (
+        {showAvatar && (
           <span className={`text-xs mb-1 font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            {message.sender?.full_name || 'Unknown'}
+            {message.sender?.full_name || 'Unknown'} {isOwn && <span className="opacity-50">(you)</span>}
           </span>
         )}
         
@@ -1129,7 +1285,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
             
             {/* Time - outside bubble for emoji-only */}
             {!isEmojiOnly && (
-              <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+              <div className={`flex items-center gap-1 mt-1`}>
                 <span className={`text-[10px] ${isDark ? 'text-white/60' : 'text-black/50'}`}>
                   {formatTime(message.created_at)}
                 </span>
@@ -1146,19 +1302,17 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
           
           {/* Time below emoji-only messages */}
           {isEmojiOnly && (
-            <div className={`flex items-center gap-1 mt-0.5 ${isOwn ? 'justify-end' : ''}`}>
+            <div className={`flex items-center gap-1 mt-0.5`}>
               <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 {formatTime(message.created_at)}
               </span>
             </div>
           )}
           
-          {/* Action buttons */}
+          {/* Action buttons - always on right */}
           {showActions && message.message_type !== 'system' && (
             <div 
-              className={`absolute top-0 flex items-center gap-1 ${
-                isOwn ? 'right-full mr-2' : 'left-full ml-2'
-              }`}
+              className={`absolute top-0 flex items-center gap-1 left-full ml-2`}
             >
               <button 
                 onClick={() => setShowReactions(!showReactions)}
@@ -1192,9 +1346,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
           {/* Reaction picker */}
           {showReactions && (
             <div 
-              className={`absolute top-8 flex items-center gap-1 p-2 rounded-xl shadow-lg z-10 ${
-                isOwn ? 'right-0' : 'left-0'
-              }`}
+              className={`absolute top-8 flex items-center gap-1 p-2 rounded-xl shadow-lg z-10 left-0`}
               style={{ background: isDark ? '#1e293b' : '#ffffff' }}
             >
               {REACTION_EMOJIS.map(emoji => (
@@ -1212,7 +1364,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
         
         {/* Reactions display */}
         {hasReactions && (
-          <div className={`flex flex-wrap gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+          <div className={`flex flex-wrap gap-1 mt-1`}>
             {Object.entries(reactions).map(([emoji, users]) => (
               users.length > 0 && (
                 <button
