@@ -1029,30 +1029,39 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
   const reactions = message.reactions || {}
   const hasReactions = Object.keys(reactions).length > 0
 
-  // Softer bubble colors - GroupMe style
+  // Softer bubble colors - light and airy with shadows
   const getBubbleStyle = () => {
     if (message.message_type === 'system') {
       return {
         background: isDark ? '#ffffff08' : '#00000005',
-        color: isDark ? '#94a3b8' : '#64748b'
+        color: isDark ? '#94a3b8' : '#64748b',
+        boxShadow: 'none'
       }
     }
     if (isEmojiOnly) {
       return {
         background: 'transparent',
-        color: isDark ? '#f1f5f9' : '#0f172a'
+        color: isDark ? '#ffffff' : '#000000',
+        boxShadow: 'none'
       }
     }
     if (isOwn) {
-      // Softer blue/teal instead of harsh orange
+      // Light blue bubble
       return {
-        background: isDark ? '#3b82f6' : '#3b82f6', // Blue
-        color: 'white'
+        background: isDark ? '#3b82f6' : '#dbeafe', // blue-500 / blue-100
+        color: isDark ? '#ffffff' : '#000000',
+        boxShadow: isDark 
+          ? '0 2px 8px rgba(59, 130, 246, 0.3)' 
+          : '0 2px 8px rgba(59, 130, 246, 0.15)'
       }
     }
+    // Other users - light gray
     return {
-      background: isDark ? '#374151' : '#f1f5f9',
-      color: isDark ? '#f1f5f9' : '#1e293b'
+      background: isDark ? '#374151' : '#f1f5f9', // gray-700 / slate-100
+      color: isDark ? '#ffffff' : '#000000',
+      boxShadow: isDark 
+        ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+        : '0 2px 8px rgba(0, 0, 0, 0.08)'
     }
   }
 
@@ -1099,8 +1108,8 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
           <div 
             className={`text-xs px-3 py-1.5 rounded-t-xl mb-0.5 border-l-2 ${
               isOwn 
-                ? 'bg-blue-400/20 text-blue-100 border-blue-300' 
-                : isDark ? 'bg-white/5 text-slate-400 border-slate-500' : 'bg-slate-100 text-slate-500 border-slate-300'
+                ? isDark ? 'bg-blue-400/30 text-white/80 border-blue-400' : 'bg-blue-200/50 text-black/70 border-blue-400'
+                : isDark ? 'bg-white/10 text-white/80 border-slate-500' : 'bg-slate-200/50 text-black/70 border-slate-300'
             }`}
           >
             <span className="font-medium">{message.reply_to.sender?.full_name}</span>
@@ -1121,11 +1130,15 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
             {/* Time - outside bubble for emoji-only */}
             {!isEmojiOnly && (
               <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
-                <span className={`text-[10px] ${isOwn ? 'text-white/60' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className={`text-[10px] ${isDark ? 'text-white/60' : 'text-black/50'}`}>
                   {formatTime(message.created_at)}
                 </span>
                 {isOwn && (
-                  <CheckCheck className={`w-3 h-3 ${message.read_at ? 'text-blue-200' : 'text-white/40'}`} />
+                  <CheckCheck className={`w-3 h-3 ${
+                    message.read_at 
+                      ? isDark ? 'text-white/80' : 'text-black/60' 
+                      : isDark ? 'text-white/40' : 'text-black/30'
+                  }`} />
                 )}
               </div>
             )}
