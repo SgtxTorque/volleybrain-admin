@@ -75,17 +75,19 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         userTeamIds = roleContext.coachInfo.team_coaches.map(tc => tc.team_id).filter(Boolean)
       }
       
-      // Load channels
-      const { data: channelsData, error } = await supabase
+      // Load channels - for admin show all, for others filter
+      let channelsQuery = supabase
         .from('chat_channels')
         .select(`
           *,
           teams (id, name, color),
-          channel_members!inner (id, user_id, display_name, last_read_at)
+          channel_members (id, user_id, display_name, last_read_at)
         `)
         .eq('season_id', selectedSeason.id)
         .eq('is_archived', false)
         .order('updated_at', { ascending: false })
+      
+      const { data: channelsData, error } = await channelsQuery
       
       if (error) throw error
 
@@ -396,6 +398,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showGifPicker, setShowGifPicker] = useState(false)
   const [replyingTo, setReplyingTo] = useState(null)
+  const [showMenu, setShowMenu] = useState(false)
   const inputRef = useRef(null)
 
   // Determine if user can post
@@ -629,9 +632,50 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           </p>
         </div>
         
-        <button className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
-          <MoreVertical className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowMenu(!showMenu)}
+            className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
+          >
+            <MoreVertical className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+          </button>
+          
+          {/* Dropdown Menu */}
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+              <div 
+                className="absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg z-50 py-1 overflow-hidden"
+                style={{ background: isDark ? '#1e293b' : '#ffffff' }}
+              >
+                <button
+                  onClick={() => { setShowMenu(false); showToast?.('Members feature coming soon', 'info') }}
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+                  }`}
+                >
+                  <Users className="w-4 h-4" /> View Members
+                </button>
+                <button
+                  onClick={() => { setShowMenu(false); showToast?.('Notifications feature coming soon', 'info') }}
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+                  }`}
+                >
+                  🔔 Mute Notifications
+                </button>
+                <button
+                  onClick={() => { setShowMenu(false); showToast?.('Search feature coming soon', 'info') }}
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+                  }`}
+                >
+                  <Search className="w-4 h-4" /> Search Messages
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
       
       {/* Messages */}
@@ -724,9 +768,27 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       {/* Input */}
       {canPost ? (
         <div 
-          className="p-4 border-t"
+          className="p-4 border-t relative"
           style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}
         >
+          {/* Emoji Picker - moved outside input row */}
+          {showEmojiPicker && (
+            <EmojiPicker
+              onSelect={insertEmoji}
+              onClose={() => setShowEmojiPicker(false)}
+              isDark={isDark}
+            />
+          )}
+          
+          {/* GIF Picker - moved outside input row */}
+          {showGifPicker && (
+            <GifPicker
+              onSelect={sendGif}
+              onClose={() => setShowGifPicker(false)}
+              isDark={isDark}
+            />
+          )}
+          
           <div 
             className="flex items-end gap-2 p-2 rounded-2xl"
             style={{ background: isDark ? '#ffffff08' : '#00000005' }}
@@ -734,15 +796,15 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
             {/* Attachment buttons */}
             <div className="flex items-center gap-1">
               <button 
-                onClick={() => setShowGifPicker(true)}
-                className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
+                onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false) }}
+                className={`p-2 rounded-xl transition-colors ${showGifPicker ? 'bg-white/20' : ''} ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
                 title="Send GIF"
               >
                 <Gift className="w-5 h-5" />
               </button>
               <button 
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
+                onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGifPicker(false) }}
+                className={`p-2 rounded-xl transition-colors ${showEmojiPicker ? 'bg-white/20' : ''} ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
                 title="Add emoji"
               >
                 <Smile className="w-5 h-5" />
@@ -777,24 +839,6 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
               <Send className="w-5 h-5" />
             </button>
           </div>
-          
-          {/* Emoji Picker */}
-          {showEmojiPicker && (
-            <EmojiPicker
-              onSelect={insertEmoji}
-              onClose={() => setShowEmojiPicker(false)}
-              isDark={isDark}
-            />
-          )}
-          
-          {/* GIF Picker */}
-          {showGifPicker && (
-            <GifPicker
-              onSelect={sendGif}
-              onClose={() => setShowGifPicker(false)}
-              isDark={isDark}
-            />
-          )}
         </div>
       ) : (
         <div 
@@ -1196,6 +1240,7 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
   const { selectedSeason } = useSeason()
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
+  const [creating, setCreating] = useState(null) // track which team/type is being created
   
   useEffect(() => {
     loadTeams()
@@ -1212,52 +1257,80 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
   }
   
   async function createTeamChat(team, type = 'team_chat') {
-    // Check if exists
-    const { data: existing } = await supabase
-      .from('chat_channels')
-      .select('*')
-      .eq('team_id', team.id)
-      .eq('channel_type', type)
-      .maybeSingle()
+    setCreating(`${team.id}-${type}`)
     
-    if (existing) {
-      onCreated(existing)
-      return
-    }
-    
-    const name = type === 'player_chat' 
-      ? `${team.name} - Player Chat`
-      : `${team.name} - Team Chat`
-    
-    const { data: newChannel, error } = await supabase
-      .from('chat_channels')
-      .insert({
-        season_id: selectedSeason.id,
-        team_id: team.id,
-        name,
-        channel_type: type,
-        created_by: user?.id
+    try {
+      // Check if exists
+      const { data: existing } = await supabase
+        .from('chat_channels')
+        .select('*')
+        .eq('team_id', team.id)
+        .eq('channel_type', type)
+        .maybeSingle()
+      
+      if (existing) {
+        // Make sure user is a member
+        const { data: membership } = await supabase
+          .from('channel_members')
+          .select('id')
+          .eq('channel_id', existing.id)
+          .eq('user_id', user?.id)
+          .maybeSingle()
+        
+        if (!membership) {
+          await supabase.from('channel_members').insert({
+            channel_id: existing.id,
+            user_id: user?.id,
+            display_name: profile?.full_name || profile?.email || 'User',
+            member_role: 'member',
+            can_post: type !== 'player_chat'
+          })
+        }
+        
+        onCreated(existing)
+        return
+      }
+      
+      const name = type === 'player_chat' 
+        ? `${team.name} - Player Chat`
+        : `${team.name} - Team Chat`
+      
+      const { data: newChannel, error } = await supabase
+        .from('chat_channels')
+        .insert({
+          season_id: selectedSeason.id,
+          team_id: team.id,
+          name,
+          channel_type: type,
+          created_by: user?.id
+        })
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Error creating chat:', error)
+        showToast?.('Error creating chat: ' + error.message, 'error')
+        setCreating(null)
+        return
+      }
+      
+      // Add creator as member
+      await supabase.from('channel_members').insert({
+        channel_id: newChannel.id,
+        user_id: user?.id,
+        display_name: profile?.full_name || 'Admin',
+        member_role: 'admin',
+        can_post: true,
+        can_moderate: true
       })
-      .select()
-      .single()
-    
-    if (error) {
+      
+      showToast?.('Chat created!', 'success')
+      onCreated(newChannel)
+    } catch (err) {
+      console.error('Error:', err)
       showToast?.('Error creating chat', 'error')
-      return
+      setCreating(null)
     }
-    
-    // Add creator as member
-    await supabase.from('channel_members').insert({
-      channel_id: newChannel.id,
-      user_id: user?.id,
-      display_name: profile?.full_name || 'Admin',
-      member_role: 'admin',
-      can_post: true,
-      can_moderate: true
-    })
-    
-    showToast?.('Chat created!', 'success')
-    onCreated(newChannel)
   }
   
   return (
@@ -1300,7 +1373,8 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
                 <div key={team.id} className="mb-1">
                   <button
                     onClick={() => createTeamChat(team, 'team_chat')}
-                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${
+                    disabled={creating !== null}
+                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all disabled:opacity-50 ${
                       isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
                     }`}
                   >
@@ -1308,7 +1382,10 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
                       className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
                       style={{ background: team.color ? `${team.color}30` : '#6366f130' }}
                     >
-                      👥
+                      {creating === `${team.id}-team_chat` ? (
+                        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                             style={{ borderColor: team.color || '#6366f1', borderTopColor: 'transparent' }} />
+                      ) : '👥'}
                     </div>
                     <div className="flex-1 text-left">
                       <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -1321,7 +1398,8 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
                   </button>
                   <button
                     onClick={() => createTeamChat(team, 'player_chat')}
-                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${
+                    disabled={creating !== null}
+                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all disabled:opacity-50 ${
                       isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
                     }`}
                   >
@@ -1329,7 +1407,10 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
                       className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
                       style={{ background: team.color ? `${team.color}30` : '#6366f130' }}
                     >
-                      🏐
+                      {creating === `${team.id}-player_chat` ? (
+                        <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                             style={{ borderColor: team.color || '#6366f1', borderTopColor: 'transparent' }} />
+                      ) : '🏐'}
                     </div>
                     <div className="flex-1 text-left">
                       <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
