@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
@@ -34,10 +35,18 @@ function formatTime12(timeStr) {
 // ============================================
 // TEAM WALL PAGE - Team Hub for Players/Parents/Coaches
 // ============================================
-function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
+function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const { profile, user } = useAuth()
+  const parentTutorial = useParentTutorial()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  
+  // Complete "join_team_hub" step for parents when they visit
+  useEffect(() => {
+    if (activeView === 'parent' && teamId) {
+      parentTutorial?.completeStep?.('join_team_hub')
+    }
+  }, [activeView, teamId])
   
   // Core data
   const [team, setTeam] = useState(null)
