@@ -31,6 +31,31 @@ const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🔥', '👏
 // Get your own key at: https://developers.google.com/tenor/guides/quickstart
 const TENOR_API_KEY = import.meta.env.VITE_TENOR_API_KEY || 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ'
 
+// ============================================
+// SOUND EFFECTS
+// ============================================
+// Subtle notification sounds (base64 encoded short audio)
+const SOUNDS = {
+  // Simple soft "pop" for sending
+  send: 'data:audio/wav;base64,UklGRl4BAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YToBAAB4eHh3d3Z1dHNycXBvbm1sa2ppZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTExLS0tMTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbnBxc3R2d3l7fX+BgoWGiYqNjpGSlZaZmp2eoaKlpqmqra6xsrW2ubq9vsDDxMfIy8zP0NLV1tjb3N7h4uXm6ert7vDz9Pb5+vz/',
+  // Soft "ding" for receiving
+  receive: 'data:audio/wav;base64,UklGRn4BAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YVoBAABAPz49PDo5NzY0MzEwLi0rKigmJSMhIB4dGxoYFxUUEhEPDgwLCQgGBQMCAQAAAQIDBAUHCAoLDQ4QERMUFhcZGhwdHyAiIyUmKCkrLC4vMTI0NTc4Oj08Pj9BQkRFR0hKS01OUFFTVFVXWFpbXV5gYWNkZmdpamxsb3Bxc3R2d3l6fH1/gIKDhYaIiYuMjo+RkpSVl5iampydnqCio6WmqKmrrK6vsLKztLa3ubq7vb6/'
+}
+
+// Sound player utility
+const playSound = (type) => {
+  try {
+    const audio = new Audio(SOUNDS[type])
+    audio.volume = 0.3 // Keep it subtle
+    audio.play().catch(() => {}) // Ignore autoplay errors
+  } catch (e) {
+    // Silently fail - sounds are nice to have, not critical
+  }
+}
+
+// Typing indicator timeout (ms)
+const TYPING_TIMEOUT = 3000
+
 function ChatsPage({ showToast, activeView, roleContext }) {
   const { organization, profile, user, isAdmin } = useAuth()
   const { selectedSeason } = useSeason()
@@ -406,6 +431,9 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const [mediaItems, setMediaItems] = useState([])
   const [loadingMedia, setLoadingMedia] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
+  const [typingUsers, setTypingUsers] = useState([]) // Users currently typing
+  const typingTimeoutRef = useRef(null)
+  const presenceChannelRef = useRef(null)
   const menuButtonRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -431,7 +459,28 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       })
       .subscribe()
     
-    return () => subscription.unsubscribe()
+    // Set up presence channel for typing indicators
+    const presenceChannel = supabase.channel(`typing-${channel.id}`, {
+      config: { presence: { key: user?.id } }
+    })
+    
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState()
+        const typing = Object.values(state)
+          .flat()
+          .filter(p => p.typing && p.user_id !== user?.id)
+          .map(p => p.user_name)
+        setTypingUsers(typing)
+      })
+      .subscribe()
+    
+    presenceChannelRef.current = presenceChannel
+    
+    return () => {
+      subscription.unsubscribe()
+      presenceChannel.unsubscribe()
+    }
   }, [channel.id])
 
   async function loadMessages() {
@@ -470,6 +519,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       scrollToBottom()
       if (newMsg.sender_id !== user?.id) {
         markAsRead()
+        playSound('receive') // Play receive sound for incoming messages
       }
     }
   }
@@ -488,6 +538,51 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     }, 100)
   }
 
+  // Typing indicator functions
+  function broadcastTyping() {
+    if (!presenceChannelRef.current) return
+    
+    presenceChannelRef.current.track({
+      user_id: user?.id,
+      user_name: profile?.full_name || 'Someone',
+      typing: true
+    })
+    
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+    
+    // Auto-stop typing after timeout
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping()
+    }, TYPING_TIMEOUT)
+  }
+
+  function stopTyping() {
+    if (!presenceChannelRef.current) return
+    
+    presenceChannelRef.current.track({
+      user_id: user?.id,
+      user_name: profile?.full_name || 'Someone',
+      typing: false
+    })
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+  }
+
+  function handleInputChange(e) {
+    setNewMessage(e.target.value)
+    if (e.target.value.trim()) {
+      broadcastTyping()
+    } else {
+      stopTyping()
+    }
+  }
+
   async function sendMessage(e) {
     e?.preventDefault()
     if (!newMessage.trim() || sending) return
@@ -504,6 +599,8 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     if (error) {
       showToast?.('Error sending message', 'error')
     } else {
+      playSound('send') // Play send sound
+      stopTyping() // Clear typing indicator
       setNewMessage('')
       setReplyingTo(null)
       
@@ -527,6 +624,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     })
     
     if (!error) {
+      playSound('send') // Play send sound
       setShowGifPicker(false)
       await supabase
         .from('chat_channels')
@@ -579,6 +677,8 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       })
       
       if (msgError) throw msgError
+      
+      playSound('send') // Play send sound
       
       // Update channel timestamp
       await supabase
@@ -935,6 +1035,25 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
             />
           )}
           
+          {/* Typing Indicator */}
+          {typingUsers.length > 0 && (
+            <div className={`mb-2 flex items-center gap-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span>
+                {typingUsers.length === 1 
+                  ? `${typingUsers[0]} is typing...`
+                  : typingUsers.length === 2
+                    ? `${typingUsers[0]} and ${typingUsers[1]} are typing...`
+                    : `${typingUsers[0]} and ${typingUsers.length - 1} others are typing...`
+                }
+              </span>
+            </div>
+          )}
+          
           <div 
             className="flex items-end gap-2 p-2 rounded-2xl"
             style={{ background: isDark ? '#ffffff08' : '#00000005' }}
@@ -982,7 +1101,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
               ref={inputRef}
               type="text"
               value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(e)}
               placeholder="Type a message..."
               className={`flex-1 bg-transparent outline-none py-2 px-2 text-sm ${
