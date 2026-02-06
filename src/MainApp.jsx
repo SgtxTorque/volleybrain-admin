@@ -1719,7 +1719,7 @@ function MainApp() {
         {/* Main Content Area */}
         <div className="flex-1 p-8 overflow-auto">
           {directTeamWallId ? (
-            <TeamWallPage teamId={directTeamWallId} showToast={showToast} onBack={exitTeamWall} onNavigate={navigateFromTeamWall} />
+            <TeamWallPage teamId={directTeamWallId} showToast={showToast} onBack={exitTeamWall} onNavigate={navigateFromTeamWall} activeView={activeView} />
           ) : (
             <>
               {page === 'dashboard' && activeView === 'admin' && <DashboardPage onNavigate={setPage} />}
