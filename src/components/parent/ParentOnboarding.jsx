@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParentTutorial } from '../../contexts/ParentTutorialContext'
+import { useParentTutorial, PARENT_CHECKLIST } from '../../contexts/ParentTutorialContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
-import { X, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, SkipForward, Check } from 'lucide-react'
 
 // ============================================
 // SPOTLIGHT OVERLAY
@@ -12,9 +12,9 @@ import { X, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react'
 export function SpotlightOverlay() {
   const tutorial = useParentTutorial()
   const tc = useThemeClasses()
-  const { accent } = useTheme()
+  const { accent, isDark } = useTheme()
   const [targetRect, setTargetRect] = useState(null)
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
+  const [tooltipStyle, setTooltipStyle] = useState({})
 
   // Find and measure target element
   useEffect(() => {
@@ -27,64 +27,63 @@ export function SpotlightOverlay() {
       const target = document.querySelector(tutorial.currentStep.target)
       if (target) {
         const rect = target.getBoundingClientRect()
+        const padding = 12
         setTargetRect({
-          top: rect.top - 8,
-          left: rect.left - 8,
-          width: rect.width + 16,
-          height: rect.height + 16,
+          top: rect.top - padding + window.scrollY,
+          left: rect.left - padding,
+          width: rect.width + padding * 2,
+          height: rect.height + padding * 2,
           element: target,
         })
 
         // Calculate tooltip position
         const position = tutorial.currentStep.position || 'bottom'
-        let tooltipTop = 0
-        let tooltipLeft = 0
-        const tooltipWidth = 320
-        const tooltipHeight = 200
+        const tooltipWidth = 340
+        const tooltipHeight = 220
+        let top, left
 
         switch (position) {
           case 'top':
-            tooltipTop = rect.top - tooltipHeight - 20
-            tooltipLeft = rect.left + rect.width / 2 - tooltipWidth / 2
+            top = rect.top + window.scrollY - tooltipHeight - 24
+            left = rect.left + rect.width / 2 - tooltipWidth / 2
             break
           case 'bottom':
-            tooltipTop = rect.bottom + 20
-            tooltipLeft = rect.left + rect.width / 2 - tooltipWidth / 2
+            top = rect.bottom + window.scrollY + 24
+            left = rect.left + rect.width / 2 - tooltipWidth / 2
             break
           case 'left':
-            tooltipTop = rect.top + rect.height / 2 - tooltipHeight / 2
-            tooltipLeft = rect.left - tooltipWidth - 20
+            top = rect.top + window.scrollY + rect.height / 2 - tooltipHeight / 2
+            left = rect.left - tooltipWidth - 24
             break
           case 'right':
-            tooltipTop = rect.top + rect.height / 2 - tooltipHeight / 2
-            tooltipLeft = rect.right + 20
+            top = rect.top + window.scrollY + rect.height / 2 - tooltipHeight / 2
+            left = rect.right + 24
             break
           default:
-            tooltipTop = rect.bottom + 20
-            tooltipLeft = rect.left
+            top = rect.bottom + window.scrollY + 24
+            left = rect.left
         }
 
         // Keep tooltip in viewport
-        tooltipLeft = Math.max(16, Math.min(tooltipLeft, window.innerWidth - tooltipWidth - 16))
-        tooltipTop = Math.max(16, Math.min(tooltipTop, window.innerHeight - tooltipHeight - 16))
+        left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16))
+        top = Math.max(16, top)
 
-        setTooltipPosition({ top: tooltipTop, left: tooltipLeft })
+        setTooltipStyle({ top, left, width: tooltipWidth })
       } else {
         setTargetRect(null)
       }
     }
 
-    // Initial find
-    findTarget()
+    // Initial find with delay for DOM to settle
+    setTimeout(findTarget, 100)
 
     // Re-find on resize/scroll
-    const handleUpdate = () => setTimeout(findTarget, 100)
-    window.addEventListener('resize', handleUpdate)
-    window.addEventListener('scroll', handleUpdate, true)
+    window.addEventListener('resize', findTarget)
+    window.addEventListener('scroll', findTarget, true)
 
     return () => {
-      window.removeEventListener('resize', handleUpdate)
-      window.removeEventListener('scroll', handleUpdate, true)
+      window.removeEventListener('resize', findTarget)
+      window.removeEventListener('scroll', findTarget, true)
     }
   }, [tutorial?.isActive, tutorial?.currentStep])
 
@@ -95,8 +94,8 @@ export function SpotlightOverlay() {
   const isComplete = currentStep?.id === 'complete'
   const hasTarget = !!currentStep?.target && targetRect
 
-  // Handle clicking on the target element
-  const handleTargetClick = () => {
+  // Handle clicking on the spotlight area
+  const handleSpotlightClick = () => {
     if (currentStep?.action === 'click' && currentStep?.completeStep) {
       tutorial.completeStep(currentStep.completeStep)
     }
@@ -104,133 +103,133 @@ export function SpotlightOverlay() {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999]" style={{ pointerEvents: 'auto' }}>
-      {/* Dark overlay with spotlight cutout */}
-      <svg className="absolute inset-0 w-full h-full">
-        <defs>
-          <mask id="spotlight-mask">
-            <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {hasTarget && (
-              <rect
-                x={targetRect.left}
-                y={targetRect.top}
-                width={targetRect.width}
-                height={targetRect.height}
-                rx="12"
-                fill="black"
-              />
-            )}
-          </mask>
-        </defs>
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(0, 0, 0, 0.75)"
-          mask="url(#spotlight-mask)"
-        />
-      </svg>
+    <div className="fixed inset-0 z-[9999] pointer-events-none">
+      {/* Dark overlay */}
+      <div 
+        className="absolute inset-0 pointer-events-auto"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+        onClick={(e) => e.stopPropagation()}
+      />
 
-      {/* Glowing border around target */}
+      {/* Spotlight cutout - positioned absolute over the target */}
       {hasTarget && (
-        <div
-          className="absolute border-2 rounded-xl pointer-events-none animate-pulse"
-          style={{
-            top: targetRect.top,
-            left: targetRect.left,
-            width: targetRect.width,
-            height: targetRect.height,
-            borderColor: accent.primary,
-            boxShadow: `0 0 20px ${accent.primary}50, 0 0 40px ${accent.primary}30`,
-          }}
-        />
-      )}
-
-      {/* Clickable area over target */}
-      {hasTarget && currentStep?.action === 'click' && (
-        <div
-          className="absolute cursor-pointer"
-          style={{
-            top: targetRect.top,
-            left: targetRect.left,
-            width: targetRect.width,
-            height: targetRect.height,
-          }}
-          onClick={handleTargetClick}
-        />
+        <>
+          {/* Clear area (the spotlight hole) */}
+          <div
+            className="absolute bg-transparent pointer-events-auto cursor-pointer"
+            style={{
+              top: targetRect.top,
+              left: targetRect.left,
+              width: targetRect.width,
+              height: targetRect.height,
+              borderRadius: 16,
+              boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.8)`,
+            }}
+            onClick={currentStep?.action === 'click' ? handleSpotlightClick : undefined}
+          />
+          {/* Glowing border */}
+          <div
+            className="absolute pointer-events-none animate-pulse"
+            style={{
+              top: targetRect.top - 3,
+              left: targetRect.left - 3,
+              width: targetRect.width + 6,
+              height: targetRect.height + 6,
+              borderRadius: 18,
+              border: `3px solid ${accent.primary}`,
+              boxShadow: `0 0 20px ${accent.primary}, 0 0 40px ${accent.primary}50`,
+            }}
+          />
+        </>
       )}
 
       {/* Tooltip / Content Card */}
       <div
-        className={`absolute ${tc.cardBg} rounded-2xl shadow-2xl border ${tc.border} overflow-hidden`}
+        className="absolute pointer-events-auto rounded-2xl shadow-2xl overflow-hidden"
         style={{
-          top: hasTarget ? tooltipPosition.top : '50%',
-          left: hasTarget ? tooltipPosition.left : '50%',
-          transform: hasTarget ? 'none' : 'translate(-50%, -50%)',
-          width: isWelcome || isComplete ? 400 : 320,
-          maxWidth: 'calc(100vw - 32px)',
+          ...(hasTarget ? tooltipStyle : { 
+            top: '50%', 
+            left: '50%', 
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+          }),
+          backgroundColor: isDark ? '#1e293b' : '#ffffff',
+          border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
         }}
       >
         {/* Progress bar */}
-        <div className="h-1 bg-slate-200 dark:bg-slate-700">
+        <div className="h-1.5" style={{ backgroundColor: isDark ? '#334155' : '#e2e8f0' }}>
           <div
-            className="h-full transition-all duration-300"
+            className="h-full transition-all duration-500 ease-out"
             style={{ width: `${progress}%`, backgroundColor: accent.primary }}
           />
         </div>
 
-        <div className="p-5">
+        <div className="p-6">
           {/* Icon for welcome/complete screens */}
           {(isWelcome || isComplete) && (
             <div className="text-center mb-4">
-              <span className="text-5xl">{isWelcome ? '👋' : '🎉'}</span>
+              <span className="text-6xl">{isWelcome ? '👋' : '🎉'}</span>
             </div>
           )}
 
           {/* Title */}
-          <h3 className={`text-lg font-bold ${tc.text} ${(isWelcome || isComplete) ? 'text-center' : ''}`}>
+          <h3 
+            className={`text-xl font-bold ${(isWelcome || isComplete) ? 'text-center' : ''}`}
+            style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
+          >
             {currentStep?.title}
           </h3>
 
           {/* Description */}
-          <p className={`mt-2 text-sm ${tc.textMuted} ${(isWelcome || isComplete) ? 'text-center' : ''}`}>
+          <p 
+            className={`mt-3 text-sm leading-relaxed ${(isWelcome || isComplete) ? 'text-center' : ''}`}
+            style={{ color: isDark ? '#94a3b8' : '#64748b' }}
+          >
             {currentStep?.description}
           </p>
 
           {/* Action hint for click steps */}
           {currentStep?.action === 'click' && hasTarget && (
             <div 
-              className="mt-3 px-3 py-2 rounded-lg text-sm font-medium text-center"
-              style={{ backgroundColor: accent.primary + '20', color: accent.primary }}
+              className="mt-4 px-4 py-3 rounded-xl text-sm font-semibold text-center"
+              style={{ backgroundColor: accent.primary + '15', color: accent.primary }}
             >
               👆 Tap the highlighted area to continue
             </div>
           )}
 
           {/* Navigation buttons */}
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mt-6">
+            <div className="flex items-center gap-3">
               {currentStepIndex > 0 && !isComplete && (
                 <button
                   onClick={prevStep}
-                  className={`p-2 rounded-lg ${tc.cardBgAlt} ${tc.text} hover:opacity-80 transition`}
+                  className="p-2.5 rounded-xl transition hover:scale-105"
+                  style={{ 
+                    backgroundColor: isDark ? '#334155' : '#f1f5f9',
+                    color: isDark ? '#e2e8f0' : '#475569'
+                  }}
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
               )}
-              <span className={`text-xs ${tc.textMuted}`}>
+              <span 
+                className="text-sm font-medium"
+                style={{ color: isDark ? '#64748b' : '#94a3b8' }}
+              >
                 {currentStepIndex + 1} of {totalSteps}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {!isComplete && (
                 <button
                   onClick={skipTutorial}
-                  className={`px-3 py-2 rounded-lg text-sm ${tc.textMuted} hover:opacity-80 transition flex items-center gap-1`}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium transition hover:opacity-80 flex items-center gap-1.5"
+                  style={{ color: isDark ? '#94a3b8' : '#64748b' }}
                 >
-                  <SkipForward className="w-3 h-3" />
+                  <SkipForward className="w-4 h-4" />
                   Skip
                 </button>
               )}
@@ -238,7 +237,7 @@ export function SpotlightOverlay() {
               {(currentStep?.action === 'next' || isWelcome) && (
                 <button
                   onClick={nextStep}
-                  className="px-4 py-2 rounded-lg text-white text-sm font-medium flex items-center gap-1 hover:opacity-90 transition"
+                  className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center gap-1.5 hover:opacity-90 transition hover:scale-105"
                   style={{ backgroundColor: accent.primary }}
                 >
                   {isWelcome ? "Let's Go!" : 'Next'}
@@ -249,44 +248,30 @@ export function SpotlightOverlay() {
               {isComplete && (
                 <button
                   onClick={skipTutorial}
-                  className="px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition"
+                  className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition hover:scale-105"
                   style={{ backgroundColor: accent.primary }}
                 >
-                  Done! 🎉
+                  Get Started! 🚀
                 </button>
               )}
             </div>
           </div>
         </div>
-
-        {/* Arrow pointer (for positioned tooltips) */}
-        {hasTarget && (
-          <div
-            className="absolute w-4 h-4 rotate-45"
-            style={{
-              backgroundColor: tc.cardBg?.includes('bg-') ? undefined : '#1e293b',
-              ...(currentStep?.position === 'top' && { bottom: -8, left: '50%', marginLeft: -8 }),
-              ...(currentStep?.position === 'bottom' && { top: -8, left: '50%', marginLeft: -8 }),
-              ...(currentStep?.position === 'left' && { right: -8, top: '50%', marginTop: -8 }),
-              ...(currentStep?.position === 'right' && { left: -8, top: '50%', marginTop: -8 }),
-            }}
-          />
-        )}
       </div>
     </div>
   )
 }
 
 // ============================================
-// PARENT CHECKLIST WIDGET
-// Shows progress on essential tasks
+// HORIZONTAL JOURNEY BAR
+// Shows progress through onboarding steps
 // ============================================
 
-export function ParentChecklistWidget({ onNavigate }) {
+export function ParentJourneyBar({ onNavigate }) {
   const tutorial = useParentTutorial()
   const tc = useThemeClasses()
-  const { accent } = useTheme()
-  const [isExpanded, setIsExpanded] = useState(true)
+  const { accent, isDark } = useTheme()
+  const [isExpanded, setIsExpanded] = useState(false)
 
   if (!tutorial || tutorial.loading) return null
 
@@ -297,92 +282,193 @@ export function ParentChecklistWidget({ onNavigate }) {
   // Don't show if everything is complete
   if (isAllComplete) return null
 
+  // Find current (first incomplete) step
+  const currentStepIndex = checklistItems.findIndex(i => !i.completed)
+  const currentStep = checklistItems[currentStepIndex] || checklistItems[0]
+
   return (
-    <div className={`rounded-2xl border overflow-hidden ${tc.card}`}>
-      {/* Header */}
-      <div
-        className="p-4 cursor-pointer flex items-center justify-between"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
-            style={{ backgroundColor: accent.primary + '20' }}
-          >
-            ✅
+    <div 
+      className="rounded-2xl overflow-hidden transition-all duration-300"
+      style={{ 
+        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+      }}
+    >
+      {/* Main bar - always visible */}
+      <div className="p-4">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold"
+              style={{ backgroundColor: accent.primary + '20', color: accent.primary }}
+            >
+              ✓
+            </div>
+            <div>
+              <h3 className="font-bold" style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}>
+                Getting Started
+              </h3>
+              <p className="text-xs" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+                {completedCount} of {checklistItems.length} complete
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className={`font-semibold ${tc.text}`}>Getting Started</h3>
-            <p className={`text-sm ${tc.textMuted}`}>
-              {completedCount}/{checklistItems.length} tasks complete
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Progress ring */}
-          <div className="relative w-10 h-10">
-            <svg className="w-10 h-10 -rotate-90">
-              <circle
-                cx="20"
-                cy="20"
-                r="16"
-                stroke="currentColor"
-                strokeWidth="4"
-                fill="none"
-                className="text-slate-200 dark:text-slate-700"
-              />
-              <circle
-                cx="20"
-                cy="20"
-                r="16"
-                stroke={accent.primary}
-                strokeWidth="4"
-                fill="none"
-                strokeDasharray={100}
-                strokeDashoffset={100 - checklistProgress}
-                strokeLinecap="round"
-              />
-            </svg>
-            <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold ${tc.text}`}>
+          
+          <div className="flex items-center gap-3">
+            {/* Percentage */}
+            <span 
+              className="text-sm font-bold"
+              style={{ color: accent.primary }}
+            >
               {Math.round(checklistProgress)}%
             </span>
+            
+            {/* Expand/collapse */}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 rounded-lg transition hover:scale-105"
+              style={{ backgroundColor: isDark ? '#334155' : '#f1f5f9' }}
+            >
+              <ChevronRight 
+                className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}
+                style={{ color: isDark ? '#94a3b8' : '#64748b' }}
+              />
+            </button>
           </div>
-          <span className={`text-lg transition-transform ${isExpanded ? 'rotate-180' : ''}`}>▼</span>
         </div>
+
+        {/* Horizontal step indicators */}
+        <div className="flex items-center gap-1">
+          {checklistItems.map((item, idx) => {
+            const isComplete = item.completed
+            const isCurrent = idx === currentStepIndex
+            
+            return (
+              <div key={item.id} className="flex-1 flex items-center">
+                {/* Step indicator */}
+                <button
+                  onClick={() => !isComplete && item.navTo && onNavigate(item.navTo)}
+                  className={`relative flex-1 h-2 rounded-full transition-all duration-300 ${
+                    !isComplete && item.navTo ? 'cursor-pointer hover:scale-y-150' : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: isComplete 
+                      ? accent.primary 
+                      : isCurrent 
+                        ? accent.primary + '40'
+                        : isDark ? '#334155' : '#e2e8f0'
+                  }}
+                  title={item.title}
+                >
+                  {/* Pulse animation on current step */}
+                  {isCurrent && !isComplete && (
+                    <span 
+                      className="absolute inset-0 rounded-full animate-pulse"
+                      style={{ backgroundColor: accent.primary + '30' }}
+                    />
+                  )}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Current step callout */}
+        {currentStep && !isExpanded && (
+          <button
+            onClick={() => currentStep.navTo && onNavigate(currentStep.navTo)}
+            className="mt-3 w-full flex items-center gap-3 p-3 rounded-xl transition hover:scale-[1.01]"
+            style={{ backgroundColor: isDark ? '#0f172a' : '#f8fafc' }}
+          >
+            <span className="text-xl">{currentStep.icon}</span>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold" style={{ color: isDark ? '#e2e8f0' : '#1e293b' }}>
+                Next: {currentStep.title}
+              </p>
+              <p className="text-xs" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+                {currentStep.description}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4" style={{ color: accent.primary }} />
+          </button>
+        )}
       </div>
 
-      {/* Checklist items */}
+      {/* Expanded view - all steps */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-2">
-          {checklistItems.map((item, index) => (
-            <div
-              key={item.id}
-              className={`flex items-center gap-3 p-3 rounded-xl transition cursor-pointer ${
-                item.completed
-                  ? 'bg-emerald-500/10 dark:bg-emerald-500/10'
-                  : `${tc.cardBgAlt} hover:scale-[1.01]`
-              }`}
-              onClick={() => !item.completed && item.navTo && onNavigate(item.navTo)}
-            >
-              <span className="text-xl">{item.completed ? '✓' : item.icon}</span>
-              <div className="flex-1">
-                <p className={`font-medium text-sm ${item.completed ? 'text-emerald-500 line-through' : tc.text}`}>
-                  {item.title}
-                </p>
-                {!item.completed && (
-                  <p className={`text-xs ${tc.textMuted}`}>{item.description}</p>
-                )}
-              </div>
-              {!item.completed && item.navTo && (
-                <ChevronRight className={`w-4 h-4 ${tc.textMuted}`} />
-              )}
-            </div>
-          ))}
+        <div 
+          className="px-4 pb-4 space-y-2 border-t"
+          style={{ borderColor: isDark ? '#334155' : '#e2e8f0' }}
+        >
+          <div className="pt-3" />
+          {checklistItems.map((item, idx) => {
+            const isComplete = item.completed
+            const isCurrent = idx === currentStepIndex
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => !isComplete && item.navTo && onNavigate(item.navTo)}
+                disabled={isComplete}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                  isComplete 
+                    ? 'opacity-60' 
+                    : isCurrent 
+                      ? 'ring-2 hover:scale-[1.01]'
+                      : 'hover:scale-[1.01]'
+                }`}
+                style={{ 
+                  backgroundColor: isComplete 
+                    ? (isDark ? '#0f172a50' : '#f1f5f950')
+                    : isCurrent
+                      ? (isDark ? '#0f172a' : '#f8fafc')
+                      : (isDark ? '#0f172a80' : '#f8fafc80'),
+                  ringColor: isCurrent ? accent.primary : 'transparent',
+                }}
+              >
+                {/* Icon / Check */}
+                <div 
+                  className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                  style={{ 
+                    backgroundColor: isComplete ? '#10b981' + '20' : accent.primary + '15',
+                    color: isComplete ? '#10b981' : accent.primary
+                  }}
+                >
+                  {isComplete ? <Check className="w-5 h-5" /> : item.icon}
+                </div>
+                
+                {/* Text */}
+                <div className="flex-1 text-left">
+                  <p 
+                    className={`text-sm font-semibold ${isComplete ? 'line-through' : ''}`}
+                    style={{ color: isComplete ? (isDark ? '#64748b' : '#94a3b8') : (isDark ? '#e2e8f0' : '#1e293b') }}
+                  >
+                    {item.title}
+                  </p>
+                  {!isComplete && (
+                    <p className="text-xs" style={{ color: isDark ? '#64748b' : '#94a3b8' }}>
+                      {item.description}
+                    </p>
+                  )}
+                </div>
 
-          {/* Restart tutorial button */}
+                {/* Arrow for incomplete */}
+                {!isComplete && item.navTo && (
+                  <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: isDark ? '#64748b' : '#94a3b8' }} />
+                )}
+              </button>
+            )
+          })}
+
+          {/* Replay tutorial button */}
           <button
             onClick={() => tutorial.startTutorial()}
-            className={`w-full mt-3 py-2 rounded-lg text-sm ${tc.textMuted} hover:opacity-80 transition border ${tc.border}`}
+            className="w-full mt-2 py-2.5 rounded-xl text-sm font-medium transition hover:opacity-80 flex items-center justify-center gap-2"
+            style={{ 
+              backgroundColor: isDark ? '#0f172a' : '#f1f5f9',
+              color: isDark ? '#94a3b8' : '#64748b'
+            }}
           >
             🎓 Replay Tutorial
           </button>
@@ -392,6 +478,9 @@ export function ParentChecklistWidget({ onNavigate }) {
   )
 }
 
+// Keep old name as alias for backwards compatibility
+export const ParentChecklistWidget = ParentJourneyBar
+
 // ============================================
 // FLOATING HELP BUTTON
 // Always visible, opens tutorial/help
@@ -399,7 +488,7 @@ export function ParentChecklistWidget({ onNavigate }) {
 
 export function FloatingHelpButton() {
   const tutorial = useParentTutorial()
-  const { accent } = useTheme()
+  const { accent, isDark } = useTheme()
   const [showMenu, setShowMenu] = useState(false)
 
   if (!tutorial || tutorial.isActive) return null
@@ -408,22 +497,46 @@ export function FloatingHelpButton() {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Menu */}
       {showMenu && (
-        <div className="absolute bottom-16 right-0 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden min-w-48">
+        <div 
+          className="absolute bottom-16 right-0 rounded-xl shadow-xl overflow-hidden min-w-52"
+          style={{
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+          }}
+        >
           <button
             onClick={() => { tutorial.startTutorial(); setShowMenu(false) }}
-            className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
+            className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
+            style={{ 
+              color: isDark ? '#e2e8f0' : '#1e293b',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? '#334155' : '#f1f5f9'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             🎓 Take the Tour
           </button>
           <button
             onClick={() => setShowMenu(false)}
-            className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
+            className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
+            style={{ 
+              color: isDark ? '#e2e8f0' : '#1e293b',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? '#334155' : '#f1f5f9'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             ❓ Help Center
           </button>
           <button
             onClick={() => setShowMenu(false)}
-            className="w-full px-4 py-3 text-left text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
+            className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
+            style={{ 
+              color: isDark ? '#e2e8f0' : '#1e293b',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? '#334155' : '#f1f5f9'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             💬 Contact Support
           </button>
@@ -433,8 +546,11 @@ export function FloatingHelpButton() {
       {/* Floating button */}
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white text-xl hover:scale-105 transition"
-        style={{ backgroundColor: accent.primary }}
+        className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white text-xl font-bold transition hover:scale-110"
+        style={{ 
+          backgroundColor: accent.primary,
+          boxShadow: `0 4px 20px ${accent.primary}50`
+        }}
       >
         {showMenu ? '✕' : '?'}
       </button>
