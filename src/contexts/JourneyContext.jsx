@@ -25,10 +25,15 @@ export const JOURNEY_BADGES = {
   stat_tracker: { id: 'stat_tracker', icon: 'trending-up', name: 'Stat Tracker', description: 'Recorded player stats' },
   
   // Parent badges
-  registered: { id: 'registered', icon: 'check-square', name: 'Registered', description: 'Registered your player' },
-  paperwork_done: { id: 'paperwork_done', icon: 'file-text', name: 'Paperwork Pro', description: 'Completed all forms' },
-  first_rsvp: { id: 'first_rsvp', icon: '👍', name: 'Engaged', description: 'RSVP\'d to your first event' },
+  registered: { id: 'registered', icon: '✅', name: 'Registered', description: 'Completed player registration' },
+  paperwork_done: { id: 'paperwork_done', icon: '📋', name: 'Paperwork Pro', description: 'Signed all waivers and forms' },
+  paid_up: { id: 'paid_up', icon: '💳', name: 'Paid Up', description: 'Completed registration payment' },
+  photo_ready: { id: 'photo_ready', icon: '📷', name: 'Photo Ready', description: 'Added player photo' },
+  first_rsvp: { id: 'first_rsvp', icon: '👍', name: 'Engaged Parent', description: 'RSVP\'d to your first event' },
   team_player: { id: 'team_player', icon: '🤝', name: 'Team Player', description: 'Volunteered for an event' },
+  social_butterfly: { id: 'social_butterfly', icon: '💬', name: 'Social Butterfly', description: 'Posted in team chat' },
+  superfan: { id: 'superfan', icon: '🌟', name: 'Superfan', description: 'Viewed stats after 5 games' },
+  perfect_attendance: { id: 'perfect_attendance', icon: '🏆', name: 'Perfect Attendance', description: 'RSVP\'d to 10+ events' },
   
   // Milestone badges
   week_one: { id: 'week_one', icon: 'calendar', name: 'Week One', description: 'Completed first week' },
@@ -64,11 +69,15 @@ export const JOURNEY_STEPS = {
     { id: 'track_stats', title: 'Track Stats', description: 'Record player statistics', icon: 'trending-up', badge: 'stat_tracker' },
   ],
   parent: [
-    { id: 'register_player', title: 'Register Player', description: 'Register your child', icon: 'check-square', badge: 'registered' },
-    { id: 'complete_forms', title: 'Complete Forms', description: 'Submit required paperwork', icon: 'file-text', badge: 'paperwork_done' },
-    { id: 'view_schedule', title: 'View Schedule', description: 'Check the team calendar', icon: 'calendar', badge: null },
-    { id: 'first_rsvp', title: 'RSVP to Event', description: 'Respond to an event', icon: '👍', badge: 'first_rsvp' },
-    { id: 'volunteer', title: 'Volunteer', description: 'Sign up to help', icon: '🤝', badge: 'team_player' },
+    { id: 'complete_registration', title: 'Complete Registration', description: 'Finish all registration details', icon: '📝', badge: 'registered' },
+    { id: 'sign_waivers', title: 'Sign Waivers', description: 'Sign all required liability waivers', icon: '✍️', badge: 'paperwork_done' },
+    { id: 'make_payment', title: 'Pay Registration Fee', description: 'Complete your payment', icon: '💳', badge: 'paid_up' },
+    { id: 'view_player_card', title: 'View Player Card', description: 'Check out your child\'s player card', icon: '🎴', badge: null },
+    { id: 'add_player_photo', title: 'Add Player Photo', description: 'Upload a photo for the player card', icon: '📷', badge: 'photo_ready' },
+    { id: 'view_schedule', title: 'View Schedule', description: 'Check the team calendar', icon: '📅', badge: null },
+    { id: 'first_rsvp', title: 'RSVP to Event', description: 'Let the coach know you\'re coming', icon: '✅', badge: 'first_rsvp' },
+    { id: 'join_team_chat', title: 'Join Team Chat', description: 'Connect with coaches and parents', icon: '💬', badge: 'social_butterfly' },
+    { id: 'volunteer', title: 'Volunteer', description: 'Sign up to help the team', icon: '🤝', badge: 'team_player' },
   ],
   player: [
     { id: 'complete_profile', title: 'Complete Profile', description: 'Add your player info', icon: 'user', badge: null },
