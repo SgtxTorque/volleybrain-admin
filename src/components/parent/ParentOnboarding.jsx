@@ -11,20 +11,25 @@ import { X, ChevronLeft, ChevronRight, SkipForward, Check } from 'lucide-react'
 
 export function SpotlightOverlay() {
   const tutorial = useParentTutorial()
-  const tc = useThemeClasses()
   const { accent, isDark } = useTheme()
   const [targetRect, setTargetRect] = useState(null)
   const [tooltipStyle, setTooltipStyle] = useState({})
 
   // Find and measure target element
   useEffect(() => {
-    if (!tutorial?.isActive || !tutorial?.currentStep?.target) {
+    if (!tutorial?.isActive) {
+      setTargetRect(null)
+      return
+    }
+
+    const currentStep = tutorial.currentStep
+    if (!currentStep?.target) {
       setTargetRect(null)
       return
     }
 
     const findTarget = () => {
-      const target = document.querySelector(tutorial.currentStep.target)
+      const target = document.querySelector(currentStep.target)
       if (target) {
         const rect = target.getBoundingClientRect()
         const padding = 12
@@ -33,11 +38,10 @@ export function SpotlightOverlay() {
           left: rect.left - padding,
           width: rect.width + padding * 2,
           height: rect.height + padding * 2,
-          element: target,
         })
 
         // Calculate tooltip position
-        const position = tutorial.currentStep.position || 'bottom'
+        const position = currentStep.position || 'bottom'
         const tooltipWidth = 340
         const tooltipHeight = 220
         let top, left
@@ -66,7 +70,7 @@ export function SpotlightOverlay() {
 
         // Keep tooltip in viewport
         left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16))
-        top = Math.max(16, top)
+        top = Math.max(80, top)
 
         setTooltipStyle({ top, left, width: tooltipWidth })
       } else {
@@ -75,61 +79,63 @@ export function SpotlightOverlay() {
     }
 
     // Initial find with delay for DOM to settle
-    setTimeout(findTarget, 100)
+    const timeout = setTimeout(findTarget, 150)
 
     // Re-find on resize/scroll
     window.addEventListener('resize', findTarget)
     window.addEventListener('scroll', findTarget, true)
 
     return () => {
+      clearTimeout(timeout)
       window.removeEventListener('resize', findTarget)
       window.removeEventListener('scroll', findTarget, true)
     }
-  }, [tutorial?.isActive, tutorial?.currentStep])
+  }, [tutorial?.isActive, tutorial?.currentStep?.id])
 
+  // Early return if not active
   if (!tutorial?.isActive) return null
 
   const { currentStep, currentStepIndex, totalSteps, nextStep, prevStep, skipTutorial, progress } = tutorial
-  const isWelcome = currentStep?.id === 'welcome'
-  const isComplete = currentStep?.id === 'complete'
-  const hasTarget = !!currentStep?.target && targetRect
-
-  // Handle clicking on the spotlight area
-  const handleSpotlightClick = () => {
-    if (currentStep?.action === 'click' && currentStep?.completeStep) {
-      tutorial.completeStep(currentStep.completeStep)
-    }
-    nextStep()
+  
+  // Safety check - if no current step, close the tutorial
+  if (!currentStep) {
+    console.warn('SpotlightOverlay: No current step found, closing tutorial')
+    setTimeout(() => skipTutorial?.(), 0)
+    return null
   }
 
+  const isWelcome = currentStep.id === 'welcome'
+  const isComplete = currentStep.id === 'complete'
+  const hasTarget = !!currentStep.target && !!targetRect
+
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none">
-      {/* Dark overlay */}
+    <div className="fixed inset-0 z-[9999]">
+      {/* Dark overlay background */}
       <div 
-        className="absolute inset-0 pointer-events-auto"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+        className="absolute inset-0"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}
         onClick={(e) => e.stopPropagation()}
       />
 
-      {/* Spotlight cutout - positioned absolute over the target */}
+      {/* Spotlight cutout - only if we have a target */}
       {hasTarget && (
         <>
-          {/* Clear area (the spotlight hole) */}
+          {/* Clear area (the spotlight hole) - uses massive box-shadow to create the effect */}
           <div
-            className="absolute bg-transparent pointer-events-auto cursor-pointer"
+            className="absolute"
             style={{
               top: targetRect.top,
               left: targetRect.left,
               width: targetRect.width,
               height: targetRect.height,
               borderRadius: 16,
-              boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.8)`,
+              boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.85)`,
+              backgroundColor: 'transparent',
             }}
-            onClick={currentStep?.action === 'click' ? handleSpotlightClick : undefined}
           />
-          {/* Glowing border */}
+          {/* Glowing border around target */}
           <div
-            className="absolute pointer-events-none animate-pulse"
+            className="absolute pointer-events-none"
             style={{
               top: targetRect.top - 3,
               left: targetRect.left - 3,
@@ -138,21 +144,35 @@ export function SpotlightOverlay() {
               borderRadius: 18,
               border: `3px solid ${accent.primary}`,
               boxShadow: `0 0 20px ${accent.primary}, 0 0 40px ${accent.primary}50`,
+              animation: 'pulse 2s infinite',
             }}
           />
         </>
       )}
 
-      {/* Tooltip / Content Card */}
+      {/* Always-visible close button in top-right */}
+      <button
+        onClick={skipTutorial}
+        className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-white bg-white/20 hover:bg-white/30 transition z-[10000]"
+        title="Close tutorial"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
+      {/* Tooltip / Content Card - always centered if no target */}
       <div
-        className="absolute pointer-events-auto rounded-2xl shadow-2xl overflow-hidden"
+        className="absolute rounded-2xl shadow-2xl overflow-hidden"
         style={{
-          ...(hasTarget ? tooltipStyle : { 
-            top: '50%', 
-            left: '50%', 
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-          }),
+          ...(hasTarget 
+            ? tooltipStyle 
+            : { 
+                top: '50%', 
+                left: '50%', 
+                transform: 'translate(-50%, -50%)',
+                width: 400,
+              }
+          ),
+          maxWidth: 'calc(100vw - 32px)',
           backgroundColor: isDark ? '#1e293b' : '#ffffff',
           border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
         }}
@@ -178,7 +198,7 @@ export function SpotlightOverlay() {
             className={`text-xl font-bold ${(isWelcome || isComplete) ? 'text-center' : ''}`}
             style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
           >
-            {currentStep?.title}
+            {currentStep.title}
           </h3>
 
           {/* Description */}
@@ -186,18 +206,8 @@ export function SpotlightOverlay() {
             className={`mt-3 text-sm leading-relaxed ${(isWelcome || isComplete) ? 'text-center' : ''}`}
             style={{ color: isDark ? '#94a3b8' : '#64748b' }}
           >
-            {currentStep?.description}
+            {currentStep.description}
           </p>
-
-          {/* Action hint for click steps */}
-          {currentStep?.action === 'click' && hasTarget && (
-            <div 
-              className="mt-4 px-4 py-3 rounded-xl text-sm font-semibold text-center"
-              style={{ backgroundColor: accent.primary + '15', color: accent.primary }}
-            >
-              👆 Tap the highlighted area to continue
-            </div>
-          )}
 
           {/* Navigation buttons */}
           <div className="flex items-center justify-between mt-6">
@@ -229,31 +239,18 @@ export function SpotlightOverlay() {
                   className="px-4 py-2.5 rounded-xl text-sm font-medium transition hover:opacity-80 flex items-center gap-1.5"
                   style={{ color: isDark ? '#94a3b8' : '#64748b' }}
                 >
-                  <SkipForward className="w-4 h-4" />
                   Skip
                 </button>
               )}
               
-              {(currentStep?.action === 'next' || isWelcome) && (
-                <button
-                  onClick={nextStep}
-                  className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center gap-1.5 hover:opacity-90 transition hover:scale-105"
-                  style={{ backgroundColor: accent.primary }}
-                >
-                  {isWelcome ? "Let's Go!" : 'Next'}
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              )}
-
-              {isComplete && (
-                <button
-                  onClick={skipTutorial}
-                  className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition hover:scale-105"
-                  style={{ backgroundColor: accent.primary }}
-                >
-                  Get Started! 🚀
-                </button>
-              )}
+              <button
+                onClick={isComplete ? skipTutorial : nextStep}
+                className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold flex items-center gap-1.5 hover:opacity-90 transition hover:scale-105"
+                style={{ backgroundColor: accent.primary }}
+              >
+                {isWelcome ? "Let's Go!" : isComplete ? 'Done! 🎉' : 'Next'}
+                {!isComplete && <ChevronRight className="w-4 h-4" />}
+              </button>
             </div>
           </div>
         </div>
@@ -267,7 +264,7 @@ export function SpotlightOverlay() {
 // Shows progress through onboarding steps
 // ============================================
 
-export function ParentJourneyBar({ onNavigate }) {
+export function ParentJourneyBar({ onNavigate, onTeamHub, activeTeam }) {
   const tutorial = useParentTutorial()
   const tc = useThemeClasses()
   const { accent, isDark } = useTheme()
@@ -275,7 +272,7 @@ export function ParentJourneyBar({ onNavigate }) {
 
   if (!tutorial || tutorial.loading) return null
 
-  const { checklistItems, checklistProgress } = tutorial
+  const { checklistItems, checklistProgress, completeStep } = tutorial
   const completedCount = checklistItems.filter(i => i.completed).length
   const isAllComplete = completedCount === checklistItems.length
 
@@ -285,6 +282,23 @@ export function ParentJourneyBar({ onNavigate }) {
   // Find current (first incomplete) step
   const currentStepIndex = checklistItems.findIndex(i => !i.completed)
   const currentStep = checklistItems[currentStepIndex] || checklistItems[0]
+
+  // Handle item click - navigate or show info
+  const handleItemClick = (item) => {
+    if (item.completed) return
+    
+    // Special handling for Team Hub
+    if (item.id === 'join_team_hub' && onTeamHub && activeTeam) {
+      completeStep?.('join_team_hub')
+      onTeamHub()
+      return
+    }
+    
+    // Regular navigation
+    if (item.navTo && onNavigate) {
+      onNavigate(item.navTo)
+    }
+  }
 
   return (
     <div 
@@ -343,14 +357,15 @@ export function ParentJourneyBar({ onNavigate }) {
           {checklistItems.map((item, idx) => {
             const isComplete = item.completed
             const isCurrent = idx === currentStepIndex
+            const isClickable = !isComplete && (item.navTo || item.id === 'join_team_hub')
             
             return (
               <div key={item.id} className="flex-1 flex items-center">
                 {/* Step indicator */}
                 <button
-                  onClick={() => !isComplete && item.navTo && onNavigate(item.navTo)}
+                  onClick={() => handleItemClick(item)}
                   className={`relative flex-1 h-2 rounded-full transition-all duration-300 ${
-                    !isComplete && item.navTo ? 'cursor-pointer hover:scale-y-150' : ''
+                    isClickable ? 'cursor-pointer hover:scale-y-150' : ''
                   }`}
                   style={{ 
                     backgroundColor: isComplete 
@@ -377,7 +392,7 @@ export function ParentJourneyBar({ onNavigate }) {
         {/* Current step callout */}
         {currentStep && !isExpanded && (
           <button
-            onClick={() => currentStep.navTo && onNavigate(currentStep.navTo)}
+            onClick={() => handleItemClick(currentStep)}
             className="mt-3 w-full flex items-center gap-3 p-3 rounded-xl transition hover:scale-[1.01]"
             style={{ backgroundColor: isDark ? '#0f172a' : '#f8fafc' }}
           >
@@ -405,11 +420,12 @@ export function ParentJourneyBar({ onNavigate }) {
           {checklistItems.map((item, idx) => {
             const isComplete = item.completed
             const isCurrent = idx === currentStepIndex
+            const isClickable = !isComplete && (item.navTo || item.id === 'join_team_hub')
             
             return (
               <button
                 key={item.id}
-                onClick={() => !isComplete && item.navTo && onNavigate(item.navTo)}
+                onClick={() => handleItemClick(item)}
                 disabled={isComplete}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                   isComplete 
@@ -453,8 +469,8 @@ export function ParentJourneyBar({ onNavigate }) {
                   )}
                 </div>
 
-                {/* Arrow for incomplete */}
-                {!isComplete && item.navTo && (
+                {/* Arrow for clickable items */}
+                {isClickable && (
                   <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: isDark ? '#64748b' : '#94a3b8' }} />
                 )}
               </button>
