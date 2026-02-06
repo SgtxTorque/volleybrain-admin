@@ -15,6 +15,7 @@ import {
   CalendarCheck, CalendarPlus,
   Camera,
   Check,
+  CheckCheck,
   CheckCircle2,
   CheckSquare,
   ChevronDown,
@@ -115,7 +116,9 @@ import {
   Wallet, Wrench,
   X,
   XCircle,
-  Zap
+  Zap,
+  Reply,
+  Smile
 } from 'lucide-react'
 
 // Use Circle as volleyball icon since Volleyball doesn't exist in lucide-react
@@ -406,5 +409,8 @@ export {
   Wallet, Wrench,
   X,
   XCircle,
-  Zap
+  Zap,
+  Reply,
+  Smile,
+  CheckCheck
 }
