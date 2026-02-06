@@ -11,7 +11,7 @@ export const PARENT_TUTORIAL_STEPS = [
     id: 'welcome',
     title: 'Welcome to VolleyBrain! 🎉',
     description: 'Let\'s get you set up so you can stay connected with your child\'s team. This quick tour will show you everything you need.',
-    target: null, // No target, just a welcome modal
+    target: null,
     page: null,
     action: 'next',
   },
@@ -31,7 +31,7 @@ export const PARENT_TUTORIAL_STEPS = [
     target: '[data-tutorial="player-card"]',
     page: 'dashboard',
     position: 'bottom',
-    action: 'click',
+    action: 'next',
     completeStep: 'view_player_card',
   },
   {
@@ -49,28 +49,9 @@ export const PARENT_TUTORIAL_STEPS = [
     description: 'Find all practices and games here. Tap any event to see details and RSVP.',
     target: '[data-tutorial="schedule-section"]',
     page: 'dashboard',
-    position: 'right',
+    position: 'top',
     action: 'next',
     completeStep: 'view_schedule',
-  },
-  {
-    id: 'rsvp_event',
-    title: 'RSVP to Events',
-    description: 'Help your coach plan by RSVPing to events. Tap "Going" or "Not Going" on any upcoming event.',
-    target: '[data-tutorial="rsvp-buttons"]',
-    page: 'schedule',
-    position: 'bottom',
-    action: 'click',
-    completeStep: 'first_rsvp',
-  },
-  {
-    id: 'team_chat',
-    title: 'Team Chat',
-    description: 'Stay connected with coaches and other parents. Ask questions, share updates, and celebrate wins together!',
-    target: '[data-tutorial="team-chat"]',
-    page: 'dashboard',
-    position: 'left',
-    action: 'next',
   },
   {
     id: 'complete',
@@ -83,37 +64,31 @@ export const PARENT_TUTORIAL_STEPS = [
 ]
 
 // Parent checklist items (shown on dashboard)
+// navTo values must match page IDs in MainApp.jsx routing
 export const PARENT_CHECKLIST = [
   { 
     id: 'complete_registration', 
     title: 'Complete Registration', 
-    description: 'Finish all required registration fields',
+    description: 'Your player is registered and on a team',
     icon: '📝',
-    checkFn: (data) => data.registration?.status === 'approved' || data.registration?.status === 'rostered',
-  },
-  { 
-    id: 'sign_waivers', 
-    title: 'Sign Waivers', 
-    description: 'Sign all required liability waivers',
-    icon: '✍️',
-    checkFn: (data) => data.waiversSigned >= data.waiversRequired,
-    navTo: 'waivers',
-  },
-  { 
-    id: 'make_payment', 
-    title: 'Pay Registration Fee', 
-    description: 'Complete your registration payment',
-    icon: '💳',
-    checkFn: (data) => data.paymentComplete || data.amountPaid >= data.amountDue,
-    navTo: 'payments',
+    checkFn: (data) => data.isRegistered,
+    navTo: null, // Already on dashboard, no navigation needed
   },
   { 
     id: 'add_player_photo', 
     title: 'Add Player Photo', 
     description: 'Upload a photo for the player card',
     icon: '📷',
-    checkFn: (data) => !!data.player?.photo_url,
-    navTo: 'player-profile',
+    checkFn: (data) => data.hasPhoto,
+    navTo: null, // Photo upload is on dashboard hero card
+  },
+  { 
+    id: 'make_payment', 
+    title: 'Pay Registration Fee', 
+    description: 'Complete your registration payment',
+    icon: '💳',
+    checkFn: (data) => data.paymentComplete,
+    navTo: 'payments',
   },
   { 
     id: 'view_schedule', 
@@ -130,6 +105,14 @@ export const PARENT_CHECKLIST = [
     icon: '✅',
     checkFn: (data) => data.hasRsvpd,
     navTo: 'schedule',
+  },
+  { 
+    id: 'join_team_hub', 
+    title: 'Visit Team Hub', 
+    description: 'Check out your team\'s page',
+    icon: '👥',
+    checkFn: (data) => data.hasVisitedTeamHub,
+    navTo: null, // Team hub opens via navigateToTeamWall, not page nav
   },
 ]
 
@@ -182,63 +165,77 @@ export function ParentTutorialProvider({ children }) {
     setLoading(false)
   }
 
-  // Load checklist data (registration status, payments, etc.)
-  async function loadChecklistData(playerId) {
-    if (!playerId) return
-
+  // Load checklist data - can be called with player data from ParentDashboard
+  // or will auto-detect from profile
+  async function loadChecklistData(playerData = null) {
     try {
-      // Get registration
-      const { data: reg } = await supabase
-        .from('registrations')
-        .select('*, players(*)')
-        .eq('player_id', playerId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      let checklistData = {
+        isRegistered: false,
+        hasPhoto: false,
+        paymentComplete: false,
+        hasViewedSchedule: tutorialState.completedSteps?.includes('view_schedule'),
+        hasRsvpd: false,
+        hasVisitedTeamHub: tutorialState.completedSteps?.includes('join_team_hub'),
+      }
 
-      // Get waiver signatures
-      const { data: signatures } = await supabase
-        .from('waiver_signatures')
-        .select('id')
-        .eq('player_id', playerId)
+      // If player data is passed directly (from ParentDashboard)
+      if (playerData) {
+        const player = Array.isArray(playerData) ? playerData[0] : playerData
+        
+        checklistData = {
+          ...checklistData,
+          isRegistered: !!(player?.team || player?.team_players?.length > 0),
+          hasPhoto: !!player?.photo_url,
+        }
 
-      // Get required waivers count
-      const { count: requiredWaivers } = await supabase
-        .from('waivers')
-        .select('id', { count: 'exact', head: true })
-        .eq('organization_id', profile?.organization_id)
-        .eq('is_active', true)
+        // Check payments for this player
+        if (player?.id) {
+          const { data: payments } = await supabase
+            .from('payments')
+            .select('amount, paid')
+            .eq('player_id', player.id)
 
-      // Get payments
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('amount')
-        .eq('player_id', playerId)
-        .eq('status', 'completed')
+          const totalPaid = (payments || []).filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+          const totalDue = (payments || []).filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+          checklistData.paymentComplete = totalDue <= 0 || totalPaid > 0
 
-      // Get RSVPs
-      const { data: rsvps } = await supabase
-        .from('event_rsvps')
-        .select('id')
-        .eq('player_id', playerId)
-        .limit(1)
+          // Check RSVPs
+          const { data: rsvps } = await supabase
+            .from('event_rsvps')
+            .select('id')
+            .eq('player_id', player.id)
+            .limit(1)
 
-      const amountPaid = payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
-      const amountDue = reg?.amount_due || reg?.season?.registration_fee || 0
+          checklistData.hasRsvpd = (rsvps?.length || 0) > 0
+        }
+      } 
+      // Otherwise try to load from profile's children
+      else if (profile?.id) {
+        const { data: players } = await supabase
+          .from('players')
+          .select('*, team_players(team_id)')
+          .eq('parent_account_id', profile.id)
+          .limit(1)
+
+        if (players?.length > 0) {
+          const player = players[0]
+          checklistData.isRegistered = !!(player.team_players?.length > 0)
+          checklistData.hasPhoto = !!player.photo_url
+
+          // Check RSVPs
+          const { data: rsvps } = await supabase
+            .from('event_rsvps')
+            .select('id')
+            .eq('player_id', player.id)
+            .limit(1)
+
+          checklistData.hasRsvpd = (rsvps?.length || 0) > 0
+        }
+      }
 
       setTutorialState(prev => ({
         ...prev,
-        checklistData: {
-          registration: reg,
-          player: reg?.players,
-          waiversSigned: signatures?.length || 0,
-          waiversRequired: requiredWaivers || 0,
-          amountPaid,
-          amountDue,
-          paymentComplete: amountPaid >= amountDue,
-          hasRsvpd: (rsvps?.length || 0) > 0,
-          hasViewedSchedule: prev.completedSteps?.includes('view_schedule'),
-        },
+        checklistData,
       }))
     } catch (err) {
       console.error('Error loading checklist data:', err)
