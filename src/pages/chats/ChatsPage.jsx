@@ -80,7 +80,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         .from('chat_channels')
         .select(`
           *,
-          teams (id, name, color),
+          teams (id, name, color, logo_url),
           channel_members (id, user_id, display_name, last_read_at)
         `)
         .eq('season_id', selectedSeason.id)
@@ -391,6 +391,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, ac
 function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, activeView, isMobile }) {
   const { user, profile } = useAuth()
   const messagesEndRef = useRef(null)
+  const fileInputRef = useRef(null)
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [newMessage, setNewMessage] = useState('')
@@ -399,6 +400,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const [showGifPicker, setShowGifPicker] = useState(false)
   const [replyingTo, setReplyingTo] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const inputRef = useRef(null)
 
   // Determine if user can post
@@ -509,14 +511,13 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     inputRef.current?.focus()
   }
 
-  async function sendGif(gifUrl, gifPreview) {
+  async function sendGif(gifUrl) {
     setSending(true)
     const { error } = await supabase.from('chat_messages').insert({
       channel_id: channel.id,
       sender_id: user?.id,
       content: gifUrl,
-      message_type: 'gif',
-      metadata: { preview: gifPreview }
+      message_type: 'gif'
     })
     
     if (!error) {
@@ -527,6 +528,71 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         .eq('id', channel.id)
     }
     setSending(false)
+  }
+
+  async function uploadPhoto(file) {
+    if (!file) return
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      showToast?.('Please select an image file (JPEG, PNG, GIF, WebP)', 'error')
+      return
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast?.('Image must be less than 5MB', 'error')
+      return
+    }
+    
+    setUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `chat_${channel.id}_${Date.now()}.${fileExt}`
+      const filePath = `chat-images/${fileName}`
+      
+      // Upload to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file, { upsert: true })
+      
+      if (uploadError) throw uploadError
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath)
+      
+      // Send as message
+      const { error: msgError } = await supabase.from('chat_messages').insert({
+        channel_id: channel.id,
+        sender_id: user?.id,
+        content: publicUrl,
+        message_type: 'image'
+      })
+      
+      if (msgError) throw msgError
+      
+      // Update channel timestamp
+      await supabase
+        .from('chat_channels')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', channel.id)
+        
+    } catch (err) {
+      console.error('Upload error:', err)
+      showToast?.('Error uploading image', 'error')
+    }
+    setUploading(false)
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files?.[0]
+    if (file) {
+      uploadPhoto(file)
+      e.target.value = '' // Reset input
+    }
   }
 
   async function addReaction(messageId, emoji) {
@@ -680,13 +746,45 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       
       {/* Messages */}
       <div 
-        className="flex-1 overflow-y-auto p-4 space-y-1"
+        className="flex-1 overflow-y-auto p-4 space-y-1 relative"
         style={{ 
           background: isDark 
             ? 'radial-gradient(ellipse at top, #1e293b 0%, #0f172a 100%)' 
             : 'radial-gradient(ellipse at top, #ffffff 0%, #f1f5f9 100%)'
         }}
       >
+        {/* Team logo watermark */}
+        {channel.teams?.logo_url && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{ opacity: isDark ? 0.03 : 0.05 }}
+          >
+            <img 
+              src={channel.teams.logo_url} 
+              alt="" 
+              className="w-64 h-64 object-contain"
+            />
+          </div>
+        )}
+        
+        {/* Fallback: Team color circle watermark */}
+        {!channel.teams?.logo_url && channel.teams?.color && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            style={{ opacity: isDark ? 0.03 : 0.04 }}
+          >
+            <div 
+              className="w-48 h-48 rounded-full flex items-center justify-center text-8xl font-bold"
+              style={{ 
+                backgroundColor: channel.teams.color,
+                color: 'white'
+              }}
+            >
+              {channel.teams.name?.charAt(0) || '🏐'}
+            </div>
+          </div>
+        )}
+        
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div 
@@ -795,6 +893,26 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           >
             {/* Attachment buttons */}
             <div className="flex items-center gap-1">
+              {/* Photo upload */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'} ${uploading ? 'opacity-50' : ''}`}
+                title="Upload photo"
+              >
+                {uploading ? (
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Image className="w-5 h-5" />
+                )}
+              </button>
               <button 
                 onClick={() => { setShowGifPicker(!showGifPicker); setShowEmojiPicker(false) }}
                 className={`p-2 rounded-xl transition-colors ${showGifPicker ? 'bg-white/20' : ''} ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
@@ -865,6 +983,10 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
     return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
   }
 
+  // Check if message is emoji-only (1-3 emojis, no other text)
+  const emojiRegex = /^(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F){1,5}$/u
+  const isEmojiOnly = message.message_type === 'text' && emojiRegex.test(message.content?.trim() || '')
+
   const renderContent = () => {
     if (message.message_type === 'gif') {
       return (
@@ -873,6 +995,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
           alt="GIF" 
           className="max-w-[240px] rounded-xl"
           loading="lazy"
+          onError={(e) => { e.target.style.display = 'none' }}
         />
       )
     }
@@ -881,9 +1004,21 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
         <img 
           src={message.content} 
           alt="Image" 
-          className="max-w-[280px] rounded-xl"
+          className="max-w-[280px] rounded-xl cursor-pointer hover:opacity-90 transition"
           loading="lazy"
+          onClick={() => window.open(message.content, '_blank')}
         />
+      )
+    }
+    if (message.message_type === 'system') {
+      return (
+        <p className="text-xs italic opacity-80">{message.content}</p>
+      )
+    }
+    // Emoji-only messages display large
+    if (isEmojiOnly) {
+      return (
+        <span className="text-4xl leading-tight">{message.content}</span>
       )
     }
     return (
@@ -893,6 +1028,35 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
 
   const reactions = message.reactions || {}
   const hasReactions = Object.keys(reactions).length > 0
+
+  // Softer bubble colors - GroupMe style
+  const getBubbleStyle = () => {
+    if (message.message_type === 'system') {
+      return {
+        background: isDark ? '#ffffff08' : '#00000005',
+        color: isDark ? '#94a3b8' : '#64748b'
+      }
+    }
+    if (isEmojiOnly) {
+      return {
+        background: 'transparent',
+        color: isDark ? '#f1f5f9' : '#0f172a'
+      }
+    }
+    if (isOwn) {
+      // Softer blue/teal instead of harsh orange
+      return {
+        background: isDark ? '#3b82f6' : '#3b82f6', // Blue
+        color: 'white'
+      }
+    }
+    return {
+      background: isDark ? '#374151' : '#f1f5f9',
+      color: isDark ? '#f1f5f9' : '#1e293b'
+    }
+  }
+
+  const bubbleStyle = getBubbleStyle()
 
   return (
     <div 
@@ -908,12 +1072,12 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
               <img 
                 src={message.sender.avatar_url} 
                 alt="" 
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20"
               />
             ) : (
               <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                style={{ background: isDark ? '#ffffff20' : '#00000010' }}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                style={{ background: `hsl(${(message.sender?.full_name?.charCodeAt(0) || 0) * 10 % 360}, 60%, 50%)` }}
               >
                 {message.sender?.full_name?.charAt(0)?.toUpperCase() || '?'}
               </div>
@@ -925,7 +1089,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
       <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
         {/* Sender name */}
         {showAvatar && !isOwn && (
-          <span className={`text-xs mb-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <span className={`text-xs mb-1 font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             {message.sender?.full_name || 'Unknown'}
           </span>
         )}
@@ -933,47 +1097,51 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
         {/* Reply preview */}
         {message.reply_to && (
           <div 
-            className={`text-xs px-3 py-1.5 rounded-t-xl mb-0.5 ${
+            className={`text-xs px-3 py-1.5 rounded-t-xl mb-0.5 border-l-2 ${
               isOwn 
-                ? 'bg-white/10 text-white/70 rounded-l-xl' 
-                : isDark ? 'bg-white/5 text-slate-400 rounded-r-xl' : 'bg-black/5 text-slate-500 rounded-r-xl'
+                ? 'bg-blue-400/20 text-blue-100 border-blue-300' 
+                : isDark ? 'bg-white/5 text-slate-400 border-slate-500' : 'bg-slate-100 text-slate-500 border-slate-300'
             }`}
           >
             <span className="font-medium">{message.reply_to.sender?.full_name}</span>
-            <p className="truncate">{message.reply_to.content}</p>
+            <p className="truncate opacity-80">{message.reply_to.content}</p>
           </div>
         )}
         
         {/* Message bubble */}
         <div className="relative">
           <div 
-            className={`px-4 py-2.5 rounded-2xl ${
-              isOwn 
-                ? 'rounded-br-md' 
-                : 'rounded-bl-md'
+            className={`${isEmojiOnly ? 'px-1 py-1' : 'px-4 py-2.5'} rounded-2xl ${
+              isOwn && !isEmojiOnly ? 'rounded-br-md' : !isOwn && !isEmojiOnly ? 'rounded-bl-md' : ''
             }`}
-            style={{
-              background: isOwn 
-                ? accent.primary 
-                : isDark ? '#ffffff15' : '#00000008',
-              color: isOwn ? 'white' : isDark ? '#f1f5f9' : '#0f172a'
-            }}
+            style={bubbleStyle}
           >
             {renderContent()}
             
-            {/* Time */}
-            <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
-              <span className={`text-[10px] ${isOwn ? 'text-white/60' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                {formatTime(message.created_at)}
-              </span>
-              {isOwn && (
-                <CheckCheck className={`w-3 h-3 ${message.read_at ? 'text-blue-300' : 'text-white/40'}`} />
-              )}
-            </div>
+            {/* Time - outside bubble for emoji-only */}
+            {!isEmojiOnly && (
+              <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+                <span className={`text-[10px] ${isOwn ? 'text-white/60' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {formatTime(message.created_at)}
+                </span>
+                {isOwn && (
+                  <CheckCheck className={`w-3 h-3 ${message.read_at ? 'text-blue-200' : 'text-white/40'}`} />
+                )}
+              </div>
+            )}
           </div>
           
+          {/* Time below emoji-only messages */}
+          {isEmojiOnly && (
+            <div className={`flex items-center gap-1 mt-0.5 ${isOwn ? 'justify-end' : ''}`}>
+              <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                {formatTime(message.created_at)}
+              </span>
+            </div>
+          )}
+          
           {/* Action buttons */}
-          {showActions && (
+          {showActions && message.message_type !== 'system' && (
             <div 
               className={`absolute top-0 flex items-center gap-1 ${
                 isOwn ? 'right-full mr-2' : 'left-full ml-2'
@@ -1119,6 +1287,7 @@ function GifPicker({ onSelect, onClose, isDark }) {
   const [gifs, setGifs] = useState([])
   const [loading, setLoading] = useState(false)
   const [trending, setTrending] = useState([])
+  const [error, setError] = useState(null)
   
   useEffect(() => {
     loadTrending()
@@ -1126,14 +1295,22 @@ function GifPicker({ onSelect, onClose, isDark }) {
   
   async function loadTrending() {
     setLoading(true)
+    setError(null)
     try {
+      // Use Tenor v2 API with media_filter for smaller previews
       const res = await fetch(
-        `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=gif`
+        `https://tenor.googleapis.com/v2/featured?key=${TENOR_API_KEY}&limit=20&media_filter=tinygif,gif&contentfilter=medium`
       )
       const data = await res.json()
-      setTrending(data.results || [])
+      console.log('Tenor response:', data)
+      if (data.results) {
+        setTrending(data.results)
+      } else if (data.error) {
+        setError(data.error.message)
+      }
     } catch (err) {
       console.error('Error loading trending GIFs:', err)
+      setError('Failed to load GIFs')
     }
     setLoading(false)
   }
@@ -1147,7 +1324,7 @@ function GifPicker({ onSelect, onClose, isDark }) {
     setLoading(true)
     try {
       const res = await fetch(
-        `https://tenor.googleapis.com/v2/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(q)}&limit=20&media_filter=gif`
+        `https://tenor.googleapis.com/v2/search?key=${TENOR_API_KEY}&q=${encodeURIComponent(q)}&limit=20&media_filter=tinygif,gif&contentfilter=medium`
       )
       const data = await res.json()
       setGifs(data.results || [])
@@ -1155,6 +1332,21 @@ function GifPicker({ onSelect, onClose, isDark }) {
       console.error('Error searching GIFs:', err)
     }
     setLoading(false)
+  }
+  
+  const getGifUrl = (gif, type = 'preview') => {
+    // Try different formats in order of preference
+    if (type === 'preview') {
+      return gif.media_formats?.tinygif?.url || 
+             gif.media_formats?.nanogif?.url || 
+             gif.media_formats?.gif?.url ||
+             gif.url
+    }
+    // Full size for sending
+    return gif.media_formats?.gif?.url || 
+           gif.media_formats?.mediumgif?.url ||
+           gif.media_formats?.tinygif?.url ||
+           gif.url
   }
   
   const displayGifs = query ? gifs : trending
@@ -1192,23 +1384,21 @@ function GifPicker({ onSelect, onClose, isDark }) {
           </div>
         ) : displayGifs.length === 0 ? (
           <div className={`col-span-2 text-center py-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {query ? 'No GIFs found' : 'Loading...'}
+            {error ? error : query ? 'No GIFs found' : 'Loading...'}
           </div>
         ) : (
           displayGifs.map(gif => (
             <button
               key={gif.id}
-              onClick={() => onSelect(
-                gif.media_formats?.gif?.url || gif.media_formats?.tinygif?.url,
-                gif.media_formats?.tinygif?.url || gif.media_formats?.nanogif?.url
-              )}
-              className="aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
+              onClick={() => onSelect(getGifUrl(gif, 'full'))}
+              className="aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all bg-slate-100 dark:bg-slate-800"
             >
               <img 
-                src={gif.media_formats?.tinygif?.url || gif.media_formats?.nanogif?.url}
+                src={getGifUrl(gif, 'preview')}
                 alt={gif.content_description || 'GIF'}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                onError={(e) => { e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" x="25" font-size="40">🎬</text></svg>' }}
               />
             </button>
           ))
