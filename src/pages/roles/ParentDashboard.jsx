@@ -1226,6 +1226,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                     p.id === activeChild.id ? { ...p, photo_url: photoUrl } : p
                   ))
                   showToast?.('Photo updated!', 'success')
+                  
+                  // Complete parent journey step
+                  parentTutorial?.completeStep?.('add_player_photo')
                 }}
               />
               <div className="text-center text-white">
