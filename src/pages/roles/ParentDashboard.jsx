@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useJourney } from '../../contexts/JourneyContext'
+import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
 import { 
   Calendar, MapPin, Clock, Users, DollarSign, ChevronRight, 
@@ -12,6 +14,7 @@ import {
 import TeamStandingsWidget from '../../components/widgets/parent/TeamStandingsWidget'
 import ChildStatsWidget from '../../components/widgets/parent/ChildStatsWidget'
 import ChildAchievementsWidget from '../../components/widgets/parent/ChildAchievementsWidget'
+import { ParentChecklistWidget } from '../../components/parent/ParentOnboarding'
 
 // Volleyball icon component
 function VolleyballIcon({ className }) {
@@ -648,6 +651,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const { selectedSport } = useSport()
+  const journey = useJourney()
+  const parentTutorial = useParentTutorial()
   
   const [loading, setLoading] = useState(true)
   const [upcomingEvents, setUpcomingEvents] = useState([])
@@ -1062,7 +1067,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const activeChildUnpaid = paymentSummary.unpaidItems.filter(p => p.player_id === activeChild?.id)
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-tutorial="dashboard-header">
 
       {/* ═══ ALERTS ═══ */}
       {visibleAlerts.map(alert => (
@@ -1095,6 +1100,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           </button>
         </div>
       ))}
+
+      {/* ═══ GETTING STARTED CHECKLIST ═══ */}
+      <ParentChecklistWidget onNavigate={onNavigate} />
 
       {/* ═══ CHILD TABS (2+ children) ═══ */}
       {registrationData.length > 1 && (
@@ -1131,6 +1139,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       {/* ═══ PLAYER HERO CARD ═══ */}
       <div 
         className="overflow-hidden shadow-xl"
+        data-tutorial="player-card"
         style={{ 
           borderRadius: registrationData.length > 1 ? '0 20px 20px 20px' : '20px',
           border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
@@ -1576,7 +1585,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       </div>
 
       {/* ═══ SCHEDULE ═══ */}
-      <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-3 mt-1`}>
+      <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-3 mt-1`} data-tutorial="schedule-section">
         SCHEDULE <span className={`flex-1 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
       </div>
       <div className="flex items-center justify-between">
