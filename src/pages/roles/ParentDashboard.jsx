@@ -763,6 +763,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         
         // Load alerts
         await loadAlerts(regData[0]?.season?.organizations?.id)
+        
+        // Load parent tutorial checklist data
+        parentTutorial?.loadChecklistData?.(regData)
       }
     } catch (err) {
       console.error('Error loading parent data:', err)
@@ -823,6 +826,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       if (orgId) {
         await loadAlerts(orgId)
       }
+      
+      // Load parent tutorial checklist data
+      parentTutorial?.loadChecklistData?.(regData)
     } catch (err) {
       console.error('Error loading parent data:', err)
     }
@@ -1102,7 +1108,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       ))}
 
       {/* ═══ GETTING STARTED CHECKLIST ═══ */}
-      <ParentChecklistWidget onNavigate={onNavigate} />
+      <ParentChecklistWidget 
+        onNavigate={onNavigate} 
+        onTeamHub={() => navigateToTeamWall?.(activeTeam?.id)}
+        activeTeam={activeTeam}
+      />
 
       {/* ═══ CHILD TABS (2+ children) ═══ */}
       {registrationData.length > 1 && (
