@@ -405,6 +405,8 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const [showMediaGallery, setShowMediaGallery] = useState(false) // For media gallery modal
   const [mediaItems, setMediaItems] = useState([])
   const [loadingMedia, setLoadingMedia] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
+  const menuButtonRef = useRef(null)
   const inputRef = useRef(null)
 
   // Determine if user can post
@@ -725,57 +727,69 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         
         <div className="relative">
           <button 
-            onClick={() => setShowMenu(!showMenu)}
+            ref={menuButtonRef}
+            onClick={() => {
+              if (menuButtonRef.current) {
+                const rect = menuButtonRef.current.getBoundingClientRect()
+                setMenuPosition({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
+              }
+              setShowMenu(!showMenu)
+            }}
             className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
           >
             <MoreVertical className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
           </button>
-          
-          {/* Dropdown Menu */}
-          {showMenu && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-              <div 
-                className="absolute right-0 top-full mt-1 w-48 rounded-xl shadow-lg z-50 py-1 overflow-hidden"
-                style={{ background: isDark ? '#1e293b' : '#ffffff' }}
-              >
-                <button
-                  onClick={() => { setShowMenu(false); loadMediaGallery() }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
-                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
-                  }`}
-                >
-                  <Image className="w-4 h-4" /> View Media
-                </button>
-                <button
-                  onClick={() => { setShowMenu(false); showToast?.('Members feature coming soon', 'info') }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
-                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
-                  }`}
-                >
-                  <Users className="w-4 h-4" /> View Members
-                </button>
-                <button
-                  onClick={() => { setShowMenu(false); showToast?.('Notifications feature coming soon', 'info') }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
-                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
-                  }`}
-                >
-                  🔔 Mute Notifications
-                </button>
-                <button
-                  onClick={() => { setShowMenu(false); showToast?.('Search feature coming soon', 'info') }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
-                    isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
-                  }`}
-                >
-                  <Search className="w-4 h-4" /> Search Messages
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </div>
+      
+      {/* Dropdown Menu - Fixed position to escape overflow hidden */}
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-[100]" onClick={() => setShowMenu(false)} />
+          <div 
+            className="fixed w-48 rounded-xl shadow-2xl z-[101] py-1 overflow-hidden border"
+            style={{ 
+              top: menuPosition.top,
+              right: menuPosition.right,
+              background: isDark ? '#1e293b' : '#ffffff',
+              borderColor: isDark ? '#ffffff15' : '#00000010'
+            }}
+          >
+            <button
+              onClick={() => { setShowMenu(false); loadMediaGallery() }}
+              className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+              }`}
+            >
+              <Image className="w-4 h-4" /> View Media
+            </button>
+            <button
+              onClick={() => { setShowMenu(false); showToast?.('Members feature coming soon', 'info') }}
+              className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+              }`}
+            >
+              <Users className="w-4 h-4" /> View Members
+            </button>
+            <button
+              onClick={() => { setShowMenu(false); showToast?.('Notifications feature coming soon', 'info') }}
+              className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+              }`}
+            >
+              🔔 Mute Notifications
+            </button>
+            <button
+              onClick={() => { setShowMenu(false); showToast?.('Search feature coming soon', 'info') }}
+              className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 ${
+                isDark ? 'hover:bg-white/10 text-slate-200' : 'hover:bg-black/5 text-slate-700'
+              }`}
+            >
+              <Search className="w-4 h-4" /> Search Messages
+            </button>
+          </div>
+        </>
+      )}
       
       {/* Messages */}
       <div 
