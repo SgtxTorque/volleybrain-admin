@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext'
 import { useTheme, useThemeClasses } from './contexts/ThemeContext'
 import { SportProvider, useSport } from './contexts/SportContext'
 import { SeasonProvider, useSeason } from './contexts/SeasonContext'
+import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
 import { supabase } from './lib/supabase'
 
 // Icons
@@ -31,6 +32,9 @@ import {
   BlastAlertChecker,
   JourneyCelebrations
 } from './components/layout'
+
+// Parent Onboarding Components
+import { SpotlightOverlay, ParentChecklistWidget, FloatingHelpButton } from './components/parent/ParentOnboarding'
 
 // Dashboard Pages
 import { DashboardPage } from './pages/dashboard'
@@ -1161,6 +1165,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                 <button 
                   onClick={() => setPage('payments')}
                   className="flex items-center gap-4 px-6 py-2 hover:bg-slate-50 transition rounded-lg"
+                  data-tutorial="payments-section"
                 >
                   <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${stats.balanceDue > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'}`}>
                     <DollarSign className="w-6 h-6 text-white" />
@@ -1576,8 +1581,12 @@ function MainApp() {
   return (
     <SportProvider>
     <SeasonProvider>
+    <ParentTutorialProvider>
       <div className={`flex flex-col min-h-screen ${tc.pageBg}`}>
         <JourneyCelebrations />
+        
+        {/* Parent Tutorial Spotlight Overlay */}
+        {activeView === 'parent' && <SpotlightOverlay />}
         
         {/* Horizontal Nav Bar */}
         <HorizontalNavBar 
@@ -1649,7 +1658,11 @@ function MainApp() {
 
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <BlastAlertChecker />
+        
+        {/* Parent Floating Help Button */}
+        {activeView === 'parent' && <FloatingHelpButton />}
       </div>
+    </ParentTutorialProvider>
     </SeasonProvider>
     </SportProvider>
   )
