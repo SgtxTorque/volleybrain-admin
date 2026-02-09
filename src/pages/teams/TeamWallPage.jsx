@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -10,7 +10,10 @@ import {
   Heart, Share2, MoreVertical
 } from '../../constants/icons'
 
-// Volleyball icon component
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+
 function VolleyballIcon({ className }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -21,7 +24,6 @@ function VolleyballIcon({ className }) {
   )
 }
 
-// Helper function to format time to 12-hour format
 function formatTime12(timeStr) {
   if (!timeStr) return ''
   const [hours, minutes] = timeStr.split(':')
@@ -31,40 +33,161 @@ function formatTime12(timeStr) {
   return hour12 + ':' + minutes + ' ' + ampm
 }
 
-// ============================================
-// TEAM WALL PAGE - Team Hub for Players/Parents/Coaches
-// ============================================
+function useCountdown(targetDate) {
+  const [val, setVal] = useState({})
+  useEffect(() => {
+    if (!targetDate) return
+    const tick = () => {
+      const d = Math.max(0, new Date(targetDate).getTime() - Date.now())
+      setVal({
+        d: Math.floor(d / 864e5),
+        h: Math.floor((d % 864e5) / 36e5),
+        m: Math.floor((d % 36e5) / 6e4),
+        s: Math.floor((d % 6e4) / 1e3),
+      })
+    }
+    tick()
+    const i = setInterval(tick, 1000)
+    return () => clearInterval(i)
+  }, [targetDate])
+  return val
+}
+
+// Emoji set for reactions
+const EMOJIS = ['🏐', '🔥', '💪', '🏆', '⭐', '❤️', '💯', '🐝', '👍']
+
+// ═══════════════════════════════════════════════════════════
+// INLINE STYLES (from TeamHub visual redesign)
+// ═══════════════════════════════════════════════════════════
+const HUB_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+  @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes vsFlash{0%,80%,100%{opacity:.85}90%{opacity:1;text-shadow:0 0 30px rgba(239,68,68,.5)}}
+  @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes bannerFade{from{opacity:0}to{opacity:1}}
+  @keyframes shimmer{from{left:-100%}to{left:200%}}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(245,158,11,.1)}50%{box-shadow:0 0 20px rgba(245,158,11,.2)}}
+  @keyframes borderPulse{0%,100%{border-color:rgba(245,158,11,.2)}50%{border-color:rgba(245,158,11,.45)}}
+  @keyframes badgeBounce{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+  .tw-au{animation:fadeUp .5s ease-out both}
+  .tw-ai{animation:fadeIn .4s ease-out both}
+  .tw-as{animation:scaleIn .3s ease-out both}
+  .tw-ac{animation:cardIn .4s ease-out both}
+
+  .tw-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
+  .tw-heading{font-family:'Rajdhani','Oswald',sans-serif;font-weight:700;letter-spacing:.04em}
+  .tw-mono{font-family:'JetBrains Mono',monospace}
+
+  .tw-ecard{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);transition:all .25s}
+  .tw-ecard:hover{border-color:rgba(245,158,11,.2);transform:translateY(-1px)}
+  .tw-ecard-glow{background:linear-gradient(165deg,rgba(245,158,11,.05) 0%,rgba(255,255,255,.02) 35%,rgba(10,10,15,.95) 100%);border:1px solid rgba(245,158,11,.15);box-shadow:0 0 8px rgba(245,158,11,.04)}
+  .tw-ecard-glow:hover{border-color:rgba(245,158,11,.3)}
+
+  .tw-nos::-webkit-scrollbar{display:none}.tw-nos{-ms-overflow-style:none;scrollbar-width:none}
+  .tw-clift{transition:transform .2s}.tw-clift:hover{transform:translateY(-2px)}
+
+  .tw-auto-accent{border-left:3px solid rgba(245,158,11,.4);background:linear-gradient(90deg,rgba(245,158,11,.04),transparent 30%)}
+  .tw-badge-accent{border-left:3px solid rgba(168,85,247,.4);background:linear-gradient(90deg,rgba(168,85,247,.04),transparent 30%)}
+  .tw-reminder-accent{border-left:3px solid rgba(56,189,248,.4);background:linear-gradient(90deg,rgba(56,189,248,.04),transparent 30%)}
+
+  /* Light mode overrides */
+  .tw-light .tw-ecard{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.08)}
+  .tw-light .tw-ecard:hover{border-color:rgba(245,158,11,.3)}
+  .tw-light .tw-ecard-glow{background:linear-gradient(165deg,rgba(245,158,11,.06) 0%,rgba(255,255,255,.8) 35%,rgba(255,255,255,.95) 100%);border-color:rgba(245,158,11,.2)}
+`
+
+// ═══════════════════════════════════════════════════════════
+// TEAM WALL PAGE — Merged: Real data + Redesigned visuals
+// ═══════════════════════════════════════════════════════════
 function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const { profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
-  
-  // Core data
+
+  // ── Core data (from original TeamWallPage) ──
   const [team, setTeam] = useState(null)
   const [roster, setRoster] = useState([])
   const [coaches, setCoaches] = useState([])
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   // Posts/Feed with pagination
   const [posts, setPosts] = useState([])
   const [postsPage, setPostsPage] = useState(1)
   const [hasMorePosts, setHasMorePosts] = useState(true)
   const [loadingMorePosts, setLoadingMorePosts] = useState(false)
   const POSTS_PER_PAGE = 10
-  
+
   const [documents, setDocuments] = useState([])
   const [activeTab, setActiveTab] = useState('feed')
-  
+
   // Modals
   const [showNewPostModal, setShowNewPostModal] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState(null)
   const [showEventDetail, setShowEventDetail] = useState(null)
-  
+
+  // ── Visual state (from TeamHub redesign) ──
+  const [bannerSlide, setBannerSlide] = useState(0)
+  const [showBannerEdit, setShowBannerEdit] = useState(false)
+  const [tickerText, setTickerText] = useState('')
+  const [editingTicker, setEditingTicker] = useState(false)
+  const [tickerOverflows, setTickerOverflows] = useState(false)
+  const tickerRef = useRef(null)
+  const [picker, setPicker] = useState(null)
+  const [showAllRoster, setShowAllRoster] = useState(false)
+
+  // Derive the team accent color (fallback to amber)
+  const g = team?.color || '#F59E0B'
+  const gb = adjustBrightness(g, 20)
+  const dim = adjustBrightness(g, -30)
+
+  // Banner slides config — uses real team data
+  const bannerSlides = [
+    { id: 1, type: 'photo', label: 'Team Photo' },
+    { id: 2, type: 'next_game', label: 'Next Game' },
+    { id: 3, type: 'season_stats', label: 'Season Pulse' },
+  ]
+
+  // The next upcoming game (for countdown banner)
+  const nextGame = upcomingEvents.find(e => e.event_type === 'game') || upcomingEvents[0]
+  const countdownTarget = nextGame ? `${nextGame.event_date}T${nextGame.event_time || '19:00:00'}` : null
+  const cd = useCountdown(countdownTarget)
+
+  // ── Auto-advance banner ──
+  useEffect(() => {
+    const i = setInterval(() => setBannerSlide(p => (p + 1) % bannerSlides.length), 7000)
+    return () => clearInterval(i)
+  }, [bannerSlides.length])
+
+  // ── Init ticker from team motto ──
+  useEffect(() => {
+    if (team?.motto) setTickerText(`🐝 "${team.motto}"`)
+    else if (team?.name) setTickerText(`🐝 Welcome to ${team.name}!`)
+  }, [team])
+
+  // ── Check ticker overflow ──
+  useEffect(() => {
+    if (tickerRef.current) {
+      setTickerOverflows(tickerRef.current.scrollWidth > tickerRef.current.clientWidth)
+    }
+  }, [tickerText])
+
+  // ═══════════════════════════════════════════════════════════
+  // DATA LOADING — Preserved exactly from original TeamWallPage
+  // ═══════════════════════════════════════════════════════════
+
   useEffect(() => {
     if (teamId) loadTeamData()
   }, [teamId])
-  
+
   async function loadTeamData() {
     setLoading(true)
     try {
@@ -74,9 +197,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         .select('*, seasons(name, sports(name, icon))')
         .eq('id', teamId)
         .single()
-      
+
       setTeam(teamData)
-      
+
       // Load roster
       const { data: players } = await supabase
         .from('team_players')
@@ -88,25 +211,24 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           )
         `)
         .eq('team_id', teamId)
-      
+
       setRoster(players?.map(p => p.players).filter(Boolean) || [])
-      
-      // Load coaches - try different query patterns
+
+      // Load coaches
       try {
         const { data: coachesData } = await supabase
           .from('team_coaches')
           .select('*, coach_id')
           .eq('team_id', teamId)
-        
+
         if (coachesData?.length > 0) {
-          // Get coach profiles separately
           const coachIds = coachesData.map(c => c.coach_id).filter(Boolean)
           if (coachIds.length > 0) {
             const { data: profiles } = await supabase
               .from('profiles')
               .select('id, full_name, email, phone')
               .in('id', coachIds)
-            
+
             setCoaches(coachesData.map(c => ({
               ...profiles?.find(p => p.id === c.coach_id),
               role: c.role
@@ -117,8 +239,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         console.log('Could not load coaches:', err)
         setCoaches([])
       }
-      
-      // Load upcoming events from schedule_events table
+
+      // Load upcoming events
       try {
         const today = new Date().toISOString().split('T')[0]
         const { data: events } = await supabase
@@ -129,16 +251,16 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           .order('event_date')
           .order('event_time')
           .limit(5)
-        
+
         setUpcomingEvents(events || [])
       } catch (err) {
         console.log('Could not load events:', err)
         setUpcomingEvents([])
       }
-      
+
       // Load posts (first page)
       await loadPosts(1, true)
-      
+
       // Load documents
       try {
         const { data: docs } = await supabase
@@ -146,28 +268,28 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           .select('*')
           .eq('team_id', teamId)
           .order('created_at', { ascending: false })
-        
+
         setDocuments(docs || [])
       } catch (err) {
         console.log('Could not load documents:', err)
         setDocuments([])
       }
-      
+
     } catch (err) {
       console.error('Error loading team data:', err)
       showToast?.('Error loading team data', 'error')
     }
     setLoading(false)
   }
-  
+
   async function loadPosts(page = 1, reset = false) {
     if (loadingMorePosts) return
-    
+
     setLoadingMorePosts(true)
     try {
       const from = (page - 1) * POSTS_PER_PAGE
       const to = from + POSTS_PER_PAGE - 1
-      
+
       const { data: postsData, count } = await supabase
         .from('team_posts')
         .select('*, profiles:author_id(id, full_name, avatar_url)', { count: 'exact' })
@@ -176,13 +298,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .range(from, to)
-      
+
       if (reset) {
         setPosts(postsData || [])
       } else {
         setPosts(prev => [...prev, ...(postsData || [])])
       }
-      
+
       setPostsPage(page)
       setHasMorePosts((postsData?.length || 0) === POSTS_PER_PAGE)
     } catch (err) {
@@ -190,44 +312,40 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
     }
     setLoadingMorePosts(false)
   }
-  
+
   function loadMorePosts() {
     if (hasMorePosts && !loadingMorePosts) {
       loadPosts(postsPage + 1, false)
     }
   }
-  
+
   async function toggleReaction(postId) {
-    // Check if user already reacted
     const { data: existing } = await supabase
       .from('post_reactions')
       .select('id')
       .eq('post_id', postId)
       .eq('user_id', user?.id)
       .single()
-    
+
     if (existing) {
-      // Remove reaction
       await supabase.from('post_reactions').delete().eq('id', existing.id)
-      setPosts(prev => prev.map(p => 
+      setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, reaction_count: Math.max(0, (p.reaction_count || 0) - 1) } : p
       ))
     } else {
-      // Add reaction
       await supabase.from('post_reactions').insert({
         post_id: postId,
         user_id: user?.id,
         reaction_type: 'like'
       })
-      setPosts(prev => prev.map(p => 
+      setPosts(prev => prev.map(p =>
         p.id === postId ? { ...p, reaction_count: (p.reaction_count || 0) + 1 } : p
       ))
     }
   }
-  
-  // Navigate to team chat
+
+  // Navigate to team chat (preserved from original)
   function openTeamChat() {
-    // Store the team ID so ChatsPage can auto-select this team's chat
     sessionStorage.setItem('openTeamChat', teamId)
     if (onNavigate) {
       onNavigate('messages')
@@ -235,7 +353,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       console.warn('TeamWallPage: onNavigate prop not provided - cannot navigate to chat')
     }
   }
-  
+
+  // ═══════════════════════════════════════════════════════════
+  // LOADING / ERROR STATES (preserved from original)
+  // ═══════════════════════════════════════════════════════════
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -243,397 +365,601 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       </div>
     )
   }
-  
+
   if (!team) {
     return (
       <div className="text-center py-12">
         <VolleyballIcon className={`w-16 h-16 mx-auto ${tc.textMuted}`} />
         <p className={`${tc.text} mt-4`}>Team not found</p>
-        <button onClick={onBack} className={`mt-4 text-[var(--accent-primary)]`}>
+        <button onClick={onBack} className="mt-4 text-[var(--accent-primary)]">
           ← Go Back
         </button>
       </div>
     )
   }
 
+  // Derive team initials for logo placeholder
+  const teamInitials = (team.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const seasonLabel = team.seasons?.name || ''
+  const sportIcon = team.seasons?.sports?.icon || '🏐'
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDER — TeamHub visual design powered by real Supabase data
+  // ═══════════════════════════════════════════════════════════
+
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button 
+    <div className={`min-h-screen ${!isDark ? 'tw-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
+      <style>{HUB_STYLES}</style>
+
+      {/* ═══════════════════════════════════════════════════
+          BACK BUTTON (preserved from original)
+      ═══════════════════════════════════════════════════ */}
+      <button
         onClick={onBack}
-        className={`flex items-center gap-2 ${tc.textMuted} hover:${tc.text} transition`}
+        className="flex items-center gap-2 mb-4 text-white/40 hover:text-white/70 transition"
       >
         <ArrowLeft className="w-5 h-5" />
-        Back
+        <span className="tw-heading text-xs tracking-widest">BACK</span>
       </button>
 
-      {/* Team Header */}
-      <div 
-        className="relative rounded-2xl overflow-hidden"
-        style={{ backgroundColor: team.color || '#6366F1' }}
-      >
-        {team.banner_url && (
-          <img 
-            src={team.banner_url} 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-cover opacity-30" 
-          />
-        )}
-        <div className="relative p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {team.logo_url ? (
-              <img src={team.logo_url} alt={team.name} className="w-20 h-20 rounded-xl object-cover" />
-            ) : (
-              <div className="w-20 h-20 rounded-xl bg-white/20 flex items-center justify-center">
-                <VolleyballIcon className="w-10 h-10 text-white" />
-              </div>
+      {/* ═══════════════════════════════════════════════════
+          HERO BANNER — Carousel with real data
+      ═══════════════════════════════════════════════════ */}
+      <header className="relative rounded-2xl overflow-hidden" style={{ height: 320 }}>
+        {bannerSlides.map((slide, idx) => (
+          <div key={slide.id} className="absolute inset-0 transition-opacity duration-700"
+            style={{ opacity: bannerSlide === idx ? 1 : 0, zIndex: bannerSlide === idx ? 1 : 0 }}>
+            {slide.type === 'photo' && (
+              <PhotoBanner team={team} g={g} teamInitials={teamInitials} />
             )}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-white/80 text-sm">{team.seasons?.sports?.icon || '🏐'} {team.seasons?.name}</span>
-              </div>
-              <h1 className="text-3xl font-bold text-white">{team.name}</h1>
-              {team.motto && <p className="text-white/80 italic">"{team.motto}"</p>}
-            </div>
+            {slide.type === 'next_game' && (
+              <NextGameBanner team={team} nextGame={nextGame} cd={cd} g={g} teamInitials={teamInitials} />
+            )}
+            {slide.type === 'season_stats' && (
+              <SeasonPulseBanner team={team} roster={roster} coaches={coaches} g={g} sportIcon={sportIcon} />
+            )}
           </div>
-          
-          {/* Quick Actions - Including Chat Button */}
-          <div className="flex gap-2">
-            <button
-              onClick={openTeamChat}
-              className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-800 rounded-xl font-semibold transition flex items-center gap-2 shadow-lg"
-            >
-              <MessageCircle className="w-5 h-5" />
-              Team Chat
+        ))}
+
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 z-10"
+          style={{ background: isDark ? 'linear-gradient(transparent, #0A0A0F)' : 'linear-gradient(transparent, #f5f5f5)' }} />
+
+        {/* Banner nav dots */}
+        <div className="absolute bottom-20 right-6 z-20 flex gap-1.5">
+          {bannerSlides.map((_, i) => (
+            <button key={i} onClick={() => setBannerSlide(i)} className="transition-all rounded-full" style={{
+              width: bannerSlide === i ? 20 : 7, height: 7,
+              background: bannerSlide === i ? g : 'rgba(255,255,255,.2)',
+            }} />
+          ))}
+        </div>
+
+        {/* Edit banner button (admin/coach only) */}
+        {(profile?.role === 'admin' || profile?.role === 'coach') && (
+          <button onClick={() => setShowBannerEdit(!showBannerEdit)}
+            className="absolute top-4 right-4 z-20 w-8 h-8 rounded-lg flex items-center justify-center text-xs text-white/30 hover:text-white/60 hover:bg-white/[.06] transition"
+            style={{ background: 'rgba(0,0,0,.4)', backdropFilter: 'blur(8px)' }}>
+            ⚙️
+          </button>
+        )}
+
+        {showBannerEdit && (
+          <div className="absolute top-14 right-4 z-30 p-4 rounded-xl shadow-2xl tw-as"
+            style={{ background: 'rgba(10,10,15,.95)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(16px)', width: 260 }}>
+            <p className="text-[10px] tw-heading tracking-[.2em] mb-3" style={{ color: `${g}88` }}>BANNER SETTINGS</p>
+            {bannerSlides.map((s, i) => (
+              <div key={s.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
+                <span className="text-xs text-white/60">Slide {i + 1}: {s.label}</span>
+                <button className="text-[9px] px-2 py-0.5 rounded text-white/25 hover:text-white/50 transition" style={{ background: 'rgba(255,255,255,.04)' }}>Edit</button>
+              </div>
+            ))}
+            <button className="mt-3 w-full py-2 rounded-lg text-[10px] tw-heading tracking-wider text-center transition hover:bg-white/[.04]"
+              style={{ border: '1px solid rgba(255,255,255,.06)', color: `${g}88` }}>
+              + ADD SLIDE
             </button>
+          </div>
+        )}
+      </header>
+
+      {/* ═══════════════════════════════════════════════════
+          TEAM IDENTITY BAR — Logo + Name + Stats
+      ═══════════════════════════════════════════════════ */}
+      <div className="relative z-20 max-w-[1100px] mx-auto px-2 -mt-16">
+        <div className="flex items-end gap-5">
+          {/* Team logo */}
+          <div className="relative flex-shrink-0">
+            <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl" style={{
+              background: `linear-gradient(135deg, ${g}30, ${g}10)`,
+              border: '3px solid ' + (isDark ? '#0A0A0F' : '#f5f5f5'),
+              boxShadow: `0 0 0 3px ${g}40, 0 8px 32px rgba(0,0,0,.5)`,
+            }}>
+              {team.logo_url ? (
+                <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="tw-display text-4xl font-bold" style={{ color: g }}>{teamInitials}</span>
+              )}
+            </div>
+            {(profile?.role === 'admin' || profile?.role === 'coach') && (
+              <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-[10px] shadow-lg"
+                style={{ background: isDark ? '#0A0A0F' : '#fff', border: `2px solid ${g}50`, color: g }}>
+                📷
+              </button>
+            )}
+          </div>
+
+          {/* Team name + stats */}
+          <div className="flex-1 pb-1">
+            <h1 className="tw-display text-3xl md:text-4xl font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+              {(team.name || '').split(' ').map((word, i, arr) => (
+                <span key={i}>
+                  {i < arr.length - 1 ? (
+                    <span style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>{word} </span>
+                  ) : (
+                    <span style={{ color: g }}>{word}</span>
+                  )}
+                </span>
+              ))}
+            </h1>
+            <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+              <span className="text-[11px] tw-heading tracking-[.15em]" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
+                {sportIcon} {seasonLabel}
+              </span>
+              <div className="flex gap-2">
+                {[
+                  { l: 'PLAYERS', v: roster.length },
+                  { l: 'COACHES', v: coaches.length, c: g },
+                  { l: 'UPCOMING', v: upcomingEvents.length, c: '#38BDF8' },
+                ].map(s => (
+                  <span key={s.l} className="text-[10px] tw-heading tracking-wider px-2 py-0.5 rounded"
+                    style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)', color: s.c || (isDark ? 'white' : '#333') }}>
+                    {s.l}: <strong>{s.v}</strong>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className={`flex gap-2 border-b ${tc.border} pb-2`}>
-        {['feed', 'roster', 'schedule', 'documents'].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-t-xl font-medium transition ${
-              activeTab === tab
-                ? 'bg-[var(--accent-primary)] text-white'
-                : `${tc.text} hover:bg-white/5`
-            }`}
-          >
-            {tab === 'feed' && '📰 '}
-            {tab === 'roster' && '👥 '}
-            {tab === 'schedule' && '📅 '}
-            {tab === 'documents' && '📄 '}
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content - 2 cols */}
-        <div className="lg:col-span-2 space-y-6">
-          {activeTab === 'feed' && (
-            <>
-              {/* New Post Button (for coaches/admins/parents) */}
-              {(profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && (
-                <button
-                  onClick={() => setShowNewPostModal(true)}
-                  className={`w-full ${tc.cardBg} border ${tc.border} rounded-2xl p-4 flex items-center gap-3 hover:border-[var(--accent-primary)]/50 transition`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-[var(--accent-primary)]" />
+      {/* ═══════════════════════════════════════════════════
+          TICKER BANNER — Editable coach message
+      ═══════════════════════════════════════════════════ */}
+      <div className="relative z-20 max-w-[1100px] mx-auto px-2 mt-4 mb-6">
+        <div className="rounded-xl overflow-hidden relative" style={{ background: `${g}0a`, border: `1px solid ${g}1a` }}>
+          {editingTicker ? (
+            <div className="flex items-center gap-2 p-2">
+              <input type="text" maxLength={150} value={tickerText} onChange={e => setTickerText(e.target.value)}
+                className="flex-1 bg-transparent text-sm px-3 py-1.5 outline-none" style={{ color: isDark ? 'white' : '#333' }}
+                placeholder="Team message (150 chars max)" autoFocus />
+              <span className="text-[10px] tw-mono mr-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{tickerText.length}/150</span>
+              <button onClick={() => setEditingTicker(false)} className="px-3 py-1 rounded text-[10px] tw-heading tracking-wider transition"
+                style={{ background: g, color: '#0A0A0F' }}>SAVE</button>
+            </div>
+          ) : (
+            <div className="flex items-center h-10 px-4 overflow-hidden">
+              <div ref={tickerRef} className="whitespace-nowrap text-sm" style={{ color: `${g}cc` }}>
+                {tickerOverflows ? (
+                  <div style={{ animation: 'marquee 20s linear infinite', display: 'inline-block' }}>
+                    <span className="mr-16">{tickerText}</span><span className="mr-16">{tickerText}</span>
                   </div>
-                  <span className={tc.textMuted}>Share an update with the team...</span>
-                </button>
-              )}
-              
-              {/* Posts Feed with Pagination */}
-              {posts.length > 0 ? (
-                <div className="space-y-4">
-                  {posts.map(post => (
-                    <div key={post.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-                      {/* Post Header */}
-                      <div className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center text-[var(--accent-primary)] font-bold">
-                            {post.profiles?.full_name?.charAt(0) || '?'}
-                          </div>
-                          <div>
-                            <p className={`font-medium ${tc.text}`}>{post.profiles?.full_name || 'Team Admin'}</p>
-                            <p className={`text-xs ${tc.textMuted}`}>
-                              {new Date(post.created_at).toLocaleDateString('en-US', { 
-                                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' 
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                        {post.is_pinned && (
-                          <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded-full text-xs font-medium">
-                            📌 Pinned
-                          </span>
-                        )}
-                      </div>
-                      
-                      {/* Post Content */}
-                      <div className="px-4 pb-4">
-                        {post.title && <h3 className={`font-semibold ${tc.text} mb-2`}>{post.title}</h3>}
-                        <p className={`${tc.textSecondary} whitespace-pre-wrap`}>{post.content}</p>
-                        
-                        {/* Media */}
-                        {post.media_urls?.length > 0 && (
-                          <div className={`mt-3 grid ${post.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-                            {post.media_urls.map((url, idx) => (
-                              <img 
-                                key={idx} 
-                                src={url} 
-                                alt="" 
-                                className="rounded-xl w-full h-48 object-cover cursor-pointer hover:opacity-90 transition"
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Post Actions */}
-                      <div className={`px-4 py-3 border-t ${tc.border} flex items-center gap-4`}>
-                        <button 
-                          onClick={() => toggleReaction(post.id)}
-                          className={`flex items-center gap-2 ${tc.textMuted} hover:text-red-400 transition`}
-                        >
-                          <Heart className="w-5 h-5" />
-                          <span>{post.reaction_count || 0}</span>
-                        </button>
-                        <button className={`flex items-center gap-2 ${tc.textMuted} hover:text-[var(--accent-primary)] transition`}>
-                          <MessageCircle className="w-5 h-5" />
-                          <span>{post.comment_count || 0}</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Load More Button */}
-                  {hasMorePosts && (
-                    <button
-                      onClick={loadMorePosts}
-                      disabled={loadingMorePosts}
-                      className={`w-full py-3 rounded-xl border ${tc.border} ${tc.text} font-medium hover:bg-white/5 transition disabled:opacity-50`}
-                    >
-                      {loadingMorePosts ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full animate-spin" />
-                          Loading...
-                        </span>
-                      ) : (
-                        'Load More Posts'
-                      )}
-                    </button>
-                  )}
-                  
-                  {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                    <p className={`text-center ${tc.textMuted} py-4`}>
-                      You've reached the end! 🎉
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-8 text-center`}>
-                  <Megaphone className={`w-12 h-12 mx-auto ${tc.textMuted}`} />
-                  <p className={`${tc.textMuted} mt-4`}>No posts yet</p>
-                  <p className={`text-sm ${tc.textMuted}`}>Check back later for team updates!</p>
-                </div>
-              )}
-            </>
-          )}
-          
-          {activeTab === 'roster' && (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-              <div className={`p-4 border-b ${tc.border}`}>
-                <h2 className={`font-semibold ${tc.text}`}>Team Roster ({roster.length})</h2>
-              </div>
-              <div className="divide-y divide-gray-700/50">
-                {roster.map(player => (
-                  <div 
-                    key={player.id}
-                    onClick={() => setSelectedPlayer(player)}
-                    className="p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition"
-                  >
-                    {player.photo_url ? (
-                      <img src={player.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-[var(--accent-primary)] font-bold">
-                        {player.first_name?.[0]}{player.last_name?.[0]}
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <p className={`font-medium ${tc.text}`}>{player.first_name} {player.last_name}</p>
-                      <p className={`text-sm ${tc.textMuted}`}>
-                        {player.jersey_number && `#${player.jersey_number} • `}
-                        {player.position || 'Player'}
-                      </p>
-                    </div>
-                    <ChevronRight className={`w-5 h-5 ${tc.textMuted}`} />
-                  </div>
-                ))}
-                {roster.length === 0 && (
-                  <div className="p-8 text-center">
-                    <Users className={`w-12 h-12 mx-auto ${tc.textMuted}`} />
-                    <p className={`${tc.textMuted} mt-4`}>No players on roster yet</p>
-                  </div>
+                ) : (
+                  <span>{tickerText}</span>
                 )}
               </div>
+              {(profile?.role === 'admin' || profile?.role === 'coach') && (
+                <button onClick={() => setEditingTicker(true)} className="ml-auto flex-shrink-0 pl-4 text-xs transition"
+                  style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>✏️</button>
+              )}
             </div>
           )}
-          
-          {activeTab === 'schedule' && (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-              <div className={`p-4 border-b ${tc.border}`}>
-                <h2 className={`font-semibold ${tc.text}`}>Upcoming Events</h2>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════
+          QUICK ACTIONS BAR
+      ═══════════════════════════════════════════════════ */}
+      <div className="max-w-[1100px] mx-auto px-2 mb-6 tw-au" style={{ animationDelay: '.1s' }}>
+        <div className="flex gap-2 overflow-x-auto tw-nos pb-1">
+          {[
+            (profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && { icon: '✏️', label: 'New Post', action: () => setShowNewPostModal(true), primary: true },
+            { icon: '💬', label: 'Team Chat', action: openTeamChat, primary: false },
+            { icon: '📅', label: 'Schedule', action: () => setActiveTab('schedule'), primary: false },
+            { icon: '📋', label: 'Roster', action: () => setActiveTab('roster'), primary: false },
+            { icon: '📄', label: 'Documents', action: () => setActiveTab('documents'), primary: false },
+            { icon: '⚙️', label: 'Settings', action: () => {}, primary: false },
+          ].filter(Boolean).map((a) => (
+            <button key={a.label} onClick={a.action}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-semibold tw-heading tracking-wider transition whitespace-nowrap tw-clift`}
+              style={a.primary ? {
+                background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0A0A0F',
+                boxShadow: `0 0 16px ${g}26`,
+              } : {
+                background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)',
+                border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)',
+                color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)'
+              }}>
+              <span>{a.icon}</span> {a.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════
+          TAB NAVIGATION (preserved from original, restyled)
+      ═══════════════════════════════════════════════════ */}
+      <div className="max-w-[1100px] mx-auto px-2 mb-6">
+        <div className="flex gap-1" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)' }}>
+          {[
+            { key: 'feed', icon: '📰', label: 'Feed' },
+            { key: 'roster', icon: '👥', label: 'Roster' },
+            { key: 'schedule', icon: '📅', label: 'Schedule' },
+            { key: 'documents', icon: '📄', label: 'Documents' },
+          ].map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              className="px-4 py-2.5 text-[11px] tw-heading tracking-wider transition rounded-t-lg"
+              style={activeTab === tab.key ? {
+                background: `${g}15`, color: g,
+                borderBottom: `2px solid ${g}`,
+              } : {
+                color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)',
+                borderBottom: '2px solid transparent',
+              }}>
+              {tab.icon} {tab.label.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════
+          MAIN CONTENT AREA — Tab-driven, with sidebar
+      ═══════════════════════════════════════════════════ */}
+      <main className="max-w-[1100px] mx-auto px-2 pb-28">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* ── LEFT: Tab Content ── */}
+          <div className="lg:col-span-8 space-y-4">
+
+            {/* FEED TAB */}
+            {activeTab === 'feed' && (
+              <>
+                <SectionHeader icon="📰" title="TEAM" accent="FEED" g={g} isDark={isDark} />
+
+                {posts.length > 0 ? (
+                  <div className="space-y-4">
+                    {posts.map((post, i) => (
+                      <FeedPost key={post.id} post={post} g={g} i={i}
+                        onReact={toggleReaction} picker={picker} setPicker={setPicker} isDark={isDark} />
+                    ))}
+
+                    {/* Load More */}
+                    {hasMorePosts && (
+                      <button onClick={loadMorePosts} disabled={loadingMorePosts}
+                        className="w-full py-3 rounded-xl text-[11px] tw-heading tracking-wider transition"
+                        style={{
+                          background: isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)',
+                          border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)',
+                          color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.4)',
+                        }}>
+                        {loadingMorePosts ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: g, borderTopColor: 'transparent' }} />
+                            LOADING...
+                          </span>
+                        ) : 'LOAD MORE POSTS'}
+                      </button>
+                    )}
+
+                    {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
+                      <p className="text-center text-[10px] tw-heading tracking-[.3em] py-4"
+                        style={{ color: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.1)' }}>
+                        — END OF FEED —
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="tw-ecard rounded-xl p-8 text-center">
+                    <Megaphone className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }} />
+                    <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No posts yet</p>
+                    <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>Check back later for team updates!</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ROSTER TAB */}
+            {activeTab === 'roster' && (
+              <>
+                <SectionHeader icon="👥" title="TEAM" accent="ROSTER" g={g} isDark={isDark} />
+                <div className="tw-ecard rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
+                    <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                      {sportIcon} ROSTER ({roster.length})
+                    </span>
+                  </div>
+                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.04)' }}>
+                    {roster.map(player => (
+                      <div key={player.id} onClick={() => setSelectedPlayer(player)}
+                        className="p-4 flex items-center gap-4 cursor-pointer transition"
+                        style={{ ':hover': { background: 'rgba(255,255,255,.02)' } }}
+                        onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        {player.photo_url ? (
+                          <img src={player.photo_url} alt="" className="w-12 h-12 rounded-xl object-cover" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center tw-display text-sm font-bold"
+                            style={{ background: `${g}10`, color: g, border: `1px solid ${g}15` }}>
+                            {player.first_name?.[0]}{player.last_name?.[0]}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                            {player.first_name} {player.last_name}
+                          </p>
+                          <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
+                            {player.jersey_number && `#${player.jersey_number} · `}
+                            {player.position || 'Player'}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
+                      </div>
+                    ))}
+                    {roster.length === 0 && (
+                      <div className="p-8 text-center">
+                        <Users className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }} />
+                        <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No players on roster yet</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* SCHEDULE TAB */}
+            {activeTab === 'schedule' && (
+              <>
+                <SectionHeader icon="📅" title="UPCOMING" accent="EVENTS" g={g} isDark={isDark} />
+                <div className="tw-ecard rounded-xl overflow-hidden">
+                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.04)' }}>
+                    {upcomingEvents.map(event => {
+                      const eventDate = new Date(event.event_date)
+                      const isGame = event.event_type === 'game'
+                      return (
+                        <div key={event.id} onClick={() => setShowEventDetail(event)}
+                          className="p-4 flex items-center gap-4 cursor-pointer transition"
+                          onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                          <div className="text-center min-w-[44px]">
+                            <p className="text-[8px] tw-heading tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
+                              {eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
+                            </p>
+                            <p className="tw-display text-2xl font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                              {eventDate.getDate()}
+                            </p>
+                          </div>
+                          <div className="w-px h-8" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)' }} />
+                          <div className="flex-1">
+                            <span className="px-2 py-0.5 rounded text-[9px] tw-heading tracking-wider font-medium"
+                              style={{
+                                background: isGame ? `${g}15` : 'rgba(56,189,248,.1)',
+                                color: isGame ? g : '#38BDF8',
+                              }}>
+                              {isGame ? '🏐 GAME' : '🏋️ PRACTICE'}
+                            </span>
+                            <p className="font-medium mt-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                              {event.title || event.event_type}
+                              {event.opponent && ` vs ${event.opponent}`}
+                            </p>
+                            <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+                              {event.event_time && formatTime12(event.event_time)}
+                              {event.venues?.name && ` · ${event.venues.name}`}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
+                        </div>
+                      )
+                    })}
+                    {upcomingEvents.length === 0 && (
+                      <div className="p-8 text-center">
+                        <Calendar className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }} />
+                        <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No upcoming events</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* DOCUMENTS TAB */}
+            {activeTab === 'documents' && (
+              <>
+                <SectionHeader icon="📄" title="TEAM" accent="DOCUMENTS" g={g} isDark={isDark} />
+                <div className="tw-ecard rounded-xl overflow-hidden">
+                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.04)' }}>
+                    {documents.map(doc => (
+                      <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
+                        className="p-4 flex items-center gap-4 transition block"
+                        onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(56,189,248,.1)' }}>
+                          <FileText className="w-6 h-6" style={{ color: '#38BDF8' }} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{doc.name}</p>
+                          <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+                            {doc.category} · {new Date(doc.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
+                      </a>
+                    ))}
+                    {documents.length === 0 && (
+                      <div className="p-8 text-center">
+                        <FileText className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }} />
+                        <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No documents uploaded</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── RIGHT: Sidebar ── */}
+          <aside className="lg:col-span-4 space-y-5">
+
+            {/* UPCOMING EVENTS (sidebar preview) */}
+            <div className="tw-ecard-glow rounded-xl overflow-hidden tw-au" style={{ animationDelay: '.15s' }}>
+              <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${g}15` }}>
+                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: `${g}80` }}>📅 UPCOMING</span>
+                <button onClick={() => setActiveTab('schedule')} className="text-[9px] tw-heading tracking-wider transition"
+                  style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>VIEW ALL →</button>
               </div>
-              <div className="divide-y divide-gray-700/50">
-                {upcomingEvents.map(event => {
-                  const eventDate = new Date(event.event_date)
+              <div className="p-3 space-y-1">
+                {upcomingEvents.slice(0, 3).map(event => {
+                  const ed = new Date(event.event_date)
+                  const isGame = event.event_type === 'game'
                   return (
-                    <div 
-                      key={event.id}
-                      onClick={() => setShowEventDetail(event)}
-                      className="p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition"
-                    >
-                      <div className="text-center min-w-[50px]">
-                        <p className={`text-xs ${tc.textMuted} uppercase`}>
-                          {eventDate.toLocaleDateString('en-US', { weekday: 'short' })}
+                    <div key={event.id} className="flex items-center gap-3 p-2 rounded-lg transition cursor-pointer"
+                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.015)' : 'rgba(0,0,0,.02)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <div className="text-center min-w-[32px]">
+                        <p className="text-[8px] tw-heading tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
+                          {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
                         </p>
-                        <p className={`text-2xl font-bold ${tc.text}`}>{eventDate.getDate()}</p>
-                        <p className={`text-xs ${tc.textMuted}`}>
-                          {eventDate.toLocaleDateString('en-US', { month: 'short' })}
-                        </p>
+                        <p className="tw-display text-lg font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{ed.getDate()}</p>
                       </div>
-                      <div className="flex-1">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          event.event_type === 'game' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
-                        }`}>
-                          {event.event_type === 'game' ? '🏐 Game' : '🏋️ Practice'}
-                        </span>
-                        <p className={`font-medium ${tc.text} mt-1`}>
-                          {event.title || event.event_type}
-                          {event.opponent && ` vs ${event.opponent}`}
+                      <div className="w-px h-5" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)' }} />
+                      <div>
+                        <p className="text-[11px] font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                          {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
                         </p>
-                        <p className={`text-sm ${tc.textMuted}`}>
+                        <p className="text-[9px]" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
                           {event.event_time && formatTime12(event.event_time)}
-                          {event.venues?.name && ` • ${event.venues.name}`}
                         </p>
                       </div>
-                      <ChevronRight className={`w-5 h-5 ${tc.textMuted}`} />
                     </div>
                   )
                 })}
                 {upcomingEvents.length === 0 && (
-                  <div className="p-8 text-center">
-                    <Calendar className={`w-12 h-12 mx-auto ${tc.textMuted}`} />
-                    <p className={`${tc.textMuted} mt-4`}>No upcoming events</p>
-                  </div>
+                  <p className="text-center py-4 text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>No upcoming events</p>
                 )}
               </div>
             </div>
-          )}
-          
-          {activeTab === 'documents' && (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
-              <div className={`p-4 border-b ${tc.border}`}>
-                <h2 className={`font-semibold ${tc.text}`}>Team Documents</h2>
+
+            {/* ROSTER PREVIEW (sidebar) */}
+            <div className="tw-ecard rounded-xl overflow-hidden tw-au" style={{ animationDelay: '.2s' }}>
+              <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
+                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                  🏐 ROSTER ({roster.length})
+                </span>
+                <button onClick={() => { setActiveTab('roster'); setShowAllRoster(!showAllRoster) }}
+                  className="text-[9px] tw-heading tracking-wider transition"
+                  style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+                  VIEW ALL →
+                </button>
               </div>
-              <div className="divide-y divide-gray-700/50">
-                {documents.map(doc => (
-                  <a 
-                    key={doc.id}
-                    href={doc.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 flex items-center gap-4 hover:bg-white/5 transition"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                      <FileText className="w-6 h-6 text-blue-400" />
+              <div className="p-2 space-y-0.5">
+                {roster.slice(0, 5).map(p => (
+                  <button key={p.id} onClick={() => setSelectedPlayer(p)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition text-left"
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.015)' : 'rgba(0,0,0,.02)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    style={{ border: '1px solid transparent' }}>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center tw-display text-sm font-bold flex-shrink-0"
+                      style={{ background: `${g}10`, color: g, border: `1px solid ${g}15` }}>
+                      {p.first_name?.[0]}{p.last_name?.[0]}
                     </div>
-                    <div className="flex-1">
-                      <p className={`font-medium ${tc.text}`}>{doc.name}</p>
-                      <p className={`text-sm ${tc.textMuted}`}>
-                        {doc.category} • {new Date(doc.created_at).toLocaleDateString()}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-semibold truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{p.first_name} {p.last_name}</p>
+                      <p className="text-[9px]" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+                        {p.jersey_number && `#${p.jersey_number} · `}{p.position || 'Player'}
                       </p>
                     </div>
-                    <ChevronRight className={`w-5 h-5 ${tc.textMuted}`} />
-                  </a>
+                  </button>
                 ))}
-                {documents.length === 0 && (
-                  <div className="p-8 text-center">
-                    <FileText className={`w-12 h-12 mx-auto ${tc.textMuted}`} />
-                    <p className={`${tc.textMuted} mt-4`}>No documents uploaded</p>
-                  </div>
+                {roster.length === 0 && (
+                  <p className="text-center py-4 text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>No players yet</p>
                 )}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Sidebar - 1 col */}
-        <div className="space-y-6">
-          {/* Coaches Card */}
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
-            <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
-              🎓 Coaches
-            </h3>
-            <div className="space-y-3">
-              {coaches.map(coach => (
-                <div key={coach.id} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold">
-                    {coach.full_name?.charAt(0) || '?'}
+            {/* COACHES CARD */}
+            <div className="tw-ecard rounded-xl overflow-hidden tw-au" style={{ animationDelay: '.25s' }}>
+              <div className="px-4 py-3" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
+                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>🎓 COACHES</span>
+              </div>
+              <div className="p-3 space-y-2">
+                {coaches.map(coach => (
+                  <div key={coach.id} className="flex items-center gap-3 p-2 rounded-lg">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center tw-display text-sm font-bold"
+                      style={{ background: `${g}15`, color: g }}>
+                      {coach.full_name?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{coach.full_name}</p>
+                      <p className="text-[9px]" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+                        {coach.role === 'head' ? 'Head Coach' : coach.role === 'assistant' ? 'Assistant Coach' : 'Coach'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className={`font-medium ${tc.text}`}>{coach.full_name}</p>
-                    <p className={`text-xs ${tc.textMuted}`}>
-                      {coach.role === 'head' ? 'Head Coach' : coach.role === 'assistant' ? 'Assistant Coach' : 'Coach'}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {coaches.length === 0 && (
-                <p className={tc.textMuted}>No coaches assigned</p>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
-            <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
-              📊 Team Stats
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 rounded-xl bg-blue-500/10">
-                <p className="text-2xl font-bold text-blue-400">{roster.length}</p>
-                <p className={`text-xs ${tc.textMuted}`}>Players</p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-amber-500/10">
-                <p className="text-2xl font-bold text-amber-400">{coaches.length}</p>
-                <p className={`text-xs ${tc.textMuted}`}>Coaches</p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-emerald-500/10">
-                <p className="text-2xl font-bold text-emerald-400">{upcomingEvents.length}</p>
-                <p className={`text-xs ${tc.textMuted}`}>Upcoming</p>
-              </div>
-              <div className="text-center p-3 rounded-xl bg-purple-500/10">
-                <p className="text-2xl font-bold text-purple-400">{posts.length}</p>
-                <p className={`text-xs ${tc.textMuted}`}>Posts</p>
+                ))}
+                {coaches.length === 0 && (
+                  <p className="text-center py-4 text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>No coaches assigned</p>
+                )}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* New Post Modal */}
+            {/* TEAM STATS */}
+            <div className="tw-ecard rounded-xl overflow-hidden tw-au" style={{ animationDelay: '.3s' }}>
+              <div className="px-4 py-3" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
+                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>📊 QUICK STATS</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 p-3">
+                {[
+                  { v: roster.length, l: 'Players', c: '#38BDF8' },
+                  { v: coaches.length, l: 'Coaches', c: g },
+                  { v: upcomingEvents.length, l: 'Upcoming', c: '#4ADE80' },
+                  { v: posts.length, l: 'Posts', c: '#A78BFA' },
+                ].map(s => (
+                  <div key={s.l} className="text-center py-2.5 rounded-xl" style={{ background: `${s.c}08`, border: `1px solid ${s.c}15` }}>
+                    <p className="tw-display text-xl font-bold" style={{ color: s.c }}>{s.v}</p>
+                    <p className="text-[8px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>{s.l.toUpperCase()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* INVITE BLADE */}
+            <div className="tw-ecard-glow rounded-xl p-4 text-center tw-au" style={{ animationDelay: '.35s' }}>
+              <p className="text-3xl mb-2">📨</p>
+              <p className="text-xs font-semibold mb-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Invite to {team.name}</p>
+              <p className="text-[10px] mb-3" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>Share a registration link with friends and family</p>
+              <button className="w-full py-2.5 rounded-xl text-[11px] font-bold tw-heading tracking-wider transition hover:brightness-110"
+                style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0A0A0F' }}>
+                COPY INVITE LINK
+              </button>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      {/* ═══ FAB — New Post (for authorized roles) ═══ */}
+      {(profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && (
+        <button onClick={() => setShowNewPostModal(true)}
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-xl text-black font-bold shadow-2xl transition hover:scale-105 active:scale-95"
+          style={{
+            background: `linear-gradient(135deg,${gb},${g})`,
+            boxShadow: `0 0 24px ${g}33`,
+            animation: 'floatY 3s ease-in-out infinite',
+          }}>✏️</button>
+      )}
+
+      {/* ═══ NEW POST MODAL (preserved Supabase insert + redesigned) ═══ */}
       {showNewPostModal && (
         <NewPostModal
           teamId={teamId}
+          g={g} gb={gb} dim={dim} isDark={isDark}
           onClose={() => setShowNewPostModal(false)}
           onSuccess={() => { loadPosts(1, true); setShowNewPostModal(false) }}
           showToast={showToast}
@@ -641,40 +967,285 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         />
       )}
 
-      {/* Player Card Expanded Modal */}
-{selectedPlayer && (
-  <PlayerCardExpanded
-    player={selectedPlayer}
-    visible={!!selectedPlayer}
-    onClose={() => setSelectedPlayer(null)}
-    context="roster"
-    viewerRole={profile?.role === 'parent' ? 'parent' : profile?.role === 'coach' ? 'coach' : 'admin'}
-    seasonId={team?.season_id}
-    sport={team?.seasons?.sports?.name?.toLowerCase() || 'volleyball'}
-    isOwnChild={false}
-  />
-)}
+      {/* ═══ PLAYER CARD EXPANDED (preserved from original) ═══ */}
+      {selectedPlayer && (
+        <PlayerCardExpanded
+          player={selectedPlayer}
+          visible={!!selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          context="roster"
+          viewerRole={profile?.role === 'parent' ? 'parent' : profile?.role === 'coach' ? 'coach' : 'admin'}
+          seasonId={team?.season_id}
+          sport={team?.seasons?.sports?.name?.toLowerCase() || 'volleyball'}
+          isOwnChild={false}
+        />
+      )}
     </div>
   )
 }
 
-// ============================================
-// NEW POST MODAL
-// ============================================
-function NewPostModal({ teamId, onClose, onSuccess, showToast, canPin = false }) {
+// ═══════════════════════════════════════════════════════════
+// UTILITY — Adjust hex color brightness
+// ═══════════════════════════════════════════════════════════
+function adjustBrightness(hex, amount) {
+  try {
+    const h = hex.replace('#', '')
+    const r = Math.max(0, Math.min(255, parseInt(h.substring(0, 2), 16) + amount))
+    const gv = Math.max(0, Math.min(255, parseInt(h.substring(2, 4), 16) + amount))
+    const b = Math.max(0, Math.min(255, parseInt(h.substring(4, 6), 16) + amount))
+    return `#${r.toString(16).padStart(2, '0')}${gv.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+  } catch {
+    return hex
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// BANNER SLIDES — Using real team data
+// ═══════════════════════════════════════════════════════════
+
+function PhotoBanner({ team, g, teamInitials }) {
+  return (
+    <div className="absolute inset-0" style={{ background: team.banner_url ? undefined : `linear-gradient(135deg, #1a1520 0%, #0d1117 50%, #141820 100%)` }}>
+      {team.banner_url ? (
+        <img src={team.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-[100px] opacity-[.03]">🐝</p>
+          </div>
+        </div>
+      )}
+      {/* Edit overlay */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition cursor-pointer" style={{ background: 'rgba(0,0,0,.4)' }}>
+        <div className="text-center">
+          <p className="text-3xl mb-2">📷</p>
+          <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOAD COVER PHOTO</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
+  if (!nextGame) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
+        <div className="text-center">
+          <p className="text-[9px] tw-heading tracking-[.4em] text-white/20 mb-2">NO UPCOMING GAMES</p>
+          <p className="tw-display text-3xl font-bold text-white/10">CHECK BACK SOON</p>
+        </div>
+      </div>
+    )
+  }
+
+  const oppTag = (nextGame.opponent || 'OPP').slice(0, 4).toUpperCase()
+
+  return (
+    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
+      <div className="absolute" style={{ top: '10%', left: '30%', width: '40%', height: '60%', background: `radial-gradient(ellipse,${g}0a 0%,transparent 60%)`, filter: 'blur(30px)' }} />
+      {/* Vertical deco text */}
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block" style={{ writingMode: 'vertical-rl' }}>
+        <span className="tw-display text-[60px] font-bold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
+      </div>
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block" style={{ writingMode: 'vertical-rl' }}>
+        <span className="tw-display text-[60px] font-bold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
+        {/* VS Matchup */}
+        <div className="flex items-center gap-6 md:gap-12 mb-4">
+          <div className="text-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: `${g}15`, border: `1.5px solid ${g}35` }}>
+              {team.logo_url ? (
+                <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-xl" />
+              ) : (
+                <span className="tw-display text-3xl md:text-4xl font-bold" style={{ color: g }}>{teamInitials}</span>
+              )}
+            </div>
+            <p className="text-[10px] tw-heading tracking-wider text-white/40">{team.name}</p>
+          </div>
+          <span className="tw-display text-5xl md:text-6xl font-bold" style={{ color: '#EF4444', animation: 'vsFlash 3s ease-in-out infinite' }}>VS</span>
+          <div className="text-center">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(255,255,255,.03)', border: '1.5px solid rgba(255,255,255,.06)' }}>
+              <span className="tw-display text-3xl md:text-4xl font-bold text-white/15">{oppTag}</span>
+            </div>
+            <p className="text-[10px] tw-heading tracking-wider text-white/20">{nextGame.opponent || 'Opponent'}</p>
+          </div>
+        </div>
+
+        {/* Countdown */}
+        <div className="flex gap-2 mb-3">
+          {cd.d !== undefined && [
+            { v: cd.d, l: 'DAYS' }, { v: cd.h, l: 'HRS' }, { v: cd.m, l: 'MINS' }, { v: cd.s, l: 'SECS' },
+          ].map((d, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="text-center">
+                <span className="tw-display text-3xl md:text-4xl font-bold text-white">{String(d.v).padStart(2, '0')}</span>
+                <p className="text-[7px] tw-heading tracking-[.2em] text-white/20">{d.l}</p>
+              </div>
+              {i < 3 && <span className="tw-display text-2xl text-white/10 -mt-3">:</span>}
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] tw-heading tracking-wider text-white/25">
+          {nextGame.event_time && formatTime12(nextGame.event_time)}
+          {nextGame.venues?.name && ` · ${nextGame.venues.name}`}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function SeasonPulseBanner({ team, roster, coaches, g, sportIcon }) {
+  return (
+    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0d14 0%, #0A0A0F 50%, #0d0f14 100%)' }}>
+      <div className="absolute" style={{ top: '20%', left: '20%', width: '60%', height: '50%', background: `radial-gradient(ellipse,${g}08 0%,transparent 60%)`, filter: 'blur(40px)' }} />
+      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
+        <p className="text-[9px] tw-heading tracking-[.4em] text-white/20 mb-2">SEASON SNAPSHOT</p>
+        <h2 className="tw-display text-4xl md:text-5xl font-bold text-white mb-1">{sportIcon} {team.name}</h2>
+        <p className="text-sm tw-heading tracking-wider mb-6" style={{ color: g }}>{team.seasons?.name || 'Current Season'}</p>
+        <div className="flex gap-6">
+          <div className="text-center">
+            <p className="tw-display text-3xl font-bold text-white">{roster.length}</p>
+            <p className="text-[9px] text-white/20 tw-heading tracking-wider">PLAYERS</p>
+          </div>
+          <div className="w-px h-16" style={{ background: 'rgba(255,255,255,.04)' }} />
+          <div className="text-center">
+            <p className="tw-display text-3xl font-bold text-white">{coaches.length}</p>
+            <p className="text-[9px] text-white/20 tw-heading tracking-wider">COACHES</p>
+          </div>
+          <div className="w-px h-16" style={{ background: 'rgba(255,255,255,.04)' }} />
+          <div className="text-center">
+            <p className="tw-display text-3xl font-bold text-white">{roster.filter(r => r.position).length}</p>
+            <p className="text-[9px] text-white/20 tw-heading tracking-wider">POSITIONS SET</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
+// SECTION HEADER
+// ═══════════════════════════════════════════════════════════
+function SectionHeader({ icon, title, accent, g, isDark }) {
+  return (
+    <div className="flex items-center gap-3 mb-2 tw-au">
+      <span className="text-base">{icon}</span>
+      <h2 className="tw-display text-xl font-bold">
+        <span style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)' }}>{title}</span>{' '}
+        <span style={{ color: g }}>{accent}</span>
+      </h2>
+      <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg,${g}1a,transparent)` }} />
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEED POST — Real Supabase data + TeamHub visual design
+// ═══════════════════════════════════════════════════════════
+function FeedPost({ post, g, i, onReact, picker, setPicker, isDark }) {
+  const isPinned = post.is_pinned
+  const postType = post.post_type || 'announcement'
+
+  // Determine accent based on post type
+  const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
+    postType === 'game_recap' ? 'tw-reminder-accent' : ''
+
+  // Post type icon
+  const typeIcon = {
+    announcement: '📢', game_recap: '🏐', shoutout: '⭐', milestone: '🏆', photo: '📷',
+  }[postType] || '📝'
+
+  return (
+    <article className={`tw-ecard rounded-xl overflow-hidden tw-ac ${accentClass}`} style={{ animationDelay: `${.15 + i * .04}s` }}>
+      <div className="p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: `${g}10`, color: g, border: `1px solid ${g}15` }}>
+              {post.profiles?.full_name?.charAt(0) || '?'}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                  {post.profiles?.full_name || 'Team Admin'}
+                </p>
+                <span className="text-[8px] tw-heading tracking-wider px-1.5 py-0.5 rounded" style={{
+                  background: `${g}08`, color: `${g}99`,
+                }}>{typeIcon} {postType.replace('_', ' ').toUpperCase()}</span>
+              </div>
+              <p className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+                {new Date(post.created_at).toLocaleDateString('en-US', {
+                  month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                })}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isPinned && <span className="text-[9px] tw-heading" style={{ color: `${g}60` }}>📌</span>}
+            <button className="text-xs transition" style={{ color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.15)' }}>•••</button>
+          </div>
+        </div>
+
+        {/* Media */}
+        {post.media_urls?.length > 0 && (
+          <div className={`mb-3 grid ${post.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            {post.media_urls.map((url, idx) => (
+              <img key={idx} src={url} alt="" className="rounded-xl w-full h-48 object-cover cursor-pointer hover:opacity-90 transition" />
+            ))}
+          </div>
+        )}
+
+        {/* Content */}
+        {post.title && (
+          <h3 className="font-bold text-[13px] tw-heading tracking-wide mb-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
+        )}
+        <p className="text-[12px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.45)' }}>{post.content}</p>
+
+        {/* Reactions + comments */}
+        <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
+          <div className="flex items-center gap-2">
+            <button onClick={() => onReact(post.id)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] transition"
+              style={{
+                border: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)',
+                color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)',
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(239,68,68,.3)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)'}>
+              ❤️ <span className="tw-mono text-[10px]">{post.reaction_count || 0}</span>
+            </button>
+          </div>
+          <button className="flex items-center gap-1.5 text-[11px] transition"
+            style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+            💬 <span className="tw-mono">{post.comment_count || 0}</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
+// NEW POST MODAL — Supabase insert + TeamHub visual design
+// ═══════════════════════════════════════════════════════════
+function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToast, canPin = false }) {
   const { user } = useAuth()
-  const tc = useThemeClasses()
-  
+
+  const [postType, setPostType] = useState('announcement')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [postType, setPostType] = useState('announcement')
   const [isPinned, setIsPinned] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  
-  async function handleSubmit(e) {
-    e.preventDefault()
+  const [drag, setDrag] = useState(false)
+  const [media, setMedia] = useState([])
+  const fr = useRef(null)
+
+  const inp = { background: isDark ? 'rgba(255,255,255,.025)' : 'rgba(0,0,0,.03)', border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)' }
+
+  async function handleSubmit() {
     if (!content.trim()) return
-    
     setSubmitting(true)
     try {
       const { error } = await supabase.from('team_posts').insert({
@@ -686,9 +1257,7 @@ function NewPostModal({ teamId, onClose, onSuccess, showToast, canPin = false })
         is_pinned: isPinned,
         is_published: true
       })
-      
       if (error) throw error
-      
       showToast?.('Post created!', 'success')
       onSuccess()
     } catch (err) {
@@ -699,86 +1268,85 @@ function NewPostModal({ teamId, onClose, onSuccess, showToast, canPin = false })
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div 
-        className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg`}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className={`p-6 border-b ${tc.border} flex items-center justify-between`}>
-          <h2 className={`text-xl font-semibold ${tc.text}`}>Create Post</h2>
-          <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg}`}>
-            <X className="w-5 h-5" />
-          </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 tw-ai" style={{ background: 'rgba(0,0,0,.65)' }} onClick={onClose}>
+      <div className="rounded-xl w-full max-w-lg overflow-hidden tw-as shadow-2xl"
+        style={{ background: isDark ? 'rgba(10,10,15,.95)' : 'rgba(255,255,255,.98)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.1)', backdropFilter: 'blur(20px)' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-5" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)' }}>
+          <h2 className="tw-heading text-base font-bold tracking-wider" style={{ color: g }}>CREATE POST</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition"
+            style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>✕</button>
         </div>
-        
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className={`block text-sm font-medium ${tc.text} mb-1`}>Post Type</label>
-            <select
-              value={postType}
-              onChange={e => setPostType(e.target.value)}
-              className={`w-full px-4 py-2 rounded-xl ${tc.input}`}
-            >
-              <option value="announcement">📢 Announcement</option>
-              <option value="game_recap">🏐 Game Recap</option>
-              <option value="shoutout">⭐ Player Shoutout</option>
-              <option value="milestone">🏆 Team Milestone</option>
-              <option value="photo">📷 Photo</option>
-            </select>
+
+        {/* Body */}
+        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto tw-nos">
+          {/* Post type selector */}
+          <div className="flex flex-wrap gap-1.5">
+            {[['announcement', '📢 ANNOUNCEMENT'], ['game_recap', '🏐 GAME RECAP'], ['shoutout', '⭐ SHOUTOUT'], ['milestone', '🏆 MILESTONE'], ['photo', '📷 PHOTO']].map(([k, l]) => (
+              <button key={k} onClick={() => setPostType(k)} className="px-3 py-1.5 rounded-lg text-[10px] font-bold tw-heading tracking-wider transition" style={{
+                background: postType === k ? `${g}15` : (isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'),
+                color: postType === k ? g : (isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)'),
+                border: `1px solid ${postType === k ? `${g}25` : (isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)')}`
+              }}>{l}</button>
+            ))}
           </div>
-          
-          <div>
-            <label className={`block text-sm font-medium ${tc.text} mb-1`}>Title (optional)</label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Give your post a title..."
-              className={`w-full px-4 py-2 rounded-xl ${tc.input}`}
-            />
+
+          <input type="text" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)}
+            className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none"
+            style={{ ...inp, color: isDark ? 'white' : '#333' }} />
+
+          <textarea placeholder="Share with the team…" value={content} onChange={e => setContent(e.target.value)} rows={4}
+            className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none resize-none"
+            style={{ ...inp, color: isDark ? 'white' : '#333' }} />
+
+          {/* File drop */}
+          <div
+            onDragEnter={e => { e.preventDefault(); setDrag(true) }}
+            onDragLeave={e => { e.preventDefault(); setDrag(false) }}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => { e.preventDefault(); setDrag(false); setMedia(p => [...p, ...Array.from(e.dataTransfer?.files || []).map(f => f.name)]) }}
+            onClick={() => fr.current?.click()}
+            className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition"
+            style={{ borderColor: drag ? `${g}40` : (isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.08)'), background: drag ? `${g}05` : 'transparent' }}>
+            <input ref={fr} type="file" accept="image/*,video/*" multiple className="hidden"
+              onChange={e => setMedia(p => [...p, ...Array.from(e.target.files || []).map(f => f.name)])} />
+            <p className="text-lg mb-0.5 opacity-20">📸</p>
+            <p className="text-[9px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.15)' }}>DROP FILES OR CLICK</p>
           </div>
-          
-          <div>
-            <label className={`block text-sm font-medium ${tc.text} mb-1`}>Content</label>
-            <textarea
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="What's happening with the team?"
-              rows={4}
-              className={`w-full px-4 py-2 rounded-xl ${tc.input} resize-none`}
-              required
-            />
-          </div>
-          
+
+          {media.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {media.map((f, i) => (
+                <span key={i} className="px-2 py-1 rounded text-[9px] flex items-center gap-1.5"
+                  style={{ ...inp, color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.3)' }}>
+                  📎 {f} <button onClick={() => setMedia(p => p.filter((_, j) => j !== i))} className="hover:opacity-70">✕</button>
+                </span>
+              ))}
+            </div>
+          )}
+
           {canPin && (
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isPinned}
-                onChange={e => setIsPinned(e.target.checked)}
-                className="w-4 h-4 rounded"
-              />
-              <span className={`text-sm ${tc.text}`}>📌 Pin this post to the top</span>
+              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-amber-500 rounded" />
+              <span className="text-[9px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.3)' }}>📌 PIN TO TOP</span>
             </label>
           )}
-          
-          <div className={`flex gap-3 pt-4 border-t ${tc.border}`}>
-            <button
-              type="button"
-              onClick={onClose}
-              className={`flex-1 py-2 rounded-xl border ${tc.border} ${tc.text}`}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!content.trim() || submitting}
-              className="flex-1 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50 hover:brightness-110 transition"
-            >
-              {submitting ? 'Posting...' : 'Post'}
-            </button>
-          </div>
-        </form>
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 flex gap-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-[10px] font-bold tw-heading tracking-wider transition"
+            style={{ border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)', color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.3)' }}>
+            CANCEL
+          </button>
+          <button onClick={handleSubmit} disabled={!content.trim() || submitting}
+            className="flex-1 py-2.5 rounded-xl text-[10px] font-bold tw-heading tracking-wider text-black transition hover:brightness-110 disabled:opacity-25"
+            style={{ background: `linear-gradient(135deg,${gb},${g})`, boxShadow: `0 0 14px ${g}26` }}>
+            {submitting ? 'POSTING...' : 'PUBLISH'}
+          </button>
+        </div>
       </div>
     </div>
   )
