@@ -25,12 +25,12 @@ export default {
         }
       },
       boxShadow: {
-        'soft-sm': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)',
-        'soft-md': '0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 8px 16px -4px rgba(0, 0, 0, 0.03)',
-        'soft-lg': '0 8px 20px -4px rgba(0, 0, 0, 0.07), 0 12px 24px -6px rgba(0, 0, 0, 0.04)',
-        'soft-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)',
-        'glass': '0 8px 32px rgba(0, 0, 0, 0.08)',
-        'glass-dark': '0 8px 32px rgba(0, 0, 0, 0.3)',
+        'soft-sm': '0 2px 8px -2px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+        'soft-md': '0 4px 16px -4px rgba(0, 0, 0, 0.1), 0 8px 16px -4px rgba(0, 0, 0, 0.06)',
+        'soft-lg': '0 8px 24px -6px rgba(0, 0, 0, 0.12), 0 12px 24px -6px rgba(0, 0, 0, 0.06)',
+        'soft-xl': '0 20px 40px -8px rgba(0, 0, 0, 0.1), 0 10px 16px -6px rgba(0, 0, 0, 0.04)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.12)',
+        'glass-dark': '0 8px 32px rgba(0, 0, 0, 0.4)',
         'glow-sm': '0 0 10px var(--accent-glow, rgba(249, 115, 22, 0.15))',
         'glow-md': '0 0 20px var(--accent-glow, rgba(249, 115, 22, 0.2))',
         'glow-orange': '0 0 20px rgba(249, 115, 22, 0.2)',
