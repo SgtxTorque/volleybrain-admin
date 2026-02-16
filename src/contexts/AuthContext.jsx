@@ -98,8 +98,7 @@ export function AuthProvider({ children }) {
       await supabase.from('profiles').upsert({
         id: data.user.id,
         email: email,
-        first_name: firstName,
-        last_name: lastName,
+        full_name: `${firstName} ${lastName}`.trim(),
         onboarding_completed: false,
       }, { onConflict: 'id' })
     }

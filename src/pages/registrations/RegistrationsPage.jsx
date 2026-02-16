@@ -438,8 +438,8 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                       </span>
                     )}
                   </div>
-                  {reg?.denial_reason && (
-                    <p className="text-sm text-red-500 mt-2">Reason: {reg.denial_reason}</p>
+                  {reg?.deny_reason && (
+                    <p className="text-sm text-red-500 mt-2">Reason: {reg.deny_reason}</p>
                   )}
                   {/* Custom answers from registration */}
                   {reg?.custom_answers && Object.keys(reg.custom_answers).length > 0 && (
@@ -1029,9 +1029,9 @@ export function RegistrationsPage({ showToast }) {
 
   async function denyRegistration(regId, reason) {
     try {
-      await supabase.from('registrations').update({ 
-        status: 'withdrawn', 
-        denial_reason: reason,
+      await supabase.from('registrations').update({
+        status: 'withdrawn',
+        deny_reason: reason,
         updated_at: new Date().toISOString()
       }).eq('id', regId)
       showToast('Registration denied', 'success')
@@ -1196,9 +1196,9 @@ export function RegistrationsPage({ showToast }) {
       if (!reg) continue
 
       try {
-        await supabase.from('registrations').update({ 
-          status: 'withdrawn', 
-          denial_reason: reason,
+        await supabase.from('registrations').update({
+          status: 'withdrawn',
+          deny_reason: reason,
           updated_at: new Date().toISOString()
         }).eq('id', reg.id)
         denied++
