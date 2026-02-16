@@ -55,7 +55,7 @@ import { PaymentsPage } from './pages/payments'
 import { TeamsPage } from './pages/teams'
 import { CoachesPage } from './pages/coaches'
 import { JerseysPage } from './pages/jerseys'
-import { SchedulePage } from './pages/schedule'
+import { SchedulePage, CoachAvailabilityPage } from './pages/schedule'
 import { AttendancePage } from './pages/attendance'
 import { ChatsPage } from './pages/chats'
 import { BlastsPage } from './pages/blasts'
@@ -1446,6 +1446,7 @@ function HorizontalNavBar({
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
       { id: 'payments', label: 'Payments', icon: 'dollar' },
+      { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
     ]},
     { id: 'game', label: 'Game Day', type: 'dropdown', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
@@ -1486,6 +1487,7 @@ function HorizontalNavBar({
       })) || []
     },
     { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'coach-availability', label: 'My Availability', type: 'single' },
     { id: 'gameday', label: 'Game Day', type: 'dropdown', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
@@ -1859,6 +1861,7 @@ function MainApp() {
               {page === 'coaches' && activeView === 'admin' && <CoachesPage showToast={showToast} />}
               {page === 'jerseys' && activeView === 'admin' && <JerseysPage showToast={showToast} />}
               {page === 'schedule' && <SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
+              {page === 'coach-availability' && (activeView === 'admin' || activeView === 'coach') && <CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={setPage} />}
               {page === 'attendance' && (activeView === 'admin' || activeView === 'coach') && <AttendancePage showToast={showToast} />}
               {page === 'gameprep' && (activeView === 'admin' || activeView === 'coach') && <GamePrepPage showToast={showToast} />}
               {page === 'standings' && <TeamStandingsPage showToast={showToast} />}

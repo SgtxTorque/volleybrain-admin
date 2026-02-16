@@ -5,10 +5,10 @@ import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
-import { 
-  Calendar, MapPin, Clock, Users, ChevronRight, Check, 
+import {
+  Calendar, MapPin, Clock, Users, ChevronRight, Check,
   AlertTriangle, Target, MessageCircle, X, DollarSign, Plus, ClipboardList,
-  MoreHorizontal, TrendingUp, Star, Award, Play, CheckCircle
+  MoreHorizontal, TrendingUp, Star, Award, Play, CheckCircle, CalendarCheck2, Trash2
 } from 'lucide-react'
 
 // Volleyball icon component
@@ -699,6 +699,74 @@ function TopPlayerWidget({ topPlayer, statCategory, onViewLeaderboards }) {
 }
 
 // ============================================
+// COACH AVAILABILITY WIDGET
+// ============================================
+function CoachAvailabilityWidget({ coachId, onManage }) {
+  const [upcoming, setUpcoming] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (coachId) loadUpcoming()
+    else setLoading(false)
+  }, [coachId])
+
+  async function loadUpcoming() {
+    try {
+      const today = new Date().toISOString().split('T')[0]
+      const { data } = await supabase
+        .from('coach_availability')
+        .select('*')
+        .eq('coach_id', coachId)
+        .gte('date', today)
+        .in('status', ['unavailable', 'tentative'])
+        .order('date', { ascending: true })
+        .limit(3)
+      setUpcoming(data || [])
+    } catch (err) {
+      // Table may not exist yet
+      console.warn('coach_availability table may not exist:', err.message)
+    }
+    setLoading(false)
+  }
+
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr + 'T00:00:00')
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
+  return (
+    <DashCard>
+      <CardHeader title="My Availability" action="Manage" onAction={onManage} />
+      <div className="p-4">
+        {loading ? (
+          <div className="text-center py-4">
+            <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full mx-auto" />
+          </div>
+        ) : upcoming.length === 0 ? (
+          <div className="text-center py-4">
+            <CalendarCheck2 className="w-10 h-10 mx-auto text-emerald-400 mb-2" />
+            <p className="text-sm text-slate-500 font-medium">Fully Available</p>
+            <p className="text-xs text-slate-400 mt-0.5">No upcoming unavailable dates</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {upcoming.map(item => (
+              <div key={item.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50">
+                <div className={`w-3 h-3 rounded-full shrink-0 ${item.status === 'unavailable' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-700">{formatDate(item.date)}</p>
+                  {item.reason && <p className="text-xs text-slate-400 capitalize">{item.reason}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
 // TEAM SELECTOR (Multiple Teams)
 // ============================================
 function TeamSelector({ teams, selectedTeam, onSelect }) {
@@ -983,10 +1051,16 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           <TeamRecordWidget stats={teamStats} />
           
           {/* Top Player */}
-          <TopPlayerWidget 
+          <TopPlayerWidget
             topPlayer={topPlayer}
             statCategory="Points"
             onViewLeaderboards={() => onNavigate?.('leaderboards')}
+          />
+
+          {/* Coach Availability */}
+          <CoachAvailabilityWidget
+            coachId={roleContext?.coachInfo?.id}
+            onManage={() => onNavigate?.('coach-availability')}
           />
         </div>
       </div>
