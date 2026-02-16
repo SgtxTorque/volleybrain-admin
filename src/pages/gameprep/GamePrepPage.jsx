@@ -46,13 +46,14 @@ function isTomorrow(dateStr) {
 // ============================================
 // GAME CARD COMPONENT
 // ============================================
-function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onCompleteClick, onGameDayClick }) {
+function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onCompleteClick, onGameDayClick, onEnterStats }) {
   const tc = useThemeClasses()
   const gameDate = new Date(game.event_date)
   const today = isToday(game.event_date)
   const tomorrow = isTomorrow(game.event_date)
   const isCompleted = game.game_status === 'completed'
   const isPast = gameDate < new Date() && !today
+  const needsStats = isCompleted && !game.stats_entered
   
   return (
     <div 
@@ -71,7 +72,7 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
       
       <div className="p-4">
         {/* Date badges */}
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           {today && (
             <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-red-500 to-orange-500 text-white animate-pulse">
               🔴 TODAY
@@ -94,6 +95,11 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
               'bg-slate-500/20 text-slate-400'
             }`}>
               {game.game_result === 'win' ? '🏆 WIN' : game.game_result === 'loss' ? 'LOSS' : 'TIE'}
+            </span>
+          )}
+          {needsStats && (
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 animate-pulse">
+              📊 Stats Pending
             </span>
           )}
         </div>
@@ -196,6 +202,30 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
               >
                 {isPast ? '✓ Complete' : status.hasLineup ? 'Edit Lineup →' : 'Set Lineup →'}
               </button>
+            </div>
+          )}
+          
+          {/* Completed game actions */}
+          {isCompleted && (
+            <div className="flex items-center gap-2">
+              {needsStats && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEnterStats?.(game)
+                  }}
+                  className="px-3 py-2 rounded-xl font-semibold text-sm transition-all
+                             bg-gradient-to-r from-amber-500 to-orange-500 text-white 
+                             hover:shadow-lg hover:shadow-amber-500/25 flex items-center gap-1.5"
+                >
+                  <BarChart3 className="w-4 h-4" /> Enter Stats
+                </button>
+              )}
+              {game.stats_entered && (
+                <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-400 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Stats ✓
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -1150,6 +1180,7 @@ function GamePrepPage({ showToast }) {
   const [showLineupBuilder, setShowLineupBuilder] = useState(false)
   const [showGameCompletion, setShowGameCompletion] = useState(false)
   const [showStatsModal, setShowStatsModal] = useState(false)
+  const [showStatsPrompt, setShowStatsPrompt] = useState(false)
   const [showGameDetail, setShowGameDetail] = useState(false)
   const [showGameDayMode, setShowGameDayMode] = useState(false)
   const [roster, setRoster] = useState([])
@@ -1283,8 +1314,37 @@ function GamePrepPage({ showToast }) {
     return acc
   }, { wins: 0, losses: 0 })
 
+  // Stats pending count
+  const statsPendingCount = pastGames.filter(g => g.game_status === 'completed' && !g.stats_entered).length
+
   return (
     <div className="space-y-6">
+      {/* Stats Pending Banner */}
+      {statsPendingCount > 0 && (
+        <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber-500/30 flex items-center justify-center text-lg">📊</div>
+            <div>
+              <p className="font-bold text-amber-300">{statsPendingCount} Game{statsPendingCount > 1 ? 's' : ''} Need Stats</p>
+              <p className="text-xs text-amber-400/70">Player stats power leaderboards, badges, and parent views</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setActiveTab('results')
+              const firstPending = pastGames.find(g => g.game_status === 'completed' && !g.stats_entered)
+              if (firstPending) {
+                setSelectedGame(firstPending)
+                setShowStatsModal(true)
+              }
+            }}
+            className="px-4 py-2 rounded-xl font-semibold text-sm bg-amber-500 text-black hover:bg-amber-400 transition"
+          >
+            Enter Stats →
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -1389,6 +1449,10 @@ function GamePrepPage({ showToast }) {
                       setSelectedGame(game)
                       setShowGameDayMode(true)
                     }}
+                    onEnterStats={(g) => {
+                      setSelectedGame(g)
+                      setShowStatsModal(true)
+                    }}
                   />
                 ))}
               </div>
@@ -1435,6 +1499,10 @@ function GamePrepPage({ showToast }) {
                       setSelectedGame(game)
                       setShowGameDayMode(true)
                     }}
+                    onEnterStats={(g) => {
+                      setSelectedGame(g)
+                      setShowStatsModal(true)
+                    }}
                   />
                 ))}
               </div>
@@ -1474,7 +1542,11 @@ function GamePrepPage({ showToast }) {
             setShowGameCompletion(false)
             loadGames()
           }}
-          onComplete={() => loadGames()}
+          onComplete={() => {
+            setShowGameCompletion(false)
+            setShowStatsPrompt(true)
+            loadGames()
+          }}
           showToast={showToast}
         />
       )}
@@ -1485,10 +1557,58 @@ function GamePrepPage({ showToast }) {
           team={selectedTeam}
           roster={roster}
           sport={sport}
-          onClose={() => setShowStatsModal(false)}
-          onSave={() => loadGames()}
+          onClose={() => {
+            setShowStatsModal(false)
+            loadGames()
+          }}
+          onSave={() => {
+            setShowStatsModal(false)
+            loadGames()
+            showToast('Stats saved! Leaderboards and player cards updated.', 'success')
+          }}
           showToast={showToast}
         />
+      )}
+      
+      {/* Stats Prompt - shown after game completion */}
+      {showStatsPrompt && selectedGame && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => { setShowStatsPrompt(false) }}>
+          <div className="bg-white rounded-3xl w-full max-w-md p-8 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="text-6xl mb-4">
+              {selectedGame.game_result === 'win' ? '🏆' : selectedGame.game_result === 'loss' ? '📊' : '🤝'}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {selectedGame.game_result === 'win' ? 'Victory!' : selectedGame.game_result === 'loss' ? 'Tough Loss' : 'Game Complete!'}
+            </h2>
+            <p className="text-gray-500 mb-6">
+              Want to enter player stats? Stats power leaderboards, badges, and the parent portal.
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setShowStatsPrompt(false)
+                  setShowStatsModal(true)
+                }}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-purple-500 text-white font-bold text-lg hover:shadow-lg transition flex items-center justify-center gap-2"
+              >
+                <BarChart3 className="w-5 h-5" />
+                Enter Stats Now
+              </button>
+              
+              <button
+                onClick={() => setShowStatsPrompt(false)}
+                className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-500 font-medium hover:bg-gray-50 transition text-sm"
+              >
+                I'll Do It Later
+              </button>
+            </div>
+            
+            <p className="text-xs text-gray-400 mt-4">
+              💡 Games needing stats will show an amber badge
+            </p>
+          </div>
+        </div>
       )}
       
       {showGameDetail && selectedGame && selectedTeam && (
