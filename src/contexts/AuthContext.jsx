@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     init()
 
-    // Listen for auth changes (for sign up)
+    // Listen for auth changes (for sign up and OAuth callbacks)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         init()
@@ -38,6 +38,23 @@ export function AuthProvider({ children }) {
       if (session?.user) {
         setUser(session.user)
         const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle()
+
+        // OAuth users may not have a profile row yet — create one
+        if (!prof && session.user) {
+          const meta = session.user.user_metadata
+          const { data: newProf } = await supabase.from('profiles').upsert({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: meta?.full_name || meta?.name || '',
+            onboarding_completed: false,
+          }, { onConflict: 'id' }).select().single()
+          setProfile(newProf)
+          setIsPlatformAdmin(false)
+          setNeedsOnboarding(true)
+          setLoading(false)
+          return
+        }
+
         setProfile(prof)
         setIsPlatformAdmin(!!prof?.is_platform_admin)
 
@@ -90,6 +107,26 @@ export function AuthProvider({ children }) {
     await init()
   }
 
+  async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    })
+    if (error) throw error
+  }
+
+  async function signInWithApple() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: window.location.origin
+      }
+    })
+    if (error) throw error
+  }
+
   async function signOut() {
     await supabase.auth.signOut()
     setUser(null)
@@ -116,6 +153,8 @@ export function AuthProvider({ children }) {
       needsOnboarding,
       signIn,
       signUp,
+      signInWithGoogle,
+      signInWithApple,
       signOut,
       setOrganization,
       setProfile,

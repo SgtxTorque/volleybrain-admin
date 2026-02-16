@@ -62,7 +62,7 @@ import { BlastsPage } from './pages/blasts'
 import { GamePrepPage } from './pages/gameprep'
 import { TeamStandingsPage } from './pages/standings'
 import { SeasonLeaderboardsPage } from './pages/leaderboards'
-import { ReportsPage } from './pages/reports'
+import { ReportsPage, RegistrationFunnelPage } from './pages/reports'
 
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
@@ -1459,6 +1459,7 @@ function HorizontalNavBar({
     ]},
     { id: 'insights', label: 'Insights', type: 'dropdown', items: [
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
+      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
       { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
@@ -1872,6 +1873,7 @@ function MainApp() {
               {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'reports' && activeView === 'admin' && <ReportsPage showToast={showToast} />}
+              {page === 'registration-funnel' && activeView === 'admin' && <RegistrationFunnelPage showToast={showToast} />}
               {page === 'notifications' && activeView === 'admin' && <NotificationsPage showToast={showToast} />}
 
               {page === 'platform-admin' && <PlatformAdminPage showToast={showToast} />}

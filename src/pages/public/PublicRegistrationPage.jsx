@@ -73,13 +73,13 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   const [currentChild, setCurrentChild] = useState({}) // Current child being edited
   const [editingChildIndex, setEditingChildIndex] = useState(null) // null = adding new, number = editing existing
   const [showAddChildForm, setShowAddChildForm] = useState(false) // Show form for adding another child
-  
+
   // Shared info (parent, emergency, medical)
   const [sharedInfo, setSharedInfo] = useState({})
   const [waiverState, setWaiverState] = useState({})
   const [customAnswers, setCustomAnswers] = useState({})
   const [signature, setSignature] = useState('')
-  
+
   // App state
   const [season, setSeason] = useState(null)
   const [organization, setOrganization] = useState(null)
@@ -90,6 +90,31 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
   const [error, setError] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
   const [prefillApplied, setPrefillApplied] = useState(false)
+  const [formStartTracked, setFormStartTracked] = useState(false)
+
+  // ═══════ FUNNEL TRACKING (fire-and-forget) ═══════
+  function getSessionId() {
+    let sid = sessionStorage.getItem('vb_session')
+    if (!sid) {
+      sid = crypto.randomUUID()
+      sessionStorage.setItem('vb_session', sid)
+    }
+    return sid
+  }
+
+  async function trackFunnelEvent(eventType, stepName = null, metadata = {}) {
+    try {
+      await supabase.from('registration_funnel_events').insert({
+        organization_id: organization?.id || null,
+        season_id: seasonId || null,
+        event_type: eventType,
+        step_name: stepName,
+        session_id: getSessionId(),
+        source: new URLSearchParams(window.location.search).get('src') || 'direct',
+        metadata
+      })
+    } catch (e) { /* silent fail — don't block registration */ }
+  }
 
   // Read URL parameters for prefill
   useEffect(() => {
@@ -206,10 +231,13 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         
         if (seasonData) {
           setSeason(seasonData)
-          
+
           if (seasonData.registration_config) {
             setConfig(seasonData.registration_config)
           }
+
+          // Track page view
+          trackFunnelEvent('page_view', null, { season_name: seasonData.name })
           
           // Initialize waiver state
           const waiverInit = {}
@@ -263,6 +291,14 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     return null
   }
 
+  // Track form_started on first input interaction
+  function trackFormStart() {
+    if (!formStartTracked) {
+      setFormStartTracked(true)
+      trackFunnelEvent('form_started')
+    }
+  }
+
   // Add current child to list
   function addChild() {
     const validationError = validateCurrentChild()
@@ -281,7 +317,8 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
       // Add new child
       setChildren([...children, { ...currentChild }])
     }
-    
+
+    trackFunnelEvent('step_completed', 'player_info', { child_count: children.length + 1 })
     setCurrentChild({})
     setShowAddChildForm(false)
     setError(null)
@@ -431,6 +468,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
         }
       }
 
+      trackFunnelEvent('form_submitted', null, { children_count: allChildren.length })
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)
@@ -466,6 +504,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           <select
             value={formState[key] || ''}
             onChange={e => setFormState({...formState, [key]: e.target.value})}
+            onFocus={trackFormStart}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -488,6 +527,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           <select
             value={formState[key] || ''}
             onChange={e => setFormState({...formState, [key]: e.target.value})}
+            onFocus={trackFormStart}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -510,6 +550,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             type="date"
             value={formState[key] || ''}
             onChange={e => setFormState({...formState, [key]: e.target.value})}
+            onFocus={trackFormStart}
             required={isRequired}
             className="w-full rounded-xl px-4 py-3"
             style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
@@ -559,7 +600,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     }
 
     const inputType = key.includes('email') ? 'email' : key.includes('phone') ? 'tel' : 'text'
-    
+
     return (
       <div key={key}>
         <label className="block text-sm mb-2" style={{ color: colors.textSecondary }}>
@@ -569,6 +610,7 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
           type={inputType}
           value={formState[key] || ''}
           onChange={e => setFormState({...formState, [key]: e.target.value})}
+          onFocus={trackFormStart}
           required={isRequired}
           className="w-full rounded-xl px-4 py-3"
           style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
