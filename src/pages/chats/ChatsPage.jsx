@@ -201,18 +201,23 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       className="h-[calc(100vh-180px)] flex rounded-2xl overflow-hidden"
       style={{ 
         background: isDark 
-          ? 'linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)' 
-          : 'linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%)',
+          ? 'rgba(30, 41, 59, 0.7)' 
+          : 'rgba(255, 255, 255, 0.6)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: isDark 
+          ? '1px solid rgba(255, 255, 255, 0.06)' 
+          : '1px solid rgba(0, 0, 0, 0.06)',
         boxShadow: isDark 
           ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
-          : '0 25px 50px -12px rgba(0, 0, 0, 0.15)'
+          : '0 25px 50px -12px rgba(0, 0, 0, 0.1)'
       }}
     >
       {/* Sidebar - Conversation List */}
       {(!isMobileView || !selectedChannel) && (
         <div 
           className={`${isMobileView ? 'w-full' : 'w-80'} flex flex-col border-r`}
-          style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}
+          style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}
         >
           {/* Header */}
           <div className="p-4 space-y-4">
@@ -232,7 +237,12 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             {/* Search */}
             <div 
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-              style={{ background: isDark ? '#ffffff08' : '#00000008' }}
+              style={{ 
+                background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}
             >
               <Search className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
               <input
@@ -314,7 +324,12 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             <div className="flex-1 flex flex-col items-center justify-center">
               <div 
                 className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
-                style={{ background: isDark ? '#ffffff10' : '#00000008' }}
+                style={{ 
+                  background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)'
+                }}
               >
                 <span className="text-4xl">💬</span>
               </div>
@@ -364,8 +379,10 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, ac
   return (
     <button
       onClick={onClick}
-      className={`w-full p-4 flex items-center gap-3 transition-all hover:bg-white/5 ${
-        isSelected ? 'bg-white/10' : ''
+      className={`w-full p-4 flex items-center gap-3 transition-all ${
+        isSelected 
+          ? isDark ? 'bg-white/[0.08]' : 'bg-black/[0.04]' 
+          : isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-black/[0.03]'
       }`}
       style={isSelected ? { borderLeft: `3px solid ${accent.primary}` } : { borderLeft: '3px solid transparent' }}
     >
@@ -375,7 +392,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, ac
         style={{ 
           background: channel.teams?.color 
             ? `${channel.teams.color}30` 
-            : isDark ? '#ffffff15' : '#00000010',
+            : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
           color: channel.teams?.color || (isDark ? '#fff' : '#000')
         }}
       >
@@ -795,9 +812,10 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       <div 
         className="px-4 py-3 flex items-center gap-3 border-b"
         style={{ 
-          borderColor: isDark ? '#ffffff10' : '#00000010',
-          background: isDark ? '#ffffff05' : '#ffffff80',
-          backdropFilter: 'blur(10px)'
+          borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.6)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)'
         }}
       >
         {isMobile && (
@@ -809,7 +827,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         <div 
           className="w-10 h-10 rounded-full flex items-center justify-center"
           style={{ 
-            background: channel.teams?.color ? `${channel.teams.color}30` : isDark ? '#ffffff15' : '#00000010'
+            background: channel.teams?.color ? `${channel.teams.color}30` : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
           }}
         >
           {channel.channel_type === 'team_chat' ? '👥' : channel.channel_type === 'player_chat' ? '🏐' : '💬'}
@@ -851,8 +869,10 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
             style={{ 
               top: menuPosition.top,
               right: menuPosition.right,
-              background: isDark ? '#1e293b' : '#ffffff',
-              borderColor: isDark ? '#ffffff15' : '#00000010'
+              background: isDark ? 'rgba(30,41,59,0.95)' : 'rgba(255,255,255,0.95)',
+              borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)'
             }}
           >
             <button
@@ -896,8 +916,8 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         className="flex-1 overflow-y-auto p-4 space-y-1 relative"
         style={{ 
           background: isDark 
-            ? 'radial-gradient(ellipse at top, #1e293b 0%, #0f172a 100%)' 
-            : 'radial-gradient(ellipse at top, #ffffff 0%, #f1f5f9 100%)'
+            ? 'radial-gradient(ellipse at top, rgba(30,41,59,0.5) 0%, rgba(15,23,42,0.3) 100%)' 
+            : 'radial-gradient(ellipse at top, rgba(255,255,255,0.4) 0%, rgba(241,245,249,0.3) 100%)'
         }}
       >
         {/* Team logo watermark */}
@@ -992,8 +1012,8 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         <div 
           className="px-4 py-2 flex items-center gap-3 border-t"
           style={{ 
-            borderColor: isDark ? '#ffffff10' : '#00000010',
-            background: isDark ? '#ffffff08' : '#00000005'
+            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+            background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'
           }}
         >
           <Reply className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
@@ -1015,7 +1035,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       {canPost ? (
         <div 
           className="p-4 border-t relative"
-          style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}
+          style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}
         >
           {/* Emoji Picker - moved outside input row */}
           {showEmojiPicker && (
@@ -1056,7 +1076,13 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           
           <div 
             className="flex items-end gap-2 p-2 rounded-2xl"
-            style={{ background: isDark ? '#ffffff08' : '#00000005' }}
+            style={{ 
+              background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.7)',
+              border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              boxShadow: isDark ? 'none' : '0 2px 12px rgba(0,0,0,0.04)'
+            }}
           >
             {/* Attachment buttons */}
             <div className="flex items-center gap-1">
@@ -1128,7 +1154,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       ) : (
         <div 
           className="p-4 text-center border-t"
-          style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}
+          style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}
         >
           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             🔒 This is a player chat. Only coaches can send messages.
@@ -1179,13 +1205,13 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         >
           <div 
             className="w-full max-w-3xl max-h-[85vh] rounded-2xl overflow-hidden flex flex-col"
-            style={{ background: isDark ? '#1e293b' : '#ffffff' }}
+            style={{ background: isDark ? 'rgba(30,41,59,0.95)' : 'rgba(255,255,255,0.95)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div 
               className="px-5 py-4 flex items-center justify-between border-b"
-              style={{ borderColor: isDark ? '#ffffff15' : '#00000010' }}
+              style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
             >
               <div>
                 <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -1320,11 +1346,11 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
   const reactions = message.reactions || {}
   const hasReactions = Object.keys(reactions).length > 0
 
-  // Softer bubble colors - light and airy with shadows
+  // Softer bubble colors - glassmorphic with light blur
   const getBubbleStyle = () => {
     if (message.message_type === 'system') {
       return {
-        background: isDark ? '#ffffff08' : '#00000005',
+        background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
         color: isDark ? '#94a3b8' : '#64748b',
         boxShadow: 'none'
       }
@@ -1337,22 +1363,26 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
       }
     }
     if (isOwn) {
-      // Light blue bubble
       return {
-        background: isDark ? '#3b82f6' : '#dbeafe', // blue-500 / blue-100
-        color: isDark ? '#ffffff' : '#000000',
+        background: isDark ? 'rgba(59,130,246,0.85)' : '#dbeafe',
+        color: isDark ? '#ffffff' : '#1e293b',
         boxShadow: isDark 
-          ? '0 2px 8px rgba(59, 130, 246, 0.3)' 
-          : '0 2px 8px rgba(59, 130, 246, 0.15)'
+          ? '0 4px 16px rgba(59, 130, 246, 0.25)' 
+          : '0 2px 12px rgba(59, 130, 246, 0.12)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)'
       }
     }
-    // Other users - light gray
+    // Other users - glass card
     return {
-      background: isDark ? '#374151' : '#f1f5f9', // gray-700 / slate-100
-      color: isDark ? '#ffffff' : '#000000',
+      background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.8)',
+      color: isDark ? '#ffffff' : '#1e293b',
       boxShadow: isDark 
-        ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
-        : '0 2px 8px rgba(0, 0, 0, 0.08)'
+        ? '0 2px 12px rgba(0, 0, 0, 0.2)' 
+        : '0 2px 12px rgba(0, 0, 0, 0.06)',
+      border: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.04)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)'
     }
   }
 
@@ -1528,10 +1558,15 @@ function EmojiPicker({ onSelect, onClose, isDark }) {
   return (
     <div 
       className="absolute bottom-full mb-2 left-0 w-80 rounded-2xl shadow-2xl overflow-hidden"
-      style={{ background: isDark ? '#1e293b' : '#ffffff' }}
+      style={{ 
+        background: isDark ? 'rgba(30,41,59,0.95)' : 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)'
+      }}
     >
       {/* Categories */}
-      <div className="flex border-b" style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}>
+      <div className="flex border-b" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
         {Object.keys(EMOJI_CATEGORIES).map(cat => (
           <button
             key={cat}
@@ -1652,13 +1687,18 @@ function GifPicker({ onSelect, onClose, isDark }) {
   return (
     <div 
       className="absolute bottom-full mb-2 left-0 w-80 rounded-2xl shadow-2xl overflow-hidden"
-      style={{ background: isDark ? '#1e293b' : '#ffffff' }}
+      style={{ 
+        background: isDark ? 'rgba(30,41,59,0.95)' : 'rgba(255,255,255,0.95)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)'
+      }}
     >
       {/* Search */}
-      <div className="p-3 border-b" style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}>
+      <div className="p-3 border-b" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
         <div 
           className="flex items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ background: isDark ? '#ffffff10' : '#00000005' }}
+          style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)' }}
         >
           <Search className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
           <input
@@ -1705,7 +1745,7 @@ function GifPicker({ onSelect, onClose, isDark }) {
       
       {/* Powered by Tenor */}
       <div className="px-3 py-2 border-t flex items-center justify-between" 
-           style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}>
+           style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
         <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           Powered by Tenor
         </span>
@@ -1822,16 +1862,21 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
   }
   
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: isDark ? '#1e293b' : '#ffffff' }}
+        className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
+        style={{ 
+          background: isDark ? 'rgba(30,41,59,0.95)' : 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)'
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div 
           className="p-4 flex items-center justify-between border-b"
-          style={{ borderColor: isDark ? '#ffffff10' : '#00000010' }}
+          style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}
         >
           <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             New Chat
