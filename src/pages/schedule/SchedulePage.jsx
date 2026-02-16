@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { 
   Users, Calendar, MapPin, Clock, Edit, Trash2, Check, X,
   ChevronLeft, ChevronRight, BarChart3, Star, CheckSquare, ClipboardList, User,
-  Phone, Mail, Award, Share2, Download, Printer, Image
+  Phone, Mail, Award, Share2, Download, Image
 } from '../../constants/icons'
 import { PlayerCard, PlayerCardExpanded } from '../../components/players'
 import { ClickableCoachName, CoachDetailModal } from '../../pages/coaches/CoachesPage'

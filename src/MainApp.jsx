@@ -70,6 +70,12 @@ import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, Registrat
 import { AchievementsCatalogPage } from './pages/achievements'
 import { NotificationsPage } from './pages/notifications/NotificationsPage'
 
+// Platform Admin
+import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
+
+// Profile
+import { MyProfilePage } from './pages/profile/MyProfilePage'
+
 // ============================================
 // NAV DROPDOWN COMPONENT
 // ============================================
@@ -410,6 +416,20 @@ function UserProfileDropdown({
                 {getRoleLabel()}
               </p>
             </div>
+          </div>
+
+          <div className={`p-2 border-b ${tc.border}`}>
+            <button
+              onClick={() => { setShowRoleSwitcher(false); setPage('my-profile'); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${tc.hoverBg}`}
+            >
+              <User className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium text-sm ${tc.text}`}>My Profile</p>
+                <p className={`text-xs ${tc.textMuted} truncate`}>Edit your personal info</p>
+              </div>
+              <ChevronRight className={`w-4 h-4 ${tc.textMuted}`} />
+            </button>
           </div>
 
           <div className={`p-2 border-b ${tc.border}`}>
@@ -1401,11 +1421,11 @@ function CheckCircle({ className }) {
 // ============================================
 // HORIZONTAL NAV BAR COMPONENT
 // ============================================
-function HorizontalNavBar({ 
+function HorizontalNavBar({
   page, setPage, activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
   getAvailableViews, setActiveView, signOut, exitTeamWall, directTeamWallId,
   tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
-  roleContext, navigateToTeamWall, organization
+  roleContext, navigateToTeamWall, organization, isPlatformAdmin
 }) {
   // Admin navigation with dropdowns
   const adminNavGroups = [
@@ -1587,8 +1607,21 @@ function HorizontalNavBar({
         })}
       </nav>
 
-      {/* RIGHT: Notifications + Profile */}
+      {/* RIGHT: Platform Admin + Notifications + Profile */}
       <div className="flex items-center gap-3">
+        {isPlatformAdmin && (
+          <button
+            onClick={() => { exitTeamWall(); setPage('platform-admin'); }}
+            title="Platform Admin"
+            className={`relative p-2 rounded-xl transition ${
+              page === 'platform-admin'
+                ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+            }`}
+          >
+            <Shield className="w-5 h-5" />
+          </button>
+        )}
         <NotificationDropdown tc={tc} organization={organization} isDark={isDark} />
         <UserProfileDropdown 
           profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
@@ -1605,7 +1638,7 @@ function HorizontalNavBar({
 // MAIN APP COMPONENT
 // ============================================
 function MainApp() {
-  const { profile, organization, signOut, user } = useAuth()
+  const { profile, organization, signOut, user, isPlatformAdmin } = useAuth()
   const tc = useThemeClasses()
   const { isDark, accent, accentColor, changeAccent, accentColors, toggleTheme } = useTheme()
   const [page, setPage] = useState('dashboard')
@@ -1741,7 +1774,7 @@ function MainApp() {
         {activeView === 'parent' && <SpotlightOverlay />}
         
         {/* Horizontal Nav Bar */}
-        <HorizontalNavBar 
+        <HorizontalNavBar
           page={page} setPage={setPage} activeView={activeView} profile={profile}
           showRoleSwitcher={showRoleSwitcher} setShowRoleSwitcher={setShowRoleSwitcher}
           getAvailableViews={getAvailableViews} setActiveView={setActiveView} signOut={signOut}
@@ -1749,6 +1782,7 @@ function MainApp() {
           accentColor={accentColor} changeAccent={changeAccent} accentColors={accentColors}
           isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
           navigateToTeamWall={navigateToTeamWall} organization={organization}
+          isPlatformAdmin={isPlatformAdmin}
         />
         
         {/* Info Header Bar */}
@@ -1796,7 +1830,10 @@ function MainApp() {
               {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'reports' && activeView === 'admin' && <ReportsPage showToast={showToast} />}
               {page === 'notifications' && activeView === 'admin' && <NotificationsPage showToast={showToast} />}
-              
+
+              {page === 'platform-admin' && <PlatformAdminPage showToast={showToast} />}
+              {page === 'my-profile' && <MyProfilePage showToast={showToast} />}
+
               {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
                 <AchievementsCatalogPage 
                   playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}

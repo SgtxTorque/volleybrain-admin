@@ -1,8 +1,4 @@
-export { 
-  PaymentsPage, 
-  MarkPaidModal,
-  EmailGeneratorModal,
-  AddPaymentModal,
-  generateFeesForExistingPlayers,
-  generateEmailContent
+export {
+  PaymentsPage,
+  generateFeesForExistingPlayers
 } from './PaymentsPage'

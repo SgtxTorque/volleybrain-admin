@@ -6,8 +6,8 @@ import { supabase } from '../lib/supabase'
 // ============================================
 const AuthContext = createContext(null)
 
-export function useAuth() { 
-  return useContext(AuthContext) 
+export function useAuth() {
+  return useContext(AuthContext)
 }
 
 export function AuthProvider({ children }) {
@@ -15,19 +15,20 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [organization, setOrganization] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
-  useEffect(() => { 
+  useEffect(() => {
     init()
-    
+
     // Listen for auth changes (for sign up)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         init()
       }
     })
-    
+
     return () => subscription.unsubscribe()
   }, [])
 
@@ -38,14 +39,15 @@ export function AuthProvider({ children }) {
         setUser(session.user)
         const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle()
         setProfile(prof)
-        
+        setIsPlatformAdmin(!!prof?.is_platform_admin)
+
         // Check if user needs onboarding
         if (!prof?.onboarding_completed) {
           setNeedsOnboarding(true)
           setLoading(false)
           return
         }
-        
+
         const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', session.user.id).eq('is_active', true)
         if (roles && roles.length > 0) {
           setIsAdmin(roles.some(r => r.role === 'league_admin'))
@@ -65,15 +67,15 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp(email, password, firstName, lastName) {
-    const { data, error } = await supabase.auth.signUp({ 
-      email, 
+    const { data, error } = await supabase.auth.signUp({
+      email,
       password,
       options: {
         data: { first_name: firstName, last_name: lastName }
       }
     })
     if (error) throw error
-    
+
     // Create profile if it doesn't exist
     if (data.user) {
       await supabase.from('profiles').upsert({
@@ -84,7 +86,7 @@ export function AuthProvider({ children }) {
         onboarding_completed: false,
       }, { onConflict: 'id' })
     }
-    
+
     await init()
   }
 
@@ -94,6 +96,7 @@ export function AuthProvider({ children }) {
     setProfile(null)
     setOrganization(null)
     setIsAdmin(false)
+    setIsPlatformAdmin(false)
     setNeedsOnboarding(false)
   }
 
@@ -103,20 +106,21 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      profile, 
-      organization, 
-      isAdmin, 
-      loading, 
+    <AuthContext.Provider value={{
+      user,
+      profile,
+      organization,
+      isAdmin,
+      isPlatformAdmin,
+      loading,
       needsOnboarding,
-      signIn, 
+      signIn,
       signUp,
-      signOut, 
+      signOut,
       setOrganization,
       setProfile,
       completeOnboarding,
-      refreshAuth: init 
+      refreshAuth: init
     }}>
       {children}
     </AuthContext.Provider>
