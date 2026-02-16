@@ -73,6 +73,7 @@ import { NotificationsPage } from './pages/notifications/NotificationsPage'
 
 // Platform Admin
 import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
+import { PlatformAnalyticsPage } from './pages/platform/PlatformAnalyticsPage'
 
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
@@ -1622,17 +1623,30 @@ function HorizontalNavBar({
       {/* RIGHT: Platform Admin + Notifications + Profile */}
       <div className="flex items-center gap-3">
         {isPlatformAdmin && (
-          <button
-            onClick={() => { exitTeamWall(); setPage('platform-admin'); }}
-            title="Platform Admin"
-            className={`relative p-2 rounded-xl transition ${
-              page === 'platform-admin'
-                ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
-            }`}
-          >
-            <Shield className="w-5 h-5" />
-          </button>
+          <>
+            <button
+              onClick={() => { exitTeamWall(); setPage('platform-analytics'); }}
+              title="Platform Analytics"
+              className={`relative p-2 rounded-xl transition ${
+                page === 'platform-analytics'
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                  : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+              }`}
+            >
+              <BarChart3 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => { exitTeamWall(); setPage('platform-admin'); }}
+              title="Platform Admin"
+              className={`relative p-2 rounded-xl transition ${
+                page === 'platform-admin'
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                  : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+              }`}
+            >
+              <Shield className="w-5 h-5" />
+            </button>
+          </>
         )}
         <NotificationDropdown tc={tc} organization={organization} isDark={isDark} />
         <UserProfileDropdown 
@@ -1845,6 +1859,7 @@ function MainApp() {
               {page === 'notifications' && activeView === 'admin' && <NotificationsPage showToast={showToast} />}
 
               {page === 'platform-admin' && <PlatformAdminPage showToast={showToast} />}
+              {page === 'platform-analytics' && <PlatformAnalyticsPage showToast={showToast} />}
               {page === 'my-profile' && <MyProfilePage showToast={showToast} setPage={setPage} />}
               {page === 'season-archives' && <SeasonArchivePage showToast={showToast} />}
               {page === 'org-directory' && <OrgDirectoryPage isEmbedded />}
