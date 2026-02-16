@@ -46,7 +46,7 @@ import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
 import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage } from './pages/parent'
 
 // Public Pages
-import { TeamWallPage } from './pages/public'
+import { TeamWallPage, OrgDirectoryPage } from './pages/public'
 
 // Core Admin Pages
 import { RegistrationsPage } from './pages/registrations'
@@ -75,6 +75,9 @@ import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
 
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
+
+// Archives
+import { SeasonArchivePage } from './pages/archives'
 
 // ============================================
 // NAV DROPDOWN COMPONENT
@@ -1453,6 +1456,8 @@ function HorizontalNavBar({
     ]},
     { id: 'insights', label: 'Insights', type: 'dropdown', items: [
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
     { id: 'setup', label: 'Setup', type: 'dropdown', items: [
   { id: 'seasons', label: 'Seasons', icon: 'calendar' },
@@ -1485,6 +1490,10 @@ function HorizontalNavBar({
       { id: 'chats', label: 'Team Chats', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
     ]},
+    { id: 'insights', label: 'Insights', type: 'dropdown', items: [
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
+    ]},
   ]
 
   // Parent navigation
@@ -1505,6 +1514,8 @@ function HorizontalNavBar({
     { id: 'achievements', label: 'Achievements', type: 'single' },
     { id: 'chats', label: 'Chats', type: 'single' },
     { id: 'payments', label: 'Payments', type: 'single' },
+    { id: 'season-archives', label: 'Archives', type: 'single' },
+    { id: 'org-directory', label: 'Directory', type: 'single' },
   ]
 
   // Player navigation
@@ -1832,7 +1843,9 @@ function MainApp() {
               {page === 'notifications' && activeView === 'admin' && <NotificationsPage showToast={showToast} />}
 
               {page === 'platform-admin' && <PlatformAdminPage showToast={showToast} />}
-              {page === 'my-profile' && <MyProfilePage showToast={showToast} />}
+              {page === 'my-profile' && <MyProfilePage showToast={showToast} setPage={setPage} />}
+              {page === 'season-archives' && <SeasonArchivePage showToast={showToast} />}
+              {page === 'org-directory' && <OrgDirectoryPage isEmbedded />}
 
               {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
                 <AchievementsCatalogPage 

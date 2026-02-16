@@ -152,17 +152,28 @@ export function LoginPage() {
         </div>
         
         <p className="text-center text-slate-500 text-sm mt-6">
-          {mode === 'login' 
-            ? "Don't have an account? " 
+          {mode === 'login'
+            ? "Don't have an account? "
             : "Already have an account? "
           }
-          <button 
+          <button
             onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setMessage('') }}
             className="text-[var(--accent-primary)] hover:underline"
           >
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </p>
+
+        <div className="text-center mt-8 pt-6 border-t border-slate-700/50">
+          <p className="text-slate-500 text-sm mb-2">Looking for a league?</p>
+          <a
+            href="/directory"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-black transition hover:opacity-90"
+            style={{ background: '#EAB308' }}
+          >
+            Browse Organizations
+          </a>
+        </div>
       </div>
     </div>
   )

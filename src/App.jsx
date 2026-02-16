@@ -7,7 +7,7 @@ import { JourneyProvider } from './contexts/JourneyContext'
 import { LoginPage, SetupWizard } from './pages/auth'
 
 // Public Pages
-import { PublicRegistrationPage } from './pages/public'
+import { PublicRegistrationPage, OrgDirectoryPage } from './pages/public'
 
 // Main App
 import { MainApp } from './MainApp'
@@ -33,16 +33,31 @@ function AppContent() {
         seasonId: registerMatch[2]
       })
     }
+
+    // Match /directory — public org discovery page
+    if (path === '/directory' || path === '/directory/') {
+      setIsPublicRoute(true)
+      setPublicRouteData({ type: 'directory' })
+    }
   }, [])
 
   // Show public registration form (no auth required)
   if (isPublicRoute && publicRouteData?.type === 'registration') {
     return (
       <ThemeProvider>
-        <PublicRegistrationPage 
+        <PublicRegistrationPage
           orgIdOrSlug={publicRouteData.orgIdOrSlug}
           seasonId={publicRouteData.seasonId}
         />
+      </ThemeProvider>
+    )
+  }
+
+  // Show public org directory (no auth required)
+  if (isPublicRoute && publicRouteData?.type === 'directory') {
+    return (
+      <ThemeProvider>
+        <OrgDirectoryPage onNavigateToLogin={() => { window.location.href = '/' }} />
       </ThemeProvider>
     )
   }
