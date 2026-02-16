@@ -118,7 +118,10 @@ import {
   XCircle,
   Zap,
   Reply,
-  Smile
+  Smile,
+  Swords,
+  Crosshair,
+  Crown
 } from 'lucide-react'
 
 // Use Circle as volleyball icon since Volleyball doesn't exist in lucide-react
@@ -412,5 +415,8 @@ export {
   Zap,
   Reply,
   Smile,
-  CheckCheck
+  CheckCheck,
+  Swords,
+  Crosshair,
+  Crown
 }
