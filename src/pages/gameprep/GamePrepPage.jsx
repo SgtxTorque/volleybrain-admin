@@ -3,14 +3,41 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { 
+import {
   Calendar, Users, MapPin, Clock, Check, X, ChevronRight, ChevronLeft,
-  BarChart3, Star, Trophy, ClipboardList, Edit, Eye, EyeOff
+  BarChart3, Star, Trophy, ClipboardList, Edit, Eye, EyeOff, Swords, Crosshair
 } from '../../constants/icons'
 import { getSportConfig, GameStatsModal } from '../../components/games/GameComponents'
 import { AdvancedLineupBuilder } from '../../components/games/AdvancedLineupBuilder'
 import { GameDetailModal } from '../../components/games/GameDetailModal'
 import { GameDayCommandCenter } from './GameDayCommandCenter'
+
+// ============================================
+// TACTICAL BLUEPRINT STYLES
+// ============================================
+const gpStyles = `
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
+.gp-wrap{
+  min-height:100vh;background:#0a0a0f;color:#e2e8f0;position:relative;
+}
+.gp-wrap::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px);
+  background-size:40px 40px;z-index:0;
+}
+.gp-wrap>*{position:relative;z-index:1;}
+.gp-card{
+  background:rgba(15,20,35,0.7);border:1px solid rgba(59,130,246,0.12);
+  border-radius:1rem;backdrop-filter:blur(12px);transition:all .3s ease;
+}
+.gp-card:hover{border-color:rgba(59,130,246,0.25);box-shadow:0 0 30px rgba(59,130,246,0.08);}
+.gp-label{
+  font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.7rem;
+  letter-spacing:0.12em;text-transform:uppercase;color:rgba(100,116,139,0.8);
+}
+`
 
 // ============================================
 // HELPER FUNCTIONS
@@ -47,27 +74,29 @@ function isTomorrow(dateStr) {
 // GAME CARD COMPONENT
 // ============================================
 function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onCompleteClick, onGameDayClick, onEnterStats }) {
-  const tc = useThemeClasses()
   const gameDate = new Date(game.event_date)
   const today = isToday(game.event_date)
   const tomorrow = isTomorrow(game.event_date)
   const isCompleted = game.game_status === 'completed'
   const isPast = gameDate < new Date() && !today
   const needsStats = isCompleted && !game.stats_entered
-  
+
   return (
-    <div 
-      className={`relative overflow-hidden rounded-2xl border-2 transition-all cursor-pointer ${
-        isSelected 
-          ? 'border-[var(--accent-primary)] shadow-lg shadow-[var(--accent-primary)]/20' 
-          : `${tc.border} hover:border-slate-500`
-      } ${tc.cardBg}`}
+    <div
+      className="relative overflow-hidden rounded-2xl transition-all cursor-pointer"
+      style={{
+        background: 'rgba(15,20,35,0.7)',
+        border: isSelected
+          ? '2px solid rgba(59,130,246,0.5)'
+          : '1px solid rgba(59,130,246,0.12)',
+        boxShadow: isSelected ? '0 0 30px rgba(59,130,246,0.15)' : 'none',
+      }}
       onClick={onClick}
     >
       {/* Top color bar */}
-      <div 
-        className="h-1.5"
-        style={{ backgroundColor: team?.color || 'var(--accent-primary)' }}
+      <div
+        className="h-1"
+        style={{ background: `linear-gradient(90deg, ${team?.color || '#3B82F6'}, transparent)` }}
       />
       
       <div className="p-4">
@@ -105,7 +134,7 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
         </div>
         
         {/* Opponent */}
-        <h3 className={`text-lg font-bold ${tc.text} mb-1`}>
+        <h3 className="text-lg font-bold text-white mb-1">
           vs {game.opponent_name || 'TBD'}
         </h3>
         
@@ -117,11 +146,11 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
               <>
                 <p className={`text-2xl font-bold ${
                   game.game_result === 'win' ? 'text-emerald-400' : 
-                  game.game_result === 'loss' ? 'text-red-400' : tc.text
+                  game.game_result === 'loss' ? 'text-red-400' : 'text-white'
                 }`}>
                   {game.our_sets_won} - {game.opponent_sets_won}
                 </p>
-                <p className={`text-sm ${tc.textMuted}`}>
+                <p className={`text-sm text-slate-400`}>
                   {game.set_scores
                     .filter(s => s && (s.our > 0 || s.their > 0))
                     .map((s, i) => `${s.our}-${s.their}`)
@@ -131,8 +160,8 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
             ) : (
               /* Simple score (other sports or legacy) */
               <p className={`text-2xl font-bold ${
-                game.game_result === 'win' ? 'text-emerald-400' : 
-                game.game_result === 'loss' ? 'text-red-400' : tc.text
+                game.game_result === 'win' ? 'text-emerald-400' :
+                game.game_result === 'loss' ? 'text-red-400' : 'text-white'
               }`}>
                 {game.our_score} - {game.opponent_score}
               </p>
@@ -141,7 +170,7 @@ function GameCard({ game, team, status, isSelected, onClick, onPrepClick, onComp
         )}
         
         {/* Details */}
-        <div className={`flex flex-wrap gap-3 text-sm ${tc.textMuted} mb-4`}>
+        <div className={`flex flex-wrap gap-3 text-sm text-slate-400 mb-4`}>
           <span className="flex items-center gap-1">
             <Calendar className="w-4 h-4" />
             {formatDate(game.event_date)}
@@ -1318,7 +1347,10 @@ function GamePrepPage({ showToast }) {
   const statsPendingCount = pastGames.filter(g => g.game_status === 'completed' && !g.stats_entered).length
 
   return (
-    <div className="space-y-6">
+    <>
+    <style>{gpStyles}</style>
+    <div className="gp-wrap">
+    <div className="space-y-6 p-4 md:p-6">
       {/* Stats Pending Banner */}
       {statsPendingCount > 0 && (
         <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between">
@@ -1348,20 +1380,23 @@ function GamePrepPage({ showToast }) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className={`text-3xl font-bold ${tc.text} flex items-center gap-3`}>
-            <span className="text-4xl">{sportConfig.icon}</span>
-            Game Prep
+          <div className="gp-label text-blue-400/60 mb-1 flex items-center gap-2">
+            <Crosshair className="w-3 h-3" /> TACTICAL BLUEPRINT
+          </div>
+          <h1 className="text-4xl font-bold text-white flex items-center gap-3" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.04em' }}>
+            <Swords className="w-8 h-8 text-blue-400" />
+            GAME PREP
           </h1>
-          <p className={tc.textMuted}>Build lineups and track game results</p>
+          <p className="text-slate-500 text-sm mt-1" style={{ fontFamily: "'Rajdhani', sans-serif" }}>Build lineups &middot; Track results &middot; Dominate</p>
         </div>
         
         {/* Record */}
         {(record.wins > 0 || record.losses > 0) && (
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl px-6 py-3`}>
-            <p className={`text-xs ${tc.textMuted} mb-1`}>Season Record</p>
+          <div className="gp-card border border-blue-500/10 rounded-2xl px-6 py-3">
+            <p className="gp-label text-blue-400/60 mb-1">SEASON RECORD</p>
             <p className="text-2xl font-bold">
               <span className="text-emerald-400">{record.wins}</span>
-              <span className={tc.textMuted}> - </span>
+              <span className="text-slate-400"> - </span>
               <span className="text-red-400">{record.losses}</span>
             </p>
           </div>
@@ -1369,7 +1404,7 @@ function GamePrepPage({ showToast }) {
       </div>
 
       {/* Team Selector */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-2`}>
+      <div className={`gp-card border border-blue-500/10 rounded-2xl p-2`}>
         <div className="flex items-center gap-2 overflow-x-auto">
           {teams.map(team => (
             <button
@@ -1378,7 +1413,7 @@ function GamePrepPage({ showToast }) {
               className={`px-5 py-2.5 rounded-xl whitespace-nowrap flex items-center gap-2 transition font-semibold ${
                 selectedTeam?.id === team.id
                   ? 'text-white shadow-lg'
-                  : `${tc.text} hover:bg-slate-700/50`
+                  : `text-white hover:bg-slate-700/50`
               }`}
               style={selectedTeam?.id === team.id ? { 
                 backgroundColor: team.color,
@@ -1402,7 +1437,7 @@ function GamePrepPage({ showToast }) {
           className={`px-5 py-2.5 rounded-xl font-semibold transition ${
             activeTab === 'upcoming'
               ? 'bg-[var(--accent-primary)] text-white'
-              : `${tc.cardBg} ${tc.text} hover:brightness-110`
+              : `gp-card text-white hover:brightness-110`
           }`}
         >
           📅 Upcoming ({games.length})
@@ -1412,7 +1447,7 @@ function GamePrepPage({ showToast }) {
           className={`px-5 py-2.5 rounded-xl font-semibold transition ${
             activeTab === 'results'
               ? 'bg-[var(--accent-primary)] text-white'
-              : `${tc.cardBg} ${tc.text} hover:brightness-110`
+              : `gp-card text-white hover:brightness-110`
           }`}
         >
           📊 Results ({pastGames.length})
@@ -1457,10 +1492,10 @@ function GamePrepPage({ showToast }) {
                 ))}
               </div>
             ) : (
-              <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+              <div className={`gp-card border border-blue-500/10 rounded-2xl p-12 text-center`}>
                 <span className="text-6xl">{sportConfig.icon}</span>
-                <h2 className={`text-xl font-bold ${tc.text} mt-4`}>No Upcoming Games</h2>
-                <p className={tc.textMuted}>Schedule games from the Schedule page to start prepping!</p>
+                <h2 className={`text-xl font-bold text-white mt-4`}>No Upcoming Games</h2>
+                <p className="text-slate-400">Schedule games from the Schedule page to start prepping!</p>
               </div>
             )
           )}
@@ -1507,10 +1542,10 @@ function GamePrepPage({ showToast }) {
                 ))}
               </div>
             ) : (
-              <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+              <div className={`gp-card border border-blue-500/10 rounded-2xl p-12 text-center`}>
                 <span className="text-6xl">📊</span>
-                <h2 className={`text-xl font-bold ${tc.text} mt-4`}>No Game Results Yet</h2>
-                <p className={tc.textMuted}>Complete games to see results here</p>
+                <h2 className={`text-xl font-bold text-white mt-4`}>No Game Results Yet</h2>
+                <p className="text-slate-400">Complete games to see results here</p>
               </div>
             )
           )}
@@ -1637,6 +1672,8 @@ function GamePrepPage({ showToast }) {
         />
       )}
     </div>
+    </div>
+    </>
   )
 }
 

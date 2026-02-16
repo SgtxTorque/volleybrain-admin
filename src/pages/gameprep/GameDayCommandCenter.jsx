@@ -3,6 +3,15 @@ import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 
+// Tactical font import
+const GD_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
+if (!GD_FONT_LINK) {
+  const link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap'
+  document.head.appendChild(link)
+}
+
 // ============================================
 // CONSTANTS & CONFIGURATION
 // ============================================
@@ -46,11 +55,12 @@ const GAME_MODES = {
 // THEME HELPER - Get colors based on light/dark mode
 // ============================================
 function useGameDayTheme() {
-  const { isDark } = useTheme()
-  
+  // Force dark — game day is always dark tactical mode
+  const isDark = true
+
   return {
     // Main backgrounds
-    pageBg: isDark ? '#0f172a' : '#F5F5F7',
+    pageBg: '#0a0a0f',
     cardBg: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(255, 255, 255, 0.9)',
     cardBgSolid: isDark ? '#1e293b' : '#ffffff',
     headerBg: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)',
@@ -533,20 +543,21 @@ function StatPickerModal({ player, onSelect, onClose, theme }) {
           </button>
         </div>
         
-        {/* Stat buttons */}
+        {/* Stat buttons — large tap targets */}
         <div className="grid grid-cols-3 gap-3">
           {STAT_ACTIONS.map(stat => (
             <button
               key={stat.key}
               onClick={() => onSelect(player.id, stat.key)}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all
+              className="flex flex-col items-center gap-2 p-5 rounded-2xl transition-all min-h-[80px]
                          hover:scale-105 active:scale-95"
-              style={{ 
-                backgroundColor: `${stat.color}20`,
-                border: `2px solid ${stat.color}40`
+              style={{
+                backgroundColor: `${stat.color}15`,
+                border: `2px solid ${stat.color}30`,
+                boxShadow: `0 0 20px ${stat.color}10`,
               }}
             >
-              <span className="text-3xl">{stat.icon}</span>
+              <span className="text-4xl">{stat.icon}</span>
               <span className="text-sm font-bold" style={{ color: stat.color }}>{stat.label}</span>
               {stat.points !== 0 && (
                 <span className={`text-xs ${stat.points > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -595,70 +606,81 @@ function Scoreboard({
   }
   
   return (
-    <div 
-      className="backdrop-blur-xl rounded-2xl overflow-hidden"
+    <div
+      className="backdrop-blur-xl rounded-3xl overflow-hidden"
       style={{
-        backgroundColor: theme?.scoreboardBg || 'rgba(15, 23, 42, 0.8)',
-        border: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}`,
+        backgroundColor: 'rgba(10, 10, 15, 0.9)',
+        border: '1px solid rgba(59, 130, 246, 0.15)',
+        boxShadow: '0 0 40px rgba(59, 130, 246, 0.08)',
       }}
     >
       {/* Live indicator */}
       {isLive && (
-        <div className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-1.5 flex items-center justify-center gap-2">
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-          <span className="text-white text-xs font-bold tracking-widest">LIVE • SET {currentSet}</span>
+        <div className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 flex items-center justify-center gap-2">
+          <span className="w-3 h-3 bg-white rounded-full animate-pulse" />
+          <span className="text-white text-sm font-black tracking-widest">LIVE &bull; SET {currentSet}</span>
         </div>
       )}
-      
-      {/* Main score */}
-      <div className="relative p-6">
+
+      {/* Main score — MASSIVE tap targets */}
+      <div className="relative p-4 md:p-8">
         <ScoreAnimation show={showAnimation === 'us'} type="us" />
         <ScoreAnimation show={showAnimation === 'them'} type="them" />
-        
-        <div className="flex items-center justify-between gap-8">
+
+        <div className="flex items-center justify-between gap-4">
           {/* Our team */}
           <div className="flex-1 text-center">
-            <p className="text-amber-400 text-sm font-bold tracking-wider mb-1">{teamName || 'US'}</p>
+            <p className="text-amber-400 text-xs font-bold tracking-widest mb-2" style={{ fontFamily: "'Rajdhani', sans-serif" }}>{teamName || 'US'}</p>
             <button
               onClick={() => handlePoint('us')}
               disabled={!isLive}
-              className="text-7xl font-black transition-transform hover:scale-110 active:scale-95 disabled:hover:scale-100"
-              style={{ color: theme?.textPrimary || '#ffffff' }}
+              className="w-full min-h-[80px] rounded-2xl transition-all hover:scale-105 active:scale-95 disabled:hover:scale-100 flex items-center justify-center"
+              style={{
+                color: '#ffffff',
+                fontSize: 'clamp(4rem, 12vw, 8rem)',
+                fontWeight: 900,
+                lineHeight: 1,
+                background: isLive ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
+                border: isLive ? '1px solid rgba(59, 130, 246, 0.15)' : 'none',
+              }}
             >
               {ourScore}
             </button>
           </div>
-          
+
           {/* Divider */}
-          <div className="flex flex-col items-center">
-            <span 
-              className="text-4xl font-bold"
-              style={{ color: theme?.textMuted || '#64748b' }}
-            >
-              —
-            </span>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-3xl font-bold text-slate-600">—</span>
             {isLive && (
-              <button 
+              <button
                 onClick={onUndoPoint}
-                className="mt-2 px-3 py-1 rounded-lg text-xs transition"
-                style={{ 
-                  backgroundColor: theme?.buttonBg || '#1e293b',
-                  color: theme?.textMuted || '#94a3b8'
+                className="px-4 py-2 rounded-xl text-xs font-semibold transition"
+                style={{
+                  backgroundColor: 'rgba(30, 41, 59, 0.8)',
+                  color: '#94a3b8',
+                  border: '1px solid rgba(51, 65, 85, 0.5)',
                 }}
               >
-                Undo
+                UNDO
               </button>
             )}
           </div>
-          
+
           {/* Their team */}
           <div className="flex-1 text-center">
-            <p className="text-red-400 text-sm font-bold tracking-wider mb-1">{opponentName || 'THEM'}</p>
+            <p className="text-red-400 text-xs font-bold tracking-widest mb-2" style={{ fontFamily: "'Rajdhani', sans-serif" }}>{opponentName || 'THEM'}</p>
             <button
               onClick={() => handlePoint('them')}
               disabled={!isLive}
-              className="text-7xl font-black transition-transform hover:scale-110 active:scale-95 disabled:hover:scale-100"
-              style={{ color: theme?.textPrimary || '#ffffff' }}
+              className="w-full min-h-[80px] rounded-2xl transition-all hover:scale-105 active:scale-95 disabled:hover:scale-100 flex items-center justify-center"
+              style={{
+                color: '#ffffff',
+                fontSize: 'clamp(4rem, 12vw, 8rem)',
+                fontWeight: 900,
+                lineHeight: 1,
+                background: isLive ? 'rgba(239, 68, 68, 0.08)' : 'transparent',
+                border: isLive ? '1px solid rgba(239, 68, 68, 0.15)' : 'none',
+              }}
             >
               {theirScore}
             </button>
@@ -844,13 +866,14 @@ function ActionBar({
           <button
             onClick={onStartGame}
             disabled={!canStartGame}
-            className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 
-                       hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-2xl 
+            className="flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600
+                       hover:from-emerald-600 hover:to-emerald-700 text-white font-black rounded-2xl
                        transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100
                        shadow-lg shadow-emerald-500/30"
+            style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
           >
-            <Icons.Play className="w-6 h-6" />
-            <span className="text-lg">START MATCH</span>
+            <Icons.Play className="w-7 h-7" />
+            <span className="text-2xl">START MATCH</span>
           </button>
         </div>
         {!canStartGame && (
@@ -1451,9 +1474,13 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
   }
   
   return (
-    <div 
+    <div
       className="fixed inset-0 flex flex-col z-50 overflow-hidden"
-      style={{ backgroundColor: theme.pageBg }}
+      style={{
+        backgroundColor: theme.pageBg,
+        backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px)',
+        backgroundSize: '40px 40px',
+      }}
     >
       {/* Header */}
       <header 
@@ -1474,9 +1501,9 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
           <div className="flex items-center gap-3">
             <span className="text-2xl">🏐</span>
             <div>
-              <h1 className="font-black tracking-tight" style={{ color: theme.textPrimary }}>VOLLEYBRAIN</h1>
-              <p className="text-amber-400 text-xs font-bold tracking-widest">
-                {mode === GAME_MODES.PRE_GAME ? 'PRE-GAME' : mode === GAME_MODES.LIVE ? 'GAME DAY' : 'POST-GAME'}
+              <h1 className="text-xl font-black tracking-wider text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>MISSION CONTROL</h1>
+              <p className="text-amber-400 text-[10px] font-bold tracking-widest" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+                {mode === GAME_MODES.PRE_GAME ? 'PRE-GAME SETUP' : mode === GAME_MODES.LIVE ? '● LIVE OPERATIONS' : 'POST-GAME DEBRIEF'}
               </p>
             </div>
           </div>

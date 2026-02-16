@@ -210,9 +210,10 @@ function PlayerCard({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onClick={onClick}
-        className={`flex items-center gap-3 p-2.5 rounded-xl bg-white border-2 cursor-pointer transition-all hover:shadow-md ${
-          isSelected ? 'border-indigo-500 shadow-md' : 'border-slate-200 hover:border-slate-300'
+        className={`flex items-center gap-3 p-2.5 rounded-xl border-2 cursor-pointer transition-all ${
+          isSelected ? 'border-blue-500' : 'border-transparent hover:border-blue-500/20'
         } ${draggable ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        style={{ background: 'rgba(15,20,35,0.7)' }}
       >
         {/* Photo with position badge */}
         <div className="relative">
@@ -233,7 +234,7 @@ function PlayerCard({
           )}
           {/* Position badge */}
           <div 
-            className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2 border-white"
+            className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2 border-slate-900"
             style={{ backgroundColor: position?.color || posColor }}
           >
             {player.position || position?.role || '?'}
@@ -241,7 +242,7 @@ function PlayerCard({
         </div>
         
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-800 text-sm truncate">
+          <p className="font-semibold text-white text-sm truncate">
             #{player.jersey_number} {player.first_name}
           </p>
           <p className="text-xs text-slate-500">{player.position || position?.role || 'Player'}</p>
@@ -358,10 +359,10 @@ function EmptySlot({ position, isServing, onDrop, onDragOver }) {
     <div
       onDragOver={(e) => { e.preventDefault(); onDragOver?.(e); }}
       onDrop={onDrop}
-      className={`relative rounded-2xl border-2 border-dashed transition-all hover:border-indigo-400 hover:bg-indigo-50/50 h-[160px] flex flex-col items-center justify-center ${
-        isServing ? 'border-emerald-400 bg-emerald-50/50' : 'border-slate-300 bg-slate-50/50'
+      className={`relative rounded-2xl border-2 border-dashed transition-all hover:border-blue-400/50 h-[160px] flex flex-col items-center justify-center ${
+        isServing ? 'border-emerald-400/50' : 'border-slate-600/50'
       }`}
-      style={{ minWidth: '130px' }}
+      style={{ background: isServing ? 'rgba(16,185,129,0.05)' : 'rgba(30,40,60,0.3)', minWidth: '130px' }}
     >
       {/* Position badge - top left */}
       <div 
@@ -407,10 +408,10 @@ function PlayerStatsModal({ player, onClose }) {
     return (
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
-          <span className="text-slate-600">{label}</span>
+          <span className="text-slate-400">{label}</span>
           <span className="font-semibold" style={{ color }}>{value}</span>
         </div>
-        <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(30,40,60,0.5)' }}>
           <div 
             className="h-full rounded-full transition-all duration-500"
             style={{ width: `${value}%`, backgroundColor: color }}
@@ -421,10 +422,10 @@ function PlayerStatsModal({ player, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={onClose}>
+      <div className="rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" style={{ background: '#0a0a0f', border: '1px solid rgba(59,130,246,0.15)' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white text-center">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 text-white text-center">
           {player.photo_url ? (
             <img src={player.photo_url} className="w-20 h-20 rounded-full mx-auto border-4 border-white/30 object-cover" />
           ) : (
@@ -433,22 +434,23 @@ function PlayerStatsModal({ player, onClose }) {
             </div>
           )}
           <h3 className="text-xl font-bold mt-3">{player.first_name} {player.last_name}</h3>
-          <p className="text-white/70">#{player.jersey_number} • {player.position || 'Player'}</p>
+          <p className="text-white/70">#{player.jersey_number} &bull; {player.position || 'Player'}</p>
         </div>
-        
+
         {/* Stats */}
         <div className="p-6 space-y-4">
-          <h4 className="font-semibold text-slate-800 mb-4">📊 Skill Ratings</h4>
+          <h4 className="font-semibold text-white mb-4">Skill Ratings</h4>
           <StatBar label="Overall" value={stats.skill_rating} color="#6366F1" />
           <StatBar label="Serving" value={stats.serve_rating} color="#10B981" />
           <StatBar label="Attacking" value={stats.attack_rating} color="#EF4444" />
           <StatBar label="Defense" value={stats.defense_rating} color="#3B82F6" />
         </div>
         
-        <div className="p-4 border-t border-slate-200">
-          <button 
-            onClick={onClose} 
-            className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition"
+        <div className="p-4" style={{ borderTop: '1px solid rgba(59,130,246,0.1)' }}>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl text-slate-300 font-medium transition hover:text-white"
+            style={{ background: 'rgba(30,40,60,0.5)' }}
           >
             Close
           </button>
@@ -723,51 +725,56 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
   const positions = currentFormation?.positions || []
 
   return (
-    <div className="fixed inset-0 bg-slate-100 flex flex-col z-50">
+    <div className="fixed inset-0 flex flex-col z-50" style={{
+      background: '#0a0a0f',
+      backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px)',
+      backgroundSize: '40px 40px',
+    }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+      <div className="backdrop-blur-xl px-6 py-4" style={{ background: 'rgba(10,10,15,0.9)', borderBottom: '1px solid rgba(59,130,246,0.12)' }}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={onClose} 
-              className="p-2 hover:bg-slate-100 rounded-xl transition"
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/5 rounded-xl transition"
             >
-              <XIcon className="w-5 h-5 text-slate-600" />
+              <XIcon className="w-5 h-5 text-slate-400" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <h1 className="text-xl font-bold text-white flex items-center gap-2">
                 <span className="text-2xl">{sportConfig.icon}</span>
-                Lineup Builder
+                THE WAR ROOM
               </h1>
               <p className="text-slate-500 text-sm">
                 {team.name} vs {event.opponent_name || 'TBD'}
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4">
             {/* Formation selector */}
             <select
               value={formation || ''}
               onChange={(e) => setFormation(e.target.value)}
-              className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2.5 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.15)', color: '#e2e8f0' }}
             >
               {Object.entries(formations).map(([key, f]) => (
                 <option key={key} value={key}>{f.name}</option>
               ))}
             </select>
-            
+
             {/* Starters count */}
-            <div className="px-4 py-2 bg-slate-100 rounded-xl text-center min-w-[80px]">
+            <div className="px-4 py-2 rounded-xl text-center min-w-[80px]" style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.1)' }}>
               <p className="text-xs text-slate-500">Starters</p>
-              <p className="text-lg font-bold text-slate-800">{startersCount}/{sportConfig.starterCount}</p>
+              <p className={`text-lg font-bold ${startersCount >= sportConfig.starterCount ? 'text-emerald-400' : 'text-amber-400'}`}>{startersCount}/{sportConfig.starterCount}</p>
             </div>
-            
+
             {/* Save button */}
             <button
               onClick={saveLineup}
               disabled={saving || startersCount === 0}
-              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-emerald-200"
+              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-emerald-500/20"
             >
               <SaveIcon className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save Lineup'}
@@ -788,18 +795,19 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Set Selector */}
               {sportConfig.hasSets && (
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                <div className="rounded-2xl p-4" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <div className="flex items-center justify-center gap-3">
-                    <span className="text-slate-600 font-medium">Set:</span>
+                    <span className="text-slate-400 font-medium">Set:</span>
                     {Array.from({ length: totalSets }, (_, i) => i + 1).map(setNum => (
                       <button
                         key={setNum}
                         onClick={() => switchSet(setNum)}
                         className={`w-12 h-12 rounded-xl font-bold text-lg transition ${
                           currentSet === setNum
-                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30'
+                            : 'text-slate-400 hover:text-white'
                         }`}
+                        style={currentSet !== setNum ? { background: 'rgba(30,40,60,0.5)' } : {}}
                       >
                         {setNum}
                       </button>
@@ -807,14 +815,16 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                     {totalSets < 5 && (
                       <button
                         onClick={() => setTotalSets(prev => prev + 1)}
-                        className="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition text-2xl"
+                        className="w-12 h-12 rounded-xl text-slate-500 hover:text-slate-300 transition text-2xl"
+                        style={{ background: 'rgba(30,40,60,0.5)' }}
                       >
                         +
                       </button>
                     )}
                     <button
                       onClick={copyLineupToAllSets}
-                      className="ml-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition"
+                      className="ml-4 px-4 py-2 text-slate-400 hover:text-white rounded-xl text-sm font-medium transition"
+                      style={{ background: 'rgba(30,40,60,0.5)' }}
                     >
                       Copy to all sets
                     </button>
@@ -824,52 +834,55 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Rotation Controls */}
               {sportConfig.hasRotations && (
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                <div className="rounded-2xl p-4" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <div className="flex items-center justify-center gap-4">
                     <button
                       onClick={prevRotation}
-                      className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                      className="p-3 rounded-xl text-slate-400 hover:text-white transition"
+                      style={{ background: 'rgba(30,40,60,0.5)' }}
                       title="Previous Rotation"
                     >
                       <ChevronLeftIcon className="w-6 h-6" />
                     </button>
-                    
+
                     <div className="flex items-center gap-3">
                       <button
                         onClick={resetRotation}
-                        className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                        className="p-3 rounded-xl text-slate-400 hover:text-white transition"
+                        style={{ background: 'rgba(30,40,60,0.5)' }}
                         title="Reset to Rotation 1"
                       >
                         <RotateIcon className="w-5 h-5" />
                       </button>
-                      
-                      <div className="px-6 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
-                        <span className="text-indigo-600 font-bold text-lg">
+
+                      <div className="px-6 py-2 rounded-xl" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                        <span className="text-blue-400 font-bold text-lg">
                           Rotation {currentRotation + 1} / {sportConfig.rotationCount}
                         </span>
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={nextRotation}
-                      className="p-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                      className="p-3 rounded-xl text-slate-400 hover:text-white transition"
+                      style={{ background: 'rgba(30,40,60,0.5)' }}
                       title="Next Rotation"
                     >
                       <ChevronRightIcon className="w-6 h-6" />
                     </button>
                   </div>
                   <p className="text-center text-xs text-slate-500 mt-2">
-                    Click arrows to cycle through rotations • 🏐 Server always at P1
+                    Click arrows to cycle through rotations &bull; 🏐 Server always at P1
                   </p>
                 </div>
               )}
               
               {/* Court Layout - Volleyball */}
               {sport === 'volleyball' && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   {/* Net indicator */}
                   <div className="text-center mb-6">
-                    <div className="inline-block px-8 py-2 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded-lg text-slate-600 text-sm font-bold tracking-wider">
+                    <div className="inline-block px-8 py-2 rounded-lg text-sm font-bold tracking-wider" style={{ background: 'linear-gradient(90deg, rgba(51,65,85,0.5), rgba(71,85,105,0.5), rgba(51,65,85,0.5))', color: 'rgba(255,255,255,0.4)' }}>
                       ━━━ NET ━━━
                     </div>
                   </div>
@@ -918,9 +931,9 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                   
                   {/* Attack Line */}
                   <div className="flex items-center gap-4 my-4">
-                    <div className="flex-1 border-t-2 border-dashed border-orange-300" />
-                    <span className="text-xs text-orange-500 font-medium">ATTACK LINE</span>
-                    <div className="flex-1 border-t-2 border-dashed border-orange-300" />
+                    <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: 'rgba(249,115,22,0.4)' }} />
+                    <span className="text-xs text-orange-400 font-bold tracking-wider">ATTACK LINE</span>
+                    <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: 'rgba(249,115,22,0.4)' }} />
                   </div>
                   
                   {/* Back Row - P5, P6, P1 */}
@@ -970,7 +983,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Generic Grid for other sports */}
               {sport !== 'volleyball' && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <div className={`grid gap-4 ${
                     sportConfig.starterCount <= 5 ? 'grid-cols-3' :
                     sportConfig.starterCount <= 9 ? 'grid-cols-3' :
@@ -1017,8 +1030,8 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Libero Selector */}
               {sportConfig.hasLibero && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                  <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                  <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-xs text-white font-bold">L</span>
                     Libero (Defensive Specialist)
                   </h3>
@@ -1029,9 +1042,10 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                         onClick={() => setLiberoId(liberoId === player.id ? null : player.id)}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                           liberoId === player.id
-                            ? 'bg-pink-500 text-white shadow-lg shadow-pink-200'
-                            : 'bg-slate-100 text-slate-600 hover:bg-pink-100 hover:text-pink-600'
+                            ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30'
+                            : 'text-slate-300 hover:bg-pink-500/20 hover:text-pink-400'
                         }`}
+                        style={liberoId !== player.id ? { background: 'rgba(30,40,60,0.5)' } : {}}
                       >
                         #{player.jersey_number} {player.first_name}
                       </button>
@@ -1042,8 +1056,8 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Substitutions Panel */}
               {startersCount > 0 && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                  <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                  <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
                     <RotateIcon className="w-5 h-5 text-amber-500" />
                     Substitutions
                   </h3>
@@ -1061,7 +1075,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                       )
                       
                       return (
-                        <div key={pos.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                        <div key={pos.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(30,40,60,0.4)' }}>
                           {/* Position badge */}
                           <span 
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold"
@@ -1072,15 +1086,15 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                           
                           {/* Starter info */}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-800">
+                            <p className="font-medium text-white">
                               #{starter.jersey_number} {starter.first_name}
                             </p>
                             <p className="text-xs text-slate-500">{pos.label}</p>
                           </div>
-                          
+
                           {/* Arrow */}
-                          <span className="text-slate-400">→</span>
-                          
+                          <span className="text-slate-500">→</span>
+
                           {/* Sub selector */}
                           <select
                             value={subId || ''}
@@ -1095,7 +1109,8 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                                 })
                               }
                             }}
-                            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[140px]"
+                            className="px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[140px]"
+                            style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.15)', color: '#e2e8f0' }}
                           >
                             <option value="">No sub</option>
                             {availableForSub.map(p => (
@@ -1111,8 +1126,8 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                   
                   {/* Active subs summary */}
                   {Object.keys(subs).length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-200">
-                      <p className="text-xs font-semibold text-slate-600 mb-2">Active Substitutions:</p>
+                    <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(59,130,246,0.1)' }}>
+                      <p className="text-xs font-semibold text-slate-400 mb-2">Active Substitutions:</p>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(subs).map(([posId, subId]) => {
                           const pos = positions.find(p => p.id === parseInt(posId))
@@ -1138,10 +1153,10 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
           </div>
           
           {/* Roster Sidebar */}
-          <div className="w-80 bg-white border-l border-slate-200 flex flex-col shadow-lg">
-            <div className="p-4 border-b border-slate-200 bg-slate-50">
+          <div className="w-80 flex flex-col shadow-lg" style={{ background: 'rgba(15,20,35,0.8)', borderLeft: '1px solid rgba(59,130,246,0.12)' }}>
+            <div className="p-4" style={{ borderBottom: '1px solid rgba(59,130,246,0.1)', background: 'rgba(10,10,15,0.5)' }}>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-slate-800">Roster</h3>
+                <h3 className="font-bold text-white">Roster</h3>
                 <div className="flex gap-2">
                   <button
                     onClick={autoFillLineup}
@@ -1159,7 +1174,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               </div>
               
               {/* Legend */}
-              <div className="flex gap-3 text-xs text-slate-500">
+              <div className="flex gap-3 text-xs text-slate-400">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" /> Going
                 </span>
@@ -1174,9 +1189,9 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
             
             {/* Available Players */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              <p className="text-xs text-slate-500 mb-2 font-medium">📌 Drag players to positions</p>
+              <p className="text-xs text-slate-500 mb-2 font-medium">Drag players to positions</p>
               {benchPlayers.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
+                <div className="text-center py-8 text-slate-500">
                   <CheckIcon className="w-10 h-10 mx-auto mb-2 text-emerald-400" />
                   <p className="font-medium">All players assigned!</p>
                 </div>
@@ -1198,8 +1213,8 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
             
             {/* In Lineup Summary */}
             {startersCount > 0 && (
-              <div className="p-4 border-t border-slate-200 bg-emerald-50">
-                <p className="text-xs text-emerald-700 font-semibold mb-2">✓ In Lineup ({startersCount}/{sportConfig.starterCount})</p>
+              <div className="p-4" style={{ borderTop: '1px solid rgba(59,130,246,0.1)', background: 'rgba(16,185,129,0.08)' }}>
+                <p className="text-xs text-emerald-400 font-semibold mb-2">In Lineup ({startersCount}/{sportConfig.starterCount})</p>
                 <div className="flex flex-wrap gap-1">
                   {Object.entries(lineup).map(([posId, playerId]) => {
                     const player = roster.find(p => p.id === playerId)
