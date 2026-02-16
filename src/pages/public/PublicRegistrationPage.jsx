@@ -651,7 +651,10 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
     )
   }
 
-  const accentColor = organization?.primary_color || colors.accent
+  const orgSettings = organization?.settings || {}
+  const orgBranding = orgSettings.branding || {}
+  const accentColor = orgBranding.primary_color || orgSettings.primary_color || colors.accent
+  const orgTagline = orgBranding.tagline || orgSettings.tagline || ''
 
   return (
     <div className="min-h-screen py-8 px-4" style={{ backgroundColor: colors.bg }}>
@@ -662,6 +665,9 @@ function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
             <img src={organization.logo_url} alt={organization.name} className="w-20 h-20 mx-auto rounded-xl mb-4 object-cover" />
           )}
           <h1 className="text-3xl font-bold" style={{ color: colors.text }}>{organization?.name || 'Registration'}</h1>
+          {orgTagline && (
+            <p className="text-sm mt-1" style={{ color: colors.textMuted }}>{orgTagline}</p>
+          )}
           <p className="mt-2" style={{ color: colors.textSecondary }}>
             {season?.sports?.icon} {season?.name}
           </p>

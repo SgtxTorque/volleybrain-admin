@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
 import { 
@@ -138,6 +139,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const { profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const { orgLogo, orgName, hasCustomBranding } = useOrgBranding()
 
   // ── Core data (preserved exactly) ──
   const [team, setTeam] = useState(null)
@@ -412,12 +414,19 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             </div>
           ))}
 
-          {/* Back button */}
-          <button onClick={onBack}
-            className="absolute top-5 left-5 z-20 w-11 h-11 rounded-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
-            style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          {/* Back button + Org logo */}
+          <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
+            <button onClick={onBack}
+              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
+              style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            {hasCustomBranding && orgLogo && (
+              <div className="w-9 h-9 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
+                <img src={orgLogo} alt={orgName} className="w-full h-full object-cover" />
+              </div>
+            )}
+          </div>
 
           {/* Banner dots */}
           <div className="absolute bottom-4 right-6 z-20 flex gap-2">

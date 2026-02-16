@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
@@ -650,6 +651,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const { profile } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const { orgLogo, orgName, orgTagline, hasCustomBranding, accentColor: orgAccent } = useOrgBranding()
   const { selectedSport } = useSport()
   const journey = useJourney()
   const parentTutorial = useParentTutorial()
@@ -1074,6 +1076,19 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
   return (
     <div className="space-y-5" data-tutorial="dashboard-header">
+
+      {/* ═══ ORG BRANDING HEADER ═══ */}
+      {hasCustomBranding && orgLogo && (
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm" style={{ border: `2px solid ${orgAccent}30` }}>
+            <img src={orgLogo} alt={orgName} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p className={`text-sm font-bold ${tc.text}`}>{orgName}</p>
+            {orgTagline && <p className={`text-xs ${tc.textMuted}`}>{orgTagline}</p>}
+          </div>
+        </div>
+      )}
 
       {/* ═══ ALERTS ═══ */}
       {visibleAlerts.map(alert => (

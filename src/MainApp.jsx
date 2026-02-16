@@ -4,6 +4,7 @@ import { useTheme, useThemeClasses } from './contexts/ThemeContext'
 import { SportProvider, useSport } from './contexts/SportContext'
 import { SeasonProvider, useSeason } from './contexts/SeasonContext'
 import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
+import { OrgBrandingProvider } from './contexts/OrgBrandingContext'
 import { supabase } from './lib/supabase'
 
 // Icons
@@ -1769,6 +1770,7 @@ function MainApp() {
   }
 
   return (
+    <OrgBrandingProvider>
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider>
@@ -1868,6 +1870,7 @@ function MainApp() {
     </ParentTutorialProvider>
     </SeasonProvider>
     </SportProvider>
+    </OrgBrandingProvider>
   )
 }
 

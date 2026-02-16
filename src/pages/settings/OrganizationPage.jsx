@@ -3,10 +3,10 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
-import { 
+import {
   Building2, Users, DollarSign, FileText, Settings, ChevronDown, ChevronUp,
-  Check, X, Plus, Trash2, Edit, Globe, Mail, Phone, MapPin, Save, 
-  CreditCard, Calendar, Clock, Shield, Shirt, Bell, Heart
+  Check, X, Plus, Trash2, Edit, Globe, Mail, Phone, MapPin, Save,
+  CreditCard, Calendar, Clock, Shield, Shirt, Bell, Heart, Palette, Image, Upload, Eye, Camera
 } from '../../constants/icons'
 
 function OrganizationPage({ showToast, setPage }) {
@@ -56,6 +56,7 @@ function OrganizationPage({ showToast, setPage }) {
 
       // Build setup data from organization settings
       const settings = organization.settings || {}
+      const branding = settings.branding || {}
       setSetupData({
         // Identity
         name: organization.name || '',
@@ -199,6 +200,14 @@ function OrganizationPage({ showToast, setPage }) {
         requireVolunteerHours: settings.require_volunteer_hours ?? false,
         volunteerHoursRequired: settings.volunteer_hours_required || 4,
         volunteerBuyoutAmount: settings.volunteer_buyout_amount || 100,
+
+        // Branding Settings
+        brandingPrimaryColor: branding.primary_color || settings.primary_color || accent.primary,
+        brandingSecondaryColor: branding.secondary_color || settings.secondary_color || '',
+        brandingBannerUrl: branding.banner_url || '',
+        brandingTagline: branding.tagline || settings.tagline || '',
+        brandingEmailHeaderColor: branding.email_header_color || '',
+        brandingEmailHeaderLogo: branding.email_header_logo || '',
       })
     } catch (err) {
       console.error('Error loading setup data:', err)
@@ -382,6 +391,23 @@ function OrganizationPage({ showToast, setPage }) {
             }
           }
           break
+        case 'branding':
+          updatePayload = {
+            logo_url: data.logoUrl,
+            settings: {
+              ...currentSettings,
+              branding: {
+                ...(currentSettings.branding || {}),
+                primary_color: data.brandingPrimaryColor,
+                secondary_color: data.brandingSecondaryColor,
+                banner_url: data.brandingBannerUrl,
+                tagline: data.brandingTagline,
+                email_header_color: data.brandingEmailHeaderColor,
+                email_header_logo: data.brandingEmailHeaderLogo,
+              },
+            }
+          }
+          break
         default:
           updatePayload = { settings: { ...currentSettings, ...data } }
       }
@@ -458,6 +484,10 @@ function OrganizationPage({ showToast, setPage }) {
       ],
       volunteers: [
         true, // Optional
+      ],
+      branding: [
+        setupData.brandingPrimaryColor,
+        setupData.logoUrl,
       ],
     }
 
@@ -604,6 +634,15 @@ function OrganizationPage({ showToast, setPage }) {
       icon: '🤝',
       estTime: '2-3 min',
       description: 'Volunteer hours and buyout',
+      required: false,
+      category: 'configuration',
+    },
+    {
+      key: 'branding',
+      title: 'Branding & White-Label',
+      icon: '🎨',
+      estTime: '5-10 min',
+      description: 'Custom colors, logo, banner for parent-facing pages',
       required: false,
       category: 'configuration',
     },
@@ -2021,6 +2060,208 @@ function SetupSectionContent({
                 <NumberInput label="Buyout Amount" field="volunteerBuyoutAmount" prefix="$" helpText="Pay this instead of volunteering" />
               </div>
             )}
+          </div>
+        )
+
+      case 'branding':
+        const SWATCH_COLORS = ['#EAB308','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#3B82F6','#06B6D4','#10B981','#22C55E','#78716C','#1E293B']
+
+        async function handleBrandingUpload(e, field) {
+          const file = e.target.files?.[0]
+          if (!file) return
+          try {
+            const ext = file.name.split('.').pop()
+            const path = `org-branding/${organization.id}_${field}_${Date.now()}.${ext}`
+            const { error: upErr } = await supabase.storage.from('media').upload(path, file)
+            if (upErr) throw upErr
+            const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path)
+            updateField(field, publicUrl)
+            showToast('Image uploaded', 'success')
+          } catch (err) {
+            showToast(`Upload failed: ${err.message}`, 'error')
+          }
+        }
+
+        return (
+          <div className="space-y-6">
+            <p className={`text-sm ${tc.textMuted}`}>
+              Customize how your organization appears on parent-facing and public pages. These colors and images show on registration forms, team walls, and parent dashboards.
+            </p>
+
+            {/* Logo Upload */}
+            <div>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Organization Logo</label>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold overflow-hidden border-2"
+                  style={{
+                    background: localData.logoUrl ? 'transparent' : (localData.brandingPrimaryColor || accent.primary),
+                    borderColor: localData.brandingPrimaryColor || accent.primary,
+                    color: '#000',
+                  }}
+                >
+                  {localData.logoUrl ? (
+                    <img src={localData.logoUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    organization?.name?.charAt(0) || '?'
+                  )}
+                </div>
+                <div className="flex-1">
+                  <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition ${tc.card} border ${tc.border} ${tc.hoverBg}`}>
+                    <Upload className="w-4 h-4" />
+                    Upload Logo
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'logoUrl')} />
+                  </label>
+                  <p className={`text-xs ${tc.textMuted} mt-1`}>Square image recommended (200x200+)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Primary Color */}
+            <div>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Primary Brand Color</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {SWATCH_COLORS.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => updateField('brandingPrimaryColor', c)}
+                    className={`w-8 h-8 rounded-lg transition-transform hover:scale-110 ${localData.brandingPrimaryColor === c ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800 scale-110' : ''}`}
+                    style={{ background: c }}
+                    title={c}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={localData.brandingPrimaryColor || '#EAB308'}
+                  onChange={(e) => updateField('brandingPrimaryColor', e.target.value)}
+                  className="w-12 h-10 rounded-lg cursor-pointer border-0"
+                />
+                <input
+                  type="text"
+                  value={localData.brandingPrimaryColor || ''}
+                  onChange={(e) => updateField('brandingPrimaryColor', e.target.value)}
+                  placeholder="#EAB308"
+                  className={`flex-1 px-4 py-2 rounded-xl border ${tc.input}`}
+                />
+              </div>
+            </div>
+
+            {/* Secondary Color */}
+            <div>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Secondary Color (optional)</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={localData.brandingSecondaryColor || '#1E293B'}
+                  onChange={(e) => updateField('brandingSecondaryColor', e.target.value)}
+                  className="w-12 h-10 rounded-lg cursor-pointer border-0"
+                />
+                <input
+                  type="text"
+                  value={localData.brandingSecondaryColor || ''}
+                  onChange={(e) => updateField('brandingSecondaryColor', e.target.value)}
+                  placeholder="#1E293B"
+                  className={`flex-1 px-4 py-2 rounded-xl border ${tc.input}`}
+                />
+              </div>
+            </div>
+
+            {/* Tagline */}
+            <Input label="Tagline / Motto" field="brandingTagline" placeholder="Building Champions On & Off the Court" helpText="Shown on registration pages and parent views" />
+
+            {/* Banner Image */}
+            <div>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Banner / Hero Image (optional)</label>
+              {localData.brandingBannerUrl && (
+                <div className="relative mb-2 rounded-xl overflow-hidden" style={{ maxHeight: 160 }}>
+                  <img src={localData.brandingBannerUrl} alt="" className="w-full h-40 object-cover" />
+                  <button
+                    onClick={() => updateField('brandingBannerUrl', '')}
+                    className="absolute top-2 right-2 p-1 bg-black/60 rounded-lg text-white hover:bg-black/80"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition ${tc.card} border ${tc.border} ${tc.hoverBg}`}>
+                <Image className="w-4 h-4" />
+                {localData.brandingBannerUrl ? 'Replace Banner' : 'Upload Banner'}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'brandingBannerUrl')} />
+              </label>
+              <p className={`text-xs ${tc.textMuted} mt-1`}>Wide image recommended (1200x400+). Shows on team wall and registration.</p>
+            </div>
+
+            {/* Email Branding */}
+            <div className={`p-4 rounded-xl ${tc.cardAlt} border ${tc.border}`}>
+              <h4 className={`font-semibold ${tc.text} mb-3 flex items-center gap-2`}>
+                <Mail className="w-4 h-4" /> Email Branding (Future)
+              </h4>
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Email Header Color</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={localData.brandingEmailHeaderColor || localData.brandingPrimaryColor || '#EAB308'}
+                      onChange={(e) => updateField('brandingEmailHeaderColor', e.target.value)}
+                      className="w-12 h-10 rounded-lg cursor-pointer border-0"
+                    />
+                    <input
+                      type="text"
+                      value={localData.brandingEmailHeaderColor || ''}
+                      onChange={(e) => updateField('brandingEmailHeaderColor', e.target.value)}
+                      placeholder="Same as primary"
+                      className={`flex-1 px-4 py-2 rounded-xl border ${tc.input}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Preview */}
+            <div>
+              <h4 className={`font-semibold ${tc.text} mb-3 flex items-center gap-2`}>
+                <Eye className="w-4 h-4" /> Preview
+              </h4>
+              <div className="rounded-2xl border overflow-hidden" style={{ borderColor: localData.brandingPrimaryColor || accent.primary }}>
+                {/* Preview Header */}
+                {localData.brandingBannerUrl && (
+                  <div className="h-24 overflow-hidden">
+                    <img src={localData.brandingBannerUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="p-5 text-center" style={{ background: `linear-gradient(135deg, ${localData.brandingPrimaryColor || accent.primary}15, transparent)` }}>
+                  <div className="flex justify-center mb-3">
+                    <div
+                      className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold overflow-hidden"
+                      style={{
+                        background: localData.logoUrl ? 'transparent' : (localData.brandingPrimaryColor || accent.primary),
+                        color: '#000',
+                      }}
+                    >
+                      {localData.logoUrl ? (
+                        <img src={localData.logoUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        organization?.name?.charAt(0) || '?'
+                      )}
+                    </div>
+                  </div>
+                  <p className={`text-lg font-bold ${tc.text}`}>{organization?.name || 'Your Organization'}</p>
+                  {localData.brandingTagline && (
+                    <p className={`text-sm ${tc.textMuted} mt-1`}>{localData.brandingTagline}</p>
+                  )}
+                  <button
+                    className="mt-3 px-5 py-2 rounded-xl text-sm font-bold text-black"
+                    style={{ background: localData.brandingPrimaryColor || accent.primary }}
+                    disabled
+                  >
+                    Register Now
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )
 
