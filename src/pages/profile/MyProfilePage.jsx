@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import {
   User, Camera, Save, Mail, Phone, Shield, Users, Calendar,
   MapPin, Clock, ChevronRight, AlertTriangle, Check, X, RefreshCw,
-  UserCog, Edit, Trophy, Building2
+  UserCog, Edit, Trophy, Building2, Lock, Key, Eye, EyeOff, Trash2, LogOut
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
@@ -616,6 +616,462 @@ function ParentSection({ profile, isDark, tc, accent }) {
   )
 }
 
+// ═══════ CHANGE PASSWORD SECTION ═══════
+function ChangePasswordSection({ isDark, tc, accent, showToast }) {
+  const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [saving, setSaving] = useState(false)
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
+
+  function getPasswordStrength(pw) {
+    if (!pw) return { label: '', color: '', width: '0%' }
+    let score = 0
+    if (pw.length >= 8) score++
+    if (pw.length >= 12) score++
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++
+    if (/\d/.test(pw)) score++
+    if (/[^a-zA-Z0-9]/.test(pw)) score++
+
+    if (score <= 2) return { label: 'Weak', color: '#EF4444', width: '33%' }
+    if (score <= 3) return { label: 'Medium', color: '#F59E0B', width: '66%' }
+    return { label: 'Strong', color: '#10B981', width: '100%' }
+  }
+
+  const strength = getPasswordStrength(form.newPassword)
+
+  async function handleSave() {
+    if (!form.newPassword) {
+      showToast('Please enter a new password', 'error')
+      return
+    }
+    if (form.newPassword.length < 6) {
+      showToast('Password must be at least 6 characters', 'error')
+      return
+    }
+    if (form.newPassword !== form.confirmPassword) {
+      showToast('Passwords do not match', 'error')
+      return
+    }
+    setSaving(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: form.newPassword })
+      if (error) throw error
+      showToast('Password updated successfully', 'success')
+      setForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '400ms' }}>
+      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+        <Key className="w-4 h-4" style={{ color: accent.primary }} />
+        Change Password
+      </h2>
+
+      <div className="space-y-4 max-w-md">
+        {/* Current password (UX safety) */}
+        <div>
+          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Current Password</label>
+          <div className="relative">
+            <input
+              type={showCurrent ? 'text' : 'password'}
+              value={form.currentPassword}
+              onChange={e => set('currentPassword', e.target.value)}
+              placeholder="Enter current password"
+              className={`w-full px-3 py-2.5 pr-10 rounded-xl text-sm ${tc.input} border focus:outline-none focus:ring-2`}
+              style={{ '--tw-ring-color': `${accent.primary}50` }}
+            />
+            <button type="button" onClick={() => setShowCurrent(!showCurrent)} className={`absolute right-3 top-1/2 -translate-y-1/2 ${tc.textMuted}`}>
+              {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* New password */}
+        <div>
+          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>New Password</label>
+          <div className="relative">
+            <input
+              type={showNew ? 'text' : 'password'}
+              value={form.newPassword}
+              onChange={e => set('newPassword', e.target.value)}
+              placeholder="Enter new password"
+              className={`w-full px-3 py-2.5 pr-10 rounded-xl text-sm ${tc.input} border focus:outline-none focus:ring-2`}
+              style={{ '--tw-ring-color': `${accent.primary}50` }}
+            />
+            <button type="button" onClick={() => setShowNew(!showNew)} className={`absolute right-3 top-1/2 -translate-y-1/2 ${tc.textMuted}`}>
+              {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {/* Strength indicator */}
+          {form.newPassword && (
+            <div className="mt-2">
+              <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
+                <div className="h-full rounded-full transition-all duration-300" style={{ width: strength.width, backgroundColor: strength.color }} />
+              </div>
+              <p className="text-[11px] mt-1 mp-label" style={{ color: strength.color }}>{strength.label}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Confirm password */}
+        <div>
+          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Confirm New Password</label>
+          <input
+            type="password"
+            value={form.confirmPassword}
+            onChange={e => set('confirmPassword', e.target.value)}
+            placeholder="Re-enter new password"
+            className={`w-full px-3 py-2.5 rounded-xl text-sm ${tc.input} border focus:outline-none focus:ring-2`}
+            style={{ '--tw-ring-color': `${accent.primary}50` }}
+          />
+          {form.confirmPassword && form.newPassword !== form.confirmPassword && (
+            <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1">
+              <X className="w-3 h-3" /> Passwords do not match
+            </p>
+          )}
+          {form.confirmPassword && form.newPassword === form.confirmPassword && form.newPassword.length > 0 && (
+            <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+              <Check className="w-3 h-3" /> Passwords match
+            </p>
+          )}
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving || !form.newPassword || form.newPassword !== form.confirmPassword}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          style={{ background: accent.primary }}
+        >
+          {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+          {saving ? 'Updating...' : 'Update Password'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ═══════ CHANGE EMAIL SECTION ═══════
+function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
+  const [newEmail, setNewEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [sent, setSent] = useState(false)
+
+  async function handleSave() {
+    if (!newEmail) {
+      showToast('Please enter a new email address', 'error')
+      return
+    }
+    if (newEmail === (user?.email || profile?.email)) {
+      showToast('New email is the same as your current email', 'error')
+      return
+    }
+    setSaving(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ email: newEmail })
+      if (error) throw error
+      // Also update profiles table
+      await supabase.from('profiles').update({ email: newEmail }).eq('id', profile.id)
+      setSent(true)
+      showToast('Confirmation link sent to your new email address', 'success')
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '440ms' }}>
+      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+        <Mail className="w-4 h-4" style={{ color: accent.primary }} />
+        Change Email
+      </h2>
+
+      <div className="space-y-4 max-w-md">
+        {/* Current email */}
+        <div>
+          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Current Email</label>
+          <div className={`px-3 py-2.5 rounded-xl text-sm ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-slate-50 border border-slate-200'} ${tc.textMuted}`}>
+            {user?.email || profile?.email || '—'}
+          </div>
+        </div>
+
+        {/* New email */}
+        <div>
+          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>New Email</label>
+          <input
+            type="email"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            placeholder="newemail@example.com"
+            className={`w-full px-3 py-2.5 rounded-xl text-sm ${tc.input} border focus:outline-none focus:ring-2`}
+            style={{ '--tw-ring-color': `${accent.primary}50` }}
+          />
+        </div>
+
+        {/* Password confirmation */}
+        <div>
+          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Confirm Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Enter your password for security"
+            className={`w-full px-3 py-2.5 rounded-xl text-sm ${tc.input} border focus:outline-none focus:ring-2`}
+            style={{ '--tw-ring-color': `${accent.primary}50` }}
+          />
+        </div>
+
+        {sent && (
+          <div className={`flex items-start gap-2 p-3 rounded-xl ${isDark ? 'bg-emerald-500/10 border border-emerald-500/15' : 'bg-emerald-50 border border-emerald-200'}`}>
+            <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <p className={`text-xs ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+              A confirmation link has been sent to your new email address. Please check your inbox and click the link to complete the change.
+            </p>
+          </div>
+        )}
+
+        <button
+          onClick={handleSave}
+          disabled={saving || !newEmail}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          style={{ background: accent.primary }}
+        >
+          {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+          {saving ? 'Sending...' : 'Update Email'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ═══════ ORG MEMBERSHIPS SECTION ═══════
+function OrgMembershipsSection({ profile, isDark, tc, accent, setPage }) {
+  const [memberships, setMemberships] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => { loadMemberships() }, [profile?.id])
+
+  async function loadMemberships() {
+    if (!profile?.id) return
+    setLoading(true)
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('id, role, is_active, created_at, organization_id, organizations(id, name, slug, logo_url)')
+        .eq('user_id', profile.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      setMemberships(data || [])
+    } catch (err) {
+      console.error('Error loading memberships:', err)
+    }
+    setLoading(false)
+  }
+
+  const roleLabels = {
+    league_admin: 'League Admin',
+    admin: 'Admin',
+    assistant_admin: 'Assistant Admin',
+    registrar: 'Registrar',
+    treasurer: 'Treasurer',
+    coach: 'Coach',
+    parent: 'Parent',
+    player: 'Player',
+  }
+
+  const roleColors = {
+    league_admin: '#8B5CF6',
+    admin: '#8B5CF6',
+    assistant_admin: '#6366F1',
+    registrar: '#3B82F6',
+    treasurer: '#10B981',
+    coach: '#3B82F6',
+    parent: '#22C55E',
+    player: '#F59E0B',
+  }
+
+  if (loading) {
+    return (
+      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
+      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+        <Building2 className="w-4 h-4" style={{ color: accent.primary }} />
+        Organization Memberships
+      </h2>
+
+      {memberships.length === 0 ? (
+        <div className="text-center py-6">
+          <Building2 className={`w-8 h-8 mx-auto mb-2 ${tc.textMuted}`} />
+          <p className={`text-sm ${tc.textMuted} mb-3`}>You're not part of any organization yet</p>
+          <button
+            onClick={() => setPage?.('org-directory')}
+            className="px-4 py-2 rounded-xl text-sm mp-label text-white transition hover:opacity-90"
+            style={{ background: accent.primary }}
+          >
+            Browse Org Directory
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {memberships.map(m => (
+            <div key={m.id} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-black/[0.02]'}`}>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold overflow-hidden"
+                style={{ background: `${accent.primary}15` }}
+              >
+                {m.organizations?.logo_url ? (
+                  <img src={m.organizations.logo_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 className="w-5 h-5" style={{ color: accent.primary }} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium ${tc.text} truncate`}>{m.organizations?.name || 'Unknown Org'}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span
+                    className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                    style={{
+                      background: `${roleColors[m.role] || '#64748B'}15`,
+                      color: roleColors[m.role] || '#64748B',
+                    }}
+                  >
+                    {roleLabels[m.role] || m.role}
+                  </span>
+                  {m.created_at && (
+                    <span className={`text-[10px] ${tc.textMuted} flex items-center gap-1`}>
+                      <Clock className="w-3 h-3" />
+                      Joined {new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════ DELETE ACCOUNT SECTION ═══════
+function DeleteAccountSection({ profile, isDark, tc, showToast }) {
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleDelete() {
+    if (confirmText !== 'DELETE') return
+    setDeleting(true)
+    try {
+      // Mark profile as deletion_requested and sign out
+      await supabase.from('profiles').update({ deletion_requested: true }).eq('id', profile.id)
+      showToast('Your account has been scheduled for deletion', 'success')
+      // Sign out after short delay so toast is visible
+      setTimeout(async () => {
+        await supabase.auth.signOut()
+      }, 1500)
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error')
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div
+      className="rounded-2xl p-6 mp-au"
+      style={{
+        animationDelay: '560ms',
+        background: isDark ? 'rgba(239,68,68,.04)' : 'rgba(239,68,68,.03)',
+        border: `1px solid ${isDark ? 'rgba(239,68,68,.15)' : 'rgba(239,68,68,.2)'}`,
+      }}
+    >
+      <h2 className={`mp-heading text-sm uppercase mb-5 flex items-center gap-2 ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+        <Trash2 className="w-4 h-4 text-red-400" />
+        Danger Zone
+      </h2>
+
+      {!showConfirm ? (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className={`text-sm font-medium ${isDark ? 'text-red-200' : 'text-red-800'}`}>Delete My Account</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-red-300/60' : 'text-red-600/70'}`}>
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowConfirm(true)}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-sm mp-label transition ${isDark ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
+          >
+            Delete My Account
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className={`flex items-start gap-2 p-3 rounded-xl ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}>
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className={`text-sm font-medium ${isDark ? 'text-red-200' : 'text-red-800'}`}>This is permanent</p>
+              <p className={`text-xs mt-1 ${isDark ? 'text-red-300/60' : 'text-red-600/70'}`}>
+                All your profile data, team assignments, coaching records, and any associated information will be permanently removed.
+                Your organization memberships will be revoked. This cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className={`mp-label text-xs uppercase block mb-1 ${isDark ? 'text-red-300/70' : 'text-red-700'}`}>
+              Type DELETE to confirm
+            </label>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className={`w-full max-w-xs px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 ${
+                isDark ? 'bg-red-500/5 border-red-500/20 text-red-200 placeholder-red-300/30' : 'bg-white border-red-200 text-red-800 placeholder-red-300'
+              }`}
+              style={{ '--tw-ring-color': 'rgba(239,68,68,.3)' }}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleDelete}
+              disabled={confirmText !== 'DELETE' || deleting}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm mp-label text-white transition hover:opacity-90 disabled:opacity-40 bg-red-500"
+            >
+              {deleting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              {deleting ? 'Deleting...' : 'Permanently Delete Account'}
+            </button>
+            <button
+              onClick={() => { setShowConfirm(false); setConfirmText('') }}
+              className={`px-5 py-2.5 rounded-xl text-sm mp-label transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ═══════ MY HISTORY SECTION ═══════
 function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) {
   const [history, setHistory] = useState([])
@@ -755,7 +1211,7 @@ function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) 
 
   if (loading) {
     return (
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '380ms' }}>
+      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
@@ -764,7 +1220,7 @@ function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) 
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '380ms' }}>
+    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Trophy className="w-4 h-4" style={{ color: accent.primary }} />
         My History
@@ -914,6 +1370,32 @@ function MyProfilePage({ showToast, setPage }) {
           />
         )}
 
+        {/* ═══════ ACCOUNT SETTINGS ═══════ */}
+        <ChangePasswordSection
+          isDark={isDark}
+          tc={tc}
+          accent={accent}
+          showToast={showToast}
+        />
+
+        <ChangeEmailSection
+          user={user}
+          profile={profile}
+          isDark={isDark}
+          tc={tc}
+          accent={accent}
+          showToast={showToast}
+        />
+
+        <OrgMembershipsSection
+          profile={profile}
+          isDark={isDark}
+          tc={tc}
+          accent={accent}
+          setPage={setPage}
+        />
+
+        {/* ═══════ MY HISTORY (always last before danger zone) ═══════ */}
         <MyHistorySection
           profile={profile}
           isDark={isDark}
@@ -922,6 +1404,14 @@ function MyProfilePage({ showToast, setPage }) {
           onNavigateToArchive={(seasonId) => {
             if (setPage) setPage('season-archives')
           }}
+        />
+
+        {/* ═══════ DANGER ZONE (always very last) ═══════ */}
+        <DeleteAccountSection
+          profile={profile}
+          isDark={isDark}
+          tc={tc}
+          showToast={showToast}
         />
       </div>
     </div>
