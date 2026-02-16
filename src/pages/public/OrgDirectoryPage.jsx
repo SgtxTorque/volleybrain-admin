@@ -486,8 +486,8 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
     try {
       const { data: orgData, error: orgErr } = await supabase
         .from('organizations')
-        .select('id, name, slug, logo_url, settings, status, created_at')
-        .eq('status', 'active')
+        .select('id, name, slug, logo_url, settings, is_active, created_at')
+        .eq('is_active', true)
         .order('name')
 
       if (orgErr) {
@@ -817,7 +817,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
               <pre className="whitespace-pre-wrap">
 {`CREATE POLICY "Public read active organizations"
   ON organizations FOR SELECT
-  USING (status = 'active');
+  USING (is_active = true);
 
 -- Also allow public read on active seasons
 CREATE POLICY "Public read active seasons"

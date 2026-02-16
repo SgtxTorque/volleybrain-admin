@@ -148,11 +148,11 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
           <p className={`text-sm ${tc.textMuted}`}>{org?.slug} &bull; Created {new Date(org?.created_at).toLocaleDateString()}</p>
           <div className="flex gap-2 mt-3">
             <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-              org?.status === 'suspended'
+              org?.is_active === false
                 ? 'bg-red-500/20 text-red-400'
                 : 'bg-emerald-500/20 text-emerald-400'
             }`}>
-              {org?.status === 'suspended' ? 'Suspended' : 'Active'}
+              {org?.is_active === false ? 'Suspended' : 'Active'}
             </span>
           </div>
         </div>
@@ -231,7 +231,7 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
             <div className={`border-t ${tc.border} pt-4`}>
               <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-3`}>Actions</h3>
               <div className="space-y-2">
-                {org?.status === 'suspended' ? (
+                {org?.is_active === false ? (
                   <button
                     onClick={() => onAction('activate', org)}
                     className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition text-sm font-medium"
@@ -413,7 +413,7 @@ function OrganizationsTab({ isDark, tc, accent, user, showToast }) {
         message: `Are you sure you want to suspend "${org.name}"? All members will lose access until reactivated.`,
         destructive: false,
         onConfirm: async () => {
-          await supabase.from('organizations').update({ status: 'suspended' }).eq('id', org.id)
+          await supabase.from('organizations').update({ is_active: false }).eq('id', org.id)
           await logAction('suspend_org', 'organization', org.id, { org_name: org.name })
           showToast(`${org.name} suspended`, 'success')
           loadOrgs()
@@ -427,7 +427,7 @@ function OrganizationsTab({ isDark, tc, accent, user, showToast }) {
         message: `Are you sure you want to reactivate "${org.name}"?`,
         destructive: false,
         onConfirm: async () => {
-          await supabase.from('organizations').update({ status: 'active' }).eq('id', org.id)
+          await supabase.from('organizations').update({ is_active: true }).eq('id', org.id)
           await logAction('activate_org', 'organization', org.id, { org_name: org.name })
           showToast(`${org.name} reactivated`, 'success')
           loadOrgs()
@@ -505,11 +505,11 @@ function OrganizationsTab({ isDark, tc, accent, user, showToast }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                    org.status === 'suspended'
+                    org.is_active === false
                       ? 'bg-red-500/20 text-red-400'
                       : 'bg-emerald-500/20 text-emerald-400'
                   }`}>
-                    {org.status === 'suspended' ? 'Suspended' : 'Active'}
+                    {org.is_active === false ? 'Suspended' : 'Active'}
                   </span>
                   <span className={`text-xs ${tc.textMuted}`}>{new Date(org.created_at).toLocaleDateString()}</span>
                   <ChevronRight className={`w-4 h-4 ${tc.textMuted}`} />
