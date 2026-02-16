@@ -65,7 +65,7 @@ import { SeasonLeaderboardsPage } from './pages/leaderboards'
 import { ReportsPage } from './pages/reports'
 
 // Settings Pages
-import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage } from './pages/settings'
+import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
 
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
@@ -74,6 +74,7 @@ import { NotificationsPage } from './pages/notifications/NotificationsPage'
 // Platform Admin
 import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
 import { PlatformAnalyticsPage } from './pages/platform/PlatformAnalyticsPage'
+import { PlatformSubscriptionsPage } from './pages/platform/PlatformSubscriptionsPage'
 
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
@@ -1467,6 +1468,8 @@ function HorizontalNavBar({
   { id: 'waivers', label: 'Waivers', icon: 'file-text' },
   { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
   { id: 'organization', label: 'Organization', icon: 'building' },
+  { id: 'data-export', label: 'Data Export', icon: 'download' },
+  { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
 ]},
   ]
 
@@ -1634,6 +1637,17 @@ function HorizontalNavBar({
               }`}
             >
               <BarChart3 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => { exitTeamWall(); setPage('platform-subscriptions'); }}
+              title="Platform Subscriptions"
+              className={`relative p-2 rounded-xl transition ${
+                page === 'platform-subscriptions'
+                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
+                  : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+              }`}
+            >
+              <CreditCard className="w-5 h-5" />
             </button>
             <button
               onClick={() => { exitTeamWall(); setPage('platform-admin'); }}
@@ -1853,6 +1867,8 @@ function MainApp() {
               {page === 'waivers' && activeView === 'admin' && <WaiversPage showToast={showToast} />}
               {page === 'paymentsetup' && activeView === 'admin' && <PaymentSetupPage showToast={showToast} />}
               {page === 'organization' && activeView === 'admin' && <OrganizationPage showToast={showToast} setPage={setPage} />}
+              {page === 'data-export' && activeView === 'admin' && <DataExportPage showToast={showToast} />}
+              {page === 'subscription' && activeView === 'admin' && <SubscriptionPage showToast={showToast} />}
               {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
               {page === 'reports' && activeView === 'admin' && <ReportsPage showToast={showToast} />}
@@ -1860,6 +1876,7 @@ function MainApp() {
 
               {page === 'platform-admin' && <PlatformAdminPage showToast={showToast} />}
               {page === 'platform-analytics' && <PlatformAnalyticsPage showToast={showToast} />}
+              {page === 'platform-subscriptions' && <PlatformSubscriptionsPage showToast={showToast} />}
               {page === 'my-profile' && <MyProfilePage showToast={showToast} setPage={setPage} />}
               {page === 'season-archives' && <SeasonArchivePage showToast={showToast} />}
               {page === 'org-directory' && <OrgDirectoryPage isEmbedded />}
