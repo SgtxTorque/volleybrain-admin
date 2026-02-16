@@ -76,6 +76,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -96,7 +97,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
         className={`flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
           isActive 
             ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]' 
-            : `${tc.isDark ? 'text-slate-300 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-black/[0.04]'}`
+            : `${isDark ? 'text-slate-300 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-black/[0.04]'}`
         }`}
       >
         {label}
@@ -105,9 +106,9 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
 
       {isOpen && (
         <div className={`absolute top-full left-0 mt-3 w-56 rounded-2xl overflow-hidden z-50 animate-slide-down ${
-          tc.isDark 
-            ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark' 
-            : 'bg-white/90 backdrop-blur-xl border border-slate-200/60 shadow-soft-xl'
+          isDark 
+            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
+            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
         }`}>
           {items.map(item => (
             <button
@@ -119,7 +120,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
               className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors duration-150 ${
                 (item.teamId && directTeamWallId === item.teamId) || currentPage === item.id
                   ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-semibold' 
-                  : `${tc.text} ${tc.isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.04]'}`
+                  : `${tc.text} ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.04]'}`
               }`}
             >
               <NavIcon name={item.icon} className="w-4 h-4" />
@@ -264,9 +265,9 @@ function NotificationDropdown({ tc, organization, isDark }) {
 
       {isOpen && (
         <div className={`absolute right-0 top-full mt-3 w-96 rounded-2xl overflow-hidden z-50 animate-slide-down ${
-          tc.isDark 
-            ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark' 
-            : 'bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-soft-xl'
+          isDark 
+            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
+            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
         }`}>
           <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
             <span className={`font-semibold ${tc.text}`}>Notifications {unreadCount > 0 && `(${unreadCount})`}</span>
@@ -289,7 +290,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
                 <div 
                   key={notif.id} 
                   onClick={() => !notif.is_read && markAsRead(notif.id)}
-                  className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition ${!notif.is_read ? (tc.isDark ? 'bg-slate-800/60' : 'bg-blue-50/50') : ''}`}
+                  className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition ${!notif.is_read ? (isDark ? 'bg-slate-800/60' : 'bg-blue-50/50') : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="text-xl mt-0.5">{getNotifIcon(notif.type)}</div>
@@ -385,9 +386,9 @@ function UserProfileDropdown({
 
       {showRoleSwitcher && (
         <div className={`absolute right-0 top-full mt-3 w-72 rounded-2xl overflow-hidden z-50 animate-slide-down ${
-          tc.isDark 
-            ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark' 
-            : 'bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-soft-xl'
+          isDark 
+            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
+            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
         }`}>
           <div className={`p-4 border-b ${tc.border} flex items-center gap-3`}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold overflow-hidden"
@@ -461,6 +462,7 @@ function UserProfileDropdown({
 // REGISTRATION SELECTOR MODAL - For Parents
 // ============================================
 function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization, tc }) {
+  const { isDark } = useTheme()
   const [openSeasons, setOpenSeasons] = useState([])
   const [loading, setLoading] = useState(true)
   
@@ -553,7 +555,7 @@ function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization,
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.isDark ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.08]' : 'bg-white/95 backdrop-blur-xl border border-slate-200/60'} rounded-2xl w-full max-w-lg shadow-2xl`}>
+      <div className={`${isDark ? 'bg-slate-800 backdrop-blur-xl border border-white/[0.08]' : 'bg-white/95 backdrop-blur-xl border border-slate-200/60'} rounded-2xl w-full max-w-lg shadow-2xl`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border}`}>
           <h2 className={`text-xl font-bold ${tc.text}`}>Register for a Season</h2>
@@ -685,6 +687,7 @@ function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization,
 // INFO HEADER BAR COMPONENT - 1:1 Mockup Copy
 // ============================================
 function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
+  const { isDark } = useTheme()
   const { selectedSeason, seasons: allSeasons, selectSeason } = useSeason()
   const { profile } = useAuth()
   const [stats, setStats] = useState({
@@ -947,10 +950,10 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
   return (
     <div 
-      className={`mx-auto w-[96%] max-w-7xl rounded-2xl transition-all duration-300 ${
-        tc.isDark 
-          ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.06] shadow-glass-dark' 
-          : 'bg-white/70 backdrop-blur-xl border border-white/40 shadow-glass'
+      className={`mx-auto w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
+        isDark 
+          ? 'bg-slate-800/95 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]' 
+          : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-[0_4px_24px_rgba(0,0,0,0.1)]'
       }`}
     >
       {/* Stats Row - Centered */}
@@ -963,55 +966,55 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               {/* Next Game */}
               <button 
                 onClick={() => setPage('schedule')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Next Game:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Next Game:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                     {stats.nextGame ? formatEventDate(stats.nextGame.date, stats.nextGame.time) : 'No games scheduled'}
                   </span>
                 </div>
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Record */}
               <button 
                 onClick={() => setPage('standings')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
                   <Trophy className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Record:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>{stats.record.wins}-{stats.record.losses}</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Record:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>{stats.record.wins}-{stats.record.losses}</span>
                 </div>
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Win Streak */}
               <button 
                 onClick={() => setPage('standings')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
                   <BarChart3 className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Win Streak:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>{stats.winStreak} Wins</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Win Streak:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>{stats.winStreak} Wins</span>
                 </div>
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Team Morale */}
               <div className="flex items-center gap-4 px-6 py-2">
@@ -1019,7 +1022,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left flex items-center gap-2">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Team Morale:</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Team Morale:</span>
                   <span className="text-lg">👍</span>
                   <span className="font-bold text-sm" style={{ color: morale.color }}>{morale.label}</span>
                 </div>
@@ -1034,7 +1037,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               <div className="relative">
                 <button 
                   onClick={() => setShowSeasonSelector(!showSeasonSelector)}
-                  className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                  className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                 >
                   <div className="w-11 h-11 rounded-lg bg-[var(--accent-primary)] flex items-center justify-center shadow-sm">
                     {selectedSeason?.sports?.icon ? (
@@ -1044,8 +1047,8 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                     )}
                   </div>
                   <div className="text-left">
-                    <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Season:</span>
-                    <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>{selectedSeason?.name || 'Select Season'}</span>
+                    <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Season:</span>
+                    <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>{selectedSeason?.name || 'Select Season'}</span>
                     <ChevronDown className={`inline w-3 h-3 ml-1 text-slate-400 transition-transform ${showSeasonSelector ? 'rotate-180' : ''}`} />
                   </div>
                 </button>
@@ -1055,12 +1058,12 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSeasonSelector(false)} />
                     <div className={`absolute top-full left-0 mt-1 w-72 rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto animate-slide-down ${
-                      tc.isDark 
-                        ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark' 
-                        : 'bg-white/95 backdrop-blur-xl border border-slate-200/60 shadow-soft-xl'
+                      isDark 
+                        ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
+                        : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
                     }`}>
                       {allSeasons.length === 0 ? (
-                        <div className={`p-4 text-center text-sm ${tc.isDark ? 'text-slate-400' : 'text-slate-500'}`}>No seasons found</div>
+                        <div className={`p-4 text-center text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No seasons found</div>
                       ) : (
                         allSeasons.map(s => (
                           <button
@@ -1069,14 +1072,14 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                               selectSeason(s)
                               setShowSeasonSelector(false)
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition ${tc.isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'} ${
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'} ${
                               selectedSeason?.id === s.id ? 'bg-[var(--accent-primary)]/10' : ''
                             }`}
                           >
                             <span className="text-lg">{s.sports?.icon || '🏆'}</span>
                             <div className="flex-1 text-left">
-                              <p className={`font-medium ${selectedSeason?.id === s.id ? 'text-[var(--accent-primary)]' : (tc.isDark ? 'text-white' : 'text-slate-800')}`}>{s.name}</p>
-                              <p className={`text-xs ${tc.isDark ? 'text-slate-400' : 'text-slate-500'}`}>{s.sports?.name || 'Sport'}</p>
+                              <p className={`font-medium ${selectedSeason?.id === s.id ? 'text-[var(--accent-primary)]' : (isDark ? 'text-white' : 'text-slate-800')}`}>{s.name}</p>
+                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{s.sports?.name || 'Sport'}</p>
                             </div>
                             {s.status === 'active' && (
                               <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full">Active</span>
@@ -1091,12 +1094,12 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               </div>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Rostered Players - Shows X/Y format */}
               <button 
                 onClick={() => setPage('teams')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
                 title="Click to manage rosters"
               >
                 <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
@@ -1104,10 +1107,10 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                 </div>
                 <div className="text-left">
                   <div className="flex items-center">
-                    <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Rostered:</span>
-                    <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>
+                    <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Rostered:</span>
+                    <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                       {stats.totalPlayers}
-                      <span className={`font-normal ${tc.isDark ? "text-slate-500" : "text-slate-400"}`}>/{stats.eligiblePlayers || stats.totalRegistrations || 0}</span>
+                      <span className={`font-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>/{stats.eligiblePlayers || stats.totalRegistrations || 0}</span>
                     </span>
                   </div>
                   {stats.eligiblePlayers > stats.totalPlayers && (
@@ -1119,38 +1122,38 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Active Teams */}
               <button 
                 onClick={() => setPage('teams')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
                   <LayoutDashboard className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Active Teams:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>{stats.activeTeams}</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Active Teams:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>{stats.activeTeams}</span>
                 </div>
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Financials */}
               <button 
                 onClick={() => setPage('payments')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
                   <DollarSign className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Collected:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Collected:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                     ${stats.totalCollected.toLocaleString()}
-                    <span className={`font-normal ${tc.isDark ? "text-slate-500" : "text-slate-400"}`}>/${stats.totalExpected.toLocaleString()}</span>
+                    <span className={`font-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>/${stats.totalExpected.toLocaleString()}</span>
                   </span>
                 </div>
               </button>
@@ -1180,14 +1183,14 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                     <>
                       {displaySeason?.sports?.icon && <span className="text-xl">{displaySeason.sports.icon}</span>}
                       <div>
-                        <div className={`font-extrabold text-base tracking-tight ${tc.isDark ? "text-white" : "text-slate-900"}`}>
+                        <div className={`font-extrabold text-base tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
                           Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'}! 👋
                         </div>
-                        <div className={`text-xs font-medium flex items-center gap-1 ${tc.isDark ? "text-slate-500" : "text-slate-400"}`}>
+                        <div className={`text-xs font-medium flex items-center gap-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
                           {showDropdown ? (
                             // Show dropdown with enrolled + registration options
                             <select
-                              className="bg-transparent text-slate-500 font-medium text-xs border-none focus:ring-0 cursor-pointer hover:text-slate-700 pr-5"
+                              className={`bg-transparent font-medium text-xs border-none focus:ring-0 cursor-pointer pr-5 ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
                               style={{ appearance: 'auto', paddingRight: '16px' }}
                               value={displaySeason?.id || ''}
                               onChange={(e) => {
@@ -1256,7 +1259,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                 {/* Next Event - with type, day, date, time */}
                 <button 
                   onClick={() => setPage('schedule')}
-                  className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                  className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                 >
                   <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${
                     stats.nextPractice?.event_type === 'game' ? 'bg-[#F59E0B]' : 'bg-[#3B82F6]'
@@ -1264,8 +1267,8 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                     <span className="text-lg">{stats.nextPractice?.event_type === 'game' ? '🏐' : '📅'}</span>
                   </div>
                   <div className="text-left">
-                    <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Next:</span>
-                    <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>
+                    <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Next:</span>
+                    <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                       {stats.nextPractice 
                         ? `${stats.nextPractice.event_type === 'game' ? 'Game' : 'Practice'} — ${formatEventDate(stats.nextPractice.event_date, stats.nextPractice.event_time)}`
                         : 'Nothing scheduled'}
@@ -1274,28 +1277,28 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                 </button>
 
                 {/* Divider */}
-                <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+                <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
                 {/* Messages */}
                 <button 
                   onClick={() => setPage('chats')}
-                  className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                  className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                 >
                   <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
                     <span className="text-lg">💬</span>
                   </div>
                   <div className="text-left">
-                    <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Messages</span>
+                    <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Messages</span>
                   </div>
                 </button>
 
                 {/* Divider */}
-                <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+                <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
                 {/* Balance */}
                 <button 
                   onClick={() => setPage('payments')}
-                  className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                  className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                   data-tutorial="payments-section"
                 >
                   <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${stats.balanceDue > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'}`}>
@@ -1304,7 +1307,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
                   <div className="text-left">
                     {stats.balanceDue > 0 ? (
                       <>
-                        <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Balance Due:</span>
+                        <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Balance Due:</span>
                         <span className="text-[#EF4444] font-bold text-sm ml-2">${stats.balanceDue.toFixed(2)}</span>
                       </>
                     ) : (
@@ -1322,48 +1325,48 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               {/* Next Practice */}
               <button 
                 onClick={() => setPage('schedule')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Next Practice:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>Mon 6:00 PM</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Next Practice:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>Mon 6:00 PM</span>
                 </div>
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* Next Game */}
               <button 
                 onClick={() => setPage('schedule')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
                   <Target className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Next Game:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>Sat 10:00 AM</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Next Game:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>Sat 10:00 AM</span>
                 </div>
               </button>
 
               {/* Divider */}
-              <div className={`w-px h-10 mx-2 ${tc.isDark ? "bg-white/10" : "bg-slate-200"}`} />
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
 
               {/* My Achievements */}
               <button 
                 onClick={() => setPage('achievements')}
-                className={`flex items-center gap-4 px-6 py-2 ${tc.isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
                   <Trophy className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                  <span className={`text-sm ${tc.isDark ? "text-slate-400" : "text-slate-500"}`}>Achievements:</span>
-                  <span className={`font-bold text-sm ml-2 ${tc.isDark ? "text-white" : "text-slate-900"}`}>12 Earned</span>
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Achievements:</span>
+                  <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>12 Earned</span>
                 </div>
               </button>
             </>
@@ -1538,10 +1541,10 @@ function HorizontalNavBar({
   }
 
   return (
-    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-7xl rounded-2xl transition-all duration-300 ${
+    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
       isDark 
-        ? 'bg-slate-900/75 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark' 
-        : 'bg-white/75 backdrop-blur-xl border border-white/40 shadow-glass'
+        ? 'bg-slate-900/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]' 
+        : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
     }`}>
       
       {/* LEFT: Logo */}
@@ -1723,7 +1726,13 @@ function MainApp() {
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider>
-      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${tc.isDark ? 'bg-slate-900' : 'bg-[#F5F5F7]'}`}>
+      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-[#F0F1F5]'}`}>
+        {/* Subtle gradient overlay for glass effect in both modes */}
+        <div className={`fixed inset-0 pointer-events-none ${
+          isDark 
+            ? 'bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800' 
+            : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
+        }`} />
         <JourneyCelebrations />
         
         {/* Parent Tutorial Spotlight Overlay */}
@@ -1741,7 +1750,7 @@ function MainApp() {
         />
         
         {/* Info Header Bar */}
-        <div className="mt-24 px-4">
+        <div className="mt-24 px-4 relative z-10">
           <InfoHeaderBar 
             activeView={activeView} roleContext={roleContext} organization={organization}
             tc={tc} setPage={setPage} selectedTeamId={selectedTeamId}
@@ -1750,7 +1759,7 @@ function MainApp() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-7xl mx-auto w-full">
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1600px] mx-auto w-full relative z-10">
           {directTeamWallId ? (
             <TeamWallPage teamId={directTeamWallId} showToast={showToast} onBack={exitTeamWall} onNavigate={navigateFromTeamWall} activeView={activeView} />
           ) : (
