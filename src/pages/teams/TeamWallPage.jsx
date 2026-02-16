@@ -71,11 +71,11 @@ const HUB_STYLES = `
   @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
   @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
   @keyframes shimmer{from{left:-100%}to{left:200%}}
-  @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(245,158,11,.1)}50%{box-shadow:0 0 20px rgba(245,158,11,.2)}}
-  @keyframes borderPulse{0%,100%{border-color:rgba(245,158,11,.2)}50%{border-color:rgba(245,158,11,.45)}}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(255,255,255,.04)}50%{box-shadow:0 0 20px rgba(255,255,255,.08)}}
+  @keyframes borderPulse{0%,100%{border-color:rgba(255,255,255,.08)}50%{border-color:rgba(255,255,255,.18)}}
   @keyframes cheerPop{0%{transform:translateY(0) scale(1);opacity:1}50%{transform:translateY(-40px) scale(1.4);opacity:.8}100%{transform:translateY(-80px) scale(.6);opacity:0}}
   @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}70%{box-shadow:0 0 0 10px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
-  @keyframes storyRing{0%,100%{border-color:var(--ring-c1,#f59e0b)}50%{border-color:var(--ring-c2,#ef4444)}}
+  @keyframes storyRing{0%,100%{border-color:var(--ring-c1,#6366f1)}50%{border-color:var(--ring-c2,#ef4444)}}
 
   .tw-au{animation:fadeUp .5s ease-out both}
   .tw-ai{animation:fadeIn .4s ease-out both}
@@ -100,19 +100,19 @@ const HUB_STYLES = `
   .tw-glass:hover{border-color:rgba(255,255,255,.15);transform:translateY(-2px);box-shadow:0 16px 48px rgba(0,0,0,.2)}
 
   .tw-glass-glow{
-    background:linear-gradient(165deg,rgba(245,158,11,.06) 0%,rgba(255,255,255,.025) 40%,rgba(10,10,15,.9) 100%);
+    background:linear-gradient(165deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.025) 40%,rgba(10,10,15,.9) 100%);
     backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid rgba(245,158,11,.18);
+    border:1px solid rgba(255,255,255,.1);
     border-radius:24px;
-    box-shadow:0 8px 32px rgba(0,0,0,.1),0 0 0 1px rgba(245,158,11,.05);
+    box-shadow:0 8px 32px rgba(0,0,0,.1),0 0 0 1px rgba(255,255,255,.03);
     transition:all .3s cubic-bezier(.4,0,.2,1)
   }
-  .tw-glass-glow:hover{border-color:rgba(245,158,11,.35);box-shadow:0 16px 48px rgba(0,0,0,.18),0 0 20px rgba(245,158,11,.08)}
+  .tw-glass-glow:hover{border-color:rgba(255,255,255,.18);box-shadow:0 16px 48px rgba(0,0,0,.18),0 0 20px rgba(255,255,255,.04)}
 
   .tw-nos::-webkit-scrollbar{display:none}.tw-nos{-ms-overflow-style:none;scrollbar-width:none}
   .tw-clift{transition:transform .2s}.tw-clift:hover{transform:translateY(-2px)}
 
-  .tw-auto-accent{border-left:3px solid rgba(245,158,11,.4);background:linear-gradient(90deg,rgba(245,158,11,.04),transparent 30%)}
+  .tw-auto-accent{border-left:3px solid rgba(99,102,241,.3);background:linear-gradient(90deg,rgba(99,102,241,.04),transparent 30%)}
   .tw-badge-accent{border-left:3px solid rgba(168,85,247,.4);background:linear-gradient(90deg,rgba(168,85,247,.04),transparent 30%)}
   .tw-reminder-accent{border-left:3px solid rgba(56,189,248,.4);background:linear-gradient(90deg,rgba(56,189,248,.04),transparent 30%)}
 
@@ -124,8 +124,8 @@ const HUB_STYLES = `
   }
   .tw-light .tw-glass:hover{border-color:rgba(0,0,0,.12);box-shadow:0 16px 48px rgba(0,0,0,.1)}
   .tw-light .tw-glass-glow{
-    background:linear-gradient(165deg,rgba(245,158,11,.07) 0%,rgba(255,255,255,.88) 40%,rgba(255,255,255,.95) 100%);
-    border-color:rgba(245,158,11,.2);
+    background:linear-gradient(165deg,rgba(99,102,241,.04) 0%,rgba(255,255,255,.88) 40%,rgba(255,255,255,.95) 100%);
+    border-color:rgba(0,0,0,.08);
     box-shadow:0 4px 24px rgba(0,0,0,.06)
   }
   .tw-light .tw-glass-glow:hover{box-shadow:0 16px 48px rgba(0,0,0,.1)}
@@ -168,7 +168,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const [picker, setPicker] = useState(null)
   const [showAllRoster, setShowAllRoster] = useState(false)
 
-  const g = team?.color || '#F59E0B'
+  const g = team?.color || '#6366F1'
   const gb = adjustBrightness(g, 20)
   const dim = adjustBrightness(g, -30)
 
@@ -1388,7 +1388,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
 
           {canPin && (
             <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-amber-500 rounded" />
+              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-indigo-500 rounded" />
               <span className="text-[10px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>📌 PIN TO TOP</span>
             </label>
           )}
