@@ -22,10 +22,10 @@ function DashCard({ children, className = '', onClick, headerColor, isDark }) {
       className={`
         rounded-2xl overflow-hidden transition-all duration-300
         ${isDark 
-          ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.06] shadow-glass-dark' 
-          : 'bg-white/80 backdrop-blur-xl border border-white/40 shadow-glass'
+          ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]' 
+          : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
         }
-        ${onClick ? 'cursor-pointer hover:shadow-soft-lg hover:-translate-y-0.5' : ''}
+        ${onClick ? 'cursor-pointer hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-0.5' : ''}
         ${className}
       `}
     >
@@ -307,8 +307,8 @@ function SeasonCard({ season, stats, onNavigate }) {
       
       {/* Stats Row */}
       <div className={`px-5 py-4 border-b ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
-        <div className="flex items-center gap-2 text-slate-600">
-          <Users className="w-4 h-4 text-slate-400" />
+        <div className={`flex items-center gap-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+          <Users className={`w-4 h-4 ${isDark ? "text-slate-500" : "text-slate-400"}`} />
           <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.rosteredPlayers}</span>
           <span className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>/ {stats.totalCapacity} rostered players</span>
         </div>
@@ -622,7 +622,7 @@ function RecentActivity({ tasks, onNavigate }) {
                 {task.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-700">{task.title}</p>
+                <p className={`text-sm ${isDark ? "text-slate-200" : "text-slate-700"}`}>{task.title}</p>
               </div>
               {task.badge && (
                 <span 
@@ -751,11 +751,11 @@ function QuickActionsWidget({ activities }) {
       <div className="p-5 space-y-3">
         {activities.map((activity, i) => (
           <div key={i} className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-sm font-bold text-slate-600 shrink-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isDark ? "bg-white/[0.08] text-slate-300" : "bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600"}`}>
               {activity.initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-700">
+              <p className={`text-sm ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                 <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{activity.name}</span>
                 {' '}{activity.action}
                 {activity.highlight && (
