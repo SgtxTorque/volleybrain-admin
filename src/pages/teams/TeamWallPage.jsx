@@ -86,10 +86,10 @@ const HUB_STYLES = `
   .tw-heading{font-family:'Rajdhani','Oswald',sans-serif;font-weight:700;letter-spacing:.04em}
   .tw-mono{font-family:'JetBrains Mono',monospace}
 
-  .tw-ecard{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);transition:all .25s}
-  .tw-ecard:hover{border-color:rgba(245,158,11,.2);transform:translateY(-1px)}
-  .tw-ecard-glow{background:linear-gradient(165deg,rgba(245,158,11,.05) 0%,rgba(255,255,255,.02) 35%,rgba(10,10,15,.95) 100%);border:1px solid rgba(245,158,11,.15);box-shadow:0 0 8px rgba(245,158,11,.04)}
-  .tw-ecard-glow:hover{border-color:rgba(245,158,11,.3)}
+  .tw-ecard{background:rgba(255,255,255,.03);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.06);border-radius:16px;transition:all .25s;box-shadow:0 4px 24px rgba(0,0,0,.15)}
+  .tw-ecard:hover{border-color:rgba(245,158,11,.2);transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+  .tw-ecard-glow{background:linear-gradient(165deg,rgba(245,158,11,.05) 0%,rgba(255,255,255,.025) 35%,rgba(10,10,15,.85) 100%);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(245,158,11,.15);box-shadow:0 4px 24px rgba(0,0,0,.12),0 0 8px rgba(245,158,11,.04)}
+  .tw-ecard-glow:hover{border-color:rgba(245,158,11,.3);box-shadow:0 8px 30px rgba(0,0,0,.2),0 0 12px rgba(245,158,11,.08)}
 
   .tw-nos::-webkit-scrollbar{display:none}.tw-nos{-ms-overflow-style:none;scrollbar-width:none}
   .tw-clift{transition:transform .2s}.tw-clift:hover{transform:translateY(-2px)}
@@ -99,9 +99,10 @@ const HUB_STYLES = `
   .tw-reminder-accent{border-left:3px solid rgba(56,189,248,.4);background:linear-gradient(90deg,rgba(56,189,248,.04),transparent 30%)}
 
   /* Light mode overrides */
-  .tw-light .tw-ecard{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.08)}
-  .tw-light .tw-ecard:hover{border-color:rgba(245,158,11,.3)}
-  .tw-light .tw-ecard-glow{background:linear-gradient(165deg,rgba(245,158,11,.06) 0%,rgba(255,255,255,.8) 35%,rgba(255,255,255,.95) 100%);border-color:rgba(245,158,11,.2)}
+  .tw-light .tw-ecard{background:rgba(255,255,255,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:rgba(0,0,0,.06);box-shadow:0 2px 20px rgba(0,0,0,.06)}
+  .tw-light .tw-ecard:hover{border-color:rgba(245,158,11,.3);box-shadow:0 8px 30px rgba(0,0,0,.1)}
+  .tw-light .tw-ecard-glow{background:linear-gradient(165deg,rgba(245,158,11,.06) 0%,rgba(255,255,255,.85) 35%,rgba(255,255,255,.9) 100%);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:rgba(245,158,11,.2);box-shadow:0 2px 20px rgba(0,0,0,.06)}
+  .tw-light .tw-ecard-glow:hover{box-shadow:0 8px 30px rgba(0,0,0,.1)}
 `
 
 // ═══════════════════════════════════════════════════════════
@@ -396,7 +397,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       ═══════════════════════════════════════════════════ */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 mb-4 text-white/40 hover:text-white/70 transition"
+        className={`flex items-center gap-2 mb-4 transition ${isDark ? "text-white/40 hover:text-white/70" : "text-slate-400 hover:text-slate-600"}`}
       >
         <ArrowLeft className="w-5 h-5" />
         <span className="tw-heading text-xs tracking-widest">BACK</span>
@@ -423,7 +424,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
         {/* Bottom gradient fade */}
         <div className="absolute bottom-0 left-0 right-0 h-24 z-10"
-          style={{ background: isDark ? 'linear-gradient(transparent, #0A0A0F)' : 'linear-gradient(transparent, #f5f5f5)' }} />
+          style={{ background: isDark ? 'linear-gradient(transparent, rgb(15 23 42))' : 'linear-gradient(transparent, #F0F1F5)' }} />
 
         {/* Banner nav dots */}
         <div className="absolute bottom-20 right-6 z-20 flex gap-1.5">
@@ -446,7 +447,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
         {showBannerEdit && (
           <div className="absolute top-14 right-4 z-30 p-4 rounded-xl shadow-2xl tw-as"
-            style={{ background: 'rgba(10,10,15,.95)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(16px)', width: 260 }}>
+            style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', width: 260 }}>
             <p className="text-[10px] tw-heading tracking-[.2em] mb-3" style={{ color: `${g}88` }}>BANNER SETTINGS</p>
             {bannerSlides.map((s, i) => (
               <div key={s.id} className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid rgba(255,255,255,.04)' }}>
@@ -471,7 +472,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           <div className="relative flex-shrink-0">
             <div className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl" style={{
               background: `linear-gradient(135deg, ${g}30, ${g}10)`,
-              border: '3px solid ' + (isDark ? '#0A0A0F' : '#f5f5f5'),
+              border: '3px solid ' + (isDark ? 'rgb(15,23,42)' : '#F0F1F5'),
               boxShadow: `0 0 0 3px ${g}40, 0 8px 32px rgba(0,0,0,.5)`,
             }}>
               {team.logo_url ? (
@@ -482,7 +483,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             </div>
             {(profile?.role === 'admin' || profile?.role === 'coach') && (
               <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-[10px] shadow-lg"
-                style={{ background: isDark ? '#0A0A0F' : '#fff', border: `2px solid ${g}50`, color: g }}>
+                style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', border: `2px solid ${g}50`, color: g }}>
                 📷
               </button>
             )}
@@ -526,7 +527,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           TICKER BANNER — Editable coach message
       ═══════════════════════════════════════════════════ */}
       <div className="relative z-20 max-w-[1100px] mx-auto px-2 mt-4 mb-6">
-        <div className="rounded-xl overflow-hidden relative" style={{ background: `${g}0a`, border: `1px solid ${g}1a` }}>
+        <div className="rounded-xl overflow-hidden relative" style={{ background: isDark ? `${g}0a` : `rgba(255,255,255,.5)`, border: `1px solid ${isDark ? g + '1a' : g + '20'}`, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: isDark ? 'none' : '0 2px 12px rgba(0,0,0,.04)' }}>
           {editingTicker ? (
             <div className="flex items-center gap-2 p-2">
               <input type="text" maxLength={150} value={tickerText} onChange={e => setTickerText(e.target.value)}
@@ -534,7 +535,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 placeholder="Team message (150 chars max)" autoFocus />
               <span className="text-[10px] tw-mono mr-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{tickerText.length}/150</span>
               <button onClick={() => setEditingTicker(false)} className="px-3 py-1 rounded text-[10px] tw-heading tracking-wider transition"
-                style={{ background: g, color: '#0A0A0F' }}>SAVE</button>
+                style={{ background: g, color: '#0f172a' }}>SAVE</button>
             </div>
           ) : (
             <div className="flex items-center h-10 px-4 overflow-hidden">
@@ -572,12 +573,15 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             <button key={a.label} onClick={a.action}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-semibold tw-heading tracking-wider transition whitespace-nowrap tw-clift`}
               style={a.primary ? {
-                background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0A0A0F',
+                background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a',
                 boxShadow: `0 0 16px ${g}26`,
               } : {
-                background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)',
-                border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.08)',
-                color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)'
+                background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.6)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)',
+                color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)',
+                boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,.04)'
               }}>
               <span>{a.icon}</span> {a.label}
             </button>
@@ -936,7 +940,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <p className="text-xs font-semibold mb-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Invite to {team.name}</p>
               <p className="text-[10px] mb-3" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>Share a registration link with friends and family</p>
               <button className="w-full py-2.5 rounded-xl text-[11px] font-bold tw-heading tracking-wider transition hover:brightness-110"
-                style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0A0A0F' }}>
+                style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a' }}>
                 COPY INVITE LINK
               </button>
             </div>
@@ -1270,7 +1274,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 tw-ai" style={{ background: 'rgba(0,0,0,.65)' }} onClick={onClose}>
       <div className="rounded-xl w-full max-w-lg overflow-hidden tw-as shadow-2xl"
-        style={{ background: isDark ? 'rgba(10,10,15,.95)' : 'rgba(255,255,255,.98)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.1)', backdropFilter: 'blur(20px)' }}
+        style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
