@@ -15,15 +15,17 @@ import { VolleyballIcon } from '../../constants/icons'
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
 // ============================================
-function DashCard({ children, className = '', onClick, headerColor }) {
+function DashCard({ children, className = '', onClick, headerColor, isDark }) {
   return (
     <div 
       onClick={onClick}
       className={`
-        bg-white rounded-2xl overflow-hidden
-        shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]
-        border border-slate-100
-        ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}
+        rounded-2xl overflow-hidden transition-all duration-300
+        ${isDark 
+          ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.06] shadow-glass-dark' 
+          : 'bg-white/80 backdrop-blur-xl border border-white/40 shadow-glass'
+        }
+        ${onClick ? 'cursor-pointer hover:shadow-soft-lg hover:-translate-y-0.5' : ''}
         ${className}
       `}
     >
@@ -33,7 +35,7 @@ function DashCard({ children, className = '', onClick, headerColor }) {
 }
 
 // Card Header with colored accent bar
-function CardHeader({ title, action, onAction, children, color = 'blue', icon: Icon }) {
+function CardHeader({ title, action, onAction, children, color = 'blue', icon: Icon, isDark }) {
   const colorClasses = {
     blue: 'bg-gradient-to-r from-blue-500 to-blue-600',
     green: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
@@ -46,30 +48,30 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
   }
   
   return (
-    <div className="border-b border-slate-100">
+    <div className={`border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
       {/* Colored accent bar */}
-      <div className={`h-1.5 ${colorClasses[color] || colorClasses.blue}`} />
+      <div className={`h-1 ${colorClasses[color] || colorClasses.blue}`} />
       
       {/* Header content */}
       <div className="flex items-center justify-between px-5 py-3">
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="w-4 h-4 text-slate-500" />}
-          <h3 className="font-semibold text-slate-800 text-[15px]">{title}</h3>
+          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />}
+          <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
         </div>
         <div className="flex items-center gap-2">
           {children}
           {action && (
             <button 
               onClick={onAction}
-              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1
+              className={`text-xs px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1
                 ${colorClasses[color] || colorClasses.blue} text-white hover:brightness-110`}
             >
               {action}
               <ChevronRight className="w-3 h-3" />
             </button>
           )}
-          <button className="p-1 hover:bg-slate-100 rounded-lg transition">
-            <MoreHorizontal className="w-4 h-4 text-slate-400" />
+          <button className={`p-1 rounded-xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
           </button>
         </div>
       </div>
@@ -81,6 +83,7 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
 // DONUT CHART COMPONENT
 // ============================================
 function DonutChart({ data, total, centerLabel, size = 140 }) {
+  const { isDark } = useTheme()
   const radius = (size - 20) / 2
   const circumference = 2 * Math.PI * radius
   let currentOffset = 0
@@ -110,7 +113,7 @@ function DonutChart({ data, total, centerLabel, size = 140 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-slate-800">${centerLabel}</span>
+        <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${centerLabel}</span>
       </div>
     </div>
   )
@@ -120,6 +123,7 @@ function DonutChart({ data, total, centerLabel, size = 140 }) {
 // REGISTRATION DONUT CHART
 // ============================================
 function RegistrationDonut({ data, total, size = 120 }) {
+  const { isDark } = useTheme()
   const radius = (size - 16) / 2
   const circumference = 2 * Math.PI * radius
   let currentOffset = 0
@@ -149,8 +153,8 @@ function RegistrationDonut({ data, total, size = 120 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-bold text-slate-800">{total.toLocaleString()}</span>
-        <span className="text-xs text-slate-500">Total</span>
+        <span className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
+        <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Total</span>
       </div>
     </div>
   )
@@ -160,6 +164,7 @@ function RegistrationDonut({ data, total, size = 120 }) {
 // MINI LINE CHART
 // ============================================
 function MiniLineChart({ data, width = 300, height = 120 }) {
+  const { isDark } = useTheme()
   if (!data || data.length === 0) return null
   
   const maxValue = Math.max(...data.map(d => d.value || 0), 1) * 1.2 // Ensure min of 1 to avoid division by zero
@@ -182,7 +187,7 @@ function MiniLineChart({ data, width = 300, height = 120 }) {
           y1={height - (i / 3) * height} 
           x2={width} 
           y2={height - (i / 3) * height}
-          stroke="#E2E8F0"
+          stroke={isDark ? "#334155" : "#E2E8F0"}
           strokeWidth="1"
         />
       ))}
@@ -240,7 +245,7 @@ function MiniLineChart({ data, width = 300, height = 120 }) {
             x={x} 
             y={height + 16} 
             textAnchor="middle" 
-            fill="#94A3B8" 
+            fill={isDark ? "#64748B" : "#94A3B8"} 
             fontSize="10"
           >
             {d.label}
@@ -255,13 +260,13 @@ function MiniLineChart({ data, width = 300, height = 120 }) {
 // SEASON CARD WIDGET
 // ============================================
 function SeasonCard({ season, stats, onNavigate }) {
-  const { accent } = useTheme()
+  const { isDark, accent } = useTheme()
   
   // Get next game
   const nextGame = stats.nextGame
   
   return (
-    <DashCard className="overflow-hidden">
+    <DashCard isDark={isDark} className="overflow-hidden">
       {/* Header with gradient mountain background */}
       <div 
         className="relative px-5 py-4"
@@ -301,31 +306,31 @@ function SeasonCard({ season, stats, onNavigate }) {
       </div>
       
       {/* Stats Row */}
-      <div className="px-5 py-4 border-b border-slate-100">
+      <div className={`px-5 py-4 border-b ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
         <div className="flex items-center gap-2 text-slate-600">
           <Users className="w-4 h-4 text-slate-400" />
-          <span className="font-semibold text-slate-800">{stats.rosteredPlayers}</span>
-          <span className="text-slate-500">/ {stats.totalCapacity} rostered players</span>
+          <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.rosteredPlayers}</span>
+          <span className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>/ {stats.totalCapacity} rostered players</span>
         </div>
         
         <div className="flex items-center gap-2 mt-3">
           {nextGame ? (
             <>
               <Calendar className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-600">Next Game:</span>
-              <span className="font-semibold text-slate-800">{nextGame}</span>
+              <span className={`${isDark ? "text-slate-300" : "text-slate-600"}`}>Next Game:</span>
+              <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{nextGame}</span>
             </>
           ) : (
             <>
               <AlertCircle className="w-4 h-4 text-amber-500" />
-              <span className="text-amber-600">No upcoming games scheduled</span>
+              <span className={`${isDark ? "text-amber-400" : "text-amber-600"}`}>No upcoming games scheduled</span>
             </>
           )}
         </div>
         
         <button 
           onClick={() => onNavigate('seasons')}
-          className="mt-3 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-lg transition"
+          className={`mt-3 px-4 py-2 font-medium text-sm rounded-xl transition ${isDark ? "bg-white/[0.06] hover:bg-white/[0.1] text-slate-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
         >
           Manage Season
         </button>
@@ -348,6 +353,7 @@ function SeasonCard({ season, stats, onNavigate }) {
 // FINANCIAL SUMMARY WIDGET
 // ============================================
 function FinancialSummary({ stats, onNavigate }) {
+  const { isDark } = useTheme()
   const chartData = [
     { value: stats.paidOnline || 0, color: '#3B82F6' },
     { value: stats.paidManual || 0, color: '#F59E0B' },
@@ -356,9 +362,9 @@ function FinancialSummary({ stats, onNavigate }) {
   const total = chartData.reduce((sum, d) => sum + d.value, 0)
 
   return (
-    <DashCard>
-      <CardHeader title="Financial Summary" color="green" icon={DollarSign}>
-        <button className="p-1 hover:bg-slate-100 rounded-lg transition">
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Financial Summary" color="green" icon={DollarSign}>
+        <button className={`p-1 rounded-xl transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-100"}`}>
           <Users className="w-4 h-4 text-slate-400" />
         </button>
       </CardHeader>
@@ -366,10 +372,10 @@ function FinancialSummary({ stats, onNavigate }) {
       <div className="p-5">
         {/* Main Total */}
         <div className="mb-6">
-          <span className="text-3xl font-bold text-emerald-600">
+          <span className={`text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
             ${stats.totalCollected?.toLocaleString() || '0'}
           </span>
-          <span className="text-slate-500 text-lg ml-2">Collected YTD</span>
+          <span className={`text-lg ml-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Collected YTD</span>
         </div>
         
         {/* Chart and Breakdown */}
@@ -382,31 +388,31 @@ function FinancialSummary({ stats, onNavigate }) {
           
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? "bg-white/[0.06]" : "bg-slate-100"}`}>
                 <Clock className="w-4 h-4 text-slate-500" />
               </div>
               <div>
-                <span className="text-orange-500 font-bold">${stats.pastDue?.toLocaleString() || '0'}</span>
+                <span className={`font-bold ${isDark ? "text-orange-400" : "text-orange-500"}`}>${stats.pastDue?.toLocaleString() || '0'}</span>
                 <span className="text-slate-500 ml-2">Past Due</span>
               </div>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? "bg-white/[0.06]" : "bg-slate-100"}`}>
                 <CreditCard className="w-4 h-4 text-slate-500" />
               </div>
               <div>
-                <span className="text-slate-800 font-bold">${stats.paidOnline?.toLocaleString() || '0'}</span>
+                <span className={`font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.paidOnline?.toLocaleString() || '0'}</span>
                 <span className="text-slate-500 ml-2">via Stripe</span>
               </div>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? "bg-amber-500/20" : "bg-amber-100"}`}>
                 <DollarSign className="w-4 h-4 text-amber-600" />
               </div>
               <div>
-                <span className="text-slate-800 font-bold">${stats.paidManual?.toLocaleString() || '0'}</span>
+                <span className={`font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.paidManual?.toLocaleString() || '0'}</span>
                 <span className="text-slate-500 ml-2">Manual Payments</span>
               </div>
             </div>
@@ -430,16 +436,17 @@ function FinancialSummary({ stats, onNavigate }) {
 // FINANCIAL OVERVIEW (LINE CHART)
 // ============================================
 function FinancialOverview({ monthlyData, totalCollected }) {
+  const { isDark } = useTheme()
   return (
-    <DashCard>
-      <CardHeader title="Financial Overview" color="teal" icon={TrendingUp}>
-        <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-full">All Seasons</span>
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Financial Overview" color="teal" icon={TrendingUp}>
+        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? "text-slate-400 bg-white/[0.06]" : "text-slate-500 bg-slate-100"}`}>All Seasons</span>
       </CardHeader>
       
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-slate-500 text-sm">Registration Payments</span>
-          <span className="text-2xl font-bold text-emerald-600">${totalCollected?.toLocaleString() || '0'}</span>
+          <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Registration Payments</span>
+          <span className={`text-2xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
         </div>
         
         <div className="h-32">
@@ -447,18 +454,18 @@ function FinancialOverview({ monthlyData, totalCollected }) {
         </div>
         
         {/* Legend */}
-        <div className="flex items-center gap-4 mt-6 pt-4 border-t border-slate-100">
+        <div className={`flex items-center gap-4 mt-6 pt-4 border-t ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-xs text-slate-500">Online</span>
+            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Online</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className="text-xs text-slate-500">Manual</span>
+            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Manual</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className="text-xs text-slate-500">Refunds</span>
+            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Refunds</span>
           </div>
         </div>
       </div>
@@ -470,6 +477,7 @@ function FinancialOverview({ monthlyData, totalCollected }) {
 // REGISTRATION STATS WIDGET
 // ============================================
 function RegistrationStats({ stats, onNavigate }) {
+  const { isDark } = useTheme()
   // Calculate unrostered first for chart
   const rostered = stats.rostered || 0
   const unrostered = stats.unrostered || Math.max(0, (stats.totalRegistrations || 0) - rostered - (stats.pending || 0) - (stats.waitlisted || 0) - (stats.denied || 0))
@@ -484,25 +492,25 @@ function RegistrationStats({ stats, onNavigate }) {
   const total = chartData.reduce((sum, d) => sum + d.value, 0)
   
   return (
-    <DashCard>
-      <CardHeader title="Registration Stats" color="blue" icon={ClipboardList} />
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Registration Stats" color="blue" icon={ClipboardList} />
       
       <div className="p-5">
         {/* Main Stats Row */}
         <div className="flex items-stretch gap-4 mb-5">
           {/* Total Registrations */}
-          <div className="flex-1 p-4 bg-slate-50 rounded-xl text-center">
-            <p className="text-3xl font-bold text-slate-800">{stats.totalRegistrations || 0}</p>
-            <p className="text-sm text-slate-500 mt-1">Total Registrations</p>
+          <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? "bg-white/[0.05]" : "bg-slate-50"}`}>
+            <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
+            <p className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Total Registrations</p>
           </div>
           
           {/* Rostered */}
-          <div className="flex-1 p-4 bg-emerald-50 rounded-xl text-center">
-            <p className="text-3xl font-bold text-emerald-600">
+          <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
+            <p className={`text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               {rostered}
-              <span className="text-lg text-emerald-400">/{stats.totalRegistrations || 0}</span>
+              <span className={`text-lg ${isDark ? "text-emerald-500" : "text-emerald-400"}`}>/{stats.totalRegistrations || 0}</span>
             </p>
-            <p className="text-sm text-emerald-600 mt-1">Rostered</p>
+            <p className={`text-sm mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Rostered</p>
           </div>
         </div>
         
@@ -513,7 +521,7 @@ function RegistrationStats({ stats, onNavigate }) {
               <span>Capacity</span>
               <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-slate-100"}`}>
               <div 
                 className="h-full bg-blue-500 rounded-full transition-all"
                 style={{ width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%` }}
@@ -530,41 +538,41 @@ function RegistrationStats({ stats, onNavigate }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-amber-400" />
-                <span className="text-sm text-slate-600">Pending Review</span>
+                <span className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>Pending Review</span>
               </div>
-              <span className="text-sm font-semibold text-slate-700">{stats.pending || 0}</span>
+              <span className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.pending || 0}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span className="text-sm text-slate-600">Approved (Unrostered)</span>
+                <span className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>Approved (Unrostered)</span>
               </div>
-              <span className="text-sm font-semibold text-slate-700">{unrostered}</span>
+              <span className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{unrostered}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className="text-sm text-slate-600">On Roster</span>
+                <span className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>On Roster</span>
               </div>
-              <span className="text-sm font-semibold text-slate-700">{rostered}</span>
+              <span className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{rostered}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-purple-500" />
-                <span className="text-sm text-slate-600">Waitlisted</span>
+                <span className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>Waitlisted</span>
               </div>
-              <span className="text-sm font-semibold text-slate-700">{stats.waitlisted || 0}</span>
+              <span className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.waitlisted || 0}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span className="text-sm text-slate-600">Denied/Withdrawn</span>
+                <span className={`text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>Denied/Withdrawn</span>
               </div>
-              <span className="text-sm font-semibold text-slate-700">{stats.denied || 0}</span>
+              <span className={`text-sm font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.denied || 0}</span>
             </div>
           </div>
         </div>
@@ -586,15 +594,16 @@ function RegistrationStats({ stats, onNavigate }) {
 // RECENT ACTIVITY / TASKS WIDGET
 // ============================================
 function RecentActivity({ tasks, onNavigate }) {
+  const { isDark } = useTheme()
   return (
-    <DashCard>
-      <CardHeader title="Recent Activity" color="purple" icon={Clock} action="View All" onAction={() => onNavigate('registrations')} />
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Recent Activity" color="purple" icon={Clock} action="View All" onAction={() => onNavigate('registrations')} />
       
       <div className="p-5">
         {/* Filter Dropdown */}
         <div className="flex items-center gap-2 mb-4">
           <ClipboardList className="w-4 h-4 text-slate-400" />
-          <span className="text-sm font-medium text-slate-700">Recent Tasks</span>
+          <span className={`text-sm font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}>Recent Tasks</span>
           <ChevronRight className="w-4 h-4 text-slate-400 rotate-90" />
         </div>
         
@@ -604,7 +613,7 @@ function RecentActivity({ tasks, onNavigate }) {
             <div 
               key={i}
               onClick={task.action}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition"
+              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"}`}
             >
               <div 
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -645,6 +654,7 @@ function RecentActivity({ tasks, onNavigate }) {
 // UPCOMING EVENTS WIDGET
 // ============================================
 function UpcomingEvents({ events, onNavigate }) {
+  const { isDark } = useTheme()
   // Group events by date
   const groupedEvents = events.reduce((groups, event) => {
     const date = event.event_date
@@ -670,18 +680,18 @@ function UpcomingEvents({ events, onNavigate }) {
   }
 
   return (
-    <DashCard>
-      <CardHeader title="Upcoming Events" color="orange" icon={Calendar} action="View All" onAction={() => onNavigate('schedule')} />
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Upcoming Events" color="orange" icon={Calendar} action="View All" onAction={() => onNavigate('schedule')} />
       
       <div className="p-5 space-y-4">
         {Object.entries(groupedEvents).slice(0, 2).map(([date, dateEvents]) => (
           <div key={date}>
-            <p className="text-sm font-semibold text-slate-800 mb-3">{formatDate(date)}</p>
+            <p className={`text-sm font-semibold mb-3 ${isDark ? "text-white" : "text-slate-800"}`}>{formatDate(date)}</p>
             
             {dateEvents.map((event, i) => (
               <div 
                 key={i}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition mb-2"
+                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"}`}
                 onClick={() => onNavigate('schedule')}
               >
                 <div 
@@ -691,8 +701,8 @@ function UpcomingEvents({ events, onNavigate }) {
                   <VolleyballIcon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800">{event.teams?.name || event.title}</p>
-                  <p className="text-sm text-slate-500 flex items-center gap-1">
+                  <p className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{event.teams?.name || event.title}</p>
+                  <p className={`text-sm flex items-center gap-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                     <span>{formatTime(event.event_time)}</span>
                     {event.location && (
                       <>
@@ -703,7 +713,7 @@ function UpcomingEvents({ events, onNavigate }) {
                     )}
                   </p>
                 </div>
-                <span className="text-sm font-semibold text-slate-800">{formatTime(event.event_time)}</span>
+                <span className={`text-sm font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{formatTime(event.event_time)}</span>
               </div>
             ))}
           </div>
@@ -712,7 +722,7 @@ function UpcomingEvents({ events, onNavigate }) {
         {Object.keys(groupedEvents).length === 0 && (
           <div className="text-center py-8">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No upcoming events</p>
+            <p className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>No upcoming events</p>
           </div>
         )}
         
@@ -733,9 +743,10 @@ function UpcomingEvents({ events, onNavigate }) {
 // QUICK ACTIONS / ACTIVITY FEED
 // ============================================
 function QuickActionsWidget({ activities }) {
+  const { isDark } = useTheme()
   return (
-    <DashCard>
-      <CardHeader title="Quick Actions" color="slate" icon={Star} />
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Quick Actions" color="slate" icon={Star} />
       
       <div className="p-5 space-y-3">
         {activities.map((activity, i) => (
@@ -745,13 +756,13 @@ function QuickActionsWidget({ activities }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-slate-700">
-                <span className="font-semibold text-slate-800">{activity.name}</span>
+                <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{activity.name}</span>
                 {' '}{activity.action}
                 {activity.highlight && (
-                  <span className="font-semibold text-slate-800"> {activity.highlight}</span>
+                  <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}> {activity.highlight}</span>
                 )}
                 {activity.target && (
-                  <span className="text-slate-600"> {activity.target}</span>
+                  <span className={`${isDark ? "text-slate-300" : "text-slate-600"}`}> {activity.target}</span>
                 )}
               </p>
             </div>
@@ -766,25 +777,26 @@ function QuickActionsWidget({ activities }) {
 // OVERDUE PAYMENTS WIDGET
 // ============================================
 function OverduePayments({ stats, onNavigate }) {
+  const { isDark } = useTheme()
   const total = (stats.overdueFees || 0) + (stats.overdueStripe || 0)
   
   return (
-    <DashCard>
-      <CardHeader title="Payment Recovery" color="red" icon={AlertCircle} />
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Payment Recovery" color="red" icon={AlertCircle} />
       
       <div className="p-5">
         <div className="flex items-start gap-4">
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
-              <span className="text-2xl font-bold text-slate-800">${stats.overdueFees?.toLocaleString() || '0'}</span>
-              <span className="text-sm text-slate-500">Overdue Fees</span>
+              <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
+              <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue Fees</span>
             </div>
             
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className="text-2xl font-bold text-slate-800">${stats.overdueStripe?.toLocaleString() || '0'}</span>
-              <span className="text-sm text-slate-500">Overdue Stripe</span>
+              <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
+              <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue Stripe</span>
             </div>
           </div>
           
@@ -803,7 +815,7 @@ function OverduePayments({ stats, onNavigate }) {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-sm font-bold text-red-600">${total.toLocaleString()}</span>
-              <span className="text-[10px] text-slate-500 uppercase">Overdue</span>
+              <span className={`text-[10px] uppercase ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue</span>
             </div>
           </div>
         </div>
@@ -826,7 +838,7 @@ function OverduePayments({ stats, onNavigate }) {
 // ============================================
 export function GettingStartedGuide({ onNavigate }) {
   const { organization } = useAuth()
-  const { accent } = useTheme()
+  const { isDark, accent } = useTheme()
   
   return (
     <div className="max-w-2xl mx-auto py-12 text-center">
@@ -836,10 +848,10 @@ export function GettingStartedGuide({ onNavigate }) {
       >
         <span className="text-4xl">🎉</span>
       </div>
-      <h1 className="text-3xl font-bold text-slate-800 mb-2">
+      <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
         Welcome to {organization?.name || 'VolleyBrain'}!
       </h1>
-      <p className="text-slate-500 mb-8">
+      <p className={`mb-8 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
         Let's get your organization set up. Start by creating your first season.
       </p>
       <button 
@@ -1136,7 +1148,7 @@ export function DashboardPage({ onNavigate }) {
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }}></div>
-          <span className="text-slate-500">Loading dashboard...</span>
+          <span className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>Loading dashboard...</span>
         </div>
       </div>
     )
