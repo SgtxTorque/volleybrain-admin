@@ -17,6 +17,7 @@ const DEFAULTS = {
   tagline: '',
   emailHeaderColor: '#EAB308',
   emailHeaderLogo: null,
+  background: null, // { type: 'solid'|'gradient'|'pattern', value: string, opacity: number }
 }
 
 export function OrgBrandingProvider({ children }) {
@@ -33,6 +34,7 @@ export function OrgBrandingProvider({ children }) {
     const tagline = b.tagline || settings.tagline || DEFAULTS.tagline
     const emailHeaderColor = b.email_header_color || primaryColor
     const emailHeaderLogo = b.email_header_logo || logo
+    const background = b.background || DEFAULTS.background
 
     const hasCustomBranding = !!(
       b.primary_color || b.banner_url || b.tagline || organization?.logo_url
@@ -46,6 +48,7 @@ export function OrgBrandingProvider({ children }) {
       orgBanner: banner,
       emailHeaderColor,
       emailHeaderLogo,
+      background,
       hasCustomBranding,
 
       // Helper: returns inline style object using org branding
@@ -79,6 +82,7 @@ export function useOrgBranding() {
       orgBanner: null,
       emailHeaderColor: DEFAULTS.primaryColor,
       emailHeaderLogo: null,
+      background: null,
       hasCustomBranding: false,
       getAccentStyles: () => ({ '--org-primary': DEFAULTS.primaryColor, '--org-secondary': DEFAULTS.secondaryColor }),
       accentColor: DEFAULTS.primaryColor,

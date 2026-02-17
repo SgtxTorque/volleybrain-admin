@@ -208,6 +208,7 @@ function OrganizationPage({ showToast, setPage }) {
         brandingTagline: branding.tagline || settings.tagline || '',
         brandingEmailHeaderColor: branding.email_header_color || '',
         brandingEmailHeaderLogo: branding.email_header_logo || '',
+        background: branding.background || null,
       })
     } catch (err) {
       console.error('Error loading setup data:', err)
@@ -404,6 +405,7 @@ function OrganizationPage({ showToast, setPage }) {
                 tagline: data.brandingTagline,
                 email_header_color: data.brandingEmailHeaderColor,
                 email_header_logo: data.brandingEmailHeaderLogo,
+                background: data.background || null,
               },
             }
           }
@@ -2191,6 +2193,128 @@ function SetupSectionContent({
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleBrandingUpload(e, 'brandingBannerUrl')} />
               </label>
               <p className={`text-xs ${tc.textMuted} mt-1`}>Wide image recommended (1200x400+). Shows on team wall and registration.</p>
+            </div>
+
+            {/* App Background */}
+            <div className={`p-4 rounded-xl ${tc.cardAlt} border ${tc.border}`}>
+              <h4 className={`font-semibold ${tc.text} mb-3 flex items-center gap-2`}>
+                <Palette className="w-4 h-4" /> App Background
+              </h4>
+              <p className={`text-xs ${tc.textMuted} mb-3`}>
+                Set the default background for your organization. Members can override with personal preferences.
+              </p>
+
+              {/* Background Type Selector */}
+              <div className="flex gap-2 mb-4">
+                {['none', 'solid', 'gradient', 'pattern'].map(type => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      if (type === 'none') {
+                        updateField('background', null)
+                      } else {
+                        const current = localData.background || {}
+                        updateField('background', { ...current, type, value: current.value || '', opacity: current.opacity || 0.08 })
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition ${
+                      (type === 'none' && !localData.background?.type) || localData.background?.type === type
+                        ? 'text-white'
+                        : `${tc.textMuted} ${tc.card} border ${tc.border}`
+                    }`}
+                    style={(type === 'none' && !localData.background?.type) || localData.background?.type === type
+                      ? { backgroundColor: accent.primary }
+                      : {}}
+                  >
+                    {type === 'none' ? 'Default' : type}
+                  </button>
+                ))}
+              </div>
+
+              {/* Solid Options */}
+              {localData.background?.type === 'solid' && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {[
+                    { key: 'midnight', color: '#0F172A' }, { key: 'slate', color: '#1E293B' },
+                    { key: 'navy', color: '#1E3A5F' }, { key: 'charcoal', color: '#374151' },
+                    { key: 'white', color: '#FFFFFF' }, { key: 'cream', color: '#FFFBEB' },
+                    { key: 'ice', color: '#F0F9FF' }, { key: 'mist', color: '#F1F5F9' },
+                  ].map(s => (
+                    <button
+                      key={s.key}
+                      onClick={() => updateField('background', { ...localData.background, value: s.key })}
+                      className={`w-8 h-8 rounded-lg transition-transform hover:scale-110 border ${
+                        localData.background?.value === s.key ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800 scale-110' : 'border-slate-600'
+                      }`}
+                      style={{ background: s.color }}
+                      title={s.key}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Gradient Options */}
+              {localData.background?.type === 'gradient' && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {[
+                    { key: 'ocean', colors: ['#0F172A', '#1E3A5F'] },
+                    { key: 'sunset', colors: ['#1E293B', '#7C3AED', '#EC4899'] },
+                    { key: 'aurora', colors: ['#0F172A', '#059669', '#0EA5E9'] },
+                    { key: 'cotton-candy', colors: ['#F0F9FF', '#FCE7F3'] },
+                    { key: 'fire', colors: ['#1E293B', '#DC2626', '#F97316'] },
+                    { key: 'royal', colors: ['#1E293B', '#4F46E5', '#7C3AED'] },
+                    { key: 'lavender', colors: ['#F5F3FF', '#DDD6FE'] },
+                    { key: 'mint', colors: ['#ECFDF5', '#A7F3D0'] },
+                  ].map(g => (
+                    <button
+                      key={g.key}
+                      onClick={() => updateField('background', { ...localData.background, value: g.key })}
+                      className={`w-10 h-10 rounded-lg transition-transform hover:scale-110 ${
+                        localData.background?.value === g.key ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800 scale-110' : ''
+                      }`}
+                      style={{ background: `linear-gradient(135deg, ${g.colors.join(', ')})` }}
+                      title={g.key}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Pattern Options */}
+              {localData.background?.type === 'pattern' && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {['volleyball', 'hexagons', 'court-lines', 'diagonal-stripes', 'triangles', 'dots'].map(p => (
+                    <button
+                      key={p}
+                      onClick={() => updateField('background', { ...localData.background, value: p })}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium capitalize transition ${
+                        localData.background?.value === p
+                          ? 'text-white'
+                          : `${tc.textMuted} ${tc.card} border ${tc.border}`
+                      }`}
+                      style={localData.background?.value === p ? { backgroundColor: accent.primary } : {}}
+                    >
+                      {p.replace('-', ' ')}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Opacity Slider */}
+              {localData.background?.type && localData.background.type !== 'solid' && (
+                <div className="mt-2">
+                  <label className={`block text-xs ${tc.textMuted} mb-1`}>
+                    Opacity: {Math.round((localData.background?.opacity || 0.08) * 100)}%
+                  </label>
+                  <input
+                    type="range"
+                    min="3"
+                    max="15"
+                    value={Math.round((localData.background?.opacity || 0.08) * 100)}
+                    onChange={(e) => updateField('background', { ...localData.background, opacity: parseInt(e.target.value) / 100 })}
+                    className="w-full accent-orange-500"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Email Branding */}

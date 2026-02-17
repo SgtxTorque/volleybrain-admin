@@ -4,7 +4,7 @@ import { useTheme, useThemeClasses } from './contexts/ThemeContext'
 import { SportProvider, useSport } from './contexts/SportContext'
 import { SeasonProvider, useSeason } from './contexts/SeasonContext'
 import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
-import { OrgBrandingProvider } from './contexts/OrgBrandingContext'
+import { OrgBrandingProvider, useOrgBranding } from './contexts/OrgBrandingContext'
 import { supabase } from './lib/supabase'
 
 // Icons
@@ -1680,6 +1680,95 @@ function HorizontalNavBar({
 // ============================================
 // MAIN APP COMPONENT
 // ============================================
+// ── Background Layer ─────────────────────────────────────────────────
+const BACKGROUND_GRADIENTS = {
+  ocean: 'linear-gradient(135deg, #0F172A, #1E3A5F)',
+  sunset: 'linear-gradient(135deg, #1E293B, #7C3AED, #EC4899)',
+  aurora: 'linear-gradient(135deg, #0F172A, #059669, #0EA5E9)',
+  'cotton-candy': 'linear-gradient(135deg, #F0F9FF, #FCE7F3)',
+  peach: 'linear-gradient(135deg, #FFFBEB, #FED7AA)',
+  sky: 'linear-gradient(135deg, #E0F2FE, #BFDBFE)',
+  lavender: 'linear-gradient(135deg, #F5F3FF, #DDD6FE)',
+  mint: 'linear-gradient(135deg, #ECFDF5, #A7F3D0)',
+  fire: 'linear-gradient(135deg, #1E293B, #DC2626, #F97316)',
+  royal: 'linear-gradient(135deg, #1E293B, #4F46E5, #7C3AED)',
+}
+
+const BACKGROUND_SOLIDS = {
+  midnight: '#0F172A', slate: '#1E293B', navy: '#1E3A5F', charcoal: '#374151',
+  white: '#FFFFFF', cream: '#FFFBEB', ice: '#F0F9FF', mist: '#F1F5F9',
+}
+
+const BACKGROUND_PATTERNS = {
+  volleyball: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='14' fill='none' stroke='white' stroke-width='0.8'/%3E%3Cline x1='20' y1='30' x2='40' y2='30' stroke='white' stroke-width='0.4'/%3E%3Cline x1='30' y1='20' x2='30' y2='40' stroke='white' stroke-width='0.4'/%3E%3C/svg%3E")`,
+  hexagons: `url("data:image/svg+xml,%3Csvg width='50' height='43' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='25,2 45,13 45,33 25,43 5,33 5,13' fill='none' stroke='white' stroke-width='0.6'/%3E%3C/svg%3E")`,
+  'court-lines': `url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='4' y='4' width='72' height='72' fill='none' stroke='white' stroke-width='0.6'/%3E%3Cline x1='4' y1='40' x2='76' y2='40' stroke='white' stroke-width='0.8'/%3E%3C/svg%3E")`,
+  'diagonal-stripes': 'repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,255,255,0.03) 18px, rgba(255,255,255,0.03) 20px)',
+  triangles: `url("data:image/svg+xml,%3Csvg width='60' height='52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='30,4 56,48 4,48' fill='none' stroke='white' stroke-width='0.6'/%3E%3C/svg%3E")`,
+  dots: `url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='1.5' fill='white'/%3E%3C/svg%3E")`,
+}
+
+function OrgBackgroundLayer({ isDark }) {
+  const { background } = useOrgBranding()
+
+  // Default gradient if no org background set
+  if (!background) {
+    return (
+      <div className={`fixed inset-0 pointer-events-none ${
+        isDark
+          ? 'bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800'
+          : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
+      }`} />
+    )
+  }
+
+  const opacity = background.opacity || 0.08
+
+  if (background.type === 'solid') {
+    const color = BACKGROUND_SOLIDS[background.value] || background.value || '#0F172A'
+    return <div className="fixed inset-0 pointer-events-none" style={{ backgroundColor: color }} />
+  }
+
+  if (background.type === 'gradient') {
+    const grad = BACKGROUND_GRADIENTS[background.value]
+    if (!grad) return <div className="fixed inset-0 pointer-events-none bg-slate-900" />
+    return <div className="fixed inset-0 pointer-events-none" style={{ background: grad }} />
+  }
+
+  if (background.type === 'pattern') {
+    const pattern = BACKGROUND_PATTERNS[background.value]
+    if (!pattern) return <div className="fixed inset-0 pointer-events-none bg-slate-900" />
+    return (
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-slate-900" />
+        <div className="absolute inset-0" style={{ backgroundImage: pattern, backgroundRepeat: 'repeat', opacity }} />
+      </div>
+    )
+  }
+
+  if (background.type === 'custom' && background.value) {
+    return (
+      <div className="fixed inset-0 pointer-events-none">
+        <div className={`absolute inset-0 ${isDark ? 'bg-slate-900' : 'bg-[#F0F1F5]'}`} />
+        <img
+          src={background.value}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className={`fixed inset-0 pointer-events-none ${
+      isDark
+        ? 'bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800'
+        : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
+    }`} />
+  )
+}
+
 function MainApp() {
   const { profile, organization, signOut, user, isPlatformAdmin } = useAuth()
   const tc = useThemeClasses()
@@ -1806,12 +1895,8 @@ function MainApp() {
     <SeasonProvider>
     <ParentTutorialProvider>
       <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-[#F0F1F5]'}`}>
-        {/* Subtle gradient overlay for glass effect in both modes */}
-        <div className={`fixed inset-0 pointer-events-none ${
-          isDark 
-            ? 'bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800' 
-            : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
-        }`} />
+        {/* Background layer — org branding or default gradient */}
+        <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
         
         {/* Parent Tutorial Spotlight Overlay */}
