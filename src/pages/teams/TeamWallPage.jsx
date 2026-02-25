@@ -7,9 +7,10 @@ import {
   ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
   FileText, Plus, Send, X, ChevronRight, Star, Check,
   BarChart3, Camera, Edit, Flag, Megaphone, Trash2, Trophy, UserCog,
-  Heart, Share2, MoreVertical, Download, Maximize2
+  Share2, MoreVertical, Download, Maximize2, Upload
 } from '../../constants/icons'
 import { CommentSection } from '../../components/teams/CommentSection'
+import { ReactionBar } from '../../components/teams/ReactionBar'
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS (preserved exactly)
@@ -166,7 +167,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const [editingTicker, setEditingTicker] = useState(false)
   const [tickerOverflows, setTickerOverflows] = useState(false)
   const tickerRef = useRef(null)
-  const [picker, setPicker] = useState(null)
   const [showAllRoster, setShowAllRoster] = useState(false)
 
   const g = team?.color || '#6366F1'
@@ -327,31 +327,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   function loadMorePosts() {
     if (hasMorePosts && !loadingMorePosts) {
       loadPosts(postsPage + 1, false)
-    }
-  }
-
-  async function toggleReaction(postId) {
-    const { data: existing } = await supabase
-      .from('post_reactions')
-      .select('id')
-      .eq('post_id', postId)
-      .eq('user_id', user?.id)
-      .single()
-
-    if (existing) {
-      await supabase.from('post_reactions').delete().eq('id', existing.id)
-      setPosts(prev => prev.map(p =>
-        p.id === postId ? { ...p, reaction_count: Math.max(0, (p.reaction_count || 0) - 1) } : p
-      ))
-    } else {
-      await supabase.from('post_reactions').insert({
-        post_id: postId,
-        user_id: user?.id,
-        reaction_type: 'like'
-      })
-      setPosts(prev => prev.map(p =>
-        p.id === postId ? { ...p, reaction_count: (p.reaction_count || 0) + 1 } : p
-      ))
     }
   }
 
@@ -672,10 +647,12 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 {posts.length > 0 ? (
                   <div className="space-y-6">
                     {posts.map((post, i) => (
-                      <FeedPost key={post.id} post={post} g={g} gb={gb} i={i}
-                        onReact={toggleReaction} picker={picker} setPicker={setPicker} isDark={isDark}
+                      <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
                         onCommentCountChange={(postId, count) => {
                           setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: count } : p))
+                        }}
+                        onReactionCountChange={(postId, count) => {
+                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, reaction_count: count } : p))
                         }} />
                     ))}
                     {hasMorePosts && (
@@ -1169,11 +1146,11 @@ function SectionHeader({ icon, title, accent, g, isDark }) {
 // ═══════════════════════════════════════════════════════════
 // FEED POST — Social media card with cheer animation
 // ═══════════════════════════════════════════════════════════
-function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark, onCommentCountChange }) {
+function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCountChange }) {
   const isPinned = post.is_pinned
   const postType = post.post_type || 'announcement'
-  const [cheerActive, setCheerActive] = useState(false)
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
+  const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
 
   const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
     postType === 'game_recap' ? 'tw-reminder-accent' : ''
@@ -1181,12 +1158,6 @@ function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark, onCommen
   const typeIcon = {
     announcement: '📢', game_recap: '🏐', shoutout: '⭐', milestone: '🏆', photo: '📷',
   }[postType] || '📝'
-
-  function handleCheer() {
-    setCheerActive(true)
-    setTimeout(() => setCheerActive(false), 1000)
-    onReact(post.id)
-  }
 
   return (
     <article className={`tw-glass overflow-hidden tw-ac ${accentClass}`} style={{ animationDelay: `${.1 + i * .05}s` }}>
@@ -1258,17 +1229,16 @@ function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark, onCommen
       <div className="px-6 pb-6">
         <div className="flex items-center justify-between pt-4" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
           <div className="flex items-center gap-6">
-            <button onClick={handleCheer} className="relative flex items-center gap-2.5 group transition-all">
-              <div className={`transition-all duration-300 ${cheerActive ? 'scale-125' : ''}`}
-                style={{ color: cheerActive ? '#EF4444' : (isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)') }}>
-                <Heart className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{post.reaction_count || 0}</p>
-                <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>CHEERS</p>
-              </div>
-              {cheerActive && <span className="absolute -top-8 left-0 text-2xl cheer-pop">🏐</span>}
-            </button>
+            <ReactionBar
+              postId={post.id}
+              reactionCount={localReactionCount}
+              isDark={isDark}
+              g={g}
+              onCountChange={(count) => {
+                setLocalReactionCount(count)
+                onReactionCountChange?.(post.id, count)
+              }}
+            />
 
             <div className="flex items-center gap-2.5">
               <MessageCircle className="w-6 h-6" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }} />
