@@ -12,6 +12,7 @@ export {
 } from './Skeleton'
 export { MetricCard } from './MetricCard'
 export { ProgressRing } from './ProgressRing'
+export { EmptyState } from './EmptyState'
 
 // Additional UI components
 export { 

@@ -144,3 +144,25 @@
 .animate-pulse-gold {
   animation: pulse-gold 2s infinite;
 }
+
+/* Page transition on route change */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-page-in {
+  animation: pageIn 0.2s ease-out;
+}
+
+/* Responsive improvements for tablet/laptop */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .responsive-grid-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}

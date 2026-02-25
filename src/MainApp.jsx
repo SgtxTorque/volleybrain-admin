@@ -1813,9 +1813,11 @@ function PlayerProfileRoute({ roleContext, showToast }) {
 // ============================================
 function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const navigateToTeamWall = (teamId) => navigate(`/teams/${teamId}`)
 
   return (
+    <div key={location.pathname} className="animate-page-in">
     <Routes>
       {/* Dashboard — role-dependent */}
       <Route path="/dashboard" element={
@@ -1891,6 +1893,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Catch-all: redirect unknown paths to /dashboard */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </div>
   )
 }
 
