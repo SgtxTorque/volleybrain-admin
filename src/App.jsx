@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { JourneyProvider } from './contexts/JourneyContext'
@@ -12,55 +12,17 @@ import { PublicRegistrationPage, OrgDirectoryPage } from './pages/public'
 // Main App
 import { MainApp } from './MainApp'
 
-function AppContent() {
+function PublicRegistrationRoute() {
+  return <PublicRegistrationPage />
+}
+
+function PublicDirectoryRoute() {
+  return <OrgDirectoryPage onNavigateToLogin={() => { window.location.href = '/' }} />
+}
+
+function AuthenticatedApp() {
   const { user, isAdmin, loading, needsOnboarding, completeOnboarding } = useAuth()
-  const { isDark, colors } = useTheme()
-
-  // Check for public registration route FIRST (before auth check)
-  // This allows unauthenticated users to register
-  const [isPublicRoute, setIsPublicRoute] = useState(false)
-  const [publicRouteData, setPublicRouteData] = useState(null)
-
-  useEffect(() => {
-    const path = window.location.pathname
-    // Match /register/{orgId}/{seasonId} or /register/{orgSlug}/{seasonId}
-    const registerMatch = path.match(/^\/register\/([^\/]+)\/([^\/]+)\/?$/)
-    if (registerMatch) {
-      setIsPublicRoute(true)
-      setPublicRouteData({
-        type: 'registration',
-        orgIdOrSlug: registerMatch[1],
-        seasonId: registerMatch[2]
-      })
-    }
-
-    // Match /directory — public org discovery page
-    if (path === '/directory' || path === '/directory/') {
-      setIsPublicRoute(true)
-      setPublicRouteData({ type: 'directory' })
-    }
-  }, [])
-
-  // Show public registration form (no auth required)
-  if (isPublicRoute && publicRouteData?.type === 'registration') {
-    return (
-      <ThemeProvider>
-        <PublicRegistrationPage
-          orgIdOrSlug={publicRouteData.orgIdOrSlug}
-          seasonId={publicRouteData.seasonId}
-        />
-      </ThemeProvider>
-    )
-  }
-
-  // Show public org directory (no auth required)
-  if (isPublicRoute && publicRouteData?.type === 'directory') {
-    return (
-      <ThemeProvider>
-        <OrgDirectoryPage onNavigateToLogin={() => { window.location.href = '/' }} />
-      </ThemeProvider>
-    )
-  }
+  const { colors } = useTheme()
 
   if (loading) {
     return (
@@ -73,8 +35,7 @@ function AppContent() {
   }
 
   if (!user) return <LoginPage />
-  
-  // JourneyProvider wraps everything after auth — SetupWizard needs it for completeStep('create_org')
+
   return (
     <JourneyProvider>
       {needsOnboarding ? (
@@ -91,6 +52,18 @@ function AppContent() {
         <MainApp />
       )}
     </JourneyProvider>
+  )
+}
+
+function AppContent() {
+  return (
+    <Routes>
+      {/* Public routes — no auth required */}
+      <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
+
+      {/* All other routes go through the authenticated app */}
+      <Route path="/*" element={<AuthenticatedApp />} />
+    </Routes>
   )
 }
 

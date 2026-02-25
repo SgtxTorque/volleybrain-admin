@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -852,7 +853,8 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
 }
 
 // ═══════ ORG MEMBERSHIPS SECTION ═══════
-function OrgMembershipsSection({ profile, isDark, tc, accent, setPage }) {
+function OrgMembershipsSection({ profile, isDark, tc, accent }) {
+  const navigate = useNavigate()
   const [memberships, setMemberships] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -920,7 +922,7 @@ function OrgMembershipsSection({ profile, isDark, tc, accent, setPage }) {
           <Building2 className={`w-8 h-8 mx-auto mb-2 ${tc.textMuted}`} />
           <p className={`text-sm ${tc.textMuted} mb-3`}>You're not part of any organization yet</p>
           <button
-            onClick={() => setPage?.('org-directory')}
+            onClick={() => navigate('/directory')}
             className="px-4 py-2 rounded-xl text-sm mp-label text-white transition hover:opacity-90"
             style={{ background: accent.primary }}
           >
@@ -1281,7 +1283,8 @@ function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) 
 }
 
 // ═══════ MAIN PAGE ═══════
-function MyProfilePage({ showToast, setPage }) {
+function MyProfilePage({ showToast }) {
+  const navigate = useNavigate()
   const { user, profile, setProfile } = useAuth()
   const tc = useThemeClasses()
   const { isDark, accent } = useTheme()
@@ -1392,7 +1395,6 @@ function MyProfilePage({ showToast, setPage }) {
           isDark={isDark}
           tc={tc}
           accent={accent}
-          setPage={setPage}
         />
 
         {/* ═══════ MY HISTORY (always last before danger zone) ═══════ */}
@@ -1401,9 +1403,7 @@ function MyProfilePage({ showToast, setPage }) {
           isDark={isDark}
           tc={tc}
           accent={accent}
-          onNavigateToArchive={(seasonId) => {
-            if (setPage) setPage('season-archives')
-          }}
+          onNavigateToArchive={() => navigate('/archives')}
         />
 
         {/* ═══════ DANGER ZONE (always very last) ═══════ */}

@@ -8,6 +8,41 @@ This is the **web admin portal** for VolleyBrain, a dual-platform youth sports m
 - **Shared backend**: Supabase (project ID: `uqpjvbiuokwpldjvxiby`)
 - **Both apps share the same database** — any schema changes affect both platforms
 
+## ⛔ MANDATORY RULES — EVERY SESSION
+
+These rules apply to EVERY change you make, no exceptions:
+
+### Do Not Break What Works
+- **NEVER delete or overwrite existing page components** — modify them, don't replace them
+- **NEVER change Supabase queries or data logic** unless the task specifically requires it
+- **NEVER modify the theme/styling system** (ThemeContext, accent colors, dark/light mode) unless asked
+- **NEVER alter the auth flow** (AuthContext, login, role detection) unless asked
+- **NEVER drop or alter existing database tables/columns** — only ADD new ones. If a column needs to change, create a new one and migrate
+
+### Test Before Finishing
+- After every change, verify the app still starts with `npm run dev` without errors
+- Check the browser console for errors — fix any red errors before finishing
+- If you modified navigation, verify ALL pages are still reachable
+- If you touched a Supabase query, verify it returns data (no 404s, no empty responses from missing tables)
+
+### Git Discipline
+- **Commit AND push after every completed sprint or feature** — not one giant commit at the end
+- Commit messages must describe WHAT changed. Good: `"Phase 1: Add react-router-dom routing to all 25+ pages"`. Bad: `"updates"` or `"changes"`
+- Format: `"Phase X: [what changed]"` so the git log reads like a changelog
+- Run `git add -A && git commit -m "Phase X: ..." && git push` after each meaningful milestone
+- If a session covers multiple sprints, commit after EACH sprint, not just at the end
+
+### Communication
+- If you're unsure about something, STOP and explain the options before proceeding
+- If a task seems like it will break existing functionality, warn Carlos first
+- If a Supabase table or column referenced in the code doesn't seem to exist, flag it — don't guess
+
+### Schema Safety
+- Both web and mobile share the same Supabase backend
+- NEVER run DROP TABLE, DROP COLUMN, or destructive ALTER statements
+- Always use IF NOT EXISTS when creating tables or columns
+- If you need to verify a table exists, query information_schema — don't just assume
+
 ## OWNER CONTEXT
 
 - Carlos cannot code — all implementation is done via Claude Code

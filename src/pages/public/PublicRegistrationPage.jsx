@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { ChevronDown, ChevronUp, Plus, Trash2, Edit2, Check, Users } from 'lucide-react'
 
@@ -67,7 +68,10 @@ const FIELD_ORDER = {
   ]
 }
 
-function PublicRegistrationPage({ orgIdOrSlug, seasonId }) {
+function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId }) {
+  const params = useParams()
+  const orgIdOrSlug = propOrgId || params.orgIdOrSlug
+  const seasonId = propSeasonId || params.seasonId
   // Multi-child state
   const [children, setChildren] = useState([]) // Array of saved children
   const [currentChild, setCurrentChild] = useState({}) // Current child being edited

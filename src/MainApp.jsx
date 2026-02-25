@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { useTheme, useThemeClasses } from './contexts/ThemeContext'
 import { SportProvider, useSport } from './contexts/SportContext'
@@ -6,6 +7,8 @@ import { SeasonProvider, useSeason } from './contexts/SeasonContext'
 import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
 import { OrgBrandingProvider, useOrgBranding } from './contexts/OrgBrandingContext'
 import { supabase } from './lib/supabase'
+import { useAppNavigate, useCurrentPageId, useDocumentTitle } from './hooks/useAppNavigate'
+import { getPathForPage } from './lib/routes'
 
 // Icons
 import { 
@@ -343,11 +346,12 @@ function NotificationDropdown({ tc, organization, isDark }) {
 // ============================================
 // USER PROFILE DROPDOWN COMPONENT
 // ============================================
-function UserProfileDropdown({ 
+function UserProfileDropdown({
   profile, activeView, showRoleSwitcher, setShowRoleSwitcher, getAvailableViews,
-  setActiveView, setPage, signOut, tc, accent, accentColor, changeAccent, 
+  setActiveView, signOut, tc, accent, accentColor, changeAccent,
   accentColors, isDark, toggleTheme
 }) {
+  const navigate = useNavigate()
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -426,7 +430,7 @@ function UserProfileDropdown({
 
           <div className={`p-2 border-b ${tc.border}`}>
             <button
-              onClick={() => { setShowRoleSwitcher(false); setPage('my-profile'); }}
+              onClick={() => { setShowRoleSwitcher(false); navigate('/profile'); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${tc.hoverBg}`}
             >
               <User className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
@@ -442,7 +446,7 @@ function UserProfileDropdown({
             <p className={`text-xs ${tc.textMuted} px-2 py-1`}>Switch View</p>
             {getAvailableViews().map(view => (
               <button key={view.id}
-                onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); setPage('dashboard'); }}
+                onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); navigate('/dashboard'); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
                   activeView === view.id ? 'bg-[var(--accent-primary)]/20' : tc.hoverBg
                 }`}>
@@ -713,7 +717,8 @@ function RegistrationSelectorModal({ isOpen, onClose, roleContext, organization,
 // ============================================
 // INFO HEADER BAR COMPONENT - 1:1 Mockup Copy
 // ============================================
-function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, selectedTeamId, setSelectedTeamId }) {
+function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeamId, setSelectedTeamId }) {
+  const navigate = useNavigate()
   const { isDark } = useTheme()
   const { selectedSeason, seasons: allSeasons, selectSeason } = useSeason()
   const { profile } = useAuth()
@@ -992,7 +997,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
             <>
               {/* Next Game */}
               <button 
-                onClick={() => setPage('schedule')}
+                onClick={() => navigate('/schedule')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
@@ -1011,7 +1016,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* Record */}
               <button 
-                onClick={() => setPage('standings')}
+                onClick={() => navigate('/standings')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#EF4444] flex items-center justify-center shadow-sm">
@@ -1028,7 +1033,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* Win Streak */}
               <button 
-                onClick={() => setPage('standings')}
+                onClick={() => navigate('/standings')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
@@ -1125,7 +1130,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* Rostered Players - Shows X/Y format */}
               <button 
-                onClick={() => setPage('teams')}
+                onClick={() => navigate('/teams')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl group`}
                 title="Click to manage rosters"
               >
@@ -1153,7 +1158,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* Active Teams */}
               <button 
-                onClick={() => setPage('teams')}
+                onClick={() => navigate('/teams')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
@@ -1170,7 +1175,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* Financials */}
               <button 
-                onClick={() => setPage('payments')}
+                onClick={() => navigate('/payments')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#10B981] flex items-center justify-center shadow-sm">
@@ -1285,7 +1290,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
               <div className="flex items-center gap-0">
                 {/* Next Event - with type, day, date, time */}
                 <button 
-                  onClick={() => setPage('schedule')}
+                  onClick={() => navigate('/schedule')}
                   className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                 >
                   <div className={`w-11 h-11 rounded-lg flex items-center justify-center shadow-sm ${
@@ -1308,7 +1313,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
                 {/* Messages */}
                 <button 
-                  onClick={() => setPage('chats')}
+                  onClick={() => navigate('/chats')}
                   className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                 >
                   <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
@@ -1324,7 +1329,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
                 {/* Balance */}
                 <button 
-                  onClick={() => setPage('payments')}
+                  onClick={() => navigate('/payments')}
                   className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
                   data-tutorial="payments-section"
                 >
@@ -1351,7 +1356,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
             <>
               {/* Next Practice */}
               <button 
-                onClick={() => setPage('schedule')}
+                onClick={() => navigate('/schedule')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-sm">
@@ -1368,7 +1373,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* Next Game */}
               <button 
-                onClick={() => setPage('schedule')}
+                onClick={() => navigate('/schedule')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#F59E0B] flex items-center justify-center shadow-sm">
@@ -1385,7 +1390,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, setPage, sel
 
               {/* My Achievements */}
               <button 
-                onClick={() => setPage('achievements')}
+                onClick={() => navigate('/achievements')}
                 className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
               >
                 <div className="w-11 h-11 rounded-lg bg-[#8B5CF6] flex items-center justify-center shadow-sm">
@@ -1428,11 +1433,15 @@ function CheckCircle({ className }) {
 // HORIZONTAL NAV BAR COMPONENT
 // ============================================
 function HorizontalNavBar({
-  page, setPage, activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
-  getAvailableViews, setActiveView, signOut, exitTeamWall, directTeamWallId,
+  activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
+  getAvailableViews, setActiveView, signOut,
   tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
-  roleContext, navigateToTeamWall, organization, isPlatformAdmin
+  roleContext, organization, isPlatformAdmin
 }) {
+  const navigate = useNavigate()
+  const page = useCurrentPageId()
+  const location = useLocation()
+  const directTeamWallId = location.pathname.match(/^\/teams\/([^/]+)$/)?.[1] || null
   // Admin navigation with dropdowns
   const adminNavGroups = [
     { id: 'dashboard', label: 'Dashboard', type: 'single' },
@@ -1569,16 +1578,14 @@ function HorizontalNavBar({
 
   const handleNavigate = (itemId, item) => {
     if (item?.teamId) {
-      navigateToTeamWall(item.teamId)
+      navigate(`/teams/${item.teamId}`)
       return
     }
     if (item?.playerId) {
-      exitTeamWall()
-      setPage(`player-${item.playerId}`)
+      navigate(`/parent/player/${item.playerId}`)
       return
     }
-    exitTeamWall()
-    setPage(itemId)
+    navigate(getPathForPage(itemId))
   }
 
   return (
@@ -1631,7 +1638,7 @@ function HorizontalNavBar({
         {isPlatformAdmin && (
           <>
             <button
-              onClick={() => { exitTeamWall(); setPage('platform-analytics'); }}
+              onClick={() => navigate('/platform/analytics')}
               title="Platform Analytics"
               className={`relative p-2 rounded-xl transition ${
                 page === 'platform-analytics'
@@ -1642,7 +1649,7 @@ function HorizontalNavBar({
               <BarChart3 className="w-5 h-5" />
             </button>
             <button
-              onClick={() => { exitTeamWall(); setPage('platform-subscriptions'); }}
+              onClick={() => navigate('/platform/subscriptions')}
               title="Platform Subscriptions"
               className={`relative p-2 rounded-xl transition ${
                 page === 'platform-subscriptions'
@@ -1653,7 +1660,7 @@ function HorizontalNavBar({
               <CreditCard className="w-5 h-5" />
             </button>
             <button
-              onClick={() => { exitTeamWall(); setPage('platform-admin'); }}
+              onClick={() => navigate('/platform/admin')}
               title="Platform Admin"
               className={`relative p-2 rounded-xl transition ${
                 page === 'platform-admin'
@@ -1666,10 +1673,10 @@ function HorizontalNavBar({
           </>
         )}
         <NotificationDropdown tc={tc} organization={organization} isDark={isDark} />
-        <UserProfileDropdown 
+        <UserProfileDropdown
           profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
           setShowRoleSwitcher={setShowRoleSwitcher} getAvailableViews={getAvailableViews}
-          setActiveView={setActiveView} setPage={setPage} signOut={signOut} tc={tc}
+          setActiveView={setActiveView} signOut={signOut} tc={tc}
           accent={accent} accentColor={accentColor} changeAccent={changeAccent}
           accentColors={accentColors} isDark={isDark} toggleTheme={toggleTheme} />
       </div>
@@ -1769,44 +1776,134 @@ function OrgBackgroundLayer({ isDark }) {
   )
 }
 
+// ============================================
+// TEAM WALL ROUTE WRAPPER — extracts teamId from URL params
+// ============================================
+function TeamWallRoute({ showToast, activeView }) {
+  const { teamId } = useParams()
+  const navigate = useNavigate()
+  return (
+    <TeamWallPage
+      teamId={teamId}
+      showToast={showToast}
+      onBack={() => navigate(-1)}
+      onNavigate={(pageId) => navigate(getPathForPage(pageId))}
+      activeView={activeView}
+    />
+  )
+}
+
+// ============================================
+// PARENT PLAYER ROUTE WRAPPERS
+// ============================================
+function ParentPlayerCardRoute({ roleContext, showToast }) {
+  const { playerId } = useParams()
+  return <ParentPlayerCardPage playerId={playerId} roleContext={roleContext} showToast={showToast} />
+}
+
+function PlayerProfileRoute({ roleContext, showToast }) {
+  const { playerId } = useParams()
+  const navigate = useNavigate()
+  return <PlayerProfilePage playerId={playerId} roleContext={roleContext} showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
+}
+
+// ============================================
+// ROUTED CONTENT — renders the correct page based on URL
+// ============================================
+function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView }) {
+  const navigate = useNavigate()
+  const navigateToTeamWall = (teamId) => navigate(`/teams/${teamId}`)
+
+  return (
+    <Routes>
+      {/* Dashboard — role-dependent */}
+      <Route path="/dashboard" element={
+        activeView === 'admin' ? <DashboardPage onNavigate={(pageId) => navigate(getPathForPage(pageId))} /> :
+        activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} /> :
+        activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} /> :
+        activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId) => navigate(getPathForPage(pageId))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} /> :
+        <DashboardPage onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
+      } />
+
+      {/* Team Wall — /teams/:teamId */}
+      <Route path="/teams/:teamId" element={<TeamWallRoute showToast={showToast} activeView={activeView} />} />
+
+      {/* Parent-specific routes */}
+      <Route path="/parent/player/:playerId/profile" element={<PlayerProfileRoute roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/messages" element={<ParentMessagesPage roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/invite" element={<InviteFriendsPage roleContext={roleContext} showToast={showToast} />} />
+
+      {/* Core pages */}
+      <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
+      <Route path="/coaches" element={<CoachesPage showToast={showToast} />} />
+      <Route path="/registrations" element={<RegistrationsPage showToast={showToast} />} />
+      <Route path="/jerseys" element={<JerseysPage showToast={showToast} />} />
+      <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
+      <Route path="/schedule/availability" element={<CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
+      <Route path="/attendance" element={<AttendancePage showToast={showToast} />} />
+      <Route path="/payments" element={
+        activeView === 'parent'
+          ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
+          : <PaymentsPage showToast={showToast} />
+      } />
+      <Route path="/gameprep" element={<GamePrepPage showToast={showToast} />} />
+      <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
+      <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
+      <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
+      <Route path="/blasts" element={<BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
+      <Route path="/notifications" element={<NotificationsPage showToast={showToast} />} />
+      <Route path="/reports" element={<ReportsPage showToast={showToast} />} />
+      <Route path="/reports/funnel" element={<RegistrationFunnelPage showToast={showToast} />} />
+      <Route path="/archives" element={<SeasonArchivePage showToast={showToast} />} />
+      <Route path="/directory" element={<OrgDirectoryPage isEmbedded />} />
+      <Route path="/achievements" element={
+        <AchievementsCatalogPage
+          playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
+          showToast={showToast}
+          playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : `${roleContext?.children?.[0]?.first_name}'s`}
+          isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
+        />
+      } />
+
+      {/* Settings */}
+      <Route path="/settings/seasons" element={<SeasonsPage showToast={showToast} />} />
+      <Route path="/settings/templates" element={<RegistrationTemplatesPage showToast={showToast} />} />
+      <Route path="/settings/waivers" element={<WaiversPage showToast={showToast} />} />
+      <Route path="/settings/payment-setup" element={<PaymentSetupPage showToast={showToast} />} />
+      <Route path="/settings/organization" element={<OrganizationPage showToast={showToast} />} />
+      <Route path="/settings/data-export" element={<DataExportPage showToast={showToast} />} />
+      <Route path="/settings/subscription" element={<SubscriptionPage showToast={showToast} />} />
+
+      {/* Profile */}
+      <Route path="/profile" element={<MyProfilePage showToast={showToast} />} />
+
+      {/* Platform Admin */}
+      <Route path="/platform/admin" element={<PlatformAdminPage showToast={showToast} />} />
+      <Route path="/platform/analytics" element={<PlatformAnalyticsPage showToast={showToast} />} />
+      <Route path="/platform/subscriptions" element={<PlatformSubscriptionsPage showToast={showToast} />} />
+
+      {/* Default: redirect / to /dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Catch-all: redirect unknown paths to /dashboard */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  )
+}
+
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
 function MainApp() {
   const { profile, organization, signOut, user, isPlatformAdmin } = useAuth()
   const tc = useThemeClasses()
   const { isDark, accent, accentColor, changeAccent, accentColors, toggleTheme } = useTheme()
-  const [page, setPage] = useState('dashboard')
   const [toast, setToast] = useState(null)
-  const [directTeamWallId, setDirectTeamWallId] = useState(null)
   const [selectedTeamId, setSelectedTeamId] = useState(null)
 
-  useEffect(() => {
-    function handleHashChange() {
-      const hash = window.location.hash
-      const teamMatch = hash.match(/^#\/team\/(.+)$/)
-      if (teamMatch) {
-        setDirectTeamWallId(teamMatch[1])
-      } else {
-        setDirectTeamWallId(null)
-      }
-    }
-    handleHashChange()
-    window.addEventListener('hashchange', handleHashChange)
-    return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [])
-
-  const navigateToTeamWall = (teamId) => {
-    window.location.hash = `/team/${teamId}`
-  }
-
-  const exitTeamWall = () => {
-    window.location.hash = ''
-    setDirectTeamWallId(null)
-  }
-
-  const navigateFromTeamWall = (targetPage) => {
-    window.location.hash = ''
-    setDirectTeamWallId(null)
-    setPage(targetPage)
-  }
+  // Document title updates
+  useDocumentTitle()
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -1898,94 +1995,45 @@ function MainApp() {
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
-        
+
         {/* Parent Tutorial Spotlight Overlay */}
         {activeView === 'parent' && <SpotlightOverlay />}
-        
+
         {/* Horizontal Nav Bar */}
         <HorizontalNavBar
-          page={page} setPage={setPage} activeView={activeView} profile={profile}
+          activeView={activeView} profile={profile}
           showRoleSwitcher={showRoleSwitcher} setShowRoleSwitcher={setShowRoleSwitcher}
           getAvailableViews={getAvailableViews} setActiveView={setActiveView} signOut={signOut}
-          exitTeamWall={exitTeamWall} directTeamWallId={directTeamWallId} tc={tc} accent={accent}
+          tc={tc} accent={accent}
           accentColor={accentColor} changeAccent={changeAccent} accentColors={accentColors}
           isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
-          navigateToTeamWall={navigateToTeamWall} organization={organization}
+          organization={organization}
           isPlatformAdmin={isPlatformAdmin}
         />
-        
+
         {/* Info Header Bar */}
         <div className="mt-24 px-4 relative z-10">
-          <InfoHeaderBar 
+          <InfoHeaderBar
             activeView={activeView} roleContext={roleContext} organization={organization}
-            tc={tc} setPage={setPage} selectedTeamId={selectedTeamId}
+            tc={tc} selectedTeamId={selectedTeamId}
             setSelectedTeamId={setSelectedTeamId}
           />
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content Area — React Router */}
         <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1600px] mx-auto w-full relative z-10">
-          {directTeamWallId ? (
-            <TeamWallPage teamId={directTeamWallId} showToast={showToast} onBack={exitTeamWall} onNavigate={navigateFromTeamWall} activeView={activeView} />
-          ) : (
-            <>
-              {page === 'dashboard' && activeView === 'admin' && <DashboardPage onNavigate={setPage} />}
-              {page === 'dashboard' && activeView === 'coach' && <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
-              {page === 'dashboard' && activeView === 'parent' && <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={setPage} />}
-              {page === 'dashboard' && activeView === 'player' && <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} showToast={showToast} onPlayerChange={setSelectedPlayerForView} />}
-              
-              {page.startsWith('player-profile-') && activeView === 'parent' && <PlayerProfilePage playerId={page.replace('player-profile-', '')} roleContext={roleContext} showToast={showToast} onNavigate={setPage} />}
-              {page.startsWith('player-') && !page.startsWith('player-profile-') && activeView === 'parent' && <ParentPlayerCardPage playerId={page.replace('player-', '')} roleContext={roleContext} showToast={showToast} />}
-              {page === 'messages' && activeView === 'parent' && <ParentMessagesPage roleContext={roleContext} showToast={showToast} />}
-              {page === 'invite' && activeView === 'parent' && <InviteFriendsPage roleContext={roleContext} showToast={showToast} />}
-              {page === 'payments' && activeView === 'parent' && <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />}
-              
-              {page === 'registrations' && (activeView === 'admin' || activeView === 'coach') && <RegistrationsPage showToast={showToast} />}
-              {page === 'payments' && activeView === 'admin' && <PaymentsPage showToast={showToast} />}
-              {page === 'teams' && (activeView === 'admin' || activeView === 'coach') && <TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={setPage} />}
-              {page === 'coaches' && activeView === 'admin' && <CoachesPage showToast={showToast} />}
-              {page === 'jerseys' && activeView === 'admin' && <JerseysPage showToast={showToast} />}
-              {page === 'schedule' && <SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
-              {page === 'coach-availability' && (activeView === 'admin' || activeView === 'coach') && <CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={setPage} />}
-              {page === 'attendance' && (activeView === 'admin' || activeView === 'coach') && <AttendancePage showToast={showToast} />}
-              {page === 'gameprep' && (activeView === 'admin' || activeView === 'coach') && <GamePrepPage showToast={showToast} />}
-              {page === 'standings' && <TeamStandingsPage showToast={showToast} />}
-              {page === 'leaderboards' && <SeasonLeaderboardsPage showToast={showToast} />}
-              {page === 'seasons' && activeView === 'admin' && <SeasonsPage showToast={showToast} />}
-              {page === 'templates' && activeView === 'admin' && <RegistrationTemplatesPage showToast={showToast} />}
-              {page === 'waivers' && activeView === 'admin' && <WaiversPage showToast={showToast} />}
-              {page === 'paymentsetup' && activeView === 'admin' && <PaymentSetupPage showToast={showToast} />}
-              {page === 'organization' && activeView === 'admin' && <OrganizationPage showToast={showToast} setPage={setPage} />}
-              {page === 'data-export' && activeView === 'admin' && <DataExportPage showToast={showToast} />}
-              {page === 'subscription' && activeView === 'admin' && <SubscriptionPage showToast={showToast} />}
-              {page === 'chats' && <ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
-              {page === 'blasts' && activeView === 'admin' && <BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />}
-              {page === 'reports' && activeView === 'admin' && <ReportsPage showToast={showToast} />}
-              {page === 'registration-funnel' && activeView === 'admin' && <RegistrationFunnelPage showToast={showToast} />}
-              {page === 'notifications' && activeView === 'admin' && <NotificationsPage showToast={showToast} />}
-
-              {page === 'platform-admin' && <PlatformAdminPage showToast={showToast} />}
-              {page === 'platform-analytics' && <PlatformAnalyticsPage showToast={showToast} />}
-              {page === 'platform-subscriptions' && <PlatformSubscriptionsPage showToast={showToast} />}
-              {page === 'my-profile' && <MyProfilePage showToast={showToast} setPage={setPage} />}
-              {page === 'season-archives' && <SeasonArchivePage showToast={showToast} />}
-              {page === 'org-directory' && <OrgDirectoryPage isEmbedded />}
-
-              {page === 'achievements' && (activeView === 'parent' || activeView === 'player') && (
-                <AchievementsCatalogPage 
-                  playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
-                  showToast={showToast}
-                  playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : `${roleContext?.children?.[0]?.first_name}'s`}
-                  isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
-                />
-              )}
-            </>
-          )}
+          <RoutedContent
+            activeView={activeView}
+            roleContext={roleContext}
+            showToast={showToast}
+            selectedPlayerForView={selectedPlayerForView}
+            setSelectedPlayerForView={setSelectedPlayerForView}
+          />
         </div>
 
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <BlastAlertChecker />
-        
+
         {/* Parent Floating Help Button */}
         {activeView === 'parent' && <FloatingHelpButton />}
       </div>

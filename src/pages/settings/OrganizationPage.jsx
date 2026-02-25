@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
@@ -9,7 +10,8 @@ import {
   CreditCard, Calendar, Clock, Shield, Shirt, Bell, Heart, Palette, Image, Upload, Eye, Camera
 } from '../../constants/icons'
 
-function OrganizationPage({ showToast, setPage }) {
+function OrganizationPage({ showToast }) {
+  const navigate = useNavigate()
   const { organization, setOrganization } = useAuth()
   const tc = useThemeClasses()
   const { accent } = useTheme()
@@ -1399,7 +1401,7 @@ function SetupSectionContent({
                 <button 
                   className="px-4 py-2 rounded-lg text-white font-medium text-sm"
                   style={{ backgroundColor: accent.primary }}
-                  onClick={() => setPage ? setPage('waivers') : showToast('Opening waiver manager...', 'info')}
+                  onClick={() => navigate('/settings/waivers')}
                 >
                   Manage Waivers →
                 </button>
