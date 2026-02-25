@@ -21,7 +21,7 @@ import {
 import { VolleyballIcon } from './constants/icons'
 
 // UI Components
-import { ToastContainer, useToast, Icon, ErrorBoundary } from './components/ui'
+import { ToastContainer, useToast, Icon, ErrorBoundary, Breadcrumb, CommandPalette, useCommandPalette } from './components/ui'
 
 // Layout Components
 import { 
@@ -1900,6 +1900,7 @@ function MainApp() {
   const tc = useThemeClasses()
   const { isDark, accent, accentColor, changeAccent, accentColors, toggleTheme } = useTheme()
   const { toasts, showToast, removeToast } = useToast()
+  const cmdPalette = useCommandPalette()
   const [selectedTeamId, setSelectedTeamId] = useState(null)
 
   // Document title updates
@@ -2018,6 +2019,7 @@ function MainApp() {
 
         {/* Main Content Area — React Router */}
         <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1600px] mx-auto w-full relative z-10">
+          <Breadcrumb />
           <ErrorBoundary>
             <RoutedContent
               activeView={activeView}
@@ -2030,6 +2032,7 @@ function MainApp() {
         </div>
 
         <ToastContainer toasts={toasts} onRemove={removeToast} />
+        <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
         <BlastAlertChecker />
 
         {/* Parent Floating Help Button */}

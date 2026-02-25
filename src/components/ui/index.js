@@ -2,6 +2,8 @@ export { Icon, NavIcon, getIconComponent } from './Icon'
 export { Badge } from './Badge'
 export { Toast, ToastContainer, useToast } from './Toast'
 export { ErrorBoundary } from './ErrorBoundary'
+export { Breadcrumb } from './Breadcrumb'
+export { CommandPalette, useCommandPalette } from './CommandPalette'
 export {
   SkeletonLine, SkeletonCircle, SkeletonRect,
   SkeletonCard, SkeletonMetricCard, SkeletonTable, SkeletonTableRow,
