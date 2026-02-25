@@ -340,6 +340,44 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
     }
   }
 
+  // Post management functions
+  async function deletePost(postId) {
+    try {
+      await supabase.from('team_posts').delete().eq('id', postId)
+      setPosts(prev => prev.filter(p => p.id !== postId))
+      showToast?.('Post deleted', 'success')
+    } catch (err) {
+      console.error('Error deleting post:', err)
+      showToast?.('Failed to delete post', 'error')
+    }
+  }
+
+  async function togglePinPost(postId, currentlyPinned) {
+    try {
+      await supabase.from('team_posts').update({ is_pinned: !currentlyPinned }).eq('id', postId)
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_pinned: !currentlyPinned } : p))
+      showToast?.(!currentlyPinned ? 'Post pinned to top' : 'Post unpinned', 'success')
+    } catch (err) {
+      console.error('Error toggling pin:', err)
+      showToast?.('Failed to update pin', 'error')
+    }
+  }
+
+  async function editPostContent(postId, newContent, newTitle) {
+    try {
+      const updates = { content: newContent, updated_at: new Date().toISOString() }
+      if (newTitle !== undefined) updates.title = newTitle || null
+      await supabase.from('team_posts').update(updates).eq('id', postId)
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...updates } : p))
+      showToast?.('Post updated', 'success')
+    } catch (err) {
+      console.error('Error editing post:', err)
+      showToast?.('Failed to update post', 'error')
+    }
+  }
+
+  const isAdminOrCoach = profile?.role === 'admin' || profile?.role === 'coach'
+
   // ═══════════════════════════════════════════════════════════
   // LOADING / ERROR STATES (preserved)
   // ═══════════════════════════════════════════════════════════
@@ -383,7 +421,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {bannerSlides.map((slide, idx) => (
             <div key={slide.id} className="absolute inset-0 transition-opacity duration-700"
               style={{ opacity: bannerSlide === idx ? 1 : 0, zIndex: bannerSlide === idx ? 1 : 0 }}>
-              {slide.type === 'photo' && <PhotoBanner team={team} g={g} teamInitials={teamInitials} />}
+              {slide.type === 'photo' && <PhotoBanner team={team} g={g} teamInitials={teamInitials}
+                canEdit={profile?.role === 'admin' || profile?.role === 'coach'}
+                showToast={showToast}
+                onBannerUpdate={(url) => setTeam(prev => ({ ...prev, banner_url: url }))} />}
               {slide.type === 'next_game' && <NextGameBanner team={team} nextGame={nextGame} cd={cd} g={g} teamInitials={teamInitials} />}
               {slide.type === 'season_stats' && <SeasonPulseBanner team={team} roster={roster} coaches={coaches} g={g} sportIcon={sportIcon} />}
             </div>
@@ -650,6 +691,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   <div className="space-y-6">
                     {posts.map((post, i) => (
                       <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
+                        isAdminOrCoach={isAdminOrCoach}
+                        currentUserId={user?.id}
+                        onDelete={deletePost}
+                        onTogglePin={togglePinPost}
+                        onEdit={editPostContent}
                         onCommentCountChange={(postId, count) => {
                           setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: count } : p))
                         }}
@@ -1021,7 +1067,40 @@ function adjustBrightness(hex, amount) {
 // BANNER SLIDES
 // ═══════════════════════════════════════════════════════════
 
-function PhotoBanner({ team, g, teamInitials }) {
+function PhotoBanner({ team, g, teamInitials, canEdit, showToast, onBannerUpdate }) {
+  const coverRef = useRef(null)
+  const [uploading, setUploading] = useState(false)
+
+  async function handleCoverUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file || !canEdit) return
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `covers/${team.id}-${Date.now()}.${ext}`
+      const { data, error } = await supabase.storage
+        .from('team-photos')
+        .upload(path, file, { cacheControl: '3600', upsert: true })
+
+      if (error) throw error
+
+      const { data: publicUrl } = supabase.storage
+        .from('team-photos')
+        .getPublicUrl(data.path)
+
+      const url = publicUrl?.publicUrl
+      if (url) {
+        await supabase.from('teams').update({ banner_url: url }).eq('id', team.id)
+        onBannerUpdate?.(url)
+        showToast?.('Cover photo updated!', 'success')
+      }
+    } catch (err) {
+      console.error('Cover upload error:', err)
+      showToast?.('Failed to upload cover photo', 'error')
+    }
+    setUploading(false)
+  }
+
   return (
     <div className="absolute inset-0" style={{ background: team.banner_url ? undefined : `linear-gradient(135deg, #1a1520 0%, #0d1117 50%, #141820 100%)` }}>
       {team.banner_url ? (
@@ -1031,12 +1110,25 @@ function PhotoBanner({ team, g, teamInitials }) {
           <p className="text-[120px] opacity-[.03]">🐝</p>
         </div>
       )}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition cursor-pointer" style={{ background: 'rgba(0,0,0,.4)' }}>
-        <div className="text-center">
-          <p className="text-4xl mb-2">📷</p>
-          <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOAD COVER PHOTO</p>
+      {canEdit && (
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition cursor-pointer" style={{ background: 'rgba(0,0,0,.4)' }}
+          onClick={() => coverRef.current?.click()}>
+          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+          <div className="text-center">
+            {uploading ? (
+              <>
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-2" style={{ borderColor: g, borderTopColor: 'transparent' }} />
+                <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOADING...</p>
+              </>
+            ) : (
+              <>
+                <p className="text-4xl mb-2">📷</p>
+                <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOAD COVER PHOTO</p>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -1156,12 +1248,30 @@ function SectionHeader({ icon, title, accent, g, isDark }) {
 // ═══════════════════════════════════════════════════════════
 // FEED POST — Social media card with cheer animation
 // ═══════════════════════════════════════════════════════════
-function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCountChange }) {
+function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCountChange, onDelete, onTogglePin, onEdit, isAdminOrCoach, currentUserId }) {
   const isPinned = post.is_pinned
   const postType = post.post_type || 'announcement'
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
   const [lightboxIdx, setLightboxIdx] = useState(null)
+  const [showMenu, setShowMenu] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(post.title || '')
+  const [editContent, setEditContent] = useState(post.content || '')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const menuRef = useRef(null)
+
+  const canModify = isAdminOrCoach || post.author_id === currentUserId
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!showMenu) return
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showMenu])
 
   const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
     postType === 'game_recap' ? 'tw-reminder-accent' : ''
@@ -1205,12 +1315,52 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
         <div className="flex items-center gap-2">
           {isPinned && <span className="text-sm" style={{ color: `${g}60` }}>📌</span>}
-          <button className="w-10 h-10 rounded-full flex items-center justify-center transition"
-            style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <MoreVertical className="w-5 h-5" />
-          </button>
+          {canModify && (
+            <div className="relative" ref={menuRef}>
+              <button onClick={() => setShowMenu(!showMenu)}
+                className="w-10 h-10 rounded-full flex items-center justify-center transition"
+                style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}
+                onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <MoreVertical className="w-5 h-5" />
+              </button>
+
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-1 z-40 py-1.5 rounded-xl shadow-xl min-w-[160px]"
+                  style={{
+                    background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.97)',
+                    border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)',
+                    backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  }}>
+                  {(post.author_id === currentUserId || isAdminOrCoach) && (
+                    <button onClick={() => { setEditing(true); setShowMenu(false) }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs transition-colors text-left"
+                      style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <Edit className="w-3.5 h-3.5" /> Edit Post
+                    </button>
+                  )}
+                  {isAdminOrCoach && (
+                    <button onClick={() => { onTogglePin?.(post.id, post.is_pinned); setShowMenu(false) }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs transition-colors text-left"
+                      style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}
+                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      📌 {post.is_pinned ? 'Unpin Post' : 'Pin to Top'}
+                    </button>
+                  )}
+                  <div style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)', margin: '4px 0' }} />
+                  <button onClick={() => { setConfirmDelete(true); setShowMenu(false) }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs transition-colors text-left text-red-400"
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <Trash2 className="w-3.5 h-3.5" /> Delete Post
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1287,6 +1437,62 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           onCommentCountChange?.(post.id, count)
         }}
       />
+
+      {/* Edit Post Overlay */}
+      {editing && (
+        <div className="px-6 pb-5">
+          <div className="rounded-xl p-4" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)' }}>
+            <p className="text-[10px] tw-heading tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
+            <input
+              type="text"
+              value={editTitle}
+              onChange={e => setEditTitle(e.target.value)}
+              placeholder="Title (optional)"
+              className="w-full px-3 py-2 rounded-lg text-sm mb-2 bg-transparent outline-none"
+              style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'white' : '#333' }}
+            />
+            <textarea
+              value={editContent}
+              onChange={e => setEditContent(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-transparent outline-none resize-none"
+              style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'white' : '#333' }}
+            />
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => setEditing(false)}
+                className="px-4 py-1.5 rounded-lg text-xs" style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                Cancel
+              </button>
+              <button onClick={() => {
+                onEdit?.(post.id, editContent.trim(), editTitle.trim())
+                setEditing(false)
+              }}
+                disabled={!editContent.trim()}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold transition hover:brightness-110 disabled:opacity-30"
+                style={{ background: g, color: '#0f172a' }}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation */}
+      {confirmDelete && (
+        <div className="px-6 pb-5">
+          <div className="rounded-xl p-4 flex items-center justify-between" style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)' }}>
+            <p className="text-xs text-red-400">Delete this post permanently?</p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmDelete(false)} className="px-3 py-1 rounded-lg text-xs" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                Cancel
+              </button>
+              <button onClick={() => onDelete?.(post.id)} className="px-3 py-1 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   )
 }
