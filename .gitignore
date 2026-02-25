@@ -21,3 +21,10 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Supabase CLI binary
+supabase/supabase.exe
+supabase/*.exe
+
+# Legacy backup
+src_backup/

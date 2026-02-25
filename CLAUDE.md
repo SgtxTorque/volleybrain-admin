@@ -177,13 +177,13 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 ## KNOWN ISSUES
 
 1. ~~**No URL routing**~~ — RESOLVED in Phase 1 Sprint 1.1 (react-router-dom)
-2. **RLS disabled** — Security concern for production
-3. **SchedulePage.jsx is 4,200 lines** — needs splitting into components
-4. **OrganizationPage.jsx is 2,400 lines** — needs splitting into tabs
+2. ~~**RLS disabled**~~ — RESOLVED in Phase 5 Sprint 5.3 (RLS migration + org_id scoping audit)
+3. ~~**SchedulePage.jsx is 4,200 lines**~~ — RESOLVED in Phase 5 Sprint 5.4 (split to 3,823 lines + CalendarViews.jsx + scheduleHelpers.jsx)
+4. ~~**OrganizationPage.jsx is 2,400 lines**~~ — RESOLVED in Phase 5 Sprint 5.4 (split to 813 lines + SetupSectionCard.jsx + SetupSectionContent.jsx)
 5. **ParentMessagesPage.jsx is 81 lines** — stub/placeholder
 6. **InviteFriendsPage.jsx is 84 lines** — stub/placeholder
-7. **src_backup/ folder** in repo — should be removed
-8. **90MB supabase.exe** in repo — should be gitignored
+7. ~~**src_backup/ folder**~~ — RESOLVED in Phase 5 Sprint 5.4 (removed from tracking + .gitignore)
+8. ~~**90MB supabase.exe**~~ — RESOLVED in Phase 5 Sprint 5.4 (removed from tracking + .gitignore)
 9. ~~**post_reactions vs team_post_reactions**~~ — RESOLVED: web uses 'post_reactions' (confirmed)
 10. ~~**Toast.jsx is 28 lines**~~ — RESOLVED in Phase 1 Sprint 1.2 (stacking, animations, progress bar)
 
@@ -204,6 +204,15 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - Sprint 3.1: PriorityCardsEngine (unpaid fees, unsigned waivers, missing RSVPs, upcoming games <48h), ActionItemsSidebar, QuickRsvpModal, badge count
 - Sprint 3.2: MyStuffPage at /my-stuff with tabs (Profile, Payments, Waivers, Settings, Linked Players)
 
+### Phase 4: Coach Power Features (Sprints 4.1–4.2)
+- Sprint 4.1: Coach quick actions (Take Attendance, Message Parents, Start Warmup), team-scoped blasts, event RSVP counts
+- Sprint 4.2: One-click inline attendance from coach dashboard, quick-mark roster with check/x buttons
+
+### Phase 5: Beta Polish (Sprints 5.2–5.4, skipped 5.1)
+- Sprint 5.2: Page transitions (animate-page-in), EmptyState component, favicon.svg, Open Graph meta tags
+- Sprint 5.3: RLS migration for 7 tables, org_id scoping audit (NotificationsPage fixed), input validation lib
+- Sprint 5.4: Split SchedulePage (4168→3823 lines), split OrganizationPage (2424→813 lines), remove src_backup/ and supabase.exe
+
 ### New Components
 - `src/components/ui/Skeleton.jsx` — Shimmer loading components
 - `src/components/ui/ErrorBoundary.jsx` — React error boundary
@@ -215,5 +224,11 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - `src/components/parent/PriorityCardsEngine.jsx` — Priority scanning engine + card rendering
 - `src/components/parent/ActionItemsSidebar.jsx` — Action items sidebar panel + QuickRsvpModal
 - `src/pages/parent/MyStuffPage.jsx` — Unified parent self-service page
+- `src/components/ui/EmptyState.jsx` — Reusable empty/no-data state component
+- `src/lib/validation.js` — Input sanitization and form validation utilities
+- `src/pages/schedule/scheduleHelpers.jsx` — Shared schedule utilities (getEventColor, formatTime, VolleyballIcon)
+- `src/pages/schedule/CalendarViews.jsx` — MonthView, WeekView, DayView, ListView calendar components
+- `src/pages/settings/SetupSectionCard.jsx` — Expandable setup section card UI
+- `src/pages/settings/SetupSectionContent.jsx` — 16-section form content for organization setup
 
 See WEB_BETA_GAMEPLAN.md for the full phased plan.
