@@ -5,13 +5,14 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { JourneyTimeline, JourneyWidget } from '../../components/journey'
 import { supabase } from '../../lib/supabase'
-import { 
+import {
   Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
   ChevronRight, MoreHorizontal, TrendingUp, CreditCard, Play,
   CheckCircle, Clock, AlertCircle, Star, MapPin
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
+import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1144,7 +1145,7 @@ export function DashboardPage({ onNavigate }) {
     return <GettingStartedGuide onNavigate={onNavigate} />
   }
 
-  if (loading || seasonLoading) {
+  if (seasonLoading) {
     return <SkeletonDashboard />
   }
 
@@ -1153,69 +1154,8 @@ export function DashboardPage({ onNavigate }) {
       {/* Journey Progress */}
       <JourneyTimeline onNavigate={onNavigate} />
 
-      {/* 3-Column Grid Layout */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* ═══════════════════════════════════════════════════
-            LEFT COLUMN
-            ═══════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Season Card */}
-          <SeasonCard 
-            season={selectedSeason}
-            stats={stats}
-            onNavigate={onNavigate}
-          />
-          
-          {/* Registration Stats */}
-          <RegistrationStats 
-            stats={stats}
-            onNavigate={onNavigate}
-          />
-          
-          {/* Quick Actions / Activity Feed */}
-          <QuickActionsWidget activities={activities} />
-        </div>
-
-        {/* ═══════════════════════════════════════════════════
-            MIDDLE COLUMN
-            ═══════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Financial Summary */}
-          <FinancialSummary 
-            stats={stats}
-            onNavigate={onNavigate}
-          />
-          
-          {/* Recent Activity / Tasks */}
-          <RecentActivity 
-            tasks={tasks}
-            onNavigate={onNavigate}
-          />
-        </div>
-
-        {/* ═══════════════════════════════════════════════════
-            RIGHT COLUMN
-            ═══════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Financial Overview Chart */}
-          <FinancialOverview 
-            monthlyData={monthlyPayments}
-            totalCollected={stats.totalCollected}
-          />
-          
-          {/* Upcoming Events */}
-          <UpcomingEvents 
-            events={upcomingEvents}
-            onNavigate={onNavigate}
-          />
-          
-          {/* Overdue Payments */}
-          <OverduePayments 
-            stats={stats}
-            onNavigate={onNavigate}
-          />
-        </div>
-      </div>
+      {/* Customizable Widget Grid */}
+      <DashboardGrid role="admin" />
     </div>
   )
 }

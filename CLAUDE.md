@@ -208,7 +208,8 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - Sprint 4.1: Coach quick actions (Take Attendance, Message Parents, Start Warmup), team-scoped blasts, event RSVP counts
 - Sprint 4.2: One-click inline attendance from coach dashboard, quick-mark roster with check/x buttons
 
-### Phase 5: Beta Polish (Sprints 5.2–5.4, skipped 5.1)
+### Phase 5: Beta Polish (Sprints 5.1–5.4)
+- Sprint 5.1: Dashboard customization with react-grid-layout drag-and-drop widget grid, 8 self-contained widgets, per-user layout persistence
 - Sprint 5.2: Page transitions (animate-page-in), EmptyState component, favicon.svg, Open Graph meta tags
 - Sprint 5.3: RLS migration for 7 tables, org_id scoping audit (NotificationsPage fixed), input validation lib
 - Sprint 5.4: Split SchedulePage (4168→3823 lines), split OrganizationPage (2424→813 lines), remove src_backup/ and supabase.exe
@@ -230,5 +231,7 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - `src/pages/schedule/CalendarViews.jsx` — MonthView, WeekView, DayView, ListView calendar components
 - `src/pages/settings/SetupSectionCard.jsx` — Expandable setup section card UI
 - `src/pages/settings/SetupSectionContent.jsx` — 16-section form content for organization setup
+- `src/components/widgets/dashboard/DashboardWidgets.jsx` — 8 self-contained dashboard widgets + registry + default layouts
+- `src/components/widgets/dashboard/DashboardGrid.jsx` — react-grid-layout drag-and-drop grid with widget picker
 
 See WEB_BETA_GAMEPLAN.md for the full phased plan.
