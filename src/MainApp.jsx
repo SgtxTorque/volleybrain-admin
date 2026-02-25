@@ -47,7 +47,7 @@ import { DashboardPage } from './pages/dashboard'
 import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
 
 // Parent Portal Pages
-import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage } from './pages/parent'
+import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage } from './pages/parent'
 
 // Public Pages
 import { TeamWallPage, OrgDirectoryPage } from './pages/public'
@@ -1533,6 +1533,7 @@ function HorizontalNavBar({
     { id: 'payments', label: 'Payments', type: 'single' },
     { id: 'season-archives', label: 'Archives', type: 'single' },
     { id: 'org-directory', label: 'Directory', type: 'single' },
+    { id: 'my-stuff', label: 'My Stuff', type: 'single' },
   ]
 
   // Player navigation
@@ -1833,6 +1834,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
       <Route path="/messages" element={<ParentMessagesPage roleContext={roleContext} showToast={showToast} />} />
       <Route path="/invite" element={<InviteFriendsPage roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/my-stuff" element={<MyStuffPage roleContext={roleContext} showToast={showToast} />} />
 
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />

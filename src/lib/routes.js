@@ -56,6 +56,7 @@ export const ROUTES = {
   // Parent-specific
   'messages': '/messages',
   'invite': '/invite',
+  'my-stuff': '/my-stuff',
 }
 
 // Reverse map: URL path → old page ID (for matching active nav items)
@@ -136,4 +137,5 @@ export const PAGE_TITLES = {
   '/platform/subscriptions': 'Platform Subscriptions',
   '/messages': 'Messages',
   '/invite': 'Invite Friends',
+  '/my-stuff': 'My Stuff',
 }

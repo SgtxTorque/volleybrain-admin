@@ -200,6 +200,10 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - Sprint 2.3: Photo gallery (Supabase Storage upload, grid, lightbox with download)
 - Sprint 2.4: Cover photo upload, post pinning, three-dot menu (edit/delete/pin)
 
+### Phase 3: Parent & Player UX (Sprints 3.1–3.2)
+- Sprint 3.1: PriorityCardsEngine (unpaid fees, unsigned waivers, missing RSVPs, upcoming games <48h), ActionItemsSidebar, QuickRsvpModal, badge count
+- Sprint 3.2: MyStuffPage at /my-stuff with tabs (Profile, Payments, Waivers, Settings, Linked Players)
+
 ### New Components
 - `src/components/ui/Skeleton.jsx` — Shimmer loading components
 - `src/components/ui/ErrorBoundary.jsx` — React error boundary
@@ -208,5 +212,8 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - `src/components/teams/CommentSection.jsx` — Post comments with threading
 - `src/components/teams/ReactionBar.jsx` — Multi-emoji reaction picker
 - `src/components/teams/PhotoGallery.jsx` — Photo grid + Lightbox viewer
+- `src/components/parent/PriorityCardsEngine.jsx` — Priority scanning engine + card rendering
+- `src/components/parent/ActionItemsSidebar.jsx` — Action items sidebar panel + QuickRsvpModal
+- `src/pages/parent/MyStuffPage.jsx` — Unified parent self-service page
 
 See WEB_BETA_GAMEPLAN.md for the full phased plan.

@@ -16,6 +16,9 @@ import TeamStandingsWidget from '../../components/widgets/parent/TeamStandingsWi
 import ChildStatsWidget from '../../components/widgets/parent/ChildStatsWidget'
 import ChildAchievementsWidget from '../../components/widgets/parent/ChildAchievementsWidget'
 import { ParentChecklistWidget } from '../../components/parent/ParentOnboarding'
+// Priority Cards Engine — Sprint 3.1
+import { usePriorityItems, PriorityCardsList, ActionBadge } from '../../components/parent/PriorityCardsEngine'
+import { ActionItemsSidebar, QuickRsvpModal } from '../../components/parent/ActionItemsSidebar'
 
 // Volleyball icon component
 function VolleyballIcon({ className }) {
@@ -687,6 +690,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [playerBadges, setPlayerBadges] = useState([])
   const [badgesInProgress, setBadgesInProgress] = useState([])
 
+  // Action Items sidebar state (Sprint 3.1)
+  const [showActionSidebar, setShowActionSidebar] = useState(false)
+  const [quickRsvpEvent, setQuickRsvpEvent] = useState(null)
+
   // Get parent's name from profile or first child's parent_name
   const parentName = profile?.full_name?.split(' ')[0] || registrationData[0]?.parent_name?.split(' ')[0] || 'Parent'
 
@@ -694,6 +701,35 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const primaryTeam = teams[0]
   const primarySport = registrationData[0]?.season?.sports || { name: 'Volleyball', icon: '🏐' }
   const primarySeason = registrationData[0]?.season
+
+  // Priority Cards Engine (Sprint 3.1)
+  const organizationId = organization?.id || registrationData[0]?.season?.organizations?.id
+  const priorityEngine = usePriorityItems({
+    children: registrationData,
+    teamIds,
+    seasonId,
+    organizationId,
+  })
+
+  // Handle priority card actions
+  function handlePriorityAction(item) {
+    switch (item.actionType) {
+      case 'payment':
+        setShowPaymentModal(true)
+        break
+      case 'waiver':
+        onNavigate?.('waivers')
+        break
+      case 'rsvp':
+        setQuickRsvpEvent(item.data)
+        break
+      case 'event-detail':
+        setSelectedEventDetail(item.data)
+        break
+      default:
+        break
+    }
+  }
 
   useEffect(() => {
     if (roleContext?.children) {
@@ -1122,9 +1158,34 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
       ))}
 
+      {/* ═══ PRIORITY ACTION CARDS (Sprint 3.1) ═══ */}
+      {priorityEngine.count > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className={`text-[10px] uppercase tracking-widest font-bold ${tc.textMuted} flex items-center gap-2`}>
+                NEEDS ATTENTION
+              </div>
+              <ActionBadge count={priorityEngine.count} onClick={() => setShowActionSidebar(true)} />
+            </div>
+            <button
+              onClick={() => setShowActionSidebar(true)}
+              className="text-xs text-[var(--accent-primary)] font-semibold hover:underline"
+            >
+              View All →
+            </button>
+          </div>
+          <PriorityCardsList
+            items={priorityEngine.items}
+            onAction={handlePriorityAction}
+            maxItems={3}
+          />
+        </div>
+      )}
+
       {/* ═══ GETTING STARTED CHECKLIST ═══ */}
-      <ParentChecklistWidget 
-        onNavigate={onNavigate} 
+      <ParentChecklistWidget
+        onNavigate={onNavigate}
         onTeamHub={() => navigateToTeamWall?.(activeTeam?.id)}
         activeTeam={activeTeam}
       />
@@ -1771,6 +1832,28 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         <AlertDetailModal
           alert={selectedAlert}
           onClose={() => setSelectedAlert(null)}
+        />
+      )}
+
+      {/* Action Items Sidebar (Sprint 3.1) */}
+      <ActionItemsSidebar
+        items={priorityEngine.items}
+        onAction={handlePriorityAction}
+        onClose={() => setShowActionSidebar(false)}
+        isOpen={showActionSidebar}
+      />
+
+      {/* Quick RSVP Modal (Sprint 3.1) */}
+      {quickRsvpEvent && (
+        <QuickRsvpModal
+          event={quickRsvpEvent}
+          userId={profile?.id}
+          onClose={() => setQuickRsvpEvent(null)}
+          onRsvp={() => {
+            priorityEngine.refresh()
+            setQuickRsvpEvent(null)
+          }}
+          showToast={showToast}
         />
       )}
     </div>
