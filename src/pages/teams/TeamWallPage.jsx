@@ -11,6 +11,7 @@ import {
 } from '../../constants/icons'
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
+import { PhotoGallery, Lightbox } from '../../components/teams/PhotoGallery'
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS (preserved exactly)
@@ -614,6 +615,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         <div className="flex gap-1 rounded-2xl p-1.5" style={{ background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)' }}>
           {[
             { key: 'feed', icon: '📰', label: 'Feed' },
+            { key: 'gallery', icon: '📷', label: 'Gallery' },
             { key: 'roster', icon: '👥', label: 'Roster' },
             { key: 'schedule', icon: '📅', label: 'Schedule' },
             { key: 'documents', icon: '📄', label: 'Documents' },
@@ -682,6 +684,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     <p className="text-sm mt-1" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>Check back later for team updates!</p>
                   </div>
                 )}
+              </>
+            )}
+
+            {/* GALLERY */}
+            {activeTab === 'gallery' && (
+              <>
+                <SectionHeader icon="📷" title="PHOTO" accent="GALLERY" g={g} isDark={isDark} />
+                <PhotoGallery teamId={teamId} isDark={isDark} g={g} />
               </>
             )}
 
@@ -1151,6 +1161,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   const postType = post.post_type || 'announcement'
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
 
   const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
     postType === 'game_recap' ? 'tw-reminder-accent' : ''
@@ -1203,17 +1214,24 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
       </div>
 
-      {/* Media — Cinematic */}
+      {/* Media — Cinematic with Lightbox */}
       {post.media_urls?.length > 0 && (
         <div className="px-4 pb-4">
           <div className={`grid ${post.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
             {post.media_urls.map((url, idx) => (
-              <div key={idx} className="relative rounded-2xl overflow-hidden group cursor-pointer" style={{ height: post.media_urls.length === 1 ? 320 : 200 }}>
+              <div key={idx} onClick={() => setLightboxIdx(idx)} className="relative rounded-2xl overflow-hidden group cursor-pointer" style={{ height: post.media_urls.length === 1 ? 320 : 200 }}>
                 <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
+                  <div className="absolute bottom-3 right-3">
+                    <Maximize2 className="w-5 h-5 text-white/70" />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
+          {lightboxIdx !== null && (
+            <Lightbox images={post.media_urls} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+          )}
         </div>
       )}
 
@@ -1285,7 +1303,9 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   const [isPinned, setIsPinned] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [drag, setDrag] = useState(false)
-  const [media, setMedia] = useState([])
+  const [mediaFiles, setMediaFiles] = useState([]) // actual File objects
+  const [mediaPreviews, setMediaPreviews] = useState([]) // preview URLs
+  const [uploadProgress, setUploadProgress] = useState(null) // 'Uploading 1/3...'
   const fr = useRef(null)
 
   const inp = {
@@ -1294,10 +1314,60 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
     borderRadius: 16,
   }
 
+  function addFiles(files) {
+    const validFiles = Array.from(files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'))
+    if (validFiles.length === 0) return
+    setMediaFiles(prev => [...prev, ...validFiles])
+    validFiles.forEach(f => {
+      const url = URL.createObjectURL(f)
+      setMediaPreviews(prev => [...prev, { name: f.name, url, type: f.type }])
+    })
+  }
+
+  function removeFile(idx) {
+    URL.revokeObjectURL(mediaPreviews[idx]?.url)
+    setMediaFiles(prev => prev.filter((_, i) => i !== idx))
+    setMediaPreviews(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  async function uploadMedia() {
+    if (mediaFiles.length === 0) return []
+    const urls = []
+    for (let i = 0; i < mediaFiles.length; i++) {
+      setUploadProgress(`Uploading ${i + 1}/${mediaFiles.length}...`)
+      const file = mediaFiles[i]
+      const ext = file.name.split('.').pop()
+      const path = `${teamId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+      const { data, error } = await supabase.storage
+        .from('team-photos')
+        .upload(path, file, { cacheControl: '3600', upsert: false })
+
+      if (error) {
+        console.error('Upload error:', error)
+        // Try creating bucket if it doesn't exist
+        if (error.message?.includes('not found') || error.statusCode === '404') {
+          showToast?.('Storage bucket not found — ask admin to create "team-photos" bucket in Supabase', 'warning')
+        }
+        continue
+      }
+
+      const { data: publicUrl } = supabase.storage
+        .from('team-photos')
+        .getPublicUrl(data.path)
+
+      if (publicUrl?.publicUrl) urls.push(publicUrl.publicUrl)
+    }
+    setUploadProgress(null)
+    return urls
+  }
+
   async function handleSubmit() {
     if (!content.trim()) return
     setSubmitting(true)
     try {
+      const mediaUrls = await uploadMedia()
+
       const { error } = await supabase.from('team_posts').insert({
         team_id: teamId,
         author_id: user?.id,
@@ -1305,7 +1375,8 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         content: content.trim(),
         post_type: postType,
         is_pinned: isPinned,
-        is_published: true
+        is_published: true,
+        media_urls: mediaUrls.length > 0 ? mediaUrls : null,
       })
       if (error) throw error
       showToast?.('Post created!', 'success')
@@ -1352,23 +1423,33 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             onDragEnter={e => { e.preventDefault(); setDrag(true) }}
             onDragLeave={e => { e.preventDefault(); setDrag(false) }}
             onDragOver={e => e.preventDefault()}
-            onDrop={e => { e.preventDefault(); setDrag(false); setMedia(p => [...p, ...Array.from(e.dataTransfer?.files || []).map(f => f.name)]) }}
+            onDrop={e => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer?.files || []) }}
             onClick={() => fr.current?.click()}
             className="border-2 border-dashed p-5 text-center cursor-pointer transition"
             style={{ borderColor: drag ? `${g}40` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'), background: drag ? `${g}05` : 'transparent', borderRadius: 20 }}>
             <input ref={fr} type="file" accept="image/*,video/*" multiple className="hidden"
-              onChange={e => setMedia(p => [...p, ...Array.from(e.target.files || []).map(f => f.name)])} />
+              onChange={e => { addFiles(e.target.files || []); e.target.value = '' }} />
             <p className="text-2xl mb-1 opacity-20">📸</p>
             <p className="text-[9px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }}>DROP FILES OR CLICK</p>
           </div>
 
-          {media.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {media.map((f, i) => (
-                <span key={i} className="px-3 py-1.5 rounded-xl text-[9px] flex items-center gap-2"
-                  style={{ ...inp, color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-                  📎 {f} <button onClick={() => setMedia(p => p.filter((_, j) => j !== i))} className="hover:opacity-70">✕</button>
-                </span>
+          {/* Image previews */}
+          {mediaPreviews.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {mediaPreviews.map((preview, i) => (
+                <div key={i} className="relative rounded-xl overflow-hidden group" style={{ height: 80 }}>
+                  {preview.type.startsWith('image/') ? (
+                    <img src={preview.url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
+                      <span className="text-lg">🎬</span>
+                    </div>
+                  )}
+                  <button onClick={(e) => { e.stopPropagation(); removeFile(i) }}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                    ✕
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -1389,7 +1470,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
           <button onClick={handleSubmit} disabled={!content.trim() || submitting}
             className="flex-1 py-3 rounded-2xl text-[10px] font-bold tw-heading tracking-wider transition hover:brightness-110 disabled:opacity-25"
             style={{ background: `linear-gradient(135deg,${gb},${g})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
-            {submitting ? 'POSTING...' : 'PUBLISH'}
+            {submitting ? (uploadProgress || 'POSTING...') : 'PUBLISH'}
           </button>
         </div>
       </div>
