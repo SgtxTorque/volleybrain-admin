@@ -10,7 +10,7 @@ import {
   Target, MessageCircle, X, ClipboardList,
   TrendingUp, Star, Award, Zap, Shield, Crosshair,
   Swords, Crown, Activity, Trophy, Bell,
-  Send, Timer, Megaphone
+  Send, Timer, Megaphone, UserCheck, UserX
 } from '../../constants/icons'
 
 // ============================================
@@ -850,6 +850,19 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         </div>
 
         {/* ═══════════════════════════════════════════
+            QUICK ATTENDANCE — Inline for today/next event
+            ═══════════════════════════════════════════ */}
+        {nextEvent && (
+          <QuickAttendancePanel
+            event={nextEvent}
+            team={selectedTeam}
+            roster={roster}
+            userId={user?.id}
+            showToast={showToast}
+          />
+        )}
+
+        {/* ═══════════════════════════════════════════
             TWO-COLUMN: Player Pulse + Upcoming Ops
             ═══════════════════════════════════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1474,6 +1487,224 @@ function WarmupTimerModal({ onClose }) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// ============================================
+// QUICK ATTENDANCE PANEL — Inline roster check-in
+// ============================================
+function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
+  const [expanded, setExpanded] = useState(false)
+  const [attendance, setAttendance] = useState({}) // playerId → 'yes'|'no'
+  const [loading, setLoading] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+
+  const isToday = countdownText(event.event_date) === 'TODAY'
+  const isTomorrow = countdownText(event.event_date) === 'TOMORROW'
+
+  async function loadAttendance() {
+    if (loaded) return
+    setLoading(true)
+    try {
+      const { data } = await supabase
+        .from('event_rsvps')
+        .select('player_id, status')
+        .eq('event_id', event.id)
+
+      const map = {}
+      for (const r of (data || [])) {
+        map[r.player_id] = r.status
+      }
+      setAttendance(map)
+      setLoaded(true)
+    } catch (err) {
+      console.error('Error loading attendance:', err)
+    }
+    setLoading(false)
+  }
+
+  function handleExpand() {
+    if (!expanded) loadAttendance()
+    setExpanded(!expanded)
+  }
+
+  async function markPlayer(playerId, status) {
+    const prev = attendance[playerId]
+    // Optimistic update
+    setAttendance(a => ({ ...a, [playerId]: status }))
+
+    try {
+      const { data: existing } = await supabase
+        .from('event_rsvps')
+        .select('id')
+        .eq('event_id', event.id)
+        .eq('player_id', playerId)
+        .maybeSingle()
+
+      if (existing) {
+        await supabase
+          .from('event_rsvps')
+          .update({ status, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+      } else {
+        await supabase
+          .from('event_rsvps')
+          .insert({
+            event_id: event.id,
+            player_id: playerId,
+            status,
+            responded_by: userId
+          })
+      }
+    } catch (err) {
+      // Rollback on error
+      setAttendance(a => ({ ...a, [playerId]: prev }))
+      showToast?.('Error updating attendance', 'error')
+    }
+  }
+
+  const presentCount = Object.values(attendance).filter(s => s === 'yes' || s === 'going').length
+  const absentCount = Object.values(attendance).filter(s => s === 'no' || s === 'not_going').length
+  const unmarkedCount = roster.length - presentCount - absentCount
+
+  return (
+    <div className="tc-card tc-fadeIn tc-fadeIn-4" style={{ border: isToday ? '1px solid rgba(16,185,129,0.25)' : undefined }}>
+      {/* Header — always visible, clickable to expand */}
+      <button
+        onClick={handleExpand}
+        className="w-full flex items-center gap-4 p-5 text-left"
+      >
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.2)' }}>
+          <UserCheck className="w-6 h-6 text-emerald-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="tc-section-title">QUICK ATTENDANCE</span>
+            {isToday && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                TODAY
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {event.event_type === 'game' ? `Game vs ${event.opponent_name || 'TBD'}` : 'Practice'}
+            {event.event_time ? ` · ${formatTime12(event.event_time)}` : ''}
+            {expanded && loaded ? ` — ${presentCount}✓ ${absentCount}✗ ${unmarkedCount > 0 ? `${unmarkedCount} unmarked` : ''}` : ''}
+          </p>
+        </div>
+        <ChevronRight className={`w-5 h-5 text-slate-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+      </button>
+
+      {/* Expanded: Roster with check/x buttons */}
+      {expanded && (
+        <div className="px-5 pb-5 border-t border-blue-500/5">
+          {loading ? (
+            <div className="py-6 text-center">
+              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-xs text-slate-500 mt-2">Loading...</p>
+            </div>
+          ) : (
+            <>
+              {/* Summary bar */}
+              <div className="flex items-center gap-4 py-3 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-emerald-400">{presentCount} Present</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-red-500" />
+                  <span className="text-xs font-bold text-red-400">{absentCount} Absent</span>
+                </div>
+                {unmarkedCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-slate-600" />
+                    <span className="text-xs text-slate-500">{unmarkedCount} Unmarked</span>
+                  </div>
+                )}
+                <div className="ml-auto flex gap-2">
+                  <button
+                    onClick={() => {
+                      const all = {}
+                      roster.forEach(p => { all[p.id] = 'yes' })
+                      setAttendance(all)
+                      roster.forEach(p => markPlayer(p.id, 'yes'))
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-emerald-400 transition"
+                    style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}
+                  >
+                    ALL PRESENT
+                  </button>
+                </div>
+              </div>
+
+              {/* Player grid */}
+              <div className="space-y-1">
+                {roster.map(player => {
+                  const status = attendance[player.id]
+                  const isPresent = status === 'yes' || status === 'going'
+                  const isAbsent = status === 'no' || status === 'not_going'
+
+                  return (
+                    <div key={player.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-blue-500/5 transition">
+                      {/* Player info */}
+                      {player.photo_url ? (
+                        <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
+                          style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa' }}>
+                          {player.first_name?.[0]}{player.last_name?.[0]}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white font-medium truncate">
+                          {player.first_name} {player.last_name}
+                        </p>
+                        <p className="text-[10px] text-slate-600">
+                          #{player.jersey_number || '—'} · {player.position || 'Player'}
+                        </p>
+                      </div>
+
+                      {/* Check / X buttons */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => markPlayer(player.id, 'yes')}
+                          className="w-9 h-9 rounded-lg flex items-center justify-center transition"
+                          style={{
+                            background: isPresent ? 'rgba(16,185,129,0.25)' : 'rgba(15,20,35,0.5)',
+                            border: `1px solid ${isPresent ? 'rgba(16,185,129,0.5)' : 'rgba(59,130,246,0.1)'}`,
+                          }}
+                        >
+                          <Check className={`w-4 h-4 ${isPresent ? 'text-emerald-400' : 'text-slate-600'}`} />
+                        </button>
+                        <button
+                          onClick={() => markPlayer(player.id, 'no')}
+                          className="w-9 h-9 rounded-lg flex items-center justify-center transition"
+                          style={{
+                            background: isAbsent ? 'rgba(239,68,68,0.25)' : 'rgba(15,20,35,0.5)',
+                            border: `1px solid ${isAbsent ? 'rgba(239,68,68,0.5)' : 'rgba(59,130,246,0.1)'}`,
+                          }}
+                        >
+                          <X className={`w-4 h-4 ${isAbsent ? 'text-red-400' : 'text-slate-600'}`} />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {roster.length === 0 && (
+                <div className="py-6 text-center">
+                  <Users className="w-8 h-8 mx-auto text-slate-700 mb-2" />
+                  <p className="text-xs text-slate-500">No players on roster</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
