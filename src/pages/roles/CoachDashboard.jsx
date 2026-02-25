@@ -9,7 +9,8 @@ import {
   Calendar, MapPin, Clock, Users, ChevronRight, Check,
   Target, MessageCircle, X, ClipboardList,
   TrendingUp, Star, Award, Zap, Shield, Crosshair,
-  Swords, Crown, Activity, Trophy, Bell
+  Swords, Crown, Activity, Trophy, Bell,
+  Send, Timer, Megaphone
 } from '../../constants/icons'
 
 // ============================================
@@ -294,6 +295,9 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const [selectedEventDetail, setSelectedEventDetail] = useState(null)
   const [selectedPlayer, setSelectedPlayer] = useState(null)
   const [pendingStats, setPendingStats] = useState(0)
+  const [rsvpCounts, setRsvpCounts] = useState({})
+  const [showCoachBlast, setShowCoachBlast] = useState(false)
+  const [showWarmupTimer, setShowWarmupTimer] = useState(false)
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
@@ -380,6 +384,30 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         .limit(10)
 
       setUpcomingEvents(events || [])
+
+      // Load RSVP counts for upcoming events
+      const eventIds = (events || []).map(e => e.id)
+      if (eventIds.length > 0) {
+        const { data: rsvps } = await supabase
+          .from('event_rsvps')
+          .select('event_id, status')
+          .in('event_id', eventIds)
+
+        const rsvpMap = {}
+        for (const rsvp of (rsvps || [])) {
+          if (!rsvpMap[rsvp.event_id]) {
+            rsvpMap[rsvp.event_id] = { going: 0, maybe: 0, declined: 0, total: 0 }
+          }
+          const s = rsvp.status?.toLowerCase()
+          if (s === 'going' || s === 'yes') rsvpMap[rsvp.event_id].going++
+          else if (s === 'maybe') rsvpMap[rsvp.event_id].maybe++
+          else rsvpMap[rsvp.event_id].declined++
+          rsvpMap[rsvp.event_id].total++
+        }
+        setRsvpCounts(rsvpMap)
+      } else {
+        setRsvpCounts({})
+      }
 
       // Load team record from schedule_events (not legacy games table)
       const { data: completedGames } = await supabase
@@ -755,6 +783,73 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         </div>
 
         {/* ═══════════════════════════════════════════
+            QUICK ACTIONS — Primary Coach Actions
+            ═══════════════════════════════════════════ */}
+        <div className="tc-fadeIn tc-fadeIn-3">
+          <p className="tc-label mb-3">QUICK ACTIONS</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Take Attendance */}
+            <button
+              onClick={() => {
+                sessionStorage.setItem('attendanceTeamId', selectedTeam?.id)
+                onNavigate?.('attendance')
+              }}
+              className="tc-hero-card flex items-center gap-4 text-left"
+            >
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.25)' }}>
+                <Check className="w-7 h-7 text-emerald-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                  TAKE ATTENDANCE
+                </h3>
+                <p className="text-xs text-slate-400 truncate">
+                  {nextEvent ? `${nextEvent.event_type === 'game' ? 'Game' : 'Practice'} · ${formatDateShort(nextEvent.event_date)}` : 'No upcoming events'}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-emerald-400/50 flex-shrink-0" />
+            </button>
+
+            {/* Message Parents */}
+            <button
+              onClick={() => setShowCoachBlast(true)}
+              className="tc-hero-card flex items-center gap-4 text-left"
+            >
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}>
+                <Send className="w-7 h-7 text-purple-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                  MESSAGE PARENTS
+                </h3>
+                <p className="text-xs text-slate-400 truncate">Send announcement to {selectedTeam?.name}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-purple-400/50 flex-shrink-0" />
+            </button>
+
+            {/* Start Warmup */}
+            <button
+              onClick={() => setShowWarmupTimer(true)}
+              className="tc-hero-card flex items-center gap-4 text-left"
+            >
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.25)' }}>
+                <Timer className="w-7 h-7 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                  START WARMUP
+                </h3>
+                <p className="text-xs text-slate-400">Countdown timer for drills</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-amber-400/50 flex-shrink-0" />
+            </button>
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════
             TWO-COLUMN: Player Pulse + Upcoming Ops
             ═══════════════════════════════════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -909,13 +1004,24 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                         </p>
                       </div>
 
-                      {/* Countdown */}
-                      <div className="text-right">
+                      {/* RSVP + Countdown */}
+                      <div className="text-right flex flex-col items-end gap-1">
                         <span className={`text-xs font-bold ${
                           isToday ? 'text-red-400' : isTomorrow ? 'text-amber-400' : 'text-slate-500'
                         }`}>
                           {countdownText(event.event_date)}
                         </span>
+                        {rsvpCounts[event.id] ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-emerald-400">{rsvpCounts[event.id].going}✓</span>
+                            {rsvpCounts[event.id].maybe > 0 && (
+                              <span className="text-[10px] font-bold text-amber-400">{rsvpCounts[event.id].maybe}?</span>
+                            )}
+                            <span className="text-[10px] text-slate-600">/{roster.length}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-slate-600">0/{roster.length} RSVP</span>
+                        )}
                       </div>
                     </div>
                   )
@@ -1045,6 +1151,329 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           isOwnChild={false}
         />
       )}
+
+      {/* Coach Blast Modal */}
+      {showCoachBlast && selectedTeam && (
+        <CoachBlastModal
+          team={selectedTeam}
+          onClose={() => setShowCoachBlast(false)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* Warmup Timer Modal */}
+      {showWarmupTimer && (
+        <WarmupTimerModal onClose={() => setShowWarmupTimer(false)} />
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// COACH BLAST MODAL — Quick message to team parents
+// ============================================
+function CoachBlastModal({ team, onClose, showToast }) {
+  const { user } = useAuth()
+  const { selectedSeason } = useSeason()
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [priority, setPriority] = useState('normal')
+  const [sending, setSending] = useState(false)
+
+  async function handleSend() {
+    if (!title.trim() || !body.trim()) {
+      showToast?.('Please fill in title and message', 'error')
+      return
+    }
+
+    setSending(true)
+    try {
+      const { data: blast, error } = await supabase
+        .from('messages')
+        .insert({
+          season_id: selectedSeason?.id,
+          sender_id: user?.id,
+          title: title.trim(),
+          body: body.trim(),
+          message_type: 'announcement',
+          priority,
+          target_type: 'team',
+          target_team_id: team.id
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const { data: teamPlayers } = await supabase
+        .from('team_players')
+        .select('players(id, first_name, last_name, parent_name, parent_email)')
+        .eq('team_id', team.id)
+
+      const recipients = (teamPlayers || []).map(tp => ({
+        message_id: blast.id,
+        recipient_type: 'parent',
+        recipient_id: tp.players?.id,
+        recipient_name: tp.players?.parent_name || `${tp.players?.first_name} ${tp.players?.last_name}'s Parent`,
+        recipient_email: tp.players?.parent_email
+      })).filter(r => r.recipient_id)
+
+      if (recipients.length > 0) {
+        await supabase.from('message_recipients').insert(recipients)
+      }
+
+      showToast?.(`Message sent to ${recipients.length} parents!`, 'success')
+      onClose()
+    } catch (err) {
+      console.error('Error sending blast:', err)
+      showToast?.('Error sending message', 'error')
+    }
+    setSending(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div
+        className="tc-card w-full max-w-lg"
+        style={{ background: 'rgba(15,20,35,0.95)', border: '1px solid rgba(139,92,246,0.2)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-6 border-b" style={{ borderColor: 'rgba(139,92,246,0.1)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.2)' }}>
+              <Send className="w-6 h-6 text-purple-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                MESSAGE PARENTS
+              </h2>
+              <p className="text-sm text-slate-400">Send to {team?.name} parents</p>
+            </div>
+            <button onClick={onClose} className="ml-auto p-2 rounded-lg hover:bg-white/5 transition">
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="tc-label block mb-1.5">SUBJECT</label>
+            <input
+              type="text"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="e.g., Practice time change tomorrow"
+              className="w-full px-4 py-3 rounded-xl text-white placeholder-slate-600"
+              style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.15)' }}
+            />
+          </div>
+
+          <div>
+            <label className="tc-label block mb-1.5">MESSAGE</label>
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              placeholder="Write your message to parents..."
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl text-white placeholder-slate-600 resize-none"
+              style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.15)' }}
+            />
+          </div>
+
+          <div>
+            <label className="tc-label block mb-1.5">PRIORITY</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPriority('normal')}
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition"
+                style={{
+                  background: priority === 'normal' ? 'rgba(59,130,246,0.2)' : 'rgba(15,20,35,0.5)',
+                  border: `1px solid ${priority === 'normal' ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.1)'}`,
+                  color: priority === 'normal' ? '#93c5fd' : '#64748b'
+                }}
+              >
+                Normal
+              </button>
+              <button
+                onClick={() => setPriority('urgent')}
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition"
+                style={{
+                  background: priority === 'urgent' ? 'rgba(239,68,68,0.2)' : 'rgba(15,20,35,0.5)',
+                  border: `1px solid ${priority === 'urgent' ? 'rgba(239,68,68,0.4)' : 'rgba(59,130,246,0.1)'}`,
+                  color: priority === 'urgent' ? '#f87171' : '#64748b'
+                }}
+              >
+                🚨 Urgent
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t flex gap-3" style={{ borderColor: 'rgba(139,92,246,0.1)' }}>
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl text-slate-300 font-medium transition"
+            style={{ border: '1px solid rgba(59,130,246,0.15)' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={sending || !title.trim() || !body.trim()}
+            className="flex-1 py-3 rounded-xl font-bold text-white transition disabled:opacity-50"
+            style={{ background: 'rgba(139,92,246,0.8)', border: '1px solid rgba(139,92,246,0.4)' }}
+          >
+            {sending ? 'Sending...' : 'Send Message'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// WARMUP TIMER MODAL — Countdown for drills
+// ============================================
+function WarmupTimerModal({ onClose }) {
+  const [seconds, setSeconds] = useState(0)
+  const [totalSeconds, setTotalSeconds] = useState(0)
+  const [running, setRunning] = useState(false)
+
+  useEffect(() => {
+    if (!running || seconds <= 0) return
+    const interval = setInterval(() => {
+      setSeconds(prev => {
+        if (prev <= 1) {
+          setRunning(false)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [running, seconds > 0])
+
+  const minutes = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  const progress = totalSeconds > 0 ? ((totalSeconds - seconds) / totalSeconds) * 100 : 0
+  const isFinished = totalSeconds > 0 && seconds === 0 && !running
+
+  function startTimer(mins) {
+    setTotalSeconds(mins * 60)
+    setSeconds(mins * 60)
+    setRunning(true)
+  }
+
+  function resetTimer() {
+    setRunning(false)
+    setSeconds(0)
+    setTotalSeconds(0)
+  }
+
+  const circumference = 2 * Math.PI * 90
+
+  return (
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
+      <div
+        className="tc-card w-full max-w-sm text-center"
+        style={{ background: 'rgba(15,20,35,0.95)', border: `1px solid ${isFinished ? 'rgba(16,185,129,0.4)' : 'rgba(245,158,11,0.2)'}` }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-6 border-b" style={{ borderColor: 'rgba(245,158,11,0.1)' }}>
+          <div className="flex items-center justify-center gap-3">
+            <Timer className={`w-6 h-6 ${isFinished ? 'text-emerald-400' : 'text-amber-400'}`} />
+            <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}>
+              {isFinished ? 'TIME!' : 'WARMUP TIMER'}
+            </h2>
+          </div>
+        </div>
+
+        <div className="p-8">
+          {totalSeconds === 0 ? (
+            <div className="space-y-4">
+              <p className="tc-label mb-4">SELECT DURATION</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[5, 10, 15, 20].map(mins => (
+                  <button
+                    key={mins}
+                    onClick={() => startTimer(mins)}
+                    className="py-5 rounded-xl text-white font-black text-2xl transition hover:scale-105"
+                    style={{
+                      fontFamily: 'Bebas Neue, sans-serif',
+                      letterSpacing: '0.05em',
+                      background: 'rgba(245,158,11,0.1)',
+                      border: '1px solid rgba(245,158,11,0.2)'
+                    }}
+                  >
+                    {mins}<span className="text-sm text-slate-500 ml-1">MIN</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              {/* Progress ring */}
+              <div className="relative w-48 h-48 mx-auto mb-6">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
+                  <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(59,130,246,0.1)" strokeWidth="8" />
+                  <circle
+                    cx="100" cy="100" r="90" fill="none"
+                    stroke={isFinished ? '#10b981' : '#f59e0b'}
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={circumference * (1 - progress / 100)}
+                    style={{ transition: 'stroke-dashoffset 1s linear' }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className={`text-5xl font-black ${isFinished ? 'text-emerald-400' : 'text-white'}`}
+                    style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                    {isFinished ? 'DONE' : `${minutes}:${secs.toString().padStart(2, '0')}`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                {running ? (
+                  <button
+                    onClick={() => setRunning(false)}
+                    className="flex-1 py-3 rounded-xl font-bold text-white transition"
+                    style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)' }}
+                  >
+                    Pause
+                  </button>
+                ) : seconds > 0 ? (
+                  <button
+                    onClick={() => setRunning(true)}
+                    className="flex-1 py-3 rounded-xl font-bold text-white transition"
+                    style={{ background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)' }}
+                  >
+                    Resume
+                  </button>
+                ) : null}
+                <button
+                  onClick={resetTimer}
+                  className="flex-1 py-3 rounded-xl font-bold text-slate-300 transition"
+                  style={{ border: '1px solid rgba(59,130,246,0.15)' }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 border-t" style={{ borderColor: 'rgba(245,158,11,0.1)' }}>
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl text-slate-400 text-sm font-medium transition hover:text-white"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

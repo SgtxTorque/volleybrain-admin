@@ -24,16 +24,22 @@ function BlastsPage({ showToast, activeView, roleContext }) {
     if (selectedSeason?.id) loadBlasts()
   }, [selectedSeason?.id])
   
+  const isCoach = activeView === 'coach'
+  const coachTeamIds = isCoach
+    ? (roleContext?.coachInfo?.team_coaches || []).map(tc => tc.team_id).filter(Boolean)
+    : []
+
   async function loadBlasts() {
     setLoading(true)
     try {
-      // Load teams
-      const { data: teamsData } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('season_id', selectedSeason.id)
+      // Load teams (scoped to coach's teams if coach role)
+      let teamsQuery = supabase.from('teams').select('*').eq('season_id', selectedSeason.id)
+      if (isCoach && coachTeamIds.length > 0) {
+        teamsQuery = teamsQuery.in('id', coachTeamIds)
+      }
+      const { data: teamsData } = await teamsQuery
       setTeams(teamsData || [])
-      
+
       // Load blasts/announcements
       const { data: blastsData } = await supabase
         .from('messages')
@@ -45,9 +51,19 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         `)
         .eq('season_id', selectedSeason.id)
         .order('created_at', { ascending: false })
-      
+
+      // If coach, filter to only relevant blasts
+      let relevantBlasts = blastsData || []
+      if (isCoach && coachTeamIds.length > 0) {
+        relevantBlasts = relevantBlasts.filter(b =>
+          b.target_type === 'all' ||
+          coachTeamIds.includes(b.target_team_id) ||
+          b.sender_id === user?.id
+        )
+      }
+
       // Calculate stats for each blast
-      const blastsWithStats = (blastsData || []).map(blast => {
+      const blastsWithStats = relevantBlasts.map(blast => {
         const total = blast.message_recipients?.length || 0
         const acknowledged = blast.message_recipients?.filter(r => r.acknowledged).length || 0
         return {
@@ -57,7 +73,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           read_percentage: total > 0 ? Math.round((acknowledged / total) * 100) : 0
         }
       })
-      
+
       setBlasts(blastsWithStats)
     } catch (err) {
       console.error('Error loading blasts:', err)
@@ -241,6 +257,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       {showComposeModal && (
         <ComposeBlastModal
           teams={teams}
+          isCoach={isCoach}
           onClose={() => setShowComposeModal(false)}
           onSent={() => { loadBlasts(); setShowComposeModal(false) }}
           showToast={showToast}
@@ -262,18 +279,18 @@ function BlastsPage({ showToast, activeView, roleContext }) {
 // ============================================
 // COMPOSE BLAST MODAL
 // ============================================
-function ComposeBlastModal({ teams, onClose, onSent, showToast }) {
+function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   const { user, profile } = useAuth()
   const { selectedSeason } = useSeason()
   const tc = useThemeClasses()
-  
+
   const [form, setForm] = useState({
     title: '',
     body: '',
     message_type: 'announcement',
     priority: 'normal',
-    target_type: 'all', // 'all', 'team', 'parents', 'coaches'
-    target_team_id: null
+    target_type: isCoach ? 'team' : 'all', // coaches default to team scope
+    target_team_id: isCoach && teams.length === 1 ? teams[0].id : null
   })
   const [sending, setSending] = useState(false)
   const [recipientCount, setRecipientCount] = useState(0)
@@ -476,16 +493,18 @@ function ComposeBlastModal({ teams, onClose, onSent, showToast }) {
           <div>
             <label className={`block text-sm font-medium ${tc.textSecondary} mb-1`}>Send To</label>
             <div className="flex flex-wrap gap-2 mb-2">
-              <button
-                onClick={() => setForm({...form, target_type: 'all', target_team_id: null})}
-                className={`px-4 py-2 rounded-xl font-medium transition ${
-                  form.target_type === 'all'
-                    ? 'bg-[var(--accent-primary)] text-white'
-                    : `${tc.cardBgAlt} ${tc.text}`
-                }`}
-              >
-                🌐 Everyone
-              </button>
+              {!isCoach && (
+                <button
+                  onClick={() => setForm({...form, target_type: 'all', target_team_id: null})}
+                  className={`px-4 py-2 rounded-xl font-medium transition ${
+                    form.target_type === 'all'
+                      ? 'bg-[var(--accent-primary)] text-white'
+                      : `${tc.cardBgAlt} ${tc.text}`
+                  }`}
+                >
+                  🌐 Everyone
+                </button>
+              )}
               <button
                 onClick={() => setForm({...form, target_type: 'team'})}
                 className={`px-4 py-2 rounded-xl font-medium transition ${
@@ -494,7 +513,7 @@ function ComposeBlastModal({ teams, onClose, onSent, showToast }) {
                     : `${tc.cardBgAlt} ${tc.text}`
                 }`}
               >
-                👥 Specific Team
+                👥 {isCoach ? 'My Team' : 'Specific Team'}
               </button>
             </div>
             
