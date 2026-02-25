@@ -3,12 +3,13 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
-import { 
-  ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle, 
+import {
+  ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
   FileText, Plus, Send, X, ChevronRight, Star, Check,
   BarChart3, Camera, Edit, Flag, Megaphone, Trash2, Trophy, UserCog,
-  Heart, Share2, MoreVertical
+  Heart, Share2, MoreVertical, Download, Maximize2
 } from '../../constants/icons'
+import { CommentSection } from '../../components/teams/CommentSection'
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS (preserved exactly)
@@ -672,7 +673,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   <div className="space-y-6">
                     {posts.map((post, i) => (
                       <FeedPost key={post.id} post={post} g={g} gb={gb} i={i}
-                        onReact={toggleReaction} picker={picker} setPicker={setPicker} isDark={isDark} />
+                        onReact={toggleReaction} picker={picker} setPicker={setPicker} isDark={isDark}
+                        onCommentCountChange={(postId, count) => {
+                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: count } : p))
+                        }} />
                     ))}
                     {hasMorePosts && (
                       <button onClick={loadMorePosts} disabled={loadingMorePosts}
@@ -1165,10 +1169,11 @@ function SectionHeader({ icon, title, accent, g, isDark }) {
 // ═══════════════════════════════════════════════════════════
 // FEED POST — Social media card with cheer animation
 // ═══════════════════════════════════════════════════════════
-function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark }) {
+function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark, onCommentCountChange }) {
   const isPinned = post.is_pinned
   const postType = post.post_type || 'announcement'
   const [cheerActive, setCheerActive] = useState(false)
+  const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
 
   const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
     postType === 'game_recap' ? 'tw-reminder-accent' : ''
@@ -1265,13 +1270,13 @@ function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark }) {
               {cheerActive && <span className="absolute -top-8 left-0 text-2xl cheer-pop">🏐</span>}
             </button>
 
-            <button className="flex items-center gap-2.5 group transition-all">
+            <div className="flex items-center gap-2.5">
               <MessageCircle className="w-6 h-6" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }} />
               <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{post.comment_count || 0}</p>
+                <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{localCommentCount}</p>
                 <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>COMMENTS</p>
               </div>
-            </button>
+            </div>
           </div>
 
           <button className="flex items-center gap-2 text-[10px] tw-heading tracking-wider transition"
@@ -1282,6 +1287,18 @@ function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark }) {
           </button>
         </div>
       </div>
+
+      {/* Comments */}
+      <CommentSection
+        postId={post.id}
+        commentCount={localCommentCount}
+        isDark={isDark}
+        g={g}
+        onCountChange={(count) => {
+          setLocalCommentCount(count)
+          onCommentCountChange?.(post.id, count)
+        }}
+      />
     </article>
   )
 }
