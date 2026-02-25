@@ -10,6 +10,7 @@ import {
   MessageCircle, Bell, X, Check, Clock, AlertCircle, User, Users
 } from 'lucide-react'
 import { ClickablePlayerName } from '../registrations/RegistrationsPage'
+import { SkeletonPaymentsPage } from '../../components/ui'
 
 // ============================================
 // GENERATE FEES FOR EXISTING PLAYERS (backfill)
@@ -1255,7 +1256,7 @@ export function PaymentsPage({ showToast }) {
 
       {/* Content */}
       {loading ? (
-        <div className={`text-center py-12 ${tc.textSecondary}`}>Loading payments...</div>
+        <SkeletonPaymentsPage />
       ) : payments.length === 0 ? (
         <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
           <DollarSign className="w-16 h-16 mx-auto text-slate-500" />

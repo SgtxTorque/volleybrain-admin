@@ -7,9 +7,10 @@ import { supabase } from '../../lib/supabase'
 import { generateFeesForPlayer } from '../../lib/fee-calculator'
 import { EmailService, isEmailEnabled } from '../../lib/email-service'
 import { exportToCSV } from '../../lib/csv-export'
-import { 
+import {
   ClipboardList, Table, BarChart3, List, Calendar, Check, DollarSign, Edit
 } from '../../constants/icons'
+import { SkeletonRegistrationsPage } from '../../components/ui'
 
 // ============================================
 // HELPER FUNCTIONS
@@ -1425,7 +1426,7 @@ export function RegistrationsPage({ showToast }) {
 
           {/* Table */}
           {loading ? (
-            <div className={`text-center py-12 ${tc.textSecondary}`}>Loading registrations...</div>
+            <SkeletonRegistrationsPage />
           ) : filteredRegs.length === 0 ? (
             <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
               <ClipboardList className="w-16 h-16" />

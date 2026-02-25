@@ -13,6 +13,7 @@ import {
 import { PlayerCard, PlayerCardExpanded } from '../../components/players'
 import { ClickableCoachName, CoachDetailModal } from '../../pages/coaches/CoachesPage'
 import { getSportConfig, SPORT_CONFIGS } from '../../components/games/GameComponents'
+import { SkeletonSchedulePage } from '../../components/ui'
 import SchedulePosterModal from './SchedulePosterModal'
 import GameDayShareModal from './GameDayShareModal'
 
@@ -1567,7 +1568,7 @@ END:VCALENDAR`
 
       {/* Calendar View */}
       {loading ? (
-        <div className="text-center py-12 text-slate-400">Loading schedule...</div>
+        <SkeletonSchedulePage />
       ) : view === 'month' ? (
         <MonthView 
           events={filteredEvents} 

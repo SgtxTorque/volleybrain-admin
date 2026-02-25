@@ -11,6 +11,7 @@ import {
   CheckCircle, Clock, AlertCircle, Star, MapPin
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
+import { SkeletonDashboard } from '../../components/ui'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1144,14 +1145,7 @@ export function DashboardPage({ onNavigate }) {
   }
 
   if (loading || seasonLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }}></div>
-          <span className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>Loading dashboard...</span>
-        </div>
-      </div>
-    )
+    return <SkeletonDashboard />
   }
 
   return (
