@@ -4,6 +4,7 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { sanitizeText } from '../../lib/validation'
 import { PlayerCardExpanded } from '../../components/players'
 import {
   Calendar, MapPin, Clock, Users, ChevronRight, Check,
@@ -1194,8 +1195,14 @@ function CoachBlastModal({ team, onClose, showToast }) {
   const [sending, setSending] = useState(false)
 
   async function handleSend() {
-    if (!title.trim() || !body.trim()) {
+    const cleanTitle = sanitizeText(title)
+    const cleanBody = sanitizeText(body)
+    if (!cleanTitle || !cleanBody) {
       showToast?.('Please fill in title and message', 'error')
+      return
+    }
+    if (cleanTitle.length > 200) {
+      showToast?.('Title must be 200 characters or less', 'error')
       return
     }
 
@@ -1206,8 +1213,8 @@ function CoachBlastModal({ team, onClose, showToast }) {
         .insert({
           season_id: selectedSeason?.id,
           sender_id: user?.id,
-          title: title.trim(),
-          body: body.trim(),
+          title: cleanTitle,
+          body: cleanBody,
           message_type: 'announcement',
           priority,
           target_type: 'team',

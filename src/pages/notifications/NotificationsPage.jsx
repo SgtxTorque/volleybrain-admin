@@ -21,7 +21,7 @@ import {
 
 export function NotificationsPage({ showToast }) {
   const { selectedSeason } = useSeason();
-  const { profile } = useAuth();
+  const { profile, organization } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifications, setNotifications] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -37,10 +37,11 @@ export function NotificationsPage({ showToast }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      // Load notifications (last 100)
+      // Load notifications (last 100, scoped to organization)
       const { data: notifData } = await supabase
         .from('notifications')
         .select('*, profiles:user_id(full_name, email)')
+        .eq('organization_id', organization?.id)
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -56,10 +57,11 @@ export function NotificationsPage({ showToast }) {
         read: all.filter(n => n.is_read).length,
       });
 
-      // Load templates
+      // Load templates (scoped to organization)
       const { data: tmplData } = await supabase
         .from('notification_templates')
         .select('*')
+        .eq('organization_id', organization?.id)
         .order('trigger_event');
 
       setTemplates(tmplData || []);

@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { sanitizeText } from '../../lib/validation'
 import { 
   Megaphone, DollarSign, Calendar, Clock, Users, Check, X
 } from '../../constants/icons'
@@ -332,11 +333,17 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   }
 
   async function handleSend() {
-    if (!form.title.trim() || !form.body.trim()) {
+    const cleanTitle = sanitizeText(form.title)
+    const cleanBody = sanitizeText(form.body)
+    if (!cleanTitle || !cleanBody) {
       showToast?.('Please fill in all fields', 'error')
       return
     }
-    
+    if (cleanTitle.length > 200) {
+      showToast?.('Title must be 200 characters or less', 'error')
+      return
+    }
+
     setSending(true)
     try {
       // Create the message/blast
@@ -345,8 +352,8 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
         .insert({
           season_id: selectedSeason.id,
           sender_id: user?.id,
-          title: form.title.trim(),
-          body: form.body.trim(),
+          title: cleanTitle,
+          body: cleanBody,
           message_type: form.message_type,
           priority: form.priority,
           target_type: form.target_type,
