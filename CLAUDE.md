@@ -166,7 +166,7 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 **Payments**: payments, payment_plans, payment_plan_installments, registration_fees
 **Chat**: chat_channels, channel_members, chat_messages, message_attachments, message_reactions
 **Blasts**: messages, message_recipients, announcements, announcement_reads
-**Team Wall**: team_posts, post_reactions (note: web uses 'post_reactions', mobile might use 'team_post_reactions')
+**Team Wall**: team_posts, post_reactions, team_post_comments (comments + threaded replies)
 **Game**: games, game_sets, game_stats, game_lineups, game_lineup_players
 **Jerseys**: jerseys, jersey_assignments, jersey_change_requests
 **Waivers**: waivers, waiver_signatures
@@ -176,7 +176,7 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 
 ## KNOWN ISSUES
 
-1. **No URL routing** — useState page switching, no bookmarks, no browser back/forward
+1. ~~**No URL routing**~~ — RESOLVED in Phase 1 Sprint 1.1 (react-router-dom)
 2. **RLS disabled** — Security concern for production
 3. **SchedulePage.jsx is 4,200 lines** — needs splitting into components
 4. **OrganizationPage.jsx is 2,400 lines** — needs splitting into tabs
@@ -184,10 +184,29 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 6. **InviteFriendsPage.jsx is 84 lines** — stub/placeholder
 7. **src_backup/ folder** in repo — should be removed
 8. **90MB supabase.exe** in repo — should be gitignored
-9. **post_reactions vs team_post_reactions** — web uses 'post_reactions' table name, verify which actually exists in Supabase
-10. **Toast.jsx is 28 lines** — minimal implementation, needs upgrade
+9. ~~**post_reactions vs team_post_reactions**~~ — RESOLVED: web uses 'post_reactions' (confirmed)
+10. ~~**Toast.jsx is 28 lines**~~ — RESOLVED in Phase 1 Sprint 1.2 (stacking, animations, progress bar)
 
-## PHASE 1 TASK: URL ROUTING
+## COMPLETED PHASES
 
-The immediate priority is implementing react-router-dom to replace useState page switching.
+### Phase 1: Foundation (Sprints 1.1–1.3)
+- Sprint 1.1: react-router-dom URL routing for all 25+ pages
+- Sprint 1.2: Skeleton loading, Toast upgrade, Error Boundaries
+- Sprint 1.3: Breadcrumb navigation, Cmd/Ctrl+K command palette
+
+### Phase 2: Team Hub Parity (Sprints 2.1–2.4)
+- Sprint 2.1: CommentSection (inline comments, threaded replies, expand/collapse)
+- Sprint 2.2: Emoji reaction picker (👍❤️🔥🏐⭐👏) replacing simple like toggle
+- Sprint 2.3: Photo gallery (Supabase Storage upload, grid, lightbox with download)
+- Sprint 2.4: Cover photo upload, post pinning, three-dot menu (edit/delete/pin)
+
+### New Components
+- `src/components/ui/Skeleton.jsx` — Shimmer loading components
+- `src/components/ui/ErrorBoundary.jsx` — React error boundary
+- `src/components/ui/Breadcrumb.jsx` — URL-based breadcrumb nav
+- `src/components/ui/CommandPalette.jsx` — Cmd/Ctrl+K quick nav
+- `src/components/teams/CommentSection.jsx` — Post comments with threading
+- `src/components/teams/ReactionBar.jsx` — Multi-emoji reaction picker
+- `src/components/teams/PhotoGallery.jsx` — Photo grid + Lightbox viewer
+
 See WEB_BETA_GAMEPLAN.md for the full phased plan.
