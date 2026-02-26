@@ -1111,11 +1111,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const activeChildUnpaid = paymentSummary.unpaidItems.filter(p => p.player_id === activeChild?.id)
 
   return (
-    <div className="space-y-5" data-tutorial="dashboard-header">
+    <div data-tutorial="dashboard-header">
 
       {/* ═══ ORG BRANDING HEADER ═══ */}
       {hasCustomBranding && orgLogo && (
-        <div className="flex items-center gap-3 mb-1">
+        <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm" style={{ border: `2px solid ${orgAccent}30` }}>
             <img src={orgLogo} alt={orgName} className="w-full h-full object-cover" />
           </div>
@@ -1125,6 +1125,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           </div>
         </div>
       )}
+
+      {/* 2-COLUMN LAYOUT */}
+      <div className="flex gap-6">
+
+      {/* CENTER CONTENT */}
+      <div className="flex-1 min-w-0 space-y-5">
 
       {/* ═══ WELCOME HERO + MY STUFF ═══ */}
       <div className={`rounded-2xl p-5 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'}`}>
@@ -1852,6 +1858,152 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       >
         📣 Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>
+
+      </div>{/* END CENTER CONTENT */}
+
+      {/* ═══ RIGHT SIDEBAR (320px) ═══ */}
+      <div className="hidden lg:block w-[320px] shrink-0 space-y-4">
+
+        {/* Payment Summary */}
+        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl shadow-sm overflow-hidden`}>
+          <div className={`p-4 border-b ${tc.border}`}>
+            <div className="flex items-center gap-2">
+              <DollarSign className={`w-4 h-4 ${tc.textMuted}`} />
+              <span className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>Payment Summary</span>
+            </div>
+          </div>
+          <div className="p-4">
+            {paymentSummary.totalDue > 0 ? (
+              <>
+                <p className="text-2xl font-black text-red-500">${paymentSummary.totalDue.toFixed(2)}</p>
+                <p className={`text-xs ${tc.textMuted} mt-1`}>Total balance due</p>
+                {paymentSummary.totalPaid > 0 && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className={tc.textMuted}>Paid</span>
+                      <span className="text-emerald-500 font-bold">${paymentSummary.totalPaid.toFixed(2)}</span>
+                    </div>
+                    <div className={`w-full h-2 rounded-full ${isDark ? 'bg-white/[0.05]' : 'bg-slate-100'}`}>
+                      <div
+                        className="h-2 rounded-full bg-emerald-500 transition-all duration-500"
+                        style={{ width: `${Math.min(100, (paymentSummary.totalPaid / (paymentSummary.totalDue + paymentSummary.totalPaid)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowPaymentModal(true)}
+                  className="w-full mt-3 py-2.5 rounded-xl text-sm font-bold text-white transition hover:brightness-110"
+                  style={{ backgroundColor: 'var(--accent-primary)' }}
+                >
+                  Make Payment
+                </button>
+              </>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-emerald-500 font-bold text-lg">All Paid Up ✅</p>
+                <p className={`text-xs ${tc.textMuted} mt-1`}>No outstanding balance</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Links */}
+        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl shadow-sm`}>
+          <div className="p-4">
+            <span className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>Quick Links</span>
+            <div className="mt-3 space-y-1">
+              {[
+                { label: 'My Stuff', icon: '👤', action: () => onNavigate?.('my-stuff') },
+                { label: 'Team Hub', icon: '👥', action: () => navigateToTeamWall?.(activeTeam?.id) },
+                { label: 'Full Calendar', icon: '📅', action: () => onNavigate?.('schedule') },
+                { label: 'Achievements', icon: '🏆', action: () => onNavigate?.('achievements') },
+              ].map(link => (
+                <button
+                  key={link.label}
+                  onClick={link.action}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                    isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="text-lg">{link.icon}</span>
+                  <span className={`text-sm font-medium ${tc.text}`}>{link.label}</span>
+                  <ChevronRight className={`w-4 h-4 ml-auto ${tc.textMuted}`} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Achievements Preview */}
+        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl shadow-sm`}>
+          <div className={`p-4 border-b ${tc.border}`}>
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>Achievements</span>
+              <button onClick={() => onNavigate('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:underline">
+                View All →
+              </button>
+            </div>
+          </div>
+          <div className="p-4">
+            {playerBadges.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {playerBadges.slice(0, 3).map((b, i) => {
+                  const def = BADGE_DEFS[b.badge_id] || { name: b.badge_id, icon: '🏅', color: '#6B7280', rarity: 'Common' }
+                  return (
+                    <div key={i} className="flex flex-col items-center gap-1.5">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                        style={{ background: `${def.color}20`, border: `2px solid ${def.color}40` }}
+                      >
+                        {def.icon}
+                      </div>
+                      <span className={`text-[10px] font-bold ${tc.textMuted} text-center max-w-[60px] leading-tight`}>{def.name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className={`text-sm text-center ${tc.textMuted} py-2`}>No badges earned yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Team Record */}
+        {teamRecord && (
+          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl shadow-sm`}>
+            <div className={`p-4 border-b ${tc.border}`}>
+              <span className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>Season Record</span>
+            </div>
+            <div className="p-4">
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-black text-emerald-500">{teamRecord.wins || 0}</div>
+                  <div className={`text-[10px] uppercase font-bold ${tc.textMuted}`}>Wins</div>
+                </div>
+                <div className={`text-xl font-bold ${tc.textMuted}`}>-</div>
+                <div className="text-center">
+                  <div className="text-2xl font-black text-red-500">{teamRecord.losses || 0}</div>
+                  <div className={`text-[10px] uppercase font-bold ${tc.textMuted}`}>Losses</div>
+                </div>
+              </div>
+              <p className={`text-xs text-center mt-2 ${tc.textMuted}`}>{activeTeam?.name}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Checklist Progress */}
+        <div className="hidden lg:block">
+          <ParentChecklistWidget
+            onNavigate={onNavigate}
+            onTeamHub={() => navigateToTeamWall?.(activeTeam?.id)}
+            activeTeam={activeTeam}
+            compact
+          />
+        </div>
+      </div>{/* END RIGHT SIDEBAR */}
+
+      </div>{/* END 2-COLUMN LAYOUT */}
 
       {/* ═══ MODALS ═══ */}
       {selectedEventDetail && (
