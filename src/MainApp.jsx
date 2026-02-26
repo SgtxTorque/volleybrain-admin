@@ -111,9 +111,9 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
-          isActive 
-            ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]' 
-            : `${isDark ? 'text-slate-300 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-black/[0.04]'}`
+          isActive
+            ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
+            : 'text-slate-300 hover:text-white hover:bg-white/10'
         }`}
       >
         {label}
@@ -269,8 +269,8 @@ function NotificationDropdown({ tc, organization, isDark }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className={`relative p-2 rounded-xl transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/[0.05]'}`}>
-        <Bell className={`w-5 h-5 ${isDark ? 'text-white' : 'text-slate-700'}`} />
+      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-xl transition hover:bg-white/10">
+        <Bell className="w-5 h-5 text-white" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold"
             style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
@@ -383,13 +383,13 @@ function UserProfileDropdown({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button className={`flex items-center gap-2 px-2 py-1.5 rounded-xl transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/[0.05]'}`}
+      <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl transition hover:bg-white/10"
         onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}>
         <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden border-2 shadow-sm"
-          style={{ 
-            background: profile?.photo_url ? 'transparent' : accent.primary, 
+          style={{
+            background: profile?.photo_url ? 'transparent' : accent.primary,
             color: '#000',
-            borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+            borderColor: 'rgba(255,255,255,0.15)',
           }}>
           {profile?.photo_url ? (
             <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
@@ -397,8 +397,8 @@ function UserProfileDropdown({
             profile?.full_name?.charAt(0) || '?'
           )}
         </div>
-        <span className={`text-sm font-medium hidden sm:block ${isDark ? 'text-white' : 'text-slate-700'}`}>{getDisplayName()}</span>
-        <ChevronDown className={`w-4 h-4 transition-transform ${isDark ? 'text-white/70' : 'text-slate-400'} ${showRoleSwitcher ? 'rotate-180' : ''}`} />
+        <span className="text-sm font-medium hidden sm:block text-white">{getDisplayName()}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform text-white/70 ${showRoleSwitcher ? 'rotate-180' : ''}`} />
       </button>
 
       {showRoleSwitcher && (
@@ -1609,18 +1609,14 @@ function HorizontalNavBar({
   }
 
   return (
-    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1440px] rounded-2xl transition-all duration-300 ${
-      isDark
-        ? 'bg-slate-900/85 backdrop-blur-xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
-        : 'bg-white/85 backdrop-blur-xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_12px_24px_rgba(0,0,0,0.04)]'
-    }`}>
+    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1440px] rounded-2xl transition-all duration-300 bg-slate-800 border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.3)]`}>
       
       {/* LEFT: Logo */}
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg" style={{ backgroundColor: accent.primary }}>
           <VolleyballIcon className="w-5 h-5 text-white" />
         </div>
-        <span className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>Volley<span className={isDark ? 'text-slate-400' : 'text-slate-400'}>Brain</span></span>
+        <span className="font-bold text-lg text-white">Volley<span className="text-slate-400">Brain</span></span>
       </div>
 
       {/* CENTER: Navigation */}
@@ -1631,13 +1627,9 @@ function HorizontalNavBar({
             return (
               <button key={item.id} onClick={() => handleNavigate(item.id)}
                 className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                  isActive 
-                    ? (isDark 
-                        ? 'bg-white/15 text-white shadow-inner-light' 
-                        : 'bg-black/[0.07] text-slate-900 shadow-soft-sm')
-                    : (isDark 
-                        ? 'text-slate-300 hover:text-white hover:bg-white/10' 
-                        : 'text-slate-500 hover:text-slate-800 hover:bg-black/[0.04]')
+                  isActive
+                    ? 'bg-white/15 text-white shadow-inner-light'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}>
                 {item.label}
               </button>
@@ -1663,7 +1655,7 @@ function HorizontalNavBar({
               className={`relative p-2 rounded-xl transition ${
                 page === 'platform-analytics'
                   ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                  : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+                  : 'hover:bg-white/10 text-slate-300'
               }`}
             >
               <BarChart3 className="w-5 h-5" />
@@ -1674,7 +1666,7 @@ function HorizontalNavBar({
               className={`relative p-2 rounded-xl transition ${
                 page === 'platform-subscriptions'
                   ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                  : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+                  : 'hover:bg-white/10 text-slate-300'
               }`}
             >
               <CreditCard className="w-5 h-5" />
@@ -1685,7 +1677,7 @@ function HorizontalNavBar({
               className={`relative p-2 rounded-xl transition ${
                 page === 'platform-admin'
                   ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                  : isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-black/[0.05] text-slate-500'
+                  : 'hover:bg-white/10 text-slate-300'
               }`}
             >
               <Shield className="w-5 h-5" />
