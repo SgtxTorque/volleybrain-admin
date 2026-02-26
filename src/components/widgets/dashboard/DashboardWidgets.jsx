@@ -7,40 +7,73 @@ import { supabase } from '../../../lib/supabase'
 import { getPathForPage } from '../../../lib/routes'
 import {
   ClipboardList, DollarSign, Calendar, Users, AlertTriangle,
-  Activity, ChevronRight, Clock, TrendingUp, MapPin, CheckCircle
+  Activity, ChevronRight, Clock, TrendingUp, MapPin, CheckCircle,
+  MoreHorizontal, CreditCard, AlertCircle
 } from 'lucide-react'
 import { VolleyballIcon } from '../../../constants/icons'
 
 // ============================================
-// SHARED WIDGET CARD
+// SHARED — iOS-style glassmorphism card
 // ============================================
 function WCard({ children, className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`h-full rounded-2xl overflow-hidden ${isDark
-      ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
-      : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
-    } ${className}`}>
+    <div className={`
+      h-full rounded-2xl overflow-hidden transition-all duration-300
+      ${isDark
+        ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
+        : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
+      } ${className}
+    `}>
       {children}
     </div>
   )
 }
 
-function WHeader({ title, icon: Icon, color = '#3B82F6', action, onAction }) {
+// Gradient color map matching original CardHeader
+const GRADIENT_MAP = {
+  blue:   'bg-gradient-to-r from-blue-500 to-blue-600',
+  green:  'bg-gradient-to-r from-emerald-500 to-emerald-600',
+  purple: 'bg-gradient-to-r from-purple-500 to-purple-600',
+  orange: 'bg-gradient-to-r from-orange-500 to-orange-600',
+  red:    'bg-gradient-to-r from-red-500 to-red-600',
+  teal:   'bg-gradient-to-r from-teal-500 to-teal-600',
+  indigo: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+  slate:  'bg-gradient-to-r from-slate-500 to-slate-600',
+  cyan:   'bg-gradient-to-r from-cyan-500 to-cyan-600',
+}
+
+// Card header with colored gradient accent bar
+function WHeader({ title, icon: Icon, color = 'blue', action, onAction, children }) {
   const { isDark } = useTheme()
+  const gradient = GRADIENT_MAP[color] || GRADIENT_MAP.blue
+
   return (
     <div className={`border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-      <div className="h-1" style={{ background: color }} />
-      <div className="flex items-center justify-between px-4 py-2.5">
+      {/* Colored accent bar */}
+      <div className={`h-1 ${gradient}`} />
+
+      {/* Header content */}
+      <div className="flex items-center justify-between px-5 py-3">
         <div className="flex items-center gap-2">
-          {Icon && <Icon className="w-4 h-4" style={{ color }} />}
-          <h3 className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
+          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />}
+          <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
         </div>
-        {action && (
-          <button onClick={onAction} className="text-xs px-2.5 py-1 rounded-lg font-medium text-white hover:brightness-110 transition" style={{ background: color }}>
-            {action} <ChevronRight className="w-3 h-3 inline" />
+        <div className="flex items-center gap-2">
+          {children}
+          {action && (
+            <button
+              onClick={onAction}
+              className={`text-xs px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1 ${gradient} text-white hover:brightness-110`}
+            >
+              {action}
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          )}
+          <button className={`p-1 rounded-xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
           </button>
-        )}
+        </div>
       </div>
     </div>
   )
@@ -49,11 +82,126 @@ function WHeader({ title, icon: Icon, color = '#3B82F6', action, onAction }) {
 function WLoading() {
   const { isDark } = useTheme()
   return (
-    <div className={`p-4 space-y-3 animate-pulse`}>
+    <div className="p-5 space-y-3 animate-pulse">
       <div className={`h-4 w-24 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
       <div className={`h-8 w-16 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
       <div className={`h-3 w-32 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
     </div>
+  )
+}
+
+// ============================================
+// DONUT CHART — matches original RegistrationDonut
+// ============================================
+function DonutChart({ data, total, size = 120 }) {
+  const { isDark } = useTheme()
+  const radius = (size - 16) / 2
+  const circumference = 2 * Math.PI * radius
+  let currentOffset = 0
+
+  return (
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        {data.map((segment, i) => {
+          const segmentLength = total > 0 ? (segment.value / total) * circumference : 0
+          const offset = currentOffset
+          currentOffset += segmentLength
+          return (
+            <circle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth="14"
+              strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+              strokeDashoffset={-offset}
+              className="transition-all duration-500"
+            />
+          )
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{total.toLocaleString()}</span>
+        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total</span>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// MINI LINE CHART — matches original MiniLineChart
+// ============================================
+function MiniLineChart({ data, width = 260, height = 100, color = '#8B5CF6' }) {
+  const { isDark } = useTheme()
+  if (!data || data.length === 0) return null
+
+  const maxValue = Math.max(...data.map(d => d.value || 0), 1) * 1.2
+  const minValue = 0
+  const range = maxValue - minValue || 1
+
+  const points = data.map((d, i) => {
+    const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+    const y = height - ((d.value - minValue) / range) * height
+    return `${x},${isNaN(y) ? height : y}`
+  }).join(' ')
+
+  return (
+    <svg width={width} height={height} className="overflow-visible w-full">
+      {/* Grid lines */}
+      {[0, 1, 2, 3].map(i => (
+        <line
+          key={i}
+          x1="0"
+          y1={height - (i / 3) * height}
+          x2={width}
+          y2={height - (i / 3) * height}
+          stroke={isDark ? '#334155' : '#E2E8F0'}
+          strokeWidth="1"
+        />
+      ))}
+
+      {/* Line */}
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Data points */}
+      {data.map((d, i) => {
+        const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+        const rawY = height - ((d.value - minValue) / range) * height
+        const y = isNaN(rawY) ? height : rawY
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r="4" fill={color} />
+            {i === data.length - 1 && (
+              <g>
+                <rect x={x - 30} y={y - 30} width="60" height="22" rx="4" fill={color} />
+                <text x={x} y={y - 15} textAnchor="middle" fill="white" fontSize="11" fontWeight="600">
+                  {d.value || 0}%
+                </text>
+              </g>
+            )}
+          </g>
+        )
+      })}
+
+      {/* X-axis labels */}
+      {data.map((d, i) => {
+        const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+        return (
+          <text key={`l${i}`} x={x} y={height + 16} textAnchor="middle" fill={isDark ? '#64748B' : '#94A3B8'} fontSize="10">
+            {d.label}
+          </text>
+        )
+      })}
+    </svg>
   )
 }
 
@@ -98,65 +246,74 @@ export function RegistrationStatsWidget() {
       const pending = players?.filter(p => ['pending', 'submitted', 'new'].includes(p.status)).length || 0
       const approved = players?.filter(p => p.status === 'approved').length || 0
       const denied = players?.filter(p => p.status === 'withdrawn').length || 0
+      const waitlisted = players?.filter(p => p.status === 'waitlisted').length || 0
+      const unrostered = Math.max(0, total - rostered - pending - waitlisted - denied)
 
-      setData({ total, pending, approved, rostered, denied })
+      setData({ total, pending, approved, rostered, denied, waitlisted, unrostered })
     } catch (e) { console.error(e) }
     setLoading(false)
   }
 
-  const chartSize = 100
-  const radius = 38
-  const circ = 2 * Math.PI * radius
-
   return (
     <WCard>
-      <WHeader title="Registration Stats" icon={ClipboardList} color="#3B82F6" action="View All" onAction={() => navigate(getPathForPage('registrations'))} />
+      <WHeader title="Registration Stats" icon={ClipboardList} color="blue" action="View All" onAction={() => navigate(getPathForPage('registrations'))} />
       {loading || !data ? <WLoading /> : (
-        <div className="p-4">
-          <div className="flex items-center gap-4">
-            {/* Mini donut */}
-            <div className="relative shrink-0" style={{ width: chartSize, height: chartSize }}>
-              <svg width={chartSize} height={chartSize} className="transform -rotate-90">
-                {[
-                  { value: data.pending, color: '#F59E0B' },
-                  { value: data.approved, color: '#3B82F6' },
-                  { value: data.rostered, color: '#10B981' },
-                  { value: data.denied, color: '#EF4444' },
-                ].reduce((acc, seg) => {
-                  const len = data.total > 0 ? (seg.value / data.total) * circ : 0
-                  acc.elements.push(
-                    <circle key={seg.color} cx={chartSize/2} cy={chartSize/2} r={radius} fill="none"
-                      stroke={seg.color} strokeWidth="12"
-                      strokeDasharray={`${len} ${circ - len}`}
-                      strokeDashoffset={-acc.offset} />
-                  )
-                  acc.offset += len
-                  return acc
-                }, { elements: [], offset: 0 }).elements}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.total}</span>
-                <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total</span>
-              </div>
+        <div className="p-5">
+          {/* Main Stats Row */}
+          <div className="flex items-stretch gap-4 mb-5">
+            <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.total}</p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total Registrations</p>
             </div>
-            {/* Breakdown */}
-            <div className="flex-1 space-y-1.5 text-sm">
+            <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+              <p className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                {data.rostered}
+                <span className={`text-lg ${isDark ? 'text-emerald-500' : 'text-emerald-400'}`}>/{data.total}</span>
+              </p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Rostered</p>
+            </div>
+          </div>
+
+          {/* Chart and Breakdown */}
+          <div className="flex items-start gap-6">
+            <DonutChart
+              data={[
+                { value: data.pending, color: '#F59E0B' },
+                { value: data.unrostered, color: '#3B82F6' },
+                { value: data.rostered, color: '#10B981' },
+                { value: data.waitlisted, color: '#8B5CF6' },
+                { value: data.denied, color: '#EF4444' },
+              ]}
+              total={data.total}
+            />
+
+            <div className="flex-1 space-y-2.5">
               {[
-                { label: 'Pending', value: data.pending, color: '#F59E0B' },
-                { label: 'Approved', value: data.approved, color: '#3B82F6' },
-                { label: 'Rostered', value: data.rostered, color: '#10B981' },
-                { label: 'Denied', value: data.denied, color: '#EF4444' },
+                { label: 'Pending Review', value: data.pending, color: '#F59E0B' },
+                { label: 'Approved (Unrostered)', value: data.unrostered, color: '#3B82F6' },
+                { label: 'On Roster', value: data.rostered, color: '#10B981' },
+                { label: 'Waitlisted', value: data.waitlisted, color: '#8B5CF6' },
+                { label: 'Denied/Withdrawn', value: data.denied, color: '#EF4444' },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />
-                    <span className={isDark ? 'text-slate-300' : 'text-slate-600'}>{r.label}</span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: r.color }} />
+                    <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{r.label}</span>
                   </div>
-                  <span className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{r.value}</span>
+                  <span className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{r.value}</span>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Action Button */}
+          <button
+            onClick={() => navigate(getPathForPage('registrations'))}
+            className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-xl hover:brightness-110 transition flex items-center justify-center gap-2"
+          >
+            View Registrations
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </WCard>
@@ -190,50 +347,83 @@ export function PaymentSummaryWidget() {
       const collected = paid.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
       const expected = payments?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0
       const overdue = unpaid.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+      const paidOnline = paid.filter(p => p.payment_method === 'stripe').reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+      const paidManual = paid.filter(p => p.payment_method !== 'stripe').reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
 
-      // Recent 5
-      const recent = paid.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3)
-
-      setData({ collected, expected, overdue, recent })
+      setData({ collected, expected, overdue, paidOnline, paidManual })
     } catch (e) { console.error(e) }
     setLoading(false)
   }
 
-  const pct = data && data.expected > 0 ? Math.round((data.collected / data.expected) * 100) : 0
+  const chartData = data ? [
+    { value: data.paidOnline || 0, color: '#3B82F6' },
+    { value: data.paidManual || 0, color: '#F59E0B' },
+    { value: data.overdue || 0, color: '#94A3B8' },
+  ] : []
+  const chartTotal = chartData.reduce((sum, d) => sum + d.value, 0)
 
   return (
     <WCard>
-      <WHeader title="Payment Summary" icon={DollarSign} color="#10B981" action="View All" onAction={() => navigate(getPathForPage('payments'))} />
+      <WHeader title="Financial Summary" icon={DollarSign} color="green" action="View All" onAction={() => navigate(getPathForPage('payments'))}>
+        <button className={`p-1 rounded-xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+          <Users className="w-4 h-4 text-slate-400" />
+        </button>
+      </WHeader>
       {loading || !data ? <WLoading /> : (
-        <div className="p-4 space-y-3">
-          <div>
-            <span className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>${data.collected.toLocaleString()}</span>
-            <span className={`text-sm ml-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>/ ${data.expected.toLocaleString()}</span>
+        <div className="p-5">
+          {/* Main Total */}
+          <div className="mb-6">
+            <span className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              ${data.collected.toLocaleString()}
+            </span>
+            <span className={`text-lg ml-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Collected YTD</span>
           </div>
-          {/* Progress bar */}
-          <div>
-            <div className="flex justify-between text-xs mb-1">
-              <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{pct}% collected</span>
-              <span className={`font-medium ${data.overdue > 0 ? 'text-red-400' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
-                {data.overdue > 0 ? `$${data.overdue.toLocaleString()} overdue` : 'All paid'}
-              </span>
-            </div>
-            <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-              <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
-            </div>
-          </div>
-          {/* Recent payments */}
-          {data.recent.length > 0 && (
-            <div className="space-y-1.5 pt-1">
-              <p className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Recent</p>
-              {data.recent.map((p, i) => (
-                <div key={i} className={`flex justify-between text-xs py-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  <span>{new Date(p.created_at).toLocaleDateString()}</span>
-                  <span className="font-semibold">${parseFloat(p.amount).toFixed(0)}</span>
+
+          {/* Chart and Breakdown */}
+          <div className="flex items-center gap-6">
+            <DonutChart data={chartData} total={chartTotal} size={140} />
+
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                  <Clock className="w-4 h-4 text-slate-500" />
                 </div>
-              ))}
+                <div>
+                  <span className={`font-bold ${isDark ? 'text-orange-400' : 'text-orange-500'}`}>${data.overdue.toLocaleString()}</span>
+                  <span className="text-slate-500 ml-2">Past Due</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                  <CreditCard className="w-4 h-4 text-slate-500" />
+                </div>
+                <div>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>${data.paidOnline.toLocaleString()}</span>
+                  <span className="text-slate-500 ml-2">via Stripe</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-amber-500/20' : 'bg-amber-100'}`}>
+                  <DollarSign className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>${data.paidManual.toLocaleString()}</span>
+                  <span className="text-slate-500 ml-2">Manual</span>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={() => navigate(getPathForPage('payments'))}
+            className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-xl hover:brightness-110 transition flex items-center justify-center gap-2"
+          >
+            View Payments
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </WCard>
@@ -283,43 +473,75 @@ export function UpcomingEventsWidget() {
     return `${hr % 12 || 12}:${m}${hr >= 12 ? 'PM' : 'AM'}`
   }
 
-  const typeColors = { practice: '#10B981', game: '#F59E0B', tournament: '#8B5CF6', team_event: '#3B82F6' }
+  // Group events by date
+  const groupedEvents = events.reduce((groups, event) => {
+    const date = event.event_date
+    if (!groups[date]) groups[date] = []
+    groups[date].push(event)
+    return groups
+  }, {})
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr)
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`
+  }
 
   return (
     <WCard>
-      <WHeader title="Upcoming Events" icon={Calendar} color="#F59E0B" action="View All" onAction={() => navigate(getPathForPage('schedule'))} />
-      {loading ? <WLoading /> : (
-        <div className="p-3 space-y-1.5">
-          {events.length === 0 ? (
-            <div className="text-center py-6">
-              <Calendar className={`w-10 h-10 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No upcoming events</p>
+      <WHeader title="Upcoming Events" icon={Calendar} color="orange" action="View All" onAction={() => navigate(getPathForPage('schedule'))} />
+      <div className="p-5 space-y-4">
+        {Object.keys(groupedEvents).length === 0 ? (
+          <div className="text-center py-8">
+            <Calendar className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+            <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No upcoming events</p>
+          </div>
+        ) : (
+          Object.entries(groupedEvents).slice(0, 3).map(([date, dateEvents]) => (
+            <div key={date}>
+              <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>{formatDate(date)}</p>
+              {dateEvents.map((event, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-2 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
+                  onClick={() => navigate(getPathForPage('schedule'))}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: event.teams?.color || '#3B82F6' }}
+                  >
+                    <VolleyballIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{event.teams?.name || event.title}</p>
+                    <p className={`text-sm flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <span>{fmtTime(event.event_time)}</span>
+                      {event.location && (
+                        <>
+                          <span>·</span>
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">{event.location}</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{fmtTime(event.event_time)}</span>
+                </div>
+              ))}
             </div>
-          ) : events.map(e => (
-            <div key={e.id} className={`flex items-center gap-3 p-2.5 rounded-xl transition cursor-pointer ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
-              onClick={() => navigate(getPathForPage('schedule'))}>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                style={{ backgroundColor: e.teams?.color || typeColors[e.event_type] || '#6B7280' }}>
-                <VolleyballIcon className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                  {e.title || e.event_type}
-                </p>
-                <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {new Date(e.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  {e.event_time && ` · ${fmtTime(e.event_time)}`}
-                  {e.teams?.name && ` · ${e.teams.name}`}
-                </p>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold capitalize"
-                style={{ backgroundColor: (typeColors[e.event_type] || '#6B7280') + '20', color: typeColors[e.event_type] || '#6B7280' }}>
-                {e.event_type}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+
+        {/* View All Link */}
+        <button
+          onClick={() => navigate(getPathForPage('schedule'))}
+          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+        >
+          View All Events
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
     </WCard>
   )
 }
@@ -345,7 +567,6 @@ export function AttendanceTrendsWidget() {
       const teamIds = teams?.map(t => t.id) || []
       if (teamIds.length === 0) { setData([]); setLoading(false); return }
 
-      // Get last 10 completed events
       const { data: events } = await supabase.from('schedule_events')
         .select('id, event_date, title, event_type')
         .in('team_id', teamIds)
@@ -358,7 +579,6 @@ export function AttendanceTrendsWidget() {
       const eventIds = events.map(e => e.id)
       const { data: rsvps } = await supabase.from('event_rsvps').select('event_id, status').in('event_id', eventIds)
 
-      // Get roster size
       const { data: tp } = await supabase.from('team_players').select('player_id').in('team_id', teamIds)
       const rosterSize = new Set(tp?.map(t => t.player_id) || []).size || 1
 
@@ -373,37 +593,27 @@ export function AttendanceTrendsWidget() {
     setLoading(false)
   }
 
-  const w = 260, h = 80
-  const maxVal = Math.max(...data.map(d => d.value), 1) * 1.2
-
   return (
     <WCard>
-      <WHeader title="Attendance Trends" icon={TrendingUp} color="#8B5CF6" action="View" onAction={() => navigate(getPathForPage('attendance'))} />
+      <WHeader title="Attendance Trends" icon={TrendingUp} color="purple" action="View" onAction={() => navigate(getPathForPage('attendance'))}>
+        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'text-slate-400 bg-white/[0.06]' : 'text-slate-500 bg-slate-100'}`}>Last {data.length || 10}</span>
+      </WHeader>
       {loading ? <WLoading /> : (
-        <div className="p-4">
+        <div className="p-5">
           {data.length === 0 ? (
-            <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No attendance data yet</p>
+            <div className="text-center py-6">
+              <TrendingUp className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No attendance data yet</p>
+            </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>RSVP % over last {data.length} events</span>
-                <span className={`text-lg font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{data[data.length - 1]?.value || 0}%</span>
+              <div className="flex items-center justify-between mb-4">
+                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>RSVP % over last {data.length} events</span>
+                <span className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{data[data.length - 1]?.value || 0}%</span>
               </div>
-              <svg width={w} height={h} className="overflow-visible w-full">
-                {[0, 1, 2].map(i => (
-                  <line key={i} x1="0" y1={h - (i / 2) * h} x2={w} y2={h - (i / 2) * h}
-                    stroke={isDark ? '#334155' : '#E2E8F0'} strokeWidth="1" />
-                ))}
-                <polyline
-                  points={data.map((d, i) => `${data.length === 1 ? w / 2 : (i / (data.length - 1)) * w},${h - (d.value / maxVal) * h}`).join(' ')}
-                  fill="none" stroke="#8B5CF6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                />
-                {data.map((d, i) => {
-                  const x = data.length === 1 ? w / 2 : (i / (data.length - 1)) * w
-                  const y = h - (d.value / maxVal) * h
-                  return <circle key={i} cx={x} cy={y} r="3" fill="#8B5CF6" />
-                })}
-              </svg>
+              <div className="h-32">
+                <MiniLineChart data={data} width={260} height={100} color="#8B5CF6" />
+              </div>
             </>
           )}
         </div>
@@ -461,25 +671,35 @@ export function TeamHealthWidget() {
 
   return (
     <WCard>
-      <WHeader title="Team Health" icon={Users} color="#06B6D4" action="Teams" onAction={() => navigate(getPathForPage('teams'))} />
+      <WHeader title="Team Health" icon={Users} color="cyan" action="Teams" onAction={() => navigate(getPathForPage('teams'))} />
       {loading ? <WLoading /> : (
-        <div className="p-3 space-y-2">
+        <div className="p-5 space-y-3">
           {teams.length === 0 ? (
-            <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No teams this season</p>
+            <div className="text-center py-6">
+              <Users className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No teams this season</p>
+            </div>
           ) : teams.map(t => (
-            <div key={t.id} className={`p-3 rounded-xl border ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-slate-100'}`}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.color || '#6B7280' }} />
+            <div
+              key={t.id}
+              className={`p-3 rounded-xl cursor-pointer transition ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]' : 'bg-slate-50 hover:bg-slate-100 border border-slate-100'}`}
+              onClick={() => navigate(getPathForPage('teams'))}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: t.color || '#6B7280' }}>
+                  <VolleyballIcon className="w-4 h-4 text-white" />
+                </div>
                 <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t.name}</span>
               </div>
-              <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-4 text-xs pl-11">
                 <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
                   <Users className="w-3 h-3 inline mr-1" />{t.roster}{t.max_players ? `/${t.max_players}` : ''}
                 </span>
                 <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{t.wins}W-{t.losses}L</span>
                 {t.nextEvent && (
                   <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
-                    Next: {new Date(t.nextEvent.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    <Calendar className="w-3 h-3 inline mr-1" />
+                    {new Date(t.nextEvent.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 )}
               </div>
@@ -510,14 +730,12 @@ export function NeedsAttentionWidget() {
     try {
       const result = []
 
-      // Pending registrations
       const { count: pendingRegs } = await supabase.from('players')
         .select('id', { count: 'exact', head: true })
         .eq('season_id', selectedSeason.id)
         .in('status', ['pending', 'submitted', 'new'])
       if (pendingRegs > 0) result.push({ label: 'Pending registrations', count: pendingRegs, color: '#F59E0B', icon: ClipboardList, page: 'registrations' })
 
-      // Overdue payments
       const { data: unpaid } = await supabase.from('payments')
         .select('amount')
         .eq('season_id', selectedSeason.id)
@@ -525,7 +743,6 @@ export function NeedsAttentionWidget() {
       const overdueTotal = unpaid?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0
       if (overdueTotal > 0) result.push({ label: 'Overdue payments', count: `$${overdueTotal.toLocaleString()}`, color: '#EF4444', icon: DollarSign, page: 'payments' })
 
-      // Unsigned waivers
       const { data: waivers } = await supabase.from('waivers')
         .select('id')
         .eq('organization_id', selectedSeason.organization_id)
@@ -550,24 +767,32 @@ export function NeedsAttentionWidget() {
 
   return (
     <WCard>
-      <WHeader title="Needs Attention" icon={AlertTriangle} color="#EF4444" />
+      <WHeader title="Needs Attention" icon={AlertCircle} color="red" />
       {loading ? <WLoading /> : (
-        <div className="p-3">
+        <div className="p-5">
           {items.length === 0 ? (
-            <div className="text-center py-4">
-              <CheckCircle className={`w-10 h-10 mx-auto mb-2 ${isDark ? 'text-emerald-500' : 'text-emerald-400'}`} />
+            <div className="text-center py-6">
+              <CheckCircle className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-emerald-500' : 'text-emerald-400'}`} />
               <p className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>All caught up!</p>
+              <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No action items at this time</p>
             </div>
-          ) : items.map((item, i) => (
-            <div key={i} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-1.5 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
-              onClick={() => navigate(getPathForPage(item.page))}>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.color + '20' }}>
-                <item.icon className="w-4 h-4" style={{ color: item.color }} />
-              </div>
-              <span className={`flex-1 text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{item.label}</span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor: item.color }}>{item.count}</span>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item, i) => (
+                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
+                  onClick={() => navigate(getPathForPage(item.page))}>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.color + '20' }}>
+                    <item.icon className="w-5 h-5" style={{ color: item.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{item.label}</p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: item.color }}>{item.count}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </WCard>
@@ -580,6 +805,7 @@ export function NeedsAttentionWidget() {
 export function RecentActivityWidget() {
   const { selectedSeason } = useSeason()
   const { isDark } = useTheme()
+  const navigate = useNavigate()
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -592,7 +818,6 @@ export function RecentActivityWidget() {
     try {
       const result = []
 
-      // Recent registrations
       const { data: regs } = await supabase.from('players')
         .select('first_name, last_name, status, created_at')
         .eq('season_id', selectedSeason.id)
@@ -601,14 +826,14 @@ export function RecentActivityWidget() {
 
       regs?.forEach(r => {
         result.push({
-          text: `${r.first_name} ${r.last_name} — registration ${r.status}`,
+          name: `${r.first_name} ${r.last_name}`,
+          initials: `${r.first_name?.[0] || ''}${r.last_name?.[0] || ''}`,
+          action: r.status === 'pending' ? 'submitted registration' : `registration ${r.status}`,
           time: r.created_at,
           color: '#3B82F6',
-          icon: '📋'
         })
       })
 
-      // Recent payments
       const { data: pays } = await supabase.from('payments')
         .select('amount, created_at')
         .eq('season_id', selectedSeason.id)
@@ -618,10 +843,12 @@ export function RecentActivityWidget() {
 
       pays?.forEach(p => {
         result.push({
-          text: `Payment received — $${parseFloat(p.amount).toFixed(0)}`,
+          name: 'Payment received',
+          initials: '$',
+          action: 'paid',
+          highlight: `$${parseFloat(p.amount).toFixed(0)}`,
           time: p.created_at,
           color: '#10B981',
-          icon: '💰'
         })
       })
 
@@ -641,20 +868,44 @@ export function RecentActivityWidget() {
 
   return (
     <WCard>
-      <WHeader title="Recent Activity" icon={Activity} color="#6366F1" />
+      <WHeader title="Recent Activity" icon={Clock} color="purple" action="View All" onAction={() => navigate(getPathForPage('registrations'))} />
       {loading ? <WLoading /> : (
-        <div className="p-3 space-y-1">
+        <div className="p-5">
           {activities.length === 0 ? (
-            <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No recent activity</p>
-          ) : activities.map((a, i) => (
-            <div key={i} className={`flex items-start gap-3 py-2 ${i < activities.length - 1 ? `border-b ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}` : ''}`}>
-              <span className="text-base mt-0.5">{a.icon}</span>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{a.text}</p>
-                <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo(a.time)}</p>
-              </div>
+            <div className="text-center py-6">
+              <Activity className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No recent activity</p>
             </div>
-          ))}
+          ) : (
+            <div className="space-y-3">
+              {activities.map((a, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isDark ? 'bg-white/[0.08] text-slate-300' : 'bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600'}`}>
+                    {a.initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{a.name}</span>
+                      {' '}{a.action}
+                      {a.highlight && (
+                        <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}> {a.highlight}</span>
+                      )}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo(a.time)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* View All */}
+          <button
+            onClick={() => navigate(getPathForPage('registrations'))}
+            className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+          >
+            Manage All Tasks
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </WCard>
@@ -693,7 +944,28 @@ export function SeasonOverviewWidget() {
       const collected = payments?.filter(p => p.paid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0
       const expected = payments?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0
 
-      setData({ teams: teamCount || 0, players: playerCount || 0, collected, expected })
+      // Monthly payment data for chart
+      const now = new Date()
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      const monthlyData = []
+      const paidPayments = payments?.filter(p => p.paid) || []
+
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+        const monthPayments = paidPayments.filter(p => {
+          // payments may lack created_at, treat as 0
+          if (!p.created_at) return false
+          const payDate = new Date(p.created_at)
+          return payDate >= monthDate && payDate <= monthEnd
+        })
+        monthlyData.push({
+          label: monthNames[monthDate.getMonth()],
+          value: monthPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        })
+      }
+
+      setData({ teams: teamCount || 0, players: playerCount || 0, collected, expected, monthlyData })
     } catch (e) { console.error(e) }
     setLoading(false)
   }
@@ -702,34 +974,60 @@ export function SeasonOverviewWidget() {
 
   return (
     <WCard>
-      <WHeader title="Season Overview" icon={Calendar} color={accent.primary} action="Manage" onAction={() => navigate(getPathForPage('seasons'))} />
-      {loading || !data ? <WLoading /> : (
-        <div className="p-4 space-y-3">
+      {/* Season header with gradient mountain background — matching original SeasonCard */}
+      <div
+        className="relative px-5 py-4"
+        style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #2C3E50 50%, #34495E 100%)' }}
+      >
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100'%3E%3Cpath fill='%23ffffff' d='M0,100 L100,30 L150,60 L200,20 L280,70 L350,25 L400,80 L400,100 Z'/%3E%3C/svg%3E")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'bottom',
+          }}
+        />
+        <div className="relative flex items-center justify-between">
           <div>
-            <h4 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            <h2 className="text-xl font-bold text-white">
               {selectedSeason?.name || 'Current Season'}
-            </h4>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            </h2>
+            <p className="text-white/70 text-sm mt-0.5">
               {selectedSeason?.start_date && new Date(selectedSeason.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               {selectedSeason?.end_date && ` — ${new Date(selectedSeason.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
             </p>
-            <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full font-bold capitalize ${
-              selectedSeason?.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
-              selectedSeason?.status === 'open' ? 'bg-blue-500/20 text-blue-400' :
-              'bg-slate-500/20 text-slate-400'
+            <span className={`inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded-full font-bold capitalize ${
+              selectedSeason?.status === 'active' ? 'bg-emerald-400/30 text-emerald-300' :
+              selectedSeason?.status === 'open' ? 'bg-blue-400/30 text-blue-300' :
+              'bg-white/20 text-white/80'
             }`}>{selectedSeason?.status || 'draft'}</span>
           </div>
-          {/* Stats row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
-              <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
-              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Teams</p>
-            </div>
-            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
-              <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
-              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Players</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <VolleyballIcon className="w-6 h-6 text-white" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {loading || !data ? <WLoading /> : (
+        <div className="p-5 space-y-4">
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Teams</p>
+            </div>
+            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
+              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Players</p>
+            </div>
+            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+              <p className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{pct}%</p>
+              <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Collected</p>
+            </div>
+          </div>
+
           {/* Collection progress */}
           <div>
             <div className="flex justify-between text-xs mb-1">
@@ -740,6 +1038,26 @@ export function SeasonOverviewWidget() {
               <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: accent.primary }} />
             </div>
           </div>
+
+          {/* Mini chart */}
+          {data.monthlyData?.some(d => d.value > 0) && (
+            <div>
+              <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Monthly Collections</p>
+              <div className="h-28">
+                <MiniLineChart data={data.monthlyData} width={260} height={80} color="#10B981" />
+              </div>
+            </div>
+          )}
+
+          {/* Action Button */}
+          <button
+            onClick={() => navigate(getPathForPage('seasons'))}
+            className="w-full px-4 py-2.5 text-white font-semibold rounded-xl transition hover:brightness-110 flex items-center justify-center gap-2"
+            style={{ backgroundColor: accent.primary }}
+          >
+            Manage Season
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
     </WCard>
