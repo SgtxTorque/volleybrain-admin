@@ -41,145 +41,184 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
 
     try {
       // 1. UNPAID FEES
-      const { data: payments } = await supabase
-        .from('payments')
-        .select('*, players(id, first_name, last_name)')
-        .in('player_id', playerIds)
-        .eq('paid', false)
+      try {
+        const { data: payments, error: paymentsErr } = await supabase
+          .from('payments')
+          .select('*, players(id, first_name, last_name)')
+          .in('player_id', playerIds)
+          .eq('paid', false)
 
-      if (payments) {
-        for (const p of payments) {
-          const isOverdue = p.due_date && new Date(p.due_date) < new Date()
-          allItems.push({
-            id: `payment-${p.id}`,
-            type: 'payment',
-            priority: isOverdue ? PRIORITY.PAYMENT_OVERDUE : PRIORITY.PAYMENT_UPCOMING,
-            title: isOverdue ? 'Payment Overdue' : 'Payment Due',
-            subtitle: `${p.fee_name || p.description || 'Fee'} — ${p.players?.first_name || 'Player'}`,
-            amount: parseFloat(p.amount) || 0,
-            icon: 'dollar',
-            color: isOverdue ? '#EF4444' : '#F59E0B',
-            actionLabel: 'Pay Now',
-            actionType: 'payment',
-            data: p,
-          })
+        if (paymentsErr) {
+          console.warn('PriorityCards: payments query failed:', paymentsErr.message)
+        } else if (payments) {
+          for (const p of payments) {
+            const isOverdue = p.due_date && new Date(p.due_date) < new Date()
+            allItems.push({
+              id: `payment-${p.id}`,
+              type: 'payment',
+              priority: isOverdue ? PRIORITY.PAYMENT_OVERDUE : PRIORITY.PAYMENT_UPCOMING,
+              title: isOverdue ? 'Payment Overdue' : 'Payment Due',
+              subtitle: `${p.fee_name || p.description || 'Fee'} — ${p.players?.first_name || 'Player'}`,
+              amount: parseFloat(p.amount) || 0,
+              icon: 'dollar',
+              color: isOverdue ? '#EF4444' : '#F59E0B',
+              actionLabel: 'Pay Now',
+              actionType: 'payment',
+              data: p,
+            })
+          }
         }
+      } catch (err) {
+        console.warn('PriorityCards: payments fetch error:', err.message)
       }
 
       // 2. UNSIGNED WAIVERS
       if (organizationId) {
-        const { data: waivers } = await supabase
-          .from('waivers')
-          .select('id, title, required')
-          .eq('organization_id', organizationId)
-          .eq('is_active', true)
+        try {
+          const { data: waivers, error: waiversErr } = await supabase
+            .from('waivers')
+            .select('id, name, is_required')
+            .eq('organization_id', organizationId)
+            .eq('is_active', true)
 
-        if (waivers?.length) {
-          const waiverIds = waivers.map(w => w.id)
+          if (waiversErr) {
+            console.warn('PriorityCards: waivers query failed (table/column may not exist):', waiversErr.message)
+          } else if (waivers?.length) {
+            const waiverIds = waivers.map(w => w.id)
 
-          const { data: signatures } = await supabase
-            .from('waiver_signatures')
-            .select('waiver_id, player_id')
-            .in('waiver_id', waiverIds)
-            .in('player_id', playerIds)
+            let signatures = []
+            try {
+              const { data: sigs, error: sigsErr } = await supabase
+                .from('waiver_signatures')
+                .select('waiver_id, player_id')
+                .in('waiver_id', waiverIds)
+                .in('player_id', playerIds)
 
-          const signedSet = new Set(
-            (signatures || []).map(s => `${s.waiver_id}:${s.player_id}`)
-          )
+              if (sigsErr) {
+                console.warn('PriorityCards: waiver_signatures query failed:', sigsErr.message)
+              } else {
+                signatures = sigs || []
+              }
+            } catch (err) {
+              console.warn('PriorityCards: waiver_signatures fetch error:', err.message)
+            }
 
-          for (const waiver of waivers) {
-            for (const child of (children || [])) {
-              const key = `${waiver.id}:${child.id}`
-              if (!signedSet.has(key)) {
-                allItems.push({
-                  id: `waiver-${waiver.id}-${child.id}`,
-                  type: 'waiver',
-                  priority: PRIORITY.WAIVER_UNSIGNED,
-                  title: 'Waiver Needed',
-                  subtitle: `"${waiver.title}" for ${child.first_name}`,
-                  icon: 'file',
-                  color: '#8B5CF6',
-                  actionLabel: 'Sign Now',
-                  actionType: 'waiver',
-                  data: { waiver, player: child },
-                })
+            const signedSet = new Set(
+              signatures.map(s => `${s.waiver_id}:${s.player_id}`)
+            )
+
+            for (const waiver of waivers) {
+              for (const child of (children || [])) {
+                const key = `${waiver.id}:${child.id}`
+                if (!signedSet.has(key)) {
+                  allItems.push({
+                    id: `waiver-${waiver.id}-${child.id}`,
+                    type: 'waiver',
+                    priority: PRIORITY.WAIVER_UNSIGNED,
+                    title: 'Waiver Needed',
+                    subtitle: `"${waiver.name}" for ${child.first_name}`,
+                    icon: 'file',
+                    color: '#8B5CF6',
+                    actionLabel: 'Sign Now',
+                    actionType: 'waiver',
+                    data: { waiver, player: child },
+                  })
+                }
               }
             }
           }
+        } catch (err) {
+          console.warn('PriorityCards: waivers fetch error:', err.message)
         }
       }
 
       // 3. EVENTS WITHOUT RSVP + UPCOMING GAMES
       if (teamIds?.length) {
-        const today = new Date()
-        const in48h = new Date(today.getTime() + 48 * 60 * 60 * 1000)
-        const todayStr = today.toISOString().split('T')[0]
-        const futureStr = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        try {
+          const today = new Date()
+          const todayStr = today.toISOString().split('T')[0]
+          const futureStr = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-        let eventsQuery = supabase
-          .from('schedule_events')
-          .select('*, teams!schedule_events_team_id_fkey(name, color)')
-          .in('team_id', teamIds)
-          .gte('event_date', todayStr)
-          .lte('event_date', futureStr)
-          .order('event_date', { ascending: true })
-          .order('event_time', { ascending: true })
+          let eventsQuery = supabase
+            .from('schedule_events')
+            .select('*, teams!schedule_events_team_id_fkey(name, color)')
+            .in('team_id', teamIds)
+            .gte('event_date', todayStr)
+            .lte('event_date', futureStr)
+            .order('event_date', { ascending: true })
+            .order('event_time', { ascending: true })
 
-        if (seasonId) {
-          eventsQuery = eventsQuery.eq('season_id', seasonId)
-        }
+          if (seasonId) {
+            eventsQuery = eventsQuery.eq('season_id', seasonId)
+          }
 
-        const { data: events } = await eventsQuery
+          const { data: events, error: eventsErr } = await eventsQuery
 
-        if (events?.length) {
-          // Get existing RSVPs for this user
-          const eventIds = events.map(e => e.id)
-          const { data: rsvps } = await supabase
-            .from('event_rsvps')
-            .select('event_id, status')
-            .in('event_id', eventIds)
-            .eq('user_id', user?.id)
+          if (eventsErr) {
+            console.warn('PriorityCards: schedule_events query failed:', eventsErr.message)
+          } else if (events?.length) {
+            // Get existing RSVPs for this user
+            const eventIds = events.map(e => e.id)
+            let rsvps = []
+            try {
+              const { data: rsvpData, error: rsvpErr } = await supabase
+                .from('event_rsvps')
+                .select('event_id, status')
+                .in('event_id', eventIds)
+                .eq('responded_by', user?.id)
 
-          const rsvpMap = new Map((rsvps || []).map(r => [r.event_id, r.status]))
-
-          for (const event of events) {
-            const eventDate = new Date(event.event_date + 'T' + (event.event_time || '00:00'))
-            const hoursUntil = (eventDate - today) / (1000 * 60 * 60)
-            const hasRsvp = rsvpMap.has(event.id)
-            const isGame = event.event_type === 'game'
-
-            // Missing RSVP
-            if (!hasRsvp && event.rsvp_enabled !== false) {
-              allItems.push({
-                id: `rsvp-${event.id}`,
-                type: 'rsvp',
-                priority: PRIORITY.RSVP_MISSING,
-                title: 'RSVP Needed',
-                subtitle: `${event.title || event.event_type} — ${new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`,
-                icon: 'calendar',
-                color: '#3B82F6',
-                actionLabel: 'RSVP',
-                actionType: 'rsvp',
-                data: event,
-              })
+              if (rsvpErr) {
+                console.warn('PriorityCards: event_rsvps query failed (table/column may not exist):', rsvpErr.message)
+              } else {
+                rsvps = rsvpData || []
+              }
+            } catch (err) {
+              console.warn('PriorityCards: event_rsvps fetch error:', err.message)
             }
 
-            // Upcoming game in <48hrs
-            if (isGame && hoursUntil > 0 && hoursUntil <= 48) {
-              allItems.push({
-                id: `game-${event.id}`,
-                type: 'game',
-                priority: hoursUntil <= 24 ? PRIORITY.GAME_UPCOMING_24H : PRIORITY.GAME_UPCOMING_48H,
-                title: hoursUntil <= 24 ? 'Game Day!' : 'Game Tomorrow',
-                subtitle: `${event.opponent ? `vs ${event.opponent}` : event.title || 'Game'} — ${new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}${event.event_time ? ' ' + formatTime12(event.event_time) : ''}`,
-                icon: 'clock',
-                color: hoursUntil <= 24 ? '#EF4444' : '#F59E0B',
-                actionLabel: 'View Details',
-                actionType: 'event-detail',
-                data: event,
-              })
+            const rsvpMap = new Map(rsvps.map(r => [r.event_id, r.status]))
+
+            for (const event of events) {
+              const eventDate = new Date(event.event_date + 'T' + (event.event_time || '00:00'))
+              const hoursUntil = (eventDate - today) / (1000 * 60 * 60)
+              const hasRsvp = rsvpMap.has(event.id)
+              const isGame = event.event_type === 'game'
+
+              // Missing RSVP
+              if (!hasRsvp && event.rsvp_enabled !== false) {
+                allItems.push({
+                  id: `rsvp-${event.id}`,
+                  type: 'rsvp',
+                  priority: PRIORITY.RSVP_MISSING,
+                  title: 'RSVP Needed',
+                  subtitle: `${event.title || event.event_type} — ${new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`,
+                  icon: 'calendar',
+                  color: '#3B82F6',
+                  actionLabel: 'RSVP',
+                  actionType: 'rsvp',
+                  data: event,
+                })
+              }
+
+              // Upcoming game in <48hrs
+              if (isGame && hoursUntil > 0 && hoursUntil <= 48) {
+                allItems.push({
+                  id: `game-${event.id}`,
+                  type: 'game',
+                  priority: hoursUntil <= 24 ? PRIORITY.GAME_UPCOMING_24H : PRIORITY.GAME_UPCOMING_48H,
+                  title: hoursUntil <= 24 ? 'Game Day!' : 'Game Tomorrow',
+                  subtitle: `${event.opponent ? `vs ${event.opponent}` : event.title || 'Game'} — ${new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}${event.event_time ? ' ' + formatTime12(event.event_time) : ''}`,
+                  icon: 'clock',
+                  color: hoursUntil <= 24 ? '#EF4444' : '#F59E0B',
+                  actionLabel: 'View Details',
+                  actionType: 'event-detail',
+                  data: event,
+                })
+              }
             }
           }
+        } catch (err) {
+          console.warn('PriorityCards: events fetch error:', err.message)
         }
       }
 
@@ -187,7 +226,7 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
       allItems.sort((a, b) => b.priority - a.priority)
       setItems(allItems)
     } catch (err) {
-      console.error('PriorityCardsEngine scan error:', err)
+      console.warn('PriorityCardsEngine scan error:', err.message)
     }
 
     setLoading(false)

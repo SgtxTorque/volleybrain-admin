@@ -24,23 +24,29 @@ const ChildStatsWidget = ({ children = [], onViewLeaderboards }) => {
     { key: 'assists', label: 'Assists', icon: '🤝' },
   ];
 
+  // Use child ID as stable dep instead of the children array reference
+  const selectedChild = children[selectedChildIndex];
+  const selectedChildId = selectedChild?.id;
+
   useEffect(() => {
-    if (children.length > 0 && selectedSeason?.id) {
-      fetchChildStats(children[selectedChildIndex]);
+    let cancelled = false;
+
+    if (selectedChildId && selectedSeason?.id) {
+      setLoading(true);
+      fetchChildStats(selectedChild, cancelled).finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     } else {
       setLoading(false);
     }
-  }, [children, selectedChildIndex, selectedSeason?.id]);
 
-  const fetchChildStats = async (child) => {
-    if (!child) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    return () => { cancelled = true; };
+  }, [selectedChildId, selectedChildIndex, selectedSeason?.id]);
+
+  const fetchChildStats = async (child, cancelled) => {
+    if (!child?.id || !selectedSeason?.id) return;
 
     try {
-      // Fetch player's season stats
       const { data: stats, error: statsError } = await supabase
         .from('player_season_stats')
         .select('*')
@@ -48,40 +54,49 @@ const ChildStatsWidget = ({ children = [], onViewLeaderboards }) => {
         .eq('season_id', selectedSeason.id)
         .single();
 
-      if (statsError && statsError.code !== 'PGRST116') {
-        console.error('Error fetching stats:', statsError);
+      if (cancelled) return;
+
+      if (statsError) {
+        // 406 = schema mismatch, PGRST116 = no rows — both are non-fatal
+        if (statsError.code !== 'PGRST116') {
+          console.warn('player_season_stats query failed (table may not exist):', statsError.message);
+        }
+        setChildStats(null);
+        return;
       }
 
       setChildStats(stats);
 
-      // Fetch leaderboard positions for key stats
+      // Fetch leaderboard positions only if we got stats
       if (stats?.team_id) {
         const positions = {};
-        
         for (const cat of statCategories) {
-          const { data: rankings, error: rankError } = await supabase
-            .from('player_season_stats')
-            .select('player_id')
-            .eq('team_id', stats.team_id)
-            .eq('season_id', selectedSeason.id)
-            .order(cat.key, { ascending: false });
+          try {
+            const { data: rankings, error: rankError } = await supabase
+              .from('player_season_stats')
+              .select('player_id')
+              .eq('team_id', stats.team_id)
+              .eq('season_id', selectedSeason.id)
+              .order(cat.key, { ascending: false });
 
-          if (!rankError && rankings) {
-            const position = rankings.findIndex(r => r.player_id === child.id) + 1;
-            positions[cat.key] = position || '-';
+            if (cancelled) return;
+            if (!rankError && rankings) {
+              const position = rankings.findIndex(r => r.player_id === child.id) + 1;
+              positions[cat.key] = position || '-';
+            }
+          } catch {
+            // Skip this category on error
           }
         }
-        
-        setLeaderboardPositions(positions);
+        if (!cancelled) setLeaderboardPositions(positions);
       }
     } catch (err) {
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
+      if (!cancelled) {
+        console.warn('ChildStatsWidget fetch error:', err.message);
+        setChildStats(null);
+      }
     }
   };
-
-  const selectedChild = children[selectedChildIndex];
 
   const getInitials = (first, last) => {
     return `${first?.[0] || ''}${last?.[0] || ''}`.toUpperCase();

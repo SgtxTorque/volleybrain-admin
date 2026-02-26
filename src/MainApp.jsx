@@ -576,7 +576,7 @@ function HorizontalNavBar({
   // Parent navigation
   const parentNavGroups = [
     { id: 'dashboard', label: 'Home', type: 'single' },
-    { id: 'myplayers', label: 'My Players', type: 'dropdown', items: 
+    { id: 'myplayers', label: 'My Players', type: 'dropdown', items:
       roleContext?.children?.map(child => ({
         id: `player-${child.id}`,
         label: child.first_name,
@@ -585,15 +585,16 @@ function HorizontalNavBar({
         teams: child.team_players,
       })) || []
     },
-    { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'standings', label: 'Standings', type: 'single' },
-    { id: 'leaderboards', label: 'Leaderboards', type: 'single' },
-    { id: 'achievements', label: 'Achievements', type: 'single' },
-    { id: 'chats', label: 'Chats', type: 'single' },
+    { id: 'social', label: 'Social', type: 'dropdown', items: [
+      { id: 'chats', label: 'Chat', icon: 'message' },
+      { id: 'team-hub', label: 'Team Hub', icon: 'users' },
+    ]},
     { id: 'payments', label: 'Payments', type: 'single' },
-    { id: 'season-archives', label: 'Archives', type: 'single' },
-    { id: 'org-directory', label: 'Directory', type: 'single' },
-    { id: 'my-stuff', label: 'My Stuff', type: 'single' },
+    { id: 'mystuff', label: 'My Stuff', type: 'dropdown', items: [
+      { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
+      { id: 'season-archives', label: 'Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Directory', icon: 'building' },
+    ]},
   ]
 
   // Player navigation
@@ -645,6 +646,14 @@ function HorizontalNavBar({
     if (item?.playerId) {
       navigate(`/parent/player/${item.playerId}`)
       return
+    }
+    // team-hub nav item: go to first child's team wall
+    if (itemId === 'team-hub') {
+      const firstTeamId = roleContext?.children?.[0]?.team_players?.[0]?.team_id
+      if (firstTeamId) {
+        navigate(`/teams/${firstTeamId}`)
+        return
+      }
     }
     navigate(getPathForPage(itemId))
   }
@@ -1067,7 +1076,9 @@ function MainApp() {
 
         {/* Main Content Area — React Router */}
         <div className={`flex-1 relative z-10 ${
-          (activeView === 'admin' && mainLocation.pathname === '/dashboard') || mainLocation.pathname.startsWith('/teams/')
+          (activeView === 'admin' && mainLocation.pathname === '/dashboard')
+            || (activeView === 'parent' && mainLocation.pathname === '/dashboard')
+            || mainLocation.pathname.startsWith('/teams/')
             ? 'overflow-hidden'
             : 'px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full animate-slide-up'
         }`}>

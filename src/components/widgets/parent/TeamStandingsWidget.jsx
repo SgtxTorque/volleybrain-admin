@@ -16,15 +16,27 @@ const TeamStandingsWidget = ({ teamId, onViewStandings }) => {
   const [teamName, setTeamName] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
+
     if (teamId && selectedSeason?.id) {
-      fetchTeamStandings();
+      setLoading(true);
+      fetchTeamStandings(cancelled).finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     } else {
       setLoading(false);
     }
+
+    return () => { cancelled = true; };
   }, [teamId, selectedSeason?.id]);
 
-  const fetchTeamStandings = async () => {
-    setLoading(true);
+  const defaultStats = {
+    wins: 0, losses: 0, ties: 0,
+    points_for: 0, points_against: 0,
+    streak_type: null, streak_count: 0
+  };
+
+  const fetchTeamStandings = async (cancelled) => {
     try {
       // Fetch team info
       const { data: team, error: teamError } = await supabase
@@ -33,11 +45,12 @@ const TeamStandingsWidget = ({ teamId, onViewStandings }) => {
         .eq('id', teamId)
         .single();
 
+      if (cancelled) return;
       if (!teamError && team) {
         setTeamName(team.name || 'Your Team');
       }
 
-      // Fetch team standings
+      // Fetch team standings — may not exist, handle gracefully
       const { data: standings, error: standingsError } = await supabase
         .from('team_standings')
         .select('*')
@@ -45,23 +58,21 @@ const TeamStandingsWidget = ({ teamId, onViewStandings }) => {
         .eq('season_id', selectedSeason.id)
         .single();
 
-      if (standingsError && standingsError.code !== 'PGRST116') {
-        console.error('Error fetching standings:', standingsError);
+      if (cancelled) return;
+      if (standingsError) {
+        if (standingsError.code !== 'PGRST116') {
+          console.warn('team_standings query failed (table may not exist):', standingsError.message);
+        }
+        setTeamStats(defaultStats);
+        return;
       }
 
-      setTeamStats(standings || {
-        wins: 0,
-        losses: 0,
-        ties: 0,
-        points_for: 0,
-        points_against: 0,
-        streak_type: null,
-        streak_count: 0
-      });
+      setTeamStats(standings || defaultStats);
     } catch (err) {
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
+      if (!cancelled) {
+        console.warn('TeamStandingsWidget fetch error:', err.message);
+        setTeamStats(defaultStats);
+      }
     }
   };
 
