@@ -121,7 +121,9 @@ import {
   Smile,
   Swords,
   Crosshair,
-  Crown
+  Crown,
+  Pin,
+  Square,
 } from 'lucide-react'
 
 // Use Circle as volleyball icon since Volleyball doesn't exist in lucide-react
@@ -418,5 +420,7 @@ export {
   CheckCheck,
   Swords,
   Crosshair,
-  Crown
+  Crown,
+  Pin,
+  Square,
 }

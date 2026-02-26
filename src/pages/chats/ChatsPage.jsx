@@ -3,10 +3,10 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { 
-  Search, X, Plus, Send, Image, Smile, MoreVertical, 
+import {
+  Search, X, Plus, Send, Image, Smile, MoreVertical,
   Check, CheckCheck, Reply, Trash2, ChevronLeft, Users, Hash,
-  Paperclip, Gift, Download
+  Paperclip, Gift, Download, Info
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
@@ -490,10 +490,16 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const [loadingMedia, setLoadingMedia] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
   const [typingUsers, setTypingUsers] = useState([])
+  const [showInfoPanel, setShowInfoPanel] = useState(false)
+  const [infoPanelTab, setInfoPanelTab] = useState('members')
+  const [channelMembers, setChannelMembers] = useState([])
+  const [loadingMembers, setLoadingMembers] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const typingTimeoutRef = useRef(null)
   const presenceChannelRef = useRef(null)
   const menuButtonRef = useRef(null)
   const inputRef = useRef(null)
+  const dropZoneRef = useRef(null)
 
   const isPlayerChat = channel.channel_type === 'player_chat'
   const isParentView = activeView === 'parent'
@@ -754,6 +760,54 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     setLoadingMedia(false)
   }
 
+  async function loadChannelMembers() {
+    setLoadingMembers(true)
+    const { data } = await supabase
+      .from('channel_members')
+      .select('id, user_id, display_name, member_role, profiles:user_id(full_name, avatar_url)')
+      .eq('channel_id', channel.id)
+    setChannelMembers(data || [])
+    setLoadingMembers(false)
+  }
+
+  function openInfoPanel(tab = 'members') {
+    setInfoPanelTab(tab)
+    setShowInfoPanel(true)
+    if (tab === 'members' && channelMembers.length === 0) loadChannelMembers()
+    if (tab === 'media' && mediaItems.length === 0) {
+      setLoadingMedia(true)
+      supabase
+        .from('chat_messages')
+        .select(`id, content, message_type, created_at, sender:sender_id (id, full_name, avatar_url)`)
+        .eq('channel_id', channel.id)
+        .in('message_type', ['image', 'gif'])
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .then(({ data }) => { setMediaItems(data || []); setLoadingMedia(false) })
+    }
+  }
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && showInfoPanel) {
+        setShowInfoPanel(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showInfoPanel])
+
+  // Drag-and-drop handlers
+  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true) }
+  const handleDragLeave = (e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false) }
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false)
+    const file = e.dataTransfer?.files?.[0]
+    if (file && file.type.startsWith('image/')) uploadPhoto(file)
+    else if (file) showToast?.('Only image files are supported', 'error')
+  }
+
   const messageGroups = messages.reduce((groups, msg) => {
     const date = new Date(msg.created_at).toDateString()
     if (!groups[date]) groups[date] = []
@@ -778,7 +832,8 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full">
+      <div className={`flex flex-col ${showInfoPanel && !isMobile ? 'flex-1 min-w-0' : 'w-full'}`}>
       {/* ═══ Thread Header — Glass ═══ */}
       <div 
         className="px-5 py-3.5 flex items-center gap-4 ch-glass-solid"
@@ -801,15 +856,15 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           </div>
         </div>
         
-        <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-[15px] truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+        <button className="flex-1 min-w-0 text-left" onClick={() => openInfoPanel('members')}>
+          <h2 className="font-bold text-[15px] truncate hover:underline" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
             {channel.name}
           </h2>
           <p className="text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
-            {channel.channel_type === 'player_chat' ? 'Coaches only • Parents can view' : 
+            {channel.channel_type === 'player_chat' ? 'Coaches only • Parents can view' :
              channel.channel_type === 'team_chat' ? 'Team conversation' : 'Direct message'}
           </p>
-        </div>
+        </button>
         
         <div className="relative">
           <button 
@@ -845,10 +900,10 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
             }}
           >
             {[
-              { icon: <Image className="w-4 h-4" />, label: 'View Media', action: () => { setShowMenu(false); loadMediaGallery() } },
-              { icon: <Users className="w-4 h-4" />, label: 'View Members', action: () => { setShowMenu(false); showToast?.('Members feature coming soon', 'info') } },
+              { icon: <Image className="w-4 h-4" />, label: 'View Media', action: () => { setShowMenu(false); openInfoPanel('media') } },
+              { icon: <Users className="w-4 h-4" />, label: 'View Members', action: () => { setShowMenu(false); openInfoPanel('members') } },
+              { icon: <Info className="w-4 h-4" />, label: 'Channel Info', action: () => { setShowMenu(false); openInfoPanel('members') } },
               { icon: '🔔', label: 'Mute Notifications', action: () => { setShowMenu(false); showToast?.('Notifications feature coming soon', 'info') } },
-              { icon: <Search className="w-4 h-4" />, label: 'Search Messages', action: () => { setShowMenu(false); showToast?.('Search feature coming soon', 'info') } },
             ].map((item, i) => (
               <button key={i} onClick={item.action}
                 className="w-full px-4 py-2.5 text-left text-[13px] flex items-center gap-3 transition"
@@ -864,14 +919,29 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       )}
       
       {/* ═══ Messages Area ═══ */}
-      <div 
+      <div
+        ref={dropZoneRef}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         className="flex-1 overflow-y-auto p-5 space-y-1 relative ch-nos"
-        style={{ 
-          background: isDark 
-            ? 'radial-gradient(ellipse at top, rgba(30,41,59,.5) 0%, rgba(15,23,42,.3) 100%)' 
+        style={{
+          background: isDark
+            ? 'radial-gradient(ellipse at top, rgba(30,41,59,.5) 0%, rgba(15,23,42,.3) 100%)'
             : 'radial-gradient(ellipse at top, rgba(255,255,255,.3) 0%, rgba(241,245,249,.2) 100%)'
         }}
       >
+        {/* Drag overlay */}
+        {isDragging && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center ch-ai"
+            style={{ background: isDark ? 'rgba(15,23,42,.85)' : 'rgba(255,255,255,.85)', backdropFilter: 'blur(8px)' }}>
+            <div className="text-center">
+              <div className="text-5xl mb-3">📷</div>
+              <p className="font-bold text-lg" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Drop image to upload</p>
+              <p className="text-sm mt-1" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>JPEG, PNG, GIF, WebP up to 5MB</p>
+            </div>
+          </div>
+        )}
         {/* Team watermark */}
         {channel.teams?.logo_url && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: isDark ? 0.03 : 0.04 }}>
@@ -1068,7 +1138,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }}
           onClick={() => setShowMediaGallery(false)}>
           <div className="w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col ch-as"
-            style={{ 
+            style={{
               background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)',
               backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
               border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)',
@@ -1123,6 +1193,146 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+      </div>{/* end main thread column */}
+
+      {/* ═══ Channel Info Panel ═══ */}
+      {showInfoPanel && !isMobile && (
+        <div
+          className="w-72 flex flex-col ch-sl overflow-hidden"
+          style={{
+            borderLeft: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)',
+            background: isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.01)',
+          }}
+        >
+          {/* Info panel header */}
+          <div className="px-4 py-3.5 flex items-center justify-between ch-glass-solid"
+            style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)', borderRadius: 0 }}>
+            <h3 className="font-bold text-sm" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Channel Info</h3>
+            <button onClick={() => setShowInfoPanel(false)} className="p-1.5 rounded-lg transition"
+              style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}
+              onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Channel avatar + name */}
+          <div className="px-4 py-5 text-center" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
+            <div className="mx-auto mb-3 p-[3px] rounded-2xl inline-block" style={{ background: `linear-gradient(135deg, ${teamColor}, ${teamColor}88)` }}>
+              <div className="w-16 h-16 rounded-[14px] flex items-center justify-center text-2xl"
+                style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', color: teamColor }}>
+                {channel.channel_type === 'team_chat' ? '👥' : channel.channel_type === 'player_chat' ? '🏐' : '💬'}
+              </div>
+            </div>
+            <h4 className="font-bold text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{channel.name}</h4>
+            <p className="text-[11px] mt-1" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
+              {channel.channel_type === 'player_chat' ? 'Player chat' : channel.channel_type === 'team_chat' ? 'Team chat' : 'Direct message'}
+            </p>
+          </div>
+
+          {/* Tab bar */}
+          <div className="flex gap-1 p-2" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
+            {[
+              { key: 'members', icon: <Users className="w-3.5 h-3.5" />, label: 'Members' },
+              { key: 'media', icon: <Image className="w-3.5 h-3.5" />, label: 'Media' },
+            ].map(tab => (
+              <button key={tab.key}
+                onClick={() => {
+                  setInfoPanelTab(tab.key)
+                  if (tab.key === 'members' && channelMembers.length === 0) loadChannelMembers()
+                  if (tab.key === 'media' && mediaItems.length === 0) {
+                    setLoadingMedia(true)
+                    supabase.from('chat_messages')
+                      .select(`id, content, message_type, created_at, sender:sender_id (id, full_name, avatar_url)`)
+                      .eq('channel_id', channel.id).in('message_type', ['image', 'gif']).eq('is_deleted', false)
+                      .order('created_at', { ascending: false })
+                      .then(({ data }) => { setMediaItems(data || []); setLoadingMedia(false) })
+                  }
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold ch-heading tracking-wider transition-all"
+                style={infoPanelTab === tab.key
+                  ? { background: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)', color: isDark ? 'white' : '#1a1a1a' }
+                  : { color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }
+                }>
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Panel content */}
+          <div className="flex-1 overflow-y-auto ch-nos p-3">
+            {infoPanelTab === 'members' && (
+              loadingMembers ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
+                </div>
+              ) : channelMembers.length === 0 ? (
+                <p className="text-center text-sm py-6" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No members found</p>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-[9px] font-bold ch-heading tracking-[.2em] px-2 py-1.5"
+                    style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+                    {channelMembers.length} MEMBER{channelMembers.length !== 1 ? 'S' : ''}
+                  </p>
+                  {channelMembers.map(member => (
+                    <div key={member.id} className="flex items-center gap-2.5 px-2 py-2 rounded-xl transition"
+                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      {member.profiles?.avatar_url ? (
+                        <img src={member.profiles.avatar_url} alt="" className="w-8 h-8 rounded-xl object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-bold text-white"
+                          style={{ background: `hsl(${(member.display_name?.charCodeAt(0) || 0) * 10 % 360}, 55%, 50%)` }}>
+                          {member.display_name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                          {member.profiles?.full_name || member.display_name}
+                        </p>
+                        {member.member_role === 'admin' && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                            style={{ background: `${accent.primary}20`, color: accent.primary }}>Admin</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+
+            {infoPanelTab === 'media' && (
+              loadingMedia ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
+                </div>
+              ) : mediaItems.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="text-3xl mb-2">📷</div>
+                  <p className="text-[12px]" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No media shared yet</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {mediaItems.map(item => (
+                    <button key={item.id}
+                      onClick={() => setLightboxImage(item.content)}
+                      className="aspect-square rounded-xl overflow-hidden group relative"
+                      style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
+                      <img src={item.content} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+                      {item.message_type === 'gif' && (
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-bold"
+                          style={{ background: 'rgba(0,0,0,.5)', color: 'white' }}>GIF</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )
+            )}
           </div>
         </div>
       )}

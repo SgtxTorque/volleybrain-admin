@@ -5,10 +5,11 @@ import { useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { calculateFeesForPlayer } from '../../lib/fee-calculator'
 import { exportToCSV } from '../../lib/csv-export'
-import { 
-  DollarSign, ChevronDown, ChevronRight, Search, Trash2, Mail, 
-  MessageCircle, Bell, X, Check, Clock, AlertCircle, User, Users
-} from 'lucide-react'
+import {
+  DollarSign, ChevronDown, ChevronRight, Search, Trash2, Mail,
+  MessageCircle, Bell, X, Check, Clock, AlertCircle, User, Users,
+  CheckSquare, Square, Download
+} from '../../constants/icons'
 import { ClickablePlayerName } from '../registrations/RegistrationsPage'
 import { SkeletonPaymentsPage } from '../../components/ui'
 
@@ -148,16 +149,18 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
 // ============================================
 // PLAYER PAYMENT CARD (Collapsible)
 // ============================================
-function PlayerPaymentCard({ 
-  player, 
-  payments, 
-  onMarkPaid, 
-  onMarkUnpaid, 
+function PlayerPaymentCard({
+  player,
+  payments,
+  onMarkPaid,
+  onMarkUnpaid,
   onDeletePayment,
   onSendReminder,
-  expanded, 
+  expanded,
   onToggle,
-  tc 
+  tc,
+  selected,
+  onSelect,
 }) {
   const totalOwed = payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   const totalPaid = payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
@@ -167,17 +170,25 @@ function PlayerPaymentCard({
   return (
     <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden transition-all`}>
       {/* Collapsed Header - Click anywhere to expand */}
-      <div 
+      <div
         onClick={onToggle}
         className={`p-4 cursor-pointer hover:brightness-105 transition flex items-center justify-between`}
       >
         <div className="flex items-center gap-4">
+          {/* Bulk select checkbox */}
+          <button onClick={(e) => { e.stopPropagation(); onSelect?.() }} className="transition-colors flex-shrink-0">
+            {selected
+              ? <CheckSquare className="w-5 h-5 text-[var(--accent-primary)]" />
+              : <Square className="w-5 h-5 text-slate-500" />
+            }
+          </button>
+
           {expanded ? (
             <ChevronDown className="w-5 h-5 text-slate-400" />
           ) : (
             <ChevronRight className="w-5 h-5 text-slate-400" />
           )}
-          
+
           {/* Player Avatar */}
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-medium">
             {player.photo_url ? (
@@ -319,15 +330,17 @@ function PlayerPaymentCard({
 // ============================================
 // FAMILY PAYMENT CARD (Collapsible)
 // ============================================
-function FamilyPaymentCard({ 
-  family, 
-  onMarkPaid, 
-  onMarkUnpaid, 
+function FamilyPaymentCard({
+  family,
+  onMarkPaid,
+  onMarkUnpaid,
   onDeletePayment,
   onSendReminder,
-  expanded, 
+  expanded,
   onToggle,
-  tc 
+  tc,
+  selected,
+  onSelect,
 }) {
   const totalOwed = family.payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   const totalPaid = family.payments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
@@ -350,17 +363,25 @@ function FamilyPaymentCard({
   return (
     <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden transition-all`}>
       {/* Collapsed Header */}
-      <div 
+      <div
         onClick={onToggle}
         className={`p-4 cursor-pointer hover:brightness-105 transition flex items-center justify-between`}
       >
         <div className="flex items-center gap-4">
+          {/* Bulk select checkbox */}
+          <button onClick={(e) => { e.stopPropagation(); onSelect?.() }} className="transition-colors flex-shrink-0">
+            {selected
+              ? <CheckSquare className="w-5 h-5 text-[var(--accent-primary)]" />
+              : <Square className="w-5 h-5 text-slate-500" />
+            }
+          </button>
+
           {expanded ? (
             <ChevronDown className="w-5 h-5 text-slate-400" />
           ) : (
             <ChevronRight className="w-5 h-5 text-slate-400" />
           )}
-          
+
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white">
             <Users className="w-5 h-5" />
           </div>
@@ -925,7 +946,10 @@ export function PaymentsPage({ showToast }) {
   
   // Expanded card tracking
   const [expandedCards, setExpandedCards] = useState(new Set())
-  
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState(new Set())
+
   // Modals
   const [showAddModal, setShowAddModal] = useState(false)
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(null)
@@ -1030,6 +1054,70 @@ export function PaymentsPage({ showToast }) {
   async function handleSendBlast(data) {
     showToast(`Blast sent to ${data.count} families via ${data.method}!`, 'success')
     setShowBlastModal(false)
+  }
+
+  function toggleSelect(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function selectAll() {
+    if (viewMode === 'individual') {
+      const allIds = playerList.map(p => p.id)
+      if (selectedIds.size === allIds.length) setSelectedIds(new Set())
+      else setSelectedIds(new Set(allIds))
+    } else {
+      const allEmails = familyList.map(f => f.email)
+      if (selectedIds.size === allEmails.length) setSelectedIds(new Set())
+      else setSelectedIds(new Set(allEmails))
+    }
+  }
+
+  async function bulkMarkPaid() {
+    const unpaidPaymentIds = []
+    if (viewMode === 'individual') {
+      for (const id of selectedIds) {
+        const group = playerGroups[id]
+        if (group) {
+          group.payments.filter(p => !p.paid).forEach(p => unpaidPaymentIds.push(p.id))
+        }
+      }
+    } else {
+      for (const email of selectedIds) {
+        const family = familyList.find(f => f.email === email)
+        if (family) {
+          family.payments.filter(p => !p.paid).forEach(p => unpaidPaymentIds.push(p.id))
+        }
+      }
+    }
+    if (unpaidPaymentIds.length === 0) {
+      showToast('No unpaid fees in selected items', 'info')
+      return
+    }
+    await supabase.from('payments').update({
+      paid: true, paid_date: new Date().toISOString().split('T')[0],
+      payment_method: 'bulk', status: 'verified', verified_at: new Date().toISOString()
+    }).in('id', unpaidPaymentIds)
+    showToast(`${unpaidPaymentIds.length} payment${unpaidPaymentIds.length !== 1 ? 's' : ''} marked as paid`, 'success')
+    setSelectedIds(new Set())
+    loadPayments()
+  }
+
+  async function bulkSendReminder() {
+    showToast(`Reminders queued for ${selectedIds.size} ${viewMode === 'individual' ? 'player' : 'famil'}${selectedIds.size !== 1 ? (viewMode === 'individual' ? 's' : 'ies') : (viewMode === 'individual' ? '' : 'y')}`, 'success')
+    setSelectedIds(new Set())
+  }
+
+  function bulkExport() {
+    const selectedPayments = viewMode === 'individual'
+      ? payments.filter(p => selectedIds.has(p.player_id))
+      : payments.filter(p => selectedIds.has(p.family_email || p.players?.parent_email || 'unknown'))
+    exportToCSV(selectedPayments, 'payments-selected', csvColumns)
+    showToast(`Exported ${selectedPayments.length} payment records`, 'success')
   }
 
   function toggleCard(id) {
@@ -1254,6 +1342,32 @@ export function PaymentsPage({ showToast }) {
         </div>
       </div>
 
+      {/* Select All + Count */}
+      {!loading && payments.length > 0 && (
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <button onClick={selectAll} className="transition-colors">
+              {(viewMode === 'individual' ? selectedIds.size === playerList.length && playerList.length > 0 : selectedIds.size === familyList.length && familyList.length > 0)
+                ? <CheckSquare className="w-5 h-5 text-[var(--accent-primary)]" />
+                : <Square className={`w-5 h-5 ${tc.textMuted}`} />
+              }
+            </button>
+            <span className={`text-sm font-medium ${tc.textMuted}`}>
+              {selectedIds.size > 0
+                ? `${selectedIds.size} of ${viewMode === 'individual' ? playerList.length : familyList.length} selected`
+                : `Select all (${viewMode === 'individual' ? playerList.length : familyList.length})`
+              }
+            </span>
+          </label>
+          {selectedIds.size > 0 && (
+            <button onClick={() => setSelectedIds(new Set())}
+              className={`text-sm ${tc.textMuted} hover:text-[var(--accent-primary)] transition`}>
+              Clear selection
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
         <SkeletonPaymentsPage />
@@ -1289,6 +1403,8 @@ export function PaymentsPage({ showToast }) {
                 onDeletePayment={(payment) => setShowDeleteModal(payment)}
                 onSendReminder={(player) => setShowReminderModal(player)}
                 tc={tc}
+                selected={selectedIds.has(id)}
+                onSelect={() => toggleSelect(id)}
               />
             ))
           )}
@@ -1312,9 +1428,44 @@ export function PaymentsPage({ showToast }) {
                 onDeletePayment={(payment) => setShowDeleteModal(payment)}
                 onSendReminder={(family) => setShowReminderModal(family)}
                 tc={tc}
+                selected={selectedIds.has(family.email)}
+                onSelect={() => toggleSelect(family.email)}
               />
             ))
           )}
+        </div>
+      )}
+
+      {/* Floating Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-6 py-3.5 rounded-2xl shadow-2xl"
+          style={{
+            background: 'rgba(15,23,42,.95)',
+            backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,.1)',
+            animation: 'floatUp .25s ease-out',
+          }}>
+          <style>{`@keyframes floatUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}`}</style>
+          <span className="text-sm font-bold text-white mr-2">
+            {selectedIds.size} selected
+          </span>
+          <div className="w-px h-6 bg-slate-600" />
+          <button onClick={bulkMarkPaid}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition">
+            <Check className="w-4 h-4" /> Mark Paid
+          </button>
+          <button onClick={bulkSendReminder}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 text-white text-sm font-semibold hover:bg-slate-600 transition">
+            <Bell className="w-4 h-4" /> Send Reminder
+          </button>
+          <button onClick={bulkExport}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-700 text-white text-sm font-semibold hover:bg-slate-600 transition">
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={() => setSelectedIds(new Set())}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-600 transition">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 

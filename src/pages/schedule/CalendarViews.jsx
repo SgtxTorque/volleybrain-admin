@@ -1,5 +1,87 @@
+import { useState, useRef } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { getEventColor, formatTime } from './scheduleHelpers'
+
+// ============================================
+// EVENT TOOLTIP — Hover preview card
+// ============================================
+function EventTooltip({ event, isDark, style }) {
+  const typeColor = getEventColor(event.event_type)
+  const teamColor = event.teams?.color || typeColor
+
+  return (
+    <div
+      className="absolute z-50 w-64 shadow-2xl pointer-events-none"
+      style={{
+        ...style,
+        background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)',
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)',
+        borderRadius: 16,
+        animation: 'tooltipIn .15s ease-out',
+      }}
+    >
+      <style>{`@keyframes tooltipIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <div className="p-3.5">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: teamColor }} />
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+              {event.title || event.event_type}
+            </p>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: typeColor + '20', color: typeColor }}>
+              {event.event_type}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-1.5 text-[12px]" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>
+          <p>
+            {formatTime(event.start_time)}{event.end_time ? ` - ${formatTime(event.end_time)}` : ''}
+          </p>
+          {event.venue_name && (
+            <p>📍 {event.venue_name}{event.court_number ? ` (Court ${event.court_number})` : ''}</p>
+          )}
+          {event.teams?.name && (
+            <p style={{ color: teamColor, fontWeight: 600 }}>{event.teams.name}</p>
+          )}
+          {event.rsvp_count != null && (
+            <p>✅ {event.rsvp_count} RSVP{event.rsvp_count !== 1 ? 's' : ''}</p>
+          )}
+          {event.notes && (
+            <p className="truncate" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>{event.notes}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// useEventTooltip — Shared hover hook
+// ============================================
+function useEventTooltip() {
+  const [tooltip, setTooltip] = useState(null)
+  const timeoutRef = useRef(null)
+
+  const showTooltip = (event, e) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    const rect = e.currentTarget.getBoundingClientRect()
+    setTooltip({
+      event,
+      style: {
+        top: rect.bottom + 8,
+        left: Math.min(rect.left, window.innerWidth - 280),
+        position: 'fixed',
+      },
+    })
+  }
+
+  const hideTooltip = () => {
+    timeoutRef.current = setTimeout(() => setTooltip(null), 100)
+  }
+
+  return { tooltip, showTooltip, hideTooltip }
+}
 
 // ============================================
 // MONTH VIEW — Calendar grid
@@ -7,6 +89,7 @@ import { getEventColor, formatTime } from './scheduleHelpers'
 export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, teams }) {
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const { tooltip, showTooltip, hideTooltip } = useEventTooltip()
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
   const firstDay = new Date(year, month, 1)
@@ -91,6 +174,8 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
                         <div
                           key={event.id}
                           onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
+                          onMouseEnter={(e) => showTooltip(event, e)}
+                          onMouseLeave={hideTooltip}
                           className="text-xs px-1.5 py-0.5 rounded-md truncate cursor-pointer hover:brightness-110 transition font-medium"
                           style={{
                             backgroundColor: accentColor + (isDark ? '22' : '15'),
@@ -114,6 +199,7 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
           )
         })}
       </div>
+      {tooltip && <EventTooltip event={tooltip.event} isDark={isDark} style={tooltip.style} />}
     </div>
   )
 }
@@ -124,6 +210,7 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
 export function WeekView({ events, currentDate, onSelectEvent, teams }) {
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const { tooltip, showTooltip, hideTooltip } = useEventTooltip()
   const startOfWeek = new Date(currentDate)
   startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
 
@@ -188,6 +275,8 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
                       <div
                         key={event.id}
                         onClick={() => onSelectEvent(event)}
+                        onMouseEnter={(e) => showTooltip(event, e)}
+                        onMouseLeave={hideTooltip}
                         className="text-xs p-1.5 rounded-md truncate cursor-pointer hover:brightness-110 mb-1 font-medium transition"
                         style={{
                           backgroundColor: accentColor + (isDark ? '25' : '18'),
@@ -206,6 +295,7 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
           </div>
         ))}
       </div>
+      {tooltip && <EventTooltip event={tooltip.event} isDark={isDark} style={tooltip.style} />}
     </div>
   )
 }
@@ -292,6 +382,7 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
 export function ListView({ events, onSelectEvent, teams }) {
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const { tooltip, showTooltip, hideTooltip } = useEventTooltip()
   const sortedEvents = [...events].sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
 
   // Group by date
@@ -314,6 +405,8 @@ export function ListView({ events, onSelectEvent, teams }) {
               <div
                 key={event.id}
                 onClick={() => onSelectEvent(event)}
+                onMouseEnter={(e) => showTooltip(event, e)}
+                onMouseLeave={hideTooltip}
                 className={`rounded-xl p-4 cursor-pointer transition-all border ${
                   isDark
                     ? 'bg-slate-800 border-slate-700 hover:border-[var(--accent-primary)]/30'
@@ -349,6 +442,7 @@ export function ListView({ events, onSelectEvent, teams }) {
           </div>
         </div>
       ))}
+      {tooltip && <EventTooltip event={tooltip.event} isDark={isDark} style={tooltip.style} />}
     </div>
   )
 }
