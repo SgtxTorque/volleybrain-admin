@@ -121,10 +121,10 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
       </button>
 
       {isOpen && (
-        <div className={`absolute top-full left-0 mt-3 w-56 rounded-2xl overflow-hidden z-50 animate-slide-down ${
-          isDark 
-            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
-            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
+        <div className={`absolute top-full left-0 mt-3 w-56 rounded-2xl overflow-hidden z-50 animate-dropdown-in ${
+          isDark
+            ? 'bg-slate-800/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.6)]'
+            : 'bg-white/90 backdrop-blur-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08),0_16px_40px_rgba(0,0,0,0.06)]'
         }`}>
           {items.map(item => (
             <button
@@ -722,6 +722,9 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
   const { isDark } = useTheme()
   const { selectedSeason, seasons: allSeasons, selectSeason } = useSeason()
   const { profile } = useAuth()
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem('vb_glance_collapsed') === 'true' } catch { return false }
+  })
   const [stats, setStats] = useState({
     nextGame: null,
     nextPractice: null,
@@ -733,11 +736,18 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
     totalCollected: 0,
     totalExpected: 0,
     balanceDue: 0,
+    needsAttention: 0,
   })
   const [loading, setLoading] = useState(true)
   const [showRegModal, setShowRegModal] = useState(false)
   const [showSeasonSelector, setShowSeasonSelector] = useState(false)
   const [openSeasons, setOpenSeasons] = useState([]) // Seasons open for registration
+
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    try { localStorage.setItem('vb_glance_collapsed', String(next)) } catch {}
+  }
 
   // Fetch open registration seasons for parents
   useEffect(() => {
@@ -833,6 +843,9 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
         const paidPayments = payments?.filter(p => p.paid) || []
         const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
         const totalExpected = payments?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+        const unpaidCount = (payments || []).filter(p => !p.paid).length
+        const unrosteredCount = Math.max(0, (eligiblePlayers || 0) - rosteredCount)
+        const needsAttention = unpaidCount + unrosteredCount
 
         setStats(prev => ({
           ...prev,
@@ -842,6 +855,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
           activeTeams: teamCount || 0,
           totalCollected,
           totalExpected,
+          needsAttention,
         }))
       }
 
@@ -981,15 +995,26 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
   const morale = getTeamMorale()
 
   return (
-    <div 
-      className={`mx-auto w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
-        isDark 
-          ? 'bg-slate-800/95 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]' 
-          : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-[0_4px_24px_rgba(0,0,0,0.1)]'
+    <div
+      className={`relative mx-auto w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
+        isDark
+          ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.10] shadow-[0_4px_24px_rgba(0,0,0,0.35)]'
+          : 'bg-white/85 backdrop-blur-xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]'
       }`}
     >
+      {/* Collapse toggle */}
+      <button
+        onClick={toggleCollapsed}
+        className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-all duration-200 ${
+          isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/[0.05] text-slate-400'
+        }`}
+        title={collapsed ? 'Expand stats bar' : 'Collapse stats bar'}
+      >
+        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`} />
+      </button>
+
       {/* Stats Row - Centered */}
-      <div className="max-w-6xl mx-auto px-6 py-4">
+      <div className={`max-w-6xl mx-auto px-6 overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0 py-0' : 'max-h-40 py-4'}`}>
         <div className="flex items-center justify-center gap-0">
           
           {/* ═══ COACH VIEW ═══ */}
@@ -1089,10 +1114,10 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
                 {showSeasonSelector && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSeasonSelector(false)} />
-                    <div className={`absolute top-full left-0 mt-1 w-72 rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto animate-slide-down ${
-                      isDark 
-                        ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
-                        : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
+                    <div className={`absolute top-full left-0 mt-1 w-72 rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto animate-dropdown-in ${
+                      isDark
+                        ? 'bg-slate-800/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.6)]'
+                        : 'bg-white/90 backdrop-blur-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.08),0_16px_40px_rgba(0,0,0,0.06)]'
                     }`}>
                       {allSeasons.length === 0 ? (
                         <div className={`p-4 text-center text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No seasons found</div>
@@ -1186,6 +1211,28 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
                   <span className={`font-bold text-sm ml-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                     ${stats.totalCollected.toLocaleString()}
                     <span className={`font-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>/${stats.totalExpected.toLocaleString()}</span>
+                  </span>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className={`w-px h-10 mx-2 ${isDark ? "bg-white/10" : "bg-slate-200"}`} />
+
+              {/* Needs Attention */}
+              <button
+                onClick={() => navigate('/registrations')}
+                className={`flex items-center gap-4 px-6 py-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"} transition rounded-xl`}
+              >
+                <div className="w-11 h-11 rounded-lg bg-amber-500 flex items-center justify-center shadow-sm relative">
+                  <Bell className="w-6 h-6 text-white" />
+                  {stats.needsAttention > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{stats.needsAttention > 99 ? '99+' : stats.needsAttention}</span>
+                  )}
+                </div>
+                <div className="text-left">
+                  <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Attention:</span>
+                  <span className={`font-bold text-sm ml-2 ${stats.needsAttention > 0 ? 'text-amber-500' : (isDark ? 'text-white' : 'text-slate-900')}`}>
+                    {stats.needsAttention} items
                   </span>
                 </div>
               </button>
@@ -1591,9 +1638,9 @@ function HorizontalNavBar({
 
   return (
     <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
-      isDark 
-        ? 'bg-slate-900/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]' 
-        : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
+      isDark
+        ? 'bg-slate-900/90 backdrop-blur-xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+        : 'bg-white/85 backdrop-blur-xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_12px_24px_rgba(0,0,0,0.04)]'
     }`}>
       
       {/* LEFT: Logo */}
@@ -1993,7 +2040,7 @@ function MainApp() {
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider>
-      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-[#F0F1F5]'}`}>
+      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
@@ -2023,7 +2070,7 @@ function MainApp() {
         </div>
 
         {/* Main Content Area — React Router */}
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1600px] mx-auto w-full relative z-10">
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full relative z-10">
           <Breadcrumb />
           <ErrorBoundary>
             <RoutedContent

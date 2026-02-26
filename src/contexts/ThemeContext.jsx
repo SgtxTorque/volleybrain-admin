@@ -90,5 +90,19 @@ export function useThemeClasses() {
     // NavBar specific
     navBar: accent.navBar,
     navBarSolid: accent.navBarSolid,
+    // Semantic surface tokens
+    surface: isDark ? 'bg-slate-900' : 'bg-slate-50',
+    surfaceElevated: isDark
+      ? 'bg-slate-800/80 backdrop-blur-md border border-white/[0.08] shadow-glass-dark'
+      : 'bg-white/80 backdrop-blur-md border border-white/40 shadow-soft-md',
+    surfaceGlass: isDark
+      ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark'
+      : 'bg-white/60 backdrop-blur-xl border border-white/40 shadow-glass',
+    // Semantic divider / input tokens
+    divider: isDark ? 'border-white/[0.08]' : 'border-slate-200',
+    inputBorder: isDark ? 'border-slate-600' : 'border-slate-300',
+    // Text tiers
+    textPrimary: isDark ? 'text-white' : 'text-slate-900',
+    textTertiary: isDark ? 'text-slate-500' : 'text-slate-400',
   }
 }
