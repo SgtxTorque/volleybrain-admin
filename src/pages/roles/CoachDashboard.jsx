@@ -1430,7 +1430,7 @@ function WarmupTimerModal({ onClose, isDark }) {
   const circumference = 2 * Math.PI * 90
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
       <div
         className={`w-full max-w-sm text-center rounded-2xl shadow-xl ${
           isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'

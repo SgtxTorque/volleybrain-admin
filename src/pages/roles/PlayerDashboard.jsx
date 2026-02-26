@@ -89,7 +89,7 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
   )
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div
         className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col rounded-2xl"
         style={{ background: pt.bg, border: `1px solid ${pt.border}` }}
@@ -442,8 +442,6 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   // ════════════════════════════════════════════
   return (
     <div style={{ background: pt.bg, minHeight: '100vh', margin: '-1.5rem', padding: 0 }}>
-      <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
-
       {/* Admin Preview Banner */}
       {isAdminPreview && (
         <div
