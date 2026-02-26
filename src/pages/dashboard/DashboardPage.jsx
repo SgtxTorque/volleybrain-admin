@@ -13,6 +13,14 @@ import {
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
 import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
+import DashboardLayout from '../../components/layout/DashboardLayout'
+// v0-style dashboard components
+import OrgSidebar from '../../components/dashboard/OrgSidebar'
+import TeamSnapshot from '../../components/dashboard/TeamSnapshot'
+import RegistrationStatsCard from '../../components/dashboard/RegistrationStatsCard'
+import PaymentSummaryCard from '../../components/dashboard/PaymentSummaryCard'
+import UpcomingEventsCard from '../../components/dashboard/UpcomingEventsCard'
+import LiveActivity from '../../components/dashboard/LiveActivity'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -897,10 +905,16 @@ export function DashboardPage({ onNavigate }) {
     denied: 0,
     capacity: 0,
     passTypeName: 'Season Pass',
+    coachCount: 0,
+    unsignedWaivers: 0,
+    totalExpected: 0,
   })
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [monthlyPayments, setMonthlyPayments] = useState([])
   const [recentActivity, setRecentActivity] = useState([])
+  const [teamsData, setTeamsData] = useState([])
+  const [teamStats, setTeamStats] = useState({})
+  const [recentPaymentsNamed, setRecentPaymentsNamed] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -917,10 +931,10 @@ export function DashboardPage({ onNavigate }) {
       const seasonId = selectedSeason.id
       const orgId = selectedSeason.organization_id
 
-      // Fetch teams for this season
+      // Fetch teams for this season (include color)
       const { data: teams, count: teamCount } = await supabase
         .from('teams')
-        .select('id, name', { count: 'exact' })
+        .select('id, name, color', { count: 'exact' })
         .eq('season_id', seasonId)
 
       // Get ACTUAL rostered count from team_players (source of truth)
@@ -1038,7 +1052,7 @@ export function DashboardPage({ onNavigate }) {
           type: 'registration',
           name: `${r.first_name} ${r.last_name}`,
           initials: `${r.first_name?.[0] || ''}${r.last_name?.[0] || ''}`,
-          action: r.status === 'pending' ? 'submitted registration' : `registration ${r.status}`,
+          action: r.status === 'pending' ? 'Registration submitted' : `Registration ${r.status}`,
           timestamp: r.created_at,
         })
       })
@@ -1052,17 +1066,109 @@ export function DashboardPage({ onNavigate }) {
       recentPays.forEach(p => {
         recentActivity.push({
           type: 'payment',
-          name: 'Payment received',
+          name: '',
           initials: '$',
-          action: 'paid',
+          action: 'Payment received',
           highlight: `$${parseFloat(p.amount).toFixed(0)}`,
           timestamp: p.created_at,
         })
       })
 
+      // Fetch coach count for this season's teams
+      let coachCount = 0
+      if (teamIds.length > 0) {
+        const { data: teamCoaches } = await supabase
+          .from('team_coaches')
+          .select('coach_id')
+          .in('team_id', teamIds)
+        coachCount = new Set(teamCoaches?.map(tc => tc.coach_id) || []).size
+      }
+
+      // Fetch unsigned waivers count
+      let unsignedWaivers = 0
+      try {
+        const { count: activeWaivers } = await supabase
+          .from('waivers')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+          .eq('is_active', true)
+
+        const { count: signedCount } = await supabase
+          .from('waiver_signatures')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+
+        // Approximate: unsigned = (active waivers * total players) - signed
+        // Simplified: just show waivers that need attention
+        const expectedSigs = (activeWaivers || 0) * (regStats.total || 0)
+        unsignedWaivers = Math.max(0, expectedSigs - (signedCount || 0))
+      } catch {
+        // Waivers table may not have org_id column — gracefully degrade
+      }
+
+      // Build per-team stats for TeamSnapshot
+      const perTeamStats = {}
+      if (teamIds.length > 0) {
+        const { data: allTeamPlayers } = await supabase
+          .from('team_players')
+          .select('team_id, player_id')
+          .in('team_id', teamIds)
+
+        teamIds.forEach(tid => {
+          const count = allTeamPlayers?.filter(tp => tp.team_id === tid).length || 0
+          perTeamStats[tid] = { playerCount: count, record: '0W-0L' }
+        })
+
+        // Try to get game records per team
+        try {
+          const { data: gameResults } = await supabase
+            .from('games')
+            .select('home_team_id, away_team_id, home_score, away_score, status')
+            .or(`home_team_id.in.(${teamIds.join(',')}),away_team_id.in.(${teamIds.join(',')})`)
+            .eq('status', 'completed')
+
+          if (gameResults) {
+            teamIds.forEach(tid => {
+              let wins = 0, losses = 0
+              gameResults.forEach(g => {
+                if (g.home_team_id === tid && g.home_score > g.away_score) wins++
+                else if (g.home_team_id === tid && g.home_score < g.away_score) losses++
+                else if (g.away_team_id === tid && g.away_score > g.home_score) wins++
+                else if (g.away_team_id === tid && g.away_score < g.home_score) losses++
+              })
+              perTeamStats[tid].record = `${wins}W-${losses}L`
+            })
+          }
+        } catch {
+          // games table may not exist — gracefully degrade
+        }
+      }
+      setTeamsData(teams || [])
+      setTeamStats(perTeamStats)
+
+      // Build recent payments with player names for PaymentSummaryCard
+      try {
+        const { data: namedPayments } = await supabase
+          .from('payments')
+          .select('amount, created_at, player_id, players(first_name, last_name)')
+          .eq('season_id', seasonId)
+          .eq('paid', true)
+          .order('created_at', { ascending: false })
+          .limit(3)
+
+        setRecentPaymentsNamed(
+          (namedPayments || []).map(p => ({
+            name: p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown',
+            amount: `$${parseFloat(p.amount).toLocaleString()}`,
+          }))
+        )
+      } catch {
+        setRecentPaymentsNamed([])
+      }
+
       setUpcomingEvents(events || [])
       setRecentActivity(recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5))
-      
+
       setStats({
         teams: teamCount || 0,
         rosteredPlayers: regStats.rostered,
@@ -1082,6 +1188,8 @@ export function DashboardPage({ onNavigate }) {
         capacity: totalCapacity,
         passTypeName: selectedSeason?.name || 'Season Pass',
         paymentsByType,
+        coachCount,
+        unsignedWaivers,
       })
 
       // Generate monthly payment data for chart (real data based on payments)
@@ -1165,43 +1273,61 @@ export function DashboardPage({ onNavigate }) {
   }
   const seasonWeek = getSeasonWeek()
 
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 18) return 'Good afternoon'
+    return 'Good evening'
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Hero Section */}
-      <div className={`rounded-2xl p-6 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'}`}>
-        <h1 className={`text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          {organization?.name || 'Dashboard'}
+    <DashboardLayout
+      leftSidebar={
+        <OrgSidebar
+          stats={stats}
+          season={selectedSeason}
+          onNavigate={onNavigate}
+        />
+      }
+      rightSidebar={
+        <LiveActivity activities={activities} />
+      }
+    >
+      {/* Dashboard Heading */}
+      <div>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          Dashboard
         </h1>
-        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          {selectedSeason?.name || 'No season selected'}
-          {seasonWeek && ` · Week ${seasonWeek.current}${seasonWeek.total ? ` of ${seasonWeek.total}` : ''}`}
+        <p className={`mt-1 text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          {getGreeting()}, {profile?.first_name || 'there'}. Here's your overview.
         </p>
-        {/* Stat pills */}
-        <div className="flex flex-wrap items-center gap-3 mt-4">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
-            <Users className="w-4 h-4" />
-            Players: {stats.rosteredPlayers || 0}
-          </div>
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-50 text-purple-700'}`}>
-            <LayoutDashboard className="w-4 h-4" />
-            Teams: {stats.teams || 0}
-          </div>
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
-            <DollarSign className="w-4 h-4" />
-            Collected: ${(stats.totalCollected || 0).toLocaleString()}
-          </div>
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-700'}`}>
-            <ClipboardList className="w-4 h-4" />
-            Registrations: {stats.totalRegistrations || 0}
-          </div>
-        </div>
       </div>
+
+      {/* Team Snapshot */}
+      <TeamSnapshot teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
+
+      {/* Stats Row: Registration Stats + Payment Summary */}
+      <div className="grid grid-cols-2 gap-6">
+        <RegistrationStatsCard stats={stats} onNavigate={onNavigate} />
+        <PaymentSummaryCard stats={stats} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
+      </div>
+
+      {/* Upcoming Events */}
+      <UpcomingEventsCard events={upcomingEvents} onNavigate={onNavigate} />
 
       {/* Journey Progress */}
       <JourneyTimeline onNavigate={onNavigate} />
 
+      {/* Existing Widgets — preserved below v0 sections */}
+      <FinancialOverview monthlyData={monthlyPayments} totalCollected={stats.totalCollected} />
+
+      <div className="grid grid-cols-2 gap-6">
+        <SeasonCard season={selectedSeason} stats={stats} onNavigate={onNavigate} />
+        <OverduePayments stats={stats} onNavigate={onNavigate} />
+      </div>
+
       {/* Customizable Widget Grid */}
       <DashboardGrid role="admin" />
-    </div>
+    </DashboardLayout>
   )
 }

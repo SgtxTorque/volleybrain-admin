@@ -1917,6 +1917,7 @@ function MainApp() {
   const { isDark, accent, accentColor, changeAccent, accentColors, toggleTheme } = useTheme()
   const { toasts, showToast, removeToast } = useToast()
   const cmdPalette = useCommandPalette()
+  const mainLocation = useLocation()
   const [selectedTeamId, setSelectedTeamId] = useState(null)
 
   // Document title updates
@@ -2024,17 +2025,23 @@ function MainApp() {
           isPlatformAdmin={isPlatformAdmin}
         />
 
-        {/* GlanceWidget Bar */}
-        <div className="mt-24 px-4 relative z-10 max-w-[1440px] mx-auto w-full">
-          <InfoHeaderBar
-            activeView={activeView} roleContext={roleContext} organization={organization}
-            tc={tc} selectedTeamId={selectedTeamId}
-            setSelectedTeamId={setSelectedTeamId}
-          />
-        </div>
+        {/* GlanceWidget Bar — hidden on admin dashboard (sidebar has this info) */}
+        {!(activeView === 'admin' && mainLocation.pathname === '/dashboard') && (
+          <div className="mt-24 px-4 relative z-10 max-w-[1440px] mx-auto w-full">
+            <InfoHeaderBar
+              activeView={activeView} roleContext={roleContext} organization={organization}
+              tc={tc} selectedTeamId={selectedTeamId}
+              setSelectedTeamId={setSelectedTeamId}
+            />
+          </div>
+        )}
 
         {/* Main Content Area — React Router */}
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full relative z-10 animate-slide-up">
+        <div className={`flex-1 relative z-10 ${
+          activeView === 'admin' && mainLocation.pathname === '/dashboard'
+            ? 'mt-[5.5rem] overflow-hidden'
+            : 'px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full animate-slide-up'
+        }`}>
           <Breadcrumb />
           <ErrorBoundary>
             <RoutedContent
