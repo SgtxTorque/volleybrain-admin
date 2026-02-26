@@ -12,6 +12,11 @@ import {
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
 import { PhotoGallery, Lightbox } from '../../components/teams/PhotoGallery'
+import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
+import ChallengeCard, { parseChallengeMetadata } from '../../components/engagement/ChallengeCard'
+import CreateChallengeModal from '../../components/engagement/CreateChallengeModal'
+import ChallengeDetailModal from '../../components/engagement/ChallengeDetailModal'
+import { fetchActiveChallenges, optInToChallenge } from '../../lib/challenge-service'
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS (preserved exactly)
@@ -170,6 +175,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const tickerRef = useRef(null)
   const [showAllRoster, setShowAllRoster] = useState(false)
 
+  // Engagement state
+  const [showShoutoutModal, setShowShoutoutModal] = useState(false)
+  const [showCreateChallengeModal, setShowCreateChallengeModal] = useState(false)
+  const [showChallengeDetailModal, setShowChallengeDetailModal] = useState(false)
+  const [selectedChallengeId, setSelectedChallengeId] = useState(null)
+  const [activeChallenges, setActiveChallenges] = useState([])
+
   const g = team?.color || '#6366F1'
   const gb = adjustBrightness(g, 20)
   const dim = adjustBrightness(g, -30)
@@ -276,6 +288,15 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
       await loadPosts(1, true)
 
+      // Load active challenges
+      try {
+        const challenges = await fetchActiveChallenges(teamId)
+        setActiveChallenges(challenges)
+      } catch (err) {
+        console.log('Could not load challenges:', err)
+        setActiveChallenges([])
+      }
+
       try {
         const { data: docs } = await supabase
           .from('team_documents')
@@ -294,6 +315,15 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       showToast?.('Error loading team data', 'error')
     }
     setLoading(false)
+  }
+
+  async function reloadChallenges() {
+    try {
+      const challenges = await fetchActiveChallenges(teamId)
+      setActiveChallenges(challenges)
+    } catch (err) {
+      console.log('Could not reload challenges:', err)
+    }
   }
 
   async function loadPosts(page = 1, reset = false) {
@@ -628,6 +658,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         <div className="flex gap-2.5 overflow-x-auto tw-nos pb-1">
           {[
             (profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && { icon: '✏️', label: 'New Post', action: () => setShowNewPostModal(true), primary: true },
+            { icon: '⭐', label: 'Shoutout', action: () => setShowShoutoutModal(true), primary: false },
+            (profile?.role === 'admin' || profile?.role === 'coach') && { icon: '🏆', label: 'Challenge', action: () => setShowCreateChallengeModal(true), primary: false },
             { icon: '💬', label: 'Team Chat', action: openTeamChat, primary: false },
             { icon: '📅', label: 'Schedule', action: () => setActiveTab('schedule'), primary: false },
             { icon: '📋', label: 'Roster', action: () => setActiveTab('roster'), primary: false },
@@ -656,6 +688,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         <div className="flex gap-1 rounded-2xl p-1.5" style={{ background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)' }}>
           {[
             { key: 'feed', icon: '📰', label: 'Feed' },
+            { key: 'challenges', icon: '🏆', label: 'Challenges' },
             { key: 'gallery', icon: '📷', label: 'Gallery' },
             { key: 'roster', icon: '👥', label: 'Roster' },
             { key: 'schedule', icon: '📅', label: 'Schedule' },
@@ -728,6 +761,65 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     <Megaphone className="w-14 h-14 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.12)' }} />
                     <p className="mt-5 text-lg font-semibold" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }}>No posts yet</p>
                     <p className="text-sm mt-1" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>Check back later for team updates!</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* CHALLENGES */}
+            {activeTab === 'challenges' && (
+              <>
+                <SectionHeader icon="🏆" title="ACTIVE" accent="CHALLENGES" g={g} isDark={isDark} />
+                {isAdminOrCoach && (
+                  <button
+                    onClick={() => setShowCreateChallengeModal(true)}
+                    className="mb-4 flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold tw-heading tracking-wider"
+                    style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a' }}
+                  >
+                    <Trophy className="w-4 h-4" /> CREATE CHALLENGE
+                  </button>
+                )}
+                {activeChallenges.length > 0 ? (
+                  <div className="space-y-4">
+                    {activeChallenges.map(ch => (
+                      <ChallengeCard
+                        key={ch.id}
+                        metadataJson={JSON.stringify({
+                          title: ch.title,
+                          description: ch.description,
+                          challengeType: ch.challenge_type,
+                          targetValue: ch.target_value,
+                          xpReward: ch.xp_reward,
+                          startsAt: ch.starts_at,
+                          endsAt: ch.ends_at,
+                        })}
+                        coachName=""
+                        createdAt={ch.created_at}
+                        participantCount={ch.participants?.length || 0}
+                        isOptedIn={ch.participants?.some(p => p.player_id === user?.id)}
+                        userProgress={ch.participants?.find(p => p.player_id === user?.id)?.current_value || 0}
+                        teamProgress={ch.totalProgress || 0}
+                        isDark={isDark}
+                        accentColor={g}
+                        onOptIn={async () => {
+                          if (!user?.id) return
+                          await optInToChallenge(ch.id, user.id)
+                          reloadChallenges()
+                        }}
+                        onViewDetails={() => {
+                          setSelectedChallengeId(ch.id)
+                          setShowChallengeDetailModal(true)
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="tw-glass p-12 text-center">
+                    <Trophy className="w-14 h-14 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.12)' }} />
+                    <p className="mt-5 text-lg font-semibold" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }}>No active challenges</p>
+                    <p className="text-sm mt-1" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>
+                      {isAdminOrCoach ? 'Create a challenge to motivate your team!' : 'Check back later for team challenges!'}
+                    </p>
                   </div>
                 )}
               </>
@@ -1044,6 +1136,27 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           isOwnChild={false}
         />
       )}
+
+      {/* ═══ ENGAGEMENT MODALS ═══ */}
+      <GiveShoutoutModal
+        visible={showShoutoutModal}
+        teamId={teamId}
+        onClose={() => setShowShoutoutModal(false)}
+        onSuccess={() => { loadPosts(1, true); showToast?.('Shoutout sent!', 'success') }}
+      />
+      <CreateChallengeModal
+        visible={showCreateChallengeModal}
+        teamId={teamId}
+        organizationId={team?.organization_id || profile?.current_organization_id || ''}
+        onClose={() => setShowCreateChallengeModal(false)}
+        onSuccess={() => { reloadChallenges(); loadPosts(1, true); showToast?.('Challenge created!', 'success') }}
+      />
+      <ChallengeDetailModal
+        visible={showChallengeDetailModal}
+        challengeId={selectedChallengeId}
+        onClose={() => { setShowChallengeDetailModal(false); setSelectedChallengeId(null) }}
+        onOptInSuccess={reloadChallenges}
+      />
     </div>
   )
 }
@@ -1274,10 +1387,12 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   }, [showMenu])
 
   const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
-    postType === 'game_recap' ? 'tw-reminder-accent' : ''
+    postType === 'game_recap' ? 'tw-reminder-accent' :
+    postType === 'shoutout' ? 'tw-badge-accent' :
+    postType === 'challenge' ? 'tw-auto-accent' : ''
 
   const typeIcon = {
-    announcement: '📢', game_recap: '🏐', shoutout: '⭐', milestone: '🏆', photo: '📷',
+    announcement: '📢', game_recap: '🏐', shoutout: '⭐', milestone: '🏆', photo: '📷', challenge: '🏆',
   }[postType] || '📝'
 
   return (
