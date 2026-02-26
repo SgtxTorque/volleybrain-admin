@@ -554,6 +554,65 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         )}
 
         {/* ═══════════════════════════════════════════
+            HERO CARD — Next Game / Season Record
+            ═══════════════════════════════════════════ */}
+        <div className="tc-fadeIn">
+          {nextGame ? (
+            <div
+              className="relative rounded-2xl overflow-hidden p-6 cursor-pointer transition-transform hover:scale-[1.005]"
+              style={{
+                background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}dd, ${selectedTeam?.color || '#3B82F6'}88, rgba(15,23,42,0.95))`,
+                border: `1px solid ${selectedTeam?.color || '#3B82F6'}40`,
+              }}
+              onClick={() => onNavigate?.('gameprep')}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
+                    {countdownText(nextGame.event_date) === 'TODAY' ? '🔴 LIVE TODAY' : 'UPCOMING GAME'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <div>
+                    <p className="text-white/60 text-sm font-medium">{selectedTeam?.name}</p>
+                    <p className="text-4xl font-black text-white tracking-tight" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.04em' }}>
+                      vs {nextGame.opponent_name || 'TBD'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-black text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                      {countdownText(nextGame.event_date)}
+                    </p>
+                    <p className="text-white/60 text-sm">
+                      {nextGame.event_time ? formatTime12(nextGame.event_time) : ''}
+                      {nextGame.venue_name ? ` · ${nextGame.venue_name}` : ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="rounded-2xl p-6"
+              style={{
+                background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}22, rgba(15,23,42,0.8))`,
+                border: `1px solid ${selectedTeam?.color || '#3B82F6'}30`,
+              }}
+            >
+              <p className="tc-label mb-2">SEASON RECORD</p>
+              <div className="flex items-baseline gap-3">
+                <span className="text-5xl font-black text-emerald-400" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>{teamRecord.wins}</span>
+                <span className="text-3xl text-slate-600 font-bold">-</span>
+                <span className="text-5xl font-black text-red-400" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>{teamRecord.losses}</span>
+                <span className="text-sm text-slate-500 ml-2">{winRate}% win rate</span>
+              </div>
+              <p className="text-slate-500 text-sm mt-2">{selectedTeam?.name} · {selectedSeason?.name}</p>
+            </div>
+          )}
+        </div>
+
+        {/* ═══════════════════════════════════════════
             TACTICAL HEADER
             ═══════════════════════════════════════════ */}
         <div className="tc-fadeIn flex items-center justify-between">

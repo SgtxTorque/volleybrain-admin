@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
   ChevronRight, MoreHorizontal, TrendingUp, CreditCard, Play,
-  CheckCircle, Clock, AlertCircle, Star, MapPin
+  CheckCircle, Clock, AlertCircle, Star, MapPin, LayoutDashboard
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
@@ -1149,8 +1149,54 @@ export function DashboardPage({ onNavigate }) {
     return <SkeletonDashboard />
   }
 
+  // Calculate season week
+  const getSeasonWeek = () => {
+    if (!selectedSeason?.start_date) return null
+    const start = new Date(selectedSeason.start_date)
+    const now = new Date()
+    const diffMs = now - start
+    const weekNum = Math.max(1, Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)))
+    if (selectedSeason.end_date) {
+      const end = new Date(selectedSeason.end_date)
+      const totalWeeks = Math.ceil((end - start) / (7 * 24 * 60 * 60 * 1000))
+      return { current: Math.min(weekNum, totalWeeks), total: totalWeeks }
+    }
+    return { current: weekNum, total: null }
+  }
+  const seasonWeek = getSeasonWeek()
+
   return (
     <div className="space-y-6">
+      {/* Hero Section */}
+      <div className={`rounded-2xl p-6 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'}`}>
+        <h1 className={`text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          {organization?.name || 'Dashboard'}
+        </h1>
+        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          {selectedSeason?.name || 'No season selected'}
+          {seasonWeek && ` · Week ${seasonWeek.current}${seasonWeek.total ? ` of ${seasonWeek.total}` : ''}`}
+        </p>
+        {/* Stat pills */}
+        <div className="flex flex-wrap items-center gap-3 mt-4">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
+            <Users className="w-4 h-4" />
+            Players: {stats.rosteredPlayers || 0}
+          </div>
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-50 text-purple-700'}`}>
+            <LayoutDashboard className="w-4 h-4" />
+            Teams: {stats.teams || 0}
+          </div>
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
+            <DollarSign className="w-4 h-4" />
+            Collected: ${(stats.totalCollected || 0).toLocaleString()}
+          </div>
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-700'}`}>
+            <ClipboardList className="w-4 h-4" />
+            Registrations: {stats.totalRegistrations || 0}
+          </div>
+        </div>
+      </div>
+
       {/* Journey Progress */}
       <JourneyTimeline onNavigate={onNavigate} />
 

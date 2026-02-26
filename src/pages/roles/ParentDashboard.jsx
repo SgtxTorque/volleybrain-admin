@@ -1126,6 +1126,70 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
       )}
 
+      {/* ═══ WELCOME HERO + MY STUFF ═══ */}
+      <div className={`rounded-2xl p-5 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'} 👋
+            </h1>
+            <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {registrationData.length} {registrationData.length === 1 ? 'player' : 'players'} registered
+              {activeTeam ? ` · ${activeTeam.name}` : ''}
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate?.('my-stuff')}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition hover:brightness-110 flex items-center gap-2"
+            style={{ backgroundColor: 'var(--accent-primary)' }}
+          >
+            My Stuff
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Trading card row for children */}
+        {registrationData.length > 0 && (
+          <div className="flex gap-3 mt-4 overflow-x-auto pb-1">
+            {registrationData.map((child, idx) => {
+              const teamColor = child.team?.color || '#6366F1'
+              return (
+                <div
+                  key={child.id}
+                  onClick={() => setActiveChildIdx(idx)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all flex-shrink-0 ${
+                    idx === activeChildIdx
+                      ? (isDark ? 'bg-white/10 border border-white/20' : 'bg-slate-50 border-2')
+                      : (isDark ? 'bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08]' : 'bg-slate-50/50 border border-slate-200 hover:bg-slate-50')
+                  }`}
+                  style={idx === activeChildIdx ? { borderColor: teamColor } : {}}
+                >
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0"
+                    style={{ backgroundColor: teamColor }}
+                  >
+                    {child.photo_url ? (
+                      <img src={child.photo_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      child.first_name?.charAt(0) || '?'
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{child.first_name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: teamColor }} />
+                      <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {child.team?.name || 'No team'}
+                        {child.jersey_number ? ` · #${child.jersey_number}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       {/* ═══ ALERTS ═══ */}
       {visibleAlerts.map(alert => (
         <div 
