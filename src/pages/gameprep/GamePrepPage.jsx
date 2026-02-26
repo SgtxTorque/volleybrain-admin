@@ -853,7 +853,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
                       matchResult.result === 'tie' || selectedFormat.noMatchWinner
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-6 text-center ${
@@ -1607,7 +1607,7 @@ function GamePrepPage({ showToast }) {
       
       {/* Stats Prompt - shown after game completion */}
       {showStatsPrompt && selectedGame && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => { setShowStatsPrompt(false) }}>
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => { setShowStatsPrompt(false) }}>
           <div className="bg-white rounded-3xl w-full max-w-md p-8 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="text-6xl mb-4">
               {selectedGame.game_result === 'win' ? '🏆' : selectedGame.game_result === 'loss' ? '📊' : '🤝'}

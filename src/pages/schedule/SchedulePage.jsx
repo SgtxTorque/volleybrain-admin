@@ -144,7 +144,7 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
   const availablePlayers = roster.filter(p => !isPlayerAssigned(p.id))
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
@@ -658,7 +658,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
   const steps = ['Format', 'Score', 'Attendance', 'Badges', 'Confirm']
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} ${
@@ -1727,7 +1727,7 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
           <h2 className="text-xl font-semibold text-white">Add Event</h2>
@@ -1996,7 +1996,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
   const selectedDays = dayConfigs.map(d => d.day)
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
           <div>
@@ -2252,7 +2252,7 @@ function BulkGamesModal({ teams, venues, onClose, onCreate }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
           <div>
@@ -2377,7 +2377,7 @@ function VenueManagerModal({ venues, onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-700 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-white">Manage Venues</h2>
@@ -2511,7 +2511,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
           <div>

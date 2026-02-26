@@ -12,11 +12,6 @@ import {
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
 import { PhotoGallery, Lightbox } from '../../components/teams/PhotoGallery'
-import ShoutoutCard, { parseShoutoutMetadata } from '../../components/engagement/ShoutoutCard'
-import ChallengeCard, { parseChallengeMetadata } from '../../components/engagement/ChallengeCard'
-import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
-import CreateChallengeModal from '../../components/engagement/CreateChallengeModal'
-import ChallengeDetailModal from '../../components/engagement/ChallengeDetailModal'
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS (preserved exactly)
@@ -164,9 +159,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const [activeTab, setActiveTab] = useState('feed')
 
   const [showNewPostModal, setShowNewPostModal] = useState(false)
-  const [showShoutoutModal, setShowShoutoutModal] = useState(false)
-  const [showChallengeModal, setShowChallengeModal] = useState(false)
-  const [showChallengeDetail, setShowChallengeDetail] = useState(null)
   const [selectedPlayer, setSelectedPlayer] = useState(null)
   const [showEventDetail, setShowEventDetail] = useState(null)
 
@@ -636,8 +628,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         <div className="flex gap-2.5 overflow-x-auto tw-nos pb-1">
           {[
             (profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && { icon: '✏️', label: 'New Post', action: () => setShowNewPostModal(true), primary: true },
-            { icon: '⭐', label: 'Give Shoutout', action: () => setShowShoutoutModal(true), primary: false },
-            (profile?.role === 'admin' || profile?.role === 'coach') && { icon: '🏆', label: 'Create Challenge', action: () => setShowChallengeModal(true), primary: false },
             { icon: '💬', label: 'Team Chat', action: openTeamChat, primary: false },
             { icon: '📅', label: 'Schedule', action: () => setActiveTab('schedule'), primary: false },
             { icon: '📋', label: 'Roster', action: () => setActiveTab('roster'), primary: false },
@@ -1041,31 +1031,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         />
       )}
 
-      {/* ═══ GIVE SHOUTOUT MODAL ═══ */}
-      <GiveShoutoutModal
-        visible={showShoutoutModal}
-        teamId={teamId}
-        onClose={() => setShowShoutoutModal(false)}
-        onSuccess={() => { loadPosts(1, true); setShowShoutoutModal(false) }}
-      />
-
-      {/* ═══ CREATE CHALLENGE MODAL ═══ */}
-      <CreateChallengeModal
-        visible={showChallengeModal}
-        teamId={teamId}
-        organizationId={profile?.current_organization_id || ''}
-        onClose={() => setShowChallengeModal(false)}
-        onSuccess={() => { loadPosts(1, true); setShowChallengeModal(false) }}
-      />
-
-      {/* ═══ CHALLENGE DETAIL MODAL ═══ */}
-      <ChallengeDetailModal
-        visible={!!showChallengeDetail}
-        challengeId={showChallengeDetail}
-        onClose={() => setShowChallengeDetail(null)}
-        onOptInSuccess={() => loadPosts(1, true)}
-      />
-
       {/* ═══ PLAYER CARD EXPANDED ═══ */}
       {selectedPlayer && (
         <PlayerCardExpanded
@@ -1420,35 +1385,13 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
       )}
 
-      {/* Content — Special rendering for shoutout/challenge post types */}
-      {postType === 'shoutout' && parseShoutoutMetadata(post.title) ? (
-        <div className="px-4 pb-4">
-          <ShoutoutCard
-            metadataJson={post.title}
-            giverName={post.profiles?.full_name || 'Someone'}
-            createdAt={post.created_at}
-          />
-        </div>
-      ) : postType === 'challenge' && parseChallengeMetadata(post.title) ? (
-        <div className="px-4 pb-4">
-          <ChallengeCard
-            metadataJson={post.title}
-            coachName={post.profiles?.full_name || 'Coach'}
-            createdAt={post.created_at}
-            onViewDetails={() => {
-              // Find challenge ID from coach_challenges via post_id
-              // For now, show the card content inline
-            }}
-          />
-        </div>
-      ) : (
-        <div className="px-6 pb-4">
-          {post.title && (
-            <h3 className="font-bold text-[16px] tw-heading tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
-          )}
-          <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
-        </div>
-      )}
+      {/* Content */}
+      <div className="px-6 pb-4">
+        {post.title && (
+          <h3 className="font-bold text-[16px] tw-heading tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
+        )}
+        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+      </div>
 
       {/* Interaction Bar — Cheers + Comments + Share */}
       <div className="px-6 pb-6">

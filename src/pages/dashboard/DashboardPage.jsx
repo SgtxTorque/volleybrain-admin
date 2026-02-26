@@ -1149,64 +1149,10 @@ export function DashboardPage({ onNavigate }) {
     return <SkeletonDashboard />
   }
 
-  // Season progress calculation
-  const getSeasonProgress = () => {
-    if (!selectedSeason?.start_date || !selectedSeason?.end_date) return { week: 0, totalWeeks: 0 }
-    const start = new Date(selectedSeason.start_date)
-    const end = new Date(selectedSeason.end_date)
-    const now = new Date()
-    const totalMs = end - start
-    const elapsedMs = now - start
-    const totalWeeks = Math.max(1, Math.ceil(totalMs / (7 * 24 * 60 * 60 * 1000)))
-    const currentWeek = Math.min(totalWeeks, Math.max(1, Math.ceil(elapsedMs / (7 * 24 * 60 * 60 * 1000))))
-    return { week: currentWeek, totalWeeks }
-  }
-  const seasonProgress = getSeasonProgress()
-
   return (
     <div className="space-y-6">
       {/* Journey Progress */}
       <JourneyTimeline onNavigate={onNavigate} />
-
-      {/* Hero Section */}
-      <div className={`rounded-2xl p-6 lg:p-8 ${
-        isDark
-          ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.08]'
-          : 'bg-white/70 backdrop-blur-xl border border-white/40 shadow-soft-md'
-      }`}>
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div>
-            <h1 className={`text-3xl lg:text-4xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              {organization?.name || 'Dashboard'}
-            </h1>
-            <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              {selectedSeason?.name || 'No season selected'}
-              {seasonProgress.totalWeeks > 0 && (
-                <span> · Week {seasonProgress.week} of {seasonProgress.totalWeeks}</span>
-              )}
-            </p>
-          </div>
-
-          {/* Quick Stat Pills */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Players', value: stats.rosteredPlayers, color: 'bg-blue-500' },
-              { label: 'Teams', value: stats.teams, color: 'bg-purple-500' },
-              { label: 'Collected', value: `$${stats.totalCollected.toLocaleString()}`, color: 'bg-emerald-500' },
-              { label: 'Registrations', value: stats.totalRegistrations, color: 'bg-amber-500' },
-            ].map(pill => (
-              <span key={pill.label} className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium ${
-                isDark
-                  ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06]'
-                  : 'bg-white/80 text-slate-700 border border-slate-200/60 shadow-soft-sm'
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${pill.color}`} />
-                {pill.label}: <span className="font-bold">{pill.value}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* Customizable Widget Grid */}
       <DashboardGrid role="admin" />

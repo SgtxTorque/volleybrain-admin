@@ -11,8 +11,8 @@ export const accentColors = {
     navBarSolid: '#2C3E50',
     // Glass nav variant (used in glass mode)
     navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.85)',
-      dark: 'rgba(15, 23, 42, 0.90)',
+      light: 'rgba(255, 255, 255, 0.75)',
+      dark: 'rgba(15, 23, 42, 0.75)',
     },
   },
   blue: { 
@@ -24,8 +24,8 @@ export const accentColors = {
     navBar: 'linear-gradient(135deg, #1E3A5F 0%, #0C4A6E 100%)',
     navBarSolid: '#1E3A5F',
     navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.85)',
-      dark: 'rgba(15, 23, 42, 0.90)',
+      light: 'rgba(255, 255, 255, 0.75)',
+      dark: 'rgba(15, 23, 42, 0.75)',
     },
   },
   purple: { 
@@ -37,8 +37,8 @@ export const accentColors = {
     navBar: 'linear-gradient(135deg, #2E1065 0%, #1E1B4B 100%)',
     navBarSolid: '#2E1065',
     navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.85)',
-      dark: 'rgba(15, 23, 42, 0.90)',
+      light: 'rgba(255, 255, 255, 0.75)',
+      dark: 'rgba(15, 23, 42, 0.75)',
     },
   },
   green: { 
@@ -50,8 +50,8 @@ export const accentColors = {
     navBar: 'linear-gradient(135deg, #134E4A 0%, #0F172A 100%)',
     navBarSolid: '#134E4A',
     navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.85)',
-      dark: 'rgba(15, 23, 42, 0.90)',
+      light: 'rgba(255, 255, 255, 0.75)',
+      dark: 'rgba(15, 23, 42, 0.75)',
     },
   },
   rose: { 
@@ -63,8 +63,8 @@ export const accentColors = {
     navBar: 'linear-gradient(135deg, #4C1D30 0%, #1F1020 100%)',
     navBarSolid: '#4C1D30',
     navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.85)',
-      dark: 'rgba(15, 23, 42, 0.90)',
+      light: 'rgba(255, 255, 255, 0.75)',
+      dark: 'rgba(15, 23, 42, 0.75)',
     },
   },
   slate: { 
@@ -76,8 +76,8 @@ export const accentColors = {
     navBar: 'linear-gradient(135deg, #334155 0%, #1E293B 100%)',
     navBarSolid: '#334155',
     navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.85)',
-      dark: 'rgba(15, 23, 42, 0.90)',
+      light: 'rgba(255, 255, 255, 0.75)',
+      dark: 'rgba(15, 23, 42, 0.75)',
     },
   },
 }

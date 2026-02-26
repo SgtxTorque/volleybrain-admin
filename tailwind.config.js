@@ -37,8 +37,6 @@ export default {
         'glow-blue': '0 0 20px rgba(14, 165, 233, 0.2)',
         'glow-purple': '0 0 20px rgba(139, 92, 246, 0.2)',
         'glow-green': '0 0 20px rgba(16, 185, 129, 0.2)',
-        'glow-rose': '0 0 20px rgba(244, 63, 94, 0.2)',
-        'glow-slate': '0 0 20px rgba(100, 116, 139, 0.2)',
         'inner-light': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.1)',
         'inner-glow': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
       },
@@ -55,21 +53,14 @@ export default {
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
-        'fade-in-up': 'fadeInUp 0.2s ease-out',
         'slide-up': 'slideUp 0.4s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
-        'modal-in': 'modalIn 0.2s ease-out',
-        'dropdown-in': 'dropdownIn 0.15s ease-out',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
-        },
-        fadeInUp: {
-          '0%': { opacity: '0', transform: 'translateY(8px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
@@ -82,14 +73,6 @@ export default {
         scaleIn: {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        modalIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        dropdownIn: {
-          '0%': { opacity: '0', transform: 'translateY(-4px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },

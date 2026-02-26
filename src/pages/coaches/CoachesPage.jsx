@@ -301,7 +301,7 @@ export function CoachDetailModal({ coach, onClose, onEdit, tc }) {
   const certs = Array.isArray(coach.certifications) ? coach.certifications : []
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className="relative h-32 bg-gradient-to-r from-blue-600/30 to-purple-600/30">
           <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full bg-black/30 text-white hover:bg-black/50"><X className="w-5 h-5" /></button>
@@ -529,7 +529,7 @@ function CoachFormModal({ coach, onSave, onClose, showToast, tc }) {
   const lc = `block text-xs font-medium ${tc.textMuted} mb-1.5 uppercase tracking-wider`
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>
@@ -742,7 +742,7 @@ function AssignTeamsModal({ coach, teams, onSave, onClose, tc }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}>
         <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg}`}>
           <div>

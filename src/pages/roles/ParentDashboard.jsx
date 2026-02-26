@@ -53,7 +53,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
   const eventDate = event.event_date ? new Date(event.event_date) : null
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
   const hasPaymentMethods = organization?.payment_venmo || organization?.payment_zelle || organization?.payment_cashapp
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg shadow-2xl`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border}`}>
@@ -393,7 +393,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Add Another Child</h2>
@@ -494,7 +494,7 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Re-Register {player.first_name}</h2>
@@ -549,7 +549,7 @@ function AlertDetailModal({ alert, onClose }) {
   const createdDate = new Date(alert.created_at)
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center gap-3">
@@ -1223,13 +1223,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       )}
 
       {/* ═══ PLAYER HERO CARD ═══ */}
-      <div
-        className={`overflow-hidden ${isDark ? 'shadow-glass-dark' : 'shadow-soft-xl'}`}
+      <div 
+        className="overflow-hidden shadow-xl"
         data-tutorial="player-card"
-        style={{
+        style={{ 
           borderRadius: registrationData.length > 1 ? '0 20px 20px 20px' : '20px',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'}`,
-          backdropFilter: 'blur(12px)',
+          border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
         }}
       >
         {/* ── Hero Top: Photo + Player Identity ── */}
@@ -1693,8 +1692,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               <button
                 key={event.id}
                 onClick={() => setSelectedEventDetail(event)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all
-                  ${isDark ? 'bg-slate-800/80 backdrop-blur-sm border-white/[0.06] hover:border-white/[0.12] shadow-glass-dark' : 'bg-white/80 backdrop-blur-sm border-white/40 hover:shadow-soft-md shadow-soft-sm'} border`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all shadow-sm
+                  ${isDark ? 'bg-slate-800 border-slate-700 hover:border-slate-500 hover:bg-slate-750' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'} border`}
               >
                 {/* Date block */}
                 <div className="text-center w-12 flex-shrink-0">

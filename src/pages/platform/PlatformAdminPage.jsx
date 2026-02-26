@@ -58,7 +58,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, destructive,
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
       <div className={`pa-as w-full max-w-md rounded-2xl p-6 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200/60'} shadow-2xl`}>
         <div className="flex items-center gap-3 mb-4">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${destructive ? 'bg-red-500/20' : 'bg-amber-500/20'}`}>
