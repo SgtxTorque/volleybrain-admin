@@ -122,9 +122,9 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
 
       {isOpen && (
         <div className={`absolute top-full left-0 mt-3 w-56 rounded-2xl overflow-hidden z-50 animate-slide-down ${
-          isDark 
-            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
-            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
+          isDark
+            ? 'bg-slate-800/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
+            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_40px_rgba(0,0,0,0.1)]'
         }`}>
           {items.map(item => (
             <button
@@ -737,6 +737,7 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
   const [loading, setLoading] = useState(true)
   const [showRegModal, setShowRegModal] = useState(false)
   const [showSeasonSelector, setShowSeasonSelector] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('vb_glance_collapsed') === 'true')
   const [openSeasons, setOpenSeasons] = useState([]) // Seasons open for registration
 
   // Fetch open registration seasons for parents
@@ -980,17 +981,34 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
 
   const morale = getTeamMorale()
 
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem('vb_glance_collapsed', String(next))
+  }
+
   return (
-    <div 
-      className={`mx-auto w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
-        isDark 
-          ? 'bg-slate-800/95 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]' 
-          : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-[0_4px_24px_rgba(0,0,0,0.1)]'
+    <div
+      className={`w-full rounded-2xl transition-all duration-300 ${
+        isDark
+          ? 'bg-slate-900/85 backdrop-blur-xl border border-white/[0.12] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
+          : 'bg-white/85 backdrop-blur-xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)]'
       }`}
     >
+      {/* Collapse toggle */}
+      <div className="flex justify-end px-3 pt-1">
+        <button
+          onClick={toggleCollapsed}
+          className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-500' : 'hover:bg-slate-100 text-slate-400'}`}
+          title={collapsed ? 'Expand stats bar' : 'Collapse stats bar'}
+        >
+          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
       {/* Stats Row - Centered */}
-      <div className="max-w-6xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-center gap-0">
+      <div className={`overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-0 opacity-0 pb-0' : 'max-h-96 opacity-100 pb-4'}`}>
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex items-center justify-center gap-0">
           
           {/* ═══ COACH VIEW ═══ */}
           {activeView === 'coach' && (
@@ -1090,9 +1108,9 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowSeasonSelector(false)} />
                     <div className={`absolute top-full left-0 mt-1 w-72 rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto animate-slide-down ${
-                      isDark 
-                        ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
-                        : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
+                      isDark
+                        ? 'bg-slate-800/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
+                        : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_40px_rgba(0,0,0,0.1)]'
                     }`}>
                       {allSeasons.length === 0 ? (
                         <div className={`p-4 text-center text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No seasons found</div>
@@ -1404,9 +1422,10 @@ function InfoHeaderBar({ activeView, roleContext, organization, tc, selectedTeam
             </>
           )}
 
+          </div>
         </div>
       </div>
-      
+
       {/* Registration Selector Modal for Parents */}
       <RegistrationSelectorModal
         isOpen={showRegModal}
@@ -1590,10 +1609,10 @@ function HorizontalNavBar({
   }
 
   return (
-    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1600px] rounded-2xl transition-all duration-300 ${
-      isDark 
-        ? 'bg-slate-900/85 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]' 
-        : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
+    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1440px] rounded-2xl transition-all duration-300 ${
+      isDark
+        ? 'bg-slate-900/85 backdrop-blur-xl border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.4)]'
+        : 'bg-white/85 backdrop-blur-xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06),0_12px_24px_rgba(0,0,0,0.04)]'
     }`}>
       
       {/* LEFT: Logo */}
@@ -1993,7 +2012,7 @@ function MainApp() {
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider>
-      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-[#F0F1F5]'}`}>
+      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
@@ -2013,8 +2032,8 @@ function MainApp() {
           isPlatformAdmin={isPlatformAdmin}
         />
 
-        {/* Info Header Bar */}
-        <div className="mt-24 px-4 relative z-10">
+        {/* GlanceWidget Bar */}
+        <div className="mt-24 px-4 relative z-10 max-w-[1440px] mx-auto w-full">
           <InfoHeaderBar
             activeView={activeView} roleContext={roleContext} organization={organization}
             tc={tc} selectedTeamId={selectedTeamId}
@@ -2023,7 +2042,7 @@ function MainApp() {
         </div>
 
         {/* Main Content Area — React Router */}
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1600px] mx-auto w-full relative z-10">
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full relative z-10 animate-slide-up">
           <Breadcrumb />
           <ErrorBoundary>
             <RoutedContent

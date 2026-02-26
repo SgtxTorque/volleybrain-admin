@@ -90,5 +90,12 @@ export function useThemeClasses() {
     // NavBar specific
     navBar: accent.navBar,
     navBarSolid: accent.navBarSolid,
+    // Semantic surface tokens (Phase 1D)
+    surface: isDark ? 'bg-slate-900' : 'bg-slate-50',
+    surfaceElevated: isDark ? 'bg-slate-800/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md',
+    surfaceGlass: isDark ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.08]' : 'bg-white/60 backdrop-blur-xl border border-white/40',
+    divider: isDark ? 'border-white/[0.08]' : 'border-slate-200',
+    inputBorder: isDark ? 'border-slate-700' : 'border-slate-300',
+    textPrimary: isDark ? 'text-white' : 'text-slate-900',
   }
 }
