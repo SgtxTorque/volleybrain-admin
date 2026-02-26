@@ -43,7 +43,7 @@ export default {
         'inner-glow': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
       },
       fontFamily: {
-        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        sans: ['Tele-Grotesk', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       backdropBlur: {

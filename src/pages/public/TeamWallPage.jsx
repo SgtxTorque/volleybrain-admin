@@ -337,7 +337,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-5.5rem)] ${isDark ? 'bg-slate-900' : 'bg-[#f5f6f8]'}`}>
+    <div className={`flex flex-col h-[calc(100vh-4rem)] ${isDark ? 'bg-slate-900' : 'bg-[#f5f6f8]'}`}>
 
       {/* ═══ HERO BANNER — matching v0 team-hero.tsx ═══ */}
       <div className="shrink-0 px-6 pt-6">

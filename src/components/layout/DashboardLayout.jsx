@@ -8,7 +8,7 @@ import React from 'react'
 
 export default function DashboardLayout({ leftSidebar, rightSidebar, children }) {
   return (
-    <div className="flex h-[calc(100vh-5.5rem)] overflow-hidden">
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
       {/* Left Sidebar — 280px, hidden below xl */}
       {leftSidebar && (
         <div className="hidden xl:contents">
