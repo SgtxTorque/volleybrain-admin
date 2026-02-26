@@ -171,6 +171,7 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 **Jerseys**: jerseys, jersey_assignments, jersey_change_requests
 **Waivers**: waivers, waiver_signatures
 **Achievements**: achievements, player_achievements, achievement_categories, player_achievement_progress
+**Engagement**: shoutouts, shoutout_categories, coach_challenges, challenge_participants, xp_ledger
 **Notifications**: admin_notifications, notification_templates, push_subscriptions
 **Registration**: registration_templates, registration_custom_fields
 
@@ -214,6 +215,11 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - Sprint 5.3: RLS migration for 7 tables, org_id scoping audit (NotificationsPage fixed), input validation lib
 - Sprint 5.4: Split SchedulePage (4168→3823 lines), split OrganizationPage (2424→813 lines), remove src_backup/ and supabase.exe
 
+### CC-WEB Redesign (from CC-WEB-REDESIGN.md)
+- Phase 1: Visual Foundation — solid dark navy nav (bg-slate-800), max-w-1440px content, GlanceWidget collapse, theme tokens
+- Phase 2: Role Dashboard Command Centers — admin hero + stats, coach broadcast hero, parent trading cards, player verified
+- Phase 3: Feature Parity — Engagement system (shoutouts, challenges, XP/levels), Team Hub upgrades (Challenges tab, shoutout/challenge quick actions), Achievement system (HexBadge, LevelBadge, CelebrationModal, achievement-engine)
+
 ### New Components
 - `src/components/ui/Skeleton.jsx` — Shimmer loading components
 - `src/components/ui/ErrorBoundary.jsx` — React error boundary
@@ -233,5 +239,20 @@ Key tables queried in the web codebase (see DATABASE_SCHEMA.md for full schema):
 - `src/pages/settings/SetupSectionContent.jsx` — 16-section form content for organization setup
 - `src/components/widgets/dashboard/DashboardWidgets.jsx` — 8 self-contained dashboard widgets + registry + default layouts
 - `src/components/widgets/dashboard/DashboardGrid.jsx` — react-grid-layout drag-and-drop grid with widget picker
+
+### CC-WEB Redesign Phase 3: Engagement System + Team Hub + Achievements
+- `src/lib/engagement-constants.js` — XP levels, tiers, rarity config, shoutout categories, stat options
+- `src/lib/shoutout-service.js` — Give shoutout, XP awards, achievement checks
+- `src/lib/challenge-service.js` — Create/opt-in/progress/complete challenges
+- `src/lib/achievement-engine.js` — Check & unlock achievements, XP, progress tracking
+- `src/lib/engagement-events.js` — Auto-post achievement/level-up to team wall
+- `src/components/engagement/ShoutoutCard.jsx` — Desktop shoutout card for feed
+- `src/components/engagement/GiveShoutoutModal.jsx` — Multi-step shoutout modal (recipient, category, message, preview)
+- `src/components/engagement/ChallengeCard.jsx` — Challenge card with progress bar, join button
+- `src/components/engagement/CreateChallengeModal.jsx` — Coach creates challenges (type, metric, target, reward)
+- `src/components/engagement/ChallengeDetailModal.jsx` — Challenge details with participant leaderboard
+- `src/components/engagement/HexBadge.jsx` — Hexagonal SVG badge with tier colors
+- `src/components/engagement/LevelBadge.jsx` — Compact level indicator with tier colors
+- `src/components/engagement/AchievementCelebrationModal.jsx` — Full-screen celebration with confetti
 
 See WEB_BETA_GAMEPLAN.md for the full phased plan.
