@@ -334,7 +334,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
       {/* Payment Options Modal */}
       {showPaymentOptions && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
             <div className={`p-6 border-b ${tc.border}`}>
               <h2 className={`text-xl font-semibold ${tc.text}`}>Payment Options</h2>

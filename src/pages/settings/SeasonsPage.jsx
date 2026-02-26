@@ -295,7 +295,7 @@ function SeasonsPage({ showToast }) {
         )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-700 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">{editingSeason ? 'Edit Season' : 'Create Season'}</h2>
@@ -801,7 +801,7 @@ function SeasonsPage({ showToast }) {
 
       {/* Share Hub Modal */}
       {showShareModal && shareSeason && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-700 flex items-center justify-between">
               <div>

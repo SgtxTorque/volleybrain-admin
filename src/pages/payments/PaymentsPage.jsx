@@ -512,7 +512,7 @@ function MarkPaidModal({ payment, onConfirm, onClose, tc }) {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Mark Payment as Paid</h3>
         
@@ -598,7 +598,7 @@ function MarkPaidModal({ payment, onConfirm, onClose, tc }) {
 // ============================================
 function DeletePaymentModal({ payment, onConfirm, onClose, tc }) {
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -656,7 +656,7 @@ function SendReminderModal({ target, onSend, onClose, tc }) {
   }, [target])
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Payment Reminder</h3>
         
@@ -734,7 +734,7 @@ function BlastReminderModal({ families, onSend, onClose, tc }) {
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Blast Reminder</h3>
         
@@ -841,7 +841,7 @@ function AddFeeModal({ players, onAdd, onClose, tc }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Add New Fee</h3>
         

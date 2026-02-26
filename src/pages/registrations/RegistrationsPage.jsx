@@ -227,7 +227,7 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
   )
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
         
         {/* Header */}
@@ -492,7 +492,7 @@ export function DenyRegistrationModal({ player, onClose, onDeny }) {
   const [reason, setReason] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Deny Registration</h2>
@@ -528,7 +528,7 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
   const [reason, setReason] = useState('')
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Deny {count} Registrations</h2>

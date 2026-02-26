@@ -1194,7 +1194,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
       {/* ═══ VIEW WAIVER MODAL ═══ */}
       {viewingWaiver && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="px-5 py-3 flex items-center justify-between bg-slate-100 rounded-t-2xl">
@@ -1231,7 +1231,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
       {/* ═══ SIGN WAIVER MODAL ═══ */}
       {signingWaiver && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={() => setSigningWaiver(null)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSigningWaiver(null)}>
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
             {/* Accent top */}
             <div className="h-1.5 rounded-t-2xl" style={{ backgroundColor: teamColor }} />

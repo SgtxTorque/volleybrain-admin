@@ -466,7 +466,7 @@ function RegistrationTemplatesPage({ showToast }) {
 
       {/* Edit/Create Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-start justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 z-50 overflow-y-auto">
           <div 
             className="rounded-2xl w-full max-w-4xl my-8"
             style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}

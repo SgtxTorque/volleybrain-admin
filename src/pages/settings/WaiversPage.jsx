@@ -591,7 +591,7 @@ function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#f97316'
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* Preview Admin Bar */}
         <div className="px-5 py-2.5 flex items-center justify-between bg-slate-800 rounded-t-2xl">
@@ -764,7 +764,7 @@ function CreateWaiverModal({ tc, isDark, onClose, onCreate, enabledSports }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>
           <h2 className={`text-lg font-bold ${tc.text}`}>Create Waiver Template</h2>
@@ -1000,7 +1000,7 @@ function SendAdhocModal({ tc, isDark, organization, templates, showToast, onClos
   }
   const filtered = players.filter(p => `${p.first_name} ${p.last_name} ${p.parent_name || ''}`.toLowerCase().includes(search.toLowerCase()))
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-5 border-b ${tc.border}`}>
           <h2 className={`text-lg font-bold ${tc.text}`}>📨 Send Ad-Hoc Waiver</h2>

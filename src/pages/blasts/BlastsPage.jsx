@@ -410,7 +410,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
@@ -581,7 +581,7 @@ function BlastDetailModal({ blast, onClose, showToast }) {
   })
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border}`}>

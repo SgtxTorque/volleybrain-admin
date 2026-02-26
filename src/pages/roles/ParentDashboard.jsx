@@ -53,7 +53,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
   const eventDate = event.event_date ? new Date(event.event_date) : null
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
   const hasPaymentMethods = organization?.payment_venmo || organization?.payment_zelle || organization?.payment_cashapp
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg shadow-2xl`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border}`}>
@@ -393,7 +393,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Add Another Child</h2>
@@ -494,7 +494,7 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Re-Register {player.first_name}</h2>
@@ -549,7 +549,7 @@ function AlertDetailModal({ alert, onClose }) {
   const createdDate = new Date(alert.created_at)
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center gap-3">

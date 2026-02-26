@@ -974,7 +974,7 @@ function JerseyAssignmentModal({ player, takenNumbers, teamColor, onAssign, onCl
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border} sticky top-0 ${tc.cardBg}`}>
           <div className="flex items-center justify-between">
@@ -1111,7 +1111,7 @@ function JerseyEditModal({ player, takenNumbers, onUpdateNumber, onUpdateSize, o
   const playerData = player.player
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center justify-between">
@@ -1236,7 +1236,7 @@ function FullLeagueReportModal({ allPlayers, teams, seasonName, onClose, tc, isD
   const missingSize = toOrder.filter(p => !p.player?.uniform_size_jersey).length
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center justify-between">
@@ -1335,7 +1335,7 @@ function FullLeagueReportModal({ allPlayers, teams, seasonName, onClose, tc, isD
 // ============================================
 function OrderHistoryModal({ orderedPlayers, teams, seasonName, onClose, tc, isDark }) {
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center justify-between">

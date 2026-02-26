@@ -174,7 +174,7 @@ function EventDetailModal({ event, team, onClose }) {
   const eventDate = event.event_date ? new Date(event.event_date + 'T00:00:00') : null
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
