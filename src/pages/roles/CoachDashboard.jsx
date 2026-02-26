@@ -15,161 +15,6 @@ import {
 } from '../../constants/icons'
 
 // ============================================
-// CSS STYLES — Tactical Command Center
-// ============================================
-const tcStyles = `
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
-
-.tc-wrap{
-  min-height:100vh;
-  background:#0a0a0f;
-  color:#e2e8f0;
-  position:relative;
-  overflow-x:hidden;
-}
-/* Blueprint grid */
-.tc-wrap::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(59,130,246,0.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(59,130,246,0.04) 1px,transparent 1px);
-  background-size:40px 40px;
-  z-index:0;
-}
-.tc-wrap>*{position:relative;z-index:1;}
-
-/* Scanlines overlay */
-.tc-scanlines::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
-  z-index:2;
-}
-
-/* Animations */
-@keyframes tcFadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-@keyframes tcPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
-@keyframes tcGlow{0%,100%{box-shadow:0 0 8px rgba(59,130,246,0.2);}50%{box-shadow:0 0 20px rgba(59,130,246,0.4);}}
-@keyframes tcSlideIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
-@keyframes tcCountdown{0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
-@keyframes tcLivePulse{0%,100%{background:rgba(239,68,68,0.8);}50%{background:rgba(239,68,68,0.4);}}
-
-.tc-fadeIn{animation:tcFadeIn .5s ease-out both;}
-.tc-fadeIn-1{animation-delay:.1s;}
-.tc-fadeIn-2{animation-delay:.2s;}
-.tc-fadeIn-3{animation-delay:.3s;}
-.tc-fadeIn-4{animation-delay:.4s;}
-.tc-fadeIn-5{animation-delay:.5s;}
-
-/* Card base */
-.tc-card{
-  background:rgba(15,20,35,0.7);
-  border:1px solid rgba(59,130,246,0.12);
-  border-radius:1rem;
-  backdrop-filter:blur(12px);
-  transition:all .3s ease;
-}
-.tc-card:hover{
-  border-color:rgba(59,130,246,0.25);
-  box-shadow:0 0 30px rgba(59,130,246,0.08);
-}
-.tc-card-glow{
-  box-shadow:0 0 20px rgba(59,130,246,0.1),inset 0 1px 0 rgba(255,255,255,0.03);
-}
-
-/* Command widget */
-.tc-widget{
-  background:rgba(15,20,35,0.6);
-  border:1px solid rgba(59,130,246,0.1);
-  border-radius:1rem;
-  padding:1.25rem;
-  position:relative;
-  overflow:hidden;
-}
-.tc-widget::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(59,130,246,0.5),transparent);
-}
-
-/* Section headers */
-.tc-section-title{
-  font-family:'Bebas Neue',sans-serif;
-  letter-spacing:0.15em;
-  font-size:1.1rem;
-  color:rgba(148,163,184,0.8);
-  text-transform:uppercase;
-  display:flex;align-items:center;gap:0.5rem;
-}
-
-/* Tactical label */
-.tc-label{
-  font-family:'Rajdhani',sans-serif;
-  font-weight:600;
-  font-size:0.7rem;
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-  color:rgba(100,116,139,0.8);
-}
-
-/* Action card hero */
-.tc-hero-card{
-  background:linear-gradient(135deg,rgba(15,20,35,0.9),rgba(25,35,60,0.9));
-  border:1px solid rgba(59,130,246,0.15);
-  border-radius:1.25rem;
-  padding:2rem;
-  cursor:pointer;
-  transition:all .3s ease;
-  position:relative;
-  overflow:hidden;
-}
-.tc-hero-card:hover{
-  border-color:rgba(59,130,246,0.4);
-  box-shadow:0 0 40px rgba(59,130,246,0.15);
-  transform:translateY(-2px);
-}
-.tc-hero-card::after{
-  content:'';position:absolute;top:0;right:0;width:120px;height:120px;
-  background:radial-gradient(circle,rgba(59,130,246,0.08),transparent 70%);
-  pointer-events:none;
-}
-
-/* Player pulse card */
-.tc-player-row{
-  display:flex;align-items:center;gap:0.75rem;
-  padding:0.75rem;border-radius:0.75rem;
-  transition:all .2s ease;cursor:pointer;
-  border:1px solid transparent;
-}
-.tc-player-row:hover{
-  background:rgba(59,130,246,0.06);
-  border-color:rgba(59,130,246,0.12);
-}
-
-/* Form indicator dots */
-.tc-form-dot{
-  width:28px;height:28px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:0.7rem;
-  transition:all .2s ease;
-}
-
-/* Team selector button */
-.tc-team-btn{
-  display:flex;align-items:center;gap:0.75rem;
-  padding:0.75rem 1.25rem;border-radius:0.75rem;
-  border:1px solid rgba(59,130,246,0.1);
-  background:rgba(15,20,35,0.5);
-  cursor:pointer;transition:all .2s ease;
-  white-space:nowrap;flex-shrink:0;
-}
-.tc-team-btn:hover{border-color:rgba(59,130,246,0.3);}
-.tc-team-btn.active{
-  border-color:rgba(59,130,246,0.5);
-  background:rgba(59,130,246,0.1);
-  box-shadow:0 0 20px rgba(59,130,246,0.1);
-}
-`
-
-// ============================================
 // HELPER FUNCTIONS
 // ============================================
 function formatTime12(timeStr) {
@@ -204,20 +49,21 @@ function formatDateShort(dateStr) {
 }
 
 // ============================================
-// EVENT DETAIL MODAL — Tactical Style
+// EVENT DETAIL MODAL
 // ============================================
-function EventDetailModal({ event, team, onClose }) {
+function EventDetailModal({ event, team, onClose, isDark }) {
   if (!event) return null
   const eventDate = event.event_date ? new Date(event.event_date + 'T00:00:00') : null
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
-        className="tc-card w-full max-w-lg max-h-[80vh] overflow-y-auto"
-        style={{ background: 'rgba(15,20,35,0.95)', border: '1px solid rgba(59,130,246,0.2)' }}
+        className={`w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl shadow-xl ${
+          isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'
+        }`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-blue-500/10">
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl"
@@ -226,50 +72,52 @@ function EventDetailModal({ event, team, onClose }) {
               {event.event_type === 'game' ? '🏐' : '⚡'}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">{event.title || event.event_type}</h2>
-              <p className="text-slate-400 text-sm">{team?.name}</p>
+              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title || event.event_type}</h2>
+              <p className="text-slate-500 text-sm">{team?.name}</p>
             </div>
-            <button onClick={onClose} className="ml-auto p-2 rounded-lg hover:bg-white/5 transition">
-              <X className="w-5 h-5 text-slate-500" />
+            <button onClick={onClose} className={`ml-auto p-2 rounded-lg transition ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-100'}`}>
+              <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
         </div>
 
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-blue-400" />
+            <Calendar className="w-5 h-5 text-blue-500" />
             <div>
-              <p className="text-white">{eventDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-              {event.event_time && <p className="text-slate-400 text-sm">{formatTime12(event.event_time)}</p>}
+              <p className={isDark ? 'text-white' : 'text-slate-900'}>{eventDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              {event.event_time && <p className="text-slate-500 text-sm">{formatTime12(event.event_time)}</p>}
             </div>
           </div>
 
           {(event.location || event.venue_name) && (
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-blue-400" />
+              <MapPin className="w-5 h-5 text-blue-500" />
               <div>
-                <p className="text-white">{event.venue_name || event.location}</p>
-                {event.venue_address && <p className="text-sm text-slate-400">{event.venue_address}</p>}
+                <p className={isDark ? 'text-white' : 'text-slate-900'}>{event.venue_name || event.location}</p>
+                {event.venue_address && <p className="text-sm text-slate-500">{event.venue_address}</p>}
               </div>
             </div>
           )}
 
           {event.opponent_name && (
             <div className="flex items-center gap-3">
-              <Swords className="w-5 h-5 text-amber-400" />
-              <p className="text-white">vs {event.opponent_name}</p>
+              <Swords className="w-5 h-5 text-amber-500" />
+              <p className={isDark ? 'text-white' : 'text-slate-900'}>vs {event.opponent_name}</p>
             </div>
           )}
 
           {event.notes && (
-            <div className="rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.1)' }}>
-              <p className="text-sm text-slate-300">{event.notes}</p>
+            <div className={`rounded-xl p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-slate-50 border border-slate-100'}`}>
+              <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-blue-500/10">
-          <button onClick={onClose} className="w-full py-3 rounded-xl border border-blue-500/20 text-slate-300 font-medium hover:bg-blue-500/5 transition">
+        <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${
+            isDark ? 'border border-white/[0.08] text-slate-300 hover:bg-white/[0.03]' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}>
             Close
           </button>
         </div>
@@ -285,6 +133,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const { profile, user } = useAuth()
   const { selectedSeason } = useSeason()
   const { selectedSport } = useSport()
+  const { isDark } = useTheme()
 
   const [loading, setLoading] = useState(true)
   const [teams, setTeams] = useState([])
@@ -302,6 +151,17 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
+
+  // Card styling helpers
+  const cardClass = isDark
+    ? 'bg-slate-800 border border-white/[0.08] rounded-2xl'
+    : 'bg-white border border-slate-200 rounded-2xl shadow-sm'
+  const cardHoverClass = 'transition-all duration-200 hover:shadow-md hover:-translate-y-0.5'
+  const sectionLabel = `text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-400'}`
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900'
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-500'
+  const textMuted = isDark ? 'text-slate-500' : 'text-slate-400'
+  const dividerClass = isDark ? 'border-white/[0.06]' : 'border-slate-100'
 
   // ── Data Loading ──
   useEffect(() => {
@@ -481,12 +341,11 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── Loading State ──
   if (loading) {
     return (
-      <div className="tc-wrap flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <style>{tcStyles}</style>
+      <div className={`flex items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`} style={{ minHeight: '60vh' }}>
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-slate-500 mt-4 text-sm" style={{ fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.1em' }}>
-            INITIALIZING COMMAND CENTER...
+          <p className={`mt-4 text-sm tracking-wide ${textSecondary}`}>
+            Loading dashboard...
           </p>
         </div>
       </div>
@@ -496,17 +355,17 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── No Teams State ──
   if (teams.length === 0) {
     return (
-      <div className="tc-wrap flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <style>{tcStyles}</style>
+      <div className={`flex items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`} style={{ minHeight: '60vh' }}>
         <div className="text-center max-w-md mx-auto px-6">
-          <div className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center"
-            style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
-            <Shield className="w-10 h-10 text-blue-400" />
+          <div className={`w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center ${
+            isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'
+          }`}>
+            <Shield className="w-10 h-10 text-blue-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}>
-            AWAITING ASSIGNMENT
+          <h2 className={`text-2xl font-bold mb-2 ${textPrimary}`}>
+            No Teams Assigned
           </h2>
-          <p className="text-slate-400">No teams assigned yet. Contact your league administrator to get started.</p>
+          <p className={textSecondary}>Contact your league administrator to get started.</p>
         </div>
       </div>
     )
@@ -514,23 +373,27 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // ── Main Render ──
   return (
-    <div className="tc-wrap tc-scanlines">
-      <style>{tcStyles}</style>
+    <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-
-        {/* ═══════════════════════════════════════════
-            TEAM SELECTOR — "OPERATION SELECT"
-            ═══════════════════════════════════════════ */}
+        {/* TEAM SELECTOR */}
         {teams.length > 1 && (
-          <div className="tc-fadeIn">
-            <p className="tc-label mb-2">OPERATION SELECT</p>
+          <div>
+            <p className={`${sectionLabel} mb-2`}>SELECT TEAM</p>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2">
               {teams.map(team => (
                 <button
                   key={team.id}
                   onClick={() => handleTeamSelect(team)}
-                  className={`tc-team-btn ${selectedTeam?.id === team.id ? 'active' : ''}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border whitespace-nowrap flex-shrink-0 transition-all duration-200 ${
+                    selectedTeam?.id === team.id
+                      ? isDark
+                        ? 'border-blue-500/50 bg-blue-500/10'
+                        : 'border-blue-300 bg-blue-50'
+                      : isDark
+                        ? 'border-white/[0.08] bg-slate-800 hover:border-white/[0.15]'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
                 >
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
@@ -539,13 +402,13 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                     {team.name?.charAt(0)}
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-white text-sm">{team.name}</p>
-                    <p className="text-xs text-slate-500">
-                      {team.coachRole === 'head' ? 'HEAD' : 'ASST'} · {team.playerCount} operators
+                    <p className={`font-semibold text-sm ${textPrimary}`}>{team.name}</p>
+                    <p className={`text-xs ${textMuted}`}>
+                      {team.coachRole === 'head' ? 'Head Coach' : 'Assistant'} · {team.playerCount} players
                     </p>
                   </div>
                   {selectedTeam?.id === team.id && (
-                    <Check className="w-4 h-4 text-blue-400" />
+                    <Check className="w-4 h-4 text-blue-500" />
                   )}
                 </button>
               ))}
@@ -553,665 +416,780 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════
-            HERO CARD — Next Game / Season Record
-            ═══════════════════════════════════════════ */}
-        <div className="tc-fadeIn">
-          {nextGame ? (
-            <div
-              className="relative rounded-2xl overflow-hidden p-6 cursor-pointer transition-transform hover:scale-[1.005]"
-              style={{
-                background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}dd, ${selectedTeam?.color || '#3B82F6'}88, rgba(15,23,42,0.95))`,
-                border: `1px solid ${selectedTeam?.color || '#3B82F6'}40`,
-              }}
-              onClick={() => onNavigate?.('gameprep')}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
-                    {countdownText(nextGame.event_date) === 'TODAY' ? '🔴 LIVE TODAY' : 'UPCOMING GAME'}
-                  </span>
+        {/* HERO CARD — Next Game / Season Record */}
+        {nextGame ? (
+          <div
+            className="relative rounded-2xl overflow-hidden p-6 cursor-pointer transition-transform hover:scale-[1.005]"
+            style={{
+              background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}dd, ${selectedTeam?.color || '#3B82F6'}88, ${isDark ? 'rgba(15,23,42,0.95)' : 'rgba(30,41,59,0.95)'})`,
+            }}
+            onClick={() => onNavigate?.('gameprep')}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
+                  {countdownText(nextGame.event_date) === 'TODAY' ? '🔴 Live Today' : 'Upcoming Game'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-3">
+                <div>
+                  <p className="text-white/60 text-sm font-medium">{selectedTeam?.name}</p>
+                  <p className="text-4xl font-black text-white tracking-tight">
+                    vs {nextGame.opponent_name || 'TBD'}
+                  </p>
                 </div>
-                <div className="flex items-center justify-between mt-3">
-                  <div>
-                    <p className="text-white/60 text-sm font-medium">{selectedTeam?.name}</p>
-                    <p className="text-4xl font-black text-white tracking-tight" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.04em' }}>
-                      vs {nextGame.opponent_name || 'TBD'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-black text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-                      {countdownText(nextGame.event_date)}
-                    </p>
-                    <p className="text-white/60 text-sm">
-                      {nextGame.event_time ? formatTime12(nextGame.event_time) : ''}
-                      {nextGame.venue_name ? ` · ${nextGame.venue_name}` : ''}
-                    </p>
-                  </div>
+                <div className="text-right">
+                  <p className="text-3xl font-black text-white">
+                    {countdownText(nextGame.event_date)}
+                  </p>
+                  <p className="text-white/60 text-sm">
+                    {nextGame.event_time ? formatTime12(nextGame.event_time) : ''}
+                    {nextGame.venue_name ? ` · ${nextGame.venue_name}` : ''}
+                  </p>
                 </div>
               </div>
             </div>
-          ) : (
-            <div
-              className="rounded-2xl p-6"
-              style={{
-                background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}22, rgba(15,23,42,0.8))`,
-                border: `1px solid ${selectedTeam?.color || '#3B82F6'}30`,
-              }}
-            >
-              <p className="tc-label mb-2">SEASON RECORD</p>
-              <div className="flex items-baseline gap-3">
-                <span className="text-5xl font-black text-emerald-400" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>{teamRecord.wins}</span>
-                <span className="text-3xl text-slate-600 font-bold">-</span>
-                <span className="text-5xl font-black text-red-400" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>{teamRecord.losses}</span>
-                <span className="text-sm text-slate-500 ml-2">{winRate}% win rate</span>
-              </div>
-              <p className="text-slate-500 text-sm mt-2">{selectedTeam?.name} · {selectedSeason?.name}</p>
+          </div>
+        ) : (
+          <div className={`${cardClass} p-6`}>
+            <p className={`${sectionLabel} mb-2`}>SEASON RECORD</p>
+            <div className="flex items-baseline gap-3">
+              <span className="text-5xl font-black text-emerald-500">{teamRecord.wins}</span>
+              <span className={`text-3xl font-bold ${textMuted}`}>-</span>
+              <span className="text-5xl font-black text-red-500">{teamRecord.losses}</span>
+              <span className={`text-sm ml-2 ${textSecondary}`}>{winRate}% win rate</span>
             </div>
-          )}
-        </div>
+            <p className={`text-sm mt-2 ${textSecondary}`}>{selectedTeam?.name} · {selectedSeason?.name}</p>
+          </div>
+        )}
 
-        {/* ═══════════════════════════════════════════
-            TACTICAL HEADER
-            ═══════════════════════════════════════════ */}
-        <div className="tc-fadeIn flex items-center justify-between">
+        {/* HEADER */}
+        <div className="flex items-center justify-between">
           <div>
-            <p className="tc-label">{selectedSeason?.name || 'ACTIVE SEASON'}</p>
-            <h1 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-              {selectedTeam?.name || 'COMMAND CENTER'}
+            <p className={sectionLabel}>{selectedSeason?.name || 'Active Season'}</p>
+            <h1 className={`text-3xl font-black tracking-tight ${textPrimary}`}>
+              {selectedTeam?.name || 'Dashboard'}
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className={`text-sm mt-0.5 ${textSecondary}`}>
               {selectedTeam?.coachRole === 'head' ? 'Head Coach' : 'Assistant Coach'} · {coachName}
             </p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold transition"
-              style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#93c5fd' }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
+                isDark
+                  ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/15'
+                  : 'bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100'
+              }`}
             >
               Team Hub
             </button>
             <button
               onClick={() => openTeamChat(selectedTeam?.id)}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition"
-              style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: '#fbbf24' }}
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition ${
+                isDark
+                  ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/15'
+                  : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'
+              }`}
             >
               <MessageCircle className="w-4 h-4" />
-              Comms
+              Chat
             </button>
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════
-            4 COMMAND WIDGETS
-            ═══════════════════════════════════════════ */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* 3-COLUMN LAYOUT */}
+        <div className="flex gap-6">
 
-          {/* Squad Status */}
-          <div className="tc-widget tc-fadeIn tc-fadeIn-1">
-            <div className="flex items-center gap-2 mb-3">
-              <Users className="w-4 h-4 text-blue-400" />
-              <span className="tc-label">SQUAD STATUS</span>
-            </div>
-            <p className="text-3xl font-black text-white">{roster.length}</p>
-            <p className="text-xs text-slate-500 mt-1">Active operators on roster</p>
-          </div>
+          {/* LEFT SIDEBAR — 280px */}
+          <div className="hidden lg:block w-[280px] shrink-0 space-y-4">
 
-          {/* Next Objective */}
-          <div className="tc-widget tc-fadeIn tc-fadeIn-2">
-            <div className="flex items-center gap-2 mb-3">
-              <Crosshair className="w-4 h-4 text-amber-400" />
-              <span className="tc-label">NEXT OBJECTIVE</span>
-            </div>
-            {nextEvent ? (
-              <>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-black text-white">{countdownText(nextEvent.event_date)}</p>
-                  {countdownText(nextEvent.event_date) === 'TODAY' && (
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            {/* Squad Quick Stats */}
+            <div className={cardClass}>
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+                    style={{ backgroundColor: selectedTeam?.color || '#3B82F6' }}>
+                    {selectedTeam?.name?.charAt(0)}
+                  </div>
+                  <div>
+                    <p className={`text-sm font-semibold ${textPrimary}`}>{selectedTeam?.name}</p>
+                    <p className={`text-xs ${textMuted}`}>{selectedTeam?.coachRole === 'head' ? 'Head Coach' : 'Assistant'}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className={`text-center p-2 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-slate-50'}`}>
+                    <p className={`text-lg font-black ${textPrimary}`}>{roster.length}</p>
+                    <p className={`text-[10px] uppercase tracking-wide ${textMuted}`}>Players</p>
+                  </div>
+                  <div className={`text-center p-2 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-slate-50'}`}>
+                    <p className="text-lg font-black text-emerald-500">{teamRecord.wins}</p>
+                    <p className={`text-[10px] uppercase tracking-wide ${textMuted}`}>Wins</p>
+                  </div>
+                  <div className={`text-center p-2 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-slate-50'}`}>
+                    <p className="text-lg font-black text-red-500">{teamRecord.losses}</p>
+                    <p className={`text-[10px] uppercase tracking-wide ${textMuted}`}>Losses</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Form */}
+              <div className={`px-4 pb-4 pt-2 border-t ${dividerClass}`}>
+                <p className={`${sectionLabel} mb-2`}>Recent Form</p>
+                <div className="flex gap-1.5">
+                  {teamRecord.recentForm.length > 0 ? (
+                    teamRecord.recentForm.map((g, i) => (
+                      <div
+                        key={i}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                          g.result === 'win'
+                            ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/25'
+                            : g.result === 'loss'
+                              ? 'bg-red-500/15 text-red-500 border border-red-500/25'
+                              : isDark ? 'bg-white/[0.05] text-slate-400 border border-white/[0.08]' : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        }`}
+                      >
+                        {g.result === 'win' ? 'W' : g.result === 'loss' ? 'L' : 'T'}
+                      </div>
+                    ))
+                  ) : (
+                    [1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className={`w-7 h-7 rounded-lg border border-dashed ${isDark ? 'border-white/[0.08]' : 'border-slate-200'}`} />
+                    ))
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-1 truncate">
-                  {nextEvent.event_type === 'game' ? `vs ${nextEvent.opponent_name || 'TBD'}` : 'Practice'}
-                  {nextEvent.event_time ? ` · ${formatTime12(nextEvent.event_time)}` : ''}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-2xl font-black text-slate-600">—</p>
-                <p className="text-xs text-slate-500 mt-1">No upcoming events</p>
-              </>
-            )}
-          </div>
-
-          {/* Recent Form */}
-          <div className="tc-widget tc-fadeIn tc-fadeIn-3">
-            <div className="flex items-center gap-2 mb-3">
-              <Activity className="w-4 h-4 text-emerald-400" />
-              <span className="tc-label">RECENT FORM</span>
-            </div>
-            <div className="flex gap-1.5 mt-1">
-              {teamRecord.recentForm.length > 0 ? (
-                teamRecord.recentForm.map((g, i) => (
-                  <div
-                    key={i}
-                    className="tc-form-dot"
-                    style={{
-                      background: g.result === 'win' ? 'rgba(16,185,129,0.2)' : g.result === 'loss' ? 'rgba(239,68,68,0.2)' : 'rgba(100,116,139,0.2)',
-                      color: g.result === 'win' ? '#34d399' : g.result === 'loss' ? '#f87171' : '#94a3b8',
-                      border: `1px solid ${g.result === 'win' ? 'rgba(16,185,129,0.3)' : g.result === 'loss' ? 'rgba(239,68,68,0.3)' : 'rgba(100,116,139,0.2)'}`
-                    }}
-                  >
-                    {g.result === 'win' ? 'W' : g.result === 'loss' ? 'L' : 'T'}
-                  </div>
-                ))
-              ) : (
-                [1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="tc-form-dot" style={{ border: '1px dashed rgba(100,116,139,0.2)', color: 'transparent' }}>—</div>
-                ))
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mt-2">Last {teamRecord.recentForm.length || 0} games</p>
-          </div>
-
-          {/* Season Record */}
-          <div className="tc-widget tc-fadeIn tc-fadeIn-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Trophy className="w-4 h-4 text-amber-400" />
-              <span className="tc-label">SEASON RECORD</span>
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-black text-emerald-400">{teamRecord.wins}</span>
-              <span className="text-xl text-slate-600 font-bold mx-1">-</span>
-              <span className="text-3xl font-black text-red-400">{teamRecord.losses}</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">{winRate}% win rate</p>
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════
-            BLUEPRINT HERO — TACTICAL COMMAND
-            ═══════════════════════════════════════════ */}
-        <div className="tc-fadeIn tc-fadeIn-2">
-          <div className="tc-card p-6" style={{ background: 'linear-gradient(135deg, rgba(15,20,35,0.8), rgba(20,30,55,0.8))' }}>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.2)' }}>
-                <Crosshair className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-white tracking-wide" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.08em' }}>
-                  TACTICAL COMMAND
-                </h2>
-                <p className="text-xs text-slate-500">Mission-critical operations</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Lineup Builder Card */}
-              <div
-                className="tc-hero-card"
-                onClick={() => onNavigate?.('gameprep')}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)' }}>
-                    <ClipboardList className="w-6 h-6 text-indigo-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-                      LINEUP BUILDER
-                    </h3>
-                    <p className="text-xs text-slate-400">Build & manage lineups</p>
-                  </div>
-                </div>
-                {nextGame ? (
-                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg"
-                    style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.12)' }}>
-                    <Swords className="w-4 h-4 text-indigo-400" />
-                    <span className="text-xs text-slate-300">
-                      Next: vs {nextGame.opponent_name || 'TBD'} · {countdownText(nextGame.event_date)}
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 mt-2">No upcoming games</p>
-                )}
-                <div className="flex items-center gap-1 mt-3 text-indigo-400 text-sm font-semibold">
-                  <span>Open Builder</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Game Day Hub Card */}
-              <div
-                className="tc-hero-card"
-                onClick={() => onNavigate?.('gameprep')}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                    <Zap className="w-6 h-6 text-amber-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-                      GAME DAY HUB
-                    </h3>
-                    <p className="text-xs text-slate-400">Live scoring & stats</p>
-                  </div>
-                </div>
-                {nextGame && countdownText(nextGame.event_date) === 'TODAY' ? (
-                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg"
-                    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                    <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#ef4444' }} />
-                    <span className="text-xs text-red-300 font-semibold">GAME DAY — vs {nextGame.opponent_name || 'TBD'}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg"
-                    style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.1)' }}>
-                    <Clock className="w-4 h-4 text-amber-500/60" />
-                    <span className="text-xs text-slate-400">Score games, track stats, manage rotations</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1 mt-3 text-amber-400 text-sm font-semibold">
-                  <span>Enter Hub</span>
-                  <ChevronRight className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-
-            {/* Stats pending alert */}
-            {pendingStats > 0 && (
-              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl"
-                style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)' }}>
-                <Bell className="w-5 h-5 text-amber-400" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-amber-300">{pendingStats} game{pendingStats > 1 ? 's' : ''} need stats</p>
-                  <p className="text-xs text-amber-500/60">Stats power leaderboards, badges, and parent views</p>
-                </div>
-                <button
-                  onClick={() => onNavigate?.('gameprep')}
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-black transition"
-                  style={{ background: '#f59e0b' }}
-                >
-                  Enter Stats
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════
-            QUICK ACTIONS — Primary Coach Actions
-            ═══════════════════════════════════════════ */}
-        <div className="tc-fadeIn tc-fadeIn-3">
-          <p className="tc-label mb-3">QUICK ACTIONS</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Take Attendance */}
-            <button
-              onClick={() => {
-                sessionStorage.setItem('attendanceTeamId', selectedTeam?.id)
-                onNavigate?.('attendance')
-              }}
-              className="tc-hero-card flex items-center gap-4 text-left"
-            >
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.25)' }}>
-                <Check className="w-7 h-7 text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-                  TAKE ATTENDANCE
-                </h3>
-                <p className="text-xs text-slate-400 truncate">
-                  {nextEvent ? `${nextEvent.event_type === 'game' ? 'Game' : 'Practice'} · ${formatDateShort(nextEvent.event_date)}` : 'No upcoming events'}
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-emerald-400/50 flex-shrink-0" />
-            </button>
-
-            {/* Message Parents */}
-            <button
-              onClick={() => setShowCoachBlast(true)}
-              className="tc-hero-card flex items-center gap-4 text-left"
-            >
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)' }}>
-                <Send className="w-7 h-7 text-purple-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-                  MESSAGE PARENTS
-                </h3>
-                <p className="text-xs text-slate-400 truncate">Send announcement to {selectedTeam?.name}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-purple-400/50 flex-shrink-0" />
-            </button>
-
-            {/* Start Warmup */}
-            <button
-              onClick={() => setShowWarmupTimer(true)}
-              className="tc-hero-card flex items-center gap-4 text-left"
-            >
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.25)' }}>
-                <Timer className="w-7 h-7 text-amber-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-                  START WARMUP
-                </h3>
-                <p className="text-xs text-slate-400">Countdown timer for drills</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-amber-400/50 flex-shrink-0" />
-            </button>
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════
-            QUICK ATTENDANCE — Inline for today/next event
-            ═══════════════════════════════════════════ */}
-        {nextEvent && (
-          <QuickAttendancePanel
-            event={nextEvent}
-            team={selectedTeam}
-            roster={roster}
-            userId={user?.id}
-            showToast={showToast}
-          />
-        )}
-
-        {/* ═══════════════════════════════════════════
-            TWO-COLUMN: Player Pulse + Upcoming Ops
-            ═══════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* ── Player Pulse ── */}
-          <div className="tc-card tc-fadeIn tc-fadeIn-3">
-            <div className="flex items-center justify-between p-5 border-b border-blue-500/10">
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-amber-400" />
-                <span className="tc-section-title">PLAYER PULSE</span>
-              </div>
-              <button
-                onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
-                className="text-xs text-blue-400 font-semibold flex items-center gap-1 hover:text-blue-300 transition"
-              >
-                View All <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-            <div className="p-4">
-              {topPlayers.length > 0 ? (
+            {/* Quick Actions */}
+            <div className={cardClass}>
+              <div className="p-4">
+                <p className={`${sectionLabel} mb-3`}>Quick Actions</p>
                 <div className="space-y-1">
-                  {topPlayers.map((stat, i) => {
-                    const player = roster.find(p => p.id === stat.player_id)
-                    if (!player) return null
-                    const ppg = stat.games_played > 0 ? (stat.total_points / stat.games_played).toFixed(1) : '0'
-
+                  {[
+                    {
+                      icon: Check, label: 'Take Attendance', color: '#10B981',
+                      onClick: () => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') }
+                    },
+                    {
+                      icon: Send, label: 'Message Parents', color: '#8B5CF6',
+                      onClick: () => setShowCoachBlast(true)
+                    },
+                    {
+                      icon: Timer, label: 'Start Warmup', color: '#F59E0B',
+                      onClick: () => setShowWarmupTimer(true)
+                    },
+                    {
+                      icon: Users, label: 'Team Hub', color: '#3B82F6',
+                      onClick: () => navigateToTeamWall?.(selectedTeam?.id)
+                    },
+                    {
+                      icon: MessageCircle, label: 'Team Chat', color: '#06B6D4',
+                      onClick: () => openTeamChat(selectedTeam?.id)
+                    },
+                  ].map(action => {
+                    const Icon = action.icon
                     return (
-                      <div
-                        key={stat.player_id}
-                        className="tc-player-row"
-                        onClick={() => setSelectedPlayer(player)}
-                        style={{ animationDelay: `${0.1 * i}s` }}
+                      <button
+                        key={action.label}
+                        onClick={action.onClick}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
+                          isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
+                        }`}
                       >
-                        {/* Rank */}
-                        <span className={`text-lg font-black w-6 text-center ${
-                          i === 0 ? 'text-amber-400' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-600'
-                        }`}>
-                          {i + 1}
-                        </span>
-
-                        {/* Photo */}
-                        {player.photo_url ? (
-                          <img src={player.photo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
-                            style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa' }}>
-                            {player.first_name?.[0]}{player.last_name?.[0]}
-                          </div>
-                        )}
-
-                        {/* Name + Position */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">
-                            {player.first_name} {player.last_name?.[0]}.
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            #{player.jersey_number || '—'} · {player.position || 'Player'}
-                          </p>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: action.color + '15' }}>
+                          <Icon className="w-4 h-4" style={{ color: action.color }} />
                         </div>
-
-                        {/* Stats */}
-                        <div className="flex items-center gap-3 text-xs">
-                          <div className="text-center">
-                            <p className="font-bold text-red-400">{stat.total_kills || 0}</p>
-                            <p className="text-slate-600">K</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-bold text-emerald-400">{stat.total_aces || 0}</p>
-                            <p className="text-slate-600">A</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="font-bold text-amber-400">{stat.total_digs || 0}</p>
-                            <p className="text-slate-600">D</p>
-                          </div>
-                          <div className="text-center px-2 py-1 rounded-lg" style={{ background: 'rgba(245,158,11,0.08)' }}>
-                            <p className="font-bold text-amber-300">{ppg}</p>
-                            <p className="text-slate-600">PPG</p>
-                          </div>
-                        </div>
-                      </div>
+                        <span className={`text-sm font-medium ${textPrimary}`}>{action.label}</span>
+                        <ChevronRight className={`w-4 h-4 ml-auto ${textMuted}`} />
+                      </button>
                     )
                   })}
                 </div>
-              ) : (
-                <div className="py-10 text-center">
-                  <Award className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-500 text-sm font-medium">No stats recorded yet</p>
-                  <p className="text-xs text-slate-600 mt-1">Complete games and enter player stats</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ── Upcoming Operations ── */}
-          <div className="tc-card tc-fadeIn tc-fadeIn-4">
-            <div className="flex items-center justify-between p-5 border-b border-blue-500/10">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-400" />
-                <span className="tc-section-title">UPCOMING OPERATIONS</span>
               </div>
-              <button
-                onClick={() => onNavigate?.('schedule')}
-                className="text-xs text-blue-400 font-semibold flex items-center gap-1 hover:text-blue-300 transition"
-              >
-                Schedule <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-            <div className="divide-y divide-blue-500/5">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.slice(0, 6).map(event => {
-                  const isGame = event.event_type === 'game'
-                  const isToday = countdownText(event.event_date) === 'TODAY'
-                  const isTomorrow = countdownText(event.event_date) === 'TOMORROW'
-
-                  return (
-                    <div
-                      key={event.id}
-                      onClick={() => setSelectedEventDetail(event)}
-                      className="px-5 py-3.5 flex items-center gap-4 cursor-pointer hover:bg-blue-500/5 transition"
-                    >
-                      {/* Date column */}
-                      <div className="text-center min-w-[44px]">
-                        <p className="text-[10px] text-slate-600 font-semibold" style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                          {new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
-                        </p>
-                        <p className={`text-xl font-black ${isToday ? 'text-red-400' : isTomorrow ? 'text-amber-400' : 'text-white'}`}>
-                          {new Date(event.event_date + 'T00:00:00').getDate()}
-                        </p>
-                      </div>
-
-                      {/* Event info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${
-                            isGame
-                              ? 'text-red-400 bg-red-500/10 border border-red-500/20'
-                              : 'text-blue-400 bg-blue-500/10 border border-blue-500/20'
-                          }`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-                            {isGame ? 'GAME' : 'PRACTICE'}
-                          </span>
-                          {isToday && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-red-400">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                              LIVE
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-slate-300 mt-1 truncate">
-                          {isGame && event.opponent_name ? `vs ${event.opponent_name}` : ''}
-                          {event.event_time ? (isGame && event.opponent_name ? ' · ' : '') + formatTime12(event.event_time) : ''}
-                          {event.venue_name ? ` · ${event.venue_name}` : ''}
-                        </p>
-                      </div>
-
-                      {/* RSVP + Countdown */}
-                      <div className="text-right flex flex-col items-end gap-1">
-                        <span className={`text-xs font-bold ${
-                          isToday ? 'text-red-400' : isTomorrow ? 'text-amber-400' : 'text-slate-500'
-                        }`}>
-                          {countdownText(event.event_date)}
-                        </span>
-                        {rsvpCounts[event.id] ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold text-emerald-400">{rsvpCounts[event.id].going}✓</span>
-                            {rsvpCounts[event.id].maybe > 0 && (
-                              <span className="text-[10px] font-bold text-amber-400">{rsvpCounts[event.id].maybe}?</span>
-                            )}
-                            <span className="text-[10px] text-slate-600">/{roster.length}</span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-slate-600">0/{roster.length} RSVP</span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className="p-10 text-center">
-                  <Calendar className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-500 text-sm font-medium">No upcoming events</p>
-                </div>
-              )}
             </div>
           </div>
-        </div>
 
-        {/* ═══════════════════════════════════════════
-            QUICK OPS — Action Grid
-            ═══════════════════════════════════════════ */}
-        <div className="tc-fadeIn tc-fadeIn-5">
-          <p className="tc-label mb-3">QUICK OPS</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { icon: Calendar, label: 'Schedule', page: 'schedule', color: '#3B82F6', desc: 'Events & games' },
-              { icon: Check, label: 'Attendance', page: 'attendance', color: '#10B981', desc: 'Track check-ins' },
-              { icon: Target, label: 'Game Prep', page: 'gameprep', color: '#F59E0B', desc: 'Lineups & scores' },
-              { icon: MessageCircle, label: 'Messages', page: 'chats', color: '#8B5CF6', desc: 'Team comms' },
-            ].map(action => {
-              const Icon = action.icon
-              return (
+          {/* CENTER CONTENT — flex-1 */}
+          <div className="flex-1 min-w-0 space-y-6">
+
+            {/* 4 Stat Widgets */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Squad Status */}
+              <div className={`${cardClass} p-4`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  <span className={sectionLabel}>Squad</span>
+                </div>
+                <p className={`text-3xl font-black ${textPrimary}`}>{roster.length}</p>
+                <p className={`text-xs mt-1 ${textMuted}`}>Active players</p>
+              </div>
+
+              {/* Next Event */}
+              <div className={`${cardClass} p-4`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="w-4 h-4 text-amber-500" />
+                  <span className={sectionLabel}>Next Up</span>
+                </div>
+                {nextEvent ? (
+                  <>
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-2xl font-black ${textPrimary}`}>{countdownText(nextEvent.event_date)}</p>
+                      {countdownText(nextEvent.event_date) === 'TODAY' && (
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      )}
+                    </div>
+                    <p className={`text-xs mt-1 truncate ${textMuted}`}>
+                      {nextEvent.event_type === 'game' ? `vs ${nextEvent.opponent_name || 'TBD'}` : 'Practice'}
+                      {nextEvent.event_time ? ` · ${formatTime12(nextEvent.event_time)}` : ''}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className={`text-2xl font-black ${textMuted}`}>—</p>
+                    <p className={`text-xs mt-1 ${textMuted}`}>No upcoming events</p>
+                  </>
+                )}
+              </div>
+
+              {/* Recent Form */}
+              <div className={`${cardClass} p-4 hidden lg:block`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-emerald-500" />
+                  <span className={sectionLabel}>Form</span>
+                </div>
+                <div className="flex gap-1.5 mt-1">
+                  {teamRecord.recentForm.length > 0 ? (
+                    teamRecord.recentForm.map((g, i) => (
+                      <div
+                        key={i}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                          g.result === 'win'
+                            ? 'bg-emerald-500/15 text-emerald-500'
+                            : g.result === 'loss'
+                              ? 'bg-red-500/15 text-red-500'
+                              : isDark ? 'bg-white/[0.05] text-slate-400' : 'bg-slate-100 text-slate-400'
+                        }`}
+                      >
+                        {g.result === 'win' ? 'W' : g.result === 'loss' ? 'L' : 'T'}
+                      </div>
+                    ))
+                  ) : (
+                    [1, 2, 3].map(i => (
+                      <div key={i} className={`w-7 h-7 rounded-lg border border-dashed ${isDark ? 'border-white/[0.08]' : 'border-slate-200'}`} />
+                    ))
+                  )}
+                </div>
+                <p className={`text-xs mt-2 ${textMuted}`}>Last {teamRecord.recentForm.length || 0} games</p>
+              </div>
+
+              {/* Season Record */}
+              <div className={`${cardClass} p-4 hidden lg:block`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Trophy className="w-4 h-4 text-amber-500" />
+                  <span className={sectionLabel}>Record</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-emerald-500">{teamRecord.wins}</span>
+                  <span className={`text-xl font-bold mx-1 ${textMuted}`}>-</span>
+                  <span className="text-3xl font-black text-red-500">{teamRecord.losses}</span>
+                </div>
+                <p className={`text-xs mt-1 ${textMuted}`}>{winRate}% win rate</p>
+              </div>
+            </div>
+
+            {/* Tactical Command — Lineup + Game Day */}
+            <div className={cardClass}>
+              <div className={`flex items-center gap-3 p-5 border-b ${dividerClass}`}>
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  isDark ? 'bg-blue-500/10' : 'bg-blue-50'
+                }`}>
+                  <Crosshair className="w-5 h-5 text-blue-500" />
+                </div>
+                <div>
+                  <h2 className={`text-lg font-bold ${textPrimary}`}>Game Day Tools</h2>
+                  <p className={`text-xs ${textMuted}`}>Lineups, scoring, and stats</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
+                {/* Lineup Builder Card */}
                 <button
-                  key={action.page}
-                  onClick={() => onNavigate?.(action.page)}
-                  className="tc-card p-4 text-left hover:border-opacity-40 transition group"
+                  onClick={() => onNavigate?.('gameprep')}
+                  className={`${cardClass} ${cardHoverClass} p-5 text-left`}
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center transition"
-                      style={{ background: `${action.color}15`, border: `1px solid ${action.color}25` }}>
-                      <Icon className="w-5 h-5" style={{ color: action.color }} />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      isDark ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-indigo-50 border border-indigo-100'
+                    }`}>
+                      <ClipboardList className="w-6 h-6 text-indigo-500" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{action.label}</p>
-                      <p className="text-xs text-slate-600">{action.desc}</p>
+                      <h3 className={`text-base font-bold ${textPrimary}`}>Lineup Builder</h3>
+                      <p className={`text-xs ${textMuted}`}>Build & manage lineups</p>
                     </div>
                   </div>
+                  {nextGame ? (
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                      isDark ? 'bg-indigo-500/[0.06] border border-indigo-500/10' : 'bg-indigo-50 border border-indigo-100'
+                    }`}>
+                      <Swords className="w-4 h-4 text-indigo-500" />
+                      <span className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                        Next: vs {nextGame.opponent_name || 'TBD'} · {countdownText(nextGame.event_date)}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className={`text-xs ${textMuted}`}>No upcoming games</p>
+                  )}
+                  <div className="flex items-center gap-1 mt-3 text-indigo-500 text-sm font-semibold">
+                    <span>Open Builder</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
                 </button>
-              )
-            })}
-          </div>
-        </div>
 
-        {/* ── Roster Quick View ── */}
-        <div className="tc-card tc-fadeIn tc-fadeIn-5">
-          <div className="flex items-center justify-between p-5 border-b border-blue-500/10">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-400" />
-              <span className="tc-section-title">SQUAD ROSTER</span>
-            </div>
-            <button
-              onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
-              className="text-xs text-blue-400 font-semibold flex items-center gap-1 hover:text-blue-300 transition"
-            >
-              Full Roster <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="p-4">
-            {roster.length > 0 ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                {roster.slice(0, 16).map(player => (
-                  <div
-                    key={player.id}
-                    onClick={() => setSelectedPlayer(player)}
-                    className="text-center cursor-pointer group"
+                {/* Game Day Hub Card */}
+                <button
+                  onClick={() => onNavigate?.('gameprep')}
+                  className={`${cardClass} ${cardHoverClass} p-5 text-left`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-100'
+                    }`}>
+                      <Zap className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <h3 className={`text-base font-bold ${textPrimary}`}>Game Day Hub</h3>
+                      <p className={`text-xs ${textMuted}`}>Live scoring & stats</p>
+                    </div>
+                  </div>
+                  {nextGame && countdownText(nextGame.event_date) === 'TODAY' ? (
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                      isDark ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'
+                    }`}>
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-xs text-red-500 font-semibold">Game Day — vs {nextGame.opponent_name || 'TBD'}</span>
+                    </div>
+                  ) : (
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                      isDark ? 'bg-amber-500/[0.06] border border-amber-500/10' : 'bg-amber-50 border border-amber-100'
+                    }`}>
+                      <Clock className="w-4 h-4 text-amber-500/60" />
+                      <span className={`text-xs ${textSecondary}`}>Score games, track stats, manage rotations</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1 mt-3 text-amber-500 text-sm font-semibold">
+                    <span>Enter Hub</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </button>
+              </div>
+
+              {/* Stats pending alert */}
+              {pendingStats > 0 && (
+                <div className={`mx-5 mb-5 flex items-center gap-3 px-4 py-3 rounded-xl ${
+                  isDark ? 'bg-amber-500/[0.08] border border-amber-500/15' : 'bg-amber-50 border border-amber-200'
+                }`}>
+                  <Bell className="w-5 h-5 text-amber-500" />
+                  <div className="flex-1">
+                    <p className={`text-sm font-semibold ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>{pendingStats} game{pendingStats > 1 ? 's' : ''} need stats</p>
+                    <p className={`text-xs ${isDark ? 'text-amber-500/60' : 'text-amber-600/70'}`}>Stats power leaderboards, badges, and parent views</p>
+                  </div>
+                  <button
+                    onClick={() => onNavigate?.('gameprep')}
+                    className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 transition"
                   >
-                    {player.photo_url ? (
-                      <img
-                        src={player.photo_url}
-                        alt=""
-                        className="w-14 h-14 rounded-xl mx-auto object-cover border-2 border-transparent group-hover:border-blue-500/40 transition"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-xl mx-auto flex items-center justify-center text-sm font-bold border-2 border-transparent group-hover:border-blue-500/40 transition"
-                        style={{ background: 'rgba(59,130,246,0.08)', color: '#60a5fa' }}>
-                        {player.first_name?.[0]}{player.last_name?.[0]}
-                      </div>
-                    )}
-                    <p className="text-xs text-slate-400 mt-1.5 font-medium truncate">
-                      #{player.jersey_number || '—'}
-                    </p>
-                    <p className="text-[10px] text-slate-600 truncate">
-                      {player.first_name}
+                    Enter Stats
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Attendance Panel */}
+            {nextEvent && (
+              <QuickAttendancePanel
+                event={nextEvent}
+                team={selectedTeam}
+                roster={roster}
+                userId={user?.id}
+                showToast={showToast}
+                isDark={isDark}
+                cardClass={cardClass}
+                sectionLabel={sectionLabel}
+                textPrimary={textPrimary}
+                textSecondary={textSecondary}
+                textMuted={textMuted}
+                dividerClass={dividerClass}
+              />
+            )}
+
+            {/* Quick Actions — Mobile / Tablet only (replaces sidebar) */}
+            <div className="lg:hidden">
+              <p className={`${sectionLabel} mb-3`}>Quick Actions</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button
+                  onClick={() => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') }}
+                  className={`${cardClass} ${cardHoverClass} flex items-center gap-4 p-4 text-left`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-100'
+                  }`}>
+                    <Check className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`text-base font-bold ${textPrimary}`}>Take Attendance</h3>
+                    <p className={`text-xs truncate ${textMuted}`}>
+                      {nextEvent ? `${nextEvent.event_type === 'game' ? 'Game' : 'Practice'} · ${formatDateShort(nextEvent.event_date)}` : 'No upcoming events'}
                     </p>
                   </div>
-                ))}
+                  <ChevronRight className={`w-5 h-5 flex-shrink-0 ${textMuted}`} />
+                </button>
+
+                <button
+                  onClick={() => setShowCoachBlast(true)}
+                  className={`${cardClass} ${cardHoverClass} flex items-center gap-4 p-4 text-left`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    isDark ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-purple-50 border border-purple-100'
+                  }`}>
+                    <Send className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`text-base font-bold ${textPrimary}`}>Message Parents</h3>
+                    <p className={`text-xs truncate ${textMuted}`}>Send announcement to {selectedTeam?.name}</p>
+                  </div>
+                  <ChevronRight className={`w-5 h-5 flex-shrink-0 ${textMuted}`} />
+                </button>
+
+                <button
+                  onClick={() => setShowWarmupTimer(true)}
+                  className={`${cardClass} ${cardHoverClass} flex items-center gap-4 p-4 text-left`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-100'
+                  }`}>
+                    <Timer className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`text-base font-bold ${textPrimary}`}>Start Warmup</h3>
+                    <p className={`text-xs ${textMuted}`}>Countdown timer for drills</p>
+                  </div>
+                  <ChevronRight className={`w-5 h-5 flex-shrink-0 ${textMuted}`} />
+                </button>
               </div>
-            ) : (
-              <div className="py-10 text-center">
-                <Users className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                <p className="text-slate-500 text-sm">No players on roster</p>
+            </div>
+
+            {/* Quick Ops Grid */}
+            <div>
+              <p className={`${sectionLabel} mb-3`}>Quick Links</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { icon: Calendar, label: 'Schedule', page: 'schedule', color: '#3B82F6', desc: 'Events & games' },
+                  { icon: Check, label: 'Attendance', page: 'attendance', color: '#10B981', desc: 'Track check-ins' },
+                  { icon: Target, label: 'Game Prep', page: 'gameprep', color: '#F59E0B', desc: 'Lineups & scores' },
+                  { icon: MessageCircle, label: 'Messages', page: 'chats', color: '#8B5CF6', desc: 'Team comms' },
+                ].map(action => {
+                  const Icon = action.icon
+                  return (
+                    <button
+                      key={action.page}
+                      onClick={() => onNavigate?.(action.page)}
+                      className={`${cardClass} ${cardHoverClass} p-4 text-left`}
+                    >
+                      <div className="flex items-center gap-3 mb-1">
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: action.color + '15' }}>
+                          <Icon className="w-4.5 h-4.5" style={{ color: action.color }} />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-semibold ${textPrimary}`}>{action.label}</p>
+                          <p className={`text-xs ${textMuted}`}>{action.desc}</p>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Roster Quick View */}
+            <div className={cardClass}>
+              <div className={`flex items-center justify-between p-5 border-b ${dividerClass}`}>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  <span className={sectionLabel}>Squad Roster</span>
+                </div>
+                <button
+                  onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
+                  className="text-xs text-blue-500 font-semibold flex items-center gap-1 hover:text-blue-600 transition"
+                >
+                  Full Roster <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="p-4">
+                {roster.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                    {roster.slice(0, 16).map(player => (
+                      <div
+                        key={player.id}
+                        onClick={() => setSelectedPlayer(player)}
+                        className="text-center cursor-pointer group"
+                      >
+                        {player.photo_url ? (
+                          <img
+                            src={player.photo_url}
+                            alt=""
+                            className={`w-14 h-14 rounded-xl mx-auto object-cover border-2 transition ${
+                              isDark ? 'border-transparent group-hover:border-blue-500/40' : 'border-transparent group-hover:border-blue-300'
+                            }`}
+                          />
+                        ) : (
+                          <div className={`w-14 h-14 rounded-xl mx-auto flex items-center justify-center text-sm font-bold border-2 transition ${
+                            isDark
+                              ? 'bg-blue-500/10 text-blue-400 border-transparent group-hover:border-blue-500/40'
+                              : 'bg-blue-50 text-blue-600 border-transparent group-hover:border-blue-300'
+                          }`}>
+                            {player.first_name?.[0]}{player.last_name?.[0]}
+                          </div>
+                        )}
+                        <p className={`text-xs mt-1.5 font-medium truncate ${textSecondary}`}>
+                          #{player.jersey_number || '—'}
+                        </p>
+                        <p className={`text-[10px] truncate ${textMuted}`}>
+                          {player.first_name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-10 text-center">
+                    <Users className={`w-12 h-12 mx-auto mb-3 ${textMuted}`} />
+                    <p className={`text-sm ${textSecondary}`}>No players on roster</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SIDEBAR — 300px */}
+          <div className="hidden lg:block w-[300px] shrink-0 space-y-4">
+
+            {/* Attendance Preview */}
+            {nextEvent && (
+              <div className={cardClass}>
+                <div className={`p-4 border-b ${dividerClass}`}>
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="w-4 h-4 text-emerald-500" />
+                    <span className={sectionLabel}>Attendance</span>
+                  </div>
+                  <p className={`text-xs mt-1 ${textMuted}`}>
+                    {nextEvent.event_type === 'game' ? `Game vs ${nextEvent.opponent_name || 'TBD'}` : 'Practice'}
+                    {nextEvent.event_time ? ` · ${formatTime12(nextEvent.event_time)}` : ''}
+                  </p>
+                </div>
+                <div className="p-4">
+                  {rsvpCounts[nextEvent.id] ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs ${textSecondary}`}>Confirmed</span>
+                        <span className="text-xs font-bold text-emerald-500">{rsvpCounts[nextEvent.id].going}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs ${textSecondary}`}>Maybe</span>
+                        <span className="text-xs font-bold text-amber-500">{rsvpCounts[nextEvent.id].maybe}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs ${textSecondary}`}>Declined</span>
+                        <span className="text-xs font-bold text-red-500">{rsvpCounts[nextEvent.id].declined}</span>
+                      </div>
+                      <div className={`flex items-center justify-between pt-2 mt-2 border-t ${dividerClass}`}>
+                        <span className={`text-xs font-medium ${textSecondary}`}>Not responded</span>
+                        <span className={`text-xs font-bold ${textMuted}`}>{Math.max(0, roster.length - rsvpCounts[nextEvent.id].total)}</span>
+                      </div>
+                      {/* Progress bar */}
+                      <div className={`w-full h-2 rounded-full mt-1 ${isDark ? 'bg-white/[0.05]' : 'bg-slate-100'}`}>
+                        <div
+                          className="h-2 rounded-full bg-emerald-500 transition-all duration-500"
+                          style={{ width: `${roster.length > 0 ? (rsvpCounts[nextEvent.id].going / roster.length) * 100 : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className={`text-xs ${textMuted}`}>No RSVPs yet</p>
+                      <p className={`text-xs ${textMuted}`}>0 / {roster.length} responded</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
+
+            {/* Player Pulse */}
+            <div className={cardClass}>
+              <div className={`flex items-center justify-between p-4 border-b ${dividerClass}`}>
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-500" />
+                  <span className={sectionLabel}>Top Players</span>
+                </div>
+                <button
+                  onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
+                  className="text-xs text-blue-500 font-semibold flex items-center gap-1 hover:text-blue-600 transition"
+                >
+                  View All <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="p-3">
+                {topPlayers.length > 0 ? (
+                  <div className="space-y-1">
+                    {topPlayers.map((stat, i) => {
+                      const player = roster.find(p => p.id === stat.player_id)
+                      if (!player) return null
+                      const ppg = stat.games_played > 0 ? (stat.total_points / stat.games_played).toFixed(1) : '0'
+
+                      return (
+                        <div
+                          key={stat.player_id}
+                          className={`flex items-center gap-2.5 p-2 rounded-xl cursor-pointer transition ${
+                            isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
+                          }`}
+                          onClick={() => setSelectedPlayer(player)}
+                        >
+                          <span className={`text-sm font-black w-5 text-center ${
+                            i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : textMuted
+                          }`}>
+                            {i + 1}
+                          </span>
+
+                          {player.photo_url ? (
+                            <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                          ) : (
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                              isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
+                            }`}>
+                              {player.first_name?.[0]}{player.last_name?.[0]}
+                            </div>
+                          )}
+
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs font-semibold truncate ${textPrimary}`}>
+                              {player.first_name} {player.last_name?.[0]}.
+                            </p>
+                            <p className={`text-[10px] ${textMuted}`}>
+                              #{player.jersey_number || '—'}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[10px]">
+                            <div className="text-center">
+                              <p className="font-bold text-red-500">{stat.total_kills || 0}</p>
+                              <p className={textMuted}>K</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="font-bold text-emerald-500">{stat.total_aces || 0}</p>
+                              <p className={textMuted}>A</p>
+                            </div>
+                            <div className={`text-center px-1.5 py-0.5 rounded-lg ${isDark ? 'bg-amber-500/[0.08]' : 'bg-amber-50'}`}>
+                              <p className="font-bold text-amber-500">{ppg}</p>
+                              <p className={textMuted}>PPG</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <Award className={`w-10 h-10 mx-auto mb-2 ${textMuted}`} />
+                    <p className={`text-sm font-medium ${textSecondary}`}>No stats recorded yet</p>
+                    <p className={`text-xs mt-1 ${textMuted}`}>Complete games and enter stats</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Upcoming Events */}
+            <div className={cardClass}>
+              <div className={`flex items-center justify-between p-4 border-b ${dividerClass}`}>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <span className={sectionLabel}>Upcoming</span>
+                </div>
+                <button
+                  onClick={() => onNavigate?.('schedule')}
+                  className="text-xs text-blue-500 font-semibold flex items-center gap-1 hover:text-blue-600 transition"
+                >
+                  Schedule <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className={`divide-y ${dividerClass}`}>
+                {upcomingEvents.length > 0 ? (
+                  upcomingEvents.slice(0, 5).map(event => {
+                    const isGame = event.event_type === 'game'
+                    const isToday = countdownText(event.event_date) === 'TODAY'
+
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={() => setSelectedEventDetail(event)}
+                        className={`px-4 py-3 flex items-center gap-3 cursor-pointer transition ${
+                          isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="text-center min-w-[36px]">
+                          <p className={`text-[10px] font-semibold uppercase ${textMuted}`}>
+                            {new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
+                          </p>
+                          <p className={`text-lg font-black ${isToday ? 'text-red-500' : textPrimary}`}>
+                            {new Date(event.event_date + 'T00:00:00').getDate()}
+                          </p>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            isGame
+                              ? 'text-red-500 bg-red-500/10'
+                              : 'text-blue-500 bg-blue-500/10'
+                          }`}>
+                            {isGame ? 'GAME' : 'PRACTICE'}
+                          </span>
+                          <p className={`text-xs mt-0.5 truncate ${textSecondary}`}>
+                            {isGame && event.opponent_name ? `vs ${event.opponent_name}` : ''}
+                            {event.event_time ? (isGame && event.opponent_name ? ' · ' : '') + formatTime12(event.event_time) : ''}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {rsvpCounts[event.id] && (
+                            <span className="text-[10px] font-bold text-emerald-500">{rsvpCounts[event.id].going}✓</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="p-8 text-center">
+                    <Calendar className={`w-10 h-10 mx-auto mb-2 ${textMuted}`} />
+                    <p className={`text-sm ${textSecondary}`}>No upcoming events</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════
-          MODALS
-          ═══════════════════════════════════════════ */}
+      {/* MODALS */}
 
-      {/* Event Detail Modal */}
       {selectedEventDetail && (
         <EventDetailModal
           event={selectedEventDetail}
           team={selectedTeam}
           onClose={() => setSelectedEventDetail(null)}
+          isDark={isDark}
         />
       )}
 
-      {/* Player Card Modal */}
       {selectedPlayer && (
         <PlayerCardExpanded
           player={selectedPlayer}
@@ -1225,27 +1203,26 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         />
       )}
 
-      {/* Coach Blast Modal */}
       {showCoachBlast && selectedTeam && (
         <CoachBlastModal
           team={selectedTeam}
           onClose={() => setShowCoachBlast(false)}
           showToast={showToast}
+          isDark={isDark}
         />
       )}
 
-      {/* Warmup Timer Modal */}
       {showWarmupTimer && (
-        <WarmupTimerModal onClose={() => setShowWarmupTimer(false)} />
+        <WarmupTimerModal onClose={() => setShowWarmupTimer(false)} isDark={isDark} />
       )}
     </div>
   )
 }
 
 // ============================================
-// COACH BLAST MODAL — Quick message to team parents
+// COACH BLAST MODAL
 // ============================================
-function CoachBlastModal({ team, onClose, showToast }) {
+function CoachBlastModal({ team, onClose, showToast, isDark }) {
   const { user } = useAuth()
   const { selectedSeason } = useSeason()
   const [title, setTitle] = useState('')
@@ -1310,98 +1287,98 @@ function CoachBlastModal({ team, onClose, showToast }) {
     setSending(false)
   }
 
+  const inputClass = isDark
+    ? 'bg-slate-700/50 border border-white/[0.08] text-white placeholder-slate-500'
+    : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400'
+
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
-        className="tc-card w-full max-w-lg"
-        style={{ background: 'rgba(15,20,35,0.95)', border: '1px solid rgba(139,92,246,0.2)' }}
+        className={`w-full max-w-lg rounded-2xl shadow-xl ${
+          isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'
+        }`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 border-b" style={{ borderColor: 'rgba(139,92,246,0.1)' }}>
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.2)' }}>
-              <Send className="w-6 h-6 text-purple-400" />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+              isDark ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-purple-50 border border-purple-100'
+            }`}>
+              <Send className="w-6 h-6 text-purple-500" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
-                MESSAGE PARENTS
-              </h2>
-              <p className="text-sm text-slate-400">Send to {team?.name} parents</p>
+              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Message Parents</h2>
+              <p className="text-sm text-slate-500">Send to {team?.name} parents</p>
             </div>
-            <button onClick={onClose} className="ml-auto p-2 rounded-lg hover:bg-white/5 transition">
-              <X className="w-5 h-5 text-slate-500" />
+            <button onClick={onClose} className={`ml-auto p-2 rounded-lg transition ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-100'}`}>
+              <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
         </div>
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="tc-label block mb-1.5">SUBJECT</label>
+            <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Subject</label>
             <input
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g., Practice time change tomorrow"
-              className="w-full px-4 py-3 rounded-xl text-white placeholder-slate-600"
-              style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.15)' }}
+              className={`w-full px-4 py-3 rounded-xl ${inputClass}`}
             />
           </div>
 
           <div>
-            <label className="tc-label block mb-1.5">MESSAGE</label>
+            <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Message</label>
             <textarea
               value={body}
               onChange={e => setBody(e.target.value)}
               placeholder="Write your message to parents..."
               rows={4}
-              className="w-full px-4 py-3 rounded-xl text-white placeholder-slate-600 resize-none"
-              style={{ background: 'rgba(15,20,35,0.8)', border: '1px solid rgba(59,130,246,0.15)' }}
+              className={`w-full px-4 py-3 rounded-xl resize-none ${inputClass}`}
             />
           </div>
 
           <div>
-            <label className="tc-label block mb-1.5">PRIORITY</label>
+            <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Priority</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setPriority('normal')}
-                className="px-4 py-2 rounded-lg text-sm font-semibold transition"
-                style={{
-                  background: priority === 'normal' ? 'rgba(59,130,246,0.2)' : 'rgba(15,20,35,0.5)',
-                  border: `1px solid ${priority === 'normal' ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.1)'}`,
-                  color: priority === 'normal' ? '#93c5fd' : '#64748b'
-                }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                  priority === 'normal'
+                    ? isDark ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' : 'bg-blue-50 border border-blue-300 text-blue-600'
+                    : isDark ? 'bg-slate-700/50 border border-white/[0.08] text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-500'
+                }`}
               >
                 Normal
               </button>
               <button
                 onClick={() => setPriority('urgent')}
-                className="px-4 py-2 rounded-lg text-sm font-semibold transition"
-                style={{
-                  background: priority === 'urgent' ? 'rgba(239,68,68,0.2)' : 'rgba(15,20,35,0.5)',
-                  border: `1px solid ${priority === 'urgent' ? 'rgba(239,68,68,0.4)' : 'rgba(59,130,246,0.1)'}`,
-                  color: priority === 'urgent' ? '#f87171' : '#64748b'
-                }}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+                  priority === 'urgent'
+                    ? isDark ? 'bg-red-500/20 border border-red-500/40 text-red-400' : 'bg-red-50 border border-red-300 text-red-600'
+                    : isDark ? 'bg-slate-700/50 border border-white/[0.08] text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-500'
+                }`}
               >
-                🚨 Urgent
+                Urgent
               </button>
             </div>
           </div>
         </div>
 
-        <div className="p-6 border-t flex gap-3" style={{ borderColor: 'rgba(139,92,246,0.1)' }}>
+        <div className={`p-6 border-t flex gap-3 ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-slate-300 font-medium transition"
-            style={{ border: '1px solid rgba(59,130,246,0.15)' }}
+            className={`flex-1 py-3 rounded-xl font-medium transition ${
+              isDark ? 'border border-white/[0.08] text-slate-300 hover:bg-white/[0.03]' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
           >
             Cancel
           </button>
           <button
             onClick={handleSend}
             disabled={sending || !title.trim() || !body.trim()}
-            className="flex-1 py-3 rounded-xl font-bold text-white transition disabled:opacity-50"
-            style={{ background: 'rgba(139,92,246,0.8)', border: '1px solid rgba(139,92,246,0.4)' }}
+            className="flex-1 py-3 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-700 transition disabled:opacity-50"
           >
             {sending ? 'Sending...' : 'Send Message'}
           </button>
@@ -1412,9 +1389,9 @@ function CoachBlastModal({ team, onClose, showToast }) {
 }
 
 // ============================================
-// WARMUP TIMER MODAL — Countdown for drills
+// WARMUP TIMER MODAL
 // ============================================
-function WarmupTimerModal({ onClose }) {
+function WarmupTimerModal({ onClose, isDark }) {
   const [seconds, setSeconds] = useState(0)
   const [totalSeconds, setTotalSeconds] = useState(0)
   const [running, setRunning] = useState(false)
@@ -1453,17 +1430,18 @@ function WarmupTimerModal({ onClose }) {
   const circumference = 2 * Math.PI * 90
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
       <div
-        className="tc-card w-full max-w-sm text-center"
-        style={{ background: 'rgba(15,20,35,0.95)', border: `1px solid ${isFinished ? 'rgba(16,185,129,0.4)' : 'rgba(245,158,11,0.2)'}` }}
+        className={`w-full max-w-sm text-center rounded-2xl shadow-xl ${
+          isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200'
+        } ${isFinished ? 'ring-2 ring-emerald-500/40' : ''}`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 border-b" style={{ borderColor: 'rgba(245,158,11,0.1)' }}>
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center justify-center gap-3">
-            <Timer className={`w-6 h-6 ${isFinished ? 'text-emerald-400' : 'text-amber-400'}`} />
-            <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.1em' }}>
-              {isFinished ? 'TIME!' : 'WARMUP TIMER'}
+            <Timer className={`w-6 h-6 ${isFinished ? 'text-emerald-500' : 'text-amber-500'}`} />
+            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {isFinished ? 'Time!' : 'Warmup Timer'}
             </h2>
           </div>
         </div>
@@ -1471,31 +1449,28 @@ function WarmupTimerModal({ onClose }) {
         <div className="p-8">
           {totalSeconds === 0 ? (
             <div className="space-y-4">
-              <p className="tc-label mb-4">SELECT DURATION</p>
+              <p className={`text-xs font-semibold uppercase tracking-wider mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Select Duration</p>
               <div className="grid grid-cols-2 gap-3">
                 {[5, 10, 15, 20].map(mins => (
                   <button
                     key={mins}
                     onClick={() => startTimer(mins)}
-                    className="py-5 rounded-xl text-white font-black text-2xl transition hover:scale-105"
-                    style={{
-                      fontFamily: 'Bebas Neue, sans-serif',
-                      letterSpacing: '0.05em',
-                      background: 'rgba(245,158,11,0.1)',
-                      border: '1px solid rgba(245,158,11,0.2)'
-                    }}
+                    className={`py-5 rounded-xl font-black text-2xl transition hover:scale-105 ${
+                      isDark
+                        ? 'bg-amber-500/10 border border-amber-500/20 text-white hover:bg-amber-500/15'
+                        : 'bg-amber-50 border border-amber-200 text-slate-900 hover:bg-amber-100'
+                    }`}
                   >
-                    {mins}<span className="text-sm text-slate-500 ml-1">MIN</span>
+                    {mins}<span className={`text-sm ml-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>MIN</span>
                   </button>
                 ))}
               </div>
             </div>
           ) : (
             <div>
-              {/* Progress ring */}
               <div className="relative w-48 h-48 mx-auto mb-6">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 200 200">
-                  <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(59,130,246,0.1)" strokeWidth="8" />
+                  <circle cx="100" cy="100" r="90" fill="none" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} strokeWidth="8" />
                   <circle
                     cx="100" cy="100" r="90" fill="none"
                     stroke={isFinished ? '#10b981' : '#f59e0b'}
@@ -1507,8 +1482,9 @@ function WarmupTimerModal({ onClose }) {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={`text-5xl font-black ${isFinished ? 'text-emerald-400' : 'text-white'}`}
-                    style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.05em' }}>
+                  <span className={`text-5xl font-black ${
+                    isFinished ? 'text-emerald-500' : isDark ? 'text-white' : 'text-slate-900'
+                  }`}>
                     {isFinished ? 'DONE' : `${minutes}:${secs.toString().padStart(2, '0')}`}
                   </span>
                 </div>
@@ -1518,24 +1494,27 @@ function WarmupTimerModal({ onClose }) {
                 {running ? (
                   <button
                     onClick={() => setRunning(false)}
-                    className="flex-1 py-3 rounded-xl font-bold text-white transition"
-                    style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)' }}
+                    className={`flex-1 py-3 rounded-xl font-bold transition ${
+                      isDark ? 'bg-red-500/15 border border-red-500/25 text-red-400' : 'bg-red-50 border border-red-200 text-red-600'
+                    }`}
                   >
                     Pause
                   </button>
                 ) : seconds > 0 ? (
                   <button
                     onClick={() => setRunning(true)}
-                    className="flex-1 py-3 rounded-xl font-bold text-white transition"
-                    style={{ background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)' }}
+                    className={`flex-1 py-3 rounded-xl font-bold transition ${
+                      isDark ? 'bg-emerald-500/15 border border-emerald-500/25 text-emerald-400' : 'bg-emerald-50 border border-emerald-200 text-emerald-600'
+                    }`}
                   >
                     Resume
                   </button>
                 ) : null}
                 <button
                   onClick={resetTimer}
-                  className="flex-1 py-3 rounded-xl font-bold text-slate-300 transition"
-                  style={{ border: '1px solid rgba(59,130,246,0.15)' }}
+                  className={`flex-1 py-3 rounded-xl font-bold transition ${
+                    isDark ? 'border border-white/[0.08] text-slate-300' : 'border border-slate-200 text-slate-600'
+                  }`}
                 >
                   Reset
                 </button>
@@ -1544,10 +1523,12 @@ function WarmupTimerModal({ onClose }) {
           )}
         </div>
 
-        <div className="p-4 border-t" style={{ borderColor: 'rgba(245,158,11,0.1)' }}>
+        <div className={`p-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl text-slate-400 text-sm font-medium transition hover:text-white"
+            className={`w-full py-2.5 rounded-xl text-sm font-medium transition ${
+              isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+            }`}
           >
             Close
           </button>
@@ -1558,16 +1539,15 @@ function WarmupTimerModal({ onClose }) {
 }
 
 // ============================================
-// QUICK ATTENDANCE PANEL — Inline roster check-in
+// QUICK ATTENDANCE PANEL
 // ============================================
-function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
+function QuickAttendancePanel({ event, team, roster, userId, showToast, isDark, cardClass, sectionLabel, textPrimary, textSecondary, textMuted, dividerClass }) {
   const [expanded, setExpanded] = useState(false)
-  const [attendance, setAttendance] = useState({}) // playerId → 'yes'|'no'
+  const [attendance, setAttendance] = useState({})
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   const isToday = countdownText(event.event_date) === 'TODAY'
-  const isTomorrow = countdownText(event.event_date) === 'TOMORROW'
 
   async function loadAttendance() {
     if (loaded) return
@@ -1597,7 +1577,6 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
 
   async function markPlayer(playerId, status) {
     const prev = attendance[playerId]
-    // Optimistic update
     setAttendance(a => ({ ...a, [playerId]: status }))
 
     try {
@@ -1624,7 +1603,6 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
           })
       }
     } catch (err) {
-      // Rollback on error
       setAttendance(a => ({ ...a, [playerId]: prev }))
       showToast?.('Error updating attendance', 'error')
     }
@@ -1635,62 +1613,60 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
   const unmarkedCount = roster.length - presentCount - absentCount
 
   return (
-    <div className="tc-card tc-fadeIn tc-fadeIn-4" style={{ border: isToday ? '1px solid rgba(16,185,129,0.25)' : undefined }}>
-      {/* Header — always visible, clickable to expand */}
+    <div className={`${cardClass} ${isToday ? 'ring-1 ring-emerald-500/25' : ''}`}>
       <button
         onClick={handleExpand}
         className="w-full flex items-center gap-4 p-5 text-left"
       >
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.2)' }}>
-          <UserCheck className="w-6 h-6 text-emerald-400" />
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+          isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-100'
+        }`}>
+          <UserCheck className="w-6 h-6 text-emerald-500" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="tc-section-title">QUICK ATTENDANCE</span>
+            <span className={sectionLabel}>Quick Attendance</span>
             {isToday && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/20">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                 TODAY
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className={`text-xs mt-0.5 ${textMuted}`}>
             {event.event_type === 'game' ? `Game vs ${event.opponent_name || 'TBD'}` : 'Practice'}
             {event.event_time ? ` · ${formatTime12(event.event_time)}` : ''}
             {expanded && loaded ? ` — ${presentCount}✓ ${absentCount}✗ ${unmarkedCount > 0 ? `${unmarkedCount} unmarked` : ''}` : ''}
           </p>
         </div>
-        <ChevronRight className={`w-5 h-5 text-slate-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+        <ChevronRight className={`w-5 h-5 transition-transform ${textMuted} ${expanded ? 'rotate-90' : ''}`} />
       </button>
 
-      {/* Expanded: Roster with check/x buttons */}
       {expanded && (
-        <div className="px-5 pb-5 border-t border-blue-500/5">
+        <div className={`px-5 pb-5 border-t ${dividerClass}`}>
           {loading ? (
             <div className="py-6 text-center">
               <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-xs text-slate-500 mt-2">Loading...</p>
+              <p className={`text-xs mt-2 ${textMuted}`}>Loading...</p>
             </div>
           ) : (
             <>
-              {/* Summary bar */}
               <div className="flex items-center gap-4 py-3 mb-2">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-bold text-emerald-400">{presentCount} Present</span>
+                  <span className="text-xs font-bold text-emerald-500">{presentCount} Present</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-xs font-bold text-red-400">{absentCount} Absent</span>
+                  <span className="text-xs font-bold text-red-500">{absentCount} Absent</span>
                 </div>
                 {unmarkedCount > 0 && (
                   <div className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded-full bg-slate-600" />
-                    <span className="text-xs text-slate-500">{unmarkedCount} Unmarked</span>
+                    <span className={`w-3 h-3 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
+                    <span className={`text-xs ${textMuted}`}>{unmarkedCount} Unmarked</span>
                   </div>
                 )}
-                <div className="ml-auto flex gap-2">
+                <div className="ml-auto">
                   <button
                     onClick={() => {
                       const all = {}
@@ -1698,15 +1674,17 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                       setAttendance(all)
                       roster.forEach(p => markPlayer(p.id, 'yes'))
                     }}
-                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-emerald-400 transition"
-                    style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition ${
+                      isDark
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/15'
+                        : 'bg-emerald-50 border border-emerald-200 text-emerald-600 hover:bg-emerald-100'
+                    }`}
                   >
                     ALL PRESENT
                   </button>
                 </div>
               </div>
 
-              {/* Player grid */}
               <div className="space-y-1">
                 {roster.map(player => {
                   const status = attendance[player.id]
@@ -1714,46 +1692,47 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                   const isAbsent = status === 'no' || status === 'not_going'
 
                   return (
-                    <div key={player.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-blue-500/5 transition">
-                      {/* Player info */}
+                    <div key={player.id} className={`flex items-center gap-3 py-2 px-3 rounded-lg transition ${
+                      isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
+                    }`}>
                       {player.photo_url ? (
                         <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
-                          style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa' }}>
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                          isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
+                        }`}>
                           {player.first_name?.[0]}{player.last_name?.[0]}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white font-medium truncate">
+                        <p className={`text-sm font-medium truncate ${textPrimary}`}>
                           {player.first_name} {player.last_name}
                         </p>
-                        <p className="text-[10px] text-slate-600">
+                        <p className={`text-[10px] ${textMuted}`}>
                           #{player.jersey_number || '—'} · {player.position || 'Player'}
                         </p>
                       </div>
 
-                      {/* Check / X buttons */}
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => markPlayer(player.id, 'yes')}
-                          className="w-9 h-9 rounded-lg flex items-center justify-center transition"
-                          style={{
-                            background: isPresent ? 'rgba(16,185,129,0.25)' : 'rgba(15,20,35,0.5)',
-                            border: `1px solid ${isPresent ? 'rgba(16,185,129,0.5)' : 'rgba(59,130,246,0.1)'}`,
-                          }}
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center transition ${
+                            isPresent
+                              ? 'bg-emerald-500/20 border border-emerald-500/40'
+                              : isDark ? 'bg-slate-700/50 border border-white/[0.08]' : 'bg-slate-50 border border-slate-200'
+                          }`}
                         >
-                          <Check className={`w-4 h-4 ${isPresent ? 'text-emerald-400' : 'text-slate-600'}`} />
+                          <Check className={`w-4 h-4 ${isPresent ? 'text-emerald-500' : textMuted}`} />
                         </button>
                         <button
                           onClick={() => markPlayer(player.id, 'no')}
-                          className="w-9 h-9 rounded-lg flex items-center justify-center transition"
-                          style={{
-                            background: isAbsent ? 'rgba(239,68,68,0.25)' : 'rgba(15,20,35,0.5)',
-                            border: `1px solid ${isAbsent ? 'rgba(239,68,68,0.5)' : 'rgba(59,130,246,0.1)'}`,
-                          }}
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center transition ${
+                            isAbsent
+                              ? 'bg-red-500/20 border border-red-500/40'
+                              : isDark ? 'bg-slate-700/50 border border-white/[0.08]' : 'bg-slate-50 border border-slate-200'
+                          }`}
                         >
-                          <X className={`w-4 h-4 ${isAbsent ? 'text-red-400' : 'text-slate-600'}`} />
+                          <X className={`w-4 h-4 ${isAbsent ? 'text-red-500' : textMuted}`} />
                         </button>
                       </div>
                     </div>
@@ -1763,8 +1742,8 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
 
               {roster.length === 0 && (
                 <div className="py-6 text-center">
-                  <Users className="w-8 h-8 mx-auto text-slate-700 mb-2" />
-                  <p className="text-xs text-slate-500">No players on roster</p>
+                  <Users className={`w-8 h-8 mx-auto mb-2 ${textMuted}`} />
+                  <p className={`text-xs ${textMuted}`}>No players on roster</p>
                 </div>
               )}
             </>
