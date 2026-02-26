@@ -4,11 +4,13 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
-import { 
-  ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle, 
+import { CommentSection } from '../../components/teams/CommentSection'
+import { ReactionBar } from '../../components/teams/ReactionBar'
+import {
+  ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
   FileText, Plus, Send, X, ChevronRight, Star, Check,
   BarChart3, Camera, Edit, Flag, Megaphone, Trash2, Trophy, UserCog,
-  Heart, Share2, MoreVertical
+  Heart, Share2, MoreVertical, Award, Upload
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
@@ -34,106 +36,10 @@ function formatTime12(timeStr) {
   return hour12 + ':' + minutes + ' ' + ampm
 }
 
-function useCountdown(targetDate) {
-  const [val, setVal] = useState({})
-  useEffect(() => {
-    if (!targetDate) return
-    const tick = () => {
-      const d = Math.max(0, new Date(targetDate).getTime() - Date.now())
-      setVal({
-        d: Math.floor(d / 864e5),
-        h: Math.floor((d % 864e5) / 36e5),
-        m: Math.floor((d % 36e5) / 6e4),
-        s: Math.floor((d % 6e4) / 1e3),
-      })
-    }
-    tick()
-    const i = setInterval(tick, 1000)
-    return () => clearInterval(i)
-  }, [targetDate])
-  return val
-}
-
 const EMOJIS = ['🏐', '🔥', '💪', '🏆', '⭐', '❤️', '💯', '🐝', '👍']
 
 // ═══════════════════════════════════════════════════════════
-// STYLES — Dramatic visual overhaul
-// ═══════════════════════════════════════════════════════════
-const HUB_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
-  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
-  @keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  @keyframes vsFlash{0%,80%,100%{opacity:.85}90%{opacity:1;text-shadow:0 0 30px rgba(239,68,68,.5)}}
-  @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-  @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-  @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
-  @keyframes shimmer{from{left:-100%}to{left:200%}}
-  @keyframes glowPulse{0%,100%{box-shadow:0 0 8px rgba(245,158,11,.1)}50%{box-shadow:0 0 20px rgba(245,158,11,.2)}}
-  @keyframes borderPulse{0%,100%{border-color:rgba(245,158,11,.2)}50%{border-color:rgba(245,158,11,.45)}}
-  @keyframes cheerPop{0%{transform:translateY(0) scale(1);opacity:1}50%{transform:translateY(-40px) scale(1.4);opacity:.8}100%{transform:translateY(-80px) scale(.6);opacity:0}}
-  @keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}70%{box-shadow:0 0 0 10px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
-  @keyframes storyRing{0%,100%{border-color:var(--ring-c1,#f59e0b)}50%{border-color:var(--ring-c2,#ef4444)}}
-
-  .tw-au{animation:fadeUp .5s ease-out both}
-  .tw-ai{animation:fadeIn .4s ease-out both}
-  .tw-as{animation:scaleIn .3s ease-out both}
-  .tw-ac{animation:cardIn .5s ease-out both}
-  .cheer-pop{animation:cheerPop .8s cubic-bezier(.17,.67,.83,.67) forwards}
-  .live-pulse{animation:livePulse 2s infinite}
-
-  .tw-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .tw-heading{font-family:'Rajdhani','Oswald',sans-serif;font-weight:700;letter-spacing:.04em}
-  .tw-mono{font-family:'JetBrains Mono',monospace}
-
-  /* ── Glass Cards ── */
-  .tw-glass{
-    background:rgba(255,255,255,.03);
-    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:24px;
-    transition:all .3s cubic-bezier(.4,0,.2,1);
-    box-shadow:0 8px 32px rgba(0,0,0,.12)
-  }
-  .tw-glass:hover{border-color:rgba(255,255,255,.15);transform:translateY(-2px);box-shadow:0 16px 48px rgba(0,0,0,.2)}
-
-  .tw-glass-glow{
-    background:linear-gradient(165deg,rgba(245,158,11,.06) 0%,rgba(255,255,255,.025) 40%,rgba(10,10,15,.9) 100%);
-    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid rgba(245,158,11,.18);
-    border-radius:24px;
-    box-shadow:0 8px 32px rgba(0,0,0,.1),0 0 0 1px rgba(245,158,11,.05);
-    transition:all .3s cubic-bezier(.4,0,.2,1)
-  }
-  .tw-glass-glow:hover{border-color:rgba(245,158,11,.35);box-shadow:0 16px 48px rgba(0,0,0,.18),0 0 20px rgba(245,158,11,.08)}
-
-  .tw-nos::-webkit-scrollbar{display:none}.tw-nos{-ms-overflow-style:none;scrollbar-width:none}
-  .tw-clift{transition:transform .2s}.tw-clift:hover{transform:translateY(-2px)}
-
-  .tw-auto-accent{border-left:3px solid rgba(245,158,11,.4);background:linear-gradient(90deg,rgba(245,158,11,.04),transparent 30%)}
-  .tw-badge-accent{border-left:3px solid rgba(168,85,247,.4);background:linear-gradient(90deg,rgba(168,85,247,.04),transparent 30%)}
-  .tw-reminder-accent{border-left:3px solid rgba(56,189,248,.4);background:linear-gradient(90deg,rgba(56,189,248,.04),transparent 30%)}
-
-  /* ── Light Mode ── */
-  .tw-light .tw-glass{
-    background:rgba(255,255,255,.72);
-    border-color:rgba(0,0,0,.06);
-    box-shadow:0 4px 24px rgba(0,0,0,.07),0 0 0 1px rgba(0,0,0,.02)
-  }
-  .tw-light .tw-glass:hover{border-color:rgba(0,0,0,.12);box-shadow:0 16px 48px rgba(0,0,0,.1)}
-  .tw-light .tw-glass-glow{
-    background:linear-gradient(165deg,rgba(245,158,11,.07) 0%,rgba(255,255,255,.88) 40%,rgba(255,255,255,.95) 100%);
-    border-color:rgba(245,158,11,.2);
-    box-shadow:0 4px 24px rgba(0,0,0,.06)
-  }
-  .tw-light .tw-glass-glow:hover{box-shadow:0 16px 48px rgba(0,0,0,.1)}
-`
-
-// ═══════════════════════════════════════════════════════════
-// TEAM WALL PAGE
+// TEAM WALL PAGE — v0 3-panel layout
 // ═══════════════════════════════════════════════════════════
 function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const { profile, user } = useAuth()
@@ -160,45 +66,16 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const [showNewPostModal, setShowNewPostModal] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState(null)
   const [showEventDetail, setShowEventDetail] = useState(null)
-
-  const [bannerSlide, setBannerSlide] = useState(0)
-  const [showBannerEdit, setShowBannerEdit] = useState(false)
-  const [tickerText, setTickerText] = useState('')
-  const [editingTicker, setEditingTicker] = useState(false)
-  const [tickerOverflows, setTickerOverflows] = useState(false)
-  const tickerRef = useRef(null)
   const [picker, setPicker] = useState(null)
-  const [showAllRoster, setShowAllRoster] = useState(false)
+  const [coverUploading, setCoverUploading] = useState(false)
+  const coverInputRef = useRef(null)
 
-  const g = team?.color || '#F59E0B'
-  const gb = adjustBrightness(g, 20)
-  const dim = adjustBrightness(g, -30)
+  // Game record state
+  const [gameRecord, setGameRecord] = useState({ wins: 0, losses: 0 })
+  // Gallery images from posts
+  const [galleryImages, setGalleryImages] = useState([])
 
-  const bannerSlides = [
-    { id: 1, type: 'photo', label: 'Team Photo' },
-    { id: 2, type: 'next_game', label: 'Next Game' },
-    { id: 3, type: 'season_stats', label: 'Season Pulse' },
-  ]
-
-  const nextGame = upcomingEvents.find(e => e.event_type === 'game') || upcomingEvents[0]
-  const countdownTarget = nextGame ? `${nextGame.event_date}T${nextGame.event_time || '19:00:00'}` : null
-  const cd = useCountdown(countdownTarget)
-
-  useEffect(() => {
-    const i = setInterval(() => setBannerSlide(p => (p + 1) % bannerSlides.length), 7000)
-    return () => clearInterval(i)
-  }, [bannerSlides.length])
-
-  useEffect(() => {
-    if (team?.motto) setTickerText(`🐝 "${team.motto}"`)
-    else if (team?.name) setTickerText(`🐝 Welcome to ${team.name}!`)
-  }, [team])
-
-  useEffect(() => {
-    if (tickerRef.current) {
-      setTickerOverflows(tickerRef.current.scrollWidth > tickerRef.current.clientWidth)
-    }
-  }, [tickerText])
+  const g = team?.color || '#0d9488' // teal-600 default matching v0
 
   // ═══════════════════════════════════════════════════════════
   // DATA LOADING — Preserved exactly from original
@@ -289,6 +166,25 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         setDocuments([])
       }
 
+      // Load game record
+      try {
+        const { data: games } = await supabase
+          .from('games')
+          .select('id, home_team_id, away_team_id, home_score, away_score, status')
+          .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
+          .eq('status', 'completed')
+
+        let w = 0, l = 0
+        ;(games || []).forEach(game => {
+          const isHome = game.home_team_id === teamId
+          const won = isHome ? game.home_score > game.away_score : game.away_score > game.home_score
+          if (won) w++; else l++
+        })
+        setGameRecord({ wins: w, losses: l })
+      } catch (err) {
+        console.log('Could not load game record:', err)
+      }
+
     } catch (err) {
       console.error('Error loading team data:', err)
       showToast?.('Error loading team data', 'error')
@@ -314,6 +210,12 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
       if (reset) {
         setPosts(postsData || [])
+        // Extract gallery images from posts with media
+        const imgs = (postsData || [])
+          .filter(p => p.media_urls?.length > 0)
+          .flatMap(p => p.media_urls)
+          .slice(0, 6)
+        setGalleryImages(imgs)
       } else {
         setPosts(prev => [...prev, ...(postsData || [])])
       }
@@ -365,6 +267,32 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
     }
   }
 
+  // Cover photo upload
+  async function handleCoverUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCoverUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `team-covers/${teamId}/cover.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('team-assets')
+        .upload(path, file, { upsert: true })
+      if (upErr) throw upErr
+      const { data: urlData } = supabase.storage.from('team-assets').getPublicUrl(path)
+      const publicUrl = urlData?.publicUrl
+      if (publicUrl) {
+        await supabase.from('teams').update({ banner_url: publicUrl }).eq('id', teamId)
+        setTeam(prev => ({ ...prev, banner_url: publicUrl }))
+        showToast?.('Cover photo updated!', 'success')
+      }
+    } catch (err) {
+      console.error('Cover upload error:', err)
+      showToast?.('Failed to upload cover photo', 'error')
+    }
+    setCoverUploading(false)
+  }
+
   // ═══════════════════════════════════════════════════════════
   // LOADING / ERROR STATES (preserved)
   // ═══════════════════════════════════════════════════════════
@@ -372,7 +300,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-teal-600 border-t-transparent rounded-full" />
       </div>
     )
   }
@@ -382,7 +310,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       <div className="text-center py-12">
         <VolleyballIcon className={`w-16 h-16 mx-auto ${tc.textMuted}`} />
         <p className={`${tc.text} mt-4`}>Team not found</p>
-        <button onClick={onBack} className="mt-4 text-[var(--accent-primary)]">← Go Back</button>
+        <button onClick={onBack} className="mt-4 text-teal-600">← Go Back</button>
       </div>
     )
   }
@@ -390,491 +318,333 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const teamInitials = (team.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const seasonLabel = team.seasons?.name || ''
   const sportIcon = team.seasons?.sports?.icon || '🏐'
+  const isAdmin = profile?.role === 'admin'
+  const isCoach = profile?.role === 'coach'
+  const canPost = isAdmin || isCoach || profile?.role === 'parent'
+  const totalGames = gameRecord.wins + gameRecord.losses
+  const winRate = totalGames > 0 ? Math.round((gameRecord.wins / totalGames) * 100) : 0
+
+  // Tab definitions matching v0 feed-tabs.tsx
+  const tabs = [
+    { id: 'feed', label: 'Feed', Icon: FileText },
+    { id: 'schedule', label: 'Schedule', Icon: Calendar },
+    { id: 'achievements', label: 'Achievements', Icon: Trophy },
+    { id: 'stats', label: 'Stats', Icon: BarChart3 },
+  ]
 
   // ═══════════════════════════════════════════════════════════
-  // RENDER
+  // RENDER — v0 3-panel layout
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className={`min-h-screen pb-24 ${!isDark ? 'tw-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
-      <style>{HUB_STYLES}</style>
+    <div className={`flex flex-col h-[calc(100vh-5.5rem)] ${isDark ? 'bg-slate-900' : 'bg-[#f5f6f8]'}`}>
 
-      {/* ═══════════════════════════════════════════════════════
-          HYPE PROFILE HEADER — Glass card with banner inside
-      ═══════════════════════════════════════════════════════ */}
-      <div className="tw-glass overflow-hidden mb-8 tw-au" style={{ borderRadius: 32 }}>
-        {/* Banner Carousel */}
-        <div className="relative" style={{ height: 280 }}>
-          {bannerSlides.map((slide, idx) => (
-            <div key={slide.id} className="absolute inset-0 transition-opacity duration-700"
-              style={{ opacity: bannerSlide === idx ? 1 : 0, zIndex: bannerSlide === idx ? 1 : 0 }}>
-              {slide.type === 'photo' && <PhotoBanner team={team} g={g} teamInitials={teamInitials} />}
-              {slide.type === 'next_game' && <NextGameBanner team={team} nextGame={nextGame} cd={cd} g={g} teamInitials={teamInitials} />}
-              {slide.type === 'season_stats' && <SeasonPulseBanner team={team} roster={roster} coaches={coaches} g={g} sportIcon={sportIcon} />}
-            </div>
-          ))}
-
-          {/* Back button + Org logo */}
-          <div className="absolute top-5 left-5 z-20 flex items-center gap-2">
-            <button onClick={onBack}
-              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
-              style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            {hasCustomBranding && orgLogo && (
-              <div className="w-9 h-9 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
-                <img src={orgLogo} alt={orgName} className="w-full h-full object-cover" />
-              </div>
+      {/* ═══ HERO BANNER — matching v0 team-hero.tsx ═══ */}
+      <div className="shrink-0 px-6 pt-6">
+        <div className={`relative overflow-hidden rounded-2xl shadow-md ${isDark ? 'shadow-black/20' : ''}`}>
+          <div className="relative h-56">
+            {/* Background image or gradient fallback */}
+            {team.banner_url ? (
+              <img src={team.banner_url} alt={team.name} className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${g}dd, ${g}88, ${g}44)` }} />
             )}
-          </div>
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-800/90 via-slate-800/40 to-transparent" />
 
-          {/* Banner dots */}
-          <div className="absolute bottom-4 right-6 z-20 flex gap-2">
-            {bannerSlides.map((_, i) => (
-              <button key={i} onClick={() => setBannerSlide(i)} className="transition-all rounded-full" style={{
-                width: bannerSlide === i ? 24 : 8, height: 8,
-                background: bannerSlide === i ? g : 'rgba(255,255,255,.25)',
-                boxShadow: bannerSlide === i ? `0 0 12px ${g}50` : 'none',
-              }} />
-            ))}
-          </div>
+            {/* Camera button — top right */}
+            {(isAdmin || isCoach) && (
+              <>
+                <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                <button
+                  onClick={() => coverInputRef.current?.click()}
+                  disabled={coverUploading}
+                  className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+                >
+                  {coverUploading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </button>
+              </>
+            )}
 
-          {/* Edit button */}
-          {(profile?.role === 'admin' || profile?.role === 'coach') && (
-            <button onClick={() => setShowBannerEdit(!showBannerEdit)}
-              className="absolute top-5 right-5 z-20 w-10 h-10 rounded-2xl flex items-center justify-center text-white/40 hover:text-white/80 hover:scale-105 transition-all"
-              style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
-              ⚙️
+            {/* Back button — top left */}
+            <button
+              onClick={onBack}
+              className="absolute top-4 left-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-sm transition-colors hover:bg-white/30"
+            >
+              <ArrowLeft className="h-4 w-4" />
             </button>
-          )}
 
-          {showBannerEdit && (
-            <div className="absolute top-[68px] right-5 z-30 p-5 shadow-2xl tw-as"
-              style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', width: 280, borderRadius: 20 }}>
-              <p className="text-[10px] tw-heading tracking-[.2em] mb-4" style={{ color: `${g}88` }}>BANNER SETTINGS</p>
-              {bannerSlides.map((s, i) => (
-                <div key={s.id} className="flex items-center justify-between py-2.5" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
-                  <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.5)' }}>Slide {i + 1}: {s.label}</span>
-                  <button className="text-[9px] px-2.5 py-1 rounded-lg transition" style={{ background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)', color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>Edit</button>
-                </div>
-              ))}
-              <button className="mt-4 w-full py-2.5 rounded-xl text-[10px] tw-heading tracking-wider text-center transition"
-                style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', color: `${g}88` }}>
-                + ADD SLIDE
-              </button>
-            </div>
-          )}
-
-          {/* Gradient fade into card body */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 z-10"
-            style={{ background: isDark ? 'linear-gradient(transparent, rgba(15,23,42,.98))' : 'linear-gradient(transparent, rgba(255,255,255,.95))' }} />
-        </div>
-
-        {/* ═══ TEAM IDENTITY — Inside the hype card ═══ */}
-        <div className="relative z-20 px-8 md:px-10 -mt-20 pb-8">
-          <div className="flex items-end gap-6">
-            {/* Team logo — large with gradient ring */}
-            <div className="relative flex-shrink-0">
-              <div className="p-1 rounded-3xl" style={{ background: `linear-gradient(135deg, ${g}, ${dim})` }}>
-                <div className="w-28 h-28 md:w-32 md:h-32 rounded-[22px] flex items-center justify-center overflow-hidden"
-                  style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', boxShadow: '0 8px 32px rgba(0,0,0,.3)' }}>
+            {/* Team info overlay — bottom */}
+            <div className="absolute bottom-0 left-0 flex w-full items-end justify-between p-6 z-10">
+              <div className="flex items-center gap-4">
+                {/* Team logo/initials */}
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg overflow-hidden"
+                  style={{ background: team.logo_url ? 'transparent' : (isDark ? '#1e293b' : '#2c3e50') }}>
                   {team.logo_url ? (
                     <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="tw-display text-5xl md:text-6xl font-bold" style={{ color: g }}>{teamInitials}</span>
+                    <span className="text-lg font-bold text-white">{teamInitials}</span>
                   )}
                 </div>
-              </div>
-              {(profile?.role === 'admin' || profile?.role === 'coach') && (
-                <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-lg"
-                  style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', border: `2px solid ${g}50`, color: g }}>
-                  📷
-                </button>
-              )}
-            </div>
-
-            {/* Name + meta */}
-            <div className="flex-1 pb-2">
-              <h1 className="tw-display text-4xl md:text-5xl font-bold leading-none tracking-tight">
-                {(team.name || '').split(' ').map((word, i, arr) => (
-                  <span key={i}>
-                    {i < arr.length - 1 ? (
-                      <span style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.3)' }}>{word} </span>
-                    ) : (
-                      <span style={{ color: g }}>{word}</span>
-                    )}
-                  </span>
-                ))}
-              </h1>
-              <div className="flex items-center gap-3 mt-2.5 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
-                  style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)' }}>
-                  {sportIcon} {seasonLabel}
-                </span>
-                <span className="flex items-center gap-2 text-xs font-bold" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.25)' }}>
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 live-pulse" /> ACTIVE
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ═══ STAT COLUMNS + HUDDLE BUTTON ═══ */}
-          <div className="flex items-center justify-between mt-6 pt-6" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-            <div className="flex gap-8 md:gap-12">
-              {[
-                { l: 'PLAYERS', v: roster.length },
-                { l: 'COACHES', v: coaches.length, c: g },
-                { l: 'EVENTS', v: upcomingEvents.length, c: '#38BDF8' },
-                { l: 'POSTS', v: posts.length, c: '#A78BFA' },
-              ].map(s => (
-                <div key={s.l} className="text-center cursor-default">
-                  <p className="tw-display text-2xl md:text-3xl font-bold leading-none" style={{ color: s.c || (isDark ? 'white' : '#1a1a1a') }}>{s.v}</p>
-                  <p className="text-[8px] tw-heading tracking-[.2em] mt-1" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{s.l}</p>
-                </div>
-              ))}
-            </div>
-            <button onClick={openTeamChat}
-              className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-white font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all"
-              style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, boxShadow: `0 4px 20px ${g}40` }}>
-              <MessageCircle className="w-5 h-5" /> JOIN HUDDLE
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════
-          INSTAGRAM-STYLE HIGHLIGHT CIRCLES
-      ═══════════════════════════════════════════════════════ */}
-      <div className="flex gap-5 overflow-x-auto tw-nos pb-5 mb-4 px-1">
-        {[
-          { label: 'Highlights', icon: '🔥', active: true },
-          { label: 'Tourney', icon: '🏆' },
-          { label: 'Practice', icon: '👟' },
-          { label: 'Milestones', icon: '⭐' },
-          { label: 'Legacy', icon: '📜' },
-        ].map((h, i) => (
-          <div key={h.label} className="flex flex-col items-center gap-2 shrink-0 cursor-pointer group tw-au" style={{ animationDelay: `${i * .06}s` }}>
-            <div className="w-[76px] h-[76px] md:w-[84px] md:h-[84px] rounded-full p-[3px] transition-transform group-hover:scale-110"
-              style={{
-                background: h.active
-                  ? `linear-gradient(135deg, ${g}, #ef4444, ${g})`
-                  : (isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.1)'),
-              }}>
-              <div className="w-full h-full rounded-full flex items-center justify-center text-2xl md:text-3xl"
-                style={{
-                  background: isDark ? 'rgb(15,23,42)' : '#fff',
-                  border: isDark ? '3px solid rgb(15,23,42)' : '3px solid #fff',
-                }}>
-                {h.icon}
-              </div>
-            </div>
-            <span className="text-[9px] tw-heading tracking-[.12em] uppercase transition"
-              style={{ color: h.active ? g : (isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)') }}>
-              {h.label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* ═══ TICKER ═══ */}
-      <div className="mb-6">
-        <div className="rounded-2xl overflow-hidden relative"
-          style={{
-            background: isDark ? `${g}08` : 'rgba(255,255,255,.6)',
-            border: `1px solid ${isDark ? g + '1a' : g + '20'}`,
-            backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-            boxShadow: isDark ? 'none' : '0 2px 12px rgba(0,0,0,.03)',
-          }}>
-          {editingTicker ? (
-            <div className="flex items-center gap-2 p-3">
-              <input type="text" maxLength={150} value={tickerText} onChange={e => setTickerText(e.target.value)}
-                className="flex-1 bg-transparent text-sm px-3 py-1.5 outline-none" style={{ color: isDark ? 'white' : '#333' }}
-                placeholder="Team message (150 chars max)" autoFocus />
-              <span className="text-[10px] tw-mono mr-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{tickerText.length}/150</span>
-              <button onClick={() => setEditingTicker(false)} className="px-4 py-1.5 rounded-xl text-[10px] tw-heading tracking-wider transition"
-                style={{ background: g, color: '#0f172a' }}>SAVE</button>
-            </div>
-          ) : (
-            <div className="flex items-center h-11 px-5 overflow-hidden">
-              <div ref={tickerRef} className="whitespace-nowrap text-sm font-medium" style={{ color: `${g}cc` }}>
-                {tickerOverflows ? (
-                  <div style={{ animation: 'marquee 20s linear infinite', display: 'inline-block' }}>
-                    <span className="mr-16">{tickerText}</span><span className="mr-16">{tickerText}</span>
-                  </div>
-                ) : (
-                  <span>{tickerText}</span>
-                )}
-              </div>
-              {(profile?.role === 'admin' || profile?.role === 'coach') && (
-                <button onClick={() => setEditingTicker(true)} className="ml-auto flex-shrink-0 pl-4 text-sm transition"
-                  style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>✏️</button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ═══ QUICK ACTIONS ═══ */}
-      <div className="mb-6 tw-au" style={{ animationDelay: '.1s' }}>
-        <div className="flex gap-2.5 overflow-x-auto tw-nos pb-1">
-          {[
-            (profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && { icon: '✏️', label: 'New Post', action: () => setShowNewPostModal(true), primary: true },
-            { icon: '💬', label: 'Team Chat', action: openTeamChat, primary: false },
-            { icon: '📅', label: 'Schedule', action: () => setActiveTab('schedule'), primary: false },
-            { icon: '📋', label: 'Roster', action: () => setActiveTab('roster'), primary: false },
-            { icon: '📄', label: 'Docs', action: () => setActiveTab('documents'), primary: false },
-          ].filter(Boolean).map((a) => (
-            <button key={a.label} onClick={a.action}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold tw-heading tracking-wider transition whitespace-nowrap tw-clift"
-              style={a.primary ? {
-                background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a',
-                boxShadow: `0 4px 20px ${g}30`,
-              } : {
-                background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.7)',
-                backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)',
-                color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)',
-                boxShadow: isDark ? 'none' : '0 2px 8px rgba(0,0,0,.04)'
-              }}>
-              <span className="text-base">{a.icon}</span> {a.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ═══ TAB NAVIGATION — Pill style ═══ */}
-      <div className="mb-8">
-        <div className="flex gap-1 rounded-2xl p-1.5" style={{ background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)' }}>
-          {[
-            { key: 'feed', icon: '📰', label: 'Feed' },
-            { key: 'roster', icon: '👥', label: 'Roster' },
-            { key: 'schedule', icon: '📅', label: 'Schedule' },
-            { key: 'documents', icon: '📄', label: 'Documents' },
-          ].map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className="flex-1 px-4 py-2.5 text-[11px] tw-heading tracking-wider transition-all rounded-xl"
-              style={activeTab === tab.key ? {
-                background: isDark ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.9)',
-                color: g,
-                boxShadow: isDark ? '0 2px 8px rgba(0,0,0,.2)' : '0 2px 8px rgba(0,0,0,.06)',
-              } : {
-                color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)',
-              }}>
-              {tab.icon} {tab.label.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ═══ MAIN CONTENT ═══ */}
-      <main>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-          {/* LEFT: Tab Content */}
-          <div className="lg:col-span-8 space-y-6">
-
-            {/* FEED */}
-            {activeTab === 'feed' && (
-              <>
-                <SectionHeader icon="📰" title="TEAM" accent="FEED" g={g} isDark={isDark} />
-                {posts.length > 0 ? (
-                  <div className="space-y-6">
-                    {posts.map((post, i) => (
-                      <FeedPost key={post.id} post={post} g={g} gb={gb} i={i}
-                        onReact={toggleReaction} picker={picker} setPicker={setPicker} isDark={isDark} />
+                <div>
+                  <h1 className="text-2xl font-bold text-white uppercase tracking-wide">
+                    {(team.name || '').split(' ').map((word, i, arr) => (
+                      <span key={i}>
+                        {i < arr.length - 1 ? word + ' ' : <span className="italic text-white/80">{word}</span>}
+                      </span>
                     ))}
-                    {hasMorePosts && (
-                      <button onClick={loadMorePosts} disabled={loadingMorePosts}
-                        className="w-full py-4 rounded-2xl text-[11px] tw-heading tracking-wider transition"
-                        style={{
-                          background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
-                          border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)',
-                          color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.4)',
-                        }}>
-                        {loadingMorePosts ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: g, borderTopColor: 'transparent' }} />
-                            LOADING...
-                          </span>
-                        ) : 'LOAD MORE POSTS'}
-                      </button>
-                    )}
-                    {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                      <p className="text-center text-[10px] tw-heading tracking-[.3em] py-6" style={{ color: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.1)' }}>— END OF FEED —</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="tw-glass p-12 text-center">
-                    <Megaphone className="w-14 h-14 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.12)' }} />
-                    <p className="mt-5 text-lg font-semibold" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }}>No posts yet</p>
-                    <p className="text-sm mt-1" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>Check back later for team updates!</p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* ROSTER */}
-            {activeTab === 'roster' && (
-              <>
-                <SectionHeader icon="👥" title="TEAM" accent="ROSTER" g={g} isDark={isDark} />
-                <div className="tw-glass overflow-hidden">
-                  <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                    <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
-                      {sportIcon} ROSTER ({roster.length})
+                  </h1>
+                  <div className="mt-1 flex items-center gap-3 text-sm text-white/80">
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      {roster.length} Players &middot; {coaches.length} Coaches
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Award className="h-3.5 w-3.5" />
+                      {seasonLabel}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+                      Active
                     </span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
-                    {roster.map(player => (
-                      <div key={player.id} onClick={() => setSelectedPlayer(player)}
-                        className="p-5 flex items-center gap-4 cursor-pointer transition-all"
-                        onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        {player.photo_url ? (
-                          <img src={player.photo_url} alt="" className="w-14 h-14 rounded-2xl object-cover shadow-md" />
-                        ) : (
-                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center tw-display text-lg font-bold"
-                            style={{ background: `${g}12`, color: g, border: `1px solid ${g}20` }}>
-                            {player.first_name?.[0]}{player.last_name?.[0]}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                            {player.first_name} {player.last_name}
-                          </p>
-                          <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
-                            {player.jersey_number && `#${player.jersey_number} · `}{player.position || 'Player'}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
-                      </div>
-                    ))}
-                    {roster.length === 0 && (
-                      <div className="p-10 text-center">
-                        <Users className="w-14 h-14 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.12)' }} />
-                        <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No players on roster yet</p>
-                      </div>
-                    )}
-                  </div>
                 </div>
-              </>
-            )}
+              </div>
 
-            {/* SCHEDULE */}
-            {activeTab === 'schedule' && (
-              <>
-                <SectionHeader icon="📅" title="UPCOMING" accent="EVENTS" g={g} isDark={isDark} />
-                <div className="tw-glass overflow-hidden">
-                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
-                    {upcomingEvents.map(event => {
-                      const eventDate = new Date(event.event_date)
-                      const isGame = event.event_type === 'game'
-                      return (
-                        <div key={event.id} onClick={() => setShowEventDetail(event)}
-                          className="p-5 flex items-center gap-5 cursor-pointer transition-all"
-                          onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          <div className="text-center min-w-[48px]">
-                            <p className="text-[8px] tw-heading tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
-                              {eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                            </p>
-                            <p className="tw-display text-3xl font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                              {eventDate.getDate()}
-                            </p>
-                          </div>
-                          <div className="w-px h-10" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }} />
-                          <div className="flex-1">
-                            <span className="px-2.5 py-1 rounded-lg text-[9px] tw-heading tracking-wider font-medium"
-                              style={{ background: isGame ? `${g}15` : 'rgba(56,189,248,.1)', color: isGame ? g : '#38BDF8' }}>
-                              {isGame ? '🏐 GAME' : '🏋️ PRACTICE'}
-                            </span>
-                            <p className="font-bold mt-1.5 text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                              {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
-                            </p>
-                            <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-                              {event.event_time && formatTime12(event.event_time)}
-                              {event.venues?.name && ` · ${event.venues.name}`}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
-                        </div>
-                      )
-                    })}
-                    {upcomingEvents.length === 0 && (
-                      <div className="p-10 text-center">
-                        <Calendar className="w-14 h-14 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.12)' }} />
-                        <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No upcoming events</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
+              {/* Join Huddle button */}
+              <button
+                onClick={openTeamChat}
+                className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:brightness-110 hover:-translate-y-0.5"
+                style={{ background: isDark ? '#1e293b' : '#2c3e50' }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse" />
+                Join Huddle
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            {/* DOCUMENTS */}
-            {activeTab === 'documents' && (
-              <>
-                <SectionHeader icon="📄" title="TEAM" accent="DOCUMENTS" g={g} isDark={isDark} />
-                <div className="tw-glass overflow-hidden">
-                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
-                    {documents.map(doc => (
-                      <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                        className="p-5 flex items-center gap-4 transition-all block"
-                        onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(56,189,248,.1)' }}>
-                          <FileText className="w-6 h-6" style={{ color: '#38BDF8' }} />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{doc.name}</p>
-                          <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-                            {doc.category} · {new Date(doc.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <ChevronRight className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
-                      </a>
-                    ))}
-                    {documents.length === 0 && (
-                      <div className="p-10 text-center">
-                        <FileText className="w-14 h-14 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.12)' }} />
-                        <p className="mt-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No documents uploaded</p>
-                      </div>
-                    )}
-                  </div>
+      {/* ═══ 3-PANEL LAYOUT — matching v0 page structure ═══ */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ═══ LEFT: Roster Sidebar ═══ */}
+        <aside className={`hidden lg:flex w-[220px] shrink-0 flex-col gap-4 overflow-y-auto py-6 pl-6 pr-4 border-r ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          <div className="flex items-center justify-between">
+            <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Roster
+            </h3>
+            <span className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <span className="h-2 w-2 rounded-full bg-teal-600" />
+              {roster.length} players
+            </span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            {roster.map(player => (
+              <button
+                key={player.id}
+                onClick={() => setSelectedPlayer(player)}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+                  isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'
+                }`}
+              >
+                <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${
+                  isDark
+                    ? 'border-slate-600 text-slate-400 group-hover:border-teal-500 group-hover:text-teal-500'
+                    : 'border-slate-300 text-slate-500 group-hover:border-teal-600 group-hover:text-teal-600'
+                }`}>
+                  {player.jersey_number || (player.first_name?.[0] + (player.last_name?.[0] || ''))}
+                </span>
+                <div className="flex-1 overflow-hidden">
+                  <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    {player.first_name} {player.last_name?.[0]}.
+                  </p>
+                  <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                    {player.position || 'Player'}
+                  </p>
                 </div>
-              </>
+              </button>
+            ))}
+            {roster.length === 0 && (
+              <p className={`text-center py-8 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No players on roster</p>
             )}
           </div>
+        </aside>
 
-          {/* RIGHT: Sidebar */}
-          <aside className="lg:col-span-4 space-y-6">
+        {/* ═══ CENTER: Feed ═══ */}
+        <main className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
-            {/* UPCOMING EVENTS */}
-            <div className="tw-glass-glow overflow-hidden tw-au" style={{ animationDelay: '.15s' }}>
-              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${g}15` }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: `${g}80` }}>📅 UPCOMING</span>
-                <button onClick={() => setActiveTab('schedule')} className="text-[9px] tw-heading tracking-wider transition"
-                  style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>VIEW ALL →</button>
-              </div>
-              <div className="p-4 space-y-1.5">
-                {upcomingEvents.slice(0, 3).map(event => {
-                  const ed = new Date(event.event_date)
+            {/* Tab Bar — matching v0 feed-tabs.tsx */}
+            <div className={`flex items-center rounded-2xl p-1.5 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              {tabs.map(tab => {
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-teal-600 text-white shadow-sm'
+                        : isDark
+                          ? 'text-slate-400 hover:text-slate-200'
+                          : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    <tab.Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* ── FEED TAB ── */}
+            {activeTab === 'feed' && (
+              <>
+                {/* Post Composer — matching v0 feed-composer.tsx */}
+                {canPost && (
+                  <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                    <div className="flex items-center gap-3 px-5 pt-4 pb-3">
+                      <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center bg-teal-600 text-sm font-semibold text-white">
+                        {profile?.full_name?.charAt(0) || 'U'}
+                      </div>
+                      <button
+                        onClick={() => setShowNewPostModal(true)}
+                        className={`flex flex-1 items-center rounded-xl border px-4 py-2.5 text-sm text-left ${
+                          isDark
+                            ? 'border-slate-700 bg-slate-700/50 text-slate-400'
+                            : 'border-slate-200 bg-slate-50 text-slate-400'
+                        }`}
+                      >
+                        What's on your mind?
+                      </button>
+                    </div>
+                    <div className={`flex items-center gap-1 border-t px-5 py-2 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                      {[
+                        { icon: Camera, label: 'Photo/Video', color: 'text-teal-600 hover:bg-teal-50' },
+                        { icon: BarChart3, label: 'Poll', color: 'text-emerald-600 hover:bg-emerald-50' },
+                        { icon: Award, label: 'Shoutout', color: 'text-amber-500 hover:bg-amber-50' },
+                        { icon: Trophy, label: 'Challenge', color: 'text-purple-600 hover:bg-purple-50' },
+                      ].map(action => (
+                        <button
+                          key={action.label}
+                          onClick={() => setShowNewPostModal(true)}
+                          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                            isDark ? 'text-slate-400 hover:bg-slate-700' : action.color
+                          }`}
+                        >
+                          <action.icon className="h-[18px] w-[18px]" />
+                          <span className="hidden xl:inline">{action.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Feed Posts */}
+                {posts.length > 0 ? (
+                  <div className="flex flex-col gap-6">
+                    {posts.map((post, i) => (
+                      <FeedPost
+                        key={post.id}
+                        post={post}
+                        isDark={isDark}
+                        g={g}
+                        profile={profile}
+                        user={user}
+                        teamId={teamId}
+                        onReact={toggleReaction}
+                        onDelete={async (postId) => {
+                          await supabase.from('team_posts').delete().eq('id', postId)
+                          setPosts(prev => prev.filter(p => p.id !== postId))
+                          showToast?.('Post deleted', 'success')
+                        }}
+                        onPin={async (postId, pinned) => {
+                          await supabase.from('team_posts').update({ is_pinned: pinned }).eq('id', postId)
+                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_pinned: pinned } : p))
+                          showToast?.(pinned ? 'Post pinned' : 'Post unpinned', 'success')
+                        }}
+                        onReactionCountChange={(postId, count) => {
+                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, reaction_count: count } : p))
+                        }}
+                        onCommentCountChange={(postId, count) => {
+                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: count } : p))
+                        }}
+                        showToast={showToast}
+                      />
+                    ))}
+                    {hasMorePosts && (
+                      <button
+                        onClick={loadMorePosts}
+                        disabled={loadingMorePosts}
+                        className={`w-full py-3 rounded-2xl text-sm font-medium transition-colors ${
+                          isDark
+                            ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                            : 'bg-white text-slate-500 hover:bg-slate-50 shadow-sm'
+                        }`}
+                      >
+                        {loadingMorePosts ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                            Loading...
+                          </span>
+                        ) : 'Load More Posts'}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className={`rounded-2xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                    <Megaphone className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                    <p className={`mt-5 text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>No posts yet</p>
+                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Check back later for team updates!</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── SCHEDULE TAB ── */}
+            {activeTab === 'schedule' && (
+              <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                {upcomingEvents.map((event, i) => {
+                  const eventDate = new Date(event.event_date)
                   const isGame = event.event_type === 'game'
                   return (
-                    <div key={event.id} className="flex items-center gap-3 p-2.5 rounded-xl transition cursor-pointer"
-                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <div className="text-center min-w-[36px]">
-                        <p className="text-[8px] tw-heading tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
-                          {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                        </p>
-                        <p className="tw-display text-xl font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{ed.getDate()}</p>
+                    <div
+                      key={event.id}
+                      onClick={() => setShowEventDetail(event)}
+                      className={`flex items-center gap-4 px-6 py-4 transition-colors cursor-pointer ${
+                        isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'
+                      } ${i > 0 ? (isDark ? 'border-t border-slate-700' : 'border-t border-slate-200') : ''}`}
+                    >
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                        isGame ? 'bg-teal-100 text-teal-600' : 'bg-amber-100 text-amber-600'
+                      }`}>
+                        <Calendar className="h-5 w-5" />
                       </div>
-                      <div className="w-px h-6" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }} />
-                      <div>
-                        <p className="text-[12px] font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                          {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
+                      <div className="flex-1">
+                        <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          {event.title || (isGame ? 'Game' : 'Practice')}
+                          {event.opponent && (
+                            <>
+                              {' '}<span className={isDark ? 'text-slate-400' : 'text-slate-500'}>vs</span>{' '}
+                              <span className="text-teal-600">{event.opponent}</span>
+                            </>
+                          )}
                         </p>
-                        <p className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.25)' }}>
+                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                          {event.event_time && formatTime12(event.event_time)}
+                          {event.venues?.name && ` · ${event.venues.name}`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          {eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                           {event.event_time && formatTime12(event.event_time)}
                         </p>
                       </div>
@@ -882,124 +652,194 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   )
                 })}
                 {upcomingEvents.length === 0 && (
-                  <p className="text-center py-6 text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>No upcoming events</p>
+                  <div className="p-12 text-center">
+                    <Calendar className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                    <p className={`mt-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No upcoming events</p>
+                  </div>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* ROSTER PREVIEW */}
-            <div className="tw-glass overflow-hidden tw-au" style={{ animationDelay: '.2s' }}>
-              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
-                  🏐 ROSTER ({roster.length})
-                </span>
-                <button onClick={() => { setActiveTab('roster'); setShowAllRoster(!showAllRoster) }}
-                  className="text-[9px] tw-heading tracking-wider transition"
-                  style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>VIEW ALL →</button>
+            {/* ── ACHIEVEMENTS TAB (placeholder) ── */}
+            {activeTab === 'achievements' && (
+              <div className={`rounded-2xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                <Trophy className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <p className={`mt-5 text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Team Achievements</p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Coming soon — track milestones and awards</p>
               </div>
-              <div className="p-3 space-y-1">
-                {roster.slice(0, 5).map(p => (
-                  <button key={p.id} onClick={() => setSelectedPlayer(p)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-left"
-                    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center tw-display text-sm font-bold flex-shrink-0"
-                      style={{ background: `${g}12`, color: g, border: `1px solid ${g}18` }}>
-                      {p.first_name?.[0]}{p.last_name?.[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-bold truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{p.first_name} {p.last_name}</p>
-                      <p className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.25)' }}>
-                        {p.jersey_number && `#${p.jersey_number} · `}{p.position || 'Player'}
-                      </p>
-                    </div>
-                  </button>
+            )}
+
+            {/* ── STATS TAB (placeholder) ── */}
+            {activeTab === 'stats' && (
+              <div className={`rounded-2xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                <BarChart3 className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <p className={`mt-5 text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Team Stats</p>
+                <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Coming soon — season statistics and analytics</p>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* ═══ RIGHT: Widgets Sidebar ═══ */}
+        <aside className={`hidden xl:flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto py-6 pl-6 pr-6 border-l ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+
+          {/* Upcoming Events */}
+          <section className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Upcoming
+              </h3>
+              <button
+                onClick={() => onNavigate?.('schedule')}
+                className="flex items-center gap-1 text-xs font-medium text-teal-600 transition-colors hover:text-teal-500"
+              >
+                Full Calendar
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {upcomingEvents.slice(0, 3).map(event => {
+                const isGame = event.event_type === 'game'
+                return (
+                  <div
+                    key={event.id}
+                    className={`rounded-xl p-4 shadow-sm transition-all hover:shadow-md cursor-pointer ${isDark ? 'bg-slate-800' : 'bg-white'}`}
+                    onClick={() => setShowEventDetail(event)}
+                  >
+                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {isGame && event.opponent ? (
+                        <>Game vs <span className="text-teal-600">{event.opponent}</span></>
+                      ) : (
+                        event.title || (isGame ? 'Game' : 'Practice')
+                      )}
+                    </p>
+                    <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      {event.event_time && ` · ${formatTime12(event.event_time)}`}
+                    </p>
+                  </div>
+                )
+              })}
+              {upcomingEvents.length === 0 && (
+                <p className={`text-center py-6 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
+              )}
+            </div>
+          </section>
+
+          {/* Season Record */}
+          <section className="flex flex-col gap-4">
+            <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Season Record
+            </h3>
+            <div className={`flex flex-col items-center gap-3 rounded-2xl p-6 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-teal-600">{gameRecord.wins}</span>
+                <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>&mdash;</span>
+                <span className="text-4xl font-bold text-red-500">{gameRecord.losses}</span>
+              </div>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                {totalGames > 0 ? `${winRate}% win rate` : 'No games played'}
+              </p>
+            </div>
+          </section>
+
+          {/* Gallery */}
+          <section className="flex flex-col gap-4">
+            <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Gallery
+            </h3>
+            {galleryImages.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {galleryImages.slice(0, 6).map((src, i) => (
+                  <div key={i} className="relative aspect-square overflow-hidden rounded-xl transition-all hover:opacity-80 cursor-pointer">
+                    <img src={src} alt={`Gallery photo ${i + 1}`} className="w-full h-full object-cover" />
+                  </div>
                 ))}
-                {roster.length === 0 && (
-                  <p className="text-center py-6 text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>No players yet</p>
-                )}
               </div>
-            </div>
+            ) : (
+              <div className={`rounded-2xl p-6 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                <Camera className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <p className={`mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No photos yet</p>
+              </div>
+            )}
+          </section>
 
-            {/* COACHES */}
-            <div className="tw-glass overflow-hidden tw-au" style={{ animationDelay: '.25s' }}>
-              <div className="px-5 py-4" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>🎓 COACHES</span>
+          {/* Documents link */}
+          {documents.length > 0 && (
+            <section className="flex flex-col gap-4">
+              <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Documents
+              </h3>
+              <div className={`rounded-2xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                {documents.slice(0, 3).map((doc, i) => (
+                  <a
+                    key={doc.id}
+                    href={doc.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                      isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'
+                    } ${i > 0 ? (isDark ? 'border-t border-slate-700' : 'border-t border-slate-200') : ''}`}
+                  >
+                    <FileText className={`h-4 w-4 shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                    <span className={`text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{doc.name}</span>
+                  </a>
+                ))}
               </div>
-              <div className="p-4 space-y-2">
-                {coaches.map(coach => (
-                  <div key={coach.id} className="flex items-center gap-3.5 p-2.5 rounded-xl">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center tw-display text-base font-bold"
-                      style={{ background: `${g}15`, color: g }}>
+            </section>
+          )}
+
+          {/* Coaches */}
+          {coaches.length > 0 && (
+            <section className="flex flex-col gap-4">
+              <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Coaches
+              </h3>
+              <div className={`rounded-2xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                {coaches.map((coach, i) => (
+                  <div
+                    key={coach.id}
+                    className={`flex items-center gap-3 px-4 py-3 ${
+                      i > 0 ? (isDark ? 'border-t border-slate-700' : 'border-t border-slate-200') : ''
+                    }`}
+                  >
+                    <div className="h-9 w-9 rounded-full flex items-center justify-center bg-teal-100 text-teal-700 text-sm font-bold">
                       {coach.full_name?.charAt(0) || '?'}
                     </div>
                     <div>
-                      <p className="text-[12px] font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{coach.full_name}</p>
-                      <p className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.25)' }}>
-                        {coach.role === 'head' ? 'Head Coach' : coach.role === 'assistant' ? 'Assistant Coach' : 'Coach'}
+                      <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{coach.full_name}</p>
+                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {coach.role === 'head' ? 'Head Coach' : coach.role === 'assistant' ? 'Assistant' : 'Coach'}
                       </p>
                     </div>
                   </div>
                 ))}
-                {coaches.length === 0 && (
-                  <p className="text-center py-6 text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>No coaches assigned</p>
-                )}
               </div>
-            </div>
-
-            {/* QUICK STATS */}
-            <div className="tw-glass overflow-hidden tw-au" style={{ animationDelay: '.3s' }}>
-              <div className="px-5 py-4" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>📊 QUICK STATS</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3 p-4">
-                {[
-                  { v: roster.length, l: 'Players', c: '#38BDF8' },
-                  { v: coaches.length, l: 'Coaches', c: g },
-                  { v: upcomingEvents.length, l: 'Upcoming', c: '#4ADE80' },
-                  { v: posts.length, l: 'Posts', c: '#A78BFA' },
-                ].map(s => (
-                  <div key={s.l} className="text-center py-3.5 rounded-2xl" style={{ background: `${s.c}0a`, border: `1px solid ${s.c}18` }}>
-                    <p className="tw-display text-2xl font-bold" style={{ color: s.c }}>{s.v}</p>
-                    <p className="text-[8px] tw-heading tracking-wider mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>{s.l.toUpperCase()}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* INVITE */}
-            <div className="tw-glass-glow p-6 text-center tw-au" style={{ animationDelay: '.35s' }}>
-              <p className="text-4xl mb-3">📨</p>
-              <p className="text-sm font-bold mb-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Invite to {team.name}</p>
-              <p className="text-[11px] mb-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }}>Share a registration link with friends and family</p>
-              <button className="w-full py-3 rounded-2xl text-[11px] font-bold tw-heading tracking-wider transition hover:brightness-110"
-                style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
-                COPY INVITE LINK
-              </button>
-            </div>
-          </aside>
-        </div>
-      </main>
+            </section>
+          )}
+        </aside>
+      </div>
 
       {/* ═══ FAB ═══ */}
-      {(profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && (
-        <button onClick={() => setShowNewPostModal(true)}
-          className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-2xl flex items-center justify-center text-2xl text-black font-bold shadow-2xl transition hover:scale-110 active:scale-95"
-          style={{
-            background: `linear-gradient(135deg,${gb},${g})`,
-            boxShadow: `0 8px 32px ${g}40`,
-            animation: 'floatY 3s ease-in-out infinite',
-          }}>✏️</button>
+      {canPost && (
+        <button
+          onClick={() => setShowNewPostModal(true)}
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg transition hover:scale-110 active:scale-95 bg-teal-600 hover:bg-teal-500"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
       )}
 
       {/* ═══ NEW POST MODAL ═══ */}
       {showNewPostModal && (
         <NewPostModal
-          teamId={teamId} g={g} gb={gb} dim={dim} isDark={isDark}
+          teamId={teamId} isDark={isDark}
           onClose={() => setShowNewPostModal(false)}
           onSuccess={() => { loadPosts(1, true); setShowNewPostModal(false) }}
           showToast={showToast}
-          canPin={profile?.role === 'admin' || profile?.role === 'coach'}
+          canPin={isAdmin || isCoach}
+          profile={profile}
+          user={user}
         />
       )}
 
@@ -1036,271 +876,201 @@ function adjustBrightness(hex, amount) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// BANNER SLIDES
+// FEED POST — v0 card style with preserved functionality
 // ═══════════════════════════════════════════════════════════
-
-function PhotoBanner({ team, g, teamInitials }) {
-  return (
-    <div className="absolute inset-0" style={{ background: team.banner_url ? undefined : `linear-gradient(135deg, #1a1520 0%, #0d1117 50%, #141820 100%)` }}>
-      {team.banner_url ? (
-        <img src={team.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-[120px] opacity-[.03]">🐝</p>
-        </div>
-      )}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition cursor-pointer" style={{ background: 'rgba(0,0,0,.4)' }}>
-        <div className="text-center">
-          <p className="text-4xl mb-2">📷</p>
-          <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOAD COVER PHOTO</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
-  if (!nextGame) {
-    return (
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
-        <div className="text-center">
-          <p className="text-[9px] tw-heading tracking-[.4em] text-white/20 mb-2">NO UPCOMING GAMES</p>
-          <p className="tw-display text-3xl font-bold text-white/10">CHECK BACK SOON</p>
-        </div>
-      </div>
-    )
-  }
-
-  const oppTag = (nextGame.opponent || 'OPP').slice(0, 4).toUpperCase()
-
-  return (
-    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
-      <div className="absolute" style={{ top: '10%', left: '30%', width: '40%', height: '60%', background: `radial-gradient(ellipse,${g}0a 0%,transparent 60%)`, filter: 'blur(30px)' }} />
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block" style={{ writingMode: 'vertical-rl' }}>
-        <span className="tw-display text-[60px] font-bold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
-      </div>
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block" style={{ writingMode: 'vertical-rl' }}>
-        <span className="tw-display text-[60px] font-bold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-        <div className="flex items-center gap-6 md:gap-12 mb-4">
-          <div className="text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: `${g}15`, border: `1.5px solid ${g}35` }}>
-              {team.logo_url ? (
-                <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-2xl" />
-              ) : (
-                <span className="tw-display text-3xl md:text-4xl font-bold" style={{ color: g }}>{teamInitials}</span>
-              )}
-            </div>
-            <p className="text-[10px] tw-heading tracking-wider text-white/40">{team.name}</p>
-          </div>
-          <span className="tw-display text-5xl md:text-6xl font-bold" style={{ color: '#EF4444', animation: 'vsFlash 3s ease-in-out infinite' }}>VS</span>
-          <div className="text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(255,255,255,.03)', border: '1.5px solid rgba(255,255,255,.06)' }}>
-              <span className="tw-display text-3xl md:text-4xl font-bold text-white/15">{oppTag}</span>
-            </div>
-            <p className="text-[10px] tw-heading tracking-wider text-white/20">{nextGame.opponent || 'Opponent'}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mb-3">
-          {cd.d !== undefined && [
-            { v: cd.d, l: 'DAYS' }, { v: cd.h, l: 'HRS' }, { v: cd.m, l: 'MINS' }, { v: cd.s, l: 'SECS' },
-          ].map((d, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="text-center">
-                <span className="tw-display text-3xl md:text-4xl font-bold text-white">{String(d.v).padStart(2, '0')}</span>
-                <p className="text-[7px] tw-heading tracking-[.2em] text-white/20">{d.l}</p>
-              </div>
-              {i < 3 && <span className="tw-display text-2xl text-white/10 -mt-3">:</span>}
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] tw-heading tracking-wider text-white/25">
-          {nextGame.event_time && formatTime12(nextGame.event_time)}
-          {nextGame.venues?.name && ` · ${nextGame.venues.name}`}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function SeasonPulseBanner({ team, roster, coaches, g, sportIcon }) {
-  return (
-    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0d14 0%, #0A0A0F 50%, #0d0f14 100%)' }}>
-      <div className="absolute" style={{ top: '20%', left: '20%', width: '60%', height: '50%', background: `radial-gradient(ellipse,${g}08 0%,transparent 60%)`, filter: 'blur(40px)' }} />
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-        <p className="text-[9px] tw-heading tracking-[.4em] text-white/20 mb-2">SEASON SNAPSHOT</p>
-        <h2 className="tw-display text-4xl md:text-5xl font-bold text-white mb-1">{sportIcon} {team.name}</h2>
-        <p className="text-sm tw-heading tracking-wider mb-6" style={{ color: g }}>{team.seasons?.name || 'Current Season'}</p>
-        <div className="flex gap-8">
-          <div className="text-center">
-            <p className="tw-display text-4xl font-bold text-white">{roster.length}</p>
-            <p className="text-[9px] text-white/20 tw-heading tracking-wider">PLAYERS</p>
-          </div>
-          <div className="w-px h-16" style={{ background: 'rgba(255,255,255,.06)' }} />
-          <div className="text-center">
-            <p className="tw-display text-4xl font-bold text-white">{coaches.length}</p>
-            <p className="text-[9px] text-white/20 tw-heading tracking-wider">COACHES</p>
-          </div>
-          <div className="w-px h-16" style={{ background: 'rgba(255,255,255,.06)' }} />
-          <div className="text-center">
-            <p className="tw-display text-4xl font-bold text-white">{roster.filter(r => r.position).length}</p>
-            <p className="text-[9px] text-white/20 tw-heading tracking-wider">POSITIONS SET</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════
-// SECTION HEADER
-// ═══════════════════════════════════════════════════════════
-function SectionHeader({ icon, title, accent, g, isDark }) {
-  return (
-    <div className="flex items-center gap-3 mb-3 tw-au">
-      <span className="text-lg">{icon}</span>
-      <h2 className="tw-display text-2xl font-bold">
-        <span style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.25)' }}>{title}</span>{' '}
-        <span style={{ color: g }}>{accent}</span>
-      </h2>
-      <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg,${g}25,transparent)` }} />
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════
-// FEED POST — Social media card with cheer animation
-// ═══════════════════════════════════════════════════════════
-function FeedPost({ post, g, gb, i, onReact, picker, setPicker, isDark }) {
+function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, onPin, onReactionCountChange, onCommentCountChange, showToast }) {
   const isPinned = post.is_pinned
   const postType = post.post_type || 'announcement'
-  const [cheerActive, setCheerActive] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
+  const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
+  const menuRef = useRef(null)
+  const isAuthor = post.author_id === user?.id
+  const isAdmin = profile?.role === 'admin'
+  const isCoach = profile?.role === 'coach'
+  const canManage = isAuthor || isAdmin || isCoach
 
-  const accentClass = postType === 'milestone' ? 'tw-badge-accent' :
-    postType === 'game_recap' ? 'tw-reminder-accent' : ''
-
-  const typeIcon = {
-    announcement: '📢', game_recap: '🏐', shoutout: '⭐', milestone: '🏆', photo: '📷',
-  }[postType] || '📝'
-
-  function handleCheer() {
-    setCheerActive(true)
-    setTimeout(() => setCheerActive(false), 1000)
-    onReact(post.id)
+  const badgeMap = {
+    announcement: { label: 'Announcement', color: isDark ? 'bg-teal-900/50 text-teal-400' : 'bg-teal-50 text-teal-700' },
+    game_recap: { label: 'Game Recap', color: isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-50 text-blue-700' },
+    shoutout: { label: 'Shoutout', color: isDark ? 'bg-amber-900/50 text-amber-400' : 'bg-amber-50 text-amber-700' },
+    milestone: { label: 'Milestone', color: isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-50 text-purple-700' },
+    photo: { label: 'Photo', color: isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-50 text-emerald-700' },
   }
+  const badge = badgeMap[postType] || badgeMap.announcement
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false)
+    }
+    if (showMenu) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showMenu])
+
+  const timeAgo = (() => {
+    const diff = Date.now() - new Date(post.created_at).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    return `${days}d ago`
+  })()
 
   return (
-    <article className={`tw-glass overflow-hidden tw-ac ${accentClass}`} style={{ animationDelay: `${.1 + i * .05}s` }}>
-      {/* Post Header — Instagram style */}
-      <div className="px-6 pt-6 pb-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          {/* Avatar with gradient ring */}
-          <div className="p-[2px] rounded-2xl" style={{ background: `linear-gradient(135deg, ${g}, ${gb})` }}>
-            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center text-base font-bold overflow-hidden"
-              style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', color: isDark ? 'white' : '#1a1a1a' }}>
-              {post.profiles?.avatar_url ? (
-                <img src={post.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                post.profiles?.full_name?.charAt(0) || '?'
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <p className="font-bold text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                {post.profiles?.full_name || 'Team Admin'}
-              </p>
-              <span className="text-[8px] tw-heading tracking-wider px-2 py-0.5 rounded-lg"
-                style={{ background: `${g}10`, color: `${g}99` }}>
-                {typeIcon} {postType.replace('_', ' ').toUpperCase()}
-              </span>
-            </div>
-            <p className="text-[11px] mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-              {new Date(post.created_at).toLocaleDateString('en-US', {
-                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-              })}
-            </p>
+    <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+        <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden ${
+          isDark ? 'bg-slate-700 text-white' : 'bg-slate-200 text-slate-700'
+        }`}>
+          {post.profiles?.avatar_url ? (
+            <img src={post.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            post.profiles?.full_name?.charAt(0) || '?'
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {post.profiles?.full_name || 'Team Admin'}
+            </span>
+            <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badge.color}`}>
+              {badge.label}
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isPinned && <span className="text-sm" style={{ color: `${g}60` }}>📌</span>}
-          <button className="w-10 h-10 rounded-full flex items-center justify-center transition"
-            style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <MoreVertical className="w-5 h-5" />
-          </button>
+        {/* Three-dot menu */}
+        <div className="relative" ref={menuRef}>
+          {isPinned && <span className="text-xs mr-1">📌</span>}
+          {canManage && (
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className={`rounded-lg p-1.5 transition-colors ${
+                isDark ? 'text-slate-500 hover:bg-slate-700 hover:text-slate-300' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+              }`}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          )}
+          {showMenu && (
+            <div className={`absolute right-0 top-full mt-1 w-40 rounded-xl overflow-hidden z-50 shadow-lg ${
+              isDark ? 'bg-slate-700 border border-slate-600' : 'bg-white border border-slate-200'
+            }`}>
+              <button
+                onClick={() => { onPin?.(post.id, !isPinned); setShowMenu(false) }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                  isDark ? 'text-slate-200 hover:bg-slate-600' : 'text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {isPinned ? '📌 Unpin' : '📌 Pin to top'}
+              </button>
+              {isAuthor && (
+                <button
+                  onClick={() => { onDelete?.(post.id); setShowMenu(false) }}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    isDark ? 'text-red-400 hover:bg-slate-600' : 'text-red-500 hover:bg-red-50'
+                  }`}
+                >
+                  🗑 Delete
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Media — Cinematic */}
+      {/* Content */}
+      <div className="px-5 pb-3">
+        {post.title && (
+          <h3 className={`font-bold text-base mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{post.title}</h3>
+        )}
+        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{post.content}</p>
+      </div>
+
+      {/* Full-bleed Image */}
       {post.media_urls?.length > 0 && (
-        <div className="px-4 pb-4">
-          <div className={`grid ${post.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+        <div className={`${post.media_urls.length === 1 ? '' : 'px-4 pb-3'}`}>
+          <div className={`${post.media_urls.length === 1 ? '' : 'grid grid-cols-2 gap-2'}`}>
             {post.media_urls.map((url, idx) => (
-              <div key={idx} className="relative rounded-2xl overflow-hidden group cursor-pointer" style={{ height: post.media_urls.length === 1 ? 320 : 200 }}>
-                <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
+              <div key={idx} className={`relative overflow-hidden ${post.media_urls.length === 1 ? 'w-full h-72' : 'rounded-xl h-48'}`}>
+                <img src={url} alt="Post image" className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Content */}
-      <div className="px-6 pb-4">
-        {post.title && (
-          <h3 className="font-bold text-[16px] tw-heading tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
-        )}
-        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+      {/* Engagement summary */}
+      <div className="flex items-center gap-4 px-5 py-2.5">
+        <span className={`flex items-center gap-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <Heart className="h-3.5 w-3.5 text-amber-500" />
+          {localReactionCount}
+        </span>
+        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          {localCommentCount} {localCommentCount === 1 ? 'comment' : 'comments'}
+        </span>
       </div>
 
-      {/* Interaction Bar — Cheers + Comments + Share */}
-      <div className="px-6 pb-6">
-        <div className="flex items-center justify-between pt-4" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <div className="flex items-center gap-6">
-            <button onClick={handleCheer} className="relative flex items-center gap-2.5 group transition-all">
-              <div className={`transition-all duration-300 ${cheerActive ? 'scale-125' : ''}`}
-                style={{ color: cheerActive ? '#EF4444' : (isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)') }}>
-                <Heart className="w-6 h-6" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{post.reaction_count || 0}</p>
-                <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>CHEERS</p>
-              </div>
-              {cheerActive && <span className="absolute -top-8 left-0 text-2xl cheer-pop">🏐</span>}
-            </button>
-
-            <button className="flex items-center gap-2.5 group transition-all">
-              <MessageCircle className="w-6 h-6" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }} />
-              <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{post.comment_count || 0}</p>
-                <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>COMMENTS</p>
-              </div>
-            </button>
-          </div>
-
-          <button className="flex items-center gap-2 text-[10px] tw-heading tracking-wider transition"
-            style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}
-            onMouseEnter={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)'}
-            onMouseLeave={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)'}>
-            <Share2 className="w-4 h-4" /> SHARE
-          </button>
+      {/* Action bar — Like | Comment | Share */}
+      <div className={`flex items-center border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+        <div className={`flex flex-1 items-center justify-center py-2.5 transition-colors ${
+          isDark ? 'hover:bg-slate-700/60' : 'hover:bg-slate-50'
+        }`}>
+          <ReactionBar
+            postId={post.id}
+            reactionCount={localReactionCount}
+            isDark={isDark}
+            g={g}
+            onCountChange={(count) => {
+              setLocalReactionCount(count)
+              onReactionCountChange?.(post.id, count)
+            }}
+          />
         </div>
+        <button
+          onClick={() => setShowComments(!showComments)}
+          className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+            isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+          }`}
+        >
+          <MessageCircle className="h-[18px] w-[18px]" />
+          <span>Comment</span>
+        </button>
+        <button
+          className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+            isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+          }`}
+        >
+          <Share2 className="h-[18px] w-[18px]" />
+          <span>Share</span>
+        </button>
       </div>
-    </article>
+
+      {/* Comments section */}
+      {showComments && (
+        <CommentSection
+          postId={post.id}
+          commentCount={localCommentCount}
+          isDark={isDark}
+          g={g}
+          onCountChange={(count) => {
+            setLocalCommentCount(count)
+            onCommentCountChange?.(post.id, count)
+          }}
+        />
+      )}
+    </div>
   )
 }
 
 // ═══════════════════════════════════════════════════════════
-// NEW POST MODAL
+// NEW POST MODAL — Preserved with v0 styling
 // ═══════════════════════════════════════════════════════════
-function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToast, canPin = false }) {
-  const { user } = useAuth()
-
+function NewPostModal({ teamId, isDark, onClose, onSuccess, showToast, canPin = false, profile, user }) {
   const [postType, setPostType] = useState('announcement')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -1309,12 +1079,6 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   const [drag, setDrag] = useState(false)
   const [media, setMedia] = useState([])
   const fr = useRef(null)
-
-  const inp = {
-    background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)',
-    border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)',
-    borderRadius: 16,
-  }
 
   async function handleSubmit() {
     if (!content.trim()) return
@@ -1340,56 +1104,92 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 tw-ai" style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div className="w-full max-w-lg overflow-hidden tw-as shadow-2xl"
-        style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRadius: 28 }}
-        onClick={e => e.stopPropagation()}>
-
-        <div className="flex items-center justify-between p-6" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <h2 className="tw-heading text-lg font-bold tracking-wider" style={{ color: g }}>CREATE POST</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-xl flex items-center justify-center transition text-lg"
-            style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div
+        className={`w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}`}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Create Post</h2>
+          <button onClick={onClose} className={`rounded-lg p-1.5 transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700' : 'text-slate-400 hover:bg-slate-100'}`}>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto tw-nos">
+        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          {/* Post type selector */}
           <div className="flex flex-wrap gap-2">
-            {[['announcement', '📢 ANNOUNCEMENT'], ['game_recap', '🏐 GAME RECAP'], ['shoutout', '⭐ SHOUTOUT'], ['milestone', '🏆 MILESTONE'], ['photo', '📷 PHOTO']].map(([k, l]) => (
-              <button key={k} onClick={() => setPostType(k)} className="px-3.5 py-2 rounded-xl text-[10px] font-bold tw-heading tracking-wider transition" style={{
-                background: postType === k ? `${g}18` : (isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'),
-                color: postType === k ? g : (isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)'),
-                border: `1px solid ${postType === k ? `${g}30` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)')}`
-              }}>{l}</button>
+            {[
+              ['announcement', '📢 Announcement'],
+              ['game_recap', '🏐 Game Recap'],
+              ['shoutout', '⭐ Shoutout'],
+              ['milestone', '🏆 Milestone'],
+              ['photo', '📷 Photo'],
+            ].map(([k, l]) => (
+              <button
+                key={k}
+                onClick={() => setPostType(k)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  postType === k
+                    ? 'bg-teal-600 text-white'
+                    : isDark
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {l}
+              </button>
             ))}
           </div>
 
-          <input type="text" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)}
-            className="w-full px-5 py-3 text-sm focus:outline-none" style={{ ...inp, color: isDark ? 'white' : '#333' }} />
+          <input
+            type="text"
+            placeholder="Title (optional)"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            className={`w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+              isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+            } border`}
+          />
 
-          <textarea placeholder="Share with the team…" value={content} onChange={e => setContent(e.target.value)} rows={4}
-            className="w-full px-5 py-3 text-sm focus:outline-none resize-none" style={{ ...inp, color: isDark ? 'white' : '#333' }} />
+          <textarea
+            placeholder="Share with the team..."
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            rows={4}
+            className={`w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${
+              isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+            } border`}
+          />
 
+          {/* Drag-drop media */}
           <div
             onDragEnter={e => { e.preventDefault(); setDrag(true) }}
             onDragLeave={e => { e.preventDefault(); setDrag(false) }}
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); setDrag(false); setMedia(p => [...p, ...Array.from(e.dataTransfer?.files || []).map(f => f.name)]) }}
             onClick={() => fr.current?.click()}
-            className="border-2 border-dashed p-5 text-center cursor-pointer transition"
-            style={{ borderColor: drag ? `${g}40` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'), background: drag ? `${g}05` : 'transparent', borderRadius: 20 }}>
+            className={`border-2 border-dashed p-5 text-center cursor-pointer transition rounded-xl ${
+              drag
+                ? 'border-teal-500 bg-teal-50'
+                : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-300 hover:border-slate-400'
+            }`}
+          >
             <input ref={fr} type="file" accept="image/*,video/*" multiple className="hidden"
               onChange={e => setMedia(p => [...p, ...Array.from(e.target.files || []).map(f => f.name)])} />
-            <p className="text-2xl mb-1 opacity-20">📸</p>
-            <p className="text-[9px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }}>DROP FILES OR CLICK</p>
+            <Upload className={`w-6 h-6 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <p className={`mt-1 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Drop files or click to upload</p>
           </div>
 
           {media.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {media.map((f, i) => (
-                <span key={i} className="px-3 py-1.5 rounded-xl text-[9px] flex items-center gap-2"
-                  style={{ ...inp, color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-                  📎 {f} <button onClick={() => setMedia(p => p.filter((_, j) => j !== i))} className="hover:opacity-70">✕</button>
+                <span key={i} className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 ${
+                  isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
+                }`}>
+                  📎 {f}
+                  <button onClick={() => setMedia(p => p.filter((_, j) => j !== i))} className="hover:text-red-500">×</button>
                 </span>
               ))}
             </div>
@@ -1397,21 +1197,28 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
 
           {canPin && (
             <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-amber-500 rounded" />
-              <span className="text-[10px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>📌 PIN TO TOP</span>
+              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-teal-600 rounded" />
+              <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>📌 Pin to top</span>
             </label>
           )}
         </div>
 
-        <div className="p-6 flex gap-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-[10px] font-bold tw-heading tracking-wider transition"
-            style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-            CANCEL
+        {/* Footer */}
+        <div className={`flex gap-3 px-6 py-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          <button
+            onClick={onClose}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Cancel
           </button>
-          <button onClick={handleSubmit} disabled={!content.trim() || submitting}
-            className="flex-1 py-3 rounded-2xl text-[10px] font-bold tw-heading tracking-wider transition hover:brightness-110 disabled:opacity-25"
-            style={{ background: `linear-gradient(135deg,${gb},${g})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
-            {submitting ? 'POSTING...' : 'PUBLISH'}
+          <button
+            onClick={handleSubmit}
+            disabled={!content.trim() || submitting}
+            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 transition-colors disabled:opacity-40"
+          >
+            {submitting ? 'Posting...' : 'Publish'}
           </button>
         </div>
       </div>

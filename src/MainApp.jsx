@@ -2038,7 +2038,7 @@ function MainApp() {
 
         {/* Main Content Area — React Router */}
         <div className={`flex-1 relative z-10 ${
-          activeView === 'admin' && mainLocation.pathname === '/dashboard'
+          (activeView === 'admin' && mainLocation.pathname === '/dashboard') || mainLocation.pathname.startsWith('/teams/')
             ? 'mt-[5.5rem] overflow-hidden'
             : 'px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full animate-slide-up'
         }`}>
