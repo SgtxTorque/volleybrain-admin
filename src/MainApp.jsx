@@ -110,10 +110,10 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
+        className={`flex items-center gap-1 px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
           isActive
-            ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
-            : 'text-slate-300 hover:text-white hover:bg-white/10'
+            ? 'bg-white/15 text-white'
+            : 'text-white/70 hover:text-white hover:bg-white/10'
         }`}
       >
         {label}
@@ -269,7 +269,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-xl transition hover:bg-white/10">
+      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-full transition hover:bg-white/10">
         <Bell className="w-5 h-5 text-white" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold"
@@ -383,13 +383,12 @@ function UserProfileDropdown({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl transition hover:bg-white/10"
+      <button className="flex items-center gap-2 px-2 py-1.5 rounded-full transition hover:bg-white/10"
         onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}>
-        <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden border-2 shadow-sm"
+        <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden border-2 border-white/20"
           style={{
             background: profile?.photo_url ? 'transparent' : accent.primary,
             color: '#000',
-            borderColor: 'rgba(255,255,255,0.15)',
           }}>
           {profile?.photo_url ? (
             <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
@@ -1609,14 +1608,14 @@ function HorizontalNavBar({
   }
 
   return (
-    <header className={`h-14 flex items-center justify-between px-5 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1440px] rounded-2xl transition-all duration-300 bg-slate-800 border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.3)]`}>
+    <header className={`h-16 flex items-center justify-between px-6 fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[97%] max-w-[1440px] rounded-2xl transition-all duration-300 bg-[#2c3e50] shadow-md`}>
       
       {/* LEFT: Logo */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg" style={{ backgroundColor: accent.primary }}>
-          <VolleyballIcon className="w-5 h-5 text-white" />
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+          <VolleyballIcon className="w-4 h-4 text-white" />
         </div>
-        <span className="font-bold text-lg text-white">Volley<span className="text-slate-400">Brain</span></span>
+        <span className="text-base font-bold tracking-widest text-white">VOLLEYBRAIN</span>
       </div>
 
       {/* CENTER: Navigation */}
@@ -1626,10 +1625,10 @@ function HorizontalNavBar({
             const isActive = page === item.id && !directTeamWallId
             return (
               <button key={item.id} onClick={() => handleNavigate(item.id)}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                className={`px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
                   isActive
-                    ? 'bg-white/15 text-white shadow-inner-light'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    ? 'bg-white/15 text-white'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}>
                 {item.label}
               </button>
@@ -1652,10 +1651,10 @@ function HorizontalNavBar({
             <button
               onClick={() => navigate('/platform/analytics')}
               title="Platform Analytics"
-              className={`relative p-2 rounded-xl transition ${
+              className={`relative p-2 rounded-full transition ${
                 page === 'platform-analytics'
-                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                  : 'hover:bg-white/10 text-slate-300'
+                  ? 'bg-white/15 text-white'
+                  : 'hover:bg-white/10 text-white/70'
               }`}
             >
               <BarChart3 className="w-5 h-5" />
@@ -1663,10 +1662,10 @@ function HorizontalNavBar({
             <button
               onClick={() => navigate('/platform/subscriptions')}
               title="Platform Subscriptions"
-              className={`relative p-2 rounded-xl transition ${
+              className={`relative p-2 rounded-full transition ${
                 page === 'platform-subscriptions'
-                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                  : 'hover:bg-white/10 text-slate-300'
+                  ? 'bg-white/15 text-white'
+                  : 'hover:bg-white/10 text-white/70'
               }`}
             >
               <CreditCard className="w-5 h-5" />
@@ -1674,10 +1673,10 @@ function HorizontalNavBar({
             <button
               onClick={() => navigate('/platform/admin')}
               title="Platform Admin"
-              className={`relative p-2 rounded-xl transition ${
+              className={`relative p-2 rounded-full transition ${
                 page === 'platform-admin'
-                  ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'
-                  : 'hover:bg-white/10 text-slate-300'
+                  ? 'bg-white/15 text-white'
+                  : 'hover:bg-white/10 text-white/70'
               }`}
             >
               <Shield className="w-5 h-5" />
