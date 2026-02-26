@@ -1,0 +1,3397 @@
+import EmojiPicker from '@/components/EmojiPicker';
+import ChallengeCard, { parseChallengeMetadata } from '@/components/ChallengeCard';
+import ChallengeDetailModal from '@/components/ChallengeDetailModal';
+import CreateChallengeModal from '@/components/CreateChallengeModal';
+import GiveShoutoutModal from '@/components/GiveShoutoutModal';
+import PhotoViewer, { GalleryItem } from '@/components/PhotoViewer';
+import ShoutoutCard, { parseShoutoutMetadata } from '@/components/ShoutoutCard';
+import ImagePreviewModal from '@/components/ui/ImagePreviewModal';
+import { getPositionInfo } from '@/constants/sport-display';
+import { useAuth } from '@/lib/auth';
+import { optInToChallenge, fetchActiveChallenges } from '@/lib/challenge-service';
+import { displayTextStyle, radii, shadows, spacing } from '@/lib/design-tokens';
+import { usePermissions } from '@/lib/permissions-context';
+import { compressImage, pickImage, takePhoto, uploadMedia, MediaResult } from '@/lib/media-utils';
+import * as LegacyFileSystem from 'expo-file-system/legacy';
+import * as MediaLibrary from 'expo-media-library';
+import { useSeason } from '@/lib/season';
+import { supabase } from '@/lib/supabase';
+import { useTeamContext } from '@/lib/team-context';
+import { useTheme } from '@/lib/theme';
+import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+type Team = {
+  id: string;
+  name: string;
+  color: string | null;
+  season_id: string | null;
+  banner_url: string | null;
+};
+
+type PostProfile = {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
+type Post = {
+  id: string;
+  team_id: string;
+  author_id: string;
+  title: string | null;
+  content: string;
+  post_type: string;
+  media_urls?: string[] | null;
+  is_pinned: boolean;
+  is_published: boolean;
+  reaction_count: number;
+  comment_count?: number;
+  share_count?: number;
+  created_at: string;
+  profiles: PostProfile | null;
+};
+
+type RosterPlayer = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  jersey_number: number | null;
+  position: string | null;
+  photo_url: string | null;
+};
+
+type ScheduleEvent = {
+  id: string;
+  team_id: string;
+  title: string | null;
+  event_type: string | null;
+  event_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  opponent_name: string | null;
+  location: string | null;
+  notes: string | null;
+};
+
+type PostReaction = {
+  user_id: string;
+  reaction_type: string;
+  profiles: { full_name: string | null; avatar_url: string | null };
+};
+
+type PostComment = {
+  id: string;
+  post_id: string;
+  author_id: string;
+  content: string;
+  created_at: string;
+  profiles: { id: string; full_name: string | null; avatar_url: string | null } | null;
+};
+
+type PostType = 'text' | 'announcement' | 'game_recap' | 'shoutout' | 'milestone' | 'photo';
+
+type ReactionType = 'like' | 'heart' | 'fire' | 'clap' | 'muscle' | 'volleyball' | (string & {});
+
+type TabKey = 'feed' | 'roster' | 'schedule' | (string & {});
+
+// =============================================================================
+// PROPS
+// =============================================================================
+
+type AdditionalTab = {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  render: () => React.ReactNode;
+};
+
+type TeamWallProps = {
+  teamId?: string | null;
+  embedded?: boolean;
+  feedOnly?: boolean;
+  additionalTabs?: AdditionalTab[];
+};
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+const POST_TYPE_CONFIG: Record<PostType, { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  text: { label: 'Post', color: '#64748B', icon: 'chatbubble' },
+  announcement: { label: 'Announcement', color: '#F97316', icon: 'megaphone' },
+  game_recap: { label: 'Game Recap', color: '#10B981', icon: 'trophy' },
+  shoutout: { label: 'Shoutout', color: '#A855F7', icon: 'heart' },
+  milestone: { label: 'Milestone', color: '#F59E0B', icon: 'ribbon' },
+  photo: { label: 'Photo', color: '#3B82F6', icon: 'camera' },
+};
+
+const POST_TYPES: PostType[] = ['text', 'announcement', 'game_recap', 'shoutout', 'milestone', 'photo'];
+
+const REACTION_CONFIG: { type: ReactionType; emoji: string; label: string }[] = [
+  { type: 'fire', emoji: '🔥', label: 'Fire' },
+  { type: 'heart', emoji: '❤️', label: 'Heart' },
+  { type: 'clap', emoji: '👏', label: 'Clap' },
+  { type: 'muscle', emoji: '💪', label: 'Muscle' },
+  { type: 'volleyball', emoji: '🏐', label: 'Volleyball' },
+];
+
+const AVATAR_COLORS = [
+  '#F97316', '#10B981', '#3B82F6', '#A855F7', '#EF4444',
+  '#F59E0B', '#0EA5E9', '#EC4899', '#14B8A6', '#8B5CF6',
+];
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const HERO_HEIGHT = Math.round(SCREEN_HEIGHT * 0.37);
+const COMPACT_HEADER_HEIGHT = 56;
+const TAB_BAR_HEIGHT = 48;
+
+// =============================================================================
+// HELPERS
+// =============================================================================
+
+const getAvatarColor = (name: string): string => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+};
+
+const getInitials = (name: string | null): string => {
+  if (!name) return '?';
+  return name
+    .trim()
+    .split(' ')
+    .map((w) => w.charAt(0))
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+};
+
+const formatTimestamp = (iso: string): string => {
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const formatEventDate = (dateStr: string): { dayOfWeek: string; month: string; day: string } => {
+  const date = new Date(dateStr + 'T00:00:00');
+  return {
+    dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'short' }),
+    month: date.toLocaleDateString('en-US', { month: 'short' }),
+    day: String(date.getDate()),
+  };
+};
+
+const formatTime = (time: string | null): string => {
+  if (!time) return '';
+  const [h, m] = time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+};
+
+// =============================================================================
+// ANIMATED REACTION BUTTON
+// =============================================================================
+
+// =============================================================================
+// SKELETON LOADING
+// =============================================================================
+
+const SkeletonPostCard = ({ colors }: { colors: any }) => (
+  <View
+    style={{
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E5E5',
+      paddingBottom: 12,
+      marginBottom: 0,
+    }}
+  >
+    {/* Header skeleton */}
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14, marginBottom: 12 }}>
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.bgSecondary }} />
+      <View style={{ marginLeft: 10, flex: 1 }}>
+        <View style={{ width: 120, height: 14, borderRadius: 4, backgroundColor: colors.bgSecondary, marginBottom: 6 }} />
+        <View style={{ width: 60, height: 10, borderRadius: 4, backgroundColor: colors.bgSecondary }} />
+      </View>
+    </View>
+    {/* Content skeleton */}
+    <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+      <View style={{ width: '100%', height: 14, borderRadius: 4, backgroundColor: colors.bgSecondary, marginBottom: 8 }} />
+      <View style={{ width: '80%', height: 14, borderRadius: 4, backgroundColor: colors.bgSecondary, marginBottom: 8 }} />
+      <View style={{ width: '60%', height: 14, borderRadius: 4, backgroundColor: colors.bgSecondary }} />
+    </View>
+    {/* Full-width image placeholder */}
+    <View style={{ width: '100%', height: 200, backgroundColor: colors.bgSecondary, marginBottom: 12 }} />
+    {/* Engagement row skeleton */}
+    <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#E5E5E5' }}>
+      {[1, 2, 3].map((i) => (
+        <View key={i} style={{ width: 60, height: 18, borderRadius: 4, backgroundColor: colors.bgSecondary }} />
+      ))}
+    </View>
+  </View>
+);
+
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
+export default function TeamWall({ teamId: propTeamId, embedded = false, feedOnly = false, additionalTabs = [] }: TeamWallProps) {
+  const { colors } = useTheme();
+  const { user, profile, isAdmin } = useAuth();
+  const { isPlayer } = usePermissions();
+  const { workingSeason } = useSeason();
+  const router = useRouter();
+  const { selectedTeamId: contextTeamId } = useTeamContext();
+
+  // Resolve team ID: prop > context (embedded) > null (show picker)
+  const resolvedTeamId = propTeamId || (embedded ? contextTeamId : null);
+
+  // Team state
+  const [teamId, setTeamId] = useState<string | null>(resolvedTeamId);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
+  const [playerCount, setPlayerCount] = useState(0);
+  const [coachCount, setCoachCount] = useState(0);
+  const [isCoachOrAdmin, setIsCoachOrAdmin] = useState(false);
+  const [loadingTeams, setLoadingTeams] = useState(!resolvedTeamId);
+  const [teamSportName, setTeamSportName] = useState<string | null>(null);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabKey>('feed');
+
+  // Feed state
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [refreshingFeed, setRefreshingFeed] = useState(false);
+  const [userReactions, setUserReactions] = useState<Record<string, string>>({});
+  const [postReactions, setPostReactions] = useState<Record<string, PostReaction[]>>({});
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [reactionPickerPostId, setReactionPickerPostId] = useState<string | null>(null);
+  const [reactionsModalPostId, setReactionsModalPostId] = useState<string | null>(null);
+  const [reactionsModalTab, setReactionsModalTab] = useState<string>('all');
+
+  // Comments
+  const [postComments, setPostComments] = useState<Record<string, PostComment[]>>({});
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [loadingComments, setLoadingComments] = useState<Set<string>>(new Set());
+  const [submittingComment, setSubmittingComment] = useState<Set<string>>(new Set());
+
+  // New post modal
+  const [showNewPostModal, setShowNewPostModal] = useState(false);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [newPostType, setNewPostType] = useState<PostType>('text');
+  const [submittingPost, setSubmittingPost] = useState(false);
+  const [postMediaUrls, setPostMediaUrls] = useState<string[]>([]);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
+  // Shoutout modal
+  const [showShoutoutModal, setShowShoutoutModal] = useState(false);
+
+  // Challenge modal
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  // Challenge detail/opt-in
+  const [challengeDetailId, setChallengeDetailId] = useState<string | null>(null);
+  const [showChallengeDetail, setShowChallengeDetail] = useState(false);
+  const [challengeParticipation, setChallengeParticipation] = useState<Record<string, { isOptedIn: boolean; userProgress: number; participantCount: number }>>({});
+
+  // Roster state
+  const [roster, setRoster] = useState<RosterPlayer[]>([]);
+  const [loadingRoster, setLoadingRoster] = useState(false);
+
+  // Schedule state
+  const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+
+  // Photo viewer state
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerItems, setViewerItems] = useState<GalleryItem[]>([]);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  // Image preview (upload flow)
+  const [pendingMedia, setPendingMedia] = useState<MediaResult | null>(null);
+  const [pendingMediaTarget, setPendingMediaTarget] = useState<'post' | 'cover'>('post');
+
+  // Post actions menu (admin/coach moderation)
+  const [showPostActions, setShowPostActions] = useState<string | null>(null);
+
+  // New posts pill
+  const [newPostsCount, setNewPostsCount] = useState(0);
+  const feedListRef = useRef<FlatList>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Force feed tab when feedOnly mode
+  useEffect(() => {
+    if (feedOnly) setActiveTab('feed');
+  }, [feedOnly]);
+
+  // Sync resolved team ID when context changes (embedded mode)
+  useEffect(() => {
+    if (embedded && contextTeamId && contextTeamId !== teamId) {
+      setTeamId(contextTeamId);
+      setTeam(null);
+      setPosts([]);
+      setRoster([]);
+      setEvents([]);
+      setNewPostsCount(0);
+    }
+  }, [contextTeamId, embedded]);
+
+  // Sync teamId when propTeamId changes (e.g., coach switching teams via PillTabs)
+  useEffect(() => {
+    if (propTeamId && propTeamId !== teamId) {
+      setTeamId(propTeamId);
+      setTeam(null);
+      setPosts([]);
+      setRoster([]);
+      setEvents([]);
+      setNewPostsCount(0);
+      setPostReactions({});
+      setUserReactions({});
+      setPostComments({});
+      setExpandedComments(new Set());
+    }
+  }, [propTeamId]);
+
+  // =============================================================================
+  // TEAM PICKER - Load user's teams if no teamId provided
+  // =============================================================================
+
+  useEffect(() => {
+    if (!teamId && user?.id) {
+      loadUserTeams();
+    }
+  }, [user?.id, teamId]);
+
+  useEffect(() => {
+    if (teamId) {
+      loadTeamDetails();
+      checkUserPermissions();
+    }
+  }, [teamId]);
+
+  useEffect(() => {
+    if (teamId && activeTab === 'feed') {
+      loadPosts();
+    } else if (teamId && activeTab === 'roster') {
+      loadRoster();
+    } else if (teamId && activeTab === 'schedule') {
+      loadSchedule();
+    }
+  }, [teamId, activeTab]);
+
+  // =============================================================================
+  // REAL-TIME SUBSCRIPTION
+  // =============================================================================
+
+  useEffect(() => {
+    if (!teamId) return;
+
+    const channel = supabase
+      .channel(`team-wall-${teamId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'team_posts',
+          filter: `team_id=eq.${teamId}`,
+        },
+        async (payload) => {
+          const newPost = payload.new as any;
+          if (newPost && newPost.is_published && newPost.author_id !== user?.id) {
+            // Show "new posts" pill instead of auto-inserting
+            setNewPostsCount((prev) => prev + 1);
+          } else if (newPost && newPost.is_published && newPost.author_id === user?.id) {
+            // Own post — add directly
+            if (!posts.find((p) => p.id === newPost.id)) {
+              const { data: authorProfile } = await supabase
+                .from('profiles')
+                .select('id, full_name, avatar_url')
+                .eq('id', newPost.author_id)
+                .single();
+              const postWithProfile: Post = {
+                ...newPost,
+                profiles: authorProfile || null,
+                reaction_count: 0,
+                comment_count: 0,
+                share_count: 0,
+              };
+              setPosts((prev) => [postWithProfile, ...prev]);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [teamId, user?.id]);
+
+  const loadUserTeams = async () => {
+    if (!user?.id) return;
+    setLoadingTeams(true);
+    try {
+      const { data: staffTeams } = await supabase
+        .from('team_staff')
+        .select('team_id, teams(id, name, color, season_id, banner_url)')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      const { data: playerTeams } = await supabase
+        .from('team_players')
+        .select('team_id, teams(id, name, color, season_id, banner_url)')
+        .eq('player_id', user.id);
+
+      const teamsMap = new Map<string, Team>();
+
+      if (staffTeams) {
+        for (const row of staffTeams) {
+          const t = row.teams as any;
+          if (t) teamsMap.set(t.id, { id: t.id, name: t.name, color: t.color, season_id: t.season_id, banner_url: t.banner_url || null });
+        }
+      }
+
+      if (playerTeams) {
+        for (const row of playerTeams) {
+          const t = row.teams as any;
+          if (t && !teamsMap.has(t.id)) {
+            teamsMap.set(t.id, { id: t.id, name: t.name, color: t.color, season_id: t.season_id, banner_url: t.banner_url || null });
+          }
+        }
+      }
+
+      if (isAdmin && workingSeason?.id && teamsMap.size === 0) {
+        const { data: allTeams } = await supabase
+          .from('teams')
+          .select('id, name, color, season_id, banner_url')
+          .eq('season_id', workingSeason.id)
+          .order('name');
+        if (allTeams) {
+          for (const t of allTeams) {
+            if (!teamsMap.has(t.id)) teamsMap.set(t.id, t);
+          }
+        }
+      }
+
+      const teamList = Array.from(teamsMap.values());
+      setUserTeams(teamList);
+
+      if (teamList.length === 1) {
+        setTeamId(teamList[0].id);
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error loading user teams:', error);
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  // =============================================================================
+  // TEAM DETAILS
+  // =============================================================================
+
+  const loadTeamDetails = async () => {
+    if (!teamId) return;
+    try {
+      const { data: teamData } = await supabase
+        .from('teams')
+        .select('id, name, color, season_id, banner_url')
+        .eq('id', teamId)
+        .single();
+
+      if (teamData) {
+        setTeam(teamData);
+        // Detect sport via season
+        if ((teamData as any).season_id) {
+          const { data: seasonData } = await supabase
+            .from('seasons')
+            .select('sport')
+            .eq('id', (teamData as any).season_id)
+            .single();
+          setTeamSportName((seasonData as any)?.sport || null);
+        }
+      }
+
+      const { count: pCount } = await supabase
+        .from('team_players')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId);
+      setPlayerCount(pCount || 0);
+
+      const { count: cCount } = await supabase
+        .from('team_staff')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+        .eq('is_active', true);
+      setCoachCount(cCount || 0);
+    } catch (error) {
+      if (__DEV__) console.error('Error loading team details:', error);
+    }
+  };
+
+  const checkUserPermissions = async () => {
+    if (!user?.id || !teamId) return;
+    try {
+      const { data: staffRecord } = await supabase
+        .from('team_staff')
+        .select('id')
+        .eq('team_id', teamId)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      const { data: adminRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('role', 'league_admin')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      setIsCoachOrAdmin(!!staffRecord || !!adminRole || isAdmin);
+    } catch (error) {
+      if (__DEV__) console.error('Error checking permissions:', error);
+    }
+  };
+
+  // =============================================================================
+  // FEED TAB
+  // =============================================================================
+
+  const loadPosts = async () => {
+    if (!teamId) return;
+    setLoadingPosts(true);
+    try {
+      const { data } = await supabase
+        .from('team_posts')
+        .select('*, profiles:author_id(id, full_name, avatar_url)')
+        .eq('team_id', teamId)
+        .eq('is_published', true)
+        .order('is_pinned', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      const postsData = (data as Post[]) || [];
+      setPosts(postsData);
+
+      // Load challenge participation data for challenge posts
+      const challengePosts = postsData.filter((p) => p.post_type === 'challenge');
+      if (challengePosts.length > 0) {
+        loadChallengeParticipation(challengePosts).catch(() => {});
+      }
+
+      // Load reactions for these posts (user's + all)
+      if (postsData.length > 0) {
+        const postIds = postsData.map((p) => p.id);
+
+        // Fetch ALL reactions with profile info (batched)
+        const { data: allReactions } = await supabase
+          .from('team_post_reactions')
+          .select('post_id, user_id, reaction_type, profiles:user_id(full_name, avatar_url)')
+          .in('post_id', postIds);
+
+        if (allReactions) {
+          // Build user reactions map
+          const reactionsMap: Record<string, string> = {};
+          // Build all reactions grouped by post
+          const grouped: Record<string, PostReaction[]> = {};
+
+          for (const r of allReactions as any[]) {
+            // Current user's reaction
+            if (user?.id && r.user_id === user.id) {
+              reactionsMap[r.post_id] = r.reaction_type;
+            }
+            // All reactions grouped by post
+            if (!grouped[r.post_id]) grouped[r.post_id] = [];
+            grouped[r.post_id].push({
+              user_id: r.user_id,
+              reaction_type: r.reaction_type,
+              profiles: r.profiles || { full_name: null, avatar_url: null },
+            });
+          }
+
+          setUserReactions(reactionsMap);
+          setPostReactions(grouped);
+        }
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error loading posts:', error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  // Load challenge participation data for all challenge posts
+  const loadChallengeParticipation = useCallback(async (challengePosts: Post[]) => {
+    if (!teamId || !user?.id || challengePosts.length === 0) return;
+    try {
+      const challenges = await fetchActiveChallenges(teamId);
+      const partMap: Record<string, { isOptedIn: boolean; userProgress: number; participantCount: number }> = {};
+      for (const ch of challenges) {
+        const myPart = ch.participants?.find((p: any) => p.player_id === user.id);
+        partMap[ch.id] = {
+          isOptedIn: !!myPart,
+          userProgress: myPart?.current_value ?? 0,
+          participantCount: ch.participants?.length ?? 0,
+        };
+        // Also map by post_id for matching in the feed
+        if (ch.post_id) {
+          partMap[ch.post_id] = partMap[ch.id];
+          // Store challengeId keyed by postId for detail modal
+          partMap[`postToChallenge:${ch.post_id}`] = { isOptedIn: false, userProgress: 0, participantCount: 0 };
+          (partMap as any)[`cid:${ch.post_id}`] = ch.id;
+        }
+      }
+      setChallengeParticipation(partMap);
+    } catch {}
+  }, [teamId, user?.id]);
+
+  const handleRefreshFeed = useCallback(async () => {
+    setRefreshingFeed(true);
+    setNewPostsCount(0);
+    setPostComments({});
+    setExpandedComments(new Set());
+    await loadPosts();
+    setRefreshingFeed(false);
+  }, [teamId]);
+
+  const handleNewPostsTap = useCallback(() => {
+    setNewPostsCount(0);
+    loadPosts();
+    feedListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [teamId]);
+
+  const handleReaction = async (postId: string, reactionType: ReactionType) => {
+    if (!user?.id) return;
+
+    const currentReaction = userReactions[postId];
+    const isRemoving = currentReaction === reactionType;
+
+    // Optimistic update
+    const prevReactions = { ...userReactions };
+    const prevPosts = [...posts];
+    const prevPostReactions = { ...postReactions };
+    const newReactions = { ...userReactions };
+    const updatedPosts = posts.map((p) => {
+      if (p.id === postId) {
+        let delta = 0;
+        if (isRemoving) {
+          delta = -1;
+        } else if (currentReaction) {
+          delta = 0;
+        } else {
+          delta = 1;
+        }
+        return { ...p, reaction_count: Math.max(0, (p.reaction_count || 0) + delta) };
+      }
+      return p;
+    });
+
+    if (isRemoving) {
+      delete newReactions[postId];
+    } else {
+      newReactions[postId] = reactionType;
+    }
+
+    // Optimistic update for postReactions (all reactions list)
+    const currentPostReactions = [...(postReactions[postId] || [])];
+    if (isRemoving) {
+      const updated = currentPostReactions.filter((r) => r.user_id !== user.id);
+      setPostReactions({ ...postReactions, [postId]: updated });
+    } else if (currentReaction) {
+      const updated = currentPostReactions.map((r) =>
+        r.user_id === user.id ? { ...r, reaction_type: reactionType } : r
+      );
+      setPostReactions({ ...postReactions, [postId]: updated });
+    } else {
+      setPostReactions({
+        ...postReactions,
+        [postId]: [...currentPostReactions, {
+          user_id: user.id,
+          reaction_type: reactionType,
+          profiles: { full_name: profile?.full_name || null, avatar_url: profile?.avatar_url || null },
+        }],
+      });
+    }
+
+    setUserReactions(newReactions);
+    setPosts(updatedPosts);
+
+    try {
+      if (isRemoving) {
+        await supabase
+          .from('team_post_reactions')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
+      } else if (currentReaction) {
+        await supabase
+          .from('team_post_reactions')
+          .update({ reaction_type: reactionType })
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from('team_post_reactions')
+          .insert({
+            post_id: postId,
+            user_id: user.id,
+            reaction_type: reactionType,
+          });
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error toggling reaction:', error);
+      setUserReactions(prevReactions);
+      setPosts(prevPosts);
+      setPostReactions(prevPostReactions);
+    }
+  };
+
+  const getReactionSummary = (postId: string): { topEmojis: string[]; totalCount: number } => {
+    const reactions = postReactions[postId] || [];
+    if (reactions.length === 0) return { topEmojis: [], totalCount: 0 };
+
+    const counts: Record<string, number> = {};
+    for (const r of reactions) {
+      counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1;
+    }
+
+    const emojiMap: Record<string, string> = {};
+    for (const rc of REACTION_CONFIG) {
+      emojiMap[rc.type] = rc.emoji;
+    }
+
+    const sorted = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    return {
+      topEmojis: sorted.map(([type]) => emojiMap[type] || type),
+      totalCount: reactions.length,
+    };
+  };
+
+  // =============================================================================
+  // COMMENTS
+  // =============================================================================
+
+  const loadComments = async (postId: string) => {
+    setLoadingComments((prev) => new Set(prev).add(postId));
+    try {
+      const { data } = await supabase
+        .from('team_post_comments')
+        .select('id, post_id, author_id, content, created_at, profiles:author_id(id, full_name, avatar_url)')
+        .eq('post_id', postId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: true });
+
+      if (data) {
+        const normalized = (data as any[]).map((c) => ({
+          ...c,
+          profiles: Array.isArray(c.profiles) ? c.profiles[0] || null : c.profiles || null,
+        }));
+        setPostComments((prev) => ({ ...prev, [postId]: normalized as PostComment[] }));
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error loading comments:', error);
+    } finally {
+      setLoadingComments((prev) => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    }
+  };
+
+  // Auto-expand posts with exactly 1 comment (show inline per spec)
+  useEffect(() => {
+    if (posts.length === 0) return;
+    const singleCommentPosts = posts.filter(
+      (p) => p.comment_count === 1 && !expandedComments.has(p.id) && !postComments[p.id]
+    );
+    if (singleCommentPosts.length > 0) {
+      setExpandedComments((prev) => {
+        const next = new Set(prev);
+        singleCommentPosts.forEach((p) => next.add(p.id));
+        return next;
+      });
+      singleCommentPosts.forEach((p) => loadComments(p.id));
+    }
+  }, [posts]);
+
+  const handleToggleComments = (postId: string) => {
+    setExpandedComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) {
+        next.delete(postId);
+      } else {
+        next.add(postId);
+        if (!postComments[postId]) {
+          loadComments(postId);
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleSubmitComment = async (postId: string) => {
+    const text = (commentText[postId] || '').trim();
+    if (!text || !user?.id) return;
+
+    setSubmittingComment((prev) => new Set(prev).add(postId));
+
+    const optimisticComment: PostComment = {
+      id: `temp-${Date.now()}`,
+      post_id: postId,
+      author_id: user.id,
+      content: text,
+      created_at: new Date().toISOString(),
+      profiles: { id: user.id, full_name: profile?.full_name || null, avatar_url: profile?.avatar_url || null },
+    };
+
+    setPostComments((prev) => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), optimisticComment],
+    }));
+    setCommentText((prev) => ({ ...prev, [postId]: '' }));
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, comment_count: (p.comment_count || 0) + 1 } : p))
+    );
+
+    try {
+      const { data, error } = await supabase
+        .from('team_post_comments')
+        .insert({ post_id: postId, author_id: user.id, content: text })
+        .select('id, post_id, author_id, content, created_at, profiles:author_id(id, full_name, avatar_url)')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const normalized = {
+          ...(data as any),
+          profiles: Array.isArray((data as any).profiles) ? (data as any).profiles[0] || null : (data as any).profiles || null,
+        } as PostComment;
+        setPostComments((prev) => ({
+          ...prev,
+          [postId]: (prev[postId] || []).map((c) => (c.id === optimisticComment.id ? normalized : c)),
+        }));
+      }
+
+      // Update comment_count in DB
+      const currentCount = posts.find((p) => p.id === postId)?.comment_count || 0;
+      const { error: updateError } = await supabase
+        .from('team_posts')
+        .update({ comment_count: currentCount })
+        .eq('id', postId);
+      if (updateError && __DEV__) console.error('Error updating comment count:', updateError);
+
+      // Reload comments from DB to verify persistence
+      await loadComments(postId);
+      Keyboard.dismiss();
+    } catch (error: any) {
+      if (__DEV__) console.error('Error submitting comment:', error);
+      setPostComments((prev) => ({
+        ...prev,
+        [postId]: (prev[postId] || []).filter((c) => c.id !== optimisticComment.id),
+      }));
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, comment_count: Math.max(0, (p.comment_count || 0) - 1) } : p))
+      );
+      Alert.alert('Error', 'Failed to post comment.');
+    } finally {
+      setSubmittingComment((prev) => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    }
+  };
+
+  const handleUploadCoverPhoto = async () => {
+    const media = await pickImage();
+    if (!media || !teamId) return;
+    setPendingMediaTarget('cover');
+    setPendingMedia(media);
+  };
+
+  const handlePreviewAccept = async (result: MediaResult) => {
+    setPendingMedia(null);
+    if (pendingMediaTarget === 'cover') {
+      // Cover photo upload
+      const url = await uploadMedia(result, `team-banners/${teamId}`, 'media');
+      if (url) {
+        const { error } = await supabase
+          .from('teams')
+          .update({ banner_url: url })
+          .eq('id', teamId);
+        if (!error) {
+          setTeam(prev => prev ? { ...prev, banner_url: url } : prev);
+        } else {
+          Alert.alert('Error', 'Failed to update cover photo.');
+        }
+      } else {
+        Alert.alert('Error', 'Failed to upload cover photo.');
+      }
+    } else {
+      // Post photo upload
+      setUploadingMedia(true);
+      const url = await uploadMedia(result, `team-wall/${teamId}`, 'media');
+      if (url) {
+        setPostMediaUrls(prev => [...prev, url]);
+      } else {
+        Alert.alert('Error', 'Failed to upload photo.');
+      }
+      setUploadingMedia(false);
+    }
+  };
+
+  const handleAddPostPhoto = async (source: 'library' | 'camera') => {
+    const media = source === 'library' ? await pickImage() : await takePhoto();
+    if (!media || !teamId) return;
+    setPendingMediaTarget('post');
+    setPendingMedia(media);
+  };
+
+  // Open photo viewer for a post's media
+  const openPostPhotoViewer = (post: Post, mediaIndex: number) => {
+    const urls = post.media_urls || [];
+    const authorProfile = (post as any).profiles || {};
+    const items: GalleryItem[] = urls.map((url: string) => ({
+      url,
+      type: (/\.(mp4|mov|webm|avi)(\?|$)/i.test(url) ? 'video' : 'image') as 'image' | 'video',
+      postId: post.id,
+      authorName: authorProfile?.full_name || 'Unknown',
+      authorAvatar: authorProfile?.avatar_url || null,
+      createdAt: post.created_at,
+      caption: post.content,
+      teamName: team?.name || 'Team',
+      reactions: [],
+    }));
+    setViewerItems(items);
+    setViewerIndex(mediaIndex);
+    setViewerVisible(true);
+  };
+
+  // Long-press on a post photo — context menu
+  const handleImageLongPress = (post: Post, url: string, mediaIndex: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (Platform.OS === 'ios') {
+      const { ActionSheetIOS } = require('react-native');
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Save Photo', 'Share Photo', 'View Full Screen', 'Cancel'],
+          cancelButtonIndex: 3,
+        },
+        async (idx: number) => {
+          if (idx === 0) {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status !== 'granted') { Alert.alert('Permission Required', 'VolleyBrain needs permission to save photos.'); return; }
+            const localUri = `${LegacyFileSystem.cacheDirectory}vb_save_${Date.now()}.jpg`;
+            const dl = await LegacyFileSystem.downloadAsync(url, localUri);
+            await MediaLibrary.saveToLibraryAsync(dl.uri);
+            Alert.alert('Saved', 'Photo saved to your device.');
+          } else if (idx === 1) {
+            Share.share({ message: url, url });
+          } else if (idx === 2) {
+            openPostPhotoViewer(post, mediaIndex);
+          }
+        },
+      );
+    } else {
+      Alert.alert('Photo Options', undefined, [
+        {
+          text: 'Save Photo',
+          onPress: async () => {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status !== 'granted') { Alert.alert('Permission Required', 'VolleyBrain needs permission to save photos.'); return; }
+            const localUri = `${LegacyFileSystem.cacheDirectory}vb_save_${Date.now()}.jpg`;
+            const dl = await LegacyFileSystem.downloadAsync(url, localUri);
+            await MediaLibrary.saveToLibraryAsync(dl.uri);
+            Alert.alert('Saved', 'Photo saved to your device.');
+          },
+        },
+        { text: 'Share Photo', onPress: () => Share.share({ message: url }) },
+        { text: 'View Full Screen', onPress: () => openPostPhotoViewer(post, mediaIndex) },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
+  const handleSubmitPost = async () => {
+    if (!teamId || !user?.id || (!newPostContent.trim() && postMediaUrls.length === 0)) {
+      Alert.alert('Error', 'Please enter post content or add a photo.');
+      return;
+    }
+
+    setSubmittingPost(true);
+    try {
+      const effectiveType = postMediaUrls.length > 0 && newPostType === 'text' ? 'photo' : newPostType;
+      const insertPayload: any = {
+        team_id: teamId,
+        author_id: user.id,
+        title: null,
+        content: newPostContent.trim() || null,
+        post_type: effectiveType,
+        media_urls: postMediaUrls.length > 0 ? postMediaUrls : null,
+        is_pinned: false,
+        is_published: true,
+      };
+
+      const { data, error } = await supabase
+        .from('team_posts')
+        .insert(insertPayload)
+        .select('*, profiles:author_id(id, full_name, avatar_url)')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setPosts((prev) => [{ ...data, reaction_count: 0, comment_count: 0, share_count: 0 } as Post, ...prev]);
+      }
+
+      setNewPostContent('');
+      setNewPostType('text');
+      setPostMediaUrls([]);
+      setShowNewPostModal(false);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to create post.');
+    } finally {
+      setSubmittingPost(false);
+    }
+  };
+
+  // =============================================================================
+  // POST MODERATION (Admin/Coach)
+  // =============================================================================
+
+  const handleDeletePost = (postId: string) => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('team_posts')
+                .delete()
+                .eq('id', postId);
+              if (error) throw error;
+              // Optimistic remove
+              setPosts(prev => prev.filter(p => p.id !== postId));
+              setShowPostActions(null);
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to delete post');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleTogglePin = async (post: any) => {
+    try {
+      const { error } = await supabase
+        .from('team_posts')
+        .update({ is_pinned: !post.is_pinned })
+        .eq('id', post.id);
+      if (error) throw error;
+      // Optimistic update
+      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, is_pinned: !p.is_pinned } : p));
+      setShowPostActions(null);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to update pin status');
+    }
+  };
+
+  const handleSharePost = async (post: Post) => {
+    try {
+      const authorName = post.profiles?.full_name || 'A teammate';
+      const teamName = team?.name || 'the team';
+      const message = `${authorName} posted on ${teamName}:\n\n${post.content}\n\nShared from VolleyBrain`;
+      const result = await Share.share({ message });
+
+      // Track share on success
+      if (result.action === Share.sharedAction || Platform.OS === 'android') {
+        setPosts((prev) =>
+          prev.map((p) => p.id === post.id ? { ...p, share_count: (p.share_count || 0) + 1 } : p)
+        );
+        supabase
+          .from('team_posts')
+          .update({ share_count: (post.share_count || 0) + 1 })
+          .eq('id', post.id)
+          .then(({ error }) => {
+            if (error && __DEV__) console.error('Error updating share count:', error);
+          });
+      }
+    } catch (_) {
+      // User cancelled share sheet
+    }
+    setShowPostActions(null);
+  };
+
+  const handleCopyPostText = async (post: Post) => {
+    await Clipboard.setStringAsync(post.content || '');
+    setShowPostActions(null);
+  };
+
+  // =============================================================================
+  // ROSTER TAB
+  // =============================================================================
+
+  const loadRoster = async () => {
+    if (!teamId) return;
+    setLoadingRoster(true);
+    try {
+      const { data } = await supabase
+        .from('team_players')
+        .select(`
+          player_id,
+          players (
+            id,
+            first_name,
+            last_name,
+            jersey_number,
+            position,
+            photo_url
+          )
+        `)
+        .eq('team_id', teamId);
+
+      const players: RosterPlayer[] = (data || [])
+        .map((tp: any) => tp.players)
+        .filter(Boolean)
+        .map((p: any) => ({
+          id: p.id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          jersey_number: p.jersey_number,
+          position: p.position,
+          photo_url: p.photo_url,
+        }))
+        .sort((a: RosterPlayer, b: RosterPlayer) => {
+          if (a.jersey_number !== null && b.jersey_number !== null) {
+            return a.jersey_number - b.jersey_number;
+          }
+          if (a.jersey_number !== null) return -1;
+          if (b.jersey_number !== null) return 1;
+          return `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`);
+        });
+
+      setRoster(players);
+    } catch (error) {
+      if (__DEV__) console.error('Error loading roster:', error);
+    } finally {
+      setLoadingRoster(false);
+    }
+  };
+
+  // =============================================================================
+  // SCHEDULE TAB
+  // =============================================================================
+
+  const loadSchedule = async () => {
+    if (!teamId) return;
+    setLoadingSchedule(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+
+      const { data } = await supabase
+        .from('schedule_events')
+        .select('*')
+        .eq('team_id', teamId)
+        .gte('event_date', today)
+        .order('event_date')
+        .order('start_time')
+        .limit(10);
+
+      setEvents((data as ScheduleEvent[]) || []);
+    } catch (error) {
+      if (__DEV__) console.error('Error loading schedule:', error);
+    } finally {
+      setLoadingSchedule(false);
+    }
+  };
+
+  // =============================================================================
+  // STYLES + DERIVED
+  // =============================================================================
+
+  const s = createStyles(colors);
+  const teamColor = team?.color || colors.primary;
+  const teamSport = teamSportName;
+
+  // =============================================================================
+  // TEAM PICKER VIEW (no team selected)
+  // =============================================================================
+
+  if (!teamId) {
+    const Wrapper = embedded ? View : SafeAreaView;
+    return (
+      <Wrapper style={s.container}>
+        {/* Header */}
+        {!embedded && (
+          <View style={s.header}>
+            <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
+              <Ionicons name="arrow-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={s.headerTitle}>Team Wall</Text>
+            <View style={s.backBtn} />
+          </View>
+        )}
+
+        {loadingTeams ? (
+          <View style={s.centered}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={s.loadingText}>Loading teams...</Text>
+          </View>
+        ) : userTeams.length === 0 ? (
+          <View style={s.centered}>
+            <Ionicons name="people-outline" size={64} color={colors.primary + '40'} />
+            <Text style={s.emptyTitle}>No Teams Found</Text>
+            <Text style={s.emptySubtitle}>
+              You are not assigned to any teams yet.
+            </Text>
+          </View>
+        ) : (
+          <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+            <Text style={s.pickerLabel}>Select a team</Text>
+            {userTeams.map((t) => (
+              <TouchableOpacity
+                key={t.id}
+                style={s.teamPickerCard}
+                onPress={() => setTeamId(t.id)}
+                activeOpacity={0.7}
+              >
+                <View style={[s.teamPickerStripe, { backgroundColor: t.color || colors.primary }]} />
+                <View style={s.teamPickerInfo}>
+                  <Text style={s.teamPickerName}>{t.name}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+      </Wrapper>
+    );
+  }
+
+  // =============================================================================
+  // RENDER HELPERS
+  // =============================================================================
+
+  const renderPostCard = ({ item: post }: { item: Post }) => {
+    const authorName = post.profiles?.full_name || 'Unknown';
+    const initials = getInitials(authorName);
+    const avatarColor = getAvatarColor(authorName);
+    const typeConfig = POST_TYPE_CONFIG[post.post_type as PostType] || POST_TYPE_CONFIG.text;
+    const currentUserReaction = userReactions[post.id];
+    const isAnnouncement = post.post_type === 'announcement';
+    const isCoachPost = isAnnouncement;
+
+    return (
+      <View style={s.postCardFlat}>
+        {/* Pinned indicator */}
+        {post.is_pinned && (
+          <View style={s.pinnedIndicator}>
+            <Ionicons name="pin" size={12} color={colors.textMuted} />
+            <Text style={s.pinnedIndicatorText}>Pinned</Text>
+          </View>
+        )}
+
+        {/* Post header */}
+        <View style={s.postHeader}>
+          {post.profiles?.avatar_url ? (
+            <Image source={{ uri: post.profiles.avatar_url }} style={s.postAvatar} />
+          ) : (
+            <View style={[s.postAvatar, { backgroundColor: avatarColor }]}>
+              <Text style={s.postAvatarText}>{initials}</Text>
+            </View>
+          )}
+          <View style={s.postHeaderInfo}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={s.postAuthor}>{authorName}</Text>
+              {isCoachPost && (
+                <View style={s.coachBadge}>
+                  <Ionicons name="shield-checkmark" size={10} color="#F97316" />
+                  <Text style={s.coachBadgeText}>COACH</Text>
+                </View>
+              )}
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={s.postTimestamp}>{formatTimestamp(post.created_at)}</Text>
+              <View style={[s.postTypeBadge, { backgroundColor: typeConfig.color + '20' }]}>
+                <Ionicons name={typeConfig.icon} size={10} color={typeConfig.color} />
+                <Text style={[s.postTypeBadgeText, { color: typeConfig.color }]}>
+                  {typeConfig.label}
+                </Text>
+              </View>
+            </View>
+          </View>
+          {/* Three-dot menu — visible to all roles */}
+          <TouchableOpacity
+            onPress={() => setShowPostActions(showPostActions === post.id ? null : post.id)}
+            style={{ padding: 6, marginLeft: 4 }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Post actions dropdown — role-aware */}
+        {showPostActions === post.id && (
+          <View style={s.postActionsRow}>
+            <TouchableOpacity onPress={() => handleSharePost(post)} style={s.postActionBtn}>
+              <Ionicons name="share-outline" size={16} color={colors.primary} />
+              <Text style={[s.postActionBtnText, { color: colors.primary }]}>Share</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleCopyPostText(post)} style={s.postActionBtn}>
+              <Ionicons name="copy-outline" size={16} color={colors.primary} />
+              <Text style={[s.postActionBtnText, { color: colors.primary }]}>Copy</Text>
+            </TouchableOpacity>
+            {isCoachOrAdmin && (
+              <TouchableOpacity onPress={() => handleTogglePin(post)} style={s.postActionBtn}>
+                <Ionicons name={post.is_pinned ? 'pin-outline' : 'pin'} size={16} color={colors.primary} />
+                <Text style={[s.postActionBtnText, { color: colors.primary }]}>
+                  {post.is_pinned ? 'Unpin' : 'Pin'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {(post.author_id === user?.id || isCoachOrAdmin) && (
+              <TouchableOpacity onPress={() => handleDeletePost(post.id)} style={s.postActionBtn}>
+                <Ionicons name="trash-outline" size={16} color="#FF3B30" />
+                <Text style={[s.postActionBtnText, { color: '#FF3B30' }]}>Delete</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Shoutout post — special card rendering */}
+        {post.post_type === 'shoutout' && parseShoutoutMetadata(post.title) ? (
+          <ShoutoutCard
+            metadataJson={post.title}
+            giverName={authorName}
+            createdAt={post.created_at}
+          />
+        ) : post.post_type === 'challenge' && parseChallengeMetadata(post.title) ? (
+          <ChallengeCard
+            metadataJson={post.title}
+            coachName={authorName}
+            createdAt={post.created_at}
+            isOptedIn={challengeParticipation[post.id]?.isOptedIn}
+            userProgress={challengeParticipation[post.id]?.userProgress}
+            participantCount={challengeParticipation[post.id]?.participantCount}
+            onOptIn={async () => {
+              const cid = (challengeParticipation as any)[`cid:${post.id}`];
+              if (!cid || !user?.id) return;
+              const ok = await optInToChallenge(cid, user.id);
+              if (ok) loadChallengeParticipation(posts.filter((p) => p.post_type === 'challenge'));
+            }}
+            onViewDetails={() => {
+              const cid = (challengeParticipation as any)[`cid:${post.id}`];
+              if (cid) {
+                setChallengeDetailId(cid);
+                setShowChallengeDetail(true);
+              }
+            }}
+          />
+        ) : (
+          <>
+            {/* Post content */}
+            {post.title && <Text style={s.postTitle}>{post.title}</Text>}
+            <Text style={s.postContent}>{post.content}</Text>
+          </>
+        )}
+
+        {/* Multi-photo grid — edge-to-edge */}
+        {post.media_urls && post.media_urls.length > 0 && (
+          <View>
+            {post.media_urls.length === 1 && (
+              <TouchableOpacity
+                onPress={() => openPostPhotoViewer(post, 0)}
+                onLongPress={() => handleImageLongPress(post, post.media_urls![0], 0)}
+                activeOpacity={0.9}
+              >
+                <Image source={{ uri: post.media_urls[0] }} style={s.postImageFull} resizeMode="cover" />
+              </TouchableOpacity>
+            )}
+            {post.media_urls.length === 2 && (
+              <View style={s.postImageRow}>
+                {post.media_urls.map((url, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    style={{ flex: 1 }}
+                    onPress={() => openPostPhotoViewer(post, i)}
+                    onLongPress={() => handleImageLongPress(post, url, i)}
+                    activeOpacity={0.9}
+                  >
+                    <Image source={{ uri: url }} style={s.postImageHalf} resizeMode="cover" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            {post.media_urls.length >= 3 && (
+              <View style={s.postImageGridContainer}>
+                <TouchableOpacity
+                  style={{ flex: 1 }}
+                  onPress={() => openPostPhotoViewer(post, 0)}
+                  onLongPress={() => handleImageLongPress(post, post.media_urls![0], 0)}
+                  activeOpacity={0.9}
+                >
+                  <Image source={{ uri: post.media_urls[0] }} style={s.postImageGridMain} resizeMode="cover" />
+                </TouchableOpacity>
+                <View style={s.postImageGridSide}>
+                  {post.media_urls.slice(1, 3).map((url, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      style={{ flex: 1 }}
+                      onPress={() => openPostPhotoViewer(post, i + 1)}
+                      onLongPress={() => handleImageLongPress(post, url, i + 1)}
+                      activeOpacity={0.9}
+                    >
+                      <Image source={{ uri: url }} style={s.postImageGridSmall} resizeMode="cover" />
+                      {i === 1 && post.media_urls!.length > 3 && (
+                        <View style={s.postImageOverlay}>
+                          <Text style={s.postImageOverlayText}>+{post.media_urls!.length - 3}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Engagement row — Facebook-style Like / Comment / Share */}
+        <View style={s.postFooter}>
+          <View style={s.engagementDivider} />
+          <View style={s.engagementRow}>
+            {(() => {
+              const { topEmojis, totalCount } = getReactionSummary(post.id);
+              const likeEmoji = currentUserReaction
+                ? REACTION_CONFIG.find(r => r.type === currentUserReaction)?.emoji || '❤️'
+                : topEmojis[0] || '❤️';
+              const isLiked = !!currentUserReaction;
+              return (
+                <TouchableOpacity
+                  style={s.engagementBtn}
+                  onPress={() => handleReaction(post.id, 'heart')}
+                  onLongPress={() => { setReactionPickerPostId(post.id); setShowReactionPicker(true); }}
+                  delayLongPress={400}
+                >
+                  <Text style={{ fontSize: 16 }}>{isLiked ? likeEmoji : '♡'}</Text>
+                  <Text style={[s.engagementBtnText, isLiked && { color: colors.primary }]}>
+                    Like{totalCount > 0 ? ` (${totalCount})` : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })()}
+            <TouchableOpacity
+              style={s.engagementBtn}
+              onPress={() => handleToggleComments(post.id)}
+            >
+              <Ionicons name="chatbubble-outline" size={18} color={expandedComments.has(post.id) ? colors.primary : colors.textMuted} />
+              <Text style={[s.engagementBtnText, expandedComments.has(post.id) && { color: colors.primary }]}>
+                Comment{(() => {
+                  const count = postComments[post.id]?.length ?? post.comment_count ?? 0;
+                  return count > 0 ? ` (${count})` : '';
+                })()}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.engagementBtn}
+              onPress={() => handleSharePost(post)}
+            >
+              <Ionicons name="share-outline" size={18} color={colors.textMuted} />
+              <Text style={s.engagementBtnText}>
+                Share{(post.share_count || 0) > 0 ? ` (${post.share_count})` : ''}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Inline Comments */}
+          {expandedComments.has(post.id) && (
+            <View style={s.commentsSection}>
+              {loadingComments.has(post.id) ? (
+                <ActivityIndicator size="small" color={teamColor} style={{ paddingVertical: 12 }} />
+              ) : (
+                <>
+                  {(postComments[post.id] || []).map((comment) => {
+                    const cName = comment.profiles?.full_name || 'Unknown';
+                    const cAvColor = getAvatarColor(cName);
+                    return (
+                      <View key={comment.id} style={s.commentRow}>
+                        {comment.profiles?.avatar_url ? (
+                          <Image source={{ uri: comment.profiles.avatar_url }} style={s.commentAvatar} />
+                        ) : (
+                          <View style={[s.commentAvatarFallback, { backgroundColor: cAvColor }]}>
+                            <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>
+                              {getInitials(cName)}
+                            </Text>
+                          </View>
+                        )}
+                        <View style={s.commentBubble}>
+                          <Text style={s.commentAuthor}>{cName}</Text>
+                          <Text style={s.commentContent}>{comment.content}</Text>
+                        </View>
+                        <Text style={s.commentTimestamp}>{formatTimestamp(comment.created_at)}</Text>
+                      </View>
+                    );
+                  })}
+
+                  <View style={s.commentInputRow}>
+                    {profile?.avatar_url ? (
+                      <Image source={{ uri: profile.avatar_url }} style={s.commentInputAvatar} />
+                    ) : (
+                      <View style={[s.commentInputAvatarFallback, { backgroundColor: teamColor }]}>
+                        <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>
+                          {getInitials(profile?.full_name || null)}
+                        </Text>
+                      </View>
+                    )}
+                    <TextInput
+                      style={s.commentInput}
+                      value={commentText[post.id] || ''}
+                      onChangeText={(text) => setCommentText((prev) => ({ ...prev, [post.id]: text }))}
+                      placeholder="Write a comment..."
+                      placeholderTextColor={colors.textMuted}
+                      multiline
+                      maxLength={500}
+                      onFocus={() => {
+                        const idx = posts.findIndex((p) => p.id === post.id);
+                        if (idx >= 0) {
+                          setTimeout(() => {
+                            try {
+                              feedListRef.current?.scrollToIndex({ index: idx, viewOffset: -200, animated: true });
+                            } catch {
+                              // Fallback: scrollToEnd if scrollToIndex fails (no getItemLayout)
+                              feedListRef.current?.scrollToEnd({ animated: true });
+                            }
+                          }, 300);
+                        }
+                      }}
+                    />
+                    <TouchableOpacity
+                      onPress={() => handleSubmitComment(post.id)}
+                      disabled={!(commentText[post.id] || '').trim() || submittingComment.has(post.id)}
+                      style={{ padding: 6 }}
+                    >
+                      {submittingComment.has(post.id) ? (
+                        <ActivityIndicator size="small" color={teamColor} />
+                      ) : (
+                        <Ionicons
+                          name="send"
+                          size={20}
+                          color={(commentText[post.id] || '').trim() ? teamColor : colors.textMuted}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  const renderRosterPlayer = ({ item: player }: { item: RosterPlayer }) => {
+    const fullName = `${player.first_name} ${player.last_name}`;
+    const initials = getInitials(player.first_name);
+    const avatarColor = getAvatarColor(fullName);
+
+    return (
+      <TouchableOpacity
+        style={s.rosterCard}
+        activeOpacity={0.7}
+        onPress={() => router.push({ pathname: '/child-detail', params: { playerId: player.id } } as any)}
+      >
+        {player.photo_url ? (
+          <Image source={{ uri: player.photo_url }} style={{ width: 44, height: 44, borderRadius: 22 }} />
+        ) : (
+          <View style={[s.rosterAvatar, { backgroundColor: avatarColor }]}>
+            {player.jersey_number !== null ? (
+              <Text style={s.rosterJerseyNumber}>#{player.jersey_number}</Text>
+            ) : (
+              <Text style={s.postAvatarText}>{initials}</Text>
+            )}
+          </View>
+        )}
+        <View style={s.rosterInfo}>
+          <Text style={s.rosterName}>{fullName}</Text>
+          {player.position && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+              <View style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: getPositionInfo(player.position, teamSport)?.color || colors.textMuted,
+              }} />
+              <Text style={s.rosterPosition}>{player.position}</Text>
+            </View>
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderScheduleEvent = ({ item: event }: { item: ScheduleEvent }) => {
+    const { dayOfWeek, month, day } = formatEventDate(event.event_date);
+    const eventType = event.event_type || 'event';
+    const isGame = eventType.toLowerCase().includes('game') || eventType.toLowerCase().includes('match');
+
+    return (
+      <View style={s.eventCard}>
+        <View style={[s.eventDateBlock, { backgroundColor: teamColor + '10' }]}>
+          <Text style={[s.eventDayOfWeek, { color: teamColor }]}>{dayOfWeek}</Text>
+          <Text style={[s.eventDay, { color: teamColor }]}>{day}</Text>
+          <Text style={[s.eventMonth, { color: teamColor }]}>{month}</Text>
+        </View>
+        <View style={s.eventInfo}>
+          <View style={s.eventTypeRow}>
+            <View style={[s.eventTypeBadge, { backgroundColor: isGame ? colors.danger + '20' : colors.info + '20' }]}>
+              <Ionicons
+                name={isGame ? 'trophy' : 'fitness'}
+                size={12}
+                color={isGame ? colors.danger : colors.info}
+              />
+              <Text style={[s.eventTypeText, { color: isGame ? colors.danger : colors.info }]}>
+                {eventType.charAt(0).toUpperCase() + eventType.slice(1)}
+              </Text>
+            </View>
+          </View>
+          {event.title && <Text style={s.eventTitle}>{event.title}</Text>}
+          {event.opponent_name && (
+            <Text style={[s.eventOpponent, { color: teamColor }]}>vs {event.opponent_name}</Text>
+          )}
+          <View style={s.eventMetaRow}>
+            {event.start_time && (
+              <View style={s.eventMetaItem}>
+                <Ionicons name="time-outline" size={13} color={colors.textMuted} />
+                <Text style={s.eventMetaText}>
+                  {formatTime(event.start_time)}
+                  {event.end_time ? ` - ${formatTime(event.end_time)}` : ''}
+                </Text>
+              </View>
+            )}
+            {event.location && (
+              <View style={s.eventMetaItem}>
+                <Ionicons name="location-outline" size={13} color={colors.textMuted} />
+                <Text style={s.eventMetaText} numberOfLines={1}>{event.location}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // =============================================================================
+  // RENDER HELPER: Hero Section
+  // =============================================================================
+
+  const renderHeroSection = () => {
+    if (feedOnly) return null;
+    return (
+      <View style={s.heroContainer}>
+        {team?.banner_url ? (
+          <Image source={{ uri: team.banner_url }} style={s.heroCoverImage} resizeMode="cover" />
+        ) : (
+          <LinearGradient
+            colors={[teamColor, teamColor + 'B0', teamColor + '40']}
+            style={s.heroCoverImage}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={s.heroFallbackInitials}>
+              {team?.name?.charAt(0)?.toUpperCase() || '?'}
+            </Text>
+          </LinearGradient>
+        )}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.65)']}
+          style={s.heroGradientOverlay}
+        />
+        {!embedded && (
+          <TouchableOpacity
+            style={s.heroBackBtn}
+            onPress={() => {
+              if (propTeamId) {
+                router.back();
+              } else {
+                setTeamId(null);
+                setTeam(null);
+                setPosts([]);
+                setRoster([]);
+                setEvents([]);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={22} color="#fff" />
+          </TouchableOpacity>
+        )}
+        {isCoachOrAdmin && (
+          <TouchableOpacity
+            style={s.heroCameraBtn}
+            onPress={handleUploadCoverPhoto}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="camera" size={18} color="#fff" />
+          </TouchableOpacity>
+        )}
+        <View style={s.heroInfoOverlay}>
+          <Text style={s.heroTeamName}>{team?.name || 'Loading...'}</Text>
+          <Text style={s.heroTeamMeta}>
+            {playerCount} Players {'\u00B7'} {coachCount} Coaches
+          </Text>
+          <View style={s.heroPillRow}>
+            <TouchableOpacity
+              style={s.heroPill}
+              activeOpacity={0.7}
+              onPress={() => router.push({ pathname: '/team-gallery' as any, params: { teamId, teamName: team?.name || 'Team' } })}
+            >
+              <Ionicons name="images-outline" size={14} color="#fff" />
+              <Text style={s.heroPillText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.heroPill}
+              activeOpacity={0.7}
+              onPress={() => router.push('/standings' as any)}
+            >
+              <Ionicons name="stats-chart-outline" size={14} color="#fff" />
+              <Text style={s.heroPillText}>Stats</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.heroPill}
+              activeOpacity={0.7}
+              onPress={() => router.push('/achievements' as any)}
+            >
+              <Ionicons name="trophy-outline" size={14} color="#fff" />
+              <Text style={s.heroPillText}>Achievements</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // =============================================================================
+  // RENDER HELPER: Tab Bar
+  // =============================================================================
+
+  const TABS: { key: TabKey; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { key: 'feed', label: 'Feed', icon: 'newspaper' },
+    { key: 'roster', label: 'Roster', icon: 'people' },
+    { key: 'schedule', label: 'Schedule', icon: 'calendar' },
+  ];
+
+  const renderTabBar = () => {
+    if (feedOnly) return null;
+    return (
+      <View style={s.tabBar}>
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[s.tab, isActive && [s.tabActive, { borderBottomColor: teamColor }]]}
+              onPress={() => setActiveTab(tab.key)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={tab.icon}
+                size={18}
+                color={isActive ? teamColor : colors.textMuted}
+              />
+              <Text style={[s.tabLabel, isActive && { color: teamColor, fontWeight: '600' }]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
+
+  // =============================================================================
+  // RENDER HELPER: Feed Composer
+  // =============================================================================
+
+  const renderFeedHeader = () => (
+    <View>
+      {!isPlayer && (
+        <TouchableOpacity
+          style={s.composeCard}
+          onPress={() => setShowNewPostModal(true)}
+          activeOpacity={0.7}
+        >
+          {profile?.avatar_url ? (
+            <Image source={{ uri: profile.avatar_url }} style={s.composeAvatarImg} />
+          ) : (
+            <View style={[s.composeAvatar, { backgroundColor: teamColor }]}>
+              <Text style={s.composeAvatarText}>
+                {getInitials(profile?.full_name || user?.email || null)}
+              </Text>
+            </View>
+          )}
+          <View style={s.composeInputMock}>
+            <Text style={s.composeInputText}>What's on your mind?</Text>
+          </View>
+          <Ionicons name="camera-outline" size={22} color={teamColor} />
+        </TouchableOpacity>
+      )}
+      {/* Shoutout quick action — visible to all roles */}
+      <TouchableOpacity
+        style={s.shoutoutQuickBtn}
+        onPress={() => setShowShoutoutModal(true)}
+        activeOpacity={0.7}
+      >
+        <Text style={s.shoutoutQuickEmoji}>💪</Text>
+        <Text style={[s.shoutoutQuickText, { color: colors.textSecondary }]}>Give a Shoutout</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+      </TouchableOpacity>
+      {/* Challenge quick action — coach/admin only */}
+      {isCoachOrAdmin && (
+        <TouchableOpacity
+          style={s.shoutoutQuickBtn}
+          onPress={() => setShowChallengeModal(true)}
+          activeOpacity={0.7}
+        >
+          <Text style={s.shoutoutQuickEmoji}>🏆</Text>
+          <Text style={[s.shoutoutQuickText, { color: colors.textSecondary }]}>Create Challenge</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  // Combines hero + tabs + optional feed composer into one list header
+  const renderListHeaderFeed = () => (
+    <View>
+      {renderHeroSection()}
+      {renderTabBar()}
+      {renderFeedHeader()}
+    </View>
+  );
+
+  const renderListHeaderOther = () => (
+    <View>
+      {renderHeroSection()}
+      {renderTabBar()}
+    </View>
+  );
+
+  // =============================================================================
+  // Animated interpolations for sticky behavior
+  // =============================================================================
+
+  const compactHeaderOpacity = scrollY.interpolate({
+    inputRange: [HERO_HEIGHT, HERO_HEIGHT + 40],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  // =============================================================================
+  // Scroll handler
+  // =============================================================================
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: false }
+  );
+
+  // =============================================================================
+  // MAIN RENDER
+  // =============================================================================
+
+  const Wrapper = (embedded || feedOnly) ? View : SafeAreaView;
+
+  return (
+    <Wrapper style={s.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+      {/* Tab Content */}
+      {(feedOnly || activeTab === 'feed') && (
+        <View style={s.tabContent}>
+          {loadingPosts && posts.length === 0 ? (
+            <ScrollView
+              style={s.tabContent}
+              contentContainerStyle={s.listContent}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+            >
+              {renderListHeaderFeed()}
+              <SkeletonPostCard colors={colors} />
+              <SkeletonPostCard colors={colors} />
+              <SkeletonPostCard colors={colors} />
+            </ScrollView>
+          ) : posts.length === 0 ? (
+            <ScrollView
+              style={s.tabContent}
+              contentContainerStyle={s.emptyFeedScroll}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshingFeed}
+                  onRefresh={handleRefreshFeed}
+                  tintColor={teamColor}
+                  colors={[teamColor]}
+                />
+              }
+            >
+              {renderListHeaderFeed()}
+
+              <View style={s.emptyStateContainer}>
+                <Ionicons name="megaphone-outline" size={56} color={teamColor + '50'} />
+                <Text style={s.emptyTitle}>
+                  {isCoachOrAdmin
+                    ? 'Your Team Wall Is Ready!'
+                    : 'Stay Tuned!'}
+                </Text>
+                <Text style={s.emptySubtitle}>
+                  {isCoachOrAdmin
+                    ? 'Share updates, shoutouts, and game recaps to fire up your squad.'
+                    : 'Coaches will post highlights, updates, and news here.'}
+                </Text>
+                {isCoachOrAdmin && (
+                  <TouchableOpacity
+                    style={[s.emptyCtaBtn, { backgroundColor: teamColor }]}
+                    onPress={() => setShowNewPostModal(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="create" size={18} color="#fff" />
+                    <Text style={s.emptyCtaBtnText}>Create First Post</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </ScrollView>
+          ) : (
+            <View style={{ flex: 1 }}>
+              <FlatList
+                ref={feedListRef}
+                data={posts}
+                keyExtractor={(item) => item.id}
+                renderItem={renderPostCard}
+                ListHeaderComponent={renderListHeaderFeed}
+                contentContainerStyle={s.listContent}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                keyboardShouldPersistTaps="handled"
+                onScrollToIndexFailed={(info) => {
+                  setTimeout(() => {
+                    feedListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
+                  }, 100);
+                }}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshingFeed}
+                    onRefresh={handleRefreshFeed}
+                    tintColor={teamColor}
+                    colors={[teamColor]}
+                  />
+                }
+                showsVerticalScrollIndicator={false}
+              />
+
+              {/* "New Posts" floating pill */}
+              {newPostsCount > 0 && (
+                <TouchableOpacity
+                  style={[s.newPostsPill, { backgroundColor: teamColor }]}
+                  onPress={handleNewPostsTap}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="arrow-up" size={14} color="#fff" />
+                  <Text style={s.newPostsPillText}>
+                    {newPostsCount} new {newPostsCount === 1 ? 'post' : 'posts'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+      )}
+
+      {!feedOnly && activeTab === 'roster' && (
+        <View style={s.tabContent}>
+          {loadingRoster ? (
+            <ScrollView contentContainerStyle={s.listContent}>
+              {renderListHeaderOther()}
+              <View style={s.centered}>
+                <ActivityIndicator size="large" color={teamColor} />
+              </View>
+            </ScrollView>
+          ) : roster.length === 0 ? (
+            <ScrollView contentContainerStyle={s.listContent}>
+              {renderListHeaderOther()}
+              <View style={s.centered}>
+                <Ionicons name="people-outline" size={56} color={teamColor + '50'} />
+                <Text style={s.emptyTitle}>Roster Loading</Text>
+                <Text style={s.emptySubtitle}>Players will show up once the coach builds the roster.</Text>
+              </View>
+            </ScrollView>
+          ) : (
+            <FlatList
+              data={roster}
+              keyExtractor={(item) => item.id}
+              renderItem={renderRosterPlayer}
+              ListHeaderComponent={renderListHeaderOther}
+              contentContainerStyle={s.listContent}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
+      )}
+
+      {!feedOnly && activeTab === 'schedule' && (
+        <View style={s.tabContent}>
+          {loadingSchedule ? (
+            <ScrollView contentContainerStyle={s.listContent}>
+              {renderListHeaderOther()}
+              <View style={s.centered}>
+                <ActivityIndicator size="large" color={teamColor} />
+              </View>
+            </ScrollView>
+          ) : events.length === 0 ? (
+            <ScrollView contentContainerStyle={s.listContent}>
+              {renderListHeaderOther()}
+              <View style={s.centered}>
+                <Ionicons name="calendar-outline" size={56} color={teamColor + '50'} />
+                <Text style={s.emptyTitle}>Schedule TBD</Text>
+                <Text style={s.emptySubtitle}>Events will appear here once they're on the calendar.</Text>
+              </View>
+            </ScrollView>
+          ) : (
+            <FlatList
+              data={events}
+              keyExtractor={(item) => item.id}
+              renderItem={renderScheduleEvent}
+              ListHeaderComponent={renderListHeaderOther}
+              contentContainerStyle={s.listContent}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+        </View>
+      )}
+
+      {/* Compact sticky header — fades in when hero scrolled off */}
+      {!feedOnly && (
+        <Animated.View style={[s.compactHeader, { opacity: compactHeaderOpacity }]} pointerEvents="box-none">
+          {team?.banner_url ? (
+            <Image source={{ uri: team.banner_url }} style={s.compactHeaderThumb} />
+          ) : (
+            <View style={[s.compactHeaderThumb, { backgroundColor: teamColor }]}>
+              <Text style={s.compactHeaderThumbText}>{team?.name?.charAt(0) || '?'}</Text>
+            </View>
+          )}
+          <Text style={s.compactHeaderTitle} numberOfLines={1}>{team?.name}</Text>
+        </Animated.View>
+      )}
+
+      </KeyboardAvoidingView>
+
+      {/* Who Reacted Modal */}
+      <Modal visible={!!reactionsModalPostId} animationType="slide" transparent>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>Reactions</Text>
+              <TouchableOpacity onPress={() => { setReactionsModalPostId(null); setReactionsModalTab('all'); }}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {reactionsModalPostId && (() => {
+              const reactions = postReactions[reactionsModalPostId] || [];
+              const counts: Record<string, number> = {};
+              for (const r of reactions) {
+                counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1;
+              }
+              const emojiMap: Record<string, string> = {};
+              for (const rc of REACTION_CONFIG) { emojiMap[rc.type] = rc.emoji; }
+
+              const tabs = [
+                { key: 'all', label: `All (${reactions.length})` },
+                ...Object.entries(counts)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([type, count]) => ({
+                    key: type,
+                    label: `${emojiMap[type] || type} (${count})`,
+                  })),
+              ];
+
+              const filteredReactions = reactionsModalTab === 'all'
+                ? reactions
+                : reactions.filter((r) => r.reaction_type === reactionsModalTab);
+
+              return (
+                <View style={{ flex: 1 }}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.reactionsTabScroll} contentContainerStyle={s.reactionsTabBar}>
+                    {tabs.map((tab) => (
+                      <TouchableOpacity
+                        key={tab.key}
+                        style={[s.reactionsTab, reactionsModalTab === tab.key && s.reactionsTabActive]}
+                        onPress={() => setReactionsModalTab(tab.key)}
+                      >
+                        <Text style={[s.reactionsTabText, reactionsModalTab === tab.key && { color: teamColor, fontWeight: '700' }]}>
+                          {tab.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  <FlatList
+                    data={filteredReactions}
+                    keyExtractor={(item, index) => `${item.user_id}-${index}`}
+                    renderItem={({ item }) => (
+                      <View style={s.reactionsUserRow}>
+                        {item.profiles.avatar_url ? (
+                          <Image source={{ uri: item.profiles.avatar_url }} style={s.reactionsUserAvatar} />
+                        ) : (
+                          <View style={[s.reactionsUserAvatarFallback, { backgroundColor: getAvatarColor(item.profiles.full_name || '?') }]}>
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
+                              {getInitials(item.profiles.full_name)}
+                            </Text>
+                          </View>
+                        )}
+                        <Text style={s.reactionsUserName} numberOfLines={1}>
+                          {item.profiles.full_name || 'Unknown'}
+                        </Text>
+                        <Text style={{ fontSize: 18 }}>{emojiMap[item.reaction_type] || item.reaction_type}</Text>
+                      </View>
+                    )}
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                  />
+                </View>
+              );
+            })()}
+          </View>
+        </View>
+      </Modal>
+
+      {/* New Post Modal */}
+      <Modal visible={showNewPostModal} animationType="slide" transparent>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>Create Post</Text>
+              <TouchableOpacity onPress={() => { setShowNewPostModal(false); setPostMediaUrls([]); }}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={s.modalScroll} keyboardShouldPersistTaps="handled">
+              <Text style={s.modalLabel}>Post Type</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={s.postTypeScroller}
+                contentContainerStyle={s.postTypeScrollContent}
+              >
+                {POST_TYPES.filter((pt) => pt !== 'shoutout').map((pt) => {
+                  const config = POST_TYPE_CONFIG[pt];
+                  const isSelected = newPostType === pt;
+                  return (
+                    <TouchableOpacity
+                      key={pt}
+                      style={[
+                        s.postTypeChip,
+                        isSelected && { backgroundColor: config.color + '20', borderColor: config.color },
+                      ]}
+                      onPress={() => setNewPostType(pt)}
+                    >
+                      <Ionicons name={config.icon} size={14} color={isSelected ? config.color : colors.textMuted} />
+                      <Text style={[s.postTypeChipText, isSelected && { color: config.color, fontWeight: '600' }]}>
+                        {config.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              <Text style={s.modalLabel}>What's on your mind?</Text>
+              <TextInput
+                style={[s.modalInput, s.modalTextArea]}
+                value={newPostContent}
+                onChangeText={setNewPostContent}
+                placeholder="Share something with your team..."
+                placeholderTextColor={colors.textMuted}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                maxLength={2000}
+                autoFocus
+              />
+              <Text style={s.charCount}>
+                {newPostContent.length}/2000
+              </Text>
+
+              {/* Photo upload section */}
+              <Text style={s.modalLabel}>Photos (optional)</Text>
+              {postMediaUrls.length > 0 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                  {postMediaUrls.map((url, i) => (
+                    <View key={i} style={s.photoPreviewWrap}>
+                      <Image source={{ uri: url }} style={s.photoPreview} />
+                      <TouchableOpacity
+                        style={s.photoRemoveBtn}
+                        onPress={() => setPostMediaUrls(prev => prev.filter((_, idx) => idx !== i))}
+                      >
+                        <Ionicons name="close-circle" size={22} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              )}
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                <TouchableOpacity
+                  style={[s.postTypeChip, { flex: 1 }]}
+                  onPress={() => handleAddPostPhoto('library')}
+                  disabled={uploadingMedia}
+                >
+                  <Ionicons name="images" size={16} color={colors.primary} />
+                  <Text style={[s.postTypeChipText, { color: colors.primary }]}>Gallery</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.postTypeChip, { flex: 1 }]}
+                  onPress={() => handleAddPostPhoto('camera')}
+                  disabled={uploadingMedia}
+                >
+                  <Ionicons name="camera" size={16} color={colors.primary} />
+                  <Text style={[s.postTypeChipText, { color: colors.primary }]}>Camera</Text>
+                </TouchableOpacity>
+              </View>
+              {uploadingMedia && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={{ fontSize: 13, color: colors.textMuted }}>Uploading photo...</Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={s.modalFooter}>
+              <TouchableOpacity
+                style={s.cancelBtn}
+                onPress={() => { setShowNewPostModal(false); setPostMediaUrls([]); }}
+              >
+                <Text style={s.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.submitBtn, { backgroundColor: teamColor }, submittingPost && { opacity: 0.5 }]}
+                onPress={handleSubmitPost}
+                disabled={submittingPost || (!newPostContent.trim() && postMediaUrls.length === 0)}
+              >
+                {submittingPost ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="send" size={16} color="#fff" />
+                    <Text style={s.submitBtnText}>Post</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Photo Viewer (zoom, swipe, info, save) */}
+      <PhotoViewer
+        visible={viewerVisible}
+        items={viewerItems}
+        initialIndex={viewerIndex}
+        isCoachOrAdmin={isCoachOrAdmin}
+        onClose={() => setViewerVisible(false)}
+      />
+
+      {/* Image Preview (upload flow) */}
+      <ImagePreviewModal
+        visible={!!pendingMedia}
+        media={pendingMedia}
+        onAccept={handlePreviewAccept}
+        onCancel={() => setPendingMedia(null)}
+      />
+      {/* Emoji Picker for custom reactions */}
+      <EmojiPicker
+        visible={showReactionPicker}
+        onClose={() => { setShowReactionPicker(false); setReactionPickerPostId(null); }}
+        onSelect={(emoji) => {
+          if (reactionPickerPostId) {
+            handleReaction(reactionPickerPostId, emoji);
+            setShowReactionPicker(false);
+            setReactionPickerPostId(null);
+          }
+        }}
+      />
+
+      {/* Give Shoutout Modal */}
+      {teamId && (
+        <GiveShoutoutModal
+          visible={showShoutoutModal}
+          teamId={teamId}
+          onClose={() => setShowShoutoutModal(false)}
+          onSuccess={() => loadPosts()}
+        />
+      )}
+
+      {/* Create Challenge Modal */}
+      {teamId && (
+        <CreateChallengeModal
+          visible={showChallengeModal}
+          teamId={teamId}
+          organizationId={profile?.current_organization_id || ''}
+          onClose={() => setShowChallengeModal(false)}
+          onSuccess={() => loadPosts()}
+        />
+      )}
+
+      {/* Challenge Detail Modal (opt-in + leaderboard) */}
+      <ChallengeDetailModal
+        visible={showChallengeDetail}
+        challengeId={challengeDetailId}
+        onClose={() => { setShowChallengeDetail(false); setChallengeDetailId(null); }}
+        onOptInSuccess={() => loadChallengeParticipation(posts.filter((p) => p.post_type === 'challenge'))}
+      />
+    </Wrapper>
+  );
+}
+
+// =============================================================================
+// STYLES
+// =============================================================================
+
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    // Layout
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 16,
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 32,
+    },
+    loadingText: {
+      marginTop: 12,
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+
+    // Hero Cover Photo
+    heroContainer: {
+      width: SCREEN_WIDTH,
+      height: HERO_HEIGHT,
+      position: 'relative',
+    },
+    heroCoverImage: {
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    heroGradientOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: HERO_HEIGHT * 0.6,
+    },
+    heroBackBtn: {
+      position: 'absolute',
+      top: 12,
+      left: 12,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    heroCameraBtn: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    heroInfoOverlay: {
+      position: 'absolute',
+      bottom: 16,
+      left: 16,
+      right: 16,
+    },
+    heroTeamName: {
+      fontSize: 26,
+      fontWeight: '800',
+      color: '#FFFFFF',
+      marginBottom: 4,
+    },
+    heroTeamMeta: {
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.85)',
+      fontWeight: '500',
+      marginBottom: 12,
+    },
+    heroPillRow: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    heroPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.3)',
+    },
+    heroPillText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    heroFallbackInitials: {
+      fontSize: 64,
+      fontWeight: '800',
+      color: 'rgba(255,255,255,0.25)',
+      textAlign: 'center',
+      lineHeight: HERO_HEIGHT,
+    },
+
+    // Compact sticky header (fades in on scroll)
+    compactHeader: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: COMPACT_HEADER_HEIGHT,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      gap: 10,
+      backgroundColor: colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      zIndex: 100,
+    },
+    compactHeaderThumb: {
+      width: 30,
+      height: 30,
+      borderRadius: 6,
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden',
+    },
+    compactHeaderThumbText: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: '#fff',
+    },
+    compactHeaderTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      flex: 1,
+    },
+
+    // Team Picker header (back button + title)
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backBtn: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    headerTitle: {
+      ...displayTextStyle,
+      fontSize: 28,
+      color: colors.text,
+    },
+
+    // Team Picker
+    pickerLabel: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 1.5,
+      marginBottom: 16,
+    },
+    teamPickerCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFF',
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.06)',
+      borderRadius: 16,
+      marginBottom: 10,
+      overflow: 'hidden',
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+        android: { elevation: 6 },
+      }),
+    },
+    teamPickerStripe: {
+      width: 5,
+      alignSelf: 'stretch',
+    },
+    teamPickerInfo: {
+      flex: 1,
+      paddingVertical: 18,
+      paddingHorizontal: 16,
+    },
+    teamPickerName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+
+    // Tab Bar
+    tabBar: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginTop: 12,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 12,
+      borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    tabActive: {
+      borderBottomWidth: 2,
+    },
+    tabLabel: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textMuted,
+    },
+    tabContent: {
+      flex: 1,
+    },
+    listContent: {
+      paddingBottom: 100,
+    },
+
+    // Empty states
+    emptyFeedScroll: {
+      flexGrow: 1,
+      padding: 16,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingVertical: 60,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: 16,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      fontSize: 14,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginTop: 6,
+      lineHeight: 20,
+      paddingHorizontal: 20,
+    },
+    emptyCtaBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 24,
+      paddingVertical: 14,
+      borderRadius: 14,
+      marginTop: 20,
+    },
+    emptyCtaBtnText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: '#fff',
+    },
+
+    // Compose Card
+    composeCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E5E5',
+    },
+    composeAvatarImg: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+    },
+    composeAvatar: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    composeAvatarText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#fff',
+    },
+    composeInputMock: {
+      flex: 1,
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    composeInputText: {
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+
+    // Shoutout quick action
+    shoutoutQuickBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      gap: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    shoutoutQuickEmoji: {
+      fontSize: 20,
+    },
+    shoutoutQuickText: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+
+    // Post Cards — flat, Facebook-style
+    postCardFlat: {
+      borderBottomWidth: 1,
+      borderBottomColor: '#E5E5E5',
+      paddingTop: 12,
+      paddingBottom: 16,
+    },
+    pinnedIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    pinnedIndicatorText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    postHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 14,
+      paddingBottom: 10,
+    },
+    postAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    postAvatarText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: '#fff',
+    },
+    postHeaderInfo: {
+      flex: 1,
+      marginLeft: 10,
+    },
+    postAuthor: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    coachBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      backgroundColor: '#F9731615',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: '#F9731630',
+    },
+    coachBadgeText: {
+      fontSize: 9,
+      fontWeight: '800',
+      color: '#F97316',
+      letterSpacing: 0.5,
+    },
+    postTimestamp: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    postTypeBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    postTypeBadgeText: {
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    postTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      paddingHorizontal: 16,
+      marginBottom: 4,
+    },
+    postContent: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 21,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+    },
+
+    // Multi-photo grid — edge-to-edge
+    postImageFull: {
+      width: '100%',
+      height: 300,
+      backgroundColor: colors.bgSecondary,
+    },
+    postImageRow: {
+      flexDirection: 'row',
+      gap: 2,
+    },
+    postImageHalf: {
+      width: '100%',
+      height: 200,
+      backgroundColor: colors.bgSecondary,
+    },
+    postImageGridContainer: {
+      flexDirection: 'row',
+      height: 300,
+      gap: 2,
+    },
+    postImageGridMain: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: colors.bgSecondary,
+    },
+    postImageGridSide: {
+      flex: 1,
+      gap: 2,
+    },
+    postImageGridSmall: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: colors.bgSecondary,
+    },
+    postImageOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    postImageOverlayText: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: '#FFFFFF',
+    },
+
+    // Post footer
+    postFooter: {
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderTopWidth: 1,
+      borderTopColor: 'rgba(0,0,0,0.06)',
+    },
+    // Who Reacted modal
+    reactionsTabScroll: {
+      flexGrow: 0,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    reactionsTabBar: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      gap: 4,
+    },
+    reactionsTab: {
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    reactionsTabActive: {
+      borderBottomColor: colors.primary,
+    },
+    reactionsTabText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: colors.textMuted,
+    },
+    reactionsUserRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      gap: 12,
+    },
+    reactionsUserAvatar: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+    },
+    reactionsUserAvatarFallback: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    reactionsUserName: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.text,
+    },
+
+    // Post actions dropdown
+    postActionsRow: {
+      flexDirection: 'row',
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      flexWrap: 'wrap',
+    },
+    postActionBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      backgroundColor: colors.bgSecondary,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 8,
+    },
+    postActionBtnText: {
+      fontSize: 13,
+      fontWeight: '600',
+    },
+
+    // Engagement row (Like / Comment / Share)
+    engagementDivider: {
+      height: 1,
+      backgroundColor: '#E5E5E5',
+      marginHorizontal: 16,
+      marginTop: 4,
+    },
+    engagementRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingVertical: 6,
+      paddingHorizontal: 16,
+    },
+    engagementBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+    },
+    engagementBtnText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textMuted,
+    },
+
+    // Inline Comments
+    commentsSection: {
+      borderTopWidth: 1,
+      borderTopColor: '#E5E5E5',
+      marginTop: 4,
+      paddingTop: 8,
+      paddingHorizontal: 16,
+    },
+    commentRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+      marginBottom: 10,
+    },
+    commentAvatar: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+    },
+    commentAvatarFallback: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    commentBubble: {
+      flex: 1,
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    commentAuthor: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    commentContent: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      lineHeight: 18,
+    },
+    commentTimestamp: {
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 4,
+    },
+    commentInputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 8,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: '#F0F0F0',
+    },
+    commentInputAvatar: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+    },
+    commentInputAvatarFallback: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    commentInput: {
+      flex: 1,
+      backgroundColor: colors.bgSecondary,
+      borderRadius: 18,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      fontSize: 13,
+      color: colors.text,
+      maxHeight: 80,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+
+    // New Posts Pill
+    newPostsPill: {
+      position: 'absolute',
+      top: 12,
+      alignSelf: 'center',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 24,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+        android: { elevation: 8 },
+      }),
+    },
+    newPostsPillText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: '#fff',
+    },
+
+    // Roster Cards
+    rosterCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFF',
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.06)',
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 10,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+        android: { elevation: 6 },
+      }),
+    },
+    rosterAvatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    rosterJerseyNumber: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: '#fff',
+    },
+    rosterInfo: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    rosterName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    rosterPosition: {
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    rosterJerseyBadge: {
+      backgroundColor: colors.bgSecondary,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+    },
+    rosterJerseyBadgeText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+
+    // Schedule Event Cards
+    eventCard: {
+      flexDirection: 'row',
+      backgroundColor: '#FFF',
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.06)',
+      borderRadius: 16,
+      overflow: 'hidden',
+      marginBottom: 10,
+      ...Platform.select({
+        ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+        android: { elevation: 6 },
+      }),
+    },
+    eventDateBlock: {
+      width: 64,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 14,
+      backgroundColor: colors.bgSecondary,
+      borderRightWidth: 1,
+      borderRightColor: colors.border,
+    },
+    eventDayOfWeek: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    eventDay: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.text,
+      marginVertical: 1,
+    },
+    eventMonth: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    eventInfo: {
+      flex: 1,
+      padding: 12,
+    },
+    eventTypeRow: {
+      flexDirection: 'row',
+      marginBottom: 4,
+    },
+    eventTypeBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+    },
+    eventTypeText: {
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    eventTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    eventOpponent: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.primary,
+      marginBottom: 4,
+    },
+    eventMetaRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginTop: 4,
+    },
+    eventMetaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    eventMetaText: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+
+    // Modal
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: '#FFF',
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      maxHeight: '85%',
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.06)',
+      borderBottomWidth: 0,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    modalScroll: {
+      padding: 24,
+    },
+    modalLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 8,
+      marginTop: 12,
+    },
+    postTypeScroller: {
+      marginBottom: 4,
+    },
+    postTypeScrollContent: {
+      gap: 8,
+    },
+    postTypeChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    postTypeChipText: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textMuted,
+    },
+    modalInput: {
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 14,
+      color: colors.text,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    modalTextArea: {
+      minHeight: 140,
+    },
+    charCount: {
+      fontSize: 12,
+      color: colors.textMuted,
+      textAlign: 'right',
+      marginTop: 4,
+      marginBottom: 12,
+    },
+    photoPreviewWrap: {
+      marginRight: 8,
+      position: 'relative',
+    },
+    photoPreview: {
+      width: 100,
+      height: 100,
+      borderRadius: 12,
+      backgroundColor: colors.border,
+    },
+    photoRemoveBtn: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      backgroundColor: colors.card,
+      borderRadius: 11,
+    },
+    modalFooter: {
+      flexDirection: 'row',
+      padding: 24,
+      gap: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    cancelBtn: {
+      flex: 1,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelBtnText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.textSecondary,
+    },
+    submitBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      borderRadius: 12,
+      padding: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    submitBtnText: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: '#fff',
+    },
+
+    // Fullscreen Image Viewer
+  });
