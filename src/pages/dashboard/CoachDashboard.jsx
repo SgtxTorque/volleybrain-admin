@@ -37,19 +37,18 @@ function formatTime12(timeStr) {
 }
 
 // ============================================
-// SHARED CARD COMPONENT - iOS Style
+// SHARED CARD COMPONENT - Glass Style
 // ============================================
 function DashCard({ children, className = '', onClick }) {
+  const { isDark } = useTheme()
   return (
-    <div 
+    <div
       onClick={onClick}
-      className={`
-        bg-white rounded-2xl 
-        shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]
-        border border-slate-100
-        ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}
-        ${className}
-      `}
+      className={`rounded-2xl transition-all duration-300 ${
+        isDark
+          ? 'bg-slate-800/80 backdrop-blur-md border border-white/[0.08] shadow-glass-dark'
+          : 'bg-white/80 backdrop-blur-md border border-white/40 shadow-soft-md'
+      } ${onClick ? 'cursor-pointer hover:shadow-lg' : ''} ${className}`}
     >
       {children}
     </div>
@@ -58,23 +57,110 @@ function DashCard({ children, className = '', onClick }) {
 
 // Card Header with title and menu
 function CardHeader({ title, action, onAction, children }) {
+  const { isDark } = useTheme()
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-      <h3 className="font-semibold text-slate-800 text-[15px]">{title}</h3>
+    <div className={`flex items-center justify-between px-5 py-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+      <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
       <div className="flex items-center gap-2">
         {children}
         {action && (
-          <button 
+          <button
             onClick={onAction}
-            className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1"
+            className="text-sm text-[var(--accent-primary)] font-medium hover:opacity-80 flex items-center gap-1"
           >
             {action}
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
-        <button className="p-1 hover:bg-slate-100 rounded-lg transition">
-          <MoreHorizontal className="w-4 h-4 text-slate-400" />
+        <button className={`p-1 rounded-lg transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
+          <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// NEXT GAME HERO CARD
+// ============================================
+function NextGameHero({ events, team, onEventClick, onSchedule }) {
+  const { isDark } = useTheme()
+  const nextGame = events?.find(e => e.event_type === 'game')
+  const nextEvent = events?.[0]
+  const heroEvent = nextGame || nextEvent
+
+  const getCountdown = (dateStr) => {
+    if (!dateStr) return ''
+    const eventDate = new Date(dateStr + 'T00:00:00')
+    const now = new Date()
+    const diff = eventDate - now
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    if (days === 0) return 'TODAY'
+    if (days === 1) return 'TOMORROW'
+    if (days < 0) return 'PAST'
+    return `IN ${days} DAYS`
+  }
+
+  if (!heroEvent) {
+    return (
+      <div className={`rounded-2xl p-6 text-center ${
+        isDark ? 'bg-slate-800/60 border border-white/[0.08]' : 'bg-white/70 border border-white/40 shadow-soft-md'
+      }`}>
+        <Calendar className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-500' : 'text-slate-300'}`} />
+        <p className={`font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>No upcoming events</p>
+        <button onClick={onSchedule} className="mt-3 text-sm text-[var(--accent-primary)] font-medium hover:opacity-80">
+          View Schedule
+        </button>
+      </div>
+    )
+  }
+
+  const isGame = heroEvent.event_type === 'game'
+  const countdown = getCountdown(heroEvent.event_date)
+  const teamColor = team?.color || '#6366F1'
+
+  return (
+    <div
+      onClick={() => onEventClick?.(heroEvent)}
+      className="rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:shadow-lg"
+      style={{ background: `linear-gradient(135deg, ${teamColor}, ${teamColor}dd)` }}
+    >
+      <div className="relative px-6 py-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="inline-block px-2.5 py-1 rounded-lg bg-white/20 text-white text-xs font-bold tracking-wider mb-3">
+              {isGame ? 'NEXT MATCH' : 'NEXT EVENT'}
+            </span>
+            <h2 className="text-2xl lg:text-3xl font-black text-white tracking-tight">
+              {isGame && heroEvent.opponent ? `vs ${heroEvent.opponent}` : heroEvent.title || heroEvent.event_type}
+            </h2>
+            <div className="flex items-center gap-3 mt-2 text-white/80 text-sm">
+              {heroEvent.event_date && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(heroEvent.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </span>
+              )}
+              {heroEvent.event_time && (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {formatTime12(heroEvent.event_time)}
+                </span>
+              )}
+              {heroEvent.venue_name && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  {heroEvent.venue_name}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="text-right">
+            <span className={`text-3xl font-black text-white ${countdown === 'TODAY' ? 'animate-pulse' : ''}`}>
+              {countdown}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -194,39 +280,40 @@ function TeamHeaderCard({ team, season, playerCount, coachRole, onTeamHub, onCha
 // ROSTER WIDGET
 // ============================================
 function RosterWidget({ roster, onViewAll, onPlayerClick }) {
+  const { isDark } = useTheme()
   return (
     <DashCard>
       <CardHeader title={`Roster (${roster.length})`} action="View All" onAction={onViewAll} />
-      
-      <div className="divide-y divide-slate-100">
+
+      <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-slate-100'}`}>
         {roster.length > 0 ? (
-          roster.slice(0, 3).map(player => (
-            <div 
+          roster.slice(0, 6).map(player => (
+            <div
               key={player.id}
               onClick={() => onPlayerClick?.(player)}
-              className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition"
+              className={`px-5 py-3 flex items-center gap-3 cursor-pointer transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}
             >
-              <div className="flex items-center gap-1 text-slate-500 font-bold text-sm w-8">
+              <div className={`text-xs font-bold w-7 text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 {player.jersey_number ? `#${player.jersey_number}` : '—'}
               </div>
               {player.photo_url ? (
-                <img src={player.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+                <img src={player.photo_url} alt="" className="w-9 h-9 rounded-full object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
                   {player.first_name?.[0]}{player.last_name?.[0]}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-800">{player.first_name} {player.last_name}</p>
-                <p className="text-sm text-slate-500">{player.position || 'Player'}</p>
+                <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{player.first_name} {player.last_name}</p>
+                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{player.position || 'Player'}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-300" />
+              <ChevronRight className={`w-4 h-4 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
             </div>
           ))
         ) : (
           <div className="p-8 text-center">
-            <Users className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-            <p className="text-slate-500">No players on roster yet</p>
+            <Users className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+            <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No players on roster yet</p>
           </div>
         )}
       </div>
@@ -238,31 +325,31 @@ function RosterWidget({ roster, onViewAll, onPlayerClick }) {
 // QUICK ACTIONS WIDGET
 // ============================================
 function QuickActionsWidget({ onNavigate }) {
+  const { isDark } = useTheme()
   const actions = [
-    { icon: <Calendar className="w-6 h-6" />, label: 'Schedule', page: 'schedule', color: '#3B82F6' },
-    { icon: <Check className="w-6 h-6" />, label: 'Attendance', page: 'attendance', color: '#10B981' },
-    { icon: <Target className="w-6 h-6" />, label: 'Game Prep', page: 'gameprep', color: '#F59E0B' },
-    { icon: <MessageCircle className="w-6 h-6" />, label: 'Messages', page: 'chats', color: '#8B5CF6' },
+    { icon: <Calendar className="w-5 h-5" />, label: 'Schedule', page: 'schedule', color: '#3B82F6' },
+    { icon: <Check className="w-5 h-5" />, label: 'Attendance', page: 'attendance', color: '#10B981' },
+    { icon: <Target className="w-5 h-5" />, label: 'Game Prep', page: 'gameprep', color: '#F59E0B' },
+    { icon: <MessageCircle className="w-5 h-5" />, label: 'Messages', page: 'chats', color: '#8B5CF6' },
   ]
 
   return (
     <DashCard>
       <CardHeader title="Quick Actions" />
-      <div className="p-5">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="p-4">
+        <div className="grid grid-cols-4 gap-3">
           {actions.map(action => (
             <button
               key={action.page}
               onClick={() => onNavigate?.(action.page)}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition group"
+              className={`flex flex-col items-center gap-2 p-3 rounded-xl transition group ${
+                isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-slate-50 hover:bg-slate-100'
+              }`}
             >
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm"
-                style={{ backgroundColor: action.color }}
-              >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: action.color }}>
                 {action.icon}
               </div>
-              <span className="text-sm font-medium text-slate-700">{action.label}</span>
+              <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{action.label}</span>
             </button>
           ))}
         </div>
@@ -275,6 +362,7 @@ function QuickActionsWidget({ onNavigate }) {
 // UPCOMING EVENTS WIDGET
 // ============================================
 function UpcomingWidget({ events, onViewAll, onEventClick }) {
+  const { isDark } = useTheme()
   const formatDate = (dateStr) => {
     const date = new Date(dateStr + 'T00:00:00')
     return {
@@ -285,43 +373,39 @@ function UpcomingWidget({ events, onViewAll, onEventClick }) {
 
   return (
     <DashCard>
-      <CardHeader title="Upcoming" action="View All" onAction={onViewAll} />
-      
-      <div className="divide-y divide-slate-100">
+      <CardHeader title="Upcoming Schedule" action="View All" onAction={onViewAll} />
+      <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-slate-100'}`}>
         {events.length > 0 ? (
           events.slice(0, 5).map(event => {
             const { day, date } = formatDate(event.event_date)
             const isGame = event.event_type === 'game'
-            
             return (
-              <div 
-                key={event.id}
-                onClick={() => onEventClick?.(event)}
-                className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition"
-              >
-                <div className="text-center min-w-[45px]">
-                  <p className="text-[10px] text-slate-400 font-medium">{day}</p>
-                  <p className="text-2xl font-bold text-slate-800">{date}</p>
+              <div key={event.id} onClick={() => onEventClick?.(event)}
+                className={`px-5 py-3 flex items-center gap-4 cursor-pointer transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}>
+                <div className="text-center min-w-[40px]">
+                  <p className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{day}</p>
+                  <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{date}</p>
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
-                    isGame ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
+                    isGame
+                      ? (isDark ? 'bg-green-500/15 text-green-400' : 'bg-green-100 text-green-700')
+                      : (isDark ? 'bg-purple-500/15 text-purple-400' : 'bg-purple-100 text-purple-700')
                   }`}>
                     {isGame ? '🏐 Game' : '⚡ Practice'}
                   </span>
-                  <p className="text-sm text-slate-600 mt-1">
-                    {formatTime12(event.event_time)}
-                    {event.venue_name && ` · ${event.venue_name}`}
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {formatTime12(event.event_time)}{event.venue_name && ` · ${event.venue_name}`}
                   </p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
+                <ChevronRight className={`w-4 h-4 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
               </div>
             )
           })
         ) : (
           <div className="p-8 text-center">
-            <Calendar className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-            <p className="text-slate-500">No upcoming events</p>
+            <Calendar className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+            <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No upcoming events</p>
           </div>
         )}
       </div>
@@ -333,64 +417,50 @@ function UpcomingWidget({ events, onViewAll, onEventClick }) {
 // TEAM RECORD WIDGET
 // ============================================
 function TeamRecordWidget({ stats }) {
-  const winRate = stats.totalGames > 0 
-    ? Math.round((stats.wins / stats.totalGames) * 100) 
+  const { isDark } = useTheme()
+  const winRate = stats.totalGames > 0
+    ? Math.round((stats.wins / stats.totalGames) * 100)
     : 0
-
-  // Recent form (last 5 games)
   const recentForm = stats.recentGames || []
 
   return (
     <DashCard>
       <CardHeader title="Team Record" />
-      
       <div className="p-5">
-        {/* Big Record Display */}
-        <div className="text-center mb-6">
-          <span className="text-5xl font-bold text-slate-800">{stats.wins}</span>
-          <span className="text-5xl font-bold text-slate-400 mx-2">-</span>
-          <span className="text-5xl font-bold text-slate-800">{stats.losses}</span>
-          <p className="text-slate-500 mt-1">{winRate}% Win Rate</p>
+        <div className="text-center mb-4">
+          <span className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{stats.wins}</span>
+          <span className={`text-4xl font-bold mx-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>-</span>
+          <span className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{stats.losses}</span>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{winRate}% Win Rate</p>
         </div>
-        
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-emerald-50 rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-emerald-600 mb-1">
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className={`rounded-xl p-3 text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+            <div className="flex items-center justify-center gap-1 text-emerald-500 mb-1">
               <TrendingUp className="w-4 h-4" />
-              <span className="font-bold">W{stats.winStreak || 0}</span>
+              <span className="font-bold text-sm">W{stats.winStreak || 0}</span>
             </div>
-            <p className="text-xs text-slate-500">Current Streak</p>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Streak</p>
           </div>
-          <div className="bg-rose-50 rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-1 text-rose-600 mb-1">
-              <span className="font-bold">+{stats.pointDiff || 0}</span>
+          <div className={`rounded-xl p-3 text-center ${isDark ? 'bg-rose-500/10' : 'bg-rose-50'}`}>
+            <div className="flex items-center justify-center gap-1 text-rose-500 mb-1">
+              <span className="font-bold text-sm">+{stats.pointDiff || 0}</span>
             </div>
-            <p className="text-xs text-slate-500">Point Diff</p>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Pt Diff</p>
           </div>
         </div>
-        
-        {/* Recent Form */}
         <div>
-          <p className="text-sm text-slate-500 mb-2">Recent Form</p>
-          <div className="flex gap-2">
+          <p className={`text-xs mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Recent Form</p>
+          <div className="flex gap-1.5">
             {recentForm.length > 0 ? (
               recentForm.slice(0, 5).map((game, i) => (
-                <div 
-                  key={i}
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white text-sm ${
-                    game.won ? 'bg-emerald-500' : 'bg-rose-500'
-                  }`}
-                >
+                <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs ${game.won ? 'bg-emerald-500' : 'bg-rose-500'}`}>
                   {game.won ? 'W' : 'L'}
                 </div>
               ))
             ) : (
-              <>
-                {[1,2,3,4,5].map(i => (
-                  <div key={i} className="w-9 h-9 rounded-lg bg-slate-100 border-2 border-dashed border-slate-200" />
-                ))}
-              </>
+              [1,2,3,4,5].map(i => (
+                <div key={i} className={`w-8 h-8 rounded-lg border-2 border-dashed ${isDark ? 'border-slate-600' : 'border-slate-200'}`} />
+              ))
             )}
           </div>
         </div>
@@ -403,54 +473,39 @@ function TeamRecordWidget({ stats }) {
 // TOP PLAYER WIDGET
 // ============================================
 function TopPlayerWidget({ topPlayer, statCategory, onViewLeaderboards }) {
+  const { isDark } = useTheme()
   return (
     <DashCard>
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-        <h3 className="font-semibold text-slate-800 text-[15px] flex items-center gap-2">
-          <Star className="w-4 h-4 text-amber-500" />
-          Top Player
+      <div className={`flex items-center justify-between px-5 py-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+        <h3 className={`font-semibold text-[15px] flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          <Star className="w-4 h-4 text-amber-500" /> Top Player
         </h3>
-        <select 
-          value={statCategory}
-          className="text-sm text-slate-600 bg-transparent border-none outline-none cursor-pointer"
-        >
-          <option value="points">Points</option>
-          <option value="kills">Kills</option>
-          <option value="assists">Assists</option>
-        </select>
       </div>
-      
       <div className="p-5">
         {topPlayer ? (
           <div className="text-center">
             {topPlayer.photo_url ? (
-              <img src={topPlayer.photo_url} alt="" className="w-16 h-16 rounded-full mx-auto mb-3 object-cover" />
+              <img src={topPlayer.photo_url} alt="" className="w-14 h-14 rounded-full mx-auto mb-2 object-cover" />
             ) : (
-              <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-14 h-14 rounded-full mx-auto mb-2 bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
                 {topPlayer.first_name?.[0]}{topPlayer.last_name?.[0]}
               </div>
             )}
-            <p className="font-semibold text-slate-800">{topPlayer.first_name} {topPlayer.last_name}</p>
-            <p className="text-sm text-slate-500">{topPlayer.position || 'Player'}</p>
+            <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{topPlayer.first_name} {topPlayer.last_name}</p>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{topPlayer.position || 'Player'}</p>
             <p className="text-2xl font-bold text-amber-500 mt-2">{topPlayer.statValue || 0}</p>
-            <p className="text-xs text-slate-500">{statCategory}</p>
           </div>
         ) : (
-          <div className="text-center py-4">
-            <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-slate-100 flex items-center justify-center">
-              <Award className="w-8 h-8 text-slate-300" />
+          <div className="text-center py-3">
+            <div className={`w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <Award className={`w-7 h-7 ${isDark ? 'text-slate-500' : 'text-slate-300'}`} />
             </div>
-            <p className="text-slate-500 text-sm">No stats recorded yet</p>
-            <p className="text-xs text-slate-400">Complete games and enter player stats to see leaders</p>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No stats yet</p>
           </div>
         )}
-        
-        <button 
-          onClick={onViewLeaderboards}
-          className="w-full mt-4 text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center justify-center gap-1"
-        >
-          View Leaderboards
-          <ChevronRight className="w-4 h-4" />
+        <button onClick={onViewLeaderboards}
+          className="w-full mt-3 text-sm text-[var(--accent-primary)] font-medium hover:opacity-80 flex items-center justify-center gap-1">
+          View Leaderboards <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </DashCard>
@@ -461,6 +516,7 @@ function TopPlayerWidget({ topPlayer, statCategory, onViewLeaderboards }) {
 // TEAM SELECTOR (Multiple Teams)
 // ============================================
 function TeamSelector({ teams, selectedTeam, onSelect }) {
+  const { isDark } = useTheme()
   if (teams.length <= 1) return null
 
   return (
@@ -470,26 +526,21 @@ function TeamSelector({ teams, selectedTeam, onSelect }) {
           key={team.id}
           onClick={() => onSelect(team)}
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition flex-shrink-0 ${
-            selectedTeam?.id === team.id 
-              ? 'border-blue-500 bg-blue-50' 
-              : 'border-slate-200 bg-white hover:border-blue-300'
+            selectedTeam?.id === team.id
+              ? (isDark ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10' : 'border-blue-500 bg-blue-50')
+              : (isDark ? 'border-white/[0.08] bg-slate-800/60 hover:border-white/[0.15]' : 'border-slate-200 bg-white hover:border-blue-300')
           }`}
         >
-          <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-            style={{ backgroundColor: team.color || '#6366F1' }}
-          >
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: team.color || '#6366F1' }}>
             {team.name?.charAt(0)}
           </div>
           <div className="text-left">
-            <p className="font-medium text-slate-800">{team.name}</p>
-            <p className="text-xs text-slate-500">
-              {team.coachRole === 'head' ? '👑 Head' : '🏅 Asst'} • {team.playerCount} players
+            <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{team.name}</p>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {team.coachRole === 'head' ? '👑 Head' : '🏅 Asst'} · {team.playerCount} players
             </p>
           </div>
-          {selectedTeam?.id === team.id && (
-            <Check className="w-5 h-5 text-blue-500" />
-          )}
+          {selectedTeam?.id === team.id && <Check className="w-5 h-5 text-[var(--accent-primary)]" />}
         </button>
       ))}
     </div>
@@ -662,7 +713,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
       </div>
     )
   }
@@ -670,11 +721,11 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   if (teams.length === 0) {
     return (
       <div className="max-w-md mx-auto py-12 text-center">
-        <div className="w-20 h-20 rounded-full mx-auto mb-6 bg-amber-100 flex items-center justify-center">
+        <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${isDark ? 'bg-amber-500/10' : 'bg-amber-100'}`}>
           <VolleyballIcon className="w-10 h-10 text-amber-500" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Welcome, Coach!</h2>
-        <p className="text-slate-500 mb-6">You haven't been assigned to any teams yet. Contact your league administrator to get assigned.</p>
+        <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>Welcome, Coach!</h2>
+        <p className={`mb-6 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You haven't been assigned to any teams yet. Contact your league administrator to get assigned.</p>
       </div>
     )
   }
@@ -682,20 +733,25 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   return (
     <div className="space-y-6">
       {/* Team Selector */}
-      <TeamSelector 
+      <TeamSelector
         teams={teams}
         selectedTeam={selectedTeam}
         onSelect={handleTeamSelect}
       />
 
-      {/* 3-Column Grid Layout */}
+      {/* Hero: Next Game / Event */}
+      <NextGameHero
+        events={upcomingEvents}
+        team={selectedTeam}
+        onEventClick={setSelectedEventDetail}
+        onSchedule={() => onNavigate?.('schedule')}
+      />
+
+      {/* 2-Column Sideline HQ Layout */}
       <div className="grid grid-cols-12 gap-6">
-        {/* ═══════════════════════════════════════════════════
-            LEFT COLUMN
-            ═══════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Team Header Card */}
-          <TeamHeaderCard 
+        {/* LEFT: Roster (always visible) */}
+        <div className="col-span-12 lg:col-span-5 space-y-6">
+          <TeamHeaderCard
             team={selectedTeam}
             season={selectedSeason}
             playerCount={selectedTeam?.playerCount || 0}
@@ -703,42 +759,28 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             onTeamHub={() => navigateToTeamWall?.(selectedTeam?.id)}
             onChat={() => openTeamChat(selectedTeam?.id)}
           />
-          
-          {/* Roster */}
-          <RosterWidget 
+          <RosterWidget
             roster={roster}
             onViewAll={() => navigateToTeamWall?.(selectedTeam?.id)}
             onPlayerClick={setSelectedPlayer}
           />
         </div>
 
-        {/* ═══════════════════════════════════════════════════
-            MIDDLE COLUMN
-            ═══════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Quick Actions */}
+        {/* RIGHT: Actions + Record + Events */}
+        <div className="col-span-12 lg:col-span-7 space-y-6">
           <QuickActionsWidget onNavigate={onNavigate} />
-          
-          {/* Upcoming Events */}
-          <UpcomingWidget 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TeamRecordWidget stats={teamStats} />
+            <TopPlayerWidget
+              topPlayer={topPlayer}
+              statCategory="Points"
+              onViewLeaderboards={() => onNavigate?.('leaderboards')}
+            />
+          </div>
+          <UpcomingWidget
             events={upcomingEvents}
             onViewAll={() => onNavigate?.('schedule')}
             onEventClick={setSelectedEventDetail}
-          />
-        </div>
-
-        {/* ═══════════════════════════════════════════════════
-            RIGHT COLUMN
-            ═══════════════════════════════════════════════════ */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          {/* Team Record */}
-          <TeamRecordWidget stats={teamStats} />
-          
-          {/* Top Player */}
-          <TopPlayerWidget 
-            topPlayer={topPlayer}
-            statCategory="Points"
-            onViewLeaderboards={() => onNavigate?.('leaderboards')}
           />
         </div>
       </div>

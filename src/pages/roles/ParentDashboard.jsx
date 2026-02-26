@@ -1223,12 +1223,13 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       )}
 
       {/* ═══ PLAYER HERO CARD ═══ */}
-      <div 
-        className="overflow-hidden shadow-xl"
+      <div
+        className={`overflow-hidden ${isDark ? 'shadow-glass-dark' : 'shadow-soft-xl'}`}
         data-tutorial="player-card"
-        style={{ 
+        style={{
           borderRadius: registrationData.length > 1 ? '0 20px 20px 20px' : '20px',
-          border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.4)'}`,
+          backdropFilter: 'blur(12px)',
         }}
       >
         {/* ── Hero Top: Photo + Player Identity ── */}
@@ -1692,8 +1693,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               <button
                 key={event.id}
                 onClick={() => setSelectedEventDetail(event)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all shadow-sm
-                  ${isDark ? 'bg-slate-800 border-slate-700 hover:border-slate-500 hover:bg-slate-750' : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'} border`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all
+                  ${isDark ? 'bg-slate-800/80 backdrop-blur-sm border-white/[0.06] hover:border-white/[0.12] shadow-glass-dark' : 'bg-white/80 backdrop-blur-sm border-white/40 hover:shadow-soft-md shadow-soft-sm'} border`}
               >
                 {/* Date block */}
                 <div className="text-center w-12 flex-shrink-0">
