@@ -20,7 +20,7 @@ function StatItem({ value, label, isDark }) {
   return (
     <div className="flex flex-col items-center">
       <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
-      <span className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+      <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
         {label}
       </span>
     </div>
@@ -61,7 +61,7 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
         </span>
       )}
       {icon}
-      <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-800'}`}>{label}</span>
+      <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-800'}`}>{label}</span>
     </button>
   )
 }
@@ -103,7 +103,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <h2 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {orgName || 'My Organization'}
           </h2>
-          <p className={`mt-0.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className={`mt-0.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {season?.name || 'No season selected'}
             {season?.status ? ` · ${season.status.charAt(0).toUpperCase() + season.status.slice(1)}` : ''}
           </p>
@@ -129,7 +129,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
             style={{ width: `${Math.min(100, collectionPct)}%`, backgroundColor: accent.primary || '#0d9488' }}
           />
         </div>
-        <p className={`mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           ${totalCollected.toLocaleString()} / ${totalExpected.toLocaleString()}
         </p>
       </div>

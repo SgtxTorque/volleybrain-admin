@@ -126,7 +126,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
               </span>
             )}
           </div>
-          <p className="text-xs mt-0.5 text-slate-400">
+          <p className="text-sm mt-0.5 text-slate-400">
             {event.event_type === 'game' ? `Game vs ${event.opponent_name || 'TBD'}` : 'Practice'}
             {event.event_time ? ` · ${formatTime12(event.event_time)}` : ''}
             {expanded && loaded ? ` — ${presentCount}✓ ${absentCount}✗ ${unmarkedCount > 0 ? `${unmarkedCount} unmarked` : ''}` : ''}
@@ -140,7 +140,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
           {loading ? (
             <div className="py-6 text-center">
               <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-xs mt-2 text-slate-400">Loading...</p>
+              <p className="text-sm mt-2 text-slate-400">Loading...</p>
             </div>
           ) : (
             <>
@@ -190,7 +190,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate text-slate-900">{player.first_name} {player.last_name}</p>
-                        <p className="text-[10px] text-slate-400">#{player.jersey_number || '—'} · {player.position || 'Player'}</p>
+                        <p className="text-xs text-slate-400">#{player.jersey_number || '—'} · {player.position || 'Player'}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -218,7 +218,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
               {roster.length === 0 && (
                 <div className="py-6 text-center">
                   <Users className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-                  <p className="text-xs text-slate-400">No players on roster</p>
+                  <p className="text-sm text-slate-400">No players on roster</p>
                 </div>
               )}
             </>
@@ -384,7 +384,7 @@ export default function CoachCenterDashboard({
                 </div>
                 <div className="text-left">
                   <p className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-slate-900'}`}>{team.name}</p>
-                  <p className={`text-xs ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
+                  <p className={`text-sm ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
                     {team.coachRole === 'head' ? 'Head Coach' : 'Assistant'} · {team.playerCount} players
                   </p>
                 </div>
@@ -417,7 +417,7 @@ export default function CoachCenterDashboard({
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Game Day Tools</h2>
-            <p className="text-xs text-slate-400">Lineups, scoring, and stats</p>
+            <p className="text-sm text-slate-400">Lineups, scoring, and stats</p>
           </div>
         </div>
 
@@ -433,18 +433,18 @@ export default function CoachCenterDashboard({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Lineup Builder</h3>
-                <p className="text-xs text-slate-400">Build & manage lineups</p>
+                <p className="text-sm text-slate-400">Build & manage lineups</p>
               </div>
             </div>
             {nextGame ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-100">
                 <Swords className="w-4 h-4 text-indigo-500" />
-                <span className="text-xs text-slate-600">
+                <span className="text-sm text-slate-600">
                   Next: vs {nextGame.opponent_name || 'TBD'} · {countdownText(nextGame.event_date)}
                 </span>
               </div>
             ) : (
-              <p className="text-xs text-slate-400">No upcoming games</p>
+              <p className="text-sm text-slate-400">No upcoming games</p>
             )}
             <div className="flex items-center gap-1 mt-3 text-indigo-500 text-sm font-semibold">
               <span>Open Builder</span>
@@ -463,18 +463,18 @@ export default function CoachCenterDashboard({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Game Day Hub</h3>
-                <p className="text-xs text-slate-400">Live scoring & stats</p>
+                <p className="text-sm text-slate-400">Live scoring & stats</p>
               </div>
             </div>
             {nextGame && countdownText(nextGame.event_date) === 'TODAY' ? (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-xs text-red-500 font-semibold">Game Day — vs {nextGame.opponent_name || 'TBD'}</span>
+                <span className="text-sm text-red-500 font-semibold">Game Day — vs {nextGame.opponent_name || 'TBD'}</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
                 <Clock className="w-4 h-4 text-amber-500/60" />
-                <span className="text-xs text-slate-500">Score games, track stats, manage rotations</span>
+                <span className="text-sm text-slate-500">Score games, track stats, manage rotations</span>
               </div>
             )}
             <div className="flex items-center gap-1 mt-3 text-amber-500 text-sm font-semibold">
@@ -490,7 +490,7 @@ export default function CoachCenterDashboard({
             <Bell className="w-5 h-5 text-amber-500" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-amber-700">{pendingStats} game{pendingStats > 1 ? 's' : ''} need stats</p>
-              <p className="text-xs text-amber-600/70">Stats power leaderboards, badges, and parent views</p>
+              <p className="text-sm text-amber-600/70">Stats power leaderboards, badges, and parent views</p>
             </div>
             <button
               onClick={() => onNavigate?.('gameprep')}
@@ -520,7 +520,7 @@ export default function CoachCenterDashboard({
           {seasonTotals.map(stat => (
             <div key={stat.label} className="flex-1 min-w-[70px] text-center py-2 px-1 rounded-xl bg-slate-50">
               <p className="text-lg font-bold text-slate-900">{stat.value}</p>
-              <p className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">{stat.label}</p>
+              <p className="text-xs uppercase tracking-wide text-slate-500 font-bold">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -551,7 +551,7 @@ export default function CoachCenterDashboard({
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-900 truncate">{latestPost.profiles?.full_name}</p>
-                  <p className="text-xs text-slate-500 line-clamp-2">{latestPost.content}</p>
+                  <p className="text-sm text-slate-500 line-clamp-2">{latestPost.content}</p>
                   <p className="text-[10px] text-slate-400 mt-1">{timeAgo(latestPost.created_at)}</p>
                 </div>
               </div>
@@ -559,7 +559,7 @@ export default function CoachCenterDashboard({
           ) : (
             <div className="text-center py-4">
               <Users className="w-8 h-8 mx-auto text-slate-300 mb-1" />
-              <p className="text-xs text-slate-400">No posts yet</p>
+              <p className="text-sm text-slate-400">No posts yet</p>
             </div>
           )}
         </div>
@@ -588,10 +588,10 @@ export default function CoachCenterDashboard({
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-xs font-semibold text-slate-700">{msg.profiles?.full_name?.split(' ')[0]}</span>
+                      <span className="text-sm font-semibold text-slate-700">{msg.profiles?.full_name?.split(' ')[0]}</span>
                       <span className="text-[10px] text-slate-400">{timeAgo(msg.created_at)}</span>
                     </div>
-                    <p className="text-xs text-slate-600 truncate">{msg.content}</p>
+                    <p className="text-sm text-slate-600 truncate">{msg.content}</p>
                   </div>
                 </div>
               ))}
@@ -599,7 +599,7 @@ export default function CoachCenterDashboard({
           ) : (
             <div className="text-center py-4">
               <MessageCircle className="w-8 h-8 mx-auto text-slate-300 mb-1" />
-              <p className="text-xs text-slate-400">No messages yet</p>
+              <p className="text-sm text-slate-400">No messages yet</p>
             </div>
           )}
         </div>
@@ -629,7 +629,7 @@ export default function CoachCenterDashboard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900">Take Attendance</h3>
-              <p className="text-xs truncate text-slate-400">
+              <p className="text-sm truncate text-slate-400">
                 {nextEvent ? `${nextEvent.event_type === 'game' ? 'Game' : 'Practice'} · ${formatDateShort(nextEvent.event_date)}` : 'No upcoming events'}
               </p>
             </div>
@@ -645,7 +645,7 @@ export default function CoachCenterDashboard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900">Message Parents</h3>
-              <p className="text-xs truncate text-slate-400">Send announcement to {selectedTeam?.name}</p>
+              <p className="text-sm truncate text-slate-400">Send announcement to {selectedTeam?.name}</p>
             </div>
             <ChevronRight className="w-5 h-5 flex-shrink-0 text-slate-400" />
           </button>
@@ -659,7 +659,7 @@ export default function CoachCenterDashboard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900">Start Warmup</h3>
-              <p className="text-xs text-slate-400">Countdown timer for drills</p>
+              <p className="text-sm text-slate-400">Countdown timer for drills</p>
             </div>
             <ChevronRight className="w-5 h-5 flex-shrink-0 text-slate-400" />
           </button>

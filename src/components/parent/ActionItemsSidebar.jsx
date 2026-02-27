@@ -125,7 +125,7 @@ function SummaryStat({ label, count, color, extra }) {
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="text-xl font-black" style={{ color }}>{extra || count}</div>
-      <div className={`text-[10px] uppercase font-bold ${tc.textMuted}`}>{label}</div>
+      <div className={`text-xs uppercase font-bold ${tc.textMuted}`}>{label}</div>
     </div>
   )
 }

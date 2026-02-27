@@ -83,7 +83,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
           </svg>
           <div className="absolute flex flex-col items-center">
             <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{total}</span>
-            <span className={`text-[10px] font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               Total
             </span>
           </div>

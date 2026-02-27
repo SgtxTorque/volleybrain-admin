@@ -535,7 +535,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                       </div>
                       <div>
                         <p className="text-white font-medium text-sm">{player.first_name} {player.last_name}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-sm text-slate-400">
                           {player.position && <span className="mr-2">{player.position}</span>}
                           {player.grade && <span>Gr {player.grade}</span>}
                         </p>
@@ -592,12 +592,12 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
               >
                 <div>
                   <h3 className="font-semibold text-white">{team.name}</h3>
-                  <p className="text-xs text-slate-500">{team.team_players?.length || 0} players</p>
+                  <p className="text-sm text-slate-500">{team.team_players?.length || 0} players</p>
                 </div>
                 <div className="flex gap-1 items-center">
                   <button 
                     onClick={(e) => { e.stopPropagation(); navigateToTeamWall(team.id); }} 
-                    className="px-2 py-1 rounded-lg text-xs font-medium transition"
+                    className="px-2 py-1 rounded-lg text-sm font-medium transition"
                     style={{ background: `${team.color}20`, color: team.color }}
                     title="View Team Wall"
                   >
@@ -655,14 +655,14 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                                 className="text-white text-sm"
                               />
                               {tp.players?.position && (
-                                <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ backgroundColor: positionColors[tp.players.position] || '#666', color: '#000' }}>
+                                <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: positionColors[tp.players.position] || '#666', color: '#000' }}>
                                   {tp.players.position}
                                 </span>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            {tp.players?.grade && <span className="text-xs text-slate-500">Gr {tp.players.grade}</span>}
+                            {tp.players?.grade && <span className="text-sm text-slate-500">Gr {tp.players.grade}</span>}
                             <button onClick={(e) => { e.stopPropagation(); removePlayerFromTeam(tp.id); }} className="text-slate-500 hover:text-red-400 text-xs p-1"><X className="w-4 h-4" /></button>
                           </div>
                         </div>
@@ -858,7 +858,7 @@ function NewTeamModal({ onClose, onCreate }) {
                   maxLength={5}
                   className={`w-full ${tc.inputBg} border ${tc.border} rounded-xl px-4 py-3 ${tc.text} uppercase`} 
                 />
-                <p className={`text-xs ${tc.textMuted} mt-1`}>Short code for scoreboards & schedules (max 5 chars)</p>
+                <p className={`text-sm ${tc.textMuted} mt-1`}>Short code for scoreboards & schedules (max 5 chars)</p>
               </div>
               
               {/* Team Color */}
@@ -1021,7 +1021,7 @@ function NewTeamModal({ onClose, onCreate }) {
                   >
                     <span className="text-3xl">🎉</span>
                     <p className={`font-semibold ${tc.text} mt-2`}>Recreational</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Fun, learning & development</p>
+                    <p className={`text-sm ${tc.textMuted}`}>Fun, learning & development</p>
                   </button>
                   <button
                     onClick={() => setForm({...form, team_type: 'competitive'})}
@@ -1033,7 +1033,7 @@ function NewTeamModal({ onClose, onCreate }) {
                   >
                     <span className="text-3xl">🏆</span>
                     <p className={`font-semibold ${tc.text} mt-2`}>Competitive</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Travel, tournaments & leagues</p>
+                    <p className={`text-sm ${tc.textMuted}`}>Travel, tournaments & leagues</p>
                   </button>
                 </div>
               </div>
@@ -1133,7 +1133,7 @@ function NewTeamModal({ onClose, onCreate }) {
                     background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${((form.min_roster_size - 4) / (form.max_roster_size - 4)) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} ${((form.min_roster_size - 4) / (form.max_roster_size - 4)) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} 100%)`
                   }}
                 />
-                <p className={`text-xs ${tc.textMuted} mt-2`}>Minimum players needed to field a team</p>
+                <p className={`text-sm ${tc.textMuted} mt-2`}>Minimum players needed to field a team</p>
               </div>
               
               {/* Roster Status */}
@@ -1150,7 +1150,7 @@ function NewTeamModal({ onClose, onCreate }) {
                   >
                     <span className="text-2xl">🟢</span>
                     <p className={`font-semibold ${tc.text} mt-2`}>Open</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Accepting new players</p>
+                    <p className={`text-sm ${tc.textMuted}`}>Accepting new players</p>
                   </button>
                   <button
                     onClick={() => setForm({...form, roster_open: false})}
@@ -1162,7 +1162,7 @@ function NewTeamModal({ onClose, onCreate }) {
                   >
                     <span className="text-2xl">🔴</span>
                     <p className={`font-semibold ${tc.text} mt-2`}>Closed</p>
-                    <p className={`text-xs ${tc.textMuted}`}>Roster is full/locked</p>
+                    <p className={`text-sm ${tc.textMuted}`}>Roster is full/locked</p>
                   </button>
                 </div>
               </div>
@@ -1201,7 +1201,7 @@ function NewTeamModal({ onClose, onCreate }) {
                       <MessageCircle className="w-7 h-7" />
                       <div>
                         <p className={`font-medium ${tc.text}`}>Team Chat</p>
-                        <p className={`text-xs ${tc.textMuted}`}>Parents & coaches can message</p>
+                        <p className={`text-sm ${tc.textMuted}`}>Parents & coaches can message</p>
                       </div>
                     </div>
                     <input 
@@ -1217,7 +1217,7 @@ function NewTeamModal({ onClose, onCreate }) {
                       <span className="text-2xl">🧒</span>
                       <div>
                         <p className={`font-medium ${tc.text}`}>Player Chat</p>
-                        <p className={`text-xs ${tc.textMuted}`}>Players & coaches (parents view-only)</p>
+                        <p className={`text-sm ${tc.textMuted}`}>Players & coaches (parents view-only)</p>
                       </div>
                     </div>
                     <input 
@@ -1233,7 +1233,7 @@ function NewTeamModal({ onClose, onCreate }) {
                       <ClipboardList className="w-7 h-7" />
                       <div>
                         <p className={`font-medium ${tc.text}`}>Team Wall/Page</p>
-                        <p className={`text-xs ${tc.textMuted}`}>Team announcements, events & posts</p>
+                        <p className={`text-sm ${tc.textMuted}`}>Team announcements, events & posts</p>
                       </div>
                     </div>
                     <input 

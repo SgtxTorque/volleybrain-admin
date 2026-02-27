@@ -158,24 +158,24 @@ export default function ParentRightPanel({
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
             <div className="text-3xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">Wins</div>
+            <div className="text-xs uppercase font-bold text-slate-400">Wins</div>
           </div>
           <div className="text-2xl font-bold text-slate-300">-</div>
           <div className="text-center">
             <div className="text-3xl font-black text-red-500">{teamRecord?.losses || 0}</div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">Losses</div>
+            <div className="text-xs uppercase font-bold text-slate-400">Losses</div>
           </div>
           {(teamRecord?.ties || 0) > 0 && (
             <>
               <div className="text-2xl font-bold text-slate-300">-</div>
               <div className="text-center">
                 <div className="text-3xl font-black text-amber-500">{teamRecord.ties}</div>
-                <div className="text-[10px] uppercase font-bold text-slate-400">Ties</div>
+                <div className="text-xs uppercase font-bold text-slate-400">Ties</div>
               </div>
             </>
           )}
         </div>
-        <p className="text-xs text-center mt-2 text-slate-400">{activeTeam?.name}</p>
+        <p className="text-sm text-center mt-2 text-slate-400">{activeTeam?.name}</p>
       </div>
 
       {/* Achievements Preview */}
@@ -199,7 +199,7 @@ export default function ParentRightPanel({
                   >
                     {def.icon}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500 text-center max-w-[60px] leading-tight">{def.name}</span>
+                  <span className="text-xs font-bold text-slate-500 text-center max-w-[60px] leading-tight">{def.name}</span>
                 </div>
               )
             })}
@@ -219,7 +219,7 @@ export default function ParentRightPanel({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-700 truncate">{def.name}</span>
+                      <span className="text-sm font-bold text-slate-700 truncate">{def.name}</span>
                       <span className="text-[10px] text-slate-400 ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
@@ -234,7 +234,7 @@ export default function ParentRightPanel({
           <div className="text-center py-4">
             <Award className="w-8 h-8 mx-auto text-slate-300 mb-1" />
             <p className="text-sm text-slate-400">No badges earned yet</p>
-            <p className="text-xs text-slate-300 mt-1">Keep playing to unlock badges!</p>
+            <p className="text-sm text-slate-300 mt-1">Keep playing to unlock badges!</p>
           </div>
         )}
       </div>
@@ -270,7 +270,7 @@ export default function ParentRightPanel({
         <div className="text-center py-4">
           <BarChart3 className="w-8 h-8 mx-auto text-slate-300 mb-1" />
           <p className="text-sm text-slate-400">Stats update after games</p>
-          <p className="text-xs text-slate-300 mt-1">Check leaderboards for rankings</p>
+          <p className="text-sm text-slate-300 mt-1">Check leaderboards for rankings</p>
         </div>
       </div>
     </aside>

@@ -344,7 +344,7 @@ export default function ParentHeroCard({
                   <div className="text-lg font-black uppercase tracking-wide text-slate-900 truncate leading-tight">
                     {teamName}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-sm text-slate-500">
                     {position} &middot; {seasonName || 'Current Season'}
                   </div>
                 </div>
@@ -384,7 +384,7 @@ export default function ParentHeroCard({
                     ${i < arr.length - 1 ? 'border-r border-slate-200' : ''}`}
                 >
                   <span className="text-base">{btn.icon}</span>
-                  <span className="text-[10px] font-medium text-slate-600">{btn.label}</span>
+                  <span className="text-xs font-medium text-slate-600">{btn.label}</span>
                 </button>
               ))}
             </div>
@@ -452,7 +452,7 @@ export default function ParentHeroCard({
                               >
                                 {def.icon}
                               </div>
-                              <span className="text-[10px] font-bold text-slate-600 text-center max-w-[70px] leading-tight truncate">
+                              <span className="text-xs font-bold text-slate-600 text-center max-w-[70px] leading-tight truncate">
                                 {def.name}
                               </span>
                             </div>
@@ -463,8 +463,8 @@ export default function ParentHeroCard({
                       <div className="flex-1 flex items-center justify-center rounded-lg bg-slate-50">
                         <div className="text-center">
                           <span className="text-2xl block mb-1">🏅</span>
-                          <p className="text-xs text-slate-400 font-medium">No badges yet</p>
-                          <p className="text-[10px] text-slate-300 mt-0.5">Keep playing!</p>
+                          <p className="text-sm text-slate-400 font-medium">No badges yet</p>
+                          <p className="text-xs text-slate-300 mt-0.5">Keep playing!</p>
                         </div>
                       </div>
                     )}
@@ -547,7 +547,7 @@ export default function ParentHeroCard({
                     <p className="text-sm font-bold text-slate-900 truncate">{combo.firstName}</p>
                     <div className="flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: combo.teamColor }} />
-                      <p className="text-xs text-slate-500 truncate">
+                      <p className="text-sm text-slate-500 truncate">
                         {combo.teamName}
                         {combo.jerseyNumber ? ` · #${combo.jerseyNumber}` : ''}
                       </p>

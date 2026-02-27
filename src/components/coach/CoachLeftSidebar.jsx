@@ -36,8 +36,8 @@ export default function CoachLeftSidebar({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-slate-900 truncate">{selectedTeam?.name}</p>
-            <p className="text-xs text-slate-500">{selectedSeason?.name} · {sportName}</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-sm text-slate-500">{selectedSeason?.name} · {sportName}</p>
+            <p className="text-sm text-slate-400">
               {selectedTeam?.coachRole === 'head' ? 'Head Coach' : 'Assistant'} · {coachName}
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function CoachLeftSidebar({
         ].map(stat => (
           <div key={stat.label} className="text-center p-2 rounded-xl bg-slate-50">
             <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>
-            <p className="text-[10px] uppercase tracking-wide text-slate-400 font-bold">{stat.label}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-400 font-bold">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -78,14 +78,14 @@ export default function CoachLeftSidebar({
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 text-left"
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <span className="text-xs font-medium text-slate-700">{item.label}</span>
+                <span className="text-sm font-medium text-slate-700">{item.label}</span>
                 <ChevronRight className="w-3 h-3 ml-auto text-slate-400" />
               </button>
             ))}
           </div>
         ) : (
           <div className="text-center py-2">
-            <p className="text-xs text-emerald-500 font-semibold">All caught up!</p>
+            <p className="text-sm text-emerald-500 font-semibold">All caught up!</p>
           </div>
         )}
       </div>
@@ -138,7 +138,7 @@ export default function CoachLeftSidebar({
                 className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-left"
               >
                 <Icon className="w-4 h-4 text-slate-500" />
-                <span className="text-xs font-semibold text-slate-600">{action.label}</span>
+                <span className="text-sm font-semibold text-slate-600">{action.label}</span>
               </button>
             )
           })}

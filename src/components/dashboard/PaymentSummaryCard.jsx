@@ -50,9 +50,9 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
         </div>
 
         <div className="mt-2 flex items-center justify-between">
-          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{collectionPct}% collected</span>
+          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{collectionPct}% collected</span>
           {pastDue > 0 && (
-            <span className="text-xs font-semibold text-red-500">${pastDue.toLocaleString()} overdue</span>
+            <span className="text-sm font-semibold text-red-500">${pastDue.toLocaleString()} overdue</span>
           )}
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
       {/* Recent Payments */}
       {recentPayments && recentPayments.length > 0 && (
         <div className="flex flex-col gap-0">
-          <span className={`mb-2 text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <span className={`mb-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             Recent
           </span>
           {recentPayments.slice(0, 3).map((payment, i) => (

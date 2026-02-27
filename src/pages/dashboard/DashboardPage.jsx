@@ -73,7 +73,7 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
           {action && (
             <button 
               onClick={onAction}
-              className={`text-xs px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1
+              className={`text-sm px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1
                 ${colorClasses[color] || colorClasses.blue} text-white hover:brightness-110`}
             >
               {action}
@@ -467,15 +467,15 @@ function FinancialOverview({ monthlyData, totalCollected }) {
         <div className={`flex items-center gap-4 mt-6 pt-4 border-t ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Online</span>
+            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Online</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Manual</span>
+            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Manual</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Refunds</span>
+            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Refunds</span>
           </div>
         </div>
       </div>
@@ -825,7 +825,7 @@ function OverduePayments({ stats, onNavigate }) {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-sm font-bold text-red-600">${total.toLocaleString()}</span>
-              <span className={`text-[10px] uppercase ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue</span>
+              <span className={`text-xs uppercase ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue</span>
             </div>
           </div>
         </div>

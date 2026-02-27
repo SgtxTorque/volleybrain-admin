@@ -54,7 +54,7 @@ export function ClickablePlayerName({ player, className = '', children, onPlayer
 function InfoRow({ label, value, tc }) {
   return (
     <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-slate-900'} rounded-lg px-3 py-2`}>
-      <p className={`text-[10px] uppercase tracking-wider font-bold ${tc?.textMuted || 'text-slate-400'}`}>{label}</p>
+      <p className={`text-xs uppercase tracking-wider font-bold ${tc?.textMuted || 'text-slate-400'}`}>{label}</p>
       <p className={`${tc?.text || 'text-slate-900 dark:text-white'} font-semibold text-sm mt-0.5`}>{value || '—'}</p>
     </div>
   )
@@ -81,7 +81,7 @@ function EditField({ label, value, onChange, type = 'text', options, multiline, 
   if (options) {
     return (
       <div>
-        <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
+        <label className={`block text-sm font-medium ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
         <select value={value} onChange={e => onChange(e.target.value)} className={inputCls}>
           <option value="">Select...</option>
           {(Array.isArray(options) ? options : []).map(o => {
@@ -96,14 +96,14 @@ function EditField({ label, value, onChange, type = 'text', options, multiline, 
   if (multiline) {
     return (
       <div>
-        <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
+        <label className={`block text-sm font-medium ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
         <textarea value={value} onChange={e => onChange(e.target.value)} className={`${inputCls} min-h-[60px]`} />
       </div>
     )
   }
   return (
     <div>
-      <label className={`block text-xs ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
+      <label className={`block text-sm font-medium ${tc?.textMuted || 'text-slate-500'} mb-1`}>{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} className={inputCls} />
     </div>
   )
@@ -371,7 +371,7 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                   </div>
                   {merged.parent2_name && (
                     <div className="mt-2.5">
-                      <p className={`text-[10px] uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>Parent / Guardian 2</p>
+                      <p className={`text-xs uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>Parent / Guardian 2</p>
                       <div className="grid grid-cols-2 gap-2.5">
                         <InfoRow tc={tc} label="Name" value={merged.parent2_name} />
                         <InfoRow tc={tc} label="Email" value={merged.parent2_email} />
@@ -418,7 +418,7 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                     )}
                   </div>
                   {(reg?.signature_name || player.waiver_signed_by) && (
-                    <p className={`text-xs ${tc.textMuted} mt-3`}>
+                    <p className={`text-sm ${tc.textMuted} mt-3`}>
                       Signed by <span className="font-semibold">{reg?.signature_name || player.waiver_signed_by}</span>
                       {(reg?.signature_date || player.waiver_signed_date) && (
                         <> on {new Date(reg?.signature_date || player.waiver_signed_date).toLocaleDateString()}</>
@@ -445,10 +445,10 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
                   {/* Custom answers from registration */}
                   {reg?.custom_answers && Object.keys(reg.custom_answers).length > 0 && (
                     <div className="mt-3">
-                      <p className={`text-[10px] uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>Custom Answers</p>
+                      <p className={`text-xs uppercase tracking-wider font-bold ${tc.textMuted} mb-2`}>Custom Answers</p>
                       <div className="space-y-1.5">
                         {Object.entries(reg.custom_answers).map(([q, a]) => (
-                          <div key={q} className={`text-xs ${tc.textMuted}`}>
+                          <div key={q} className={`text-sm ${tc.textMuted}`}>
                             <span className="font-medium">{q}:</span> {a || '—'}
                           </div>
                         ))}
@@ -899,7 +899,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
                 }, {})
               ).map(([type, data]) => (
                 <div key={type} className={`${tc.cardBg} border ${tc.border} rounded-lg px-4 py-2`}>
-                  <p className={`text-xs ${tc.textMuted} capitalize`}>{type}</p>
+                  <p className={`text-sm ${tc.textMuted} capitalize`}>{type}</p>
                   <p className={`font-medium ${tc.text}`}>${data.total.toFixed(0)}</p>
                   <p className="text-xs text-emerald-400">${data.paid.toFixed(0)} paid</p>
                 </div>
@@ -1478,8 +1478,8 @@ export function RegistrationsPage({ showToast }) {
                               onPlayerSelect={(p) => { setSelectedPlayer(p); setEditMode(false) }}
                               className={`font-medium ${tc.text}`}
                             />
-                            <p className={`text-xs ${tc.textMuted}`}>
-                              {player.birth_date || player.dob ? `Age: ${calculateAge(player.birth_date || player.dob)}` : ''} 
+                            <p className={`text-sm ${tc.textMuted}`}>
+                              {player.birth_date || player.dob ? `Age: ${calculateAge(player.birth_date || player.dob)}` : ''}
                               {player.grade ? ` • Grade ${player.grade}` : ''}
                             </p>
                           </div>
@@ -1489,7 +1489,7 @@ export function RegistrationsPage({ showToast }) {
                         </td>
                         <td className="px-6 py-4">
                           <p className={`text-sm ${tc.textSecondary}`}>{player.parent_email}</p>
-                          <p className={`text-xs ${tc.textMuted}`}>{player.parent_phone}</p>
+                          <p className={`text-sm ${tc.textMuted}`}>{player.parent_phone}</p>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-1">
@@ -1516,24 +1516,24 @@ export function RegistrationsPage({ showToast }) {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-2">
-                            <button onClick={() => { setSelectedPlayer(player); setEditMode(false) }} className={`px-3 py-1 ${tc.cardBgAlt} rounded-lg text-xs ${tc.text} ${tc.hoverBgAlt}`}>
+                            <button onClick={() => { setSelectedPlayer(player); setEditMode(false) }} className={`px-3 py-1 ${tc.cardBgAlt} rounded-lg text-sm ${tc.text} ${tc.hoverBgAlt}`}>
                               View
                             </button>
-                            <button onClick={() => { setSelectedPlayer(player); setEditMode(true) }} className="px-3 py-1 bg-blue-500/20 rounded-lg text-xs text-blue-400 hover:bg-blue-500/30">
+                            <button onClick={() => { setSelectedPlayer(player); setEditMode(true) }} className="px-3 py-1 bg-blue-500/20 rounded-lg text-sm text-blue-400 hover:bg-blue-500/30">
                               Edit
                             </button>
                             {['submitted', 'pending', 'new'].includes(reg?.status) && (
                               <>
-                                <button onClick={() => updateStatus(player.id, reg.id, 'approved')} className="px-3 py-1 bg-emerald-500/20 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/30">
+                                <button onClick={() => updateStatus(player.id, reg.id, 'approved')} className="px-3 py-1 bg-emerald-500/20 rounded-lg text-sm text-emerald-400 hover:bg-emerald-500/30">
                                   Approve
                                 </button>
-                                <button onClick={() => setShowDenyModal({ player, reg })} className="px-3 py-1 bg-red-500/20 rounded-lg text-xs text-red-400 hover:bg-red-500/30">
+                                <button onClick={() => setShowDenyModal({ player, reg })} className="px-3 py-1 bg-red-500/20 rounded-lg text-sm text-red-400 hover:bg-red-500/30">
                                   Deny
                                 </button>
                               </>
                             )}
                             {reg?.status === 'waitlist' && (
-                              <button onClick={() => updateStatus(player.id, reg.id, 'approved')} className="px-3 py-1 bg-amber-500/20 rounded-lg text-xs text-amber-400 hover:bg-amber-500/30" title="Promote from waitlist to approved">
+                              <button onClick={() => updateStatus(player.id, reg.id, 'approved')} className="px-3 py-1 bg-amber-500/20 rounded-lg text-sm text-amber-400 hover:bg-amber-500/30" title="Promote from waitlist to approved">
                                 ⬆️ Promote
                               </button>
                             )}

@@ -123,7 +123,7 @@ export default function ParentLeftSidebar({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-900 truncate">{orgName}</p>
-              {orgTagline && <p className="text-xs text-slate-500 truncate">{orgTagline}</p>}
+              {orgTagline && <p className="text-sm text-slate-500 truncate">{orgTagline}</p>}
             </div>
           </div>
         ) : (
@@ -147,7 +147,7 @@ export default function ParentLeftSidebar({
             )}
             <div>
               <p className="text-sm font-semibold text-slate-900">{profile?.full_name || 'Parent'}</p>
-              <p className="text-xs text-slate-500">Parent</p>
+              <p className="text-sm text-slate-500">Parent</p>
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function ParentLeftSidebar({
         ].map(stat => (
           <div key={stat.label} className="flex-1 bg-slate-50 rounded-xl px-3 py-3 text-center">
             <div className="text-xl font-bold text-slate-900">{stat.value}</div>
-            <div className="text-[10px] text-slate-500 mt-0.5 uppercase font-semibold tracking-wide">{stat.label}</div>
+            <div className="text-xs text-slate-500 mt-0.5 uppercase font-semibold tracking-wide">{stat.label}</div>
           </div>
         ))}
       </div>
@@ -176,7 +176,7 @@ export default function ParentLeftSidebar({
         {paymentSummary.totalDue > 0 ? (
           <>
             <p className="text-2xl font-black text-red-500">${paymentSummary.totalDue.toFixed(2)}</p>
-            <p className="text-xs text-slate-500 mt-1">Balance due</p>
+            <p className="text-sm text-slate-500 mt-1">Balance due</p>
             {paymentSummary.totalPaid > 0 && (
               <div className="mt-2">
                 <div className="w-full h-2 rounded-full bg-slate-100">
@@ -185,7 +185,7 @@ export default function ParentLeftSidebar({
                     style={{ width: `${Math.min(100, (paymentSummary.totalPaid / (paymentSummary.totalDue + paymentSummary.totalPaid)) * 100)}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">${paymentSummary.totalPaid.toFixed(2)} paid</p>
+                <p className="text-xs text-slate-400 mt-1">${paymentSummary.totalPaid.toFixed(2)} paid</p>
               </div>
             )}
           </>
@@ -196,7 +196,7 @@ export default function ParentLeftSidebar({
             </div>
             <div>
               <p className="text-sm font-bold text-emerald-600">All Paid Up</p>
-              <p className="text-xs text-slate-400">No outstanding balance</p>
+              <p className="text-sm text-slate-400">No outstanding balance</p>
             </div>
           </div>
         )}
@@ -231,7 +231,7 @@ export default function ParentLeftSidebar({
                   </div>
                   <div className="text-left">
                     <div className="text-sm font-semibold text-slate-900">{item.title || item.label}</div>
-                    {item.subtitle && <div className="text-xs text-slate-500">{item.subtitle}</div>}
+                    {item.subtitle && <div className="text-sm text-slate-500">{item.subtitle}</div>}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition" />
@@ -240,7 +240,7 @@ export default function ParentLeftSidebar({
             {priorityEngine.count > 3 && (
               <button
                 onClick={() => onShowActionSidebar?.()}
-                className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition w-full text-left pt-1"
+                className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition w-full text-left pt-1"
               >
                 View All {priorityEngine.count} items →
               </button>
@@ -253,7 +253,7 @@ export default function ParentLeftSidebar({
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-900">All caught up!</p>
-              <p className="text-xs text-slate-400">Nothing needs your attention</p>
+              <p className="text-sm text-slate-400">Nothing needs your attention</p>
             </div>
           </div>
         )}
@@ -275,7 +275,7 @@ export default function ParentLeftSidebar({
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
             >
               <btn.icon className="w-5 h-5 text-slate-600" />
-              <span className="text-xs font-semibold text-slate-700">{btn.label}</span>
+              <span className="text-sm font-semibold text-slate-700">{btn.label}</span>
             </button>
           ))}
         </div>
@@ -301,7 +301,7 @@ export default function ParentLeftSidebar({
                   >
                     {def.icon}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500 text-center max-w-[60px] leading-tight">{def.name}</span>
+                  <span className="text-xs font-bold text-slate-500 text-center max-w-[60px] leading-tight">{def.name}</span>
                 </div>
               )
             })}
@@ -321,7 +321,7 @@ export default function ParentLeftSidebar({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-700 truncate">{def.name}</span>
+                      <span className="text-sm font-bold text-slate-700 truncate">{def.name}</span>
                       <span className="text-[10px] text-slate-400 ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">

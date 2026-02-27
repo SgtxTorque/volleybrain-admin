@@ -140,7 +140,7 @@ export default function ParentCenterDashboard({
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-sm font-bold ${alert.priority === 'urgent' ? 'text-white' : 'text-slate-900'}`}>{alert.title}</p>
-            <p className={`text-xs mt-0.5 ${alert.priority === 'urgent' ? 'text-red-100' : 'text-slate-500'}`}>{alert.content}</p>
+            <p className={`text-sm mt-0.5 ${alert.priority === 'urgent' ? 'text-red-100' : 'text-slate-500'}`}>{alert.content}</p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onDismissAlert?.(alert.id) }}
@@ -289,7 +289,7 @@ export default function ParentCenterDashboard({
                     )}
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-slate-700">{msg.profiles?.full_name || 'Unknown'}</span>
+                        <span className="text-sm font-semibold text-slate-700">{msg.profiles?.full_name || 'Unknown'}</span>
                         <span className="text-[10px] text-slate-400">{new Date(msg.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
                       </div>
                       <p className="text-sm text-slate-600 line-clamp-2">{msg.content}</p>
@@ -352,14 +352,14 @@ export default function ParentCenterDashboard({
                         <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md ${isGame ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
                           {isGame ? 'GAME' : 'PRACTICE'}
                         </span>
-                        {event.opponent && <span className="text-xs font-semibold text-slate-600">vs {event.opponent}</span>}
+                        {event.opponent && <span className="text-sm font-semibold text-slate-600">vs {event.opponent}</span>}
                         {daysUntil === 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-500">TODAY</span>}
                         {daysUntil === 1 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-600">TOMORROW</span>}
                       </div>
-                      <div className="text-xs text-slate-500 mt-0.5">
+                      <div className="text-sm text-slate-500 mt-0.5">
                         {event.event_time && formatTime12(event.event_time)}{event.venue_name && ` · ${event.venue_name}`}
                       </div>
-                      <div className="text-[10px] font-bold mt-0.5" style={{ color: evtTeamColor }}>{event.teams?.name}</div>
+                      <div className="text-xs font-bold mt-0.5" style={{ color: evtTeamColor }}>{event.teams?.name}</div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
                   </button>
@@ -370,7 +370,7 @@ export default function ParentCenterDashboard({
             <div className="text-center py-8">
               <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
               <p className="text-sm font-medium text-slate-500">No upcoming events</p>
-              <p className="text-xs text-slate-400 mt-1">Check the schedule for past events</p>
+              <p className="text-sm text-slate-400 mt-1">Check the schedule for past events</p>
             </div>
           )}
         </div>
@@ -405,7 +405,7 @@ export default function ParentCenterDashboard({
             <span className="text-2xl">🎉</span>
             <div>
               <p className="text-sm font-bold text-slate-900">New Season Registration Open!</p>
-              <p className="text-xs text-slate-500">{openSeasons[0].name} — {openSeasons[0].organizations?.name}</p>
+              <p className="text-sm text-slate-500">{openSeasons[0].name} — {openSeasons[0].organizations?.name}</p>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">

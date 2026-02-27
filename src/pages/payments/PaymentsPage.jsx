@@ -204,11 +204,11 @@ function PlayerPaymentCard({
             <p className={`text-lg font-bold ${allPaid ? 'text-emerald-400' : 'text-slate-300'}`}>
               ${totalPaid.toFixed(2)} <span className="text-slate-500">/ ${total.toFixed(2)}</span>
             </p>
-            <p className={`text-xs ${allPaid ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-sm ${allPaid ? 'text-emerald-400' : 'text-red-400'}`}>
               {allPaid ? '✓ Paid in full' : `$${totalOwed.toFixed(2)} outstanding`}
             </p>
           </div>
-          
+
           {/* Quick Actions */}
           <div className="flex gap-2" onClick={e => e.stopPropagation()}>
             <button
@@ -236,18 +236,18 @@ function PlayerPaymentCard({
                   <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-400' : 'bg-red-400'}`} />
                   <div className="flex-1">
                     <p className={`font-medium ${tc.text}`}>{payment.fee_name || payment.fee_type}</p>
-                    <p className={`text-xs ${tc.textMuted}`}>
+                    <p className={`text-sm ${tc.textMuted}`}>
                       {payment.description || ''}
                       {payment.due_date && ` • Due: ${new Date(payment.due_date).toLocaleDateString()}`}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                   <p className={`font-semibold ${tc.text} w-20 text-right`}>
                     ${parseFloat(payment.amount || 0).toFixed(2)}
                   </p>
-                  
+
                   {/* Status Badge */}
                   <div className="w-20">
                     {payment.paid ? (
@@ -260,20 +260,20 @@ function PlayerPaymentCard({
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Actions */}
                   <div className="flex gap-2">
                     {payment.paid ? (
                       <button
                         onClick={() => onMarkUnpaid(payment.id)}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
+                        className="text-sm px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
                       >
                         Mark Unpaid
                       </button>
                     ) : (
                       <button
                         onClick={() => onMarkPaid(payment)}
-                        className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                        className="text-sm px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
                       >
                         Mark Paid
                       </button>
@@ -370,7 +370,7 @@ function FamilyPaymentCard({
             <p className={`text-sm ${tc.textMuted}`}>
               {family.email} • {[...family.players].length} player{[...family.players].length !== 1 ? 's' : ''}
             </p>
-            <p className={`text-xs ${tc.textMuted}`}>{[...family.players].join(', ')}</p>
+            <p className={`text-sm ${tc.textMuted}`}>{[...family.players].join(', ')}</p>
           </div>
         </div>
         
@@ -379,11 +379,11 @@ function FamilyPaymentCard({
             <p className={`text-lg font-bold ${allPaid ? 'text-emerald-400' : 'text-slate-300'}`}>
               ${totalPaid.toFixed(2)} <span className="text-slate-500">/ ${total.toFixed(2)}</span>
             </p>
-            <p className={`text-xs ${allPaid ? 'text-emerald-400' : 'text-red-400'}`}>
+            <p className={`text-sm ${allPaid ? 'text-emerald-400' : 'text-red-400'}`}>
               {allPaid ? '✓ Paid in full' : `$${totalOwed.toFixed(2)} outstanding`}
             </p>
           </div>
-          
+
           <div className="flex gap-2" onClick={e => e.stopPropagation()}>
             <button
               onClick={() => onSendReminder(family)}
@@ -420,7 +420,7 @@ function FamilyPaymentCard({
                       <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-400' : 'bg-red-400'}`} />
                       <div className="flex-1">
                         <p className={`font-medium ${tc.text}`}>{payment.fee_name || payment.fee_type}</p>
-                        <p className={`text-xs ${tc.textMuted}`}>
+                        <p className={`text-sm ${tc.textMuted}`}>
                           {payment.due_date && `Due: ${new Date(payment.due_date).toLocaleDateString()}`}
                         </p>
                       </div>
@@ -447,14 +447,14 @@ function FamilyPaymentCard({
                         {payment.paid ? (
                           <button
                             onClick={() => onMarkUnpaid(payment.id)}
-                            className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
+                            className="text-sm px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600"
                           >
                             Mark Unpaid
                           </button>
                         ) : (
                           <button
                             onClick={() => onMarkPaid(payment)}
-                            className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                            className="text-sm px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
                           >
                             Mark Paid
                           </button>
