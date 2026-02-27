@@ -567,6 +567,7 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
 // ============================================
 export function RegistrationAnalytics({ registrations, season, statusCounts, showToast }) {
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -711,7 +712,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
               {capacityUsed} / {capacity} spots filled
             </span>
           </div>
-          <div className="w-full h-4 bg-slate-700 rounded-full overflow-hidden">
+          <div className={`w-full h-4 ${isDark ? 'bg-slate-700' : 'bg-slate-200'} rounded-full overflow-hidden`}>
             <div 
               className={`h-full transition-all ${capacityPercent >= 90 ? 'bg-red-500' : capacityPercent >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
               style={{ width: `${Math.min(capacityPercent, 100)}%` }}
@@ -750,7 +751,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
               </div>
             ))}
           </div>
-          <div className="mt-6 pt-2 border-t border-slate-700/50">
+          <div className={`mt-6 pt-2 border-t ${tc.border}`}>
             <p className={`text-sm ${tc.textMuted}`}>
               Total in period: <span className={tc.text}>{last14Days.reduce((sum, d) => sum + d.count, 0)}</span>
               {' · '}Avg/day: <span className={tc.text}>{(last14Days.reduce((sum, d) => sum + d.count, 0) / 14).toFixed(1)}</span>
@@ -770,7 +771,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
                     <span className={`text-sm ${tc.textSecondary}`}>{stage.stage}</span>
                     <span className={`text-sm font-medium ${tc.text}`}>{stage.count}</span>
                   </div>
-                  <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+                  <div className={`w-full h-3 ${isDark ? 'bg-slate-700' : 'bg-slate-200'} rounded-full overflow-hidden`}>
                     <div 
                       className={`h-full ${stage.color} transition-all`}
                       style={{ width: `${percent}%` }}
@@ -781,7 +782,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
             })}
           </div>
           {statusCounts.waitlist > 0 && (
-            <div className="mt-4 pt-4 border-t border-slate-700/50">
+            <div className={`mt-4 pt-4 border-t ${tc.border}`}>
               <div className="flex items-center justify-between">
                 <span className={`text-sm text-amber-400`}>⏳ Waitlist</span>
                 <span className={`text-sm font-medium text-amber-400`}>{statusCounts.waitlist}</span>
@@ -812,7 +813,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
                 return (
                   <div key={grade} className="flex items-center gap-3">
                     <span className={`w-20 text-sm ${tc.textSecondary}`}>Grade {grade}</span>
-                    <div className="flex-1 h-6 bg-slate-700 rounded overflow-hidden">
+                    <div className={`flex-1 h-6 ${isDark ? 'bg-slate-700' : 'bg-slate-200'} rounded overflow-hidden`}>
                       <div 
                         className="h-full bg-[var(--accent-primary)] flex items-center justify-end pr-2"
                         style={{ width: `${percent}%`, minWidth: count > 0 ? '30px' : '0' }}
@@ -885,7 +886,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
         
         {/* Fee Type Breakdown */}
         {payments.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-700/50">
+          <div className={`mt-4 pt-4 border-t ${tc.border}`}>
             <p className={`text-sm ${tc.textMuted} mb-3`}>By Fee Type</p>
             <div className="flex flex-wrap gap-3">
               {Object.entries(
