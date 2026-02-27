@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 
 // ============================================
@@ -124,31 +125,33 @@ const LEADERBOARD_CATEGORIES = [
 // RANK BADGE COMPONENT
 // ============================================
 function RankBadge({ rank }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   if (rank === 1) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200">
+      <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg ${isDark ? 'shadow-amber-900/30' : 'shadow-amber-200'}`}>
         <span className="text-white font-bold text-lg">🥇</span>
       </div>
     )
   }
   if (rank === 2) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center shadow-lg shadow-slate-200">
+      <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-500 flex items-center justify-center shadow-lg ${isDark ? 'shadow-slate-900/30' : 'shadow-slate-200'}`}>
         <span className="text-white font-bold text-lg">🥈</span>
       </div>
     )
   }
   if (rank === 3) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
+      <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg ${isDark ? 'shadow-orange-900/30' : 'shadow-orange-200'}`}>
         <span className="text-white font-bold text-lg">🥉</span>
       </div>
     )
   }
   
   return (
-    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-      <span className="text-slate-600 font-bold">{rank}</span>
+    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+      <span className={`font-bold ${tc.textMuted}`}>{rank}</span>
     </div>
   )
 }
@@ -157,7 +160,9 @@ function RankBadge({ rank }) {
 // LEADERBOARD ROW COMPONENT
 // ============================================
 function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick, isHighlighted }) {
-  const displayValue = isPercentage 
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
+  const displayValue = isPercentage
     ? `${(statValue * 100).toFixed(1)}%`
     : statValue
   
@@ -165,10 +170,10 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
     <div 
       onClick={onClick}
       className={`flex items-center gap-4 p-4 rounded-xl transition cursor-pointer ${
-        rank <= 3 
-          ? 'bg-gradient-to-r from-white to-slate-50 border-2 border-slate-200 shadow-sm hover:shadow-md' 
-          : 'bg-white border border-slate-200 hover:border-slate-300'
-      } ${isHighlighted ? 'ring-2 ring-indigo-500' : ''}`}
+        rank <= 3
+          ? `${isDark ? 'bg-gradient-to-r from-slate-800 to-slate-800/80' : 'bg-gradient-to-r from-white to-slate-50'} border-2 ${tc.border} shadow-sm hover:shadow-md`
+          : `${tc.cardBg} border ${tc.border} ${isDark ? 'hover:bg-white/[0.04]' : 'hover:border-slate-300'}`
+      } ${isHighlighted ? 'ring-2 ring-[var(--accent-primary)]' : ''}`}
     >
       {/* Rank */}
       <RankBadge rank={rank} />
@@ -177,17 +182,17 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
       {player.photo_url ? (
         <img src={player.photo_url} className="w-12 h-12 rounded-xl object-cover" />
       ) : (
-        <div className="w-12 h-12 rounded-xl bg-slate-200 flex items-center justify-center">
-          <span className="text-slate-500 font-bold">{player.jersey_number || '?'}</span>
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+          <span className={`font-bold ${tc.textMuted}`}>{player.jersey_number || '?'}</span>
         </div>
       )}
       
       {/* Player info */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-slate-800 truncate">
+        <p className={`font-semibold ${tc.text} truncate`}>
           {player.first_name} {player.last_name}
         </p>
-        <p className="text-sm text-slate-500">
+        <p className={`text-sm ${tc.textMuted}`}>
           #{player.jersey_number} • {player.team_name || 'Team'}
         </p>
       </div>
@@ -200,12 +205,12 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
         >
           {displayValue}
         </p>
-        <p className="text-xs text-slate-500">
+        <p className={`text-xs ${tc.textMuted}`}>
           {player.games_played || 0} games
         </p>
       </div>
       
-      <ChevronRightIcon className="w-5 h-5 text-slate-400" />
+      <ChevronRightIcon className={`w-5 h-5 ${tc.textMuted}`} />
     </div>
   )
 }
@@ -214,13 +219,15 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
 // CATEGORY TAB COMPONENT
 // ============================================
 function CategoryTab({ category, isActive, onClick }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   return (
     <button
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition whitespace-nowrap ${
-        isActive 
+        isActive
           ? 'text-white shadow-lg'
-          : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          : `${tc.cardBg} border ${tc.border} ${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-600 hover:bg-slate-50'}`
       }`}
       style={isActive ? { backgroundColor: category.color } : {}}
     >
@@ -234,10 +241,12 @@ function CategoryTab({ category, isActive, onClick }) {
 // MINI LEADERBOARD CARD
 // ============================================
 function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const topThree = leaders.slice(0, 3)
   
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition">
+    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden hover:shadow-lg transition`}>
       {/* Header */}
       <div 
         className="px-4 py-3 flex items-center justify-between"
@@ -246,8 +255,8 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
         <div className="flex items-center gap-2">
           <span className="text-2xl">{category.icon}</span>
           <div>
-            <h3 className="font-semibold text-slate-800">{category.label}</h3>
-            <p className="text-xs text-slate-500">{category.description}</p>
+            <h3 className={`font-semibold ${tc.text}`}>{category.label}</h3>
+            <p className={`text-xs ${tc.textMuted}`}>{category.description}</p>
           </div>
         </div>
       </div>
@@ -255,7 +264,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
       {/* Top 3 */}
       <div className="p-4 space-y-3">
         {topThree.length === 0 ? (
-          <div className="text-center py-4 text-slate-400">
+          <div className={`text-center py-4 ${tc.textMuted}`}>
             <p className="text-sm">No data yet</p>
           </div>
         ) : (
@@ -263,20 +272,20 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
             <div 
               key={entry.player_id}
               onClick={() => onPlayerClick?.(entry)}
-              className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg p-2 -mx-2 transition"
+              className={`flex items-center gap-3 cursor-pointer ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'} rounded-lg p-2 -mx-2 transition`}
             >
               <RankBadge rank={idx + 1} />
               
               {entry.player?.photo_url ? (
                 <img src={entry.player.photo_url} className="w-8 h-8 rounded-full object-cover" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isDark ? 'bg-slate-700' : 'bg-slate-200'} ${tc.textMuted}`}>
                   {entry.player?.jersey_number || '?'}
                 </div>
               )}
               
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-slate-800 text-sm truncate">
+                <p className={`font-medium ${tc.text} text-sm truncate`}>
                   {entry.player?.first_name} {entry.player?.last_name?.charAt(0)}.
                 </p>
               </div>
@@ -299,7 +308,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
       {leaders.length > 3 && (
         <button
           onClick={onViewAll}
-          className="w-full py-3 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition border-t border-slate-200"
+          className={`w-full py-3 text-sm font-medium text-[var(--accent-primary)] ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-indigo-50'} transition border-t ${tc.border}`}
         >
           View All Rankings →
         </button>
@@ -312,6 +321,8 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
 // MAIN LEADERBOARDS PAGE
 // ============================================
 function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const { selectedSeason } = useSeason()
   
   const [leaderboardData, setLeaderboardData] = useState({})
@@ -402,24 +413,24 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-100">
-        <div className="animate-spin w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full" />
+      <div className={`flex-1 flex items-center justify-center ${tc.pageBg}`}>
+        <div className="animate-spin w-10 h-10 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full" />
       </div>
     )
   }
 
   return (
-    <div className="flex-1 bg-slate-100 overflow-y-auto">
+    <div className={`flex-1 ${tc.pageBg} overflow-y-auto`}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div className={`${tc.cardBg} border-b ${tc.border} sticky top-0 z-10`}>
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+              <h1 className={`text-2xl font-bold ${tc.text} flex items-center gap-3`}>
                 <TrophyIcon className="w-7 h-7 text-amber-500" />
                 Season Leaderboards
               </h1>
-              <p className="text-slate-500">
+              <p className={tc.textMuted}>
                 {selectedSeason?.name || 'No season selected'}
               </p>
             </div>
@@ -428,11 +439,11 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
             <div className="flex items-center gap-3">
               {/* Team filter */}
               <div className="flex items-center gap-2">
-                <FilterIcon className="w-4 h-4 text-slate-400" />
+                <FilterIcon className={`w-4 h-4 ${tc.textMuted}`} />
                 <select
                   value={filterTeam || ''}
                   onChange={(e) => setFilterTeam(e.target.value || null)}
-                  className="px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm"
+                  className={`px-3 py-2 rounded-xl text-sm ${tc.input}`}
                 >
                   <option value="">All Teams</option>
                   {teams.map(t => (
@@ -442,11 +453,11 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
               </div>
               
               {/* View toggle */}
-              <div className="flex bg-slate-100 rounded-xl p-1">
+              <div className={`flex ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'} rounded-xl p-1`}>
                 <button
                   onClick={() => { setViewMode('grid'); setSelectedCategory(null); }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                    viewMode === 'grid' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
+                    viewMode === 'grid' ? `${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-800'} shadow` : tc.textMuted
                   }`}
                 >
                   Grid
@@ -454,7 +465,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
                 <button
                   onClick={() => setViewMode('full')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                    viewMode === 'full' ? 'bg-white shadow text-slate-800' : 'text-slate-500'
+                    viewMode === 'full' ? `${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-800'} shadow` : tc.textMuted
                   }`}
                 >
                   Full List
@@ -505,7 +516,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
           <div className="space-y-4">
             {/* Category header */}
             <div 
-              className="bg-white rounded-2xl p-6 border-2"
+              className={`${tc.cardBg} rounded-2xl p-6 border-2`}
               style={{ borderColor: selectedCategory.color }}
             >
               <div className="flex items-center gap-4">
@@ -516,14 +527,14 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
                   {selectedCategory.icon}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-800">{selectedCategory.label}</h2>
-                  <p className="text-slate-500">{selectedCategory.description}</p>
+                  <h2 className={`text-2xl font-bold ${tc.text}`}>{selectedCategory.label}</h2>
+                  <p className={tc.textMuted}>{selectedCategory.description}</p>
                 </div>
                 <div className="ml-auto text-right">
                   <p className="text-3xl font-bold" style={{ color: selectedCategory.color }}>
                     {getFilteredLeaders(selectedCategory.id).length}
                   </p>
-                  <p className="text-sm text-slate-500">players ranked</p>
+                  <p className={`text-sm ${tc.textMuted}`}>players ranked</p>
                 </div>
               </div>
             </div>
@@ -531,10 +542,10 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
             {/* Rankings list */}
             <div className="space-y-2">
               {getFilteredLeaders(selectedCategory.id).length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
-                  <UserIcon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500">No rankings available</p>
-                  <p className="text-sm text-slate-400 mt-1">Stats need to be recorded first</p>
+                <div className={`${tc.cardBg} rounded-2xl p-12 text-center border ${tc.border}`}>
+                  <UserIcon className={`w-12 h-12 ${tc.textMuted} mx-auto mb-4`} />
+                  <p className={tc.textMuted}>No rankings available</p>
+                  <p className={`text-sm ${tc.textMuted} mt-1`}>Stats need to be recorded first</p>
                 </div>
               ) : (
                 getFilteredLeaders(selectedCategory.id).map((entry, idx) => (
@@ -559,9 +570,9 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
         
         {/* No category selected in full view */}
         {viewMode === 'full' && !selectedCategory && (
-          <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+          <div className={`${tc.cardBg} rounded-2xl p-12 text-center border ${tc.border}`}>
             <TrophyIcon className="w-16 h-16 text-amber-400 mx-auto mb-4" />
-            <p className="text-slate-600 font-medium">Select a category above to view rankings</p>
+            <p className={`${tc.text} font-medium`}>Select a category above to view rankings</p>
           </div>
         )}
         
