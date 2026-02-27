@@ -12,7 +12,7 @@ export function useTheme() {
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => localStorage.getItem('vb_theme') || 'dark')
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('vb_accent') || 'orange')
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('vb_accent') || 'lynx')
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark'
@@ -28,7 +28,7 @@ export function ThemeProvider({ children }) {
   }
 
   const currentTheme = themes[theme]
-  const currentAccent = accentColors[accentColor]
+  const currentAccent = accentColors[accentColor] || accentColors.lynx
   const isDark = theme === 'dark'
 
   useEffect(() => {
@@ -44,14 +44,12 @@ export function ThemeProvider({ children }) {
     root.style.setProperty('--text-secondary', colors.textSecondary)
     root.style.setProperty('--text-muted', colors.textMuted)
     
-    // Accent colors
-    root.style.setProperty('--accent-primary', currentAccent.primary)
-    root.style.setProperty('--accent-light', currentAccent.light)
-    root.style.setProperty('--accent-dark', currentAccent.dark)
-    
-    // NavBar colors (new)
-    root.style.setProperty('--navbar-bg', currentAccent.navBar)
-    root.style.setProperty('--navbar-bg-solid', currentAccent.navBarSolid)
+    // Accent — always Lynx
+    root.style.setProperty('--accent-primary', '#4BB9EC')
+    root.style.setProperty('--accent-light', '#E8F4FD')
+    root.style.setProperty('--accent-dark', '#2A9BD4')
+    root.style.setProperty('--navbar-bg', '#10284C')
+    root.style.setProperty('--navbar-bg-solid', '#10284C')
     
     document.body.setAttribute('data-theme', theme)
   }, [theme, currentTheme, accentColor, currentAccent])
@@ -67,35 +65,32 @@ export function ThemeProvider({ children }) {
   )
 }
 
-// Helper hook for common theme classes
+// Helper hook for common theme classes — Lynx brand tokens
 export function useThemeClasses() {
   const { isDark, accent } = useTheme()
   return {
-    pageBg: isDark ? 'bg-slate-900' : 'bg-slate-50',
-    cardBg: isDark ? 'bg-slate-800' : 'bg-white',
-    cardBgAlt: isDark ? 'bg-slate-900' : 'bg-slate-50',
-    inputBg: isDark ? 'bg-slate-900' : 'bg-white',
-    modalBg: isDark ? 'bg-slate-800' : 'bg-white',
-    border: isDark ? 'border-slate-700' : 'border-slate-200',
-    text: isDark ? 'text-white' : 'text-slate-900',
-    textSecondary: isDark ? 'text-slate-300' : 'text-slate-600',
-    textMuted: isDark ? 'text-slate-400' : 'text-slate-500',
-    hoverBg: isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-100',
-    hoverBgAlt: isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-200',
-    card: isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200',
-    input: isDark ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
-    modal: isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200',
+    pageBg: isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud',
+    cardBg: isDark ? 'bg-lynx-charcoal' : 'bg-white',
+    cardBgAlt: isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost',
+    inputBg: isDark ? 'bg-lynx-graphite' : 'bg-white',
+    modalBg: isDark ? 'bg-lynx-charcoal' : 'bg-white',
+    border: isDark ? 'border-lynx-border-dark' : 'border-lynx-silver',
+    text: isDark ? 'text-white' : 'text-lynx-navy',
+    textSecondary: isDark ? 'text-slate-300' : 'text-lynx-slate',
+    textMuted: isDark ? 'text-slate-400' : 'text-lynx-slate',
+    hoverBg: isDark ? 'hover:bg-lynx-graphite' : 'hover:bg-lynx-frost',
+    hoverBgAlt: isDark ? 'hover:bg-lynx-charcoal' : 'hover:bg-lynx-cloud',
+    card: isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver',
+    input: isDark
+      ? 'bg-lynx-graphite border-lynx-border-dark text-white placeholder-slate-500'
+      : 'bg-white border-lynx-silver text-lynx-navy placeholder-slate-400',
+    modal: isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver',
+    // Zebra row for tables
+    zebraRow: isDark ? 'bg-lynx-graphite/50' : 'bg-lynx-frost/50',
+    // Keep backward compatibility
     colors: isDark ? themes.dark.colors : themes.light.colors,
     accent: accent,
-    // NavBar specific
-    navBar: accent.navBar,
-    navBarSolid: accent.navBarSolid,
-    // Semantic surface tokens (Phase 1D)
-    surface: isDark ? 'bg-slate-900' : 'bg-slate-50',
-    surfaceElevated: isDark ? 'bg-slate-800/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md',
-    surfaceGlass: isDark ? 'bg-slate-800/60 backdrop-blur-xl border border-white/[0.08]' : 'bg-white/60 backdrop-blur-xl border border-white/40',
-    divider: isDark ? 'border-white/[0.08]' : 'border-slate-200',
-    inputBorder: isDark ? 'border-slate-700' : 'border-slate-300',
-    textPrimary: isDark ? 'text-white' : 'text-slate-900',
+    navBar: '#10284C',
+    navBarSolid: '#10284C',
   }
 }

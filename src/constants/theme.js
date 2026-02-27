@@ -1,170 +1,67 @@
-// Accent color options for user customization
-// Each accent now includes a navBar gradient, glow color, and glassmorphism properties
+// Accent color — Lynx brand (single accent, no user selection)
 export const accentColors = {
-  orange: { 
-    primary: '#F97316', 
-    light: '#FFEDD5', 
-    lighter: '#FFF7ED', 
-    dark: '#C2410C',
-    glow: 'rgba(249, 115, 22, 0.15)',
-    navBar: 'linear-gradient(135deg, #2C3E50 0%, #1a252f 100%)',
-    navBarSolid: '#2C3E50',
-    // Glass nav variant (used in glass mode)
-    navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.75)',
-      dark: 'rgba(15, 23, 42, 0.75)',
-    },
-  },
-  blue: { 
-    primary: '#0EA5E9', 
-    light: '#E0F2FE', 
-    lighter: '#F0F9FF', 
-    dark: '#0369A1',
-    glow: 'rgba(14, 165, 233, 0.15)',
-    navBar: 'linear-gradient(135deg, #1E3A5F 0%, #0C4A6E 100%)',
-    navBarSolid: '#1E3A5F',
-    navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.75)',
-      dark: 'rgba(15, 23, 42, 0.75)',
-    },
-  },
-  purple: { 
-    primary: '#8B5CF6', 
-    light: '#EDE9FE', 
-    lighter: '#F5F3FF', 
-    dark: '#6D28D9',
-    glow: 'rgba(139, 92, 246, 0.15)',
-    navBar: 'linear-gradient(135deg, #2E1065 0%, #1E1B4B 100%)',
-    navBarSolid: '#2E1065',
-    navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.75)',
-      dark: 'rgba(15, 23, 42, 0.75)',
-    },
-  },
-  green: { 
-    primary: '#10B981', 
-    light: '#D1FAE5', 
-    lighter: '#ECFDF5', 
-    dark: '#047857',
-    glow: 'rgba(16, 185, 129, 0.15)',
-    navBar: 'linear-gradient(135deg, #134E4A 0%, #0F172A 100%)',
-    navBarSolid: '#134E4A',
-    navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.75)',
-      dark: 'rgba(15, 23, 42, 0.75)',
-    },
-  },
-  rose: { 
-    primary: '#F43F5E', 
-    light: '#FFE4E6', 
-    lighter: '#FFF1F2', 
-    dark: '#BE123C',
-    glow: 'rgba(244, 63, 94, 0.15)',
-    navBar: 'linear-gradient(135deg, #4C1D30 0%, #1F1020 100%)',
-    navBarSolid: '#4C1D30',
-    navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.75)',
-      dark: 'rgba(15, 23, 42, 0.75)',
-    },
-  },
-  slate: { 
-    primary: '#64748B', 
-    light: '#F1F5F9', 
-    lighter: '#F8FAFC', 
-    dark: '#475569',
-    glow: 'rgba(100, 116, 139, 0.15)',
-    navBar: 'linear-gradient(135deg, #334155 0%, #1E293B 100%)',
-    navBarSolid: '#334155',
-    navBarGlass: {
-      light: 'rgba(255, 255, 255, 0.75)',
-      dark: 'rgba(15, 23, 42, 0.75)',
-    },
+  lynx: {
+    primary: '#4BB9EC',
+    light: '#E8F4FD',
+    lighter: '#F0F8FF',
+    dark: '#2A9BD4',
+    glow: 'rgba(75, 185, 236, 0.15)',
+    navBar: '#10284C',
+    navBarSolid: '#10284C',
   },
 }
 
-// Theme color definitions
-// Light mode uses Apple-inspired warm off-white (#F5F5F7) for floating card effect
-// NEW: Added glass card properties for glassmorphism support
+// Theme color definitions — Lynx brand palette
 export const themes = {
   dark: {
     name: 'dark',
-    bg: 'bg-slate-900',
-    bgSecondary: 'bg-slate-800',
-    bgTertiary: 'bg-slate-900',
-    bgHover: 'hover:bg-slate-700',
-    border: 'border-slate-700',
+    bg: 'bg-lynx-midnight',
+    bgSecondary: 'bg-lynx-charcoal',
+    bgTertiary: 'bg-lynx-graphite',
+    bgHover: 'hover:bg-lynx-graphite',
+    border: 'border-lynx-border-dark',
     text: 'text-white',
     textSecondary: 'text-slate-300',
     textMuted: 'text-slate-400',
-    // Glassmorphism card classes
-    glassCard: 'bg-slate-800/70 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark',
-    glassCardHover: 'hover:bg-slate-800/80 hover:border-white/[0.12]',
-    glassNavBar: 'bg-slate-900/75 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark',
-    glassDropdown: 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.08] shadow-glass-dark',
-    glassInput: 'bg-white/[0.05]',
-    glassInputHover: 'hover:bg-white/[0.08]',
-    glassDivider: 'bg-white/[0.06]',
     colors: {
-      bg: '#0F172A',
-      bgSecondary: '#1E293B',
-      bgTertiary: '#0F172A',
-      card: '#1E293B',
-      cardAlt: '#0F172A',
-      border: '#334155',
+      bg: '#0A1B33',
+      bgSecondary: '#1A2332',
+      bgTertiary: '#232F3E',
+      card: '#1A2332',
+      cardAlt: '#232F3E',
+      border: '#2A3545',
       text: '#ffffff',
       textSecondary: '#CBD5E1',
       textMuted: '#94A3B8',
-      // Glass-specific raw colors
-      glassCard: 'rgba(30, 41, 59, 0.7)',
-      glassBorder: 'rgba(255, 255, 255, 0.08)',
-      glassHover: 'rgba(255, 255, 255, 0.05)',
     }
   },
   light: {
     name: 'light',
-    // Apple-inspired warm off-white background - makes cards float
-    bg: 'bg-[#F5F5F7]',
+    bg: 'bg-lynx-cloud',
     bgSecondary: 'bg-white',
-    bgTertiary: 'bg-slate-100',
-    bgHover: 'hover:bg-slate-50',
-    border: 'border-slate-200/60',
-    text: 'text-slate-800',
-    textSecondary: 'text-slate-600',
-    textMuted: 'text-slate-500',
-    // Glassmorphism card classes
-    glassCard: 'bg-white/80 backdrop-blur-xl border border-white/40 shadow-glass',
-    glassCardHover: 'hover:bg-white/90 hover:shadow-soft-lg',
-    glassNavBar: 'bg-white/75 backdrop-blur-xl border border-white/40 shadow-glass',
-    glassDropdown: 'bg-white/90 backdrop-blur-xl border border-slate-200/60 shadow-soft-xl',
-    glassInput: 'bg-black/[0.03]',
-    glassInputHover: 'hover:bg-black/[0.05]',
-    glassDivider: 'bg-black/[0.06]',
+    bgTertiary: 'bg-lynx-frost',
+    bgHover: 'hover:bg-lynx-frost',
+    border: 'border-lynx-silver',
+    text: 'text-lynx-navy',
+    textSecondary: 'text-lynx-slate',
+    textMuted: 'text-lynx-slate',
     colors: {
-      bg: '#F5F5F7',
+      bg: '#F5F7FA',
       bgSecondary: '#FFFFFF',
-      bgTertiary: '#F1F5F9',
+      bgTertiary: '#F0F3F7',
       card: '#FFFFFF',
-      cardAlt: '#F1F5F9',
-      border: '#E2E8F0',
-      text: '#1D1D1F',
-      textSecondary: '#515154',
-      textMuted: '#86868B',
-      // Glass-specific raw colors
-      glassCard: 'rgba(255, 255, 255, 0.8)',
-      glassBorder: 'rgba(255, 255, 255, 0.4)',
-      glassHover: 'rgba(0, 0, 0, 0.03)',
+      cardAlt: '#F0F3F7',
+      border: '#DFE4EA',
+      text: '#10284C',
+      textSecondary: '#5A6B7F',
+      textMuted: '#5A6B7F',
     }
   }
 }
 
-// Color picker options for UI
+// Color picker options — single Lynx brand color
 export const colorPickerOptions = [
-  { id: 'orange', color: '#F97316', label: 'Orange' },
-  { id: 'blue', color: '#0EA5E9', label: 'Blue' },
-  { id: 'purple', color: '#8B5CF6', label: 'Purple' },
-  { id: 'green', color: '#10B981', label: 'Green' },
-  { id: 'rose', color: '#F43F5E', label: 'Rose' },
-  { id: 'slate', color: '#64748B', label: 'Slate' },
+  { id: 'lynx', color: '#4BB9EC', label: 'Lynx Blue' },
 ]
 
 // Status color configurations

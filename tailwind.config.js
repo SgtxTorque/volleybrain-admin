@@ -22,6 +22,20 @@ export default {
           card: '#141414',
           hover: '#1a1a1a',
           border: '#2a2a2a',
+        },
+        lynx: {
+          navy: '#10284C',
+          sky: '#4BB9EC',
+          deep: '#2A9BD4',
+          ice: '#E8F4FD',
+          slate: '#5A6B7F',
+          silver: '#DFE4EA',
+          cloud: '#F5F7FA',
+          frost: '#F0F3F7',
+          midnight: '#0A1B33',
+          charcoal: '#1A2332',
+          graphite: '#232F3E',
+          'border-dark': '#2A3545',
         }
       },
       boxShadow: {
