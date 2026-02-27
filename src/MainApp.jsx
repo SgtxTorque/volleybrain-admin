@@ -110,10 +110,10 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1 px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+        className={`flex items-center gap-1 px-5 py-2 text-sm rounded-full transition-all duration-200 whitespace-nowrap ${
           isActive
-            ? 'bg-white/15 text-white'
-            : 'text-white/70 hover:text-white hover:bg-white/10'
+            ? 'bg-white/15 text-white font-semibold'
+            : 'text-white/80 hover:text-white hover:bg-white/10 font-medium'
         }`}
       >
         {label}
@@ -121,11 +121,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
       </button>
 
       {isOpen && (
-        <div className={`absolute top-full left-0 mt-3 w-56 rounded-xl overflow-hidden z-50 animate-slide-down ${
-          isDark
-            ? 'bg-slate-800/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
-            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_40px_rgba(0,0,0,0.1)]'
-        }`}>
+        <div className="absolute top-full left-0 mt-3 w-56 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
           {items.map(item => (
             <button
               key={item.id}
@@ -136,7 +132,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
               className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors duration-150 ${
                 (item.teamId && directTeamWallId === item.teamId) || currentPage === item.id
                   ? 'bg-lynx-sky/15 text-lynx-sky font-semibold'
-                  : `${tc.text} ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.04]'}`
+                  : 'text-white/90 hover:text-white hover:bg-white/[0.06]'
               }`}
             >
               <NavIcon name={item.icon} className="w-4 h-4" />
@@ -269,8 +265,8 @@ function NotificationDropdown({ tc, organization, isDark }) {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button onClick={() => setIsOpen(!isOpen)} className="relative p-2 rounded-full transition hover:bg-white/10">
-        <Bell className="w-5 h-5 text-white" />
+      <button onClick={() => setIsOpen(!isOpen)} className="relative w-9 h-9 flex items-center justify-center rounded-full transition hover:bg-white/10">
+        <Bell className="w-5 h-5 text-white/80" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-[10px] text-white flex items-center justify-center font-bold"
             style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)', boxShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
@@ -280,11 +276,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 top-full mt-3 w-96 rounded-xl overflow-hidden z-50 animate-slide-down ${
-          isDark 
-            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
-            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
-        }`}>
+        <div className="absolute right-0 top-full mt-3 w-96 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
           <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
             <span className={`font-semibold ${tc.text}`}>Notifications {unreadCount > 0 && `(${unreadCount})`}</span>
             {unreadCount > 0 && (
@@ -397,15 +389,11 @@ function UserProfileDropdown({
           )}
         </div>
         <span className="text-sm font-medium hidden sm:block text-white">{getDisplayName()}</span>
-        <ChevronDown className={`w-4 h-4 transition-transform text-white/70 ${showRoleSwitcher ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform text-white/80 ${showRoleSwitcher ? 'rotate-180' : ''}`} />
       </button>
 
       {showRoleSwitcher && (
-        <div className={`absolute right-0 top-full mt-3 w-72 rounded-xl overflow-hidden z-50 animate-slide-down ${
-          isDark 
-            ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
-            : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
-        }`}>
+        <div className="absolute right-0 top-full mt-3 w-72 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
           <div className={`p-4 border-b ${tc.border} flex items-center gap-3`}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold overflow-hidden"
               style={{ background: profile?.photo_url ? 'transparent' : accent.primary, color: '#000' }}>
@@ -651,11 +639,12 @@ function HorizontalNavBar({
   }
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full bg-lynx-navy shadow-md">
+    <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full shadow-lg"
+      style={{ background: 'linear-gradient(135deg, #10284C 0%, #153050 50%, #1B3A5C 100%)' }}>
 
       {/* LEFT: Logo */}
       <div className="flex items-center gap-3">
-        <img src="/lynx-logo.png" alt="Lynx" className="h-7" />
+        <img src="/lynx-logo.png" alt="Lynx" className="h-8" />
       </div>
 
       {/* CENTER: Navigation */}
@@ -665,10 +654,10 @@ function HorizontalNavBar({
             const isActive = page === item.id && !directTeamWallId
             return (
               <button key={item.id} onClick={() => handleNavigate(item.id)}
-                className={`px-5 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+                className={`px-5 py-2 text-sm rounded-full transition-all duration-200 whitespace-nowrap ${
                   isActive
-                    ? 'bg-white/15 text-white'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                    ? 'bg-white/15 text-white font-semibold'
+                    : 'text-white/80 hover:text-white hover:bg-white/10 font-medium'
                 }`}>
                 {item.label}
               </button>
@@ -694,7 +683,7 @@ function HorizontalNavBar({
               className={`relative p-2 rounded-full transition ${
                 page === 'platform-analytics'
                   ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/70'
+                  : 'hover:bg-white/10 text-white/80'
               }`}
             >
               <BarChart3 className="w-5 h-5" />
@@ -705,7 +694,7 @@ function HorizontalNavBar({
               className={`relative p-2 rounded-full transition ${
                 page === 'platform-subscriptions'
                   ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/70'
+                  : 'hover:bg-white/10 text-white/80'
               }`}
             >
               <CreditCard className="w-5 h-5" />
@@ -716,7 +705,7 @@ function HorizontalNavBar({
               className={`relative p-2 rounded-full transition ${
                 page === 'platform-admin'
                   ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/70'
+                  : 'hover:bg-white/10 text-white/80'
               }`}
             >
               <Shield className="w-5 h-5" />
