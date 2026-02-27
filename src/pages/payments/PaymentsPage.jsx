@@ -293,7 +293,7 @@ function PlayerPaymentCard({
           
           {/* Payment History */}
           {payments.some(p => p.paid) && (
-            <div className={`p-4 border-t ${tc.border} bg-slate-800/30`}>
+            <div className={`p-4 border-t ${tc.border} ${tc.cardBgAlt}`}>
               <p className={`text-xs font-semibold ${tc.textMuted} mb-2`}>PAYMENT HISTORY</p>
               <div className="space-y-2">
                 {payments.filter(p => p.paid).map(p => (
@@ -402,7 +402,7 @@ function FamilyPaymentCard({
           {Object.entries(playerPayments).map(([playerId, { player, payments }]) => (
             <div key={playerId} className={`border-b ${tc.border} last:border-0`}>
               {/* Player Sub-header */}
-              <div className={`px-4 py-2 bg-slate-800/30 flex items-center gap-2`}>
+              <div className={`px-4 py-2 ${tc.cardBgAlt} flex items-center gap-2`}>
                 <User className="w-4 h-4 text-slate-400" />
                 <span className={`font-medium ${tc.text}`}>
                   {player?.first_name} {player?.last_name || 'Family Fee'}
@@ -590,7 +590,7 @@ function DeletePaymentModal({ payment, onConfirm, onClose, tc }) {
           Are you sure you want to remove this fee? This action cannot be undone.
         </p>
         
-        <div className={`mt-4 p-3 rounded-lg bg-slate-800/50`}>
+        <div className={`mt-4 p-3 rounded-lg ${tc.cardBgAlt}`}>
           <p className={`font-medium ${tc.text}`}>{payment.fee_name || payment.fee_type}</p>
           <p className={`text-sm ${tc.textMuted}`}>${parseFloat(payment.amount).toFixed(2)}</p>
         </div>
@@ -639,7 +639,7 @@ function SendReminderModal({ target, onSend, onClose, tc }) {
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Payment Reminder</h3>
         
-        <div className={`p-3 rounded-lg bg-slate-800/50 mb-4`}>
+        <div className={`p-3 rounded-lg ${tc.cardBgAlt} mb-4`}>
           <p className={`font-medium ${tc.text}`}>To: {recipientName}</p>
           <p className={`text-sm ${tc.textMuted}`}>{recipientEmail}</p>
         </div>
