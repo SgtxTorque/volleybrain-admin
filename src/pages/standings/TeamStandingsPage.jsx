@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
-import { useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
 
@@ -13,6 +13,7 @@ import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight
 
 export default function TeamStandingsPage() {
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const { user, profile } = useAuth()
   const { selectedSeason } = useSeason()
   
@@ -161,9 +162,9 @@ export default function TeamStandingsPage() {
       <div className={`min-h-screen ${tc.pageBg} p-6`}>
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-slate-700 rounded w-48" />
+            <div className={`h-8 rounded w-48 ${tc.cardBgAlt}`} />
             <div className="grid grid-cols-4 gap-4">
-              {[1,2,3,4].map(i => <div key={i} className="h-32 bg-slate-700 rounded-2xl" />)}
+              {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-2xl ${tc.cardBgAlt}`} />)}
             </div>
           </div>
         </div>
@@ -231,7 +232,7 @@ export default function TeamStandingsPage() {
                         setSelectedTeam(team)
                         setShowTeamDropdown(false)
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-700/50 transition ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'} ${
                         team.id === selectedTeam?.id ? 'bg-[var(--accent-primary)]/20' : ''
                       }`}
                     >
@@ -297,7 +298,7 @@ export default function TeamStandingsPage() {
           </div>
           
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-t border-slate-700">
+          <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-t ${tc.border}`}>
             {/* Win Percentage */}
             <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
               <div className="flex items-center gap-2 mb-2">
@@ -508,8 +509,8 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
   if (loading) {
     return (
       <div className={`${tc.cardBg} rounded-2xl border ${tc.border} p-6 animate-pulse`}>
-        <div className="h-6 bg-slate-700 rounded w-32 mb-4" />
-        <div className="h-12 bg-slate-700 rounded w-24" />
+        <div className={`h-6 rounded w-32 mb-4 ${tc.cardBgAlt}`} />
+        <div className={`h-12 rounded w-24 ${tc.cardBgAlt}`} />
       </div>
     )
   }
