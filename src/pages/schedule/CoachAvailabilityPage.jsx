@@ -106,7 +106,7 @@ function AvailabilityModal({ dates, onSave, onClose, tc, isDark }) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div
-        className={`w-full max-w-md rounded-2xl overflow-hidden shadow-2xl avail-modal-enter ${
+        className={`w-full max-w-md rounded-xl overflow-hidden shadow-2xl avail-modal-enter ${
           isDark
             ? 'bg-slate-800 border border-white/[0.08]'
             : 'bg-white/95 backdrop-blur-xl border border-slate-200/60'
@@ -675,7 +675,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
             {coachDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setCoachDropdownOpen(false)} />
-                <div className={`absolute right-0 top-full mt-2 w-72 rounded-2xl overflow-hidden z-50 max-h-80 overflow-y-auto ${
+                <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto ${
                   isDark
                     ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
                     : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
@@ -733,7 +733,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
 
         {/* ─── CALENDAR ─── */}
         <div className="col-span-12 lg:col-span-8 space-y-4">
-          <div className={`rounded-2xl overflow-hidden ${
+          <div className={`rounded-xl overflow-hidden ${
             isDark
               ? 'bg-white/[0.03] backdrop-blur-xl border border-white/[0.06]'
               : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-sm'
@@ -917,7 +917,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
           {/* Selection Actions Bar */}
           {selectedDates.size > 0 && isCoach && (
             <div
-              className={`flex items-center gap-3 p-4 rounded-2xl ${
+              className={`flex items-center gap-3 p-4 rounded-xl ${
                 isDark
                   ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20'
                   : 'bg-[var(--accent-primary)]/5 border border-[var(--accent-primary)]/20'
@@ -946,7 +946,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
         {/* ─── SIDEBAR ─── */}
         <div className="col-span-12 lg:col-span-4 space-y-4">
           {/* Month Stats */}
-          <div className={`rounded-2xl p-5 ${
+          <div className={`rounded-xl p-5 ${
             isDark
               ? 'bg-white/[0.03] backdrop-blur-xl border border-white/[0.06]'
               : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-sm'
@@ -980,7 +980,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
           </div>
 
           {/* Upcoming Unavailable */}
-          <div className={`rounded-2xl overflow-hidden ${
+          <div className={`rounded-xl overflow-hidden ${
             isDark
               ? 'bg-white/[0.03] backdrop-blur-xl border border-white/[0.06]'
               : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-sm'
@@ -1037,7 +1037,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
 
           {/* Recurring Patterns */}
           {recurringPatterns.length > 0 && (
-            <div className={`rounded-2xl overflow-hidden ${
+            <div className={`rounded-xl overflow-hidden ${
               isDark
                 ? 'bg-white/[0.03] backdrop-blur-xl border border-white/[0.06]'
                 : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-sm'
@@ -1077,7 +1077,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
 
           {/* Quick Actions — Coach only */}
           {isCoach && tableExists && (
-            <div className={`rounded-2xl p-5 ${
+            <div className={`rounded-xl p-5 ${
               isDark
                 ? 'bg-white/[0.03] backdrop-blur-xl border border-white/[0.06]'
                 : 'bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-sm'
@@ -1117,7 +1117,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
 
           {/* Admin Conflict Summary */}
           {isAdmin && monthStats.conflicts > 0 && (
-            <div className={`rounded-2xl overflow-hidden ${
+            <div className={`rounded-xl overflow-hidden ${
               isDark
                 ? 'bg-amber-500/5 border border-amber-500/20'
                 : 'bg-amber-50 border border-amber-200'

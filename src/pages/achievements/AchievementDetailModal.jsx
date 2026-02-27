@@ -125,7 +125,7 @@ export function AchievementDetailModal({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div 
         className={`
-          ${tc.cardBg} rounded-2xl w-full max-w-md overflow-hidden
+          ${tc.cardBg} rounded-xl w-full max-w-md overflow-hidden
           border ${tc.border} shadow-2xl
           animate-in fade-in zoom-in-95 duration-200
         `}
@@ -185,7 +185,7 @@ export function AchievementDetailModal({
               />
             ) : (
               <div 
-                className="w-28 h-28 rounded-2xl flex items-center justify-center"
+                className="w-28 h-28 rounded-xl flex items-center justify-center"
                 style={{
                   background: isEarned 
                     ? `linear-gradient(145deg, ${achievement.color_primary}50 0%, ${achievement.color_secondary || achievement.color_primary}70 100%)`

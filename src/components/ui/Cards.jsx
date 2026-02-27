@@ -91,7 +91,7 @@ export function QuickActionCard({ icon, title, description, onClick, variant = '
   const v = variants[variant]
 
   return (
-    <div onClick={onClick} className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5 cursor-pointer transition-all duration-200 min-h-[140px] hover:shadow-lg hover:-translate-y-0.5 hover:border-slate-600`}>
+    <div onClick={onClick} className={`${tc.cardBg} border ${tc.border} rounded-xl p-5 cursor-pointer transition-all duration-200 min-h-[140px] hover:shadow-lg hover:-translate-y-0.5 hover:border-slate-600`}>
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${v.iconBg}`} style={{ backgroundColor: variant === 'accent' ? `${accent?.primary}20` : undefined }}>
         <span className={`text-xl ${v.iconColor}`} style={{ color: variant === 'accent' ? accent?.primary : undefined }}>{icon}</span>
       </div>
@@ -132,7 +132,7 @@ export function SeasonProgressCard({ season, stats }) {
   const progress = stats?.progress || 85
   
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
       <div className="flex items-center justify-between mb-5">
         <h3 className={`font-semibold ${tc.text}`}>Season Progress</h3>
         <Badge variant="success">Active</Badge>

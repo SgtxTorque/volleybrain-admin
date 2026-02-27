@@ -13,7 +13,7 @@ function BadgeCelebration({ badge, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div 
-        className={`text-center p-8 rounded-3xl max-w-sm ${tc.pageBg}`}
+        className={`text-center p-8 rounded-xl max-w-sm ${tc.pageBg}`}
         style={{ animation: 'bounceIn 0.5s ease-out' }}
       >
         {/* Confetti effect placeholder */}

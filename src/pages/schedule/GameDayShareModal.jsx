@@ -332,7 +332,7 @@ function GameDayShareModal({ event, team, organization, season, onClose, showToa
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-      <div className={`relative z-10 w-full max-w-[720px] max-h-[95vh] overflow-hidden rounded-2xl ${isDark?'bg-slate-900 border-slate-700':'bg-white border-slate-200'} border shadow-2xl flex flex-col`}
+      <div className={`relative z-10 w-full max-w-[720px] max-h-[95vh] overflow-hidden rounded-xl ${isDark?'bg-slate-900 border-slate-700':'bg-white border-slate-200'} border shadow-2xl flex flex-col`}
         onClick={e => e.stopPropagation()}>
         
         {/* Toolbar */}

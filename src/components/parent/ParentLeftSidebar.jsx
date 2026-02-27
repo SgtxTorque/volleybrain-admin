@@ -115,7 +115,7 @@ export default function ParentLeftSidebar({
     <aside className="hidden xl:flex w-[280px] shrink-0 flex-col border-r border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5">
 
       {/* Org Header Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
         {orgLogo ? (
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-slate-100">
@@ -169,7 +169,7 @@ export default function ParentLeftSidebar({
 
       {/* Payment Summary Card */}
       <div
-        className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+        className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
         onClick={() => paymentSummary.totalDue > 0 ? onShowPayment?.() : onNavigate?.('payments')}
       >
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Payment Status</h3>
@@ -203,7 +203,7 @@ export default function ParentLeftSidebar({
       </div>
 
       {/* Needs Attention Card */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Needs Attention</h3>
           {priorityEngine.count > 0 && (
@@ -282,7 +282,7 @@ export default function ParentLeftSidebar({
       </div>
 
       {/* Badge Progress Preview */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Badge Progress</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">

@@ -352,7 +352,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         )}
 
         {/* Channel avatar with gradient ring */}
-        <div className="p-[2px] rounded-2xl" style={{ background: `linear-gradient(135deg, ${teamColor}, ${teamColor}88)` }}>
+        <div className="p-[2px] rounded-xl" style={{ background: `linear-gradient(135deg, ${teamColor}, ${teamColor}88)` }}>
           <div className="w-10 h-10 rounded-[12px] flex items-center justify-center text-lg"
             style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', color: teamColor }}>
             {channel.channel_type === 'team_chat' ? '👥' : channel.channel_type === 'player_chat' ? '🏐' : '💬'}
@@ -543,7 +543,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
             </div>
           )}
 
-          <div className="flex items-end gap-2 p-2 rounded-2xl"
+          <div className="flex items-end gap-2 p-2 rounded-xl"
             style={{
               background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)',
               border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.05)',
@@ -604,12 +604,12 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
           style={{ background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(12px)' }}
           onClick={() => setLightboxImage(null)}>
           <button onClick={() => setLightboxImage(null)}
-            className="absolute top-5 right-5 p-2.5 rounded-2xl transition"
+            className="absolute top-5 right-5 p-2.5 rounded-xl transition"
             style={{ background: 'rgba(255,255,255,.1)', color: 'white' }}>
             <X className="w-6 h-6" />
           </button>
           <img src={lightboxImage} alt="Full size"
-            className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
             onClick={(e) => e.stopPropagation()} />
           <a href={lightboxImage} download target="_blank" rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -666,7 +666,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
                   {mediaItems.map((item) => (
                     <button key={item.id}
                       onClick={() => { setShowMediaGallery(false); setLightboxImage(item.content) }}
-                      className="aspect-square rounded-2xl overflow-hidden group relative"
+                      className="aspect-square rounded-xl overflow-hidden group relative"
                       style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
                       <img src={item.content} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2.5">

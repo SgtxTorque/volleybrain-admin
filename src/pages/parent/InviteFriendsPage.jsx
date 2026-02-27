@@ -43,7 +43,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
     <div className="max-w-2xl mx-auto space-y-6">
       <div><h1 className={`text-3xl font-bold ${tc.text}`}>Invite Friends 🎉</h1><p className={tc.textSecondary}>Share the fun! Invite friends to join the league.</p></div>
 
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
         <div className="text-center mb-6">
           <span className="text-6xl"><VolleyballIcon className="w-16 h-16" /></span>
           <h2 className={`text-xl font-bold ${tc.text} mt-4`}>{organization?.name || 'Our League'}</h2>
@@ -69,7 +69,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
         </div>
       </div>
 
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
         <h3 className={`font-semibold ${tc.text} mb-4`}>🎁 Referral Rewards</h3>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className={`${tc.cardBgAlt} rounded-xl p-4`}><p className="text-2xl">🥉</p><p className={`font-bold ${tc.text} mt-1`}>1 Friend</p><p className={`text-xs ${tc.textMuted}`}>Bronze Badge</p></div>

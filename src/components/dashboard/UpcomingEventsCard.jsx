@@ -44,7 +44,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
         </button>
       </div>
 
-      <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'}`}>
+      <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'}`}>
         {events && events.length > 0 ? (
           events.slice(0, 5).map((event, i) => {
             const teamColor = event.teams?.color || EVENT_COLORS[i % EVENT_COLORS.length]

@@ -191,7 +191,7 @@ export default function AchievementCelebrationModal({ unseen, onDismiss, onViewA
         {/* Next / Done */}
         <button
           onClick={isLast ? handleDone : handleNext}
-          className="px-12 py-3.5 rounded-2xl text-sm font-extrabold text-black transition hover:opacity-90"
+          className="px-12 py-3.5 rounded-xl text-sm font-extrabold text-black transition hover:opacity-90"
           style={{
             background: rarityConfig.glowColor,
             boxShadow: `0 4px 20px ${rarityConfig.glowColor}40`,

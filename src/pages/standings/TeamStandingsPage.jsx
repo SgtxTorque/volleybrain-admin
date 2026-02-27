@@ -164,7 +164,7 @@ export default function TeamStandingsPage() {
           <div className="animate-pulse space-y-6">
             <div className={`h-8 rounded w-48 ${tc.cardBgAlt}`} />
             <div className="grid grid-cols-4 gap-4">
-              {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-2xl ${tc.cardBgAlt}`} />)}
+              {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-xl ${tc.cardBgAlt}`} />)}
             </div>
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function TeamStandingsPage() {
     return (
       <div className={`min-h-screen ${tc.pageBg} p-6`}>
         <div className="max-w-4xl mx-auto">
-          <div className={`${tc.cardBg} rounded-2xl border ${tc.border} p-12 text-center`}>
+          <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-12 text-center`}>
             <span className="text-6xl">📊</span>
             <h2 className={`text-xl font-bold ${tc.text} mt-4`}>No Team Selected</h2>
             <p className={tc.textMuted}>Select a team to view standings</p>
@@ -197,7 +197,7 @@ export default function TeamStandingsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
+              className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
               style={{ backgroundColor: selectedTeam?.color || 'var(--accent-primary)' }}
             >
               🏆
@@ -253,7 +253,7 @@ export default function TeamStandingsPage() {
         </div>
         
         {/* Season Record Card */}
-        <div className={`${tc.cardBg} rounded-2xl border ${tc.border} overflow-hidden`}>
+        <div className={`${tc.cardBg} rounded-xl border ${tc.border} overflow-hidden`}>
           <div 
             className="p-6"
             style={{ 
@@ -352,7 +352,7 @@ export default function TeamStandingsPage() {
         </div>
         
         {/* Recent Results */}
-        <div className={`${tc.cardBg} rounded-2xl border ${tc.border} p-6`}>
+        <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6`}>
           <h3 className={`text-lg font-semibold ${tc.text} mb-4`}>Recent Results</h3>
           
           {recentGames.length > 0 ? (
@@ -432,7 +432,7 @@ export default function TeamStandingsPage() {
         
         {/* Monthly Breakdown (if enough games) */}
         {recentGames.length >= 3 && (
-          <div className={`${tc.cardBg} rounded-2xl border ${tc.border} p-6`}>
+          <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6`}>
             <h3 className={`text-lg font-semibold ${tc.text} mb-4`}>Form Guide</h3>
             <div className="flex items-center gap-2">
               {recentGames.slice(0, 5).reverse().map((game, idx) => (
@@ -508,7 +508,7 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
   
   if (loading) {
     return (
-      <div className={`${tc.cardBg} rounded-2xl border ${tc.border} p-6 animate-pulse`}>
+      <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6 animate-pulse`}>
         <div className={`h-6 rounded w-32 mb-4 ${tc.cardBgAlt}`} />
         <div className={`h-12 rounded w-24 ${tc.cardBgAlt}`} />
       </div>
@@ -517,7 +517,7 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
   
   if (!standings || standings.games_played === 0) {
     return (
-      <div className={`${tc.cardBg} rounded-2xl border ${tc.border} p-6`}>
+      <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6`}>
         <h3 className={`font-semibold ${tc.text} mb-2`}>📊 Season Record</h3>
         <p className={tc.textMuted}>No games completed yet</p>
       </div>
@@ -525,7 +525,7 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
   }
   
   return (
-    <div className={`${tc.cardBg} rounded-2xl border ${tc.border} overflow-hidden`}>
+    <div className={`${tc.cardBg} rounded-xl border ${tc.border} overflow-hidden`}>
       <div 
         className="p-4"
         style={{ backgroundColor: `${teamColor}22` }}

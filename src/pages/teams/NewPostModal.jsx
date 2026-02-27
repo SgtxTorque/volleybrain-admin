@@ -174,12 +174,12 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         </div>
 
         <div className="p-6 flex gap-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-[10px] font-bold font-bold uppercase tracking-wider transition"
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-[10px] font-bold font-bold uppercase tracking-wider transition"
             style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
             CANCEL
           </button>
           <button onClick={handleSubmit} disabled={!content.trim() || submitting}
-            className="flex-1 py-3 rounded-2xl text-[10px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110 disabled:opacity-25"
+            className="flex-1 py-3 rounded-xl text-[10px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110 disabled:opacity-25"
             style={{ background: `linear-gradient(135deg,${gb},${g})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
             {submitting ? (uploadProgress || 'POSTING...') : 'PUBLISH'}
           </button>

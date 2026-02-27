@@ -48,7 +48,7 @@ export function SpotlightOverlay() {
 
       {/* Centered Content Card */}
       <div
-        className="fixed z-[10000] rounded-2xl shadow-2xl overflow-hidden"
+        className="fixed z-[10000] rounded-xl shadow-2xl overflow-hidden"
         style={{
           top: '50%',
           left: '50%',
@@ -79,7 +79,7 @@ export function SpotlightOverlay() {
           {!isWelcome && !isComplete && currentStep.icon && (
             <div className="text-center mb-5">
               <div 
-                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-4xl"
+                className="inline-flex items-center justify-center w-16 h-16 rounded-xl text-4xl"
                 style={{ backgroundColor: accent.primary + '20' }}
               >
                 {currentStep.icon}
@@ -196,7 +196,7 @@ export function ParentJourneyBar({ onNavigate, onTeamHub, activeTeam }) {
 
   return (
     <div 
-      className="rounded-2xl overflow-hidden transition-all duration-300"
+      className="rounded-xl overflow-hidden transition-all duration-300"
       style={{ 
         backgroundColor: isDark ? '#1e293b' : '#ffffff',
         border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,

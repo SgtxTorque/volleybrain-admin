@@ -246,7 +246,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
   const topThree = leaders.slice(0, 3)
   
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden hover:shadow-lg transition`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden hover:shadow-lg transition`}>
       {/* Header */}
       <div 
         className="px-4 py-3 flex items-center justify-between"
@@ -516,12 +516,12 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
           <div className="space-y-4">
             {/* Category header */}
             <div 
-              className={`${tc.cardBg} rounded-2xl p-6 border-2`}
+              className={`${tc.cardBg} rounded-xl p-6 border-2`}
               style={{ borderColor: selectedCategory.color }}
             >
               <div className="flex items-center gap-4">
                 <div 
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl"
                   style={{ backgroundColor: `${selectedCategory.color}20` }}
                 >
                   {selectedCategory.icon}
@@ -542,7 +542,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
             {/* Rankings list */}
             <div className="space-y-2">
               {getFilteredLeaders(selectedCategory.id).length === 0 ? (
-                <div className={`${tc.cardBg} rounded-2xl p-12 text-center border ${tc.border}`}>
+                <div className={`${tc.cardBg} rounded-xl p-12 text-center border ${tc.border}`}>
                   <UserIcon className={`w-12 h-12 ${tc.textMuted} mx-auto mb-4`} />
                   <p className={tc.textMuted}>No rankings available</p>
                   <p className={`text-sm ${tc.textMuted} mt-1`}>Stats need to be recorded first</p>
@@ -570,7 +570,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
         
         {/* No category selected in full view */}
         {viewMode === 'full' && !selectedCategory && (
-          <div className={`${tc.cardBg} rounded-2xl p-12 text-center border ${tc.border}`}>
+          <div className={`${tc.cardBg} rounded-xl p-12 text-center border ${tc.border}`}>
             <TrophyIcon className="w-16 h-16 text-amber-400 mx-auto mb-4" />
             <p className={`${tc.text} font-medium`}>Select a category above to view rankings</p>
           </div>
@@ -578,7 +578,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
         
         {/* Top Performers Summary */}
         {viewMode === 'grid' && (
-          <div className="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white">
+          <div className="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
               <TrophyIcon className="w-6 h-6" />
               Season MVPs

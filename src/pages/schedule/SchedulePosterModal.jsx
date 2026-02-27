@@ -392,7 +392,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-      <div className={`relative z-10 w-full max-w-[1500px] max-h-[95vh] overflow-hidden rounded-2xl ${isDark?'bg-slate-900 border-slate-700':'bg-white border-slate-200'} border shadow-2xl flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`relative z-10 w-full max-w-[1500px] max-h-[95vh] overflow-hidden rounded-xl ${isDark?'bg-slate-900 border-slate-700':'bg-white border-slate-200'} border shadow-2xl flex flex-col`} onClick={e => e.stopPropagation()}>
         
         {/* TOOLBAR */}
         {showControls && (
@@ -472,7 +472,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
         {/* Empty state */}
         {teamEvents.length === 0 && showControls && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
-            <div className={`${isDark?'bg-slate-800':'bg-white'} rounded-2xl p-8 text-center max-w-sm`}>
+            <div className={`${isDark?'bg-slate-800':'bg-white'} rounded-xl p-8 text-center max-w-sm`}>
               <div className="text-4xl mb-3">📅</div>
               <h3 className={`text-lg font-bold ${tc.text} mb-2`}>No events to show</h3>
               <p className={`text-sm ${tc.textMuted}`}>{gamesOnly ? 'No games found — try "All Events".' : 'Add events to generate a poster.'}</p>

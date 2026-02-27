@@ -492,7 +492,7 @@ function MarkPaidModal({ payment, onConfirm, onClose, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-md p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Mark Payment as Paid</h3>
         
         <div className="space-y-4">
@@ -578,7 +578,7 @@ function MarkPaidModal({ payment, onConfirm, onClose, tc }) {
 function DeletePaymentModal({ payment, onConfirm, onClose, tc }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-md p-6 border ${tc.border}`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
             <AlertCircle className="w-5 h-5 text-red-400" />
@@ -636,7 +636,7 @@ function SendReminderModal({ target, onSend, onClose, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-lg p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Payment Reminder</h3>
         
         <div className={`p-3 rounded-lg ${tc.cardBgAlt} mb-4`}>
@@ -714,7 +714,7 @@ function BlastReminderModal({ families, onSend, onClose, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-lg p-6 border ${tc.border}`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-lg p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Send Blast Reminder</h3>
         
         <div className="mb-4">
@@ -821,7 +821,7 @@ function AddFeeModal({ players, onAdd, onClose, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-md p-6 border ${tc.border}`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-md p-6 border ${tc.border}`}>
         <h3 className={`text-lg font-bold ${tc.text} mb-4`}>Add New Fee</h3>
         
         <div className="space-y-4">
@@ -1176,19 +1176,19 @@ export function PaymentsPage({ showToast }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
           <p className={tc.textMuted}>Total Collected</p>
           <p className="text-3xl font-bold text-emerald-400 mt-1">${totalCollected.toFixed(2)}</p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
           <p className={tc.textMuted}>Outstanding</p>
           <p className="text-3xl font-bold text-red-400 mt-1">${totalOwed.toFixed(2)}</p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
           <p className={tc.textMuted}>Collection Rate</p>
           <p className="text-3xl font-bold text-[var(--accent-primary)] mt-1">{collectionRate}%</p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
           <p className={tc.textMuted}>Families</p>
           <p className={`text-3xl font-bold ${tc.text} mt-1`}>{uniqueFamilies}</p>
         </div>
@@ -1258,7 +1258,7 @@ export function PaymentsPage({ showToast }) {
       {loading ? (
         <SkeletonPaymentsPage />
       ) : payments.length === 0 ? (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
           <DollarSign className="w-16 h-16 mx-auto text-slate-500" />
           <h3 className={`text-lg font-medium ${tc.text} mt-4`}>No payments found</h3>
           <p className={`${tc.textMuted} mt-2`}>Fees are automatically generated when registrations are approved.</p>

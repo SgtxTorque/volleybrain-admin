@@ -49,7 +49,7 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center gap-2 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
+      className={`relative flex flex-col items-center gap-2 rounded-xl p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
         isDark
           ? 'bg-slate-700/60 border border-white/[0.06]'
           : 'bg-white border border-slate-100'
@@ -82,18 +82,18 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
     }`}>
       {/* Org Card */}
-      <div className={`flex flex-col items-center gap-4 rounded-2xl p-6 shadow-sm ${
+      <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow-sm ${
         isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
       }`}>
         {orgLogo ? (
           <img
             src={orgLogo}
             alt={orgName}
-            className="h-16 w-16 rounded-2xl object-cover shadow-sm"
+            className="h-16 w-16 rounded-xl object-cover shadow-sm"
           />
         ) : (
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-bold text-white shadow-sm"
+            className="flex h-16 w-16 items-center justify-center rounded-xl text-xl font-bold text-white shadow-sm"
             style={{ backgroundColor: accent.primary || '#2c3e50' }}
           >
             {initials}
@@ -116,7 +116,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       </div>
 
       {/* Collections Progress */}
-      <div className={`rounded-2xl p-5 shadow-sm ${
+      <div className={`rounded-xl p-5 shadow-sm ${
         isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between">

@@ -36,7 +36,7 @@ function MyStuffPage({ roleContext, showToast }) {
       </div>
 
       {/* Tab Bar */}
-      <div className={`flex gap-1 p-1 rounded-2xl ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+      <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
         {TABS.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -132,7 +132,7 @@ function ProfileTab({ showToast }) {
   }
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6 space-y-6`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 space-y-6`}>
       <h2 className={`text-lg font-bold ${tc.text}`}>Profile Information</h2>
 
       <div className="flex flex-col sm:flex-row gap-6">
@@ -260,7 +260,7 @@ function PaymentsTab({ roleContext, showToast }) {
 
       {/* Unpaid */}
       {unpaid.length > 0 && (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <h3 className={`font-bold ${tc.text} mb-3 flex items-center gap-2`}>
             <AlertTriangle className="w-4 h-4 text-red-500" />
             Outstanding ({unpaid.length})
@@ -286,7 +286,7 @@ function PaymentsTab({ roleContext, showToast }) {
       )}
 
       {/* Paid history */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
         <h3 className={`font-bold ${tc.text} mb-3`}>Payment History ({paid.length})</h3>
         {paid.length > 0 ? (
           <div className="space-y-2">
@@ -396,14 +396,14 @@ function WaiversTab({ roleContext, showToast }) {
   return (
     <div className="space-y-4">
       {waivers.length === 0 ? (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-8 text-center`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
           <FileText className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
           <p className={`font-semibold ${tc.text}`}>No Active Waivers</p>
           <p className={`text-sm ${tc.textMuted} mt-1`}>Your organization hasn't published any waivers yet.</p>
         </div>
       ) : (
         waivers.map(waiver => (
-          <div key={waiver.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+          <div key={waiver.id} className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className={`font-bold ${tc.text}`}>{waiver.title}</h3>
@@ -523,7 +523,7 @@ function SettingsTab({ showToast }) {
   ]
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6 space-y-5`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 space-y-5`}>
       <h2 className={`text-lg font-bold ${tc.text}`}>Notification Preferences</h2>
 
       <div className="space-y-3">
@@ -578,7 +578,7 @@ function LinkedPlayersTab({ roleContext, showToast }) {
 
   if (!children.length) {
     return (
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-8 text-center`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
         <Users className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
         <p className={`font-semibold ${tc.text}`}>No Linked Players</p>
         <p className={`text-sm ${tc.textMuted} mt-1`}>Register a player to get started.</p>
@@ -593,7 +593,7 @@ function LinkedPlayersTab({ roleContext, showToast }) {
         const teamColor = team?.color || '#6366F1'
 
         return (
-          <div key={child.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+          <div key={child.id} className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
             <div className="h-2" style={{ backgroundColor: teamColor }} />
             <div className="p-5 flex items-center gap-4">
               {/* Photo */}
@@ -661,7 +661,7 @@ function SummaryCard({ label, value, color }) {
   const { isDark } = useTheme()
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
       <p className={`text-xs font-semibold uppercase ${tc.textMuted}`}>{label}</p>
       <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
     </div>

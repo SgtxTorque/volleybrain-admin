@@ -387,7 +387,7 @@ function RegistrationFunnelPage({ showToast }) {
                     { label: 'Fully Paid', value: metrics.paid, icon: DollarSign, color: '#06b6d4' },
                     { label: 'Avg Approval Time', value: formatTime(metrics.avgApprovalTime), icon: Clock, color: '#8b5cf6', raw: true },
                   ].map((m, i) => (
-                    <div key={m.label} className="p-4 rounded-2xl fnl-au" style={{ ...gc, animationDelay: `${i * .05}s` }}>
+                    <div key={m.label} className="p-4 rounded-xl fnl-au" style={{ ...gc, animationDelay: `${i * .05}s` }}>
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${m.color}20` }}>
                           <m.icon className="w-4 h-4" style={{ color: m.color }} />
@@ -400,7 +400,7 @@ function RegistrationFunnelPage({ showToast }) {
                 </div>
 
                 {/* Funnel Visualization */}
-                <div className="p-6 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.15s' }}>
+                <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.15s' }}>
                   <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>CONVERSION FUNNEL</h2>
                   <p className={`text-xs mb-6 ${tc.textMuted}`}>
                     {hasFunnelTable ? 'Full funnel tracking active' : 'Based on existing registration & payment data — run the SQL migration to enable full page view tracking'}
@@ -459,15 +459,15 @@ function RegistrationFunnelPage({ showToast }) {
 
                 {/* Revenue Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="p-5 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.25s' }}>
+                  <div className="p-5 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.25s' }}>
                     <p className={`text-[10px] font-bold fnl-heading tracking-wider ${tc.textMuted}`}>TOTAL EXPECTED</p>
                     <p className={`text-2xl font-bold mt-1 ${tc.text}`}>${metrics.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                   </div>
-                  <div className="p-5 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.3s' }}>
+                  <div className="p-5 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.3s' }}>
                     <p className={`text-[10px] font-bold fnl-heading tracking-wider ${tc.textMuted}`}>COLLECTED</p>
                     <p className="text-2xl font-bold mt-1" style={{ color: '#10b981' }}>${metrics.collectedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                   </div>
-                  <div className="p-5 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.35s' }}>
+                  <div className="p-5 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.35s' }}>
                     <p className={`text-[10px] font-bold fnl-heading tracking-wider ${tc.textMuted}`}>COLLECTION RATE</p>
                     <p className="text-2xl font-bold mt-1" style={{ color: accent.primary }}>
                       {metrics.totalRevenue > 0 ? Math.round((metrics.collectedRevenue / metrics.totalRevenue) * 100) : 0}%
@@ -477,7 +477,7 @@ function RegistrationFunnelPage({ showToast }) {
 
                 {/* Funnel table hint */}
                 {!hasFunnelTable && (
-                  <div className="p-4 rounded-2xl flex items-start gap-3 fnl-ai" style={{ background: isDark ? 'rgba(245,158,11,.08)' : 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 16 }}>
+                  <div className="p-4 rounded-xl flex items-start gap-3 fnl-ai" style={{ background: isDark ? 'rgba(245,158,11,.08)' : 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: 16 }}>
                     <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
                     <div>
                       <p className={`text-sm font-bold ${tc.text}`}>Enable Full Funnel Tracking</p>
@@ -518,7 +518,7 @@ function RegistrationFunnelPage({ showToast }) {
 
                 {/* Pipeline status summary bar */}
                 {metrics.pipeline.length > 0 && (
-                  <div className="p-4 rounded-2xl fnl-ai" style={gc}>
+                  <div className="p-4 rounded-xl fnl-ai" style={gc}>
                     <div className="flex items-center gap-1 h-4 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)' }}>
                       {['paid', 'partial', 'approved', 'unpaid', 'pending', 'denied'].map(status => {
                         const count = metrics.pipeline.filter(r => r.pipe_status === status).length
@@ -544,7 +544,7 @@ function RegistrationFunnelPage({ showToast }) {
                 )}
 
                 {/* Table */}
-                <div className="rounded-2xl overflow-hidden" style={gc}>
+                <div className="rounded-xl overflow-hidden" style={gc}>
                   {filteredPipeline.length === 0 ? (
                     <div className="p-12 text-center">
                       <span className="text-5xl">📭</span>
@@ -612,7 +612,7 @@ function RegistrationFunnelPage({ showToast }) {
             {activeTab === 'trends' && (
               <div className="space-y-6">
                 {/* Registrations Over Time */}
-                <div className="p-6 rounded-2xl fnl-au" style={gc}>
+                <div className="p-6 rounded-xl fnl-au" style={gc}>
                   <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>REGISTRATIONS OVER TIME</h2>
                   <p className={`text-xs mb-5 ${tc.textMuted}`}>Weekly registration volume</p>
 
@@ -648,7 +648,7 @@ function RegistrationFunnelPage({ showToast }) {
                 {/* Source Breakdown + Payment Rate side by side */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Source Breakdown */}
-                  <div className="p-6 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.1s' }}>
+                  <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.1s' }}>
                     <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>TRAFFIC SOURCES</h2>
                     <p className={`text-xs mb-5 ${tc.textMuted}`}>Where registrants come from</p>
 
@@ -685,7 +685,7 @@ function RegistrationFunnelPage({ showToast }) {
                   </div>
 
                   {/* Payment Completion Breakdown */}
-                  <div className="p-6 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.15s' }}>
+                  <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.15s' }}>
                     <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>PAYMENT STATUS</h2>
                     <p className={`text-xs mb-5 ${tc.textMuted}`}>Breakdown of payment completion</p>
 
@@ -722,7 +722,7 @@ function RegistrationFunnelPage({ showToast }) {
 
                 {/* Season Comparison */}
                 {seasons.length > 1 && (
-                  <div className="p-6 rounded-2xl fnl-au" style={{ ...gc, animationDelay: '.2s' }}>
+                  <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.2s' }}>
                     <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>SEASON COMPARISON</h2>
                     <p className={`text-xs mb-5 ${tc.textMuted}`}>Registration counts across seasons (selected season highlighted)</p>
 

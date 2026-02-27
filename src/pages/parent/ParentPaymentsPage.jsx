@@ -220,17 +220,17 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <p className={tc.textMuted}>Total Due</p>
           <p className={`text-3xl font-bold ${totalDue > 0 ? 'text-red-500' : 'text-emerald-500'}`}>${totalDue.toFixed(2)}</p>
           {unpaidPayments.length > 0 && <p className="text-xs text-red-400 mt-1">{unpaidPayments.length} unpaid fees</p>}
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <p className={tc.textMuted}>Total Paid</p>
           <p className="text-3xl font-bold text-emerald-500">${totalPaid.toFixed(2)}</p>
           <p className={`text-xs ${tc.textMuted} mt-1`}>{paidPayments.length} payments</p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           {selectedPayments.size > 0 ? (
             <div>
               <p className={tc.textMuted}>Selected</p>
@@ -258,7 +258,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
       {/* Pay Selected Button */}
       {selectedPayments.size > 0 && (
-        <div className={`${tc.cardBg} border-2 border-[var(--accent-primary)] rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border-2 border-[var(--accent-primary)] rounded-xl p-5`}>
           <div className="flex items-center justify-between">
             <div>
               <p className={tc.text}>Ready to pay <span className="font-bold">${selectedTotal.toFixed(2)}</span></p>
@@ -285,7 +285,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
       {/* Outstanding Payments */}
       {unpaidPayments.length > 0 && (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`font-semibold ${tc.text} flex items-center gap-2`}>
               <span className="text-red-500">⚠️</span> Outstanding Payments
@@ -335,7 +335,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       {/* Payment Options Modal */}
       {showPaymentOptions && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md`}>
             <div className={`p-6 border-b ${tc.border}`}>
               <h2 className={`text-xl font-semibold ${tc.text}`}>Payment Options</h2>
               <p className={`${tc.textMuted} text-sm mt-1`}>
@@ -505,7 +505,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       )}
 
       {/* Payment History */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
         <h2 className={`font-semibold ${tc.text} mb-4`}>Payment History</h2>
         {paidPayments.length > 0 ? (
           <div className="space-y-2">

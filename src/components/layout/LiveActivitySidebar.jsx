@@ -122,7 +122,7 @@ export default function LiveActivitySidebar({ activities, upcomingEvents, onNavi
   return (
     <>
       {/* Live Activity Feed */}
-      <div className={`rounded-2xl overflow-hidden ${cardClass}`}>
+      <div className={`rounded-xl overflow-hidden ${cardClass}`}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -153,7 +153,7 @@ export default function LiveActivitySidebar({ activities, upcomingEvents, onNavi
 
       {/* Upcoming Events Preview */}
       {upcomingEvents && upcomingEvents.length > 0 && (
-        <div className={`rounded-2xl overflow-hidden ${cardClass}`}>
+        <div className={`rounded-xl overflow-hidden ${cardClass}`}>
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">

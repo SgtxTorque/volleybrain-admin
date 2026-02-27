@@ -381,7 +381,7 @@ function AttendancePage({ showToast }) {
           {loading ? (
             <div className={`text-center py-12 ${tc.textMuted}`}>Loading...</div>
           ) : events.length === 0 ? (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
               <Calendar className="w-16 h-16 mb-4" />
               <h3 className={`text-xl font-semibold ${tc.text} mb-2`}>No Events Found</h3>
               <p className={tc.textMuted}>No {viewMode} events match your filters</p>
@@ -445,7 +445,7 @@ function AttendancePage({ showToast }) {
         {/* Event Details Panel */}
         <div className="w-96">
           {selectedEvent ? (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl sticky top-8`}>
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl sticky top-8`}>
               <div className={`p-4 border-b ${tc.border}`}>
                 <div className="flex items-center justify-between">
                   <h2 className={`text-lg font-semibold ${tc.text}`}>{selectedEvent.title}</h2>
@@ -675,7 +675,7 @@ function AttendancePage({ showToast }) {
               )}
             </div>
           ) : (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-8 text-center`}>
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
               <div className="text-4xl mb-3">👈</div>
               <p className={tc.textMuted}>Select an event to view details</p>
             </div>

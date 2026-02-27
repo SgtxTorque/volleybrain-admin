@@ -438,11 +438,11 @@ function SeasonCard({ season, onClick, isDark, tc, accent, delay }) {
   return (
     <button
       onClick={onClick}
-      className={`sa-glass rounded-2xl p-5 text-left w-full transition-all hover:scale-[1.01] sa-au group`}
+      className={`sa-glass rounded-xl p-5 text-left w-full transition-all hover:scale-[1.01] sa-au group`}
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ background: `${accent.primary}15` }}>
+        <div className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ background: `${accent.primary}15` }}>
           {season.sports?.icon || '🏆'}
         </div>
         <div className="flex-1 min-w-0">
@@ -579,7 +579,7 @@ function SeasonArchivePage({ showToast, onNavigate }) {
 
       {/* Org Tabs (only if user has multiple orgs) */}
       {orgs.length > 1 && (
-        <div className="sa-glass rounded-2xl p-1.5 mb-6 inline-flex gap-1 sa-au" style={{ animationDelay: '60ms' }}>
+        <div className="sa-glass rounded-xl p-1.5 mb-6 inline-flex gap-1 sa-au" style={{ animationDelay: '60ms' }}>
           {orgs.map(org => (
             <button
               key={org.id}
@@ -604,7 +604,7 @@ function SeasonArchivePage({ showToast, onNavigate }) {
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
       ) : seasons.length === 0 ? (
-        <div className="sa-glass rounded-2xl p-12 text-center sa-au">
+        <div className="sa-glass rounded-xl p-12 text-center sa-au">
           <Trophy className={`w-16 h-16 mx-auto ${tc.textMuted} mb-4 opacity-40`} />
           <h2 className={`sa-display text-2xl ${tc.text} mb-2`}>No Archived Seasons</h2>
           <p className={`text-sm ${tc.textMuted} max-w-sm mx-auto`}>

@@ -19,7 +19,7 @@ function WCard({ children, className = '' }) {
   const { isDark } = useTheme()
   return (
     <div className={`
-      h-full rounded-2xl overflow-hidden transition-all duration-300
+      h-full rounded-xl overflow-hidden transition-all duration-300
       ${isDark
         ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
         : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'

@@ -60,7 +60,7 @@ export function SkeletonRect({ width = '100%', height = '120px', className = '' 
 export function SkeletonCard({ className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`p-5 rounded-2xl border ${isDark ? 'bg-slate-800/60 border-white/[0.06]' : 'bg-white border-slate-200'} ${className}`}>
+    <div className={`p-5 rounded-xl border ${isDark ? 'bg-slate-800/60 border-white/[0.06]' : 'bg-white border-slate-200'} ${className}`}>
       <div className="flex items-center gap-3 mb-4">
         <SkeletonCircle size="36px" />
         <div className="flex-1 space-y-2">
@@ -80,7 +80,7 @@ export function SkeletonCard({ className = '' }) {
 export function SkeletonMetricCard({ className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/60 border-white/[0.06]' : 'bg-white border-slate-200'} ${className}`}>
+    <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-800/60 border-white/[0.06]' : 'bg-white border-slate-200'} ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <SkeletonLine width="80px" height="12px" />
         <SkeletonCircle size="28px" />
@@ -106,7 +106,7 @@ export function SkeletonTableRow({ cols = 5 }) {
 export function SkeletonTable({ rows = 5, cols = 5, className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-800/60 border-white/[0.06]' : 'bg-white border-slate-200'} ${className}`}>
+    <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/60 border-white/[0.06]' : 'bg-white border-slate-200'} ${className}`}>
       {/* Header */}
       <div className={`px-4 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
         <div className="flex gap-4">

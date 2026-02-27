@@ -673,7 +673,7 @@ function DataExportPage({ showToast }) {
   if (!hasAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'} border rounded-2xl p-8 text-center max-w-md`}>
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'} border rounded-xl p-8 text-center max-w-md`}>
           <Shield className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h2 className={`text-xl font-bold ${tc.text} mb-2`}>Access Denied</h2>
           <p className={tc.textMuted}>Only organization admins and platform super-admins can access data exports.</p>
@@ -715,7 +715,7 @@ function DataExportPage({ showToast }) {
         {/* PLATFORM ADMIN ORG SELECTOR */}
         {isPlatformAdmin && (
           <div className="de-au" style={{ animationDelay: '.1s' }}>
-            <div className={`de-glass rounded-2xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+            <div className={`de-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5" style={{ color: accentColor }} />
                 <span className={`de-label text-sm ${tc.text}`}>Platform Admin — Export for:</span>
@@ -757,7 +757,7 @@ function DataExportPage({ showToast }) {
 
         {/* FILTERS */}
         <div className="de-au" style={{ animationDelay: '.15s' }}>
-          <div className={`de-glass rounded-2xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`de-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
             <div className="flex flex-wrap items-center gap-4">
               {/* Season Filter */}
               <div className="flex items-center gap-2">
@@ -809,7 +809,7 @@ function DataExportPage({ showToast }) {
         {/* PROGRESS BAR */}
         {progress.active && (
           <div className="de-as">
-            <div className={`de-glass rounded-2xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+            <div className={`de-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
               <div className="flex items-center gap-3 mb-2">
                 <RefreshCw className="w-4 h-4 animate-spin" style={{ color: accentColor }} />
                 <span className={`de-label text-sm ${tc.text}`}>{progress.step}</span>
@@ -840,7 +840,7 @@ function DataExportPage({ showToast }) {
                 className={`de-au ${isFullBackup ? 'md:col-span-2' : ''}`}
                 style={{ animationDelay: `${0.2 + i * 0.05}s` }}
               >
-                <div className={`de-glass rounded-2xl p-5 transition group ${
+                <div className={`de-glass rounded-xl p-5 transition group ${
                   isDark
                     ? 'hover:bg-white/[.06]'
                     : 'bg-white/80 border-slate-200 hover:bg-white'

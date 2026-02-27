@@ -109,7 +109,7 @@ function ProfileInfoSection({ profile, user, isDark, tc, accent, showToast, onPr
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au">
+    <div className="mp-glass rounded-xl p-6 mp-au">
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5`}>Profile Information</h2>
 
       <div className="flex flex-col sm:flex-row gap-6">
@@ -236,7 +236,7 @@ function EmergencyContactSection({ profile, isDark, tc, accent, showToast, onPro
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '100ms' }}>
+    <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '100ms' }}>
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <AlertTriangle className="w-4 h-4 text-amber-400" />
         Emergency Contact
@@ -354,7 +354,7 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
 
   if (loading) {
     return (
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
@@ -367,7 +367,7 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
   return (
     <>
       {/* Bio Section */}
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
         <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
           <UserCog className="w-4 h-4" style={{ color: accent.primary }} />
           Coach Profile
@@ -399,7 +399,7 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
       </div>
 
       {/* Assigned Teams */}
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '260ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '260ms' }}>
         <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Users className="w-4 h-4" style={{ color: accent.primary }} />
           My Teams
@@ -427,7 +427,7 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
       </div>
 
       {/* Upcoming Schedule */}
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '320ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '320ms' }}>
         <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Calendar className="w-4 h-4" style={{ color: accent.primary }} />
           Upcoming Schedule
@@ -513,7 +513,7 @@ function ParentSection({ profile, isDark, tc, accent }) {
 
   if (loading) {
     return (
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
@@ -526,7 +526,7 @@ function ParentSection({ profile, isDark, tc, accent }) {
   return (
     <>
       {/* Children's Profiles */}
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
         <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Users className="w-4 h-4" style={{ color: accent.primary }} />
           My Children
@@ -573,7 +573,7 @@ function ParentSection({ profile, isDark, tc, accent }) {
       </div>
 
       {/* Upcoming Schedule */}
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '260ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '260ms' }}>
         <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Calendar className="w-4 h-4" style={{ color: accent.primary }} />
           Upcoming Schedule
@@ -668,7 +668,7 @@ function ChangePasswordSection({ isDark, tc, accent, showToast }) {
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '400ms' }}>
+    <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '400ms' }}>
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Key className="w-4 h-4" style={{ color: accent.primary }} />
         Change Password
@@ -788,7 +788,7 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '440ms' }}>
+    <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '440ms' }}>
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Mail className="w-4 h-4" style={{ color: accent.primary }} />
         Change Email
@@ -902,7 +902,7 @@ function OrgMembershipsSection({ profile, isDark, tc, accent }) {
 
   if (loading) {
     return (
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
@@ -911,7 +911,7 @@ function OrgMembershipsSection({ profile, isDark, tc, accent }) {
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
+    <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Building2 className="w-4 h-4" style={{ color: accent.primary }} />
         Organization Memberships
@@ -996,7 +996,7 @@ function DeleteAccountSection({ profile, isDark, tc, showToast }) {
 
   return (
     <div
-      className="rounded-2xl p-6 mp-au"
+      className="rounded-xl p-6 mp-au"
       style={{
         animationDelay: '560ms',
         background: isDark ? 'rgba(239,68,68,.04)' : 'rgba(239,68,68,.03)',
@@ -1213,7 +1213,7 @@ function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) 
 
   if (loading) {
     return (
-      <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
+      <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
         <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
@@ -1222,7 +1222,7 @@ function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) 
   }
 
   return (
-    <div className="mp-glass rounded-2xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
+    <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
       <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Trophy className="w-4 h-4" style={{ color: accent.primary }} />
         My History

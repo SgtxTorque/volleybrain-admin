@@ -97,7 +97,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
         )}
 
         <div className="relative">
-          <div className={`${isEmojiOnly ? 'px-1 py-1' : 'px-4 py-2.5'} ${isEmojiOnly ? '' : 'rounded-2xl'} ${isOwn && !isEmojiOnly ? 'rounded-br-md' : !isOwn && !isEmojiOnly ? 'rounded-bl-md' : ''}`}
+          <div className={`${isEmojiOnly ? 'px-1 py-1' : 'px-4 py-2.5'} ${isEmojiOnly ? '' : 'rounded-xl'} ${isOwn && !isEmojiOnly ? 'rounded-br-md' : !isOwn && !isEmojiOnly ? 'rounded-bl-md' : ''}`}
             style={bubbleStyle}>
             {renderContent()}
             {!isEmojiOnly && (
@@ -139,7 +139,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
           )}
 
           {showReactions && (
-            <div className="absolute top-8 flex items-center gap-1 p-2 rounded-2xl shadow-xl z-10 left-0"
+            <div className="absolute top-8 flex items-center gap-1 p-2 rounded-xl shadow-xl z-10 left-0"
               style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', backdropFilter: 'blur(16px)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)' }}>
               {REACTION_EMOJIS.map(emoji => (
                 <button key={emoji} onClick={() => { onReact(emoji); setShowReactions(false) }}

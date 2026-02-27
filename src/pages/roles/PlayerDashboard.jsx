@@ -73,7 +73,7 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div
-        className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col rounded-2xl"
+        className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col rounded-xl"
         style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
       >
         <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--player-border)' }}>

@@ -59,7 +59,7 @@ export default function CoachLeftSidebar({
       </div>
 
       {/* Needs Attention */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-4 h-4 text-amber-500" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Needs Attention</h3>

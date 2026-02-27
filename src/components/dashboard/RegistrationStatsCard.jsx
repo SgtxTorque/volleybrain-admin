@@ -41,7 +41,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
     })
 
   return (
-    <div className={`flex flex-col gap-5 rounded-2xl p-6 shadow-sm ${
+    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow-sm ${
       isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
     }`}>
       <div className="flex items-center justify-between">

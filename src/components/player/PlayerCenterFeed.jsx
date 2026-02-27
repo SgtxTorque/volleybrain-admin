@@ -247,7 +247,7 @@ export default function PlayerCenterFeed({
 
               return (
                 <div
-                  className="rounded-2xl overflow-hidden relative"
+                  className="rounded-xl overflow-hidden relative"
                   style={{
                     background: isGame
                       ? 'linear-gradient(135deg, rgba(239,68,68,0.08), var(--player-card))'
@@ -341,7 +341,7 @@ export default function PlayerCenterFeed({
 
               return (
                 <div
-                  className="rounded-2xl p-4"
+                  className="rounded-xl p-4"
                   style={{
                     background: 'var(--player-card)',
                     borderLeft: `3px solid ${resultColor}`,
@@ -390,7 +390,7 @@ export default function PlayerCenterFeed({
               const b = item.data
               return (
                 <div
-                  className="rounded-2xl p-4 player-pulse-new"
+                  className="rounded-xl p-4 player-pulse-new"
                   style={{
                     background: 'var(--player-card)',
                     border: '1px solid var(--player-border)',
@@ -427,7 +427,7 @@ export default function PlayerCenterFeed({
               const s = item.data
               return (
                 <div
-                  className="rounded-2xl p-4"
+                  className="rounded-xl p-4"
                   style={{
                     background: 'var(--player-card)',
                     border: '1px solid var(--player-border)',
@@ -460,7 +460,7 @@ export default function PlayerCenterFeed({
         ))}
 
         {feedItems.length === 0 && (
-          <div className="rounded-2xl p-10 text-center" style={{ background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>
+          <div className="rounded-xl p-10 text-center" style={{ background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>
             <Calendar className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--player-text-muted)' }} />
             <p className="font-bold text-lg" style={{ color: 'var(--player-text-secondary)' }}>Your feed is empty</p>
             <p className="text-sm mt-1" style={{ color: 'var(--player-text-muted)' }}>Play games, earn badges, and get shoutouts to fill your feed</p>
@@ -490,7 +490,7 @@ export default function PlayerCenterFeed({
                 return (
                   <div
                     key={b.id || idx}
-                    className="w-[130px] shrink-0 rounded-2xl overflow-hidden relative"
+                    className="w-[130px] shrink-0 rounded-xl overflow-hidden relative"
                     style={{
                       height: 180,
                       background: r.bg,
@@ -517,7 +517,7 @@ export default function PlayerCenterFeed({
               {badges.length < 5 && Array.from({ length: 5 - badges.length }).map((_, i) => (
                 <div
                   key={`locked-${i}`}
-                  className="w-[130px] shrink-0 rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-2"
+                  className="w-[130px] shrink-0 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-2"
                   style={{ height: 180, background: 'var(--player-card)', border: '1px solid var(--player-border)' }}
                 >
                   <Lock className="w-6 h-6" style={{ color: 'var(--player-text-muted)' }} />
@@ -531,7 +531,7 @@ export default function PlayerCenterFeed({
               {Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={`locked-${i}`}
-                  className="w-[130px] shrink-0 rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-2"
+                  className="w-[130px] shrink-0 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-2"
                   style={{ height: 180, background: 'var(--player-card)', border: '1px solid var(--player-border)' }}
                 >
                   <Lock className="w-6 h-6" style={{ color: 'var(--player-text-muted)' }} />

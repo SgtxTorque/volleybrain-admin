@@ -246,7 +246,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
           return (
             <div
               key={i}
-              className={`p-5 rounded-2xl ${tc.cardBg} border ${tc.border}`}
+              className={`p-5 rounded-xl ${tc.cardBg} border ${tc.border}`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 rounded-xl" style={{ background: card.bg }}>
@@ -266,7 +266,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
 
       {/* Type Breakdown */}
       <div
-        className={`p-6 rounded-2xl ${tc.cardBg} border ${tc.border}`}
+        className={`p-6 rounded-xl ${tc.cardBg} border ${tc.border}`}
       >
         <h3 className="text-lg font-bold mb-4 tracking-wide">
           Notifications by Type
@@ -292,7 +292,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
 
       {/* Recent Activity */}
       <div
-        className={`p-6 rounded-2xl ${tc.cardBg} border ${tc.border}`}
+        className={`p-6 rounded-xl ${tc.cardBg} border ${tc.border}`}
       >
         <h3 className="text-lg font-bold mb-4 tracking-wide">
           Recent Activity
@@ -604,7 +604,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
-        className={`w-full max-w-lg rounded-2xl overflow-hidden ${tc.cardBg} border ${tc.border}`}
+        className={`w-full max-w-lg rounded-xl overflow-hidden ${tc.cardBg} border ${tc.border}`}
       >
         {/* Header */}
         <div className={`p-5 border-b ${tc.border}`}>

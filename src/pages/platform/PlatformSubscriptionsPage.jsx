@@ -84,7 +84,7 @@ function PlatformSubscriptionsPage({ showToast }) {
   if (!isPlatformAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'} border rounded-2xl p-8 text-center max-w-md`}>
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'} border rounded-xl p-8 text-center max-w-md`}>
           <Shield className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h2 className={`text-xl font-bold ${tc.text} mb-2`}>Access Denied</h2>
           <p className={tc.textMuted}>Only platform super-admins can manage subscriptions.</p>
@@ -302,7 +302,7 @@ function PlatformSubscriptionsPage({ showToast }) {
           <div className="ps-au"><div className={`h-10 w-80 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-200'} ps-shimmer`} /></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1,2,3,4].map(i => (
-              <div key={i} className={`h-28 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-slate-100'} ps-shimmer`} style={{ animationDelay: `${i * 0.1}s` }} />
+              <div key={i} className={`h-28 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'} ps-shimmer`} style={{ animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
         </div>
@@ -339,7 +339,7 @@ function PlatformSubscriptionsPage({ showToast }) {
             { label: 'Orgs on Platform', value: metrics.totalOrgs, icon: Building2, color: '#F59E0B' },
           ].map((m, i) => (
             <div key={i} className="ps-au" style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
-              <div className={`ps-glass rounded-2xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+              <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <m.icon className="w-4 h-4" style={{ color: m.color }} />
                   <span className={`text-[11px] ps-label ${tc.textMuted}`}>{m.label}</span>
@@ -352,7 +352,7 @@ function PlatformSubscriptionsPage({ showToast }) {
 
         {/* TIER BREAKDOWN */}
         <div className="ps-au" style={{ animationDelay: '.3s' }}>
-          <div className={`ps-glass rounded-2xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
             <h3 className={`ps-label text-xs ${tc.textMuted} mb-3`}>REVENUE BY TIER</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(TIER_CONFIG).map(([tierId, tier]) => {
@@ -377,7 +377,7 @@ function PlatformSubscriptionsPage({ showToast }) {
 
         {/* FILTERS */}
         <div className="ps-au" style={{ animationDelay: '.35s' }}>
-          <div className={`ps-glass rounded-2xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
             <div className="flex flex-wrap items-center gap-3">
               {/* Search */}
               <div className={`flex items-center gap-2 flex-1 min-w-[200px] px-3 py-2 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
@@ -416,7 +416,7 @@ function PlatformSubscriptionsPage({ showToast }) {
 
         {/* ORGANIZATIONS TABLE */}
         <div className="ps-au" style={{ animationDelay: '.4s' }}>
-          <div className={`ps-glass rounded-2xl overflow-hidden ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`ps-glass rounded-xl overflow-hidden ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -505,7 +505,7 @@ function PlatformSubscriptionsPage({ showToast }) {
         {editingSub && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditingSub(null)} />
-            <div className={`relative w-full max-w-lg rounded-2xl p-6 ps-as ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'} shadow-2xl`}>
+            <div className={`relative w-full max-w-lg rounded-xl p-6 ps-as ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'} shadow-2xl`}>
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className={`ps-heading text-lg ${tc.text}`}>Edit Subscription</h3>

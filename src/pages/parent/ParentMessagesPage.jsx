@@ -59,7 +59,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
         ))}
       </div>
 
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4 space-y-4 max-h-[500px] overflow-y-auto`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 space-y-4 max-h-[500px] overflow-y-auto`}>
         <h3 className={`font-semibold ${tc.text}`}>Team Announcements</h3>
         {announcements.length > 0 ? announcements.map(post => (
           <div key={post.id} className={`${tc.cardBgAlt} rounded-xl p-4`}>

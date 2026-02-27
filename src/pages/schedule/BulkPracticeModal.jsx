@@ -150,7 +150,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
         <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg} z-10`}>
           <div>
             <h2 className={`text-xl font-bold ${tc.text}`}>Create Recurring Practice</h2>

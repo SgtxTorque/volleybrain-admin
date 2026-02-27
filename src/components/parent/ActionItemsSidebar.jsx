@@ -199,7 +199,7 @@ export function QuickRsvpModal({ event, userId, onClose, onRsvp, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-sm shadow-2xl`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-sm shadow-2xl`} onClick={e => e.stopPropagation()}>
         <div className={`p-5 border-b ${tc.border}`}>
           <h3 className={`text-lg font-bold ${tc.text}`}>RSVP</h3>
           <p className={`text-sm ${tc.textMuted} mt-1`}>

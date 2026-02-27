@@ -212,7 +212,7 @@ export function ReactionBar({ postId, reactionCount = 0, isDark, g, onCountChang
         {/* Emoji Picker Popup */}
         {showPicker && (
           <div
-            className="absolute bottom-full left-0 mb-2 flex items-center gap-1 px-2 py-1.5 rounded-2xl shadow-xl z-20"
+            className="absolute bottom-full left-0 mb-2 flex items-center gap-1 px-2 py-1.5 rounded-xl shadow-xl z-20"
             style={{
               background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.97)',
               border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)',

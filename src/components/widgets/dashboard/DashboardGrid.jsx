@@ -23,7 +23,7 @@ function WidgetPicker({ onAdd, activeWidgets, role, onClose }) {
   if (available.length === 0) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-        <div className={`rounded-2xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'}`}
+        <div className={`rounded-xl p-6 w-full max-w-md mx-4 ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'}`}
           onClick={e => e.stopPropagation()}>
           <h3 className={`text-lg font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>All widgets added</h3>
           <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You've already added all available widgets for this role.</p>
@@ -35,7 +35,7 @@ function WidgetPicker({ onAdd, activeWidgets, role, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-      <div className={`rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'}`}
+      <div className={`rounded-xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'}`}
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Add Widget</h3>
@@ -206,7 +206,7 @@ export function DashboardGrid({ role = 'admin' }) {
 
       {/* Grid */}
       {activeWidgets.length === 0 ? (
-        <div className={`rounded-2xl border-2 border-dashed p-12 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+        <div className={`rounded-xl border-2 border-dashed p-12 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
           <p className={`text-lg font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>No widgets on your dashboard</p>
           <p className={`text-sm mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Click "Add Widget" to customize your view</p>
           <button onClick={() => setShowPicker(true)}

@@ -103,7 +103,7 @@ const TeamStandingsWidget = ({ teamId, onViewStandings }) => {
 
   if (loading) {
     return (
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
         <div className="flex items-center justify-center h-32">
           <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
         </div>
@@ -116,7 +116,7 @@ const TeamStandingsWidget = ({ teamId, onViewStandings }) => {
   }
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-[var(--accent-primary)]" />

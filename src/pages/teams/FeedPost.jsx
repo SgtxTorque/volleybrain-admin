@@ -47,7 +47,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       <div className="px-6 pt-6 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {/* Avatar with gradient ring */}
-          <div className="p-[2px] rounded-2xl" style={{ background: `linear-gradient(135deg, ${g}, ${gb})` }}>
+          <div className="p-[2px] rounded-xl" style={{ background: `linear-gradient(135deg, ${g}, ${gb})` }}>
             <div className="w-11 h-11 rounded-[14px] flex items-center justify-center text-base font-bold overflow-hidden"
               style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', color: isDark ? 'white' : '#1a1a1a' }}>
               {post.profiles?.avatar_url ? (
@@ -130,7 +130,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         <div className="px-4 pb-4">
           <div className={`grid ${post.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
             {post.media_urls.map((url, idx) => (
-              <div key={idx} onClick={() => setLightboxIdx(idx)} className="relative rounded-2xl overflow-hidden group cursor-pointer" style={{ height: post.media_urls.length === 1 ? 320 : 200 }}>
+              <div key={idx} onClick={() => setLightboxIdx(idx)} className="relative rounded-xl overflow-hidden group cursor-pointer" style={{ height: post.media_urls.length === 1 ? 320 : 200 }}>
                 <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
                   <div className="absolute bottom-3 right-3">

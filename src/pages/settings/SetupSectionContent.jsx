@@ -1201,7 +1201,7 @@ function SetupSectionContent({
               <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Organization Logo</label>
               <div className="flex items-center gap-4">
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold overflow-hidden border-2"
+                  className="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold overflow-hidden border-2"
                   style={{
                     background: localData.logoUrl ? 'transparent' : (localData.brandingPrimaryColor || accent.primary),
                     borderColor: localData.brandingPrimaryColor || accent.primary,
@@ -1455,7 +1455,7 @@ function SetupSectionContent({
               <h4 className={`font-semibold ${tc.text} mb-3 flex items-center gap-2`}>
                 <Eye className="w-4 h-4" /> Preview
               </h4>
-              <div className="rounded-2xl border overflow-hidden" style={{ borderColor: localData.brandingPrimaryColor || accent.primary }}>
+              <div className="rounded-xl border overflow-hidden" style={{ borderColor: localData.brandingPrimaryColor || accent.primary }}>
                 {/* Preview Header */}
                 {localData.brandingBannerUrl && (
                   <div className="h-24 overflow-hidden">

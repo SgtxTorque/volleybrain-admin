@@ -46,7 +46,7 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
   }
 
   return (
-    <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
       {/* Day headers */}
       <div className={`grid grid-cols-7 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
@@ -156,7 +156,7 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
   }
 
   return (
-    <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
       {/* Day headers */}
       <div className={`grid grid-cols-8 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         <div className="p-3 text-center text-sm font-medium"></div>
@@ -229,7 +229,7 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
   }
 
   return (
-    <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
       <div className={`p-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         <h3 className={`text-lg font-bold ${tc.text}`}>
           {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}

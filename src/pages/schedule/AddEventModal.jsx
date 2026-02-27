@@ -61,7 +61,7 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}>
         <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg} z-10`}>
           <h2 className={`text-xl font-bold ${tc.text}`}>Add Event</h2>
           <button onClick={onClose} className={`${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-900'} text-2xl p-1`}>×</button>

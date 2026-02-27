@@ -179,7 +179,7 @@ export function CommandPalette({ isOpen, onClose }) {
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]" onClick={onClose} />
 
       {/* Palette */}
-      <div className={`fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[201] ${cardBg} border ${border} rounded-2xl shadow-2xl overflow-hidden`}>
+      <div className={`fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[201] ${cardBg} border ${border} rounded-xl shadow-2xl overflow-hidden`}>
         {/* Search input */}
         <div className={`flex items-center gap-3 px-4 py-3 border-b ${border}`}>
           <Search className="w-5 h-5 flex-shrink-0" style={{ color: accent.primary }} />

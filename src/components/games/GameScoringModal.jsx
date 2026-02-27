@@ -236,7 +236,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
   const theyWon = isSetComplete(ourScore, theirScore, targetScore, cap, winByTwo) && theirScore > ourScore
   
   return (
-    <div className={`p-4 rounded-2xl border-2 transition ${
+    <div className={`p-4 rounded-xl border-2 transition ${
       ourWon ? 'bg-emerald-50 border-emerald-300' :
       theyWon ? 'bg-red-50 border-red-300' :
       'bg-white border-slate-200'
@@ -620,7 +620,7 @@ function GameScoringModal({ event, team, sport = 'volleyball', onClose, onSave, 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4 text-white">
           <div className="flex items-center justify-between">
@@ -672,7 +672,7 @@ function GameScoringModal({ event, team, sport = 'volleyball', onClose, onSave, 
               </div>
               
               {/* Match status */}
-              <div className={`p-4 rounded-2xl text-center ${
+              <div className={`p-4 rounded-xl text-center ${
                 matchResult.result === 'win' ? 'bg-emerald-100' :
                 matchResult.result === 'loss' ? 'bg-red-100' :
                 matchResult.result === 'tie' ? 'bg-amber-100' :

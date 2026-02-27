@@ -98,7 +98,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
   const collectionPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
 
   return (
-    <div className={`rounded-2xl overflow-hidden ${panelClass}`}>
+    <div className={`rounded-xl overflow-hidden ${panelClass}`}>
       {/* ---- Org Identity ---- */}
       <div className="px-5 pt-6 pb-4 flex flex-col items-center text-center">
         {orgLogo ? (

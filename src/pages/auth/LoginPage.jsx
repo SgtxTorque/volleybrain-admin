@@ -113,7 +113,7 @@ export function LoginPage() {
           </button>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-400 text-sm">
               {error}

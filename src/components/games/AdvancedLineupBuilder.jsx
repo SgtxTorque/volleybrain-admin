@@ -264,7 +264,7 @@ function PlayerCard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onClick={onClick}
-      className={`relative rounded-2xl overflow-hidden transition-all hover:shadow-xl group h-[160px] ${
+      className={`relative rounded-xl overflow-hidden transition-all hover:shadow-xl group h-[160px] ${
         isServing ? 'ring-2 ring-emerald-400 ring-offset-2' :
         isLibero ? 'ring-2 ring-pink-400 ring-offset-2' :
         isSelected ? 'ring-2 ring-indigo-400 ring-offset-2' : ''
@@ -359,7 +359,7 @@ function EmptySlot({ position, isServing, onDrop, onDragOver }) {
     <div
       onDragOver={(e) => { e.preventDefault(); onDragOver?.(e); }}
       onDrop={onDrop}
-      className={`relative rounded-2xl border-2 border-dashed transition-all hover:border-blue-400/50 h-[160px] flex flex-col items-center justify-center ${
+      className={`relative rounded-xl border-2 border-dashed transition-all hover:border-blue-400/50 h-[160px] flex flex-col items-center justify-center ${
         isServing ? 'border-emerald-400/50' : 'border-slate-600/50'
       }`}
       style={{ background: isServing ? 'rgba(16,185,129,0.05)' : 'rgba(30,40,60,0.3)', minWidth: '130px' }}
@@ -423,7 +423,7 @@ function PlayerStatsModal({ player, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={onClose}>
-      <div className="rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl" style={{ background: '#0a0a0f', border: '1px solid rgba(59,130,246,0.15)' }} onClick={e => e.stopPropagation()}>
+      <div className="rounded-xl w-full max-w-sm overflow-hidden shadow-2xl" style={{ background: '#0a0a0f', border: '1px solid rgba(59,130,246,0.15)' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 text-white text-center">
           {player.photo_url ? (
@@ -795,7 +795,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Set Selector */}
               {sportConfig.hasSets && (
-                <div className="rounded-2xl p-4" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <div className="flex items-center justify-center gap-3">
                     <span className="text-slate-400 font-medium">Set:</span>
                     {Array.from({ length: totalSets }, (_, i) => i + 1).map(setNum => (
@@ -834,7 +834,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Rotation Controls */}
               {sportConfig.hasRotations && (
-                <div className="rounded-2xl p-4" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                <div className="rounded-xl p-4" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <div className="flex items-center justify-center gap-4">
                     <button
                       onClick={prevRotation}
@@ -879,7 +879,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Court Layout - Volleyball */}
               {sport === 'volleyball' && (
-                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                <div className="rounded-xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   {/* Net indicator */}
                   <div className="text-center mb-6">
                     <div className="inline-block px-8 py-2 rounded-lg text-sm font-bold tracking-wider" style={{ background: 'linear-gradient(90deg, rgba(51,65,85,0.5), rgba(71,85,105,0.5), rgba(51,65,85,0.5))', color: 'rgba(255,255,255,0.4)' }}>
@@ -983,7 +983,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Generic Grid for other sports */}
               {sport !== 'volleyball' && (
-                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                <div className="rounded-xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <div className={`grid gap-4 ${
                     sportConfig.starterCount <= 5 ? 'grid-cols-3' :
                     sportConfig.starterCount <= 9 ? 'grid-cols-3' :
@@ -1030,7 +1030,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Libero Selector */}
               {sportConfig.hasLibero && (
-                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                <div className="rounded-xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-xs text-white font-bold">L</span>
                     Libero (Defensive Specialist)
@@ -1056,7 +1056,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
               
               {/* Substitutions Panel */}
               {startersCount > 0 && (
-                <div className="rounded-2xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
+                <div className="rounded-xl p-6" style={{ background: 'rgba(15,20,35,0.7)', border: '1px solid rgba(59,130,246,0.12)' }}>
                   <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
                     <RotateIcon className="w-5 h-5 text-amber-500" />
                     Substitutions

@@ -135,7 +135,7 @@ export function CoachesPage({ showToast }) {
 
   if (!selectedSeason) {
     return (
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
         <UserCog className="w-16 h-16 mx-auto mb-4 opacity-30" />
         <p className={tc.textMuted}>Please select a season to manage coaches</p>
       </div>
@@ -187,7 +187,7 @@ export function CoachesPage({ showToast }) {
           <div className="animate-spin w-10 h-10 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full" />
         </div>
       ) : filteredCoaches.length === 0 ? (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
           <UserCog className="w-16 h-16 mx-auto mb-4 opacity-30" />
           <h3 className={`text-xl font-semibold ${tc.text} mb-2`}>No coaches found</h3>
           <p className={`${tc.textMuted} mb-6`}>{searchTerm ? 'Try a different search term' : 'Add your first coach to get started'}</p>
@@ -234,7 +234,7 @@ function StatCard({ label, value, icon, color, tc }) {
 function CoachCard({ coach, tc, onDetail, onEdit, onAssign, onToggleStatus, onDelete }) {
   const bgCheck = bgCheckLabels[coach.background_check_status] || bgCheckLabels.not_started
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden transition hover:shadow-lg ${coach.status !== 'active' ? 'opacity-60' : ''}`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden transition hover:shadow-lg ${coach.status !== 'active' ? 'opacity-60' : ''}`}>
       <div className="relative h-24 bg-gradient-to-r from-blue-600/30 to-purple-600/30">
         <div className="absolute -bottom-8 left-4">
           {coach.photo_url ? (
@@ -302,7 +302,7 @@ export function CoachDetailModal({ coach, onClose, onEdit, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className="relative h-32 bg-gradient-to-r from-blue-600/30 to-purple-600/30">
           <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full bg-black/30 text-white hover:bg-black/50"><X className="w-5 h-5" /></button>
           <div className="absolute -bottom-10 left-6">
@@ -530,7 +530,7 @@ function CoachFormModal({ coach, onSave, onClose, showToast, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>
           <h2 className={`text-xl font-bold ${tc.text}`}>{coach ? 'Edit Coach' : 'Add Coach'}</h2>
@@ -743,7 +743,7 @@ function AssignTeamsModal({ coach, teams, onSave, onClose, tc }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto`}>
         <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg}`}>
           <div>
             <h2 className={`text-xl font-semibold ${tc.text}`}>Assign Teams</h2>

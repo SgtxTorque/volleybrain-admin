@@ -537,7 +537,7 @@ function ReportsPage({ showToast }) {
   const allColumns = getAvailableColumns()
   const statusOptions = getStatusOptions()
   const selectedSeason = getSelectedSeason()
-  const gc = `${tc.cardBg} border ${tc.border} rounded-2xl`
+  const gc = `${tc.cardBg} border ${tc.border} rounded-xl`
   const gi = `${tc.inputBg} border ${tc.border} ${tc.text} rounded-xl`
 
   return (
@@ -582,7 +582,7 @@ function ReportsPage({ showToast }) {
               {openDropdown === catId && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                  <div className={`absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-2xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
+                  <div className={`absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
                     {cat.reports.map(report => (
                       <button key={report.id} onClick={() => { setActiveCategory(catId); setActiveReport(report.id); setOpenDropdown(null); setFilters({ team: 'all', status: 'all', dateFrom: '', dateTo: '', search: '' }); setSortField('') }}
                         className="w-full text-left px-4 py-3 transition flex items-center gap-3"
@@ -608,7 +608,7 @@ function ReportsPage({ showToast }) {
             {openDropdown === 'presets' && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                <div className={`absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-2xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
+                <div className={`absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
                   <div className={`px-4 py-3 border-b ${tc.border}`}>
                     <p className={`font-bold text-sm ${tc.text}`}>Saved Report Presets</p>
                   </div>
@@ -832,7 +832,7 @@ function ReportsPage({ showToast }) {
       {/* Save Preset Modal */}
       {showPresetModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 rpt-ai" style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }} onClick={() => { setShowPresetModal(false); setPresetName('') }}>
-          <div className={`w-full max-w-md p-6 rpt-as rounded-3xl border ${tc.modalBg} ${tc.border}`} style={{ backdropFilter: 'blur(24px)' }} onClick={e => e.stopPropagation()}>
+          <div className={`w-full max-w-md p-6 rpt-as rounded-xl border ${tc.modalBg} ${tc.border}`} style={{ backdropFilter: 'blur(24px)' }} onClick={e => e.stopPropagation()}>
             <h3 className={`text-lg font-bold mb-2 ${tc.text}`}>Save Report Preset</h3>
             <p className={`text-sm mb-4 ${tc.textMuted}`}>Save your current view (report type, visible columns, filters) as a preset for quick access later.</p>
             <input type="text" value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Preset name (e.g., 'Contact List for Coaches')"

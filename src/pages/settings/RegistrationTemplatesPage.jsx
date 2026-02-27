@@ -387,7 +387,7 @@ function RegistrationTemplatesPage({ showToast }) {
 
       {/* Templates Grid */}
       {templates.length === 0 ? (
-        <div className={`rounded-2xl p-12 text-center ${tc.cardBg} border ${tc.border}`}>
+        <div className={`rounded-xl p-12 text-center ${tc.cardBg} border ${tc.border}`}>
           <div className="text-6xl mb-4">📋</div>
           <h3 className={`text-lg font-semibold ${tc.text}`}>No templates yet</h3>
           <p className={`mb-4 ${tc.textMuted}`}>Create your first registration template to customize what information you collect</p>
@@ -403,7 +403,7 @@ function RegistrationTemplatesPage({ showToast }) {
           {templates.map(template => (
             <div 
               key={template.id} 
-              className={`rounded-2xl p-5 hover:shadow-lg transition ${tc.cardBg} border ${tc.border}`}
+              className={`rounded-xl p-5 hover:shadow-lg transition ${tc.cardBg} border ${tc.border}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -466,7 +466,7 @@ function RegistrationTemplatesPage({ showToast }) {
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-start justify-center p-4 z-50 overflow-y-auto">
           <div 
-            className={`rounded-2xl w-full max-w-4xl my-8 ${tc.cardBg} border ${tc.border}`}
+            className={`rounded-xl w-full max-w-4xl my-8 ${tc.cardBg} border ${tc.border}`}
           >
             {/* Modal Header */}
             <div 

@@ -67,7 +67,7 @@ export default function ChallengeCard({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden cursor-pointer transition hover:shadow-lg"
+      className="rounded-xl overflow-hidden cursor-pointer transition hover:shadow-lg"
       style={{ border: `1.5px solid ${g}` }}
       onClick={onViewDetails}
     >

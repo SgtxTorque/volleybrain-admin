@@ -81,7 +81,7 @@ export default function ChildAchievementsWidget({ children, onViewAchievements }
   
   if (loading) {
     return (
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
         <div className="animate-pulse space-y-4">
           <div className="h-5 bg-zinc-700 rounded w-1/3" />
           <div className="h-20 bg-zinc-700/50 rounded" />
@@ -98,7 +98,7 @@ export default function ChildAchievementsWidget({ children, onViewAchievements }
   const hasAnyAchievements = achievementData.some(d => d.totalCount > 0)
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
       {/* Header */}
       <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
         <div className="flex items-center gap-2">

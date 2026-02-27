@@ -341,7 +341,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
       {/* ═══ HERO BANNER — matching v0 team-hero.tsx ═══ */}
       <div className="shrink-0 px-6 pt-6">
-        <div className={`relative overflow-hidden rounded-2xl shadow-md ${isDark ? 'shadow-black/20' : ''}`}>
+        <div className={`relative overflow-hidden rounded-xl shadow-md ${isDark ? 'shadow-black/20' : ''}`}>
           <div className="relative h-56">
             {/* Background image or gradient fallback */}
             {team.banner_url ? (
@@ -382,7 +382,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             <div className="absolute bottom-0 left-0 flex w-full items-end justify-between p-6 z-10">
               <div className="flex items-center gap-4">
                 {/* Team logo/initials */}
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg overflow-hidden"
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl shadow-lg overflow-hidden"
                   style={{ background: team.logo_url ? 'transparent' : (isDark ? '#1e293b' : '#2c3e50') }}>
                   {team.logo_url ? (
                     <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
@@ -480,7 +480,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
             {/* Tab Bar — matching v0 feed-tabs.tsx */}
-            <div className={`flex items-center rounded-2xl p-1.5 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+            <div className={`flex items-center rounded-xl p-1.5 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
               {tabs.map(tab => {
                 const isActive = activeTab === tab.id
                 return (
@@ -507,7 +507,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <>
                 {/* Post Composer — matching v0 feed-composer.tsx */}
                 {canPost && (
-                  <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                  <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                     <div className="flex items-center gap-3 px-5 pt-4 pb-3">
                       <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center bg-teal-600 text-sm font-semibold text-white">
                         {profile?.full_name?.charAt(0) || 'U'}
@@ -581,7 +581,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       <button
                         onClick={loadMorePosts}
                         disabled={loadingMorePosts}
-                        className={`w-full py-3 rounded-2xl text-sm font-medium transition-colors ${
+                        className={`w-full py-3 rounded-xl text-sm font-medium transition-colors ${
                           isDark
                             ? 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                             : 'bg-white text-slate-500 hover:bg-slate-50 shadow-sm'
@@ -597,7 +597,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     )}
                   </div>
                 ) : (
-                  <div className={`rounded-2xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                  <div className={`rounded-xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                     <Megaphone className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
                     <p className={`mt-5 text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>No posts yet</p>
                     <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Check back later for team updates!</p>
@@ -608,7 +608,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
             {/* ── SCHEDULE TAB ── */}
             {activeTab === 'schedule' && (
-              <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 {upcomingEvents.map((event, i) => {
                   const eventDate = new Date(event.event_date)
                   const isGame = event.event_type === 'game'
@@ -662,7 +662,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
             {/* ── ACHIEVEMENTS TAB (placeholder) ── */}
             {activeTab === 'achievements' && (
-              <div className={`rounded-2xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`rounded-xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 <Trophy className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
                 <p className={`mt-5 text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Team Achievements</p>
                 <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Coming soon — track milestones and awards</p>
@@ -671,7 +671,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
             {/* ── STATS TAB (placeholder) ── */}
             {activeTab === 'stats' && (
-              <div className={`rounded-2xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`rounded-xl p-12 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 <BarChart3 className={`w-14 h-14 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
                 <p className={`mt-5 text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Team Stats</p>
                 <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Coming soon — season statistics and analytics</p>
@@ -731,7 +731,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Season Record
             </h3>
-            <div className={`flex flex-col items-center gap-3 rounded-2xl p-6 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+            <div className={`flex flex-col items-center gap-3 rounded-xl p-6 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-bold text-teal-600">{gameRecord.wins}</span>
                 <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>&mdash;</span>
@@ -757,7 +757,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 ))}
               </div>
             ) : (
-              <div className={`rounded-2xl p-6 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`rounded-xl p-6 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 <Camera className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
                 <p className={`mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No photos yet</p>
               </div>
@@ -770,7 +770,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Documents
               </h3>
-              <div className={`rounded-2xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`rounded-xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 {documents.slice(0, 3).map((doc, i) => (
                   <a
                     key={doc.id}
@@ -795,7 +795,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Coaches
               </h3>
-              <div className={`rounded-2xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <div className={`rounded-xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 {coaches.map((coach, i) => (
                   <div
                     key={coach.id}
@@ -824,7 +824,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       {canPost && (
         <button
           onClick={() => setShowNewPostModal(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg transition hover:scale-110 active:scale-95 bg-teal-600 hover:bg-teal-500"
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-lg transition hover:scale-110 active:scale-95 bg-teal-600 hover:bg-teal-500"
         >
           <Plus className="w-6 h-6" />
         </button>
@@ -920,7 +920,7 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
   })()
 
   return (
-    <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+    <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-3">
         <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden ${
@@ -1106,7 +1106,7 @@ function NewPostModal({ teamId, isDark, onClose, onSuccess, showToast, canPin = 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
       <div
-        className={`w-full max-w-lg overflow-hidden rounded-2xl shadow-2xl ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}`}
+        className={`w-full max-w-lg overflow-hidden rounded-xl shadow-2xl ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

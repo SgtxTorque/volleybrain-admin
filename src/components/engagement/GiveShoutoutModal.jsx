@@ -156,7 +156,7 @@ export default function GiveShoutoutModal({ visible, teamId, onClose, onSuccess,
     <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-lg max-h-[85vh] rounded-2xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-lg max-h-[85vh] rounded-xl overflow-hidden flex flex-col"
         style={{ background: bg, border: `1px solid ${border}`, backdropFilter: 'blur(24px)' }}
         onClick={e => e.stopPropagation()}
       >
@@ -293,7 +293,7 @@ export default function GiveShoutoutModal({ visible, teamId, onClose, onSuccess,
 
               {/* Preview Card */}
               <div
-                className="rounded-2xl p-7 flex flex-col items-center gap-2 mb-4"
+                className="rounded-xl p-7 flex flex-col items-center gap-2 mb-4"
                 style={{
                   border: `2px solid ${selectedCategory?.color || 'var(--accent-primary)'}`,
                   background: `${selectedCategory?.color || 'var(--accent-primary)'}10`,

@@ -223,7 +223,7 @@ function SeasonsPage({ showToast }) {
 
       {loading ? <div className={`text-center py-12 ${tc.textMuted}`}>Loading...</div> :
         seasons.length === 0 ? (
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
             <Calendar className="w-16 h-16" />
             <h3 className={`text-lg font-medium ${tc.text} mt-4`}>No seasons yet</h3>
             <button onClick={openNew} className="mt-4 bg-[var(--accent-primary)] text-white font-semibold px-6 py-2 rounded-xl">Create Season</button>
@@ -239,7 +239,7 @@ function SeasonsPage({ showToast }) {
               const regLink = `${registrationBaseUrl}/register/${organization.slug}/${season.id}`
 
               return (
-                <div key={season.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+                <div key={season.id} className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ function SeasonsPage({ showToast }) {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
             <div className={`p-6 border-b ${tc.border} flex items-center justify-between`}>
               <h2 className={`text-xl font-semibold ${tc.text}`}>{editingSeason ? 'Edit Season' : 'Create Season'}</h2>
               <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'} text-2xl`}>×</button>
@@ -804,7 +804,7 @@ function SeasonsPage({ showToast }) {
       {/* Share Hub Modal */}
       {showShareModal && shareSeason && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
             <div className={`p-6 border-b ${tc.border} flex items-center justify-between`}>
               <div>
                 <h2 className={`text-xl font-semibold ${tc.text}`}>Share Registration</h2>

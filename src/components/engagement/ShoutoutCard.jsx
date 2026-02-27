@@ -52,7 +52,7 @@ export default function ShoutoutCard({ metadataJson, giverName, createdAt, isDar
 
   return (
     <div
-      className="rounded-2xl overflow-hidden"
+      className="rounded-xl overflow-hidden"
       style={{
         border: `1.5px solid ${borderColor}`,
         background: `${borderColor}08`,

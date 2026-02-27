@@ -109,7 +109,7 @@ export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = fa
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className={`${tc.cardBg} rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col`}
+        className={`${tc.cardBg} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

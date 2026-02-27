@@ -16,7 +16,7 @@ export function JourneyTimeline({ onNavigate, expanded = false }) {
   const { steps, completedSteps, progressPercent, currentStepIndex, isComplete, earnedBadges } = journey
 
   return (
-    <div className={`rounded-2xl border overflow-hidden ${tc.card}`}>
+    <div className={`rounded-xl border overflow-hidden ${tc.card}`}>
       {/* Header - Always visible */}
       <div 
         className="p-4 cursor-pointer flex items-center justify-between"
@@ -222,7 +222,7 @@ export function JourneyWidget({ onNavigate }) {
       {/* Full Journey Modal */}
       {showFull && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className={`w-full max-w-2xl max-h-[80vh] overflow-auto rounded-2xl ${tc.pageBg}`}>
+          <div className={`w-full max-w-2xl max-h-[80vh] overflow-auto rounded-xl ${tc.pageBg}`}>
             <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-inherit">
               <h2 className={`text-xl font-bold ${tc.text}`}>Your Lynx Journey</h2>
               <button 
@@ -254,7 +254,7 @@ export function BadgeCelebration({ badge, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div 
-        className={`text-center p-8 rounded-3xl max-w-sm ${tc.pageBg}`}
+        className={`text-center p-8 rounded-xl max-w-sm ${tc.pageBg}`}
         style={{ animation: 'bounceIn 0.5s ease-out' }}
       >
         <div className="text-6xl mb-4 animate-bounce">{badge.icon}</div>
@@ -304,7 +304,7 @@ export function BadgeShowcase() {
   const earned = journey.earnedBadges
 
   return (
-    <div className={`p-6 rounded-2xl border ${tc.card}`}>
+    <div className={`p-6 rounded-xl border ${tc.card}`}>
       <h3 className={`text-lg font-bold ${tc.text} mb-4`}>
         🏆 Badges ({earned.length}/{allBadges.length})
       </h3>

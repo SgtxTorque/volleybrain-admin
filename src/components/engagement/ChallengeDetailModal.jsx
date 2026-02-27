@@ -83,7 +83,7 @@ export default function ChallengeDetailModal({ visible, challengeId, onClose, on
     <div className="fixed inset-0 z-[100] flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-lg max-h-[85vh] rounded-2xl overflow-hidden flex flex-col"
+        className="relative w-full max-w-lg max-h-[85vh] rounded-xl overflow-hidden flex flex-col"
         style={{ background: bg, border: `1px solid ${border}`, backdropFilter: 'blur(24px)' }}
         onClick={e => e.stopPropagation()}
       >

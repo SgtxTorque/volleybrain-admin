@@ -50,7 +50,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: team?.color || '#6366F1' }}>
@@ -151,7 +151,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-2xl">
         <div className="p-5 border-b border-slate-200">
           <h2 className="text-xl font-bold text-slate-900">Make a Payment</h2>
           <div className="flex items-center justify-between mt-2">
@@ -366,7 +366,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl">
         <div className="p-6 border-b border-slate-200">
           <h2 className="text-xl font-semibold text-slate-900">Add Another Child</h2>
           <p className="text-slate-500 text-sm mt-1">Select a season to register a sibling</p>
@@ -465,7 +465,7 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-md shadow-xl">
         <div className="p-6 border-b border-slate-200">
           <h2 className="text-xl font-semibold text-slate-900">Re-Register {player.first_name}</h2>
           <p className="text-slate-500 text-sm mt-1">for {season.name}</p>
@@ -519,7 +519,7 @@ function AlertDetailModal({ alert, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
@@ -879,7 +879,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
 
         {openSeasons.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Open Registrations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {openSeasons.map(season => (

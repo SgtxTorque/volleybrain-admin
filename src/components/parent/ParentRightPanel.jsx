@@ -153,7 +153,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Season Record */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</h3>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
@@ -179,7 +179,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Achievements Preview */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Achievements</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
@@ -240,7 +240,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Leaderboard Preview */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Leaderboard</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
@@ -259,7 +259,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Player Stats Preview */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Player Stats</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">

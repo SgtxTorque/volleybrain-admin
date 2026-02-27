@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lynx — Brand System v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#10284C;--sky:#4BB9EC;--deep:#2A9BD4;--ice:#E8F4FD;
+  --slate:#5A6B7F;--silver:#DFE4EA;
+  --cloud:#F5F7FA;--white:#FFFFFF;--frost:#F0F3F7;
+  --midnight:#0A1B33;--charcoal:#1A2332;--graphite:#232F3E;--bdr-dk:#2A3545;
+  --ok:#10B981;--err:#EF4444;--warn:#F59E0B;
+  --pg:var(--cloud);--cd:var(--white);--cd2:var(--frost);--bd:var(--silver);
+  --t1:var(--navy);--t2:var(--slate);--t3:var(--slate);--inp:var(--white);--hv:var(--frost);
+  --sh:0 1px 3px rgba(0,0,0,.05);--sh2:0 8px 24px rgba(0,0,0,.08);
+  --R:12px;--Rb:10px;--Rg:6px;
+  --f:'Plus Jakarta Sans',-apple-system,system-ui,sans-serif;--dur:250ms;
+}
+[data-theme="dark"]{
+  --pg:var(--midnight);--cd:var(--charcoal);--cd2:var(--graphite);--bd:var(--bdr-dk);
+  --t1:#fff;--t2:#B0BEC5;--t3:#7B8FA0;--inp:var(--graphite);--hv:var(--graphite);
+  --sh:0 1px 3px rgba(0,0,0,.3);--sh2:0 8px 24px rgba(0,0,0,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--f);background:var(--pg);color:var(--t1);transition:background var(--dur),color var(--dur)}
+
+/* MASTHEAD */
+.mast{background:var(--navy);position:relative;overflow:hidden;min-height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px}
+.mast::before{content:'';position:absolute;inset:0;background:radial-gradient(600px 400px at 30% 50%,rgba(75,185,236,.12),transparent),radial-gradient(500px 300px at 70% 60%,rgba(42,155,212,.08),transparent)}
+.mast::after{content:'';position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(to top,var(--pg),transparent);z-index:2}
+.mast>*{position:relative;z-index:1}
+.mast .gp{position:absolute;inset:0;background-image:linear-gradient(rgba(75,185,236,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(75,185,236,.04) 1px,transparent 1px);background-size:48px 48px}
+.mast h1{font-size:68px;font-weight:800;color:#fff;letter-spacing:.06em}
+.mast h1 span{color:var(--sky)}
+.mast p{font-size:17px;color:rgba(255,255,255,.5);margin-top:6px}
+.mast .pill{display:inline-flex;align-items:center;gap:6px;margin-top:20px;padding:5px 16px;background:rgba(75,185,236,.12);border:1px solid rgba(75,185,236,.2);border-radius:999px;color:var(--sky);font-size:12px;font-weight:600}
+
+/* TOC */
+.toc{position:sticky;top:0;z-index:50;background:var(--cd);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 16px;transition:background var(--dur),border var(--dur)}
+.toc a{padding:6px 14px;border-radius:var(--Rb);font-size:13px;font-weight:500;color:var(--t3);text-decoration:none;transition:all var(--dur);font-family:var(--f)}
+.toc a:hover{color:var(--t1);background:var(--hv)}
+.toc a.on{color:var(--sky);background:var(--ice);font-weight:600}
+[data-theme="dark"] .toc a.on{background:rgba(75,185,236,.12)}
+
+/* THEME TOGGLE */
+.tb{position:fixed;bottom:24px;right:24px;z-index:100;width:50px;height:50px;border-radius:50%;background:var(--navy);color:#fff;border:2px solid rgba(75,185,236,.3);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:all var(--dur)}
+.tb:hover{transform:scale(1.08);border-color:var(--sky)}
+
+/* LAYOUT */
+.w{max-width:1100px;margin:0 auto;padding:48px 24px 100px}
+section{margin-bottom:68px;scroll-margin-top:60px}
+.sl{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);margin-bottom:5px}
+.st{font-size:28px;font-weight:700;margin-bottom:5px}
+.sd{font-size:14px;color:var(--t2);margin-bottom:28px;max-width:540px}
+.sub{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin:20px 0 10px}
+
+/* COLORS */
+.cg{display:grid;gap:10px;margin-bottom:6px}
+.cg.x4{grid-template-columns:repeat(4,1fr)}.cg.x3{grid-template-columns:repeat(3,1fr)}.cg.x2{grid-template-columns:repeat(2,1fr)}
+.cs{border-radius:var(--R);overflow:hidden;border:1px solid var(--bd);background:var(--cd);cursor:pointer;transition:all var(--dur);position:relative}
+.cs:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.cs .cf{height:64px;display:flex;align-items:flex-end;padding:8px 12px;font-size:11px;font-weight:600;font-family:monospace}
+.cs .cm{padding:8px 12px}
+.cs .cn{font-size:13px;font-weight:600}
+.cs .cu{font-size:11px;color:var(--t3)}
+.cs .ct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:var(--navy);color:#fff;padding:3px 12px;border-radius:6px;font-size:11px;font-weight:600;opacity:0;pointer-events:none;transition:all 180ms}
+.cs.cp .ct{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* TYPOGRAPHY */
+.tc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--R);overflow:hidden}
+.tr{display:flex;align-items:baseline;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--bd);transition:background var(--dur)}
+.tr:last-child{border-bottom:none}
+.tr:hover{background:var(--hv)}
+.ts{font-size:11px;color:var(--t3);font-family:monospace;text-align:right;min-width:200px}
+
+/* ROUNDNESS */
+.rg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.rb{background:var(--cd);border:2px solid var(--bd);height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all var(--dur)}
+.rv{font-size:20px;font-weight:700;color:var(--sky)}
+.rl{font-size:11px;color:var(--t3)}
+
+/* SCREEN FRAMES */
+.sp{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.sf{border-radius:var(--R);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh)}
+.ml{padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+
+/* Light screen atoms */
+.L{background:#F5F7FA}.L .ml{background:#F5F7FA;color:#5A6B7F}
+.L .sn{background:#10284C;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.L .sn b{color:#fff;font-size:13px;letter-spacing:.06em}
+.L .sn-l{display:flex;gap:2px}.L .sn-i{color:rgba(255,255,255,.45);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:500}
+.L .sn-i.a{color:#fff;background:rgba(75,185,236,.2)}
+.L .sa{width:26px;height:26px;border-radius:50%;background:#4BB9EC;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.L .sb{padding:14px}
+.L .sc{background:#fff;border:1px solid #DFE4EA;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.L .si{background:#F0F3F7;border-radius:8px;padding:10px;margin-top:8px}
+.L .sh{font-size:14px;font-weight:600;color:#10284C}
+.L .ss{font-size:11px;color:#5A6B7F}
+.L .sll{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#5A6B7F;margin-bottom:4px}
+.L .sv{font-size:24px;font-weight:700;color:#4BB9EC;line-height:1}
+.L .svl{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5A6B7F}
+.L .sbt{display:inline-flex;padding:5px 12px;border-radius:10px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:var(--f)}
+.L .sbt-p{background:#4BB9EC;color:#fff}.L .sbt-s{background:transparent;color:#4BB9EC;border:1.5px solid #4BB9EC}.L .sbt-g{background:transparent;color:#5A6B7F;border:1.5px solid #DFE4EA}
+.L .sbg{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:600}
+.L .sbg-w{background:#D1FAE5;color:#047857}.L .sbg-l{background:#FEE2E2;color:#B91C1C}.L .sbg-p{background:#FEF3C7;color:#92400E}.L .sbg-i{background:#E8F4FD;color:#2A9BD4}
+.L .spr{height:5px;background:#DFE4EA;border-radius:3px;overflow:hidden}.L .spf{height:100%;border-radius:3px}
+.L .stb{width:100%;border-collapse:collapse;font-size:11px}
+.L .stb th{text-align:left;padding:6px 8px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5A6B7F;background:#F0F3F7}
+.L .stb td{padding:8px;border-bottom:1px solid #DFE4EA;color:#10284C}
+.L .sav{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;vertical-align:middle;margin-right:5px}
+.L .sal{padding:8px 12px;border-radius:10px;font-size:11px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.L .sal-i{background:#E8F4FD;color:#2A9BD4}.L .sal-o{background:#D1FAE5;color:#047857}.L .sal-w{background:#FEF3C7;color:#92400E}.L .sal-e{background:#FEE2E2;color:#B91C1C}
+.L .sin{width:100%;padding:7px 10px;border:1.5px solid #DFE4EA;border-radius:10px;font-size:12px;font-family:var(--f);background:#fff;color:#10284C;outline:none}
+
+/* Dark screen atoms */
+.D{background:#0A1B33}.D .ml{background:#0A1B33;color:#7B8FA0}
+.D .sn{background:#10284C;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.D .sn b{color:#fff;font-size:13px;letter-spacing:.06em}
+.D .sn-l{display:flex;gap:2px}.D .sn-i{color:rgba(255,255,255,.4);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:500}
+.D .sn-i.a{color:#fff;background:rgba(75,185,236,.2)}
+.D .sa{width:26px;height:26px;border-radius:50%;background:#4BB9EC;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.D .sb{padding:14px}
+.D .sc{background:#1A2332;border:1px solid #2A3545;border-radius:12px;padding:14px;margin-bottom:10px}
+.D .si{background:#232F3E;border-radius:8px;padding:10px;margin-top:8px}
+.D .sh{font-size:14px;font-weight:600;color:#fff}
+.D .ss{font-size:11px;color:#7B8FA0}
+.D .sll{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7B8FA0;margin-bottom:4px}
+.D .sv{font-size:24px;font-weight:700;color:#4BB9EC;line-height:1}
+.D .svl{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7B8FA0}
+.D .sbt{display:inline-flex;padding:5px 12px;border-radius:10px;font-size:11px;font-weight:600;border:none;cursor:pointer;font-family:var(--f)}
+.D .sbt-p{background:#4BB9EC;color:#fff}.D .sbt-s{background:transparent;color:#4BB9EC;border:1.5px solid #4BB9EC}.D .sbt-g{background:transparent;color:#B0BEC5;border:1.5px solid #2A3545}
+.D .sbg{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:600}
+.D .sbg-w{background:rgba(16,185,129,.15);color:#34D399}.D .sbg-l{background:rgba(239,68,68,.15);color:#F87171}.D .sbg-p{background:rgba(245,158,11,.15);color:#FBBF24}.D .sbg-i{background:rgba(75,185,236,.15);color:#4BB9EC}
+.D .spr{height:5px;background:#2A3545;border-radius:3px;overflow:hidden}.D .spf{height:100%;border-radius:3px}
+.D .stb{width:100%;border-collapse:collapse;font-size:11px}
+.D .stb th{text-align:left;padding:6px 8px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7B8FA0;background:#232F3E}
+.D .stb td{padding:8px;border-bottom:1px solid #2A3545;color:#fff}
+.D .sav{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;vertical-align:middle;margin-right:5px}
+.D .sal{padding:8px 12px;border-radius:10px;font-size:11px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.D .sal-i{background:rgba(75,185,236,.1);color:#4BB9EC}.D .sal-o{background:rgba(16,185,129,.1);color:#34D399}.D .sal-w{background:rgba(245,158,11,.1);color:#FBBF24}.D .sal-e{background:rgba(239,68,68,.1);color:#F87171}
+.D .sin{width:100%;padding:7px 10px;border:1.5px solid #2A3545;border-radius:10px;font-size:12px;font-family:var(--f);background:#232F3E;color:#fff;outline:none}
+
+/* COMPONENTS */
+.cg2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cb{background:var(--cd);border:1px solid var(--bd);border-radius:var(--R);padding:20px;transition:all var(--dur)}
+.cl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:14px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:var(--Rb);font-size:13px;font-weight:600;font-family:var(--f);border:none;cursor:pointer;transition:all var(--dur)}
+.bp{background:var(--sky);color:#fff}.bp:hover{background:var(--deep);transform:translateY(-1px)}
+.bs{background:transparent;color:var(--sky);border:1.5px solid var(--sky)}.bs:hover{background:var(--ice)}
+[data-theme="dark"] .bs:hover{background:rgba(75,185,236,.1)}
+.bg{background:transparent;color:var(--t2);border:1.5px solid var(--bd)}.bg:hover{background:var(--hv)}
+.bd{background:var(--err);color:#fff}.bd:hover{background:#DC2626}
+.bsm{padding:6px 12px;font-size:12px}
+.badge{display:inline-flex;padding:3px 9px;border-radius:var(--Rg);font-size:11px;font-weight:600}
+.bk{background:var(--ice);color:var(--deep)}[data-theme="dark"] .bk{background:rgba(75,185,236,.15);color:var(--sky)}
+.bo{background:#D1FAE5;color:#047857}[data-theme="dark"] .bo{background:rgba(16,185,129,.15);color:#34D399}
+.be{background:#FEE2E2;color:#B91C1C}[data-theme="dark"] .be{background:rgba(239,68,68,.15);color:#F87171}
+.bw{background:#FEF3C7;color:#92400E}[data-theme="dark"] .bw{background:rgba(245,158,11,.15);color:#FBBF24}
+.bn{background:var(--cd2);color:var(--t2)}
+.bpl{border-radius:999px}
+.inp{background:var(--inp);border:1.5px solid var(--bd);border-radius:var(--Rb);padding:9px 12px;font-size:13px;font-family:var(--f);color:var(--t1);outline:none;width:100%;transition:all var(--dur)}
+.inp::placeholder{color:var(--t3)}.inp:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(75,185,236,.15)}
+.il{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:3px;display:block}
+.al{padding:10px 14px;border-radius:var(--R);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px}
+.ai{background:var(--ice);color:var(--deep)}[data-theme="dark"] .ai{background:rgba(75,185,236,.1);color:var(--sky)}
+.ao{background:#D1FAE5;color:#047857}[data-theme="dark"] .ao{background:rgba(16,185,129,.1);color:#34D399}
+.aw{background:#FEF3C7;color:#92400E}[data-theme="dark"] .aw{background:rgba(245,158,11,.1);color:#FBBF24}
+.ae{background:#FEE2E2;color:#B91C1C}[data-theme="dark"] .ae{background:rgba(239,68,68,.1);color:#F87171}
+.tbar{display:flex;border-bottom:2px solid var(--bd);margin-bottom:12px}
+.tbi{padding:8px 16px;font-size:13px;font-weight:500;color:var(--t3);border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;font-family:var(--f);transition:all var(--dur)}
+.tbi:hover{color:var(--t1)}.tbi.on{color:var(--sky);border-bottom-color:var(--sky);font-weight:600}
+.tog{width:42px;height:22px;background:var(--bd);border-radius:11px;position:relative;cursor:pointer;transition:background var(--dur)}
+.tog.on{background:var(--sky)}
+.tog::after{content:'';width:18px;height:18px;background:#fff;border-radius:9px;position:absolute;top:2px;left:2px;transition:transform var(--dur);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.on::after{transform:translateX(20px)}
+
+/* SPACING */
+.spr-r{display:flex;align-items:center;gap:14px;padding:5px 0}
+.spr-l{font-size:12px;font-family:monospace;color:var(--t3);min-width:50px;text-align:right}
+.spr-b{height:18px;background:var(--ice);border-radius:3px;transition:background var(--dur)}
+[data-theme="dark"] .spr-b{background:rgba(75,185,236,.12)}
+.spr-d{font-size:11px;color:var(--t2)}
+
+/* GUIDELINES */
+.gg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.gdo,.gdn{padding:18px;border-radius:var(--R);border:2px solid}
+.gdo{border-color:var(--ok);background:rgba(16,185,129,.03)}
+.gdn{border-color:var(--err);background:rgba(239,68,68,.03)}
+.gt{font-size:12px;font-weight:700;margin-bottom:6px}
+.gdo .gt{color:var(--ok)}.gdn .gt{color:var(--err)}
+.gx{font-size:12px;color:var(--t2);line-height:1.6}
+
+/* MODAL DEMO */
+.mod-wrap{display:flex;justify-content:center;margin-top:16px}
+.mod{background:var(--cd);border:1px solid var(--bd);border-radius:var(--R);box-shadow:var(--sh2);max-width:420px;width:100%;overflow:hidden;transition:all var(--dur)}
+.mod-h{padding:16px 20px 0;display:flex;justify-content:space-between;align-items:start}
+.mod-b{padding:12px 20px}
+.mod-f{padding:12px 20px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--bd)}
+.mod-ip{background:var(--cd2);border-radius:8px;padding:12px;margin-top:8px}
+.mod-ipl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+
+@media(max-width:800px){
+  .sp,.cg2,.gg{grid-template-columns:1fr}
+  .cg.x4,.rg{grid-template-columns:repeat(2,1fr)}
+  .toc{overflow-x:auto;justify-content:flex-start}
+  .mast h1{font-size:44px}
+}
+</style>
+</head>
+<body>
+
+<div class="mast">
+  <div class="gp"></div>
+  <h1>L<span>Y</span>NX</h1>
+  <p>Brand System & Design Language</p>
+  <div class="pill">&#9679; v2.0 — February 2026</div>
+</div>
+
+<div class="toc" id="toc">
+  <a href="#colors" class="on" onclick="nav(this,event)">Colors</a>
+  <a href="#type" onclick="nav(this,event)">Typography</a>
+  <a href="#radius" onclick="nav(this,event)">Roundness</a>
+  <a href="#screens" onclick="nav(this,event)">App Screens</a>
+  <a href="#comps" onclick="nav(this,event)">Components</a>
+  <a href="#spacing" onclick="nav(this,event)">Spacing</a>
+  <a href="#rules" onclick="nav(this,event)">Guidelines</a>
+</div>
+
+<button class="tb" onclick="togTheme()" title="Toggle theme">&#9728;</button>
+
+<div class="w">
+
+<!-- COLORS -->
+<section id="colors">
+  <div class="sl">01 — Palette</div>
+  <div class="st">12-Color System</div>
+  <div class="sd">Every color has one job. Click any swatch to copy its hex code.</div>
+
+  <div class="sub">Brand Core</div>
+  <div class="cg x4">
+    <div class="cs" onclick="cp(this,'#10284C')"><div class="cf" style="background:#10284C;color:#fff">#10284C</div><div class="cm"><div class="cn">Navy</div><div class="cu">Nav, headers, text</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#4BB9EC')"><div class="cf" style="background:#4BB9EC;color:#fff">#4BB9EC</div><div class="cm"><div class="cn">Sky Blue</div><div class="cu">Buttons, links, active</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#2A9BD4')"><div class="cf" style="background:#2A9BD4;color:#fff">#2A9BD4</div><div class="cm"><div class="cn">Deep Sky</div><div class="cu">Hover & pressed</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#E8F4FD')"><div class="cf" style="background:#E8F4FD;color:#2A9BD4">#E8F4FD</div><div class="cm"><div class="cn">Ice Blue</div><div class="cu">Highlights, selected</div></div><div class="ct">Copied!</div></div>
+  </div>
+
+  <div class="sub">Neutrals</div>
+  <div class="cg x2">
+    <div class="cs" onclick="cp(this,'#5A6B7F')"><div class="cf" style="background:#5A6B7F;color:#fff">#5A6B7F</div><div class="cm"><div class="cn">Slate</div><div class="cu">Secondary text, labels</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#DFE4EA')"><div class="cf" style="background:#DFE4EA;color:#5A6B7F">#DFE4EA</div><div class="cm"><div class="cn">Silver</div><div class="cu">Borders, dividers</div></div><div class="ct">Copied!</div></div>
+  </div>
+
+  <div class="sub">Light Surfaces</div>
+  <div class="cg x3">
+    <div class="cs" onclick="cp(this,'#F5F7FA')"><div class="cf" style="background:#F5F7FA;color:#5A6B7F;border-bottom:1px solid #DFE4EA">#F5F7FA</div><div class="cm"><div class="cn">Cloud</div><div class="cu">Page background</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#FFFFFF')"><div class="cf" style="background:#fff;color:#5A6B7F;border-bottom:1px solid #DFE4EA">#FFFFFF</div><div class="cm"><div class="cn">White</div><div class="cu">Cards, modals</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#F0F3F7')"><div class="cf" style="background:#F0F3F7;color:#5A6B7F;border-bottom:1px solid #DFE4EA">#F0F3F7</div><div class="cm"><div class="cn">Frost</div><div class="cu">Inner panels</div></div><div class="ct">Copied!</div></div>
+  </div>
+
+  <div class="sub">Dark Surfaces</div>
+  <div class="cg x3">
+    <div class="cs" onclick="cp(this,'#0A1B33')"><div class="cf" style="background:#0A1B33;color:#7B8FA0">#0A1B33</div><div class="cm"><div class="cn">Midnight</div><div class="cu">Page bg (dark)</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#1A2332')"><div class="cf" style="background:#1A2332;color:#7B8FA0">#1A2332</div><div class="cm"><div class="cn">Charcoal</div><div class="cu">Cards (dark)</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#232F3E')"><div class="cf" style="background:#232F3E;color:#7B8FA0">#232F3E</div><div class="cm"><div class="cn">Graphite</div><div class="cu">Inner panels (dark)</div></div><div class="ct">Copied!</div></div>
+  </div>
+
+  <div class="sub">Semantic</div>
+  <div class="cg x4">
+    <div class="cs" onclick="cp(this,'#10B981')"><div class="cf" style="background:#10B981;color:#fff">#10B981</div><div class="cm"><div class="cn">Success</div><div class="cu">Win, confirmed</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#EF4444')"><div class="cf" style="background:#EF4444;color:#fff">#EF4444</div><div class="cm"><div class="cn">Error</div><div class="cu">Loss, failed</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#F59E0B')"><div class="cf" style="background:#F59E0B;color:#fff">#F59E0B</div><div class="cm"><div class="cn">Warning</div><div class="cu">Pending, attention</div></div><div class="ct">Copied!</div></div>
+    <div class="cs" onclick="cp(this,'#4BB9EC')"><div class="cf" style="background:#4BB9EC;color:#fff">#4BB9EC</div><div class="cm"><div class="cn">Info</div><div class="cu">= Sky Blue</div></div><div class="ct">Copied!</div></div>
+  </div>
+</section>
+
+<!-- TYPOGRAPHY -->
+<section id="type">
+  <div class="sl">02 — Typography</div>
+  <div class="st">Type Scale</div>
+  <div class="sd">One family. Hierarchy through size, weight, and color.</div>
+  <div class="tc">
+    <div class="tr"><div style="font-size:28px;font-weight:700">Season Schedule</div><div class="ts">28px / 700 / Page Title</div></div>
+    <div class="tr"><div style="font-size:18px;font-weight:600">Upcoming Games</div><div class="ts">18px / 600 / Section</div></div>
+    <div class="tr"><div style="font-size:15px;font-weight:600">Black Hornets Elite</div><div class="ts">15px / 600 / Card Title</div></div>
+    <div class="tr"><div style="font-size:14px;color:var(--t2)">Player stats drive leaderboards, badges, and the parent experience.</div><div class="ts">14px / 400 / Body</div></div>
+    <div class="tr"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)">SEASON RECORD</div><div class="ts">11px / 600 / 0.1em / Label</div></div>
+    <div class="tr"><div style="font-size:12px;color:var(--t3)">Updated 2 hours ago</div><div class="ts">12px / 400 / Caption</div></div>
+    <div class="tr"><div><span style="font-size:36px;font-weight:700;color:var(--sky)">54</span> <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-left:8px">KILLS</span></div><div class="ts">36px / 700 / Stat</div></div>
+  </div>
+</section>
+
+<!-- ROUNDNESS -->
+<section id="radius">
+  <div class="sl">03 — Roundness</div>
+  <div class="st">Border Radius</div>
+  <div class="sd">Sharp enough for trust, soft enough for modern.</div>
+  <div class="rg">
+    <div class="rb" style="border-radius:12px"><div class="rv">12px</div><div class="rl">Cards & Modals</div></div>
+    <div class="rb" style="border-radius:10px"><div class="rv">10px</div><div class="rl">Buttons & Inputs</div></div>
+    <div class="rb" style="border-radius:6px"><div class="rv">6px</div><div class="rl">Badges & Tags</div></div>
+    <div class="rb" style="border-radius:999px"><div class="rv">&infin;</div><div class="rl">Pills & Avatars</div></div>
+  </div>
+</section>
+
+<!-- APP SCREENS -->
+<section id="screens">
+  <div class="sl">04 — App Screens</div>
+  <div class="st">Light vs Dark</div>
+  <div class="sd">Same layout, same hierarchy — the palette does the work.</div>
+
+  <div class="sub">Coach Dashboard</div>
+  <div class="sp">
+    <!-- LIGHT DASHBOARD -->
+    <div class="sf L">
+      <div class="ml">Light Mode</div>
+      <div class="sn"><b>LYNX</b><div class="sn-l"><span class="sn-i a">Dashboard</span><span class="sn-i">Schedule</span><span class="sn-i">Game Day</span></div><div class="sa">CT</div></div>
+      <div class="sb">
+        <div style="font-size:16px;font-weight:600;color:#10284C">Welcome back, Carlos</div>
+        <div style="font-size:11px;color:#5A6B7F;margin-bottom:12px">Black Hornets Elite &middot; Spring 2026</div>
+        <div class="sc">
+          <div class="sll">SEASON RECORD</div>
+          <div style="display:flex;gap:20px;margin:6px 0">
+            <div style="text-align:center"><div class="sv">4</div><div class="svl">WINS</div></div>
+            <div style="text-align:center"><div class="sv" style="color:#EF4444">1</div><div class="svl">LOSSES</div></div>
+            <div style="text-align:center"><div class="sv" style="color:#10284C">80%</div><div class="svl">WIN %</div></div>
+          </div>
+          <div class="spr"><div class="spf" style="width:80%;background:linear-gradient(90deg,#10B981,#4BB9EC)"></div></div>
+          <div class="si">
+            <div style="display:flex;gap:12px;font-size:10px;color:#5A6B7F">
+              <span>&#128101; 12 Players</span><span>&#10003; 100% Attend</span><span>&#9201; 2 need stats</span>
+            </div>
+          </div>
+        </div>
+        <div class="sc">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div class="sh">Next Game</div><span class="sbg sbg-p">Tomorrow</span>
+          </div>
+          <div style="font-size:15px;font-weight:600;color:#10284C">vs Frisco Red</div>
+          <div style="font-size:11px;color:#5A6B7F;margin:3px 0 10px">Sat, Mar 1 &middot; 6:00 PM &middot; Fieldhouse</div>
+          <div style="display:flex;gap:6px">
+            <button class="sbt sbt-p">Game Day Hub</button>
+            <button class="sbt sbt-s">Lineup</button>
+            <button class="sbt sbt-g">RSVP</button>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sll">SEASON TOTALS</div>
+          <div style="display:flex;gap:12px;text-align:center;margin-top:4px">
+            <div style="flex:1;background:#F0F3F7;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">109</div><div class="svl">PTS</div></div>
+            <div style="flex:1;background:#F0F3F7;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">54</div><div class="svl">KILLS</div></div>
+            <div style="flex:1;background:#F0F3F7;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">46</div><div class="svl">ACES</div></div>
+            <div style="flex:1;background:#F0F3F7;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">17</div><div class="svl">DIGS</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- DARK DASHBOARD -->
+    <div class="sf D">
+      <div class="ml">Dark Mode</div>
+      <div class="sn"><b>LYNX</b><div class="sn-l"><span class="sn-i a">Dashboard</span><span class="sn-i">Schedule</span><span class="sn-i">Game Day</span></div><div class="sa">CT</div></div>
+      <div class="sb">
+        <div style="font-size:16px;font-weight:600;color:#fff">Welcome back, Carlos</div>
+        <div style="font-size:11px;color:#7B8FA0;margin-bottom:12px">Black Hornets Elite &middot; Spring 2026</div>
+        <div class="sc">
+          <div class="sll">SEASON RECORD</div>
+          <div style="display:flex;gap:20px;margin:6px 0">
+            <div style="text-align:center"><div class="sv">4</div><div class="svl">WINS</div></div>
+            <div style="text-align:center"><div class="sv" style="color:#F87171">1</div><div class="svl">LOSSES</div></div>
+            <div style="text-align:center"><div class="sv" style="color:#fff">80%</div><div class="svl">WIN %</div></div>
+          </div>
+          <div class="spr"><div class="spf" style="width:80%;background:linear-gradient(90deg,#34D399,#4BB9EC)"></div></div>
+          <div class="si">
+            <div style="display:flex;gap:12px;font-size:10px;color:#7B8FA0">
+              <span>&#128101; 12 Players</span><span>&#10003; 100% Attend</span><span>&#9201; 2 need stats</span>
+            </div>
+          </div>
+        </div>
+        <div class="sc">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div class="sh">Next Game</div><span class="sbg sbg-p">Tomorrow</span>
+          </div>
+          <div style="font-size:15px;font-weight:600;color:#fff">vs Frisco Red</div>
+          <div style="font-size:11px;color:#7B8FA0;margin:3px 0 10px">Sat, Mar 1 &middot; 6:00 PM &middot; Fieldhouse</div>
+          <div style="display:flex;gap:6px">
+            <button class="sbt sbt-p">Game Day Hub</button>
+            <button class="sbt sbt-s">Lineup</button>
+            <button class="sbt sbt-g">RSVP</button>
+          </div>
+        </div>
+        <div class="sc">
+          <div class="sll">SEASON TOTALS</div>
+          <div style="display:flex;gap:12px;text-align:center;margin-top:4px">
+            <div style="flex:1;background:#232F3E;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">109</div><div class="svl">PTS</div></div>
+            <div style="flex:1;background:#232F3E;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">54</div><div class="svl">KILLS</div></div>
+            <div style="flex:1;background:#232F3E;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">46</div><div class="svl">ACES</div></div>
+            <div style="flex:1;background:#232F3E;border-radius:8px;padding:8px 0"><div style="font-size:20px;font-weight:700;color:#4BB9EC">17</div><div class="svl">DIGS</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHEDULE + TABLE -->
+  <div class="sub">Schedule & Player Table</div>
+  <div class="sp">
+    <div class="sf L">
+      <div class="ml">Light — Schedule Card</div>
+      <div class="sn"><b>LYNX</b><div class="sn-l"><span class="sn-i">Dashboard</span><span class="sn-i a">Schedule</span><span class="sn-i">Game Day</span></div><div class="sa">CT</div></div>
+      <div class="sb">
+        <div class="sc">
+          <div class="sll">UPCOMING GAMES</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #DFE4EA">
+            <div><span class="sbg sbg-l" style="font-size:9px;margin-right:6px">GAME</span><span style="font-size:13px;font-weight:600;color:#10284C">vs Banks</span></div>
+            <div style="font-size:11px;color:#5A6B7F">Feb 24 &middot; 6:00 PM</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #DFE4EA">
+            <div><span class="sbg sbg-l" style="font-size:9px;margin-right:6px">GAME</span><span style="font-size:13px;font-weight:600;color:#10284C">vs Long Stockings</span></div>
+            <div style="font-size:11px;color:#5A6B7F">Feb 26 &middot; 8:30 PM</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <div><span class="sbg sbg-w" style="font-size:9px;margin-right:6px">PRACTICE</span><span style="font-size:13px;font-weight:600;color:#10284C">Practice</span></div>
+            <div style="font-size:11px;color:#5A6B7F">Feb 28 &middot; 6:00 PM</div>
+          </div>
+        </div>
+        <div class="sc" style="padding:0;overflow:hidden">
+          <table class="stb">
+            <thead><tr><th>Player</th><th>Pos</th><th>K</th><th>A</th><th>PPG</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><span class="sav" style="background:#4BB9EC">TA</span>Test Ava</td><td>OH</td><td style="font-weight:600">20</td><td>13</td><td style="font-weight:700;color:#4BB9EC">11.7</td><td><span class="sbg sbg-w">Active</span></td></tr>
+              <tr><td><span class="sav" style="background:#8B5CF6">CT</span>Chloe Test</td><td>L</td><td style="font-weight:600">15</td><td>7</td><td style="font-weight:700;color:#4BB9EC">8.0</td><td><span class="sbg sbg-w">Active</span></td></tr>
+              <tr><td><span class="sav" style="background:#F59E0B">ED</span>Emma Davis</td><td>L</td><td style="font-weight:600">9</td><td>6</td><td style="font-weight:700;color:#4BB9EC">8.0</td><td><span class="sbg sbg-p">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="sf D">
+      <div class="ml">Dark — Schedule Card</div>
+      <div class="sn"><b>LYNX</b><div class="sn-l"><span class="sn-i">Dashboard</span><span class="sn-i a">Schedule</span><span class="sn-i">Game Day</span></div><div class="sa">CT</div></div>
+      <div class="sb">
+        <div class="sc">
+          <div class="sll">UPCOMING GAMES</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2A3545">
+            <div><span class="sbg sbg-l" style="font-size:9px;margin-right:6px">GAME</span><span style="font-size:13px;font-weight:600;color:#fff">vs Banks</span></div>
+            <div style="font-size:11px;color:#7B8FA0">Feb 24 &middot; 6:00 PM</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2A3545">
+            <div><span class="sbg sbg-l" style="font-size:9px;margin-right:6px">GAME</span><span style="font-size:13px;font-weight:600;color:#fff">vs Long Stockings</span></div>
+            <div style="font-size:11px;color:#7B8FA0">Feb 26 &middot; 8:30 PM</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+            <div><span class="sbg sbg-w" style="font-size:9px;margin-right:6px">PRACTICE</span><span style="font-size:13px;font-weight:600;color:#fff">Practice</span></div>
+            <div style="font-size:11px;color:#7B8FA0">Feb 28 &middot; 6:00 PM</div>
+          </div>
+        </div>
+        <div class="sc" style="padding:0;overflow:hidden">
+          <table class="stb">
+            <thead><tr><th>Player</th><th>Pos</th><th>K</th><th>A</th><th>PPG</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><span class="sav" style="background:#4BB9EC">TA</span>Test Ava</td><td>OH</td><td style="font-weight:600">20</td><td>13</td><td style="font-weight:700;color:#4BB9EC">11.7</td><td><span class="sbg sbg-w">Active</span></td></tr>
+              <tr><td><span class="sav" style="background:#8B5CF6">CT</span>Chloe Test</td><td>L</td><td style="font-weight:600">15</td><td>7</td><td style="font-weight:700;color:#4BB9EC">8.0</td><td><span class="sbg sbg-w">Active</span></td></tr>
+              <tr><td><span class="sav" style="background:#F59E0B">ED</span>Emma Davis</td><td>L</td><td style="font-weight:600">9</td><td>6</td><td style="font-weight:700;color:#4BB9EC">8.0</td><td><span class="sbg sbg-p">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMS & ALERTS -->
+  <div class="sub">Forms, Alerts & Modal</div>
+  <div class="sp">
+    <div class="sf L">
+      <div class="ml">Light — Forms & Alerts</div>
+      <div class="sn"><b>LYNX</b><div class="sn-l"><span class="sn-i">Dashboard</span><span class="sn-i">Schedule</span><span class="sn-i a">Settings</span></div><div class="sa">CT</div></div>
+      <div class="sb">
+        <div class="sc">
+          <div class="sll">ADD EVENT</div>
+          <div style="margin-bottom:8px"><label style="font-size:11px;font-weight:600;color:#10284C;display:block;margin-bottom:2px">Event Name</label><input class="sin" placeholder="e.g. vs Frisco Red"></div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:#10284C;display:block;margin-bottom:2px">Date</label><input class="sin" type="date"></div>
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:#10284C;display:block;margin-bottom:2px">Time</label><input class="sin" type="time"></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <button class="sbt sbt-p">Save Event</button>
+            <button class="sbt sbt-g">Cancel</button>
+          </div>
+        </div>
+        <div class="sal sal-i">&#8505;&#65039; Next game is tomorrow at 6:00 PM</div>
+        <div class="sal sal-o">&#10003; Lineup saved for Black Hornets</div>
+        <div class="sal sal-w">&#9888; 3 players haven't RSVP'd</div>
+        <div class="sal sal-e">&#10005; Connection failed — retry</div>
+      </div>
+    </div>
+    <div class="sf D">
+      <div class="ml">Dark — Forms & Alerts</div>
+      <div class="sn"><b>LYNX</b><div class="sn-l"><span class="sn-i">Dashboard</span><span class="sn-i">Schedule</span><span class="sn-i a">Settings</span></div><div class="sa">CT</div></div>
+      <div class="sb">
+        <div class="sc">
+          <div class="sll">ADD EVENT</div>
+          <div style="margin-bottom:8px"><label style="font-size:11px;font-weight:600;color:#fff;display:block;margin-bottom:2px">Event Name</label><input class="sin" placeholder="e.g. vs Frisco Red"></div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:#fff;display:block;margin-bottom:2px">Date</label><input class="sin" type="date"></div>
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:#fff;display:block;margin-bottom:2px">Time</label><input class="sin" type="time"></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px">
+            <button class="sbt sbt-p">Save Event</button>
+            <button class="sbt sbt-g">Cancel</button>
+          </div>
+        </div>
+        <div class="sal sal-i">&#8505;&#65039; Next game is tomorrow at 6:00 PM</div>
+        <div class="sal sal-o">&#10003; Lineup saved for Black Hornets</div>
+        <div class="sal sal-w">&#9888; 3 players haven't RSVP'd</div>
+        <div class="sal sal-e">&#10005; Connection failed — retry</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="comps">
+  <div class="sl">05 — Components</div>
+  <div class="st">UI Elements</div>
+  <div class="sd">Every interactive element, adapting to the active theme.</div>
+
+  <div class="cg2">
+    <div class="cb">
+      <div class="cl">Buttons</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn bp">Primary</button>
+        <button class="btn bs">Secondary</button>
+        <button class="btn bg">Ghost</button>
+        <button class="btn bd">Danger</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn bp bsm">Small</button>
+        <button class="btn bp">Default</button>
+        <button class="btn bp" style="padding:12px 26px;font-size:15px">Large</button>
+      </div>
+    </div>
+    <div class="cb">
+      <div class="cl">Badges</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="badge bk">Active</span>
+        <span class="badge bo">Win</span>
+        <span class="badge be">Loss</span>
+        <span class="badge bw">Pending</span>
+        <span class="badge bn">Inactive</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge bk bpl">Volleyball</span>
+        <span class="badge bk bpl">#2</span>
+        <span class="badge bo bpl">Going</span>
+        <span class="badge be bpl">Can't Go</span>
+        <span class="badge bw bpl">Maybe</span>
+      </div>
+    </div>
+    <div class="cb">
+      <div class="cl">Form Inputs</div>
+      <div style="margin-bottom:8px"><label class="il">Team Name</label><input class="inp" placeholder="e.g. Black Hornets Elite"></div>
+      <div style="margin-bottom:8px"><label class="il">Notes</label><textarea class="inp" rows="2" placeholder="Optional..." style="resize:vertical"></textarea></div>
+    </div>
+    <div class="cb">
+      <div class="cl">Tabs & Toggle</div>
+      <div class="tbar">
+        <button class="tbi on" onclick="tabClick(this)">Feed</button>
+        <button class="tbi" onclick="tabClick(this)">Roster</button>
+        <button class="tbi" onclick="tabClick(this)">Schedule</button>
+        <button class="tbi" onclick="tabClick(this)">Stats</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:10px">
+        <span style="font-size:12px;color:var(--t3)">Dark mode</span>
+        <div class="tog" onclick="this.classList.toggle('on')"></div>
+        <div class="tog on" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+    <div class="cb" style="grid-column:span 2">
+      <div class="cl">Alerts</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="al ai">&#8505;&#65039; Your next game is tomorrow at 6:00 PM vs Frisco Red</div>
+        <div class="al ao">&#10003; Lineup saved successfully for Black Hornets Elite</div>
+        <div class="al aw">&#9888; 3 players haven't RSVP'd for Saturday's tournament</div>
+        <div class="al ae">&#10005; Failed to save — please check your connection</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="sub">Modal</div>
+  <div class="mod-wrap">
+    <div class="mod">
+      <div class="mod-h">
+        <div>
+          <div style="font-size:16px;font-weight:600">vs Rangers</div>
+          <div style="font-size:12px;color:var(--t3)">Friday, Feb 13 &middot; 10:00 AM &middot; BH Stingers</div>
+        </div>
+        <span style="font-size:18px;cursor:pointer;color:var(--t3)">&times;</span>
+      </div>
+      <div class="mod-b">
+        <div class="tbar">
+          <button class="tbi on" onclick="tabClick(this)">Details</button>
+          <button class="tbi" onclick="tabClick(this)">RSVPs</button>
+          <button class="tbi" onclick="tabClick(this)">Roster</button>
+        </div>
+        <div class="mod-ip">
+          <div class="mod-ipl">EVENT INFORMATION</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.8">
+            <div><strong style="color:var(--t1)">Venue:</strong> Frisco Fieldhouse</div>
+            <div><strong style="color:var(--t1)">Team:</strong> BH Stingers</div>
+            <div><strong style="color:var(--t1)">Location:</strong> Away</div>
+          </div>
+        </div>
+      </div>
+      <div class="mod-f">
+        <button class="btn bg bsm">Close</button>
+        <button class="btn bp bsm">Edit Event</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPACING -->
+<section id="spacing">
+  <div class="sl">06 — Spacing</div>
+  <div class="st">Spacing Scale</div>
+  <div class="sd">4px base grid. All gaps, paddings, and margins use these values.</div>
+  <div class="cb">
+    <div class="spr-r"><div class="spr-l">4px</div><div class="spr-b" style="width:8px"></div><div class="spr-d">Icon-to-text gap</div></div>
+    <div class="spr-r"><div class="spr-l">8px</div><div class="spr-b" style="width:20px"></div><div class="spr-d">Between badges, small gaps</div></div>
+    <div class="spr-r"><div class="spr-l">12px</div><div class="spr-b" style="width:40px"></div><div class="spr-d">Inner card padding, form gaps</div></div>
+    <div class="spr-r"><div class="spr-l">16px</div><div class="spr-b" style="width:64px"></div><div class="spr-d">Between cards in a grid</div></div>
+    <div class="spr-r"><div class="spr-l">20px</div><div class="spr-b" style="width:88px"></div><div class="spr-d">Card body padding</div></div>
+    <div class="spr-r"><div class="spr-l">24px</div><div class="spr-b" style="width:112px"></div><div class="spr-d">Section padding, modal body</div></div>
+    <div class="spr-r"><div class="spr-l">32px</div><div class="spr-b" style="width:152px"></div><div class="spr-d">Page gutters, large sections</div></div>
+    <div class="spr-r"><div class="spr-l">48px</div><div class="spr-b" style="width:220px"></div><div class="spr-d">Between major page sections</div></div>
+  </div>
+</section>
+
+<!-- GUIDELINES -->
+<section id="rules">
+  <div class="sl">07 — Guidelines</div>
+  <div class="st">Do's & Don'ts</div>
+  <div class="sd">Rules for maintaining visual consistency across the platform.</div>
+
+  <div class="gg">
+    <div class="gdo"><div class="gt">&#10003; COLOR</div><div class="gx">Sky Blue for ALL interactive elements. One accent, used everywhere. Semantic colors only for their meanings.</div></div>
+    <div class="gdn"><div class="gt">&#10005; COLOR</div><div class="gx">Multiple accent colors on one page. Orange buttons next to purple. Amber as decoration. Semantic colors for non-semantic use.</div></div>
+  </div>
+  <div class="gg">
+    <div class="gdo"><div class="gt">&#10003; SURFACES</div><div class="gx">Cloud &rarr; White &rarr; Frost. Three layers max. Cards get 1px border + shadow. Inner panels: just background, no border.</div></div>
+    <div class="gdn"><div class="gt">&#10005; SURFACES</div><div class="gx">Cards on same-color backgrounds. 4+ layers of nesting. Heavy shadows. Glass/blur effects on standard pages.</div></div>
+  </div>
+  <div class="gg">
+    <div class="gdo"><div class="gt">&#10003; TYPOGRAPHY</div><div class="gx">One font family everywhere. Uppercase tracked labels for sections. Navy headings, Slate body. Bold stat numbers in Sky Blue.</div></div>
+    <div class="gdn"><div class="gt">&#10005; TYPOGRAPHY</div><div class="gx">Google Font imports (Bebas, Rajdhani, DM Sans). Custom @font-face per page. Inline font-family overrides. All-caps headings > 13px.</div></div>
+  </div>
+  <div class="gg">
+    <div class="gdo"><div class="gt">&#10003; DARK MODE</div><div class="gx">Midnight &rarr; Charcoal &rarr; Graphite. Navy-tinted darks. Same layout, just colors swap. Borders use #2A3545.</div></div>
+    <div class="gdn"><div class="gt">&#10005; DARK MODE</div><div class="gx">Pure black (#000). Gray-tinted surfaces (bg-slate-800). Different layouts per mode. Bright white on everything.</div></div>
+  </div>
+  <div class="gg">
+    <div class="gdo"><div class="gt">&#10003; NAV BAR</div><div class="gx">Always Navy (#10284C). White logo. Sky Blue/15 active pill. Same in both modes. It's the brand anchor.</div></div>
+    <div class="gdn"><div class="gt">&#10005; NAV BAR</div><div class="gx">Gradient backgrounds. Colored accent nav bars. Transparent/glass nav. The nav is always solid Navy.</div></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+function togTheme(){
+  const b=document.body,t=document.querySelector('.tb');
+  if(b.hasAttribute('data-theme')){b.removeAttribute('data-theme');t.innerHTML='&#9728;'}
+  else{b.setAttribute('data-theme','dark');t.innerHTML='&#9790;'}
+}
+function cp(el,hex){
+  navigator.clipboard.writeText(hex).catch(()=>{});
+  el.classList.add('cp');setTimeout(()=>el.classList.remove('cp'),800);
+}
+function nav(a,e){
+  e.preventDefault();
+  document.querySelectorAll('.toc a').forEach(l=>l.classList.remove('on'));
+  a.classList.add('on');
+  document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'});
+}
+function tabClick(el){
+  el.parentElement.querySelectorAll('.tbi').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+}
+// Active toc on scroll
+const secs=document.querySelectorAll('section[id]');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc a').forEach(l=>l.classList.remove('on'));
+      const link=document.querySelector(`.toc a[href="#${e.target.id}"]`);
+      if(link)link.classList.add('on');
+    }
+  });
+},{rootMargin:'-30% 0px -60% 0px'});
+secs.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

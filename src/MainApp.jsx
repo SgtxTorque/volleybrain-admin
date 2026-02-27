@@ -121,7 +121,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
       </button>
 
       {isOpen && (
-        <div className={`absolute top-full left-0 mt-3 w-56 rounded-2xl overflow-hidden z-50 animate-slide-down ${
+        <div className={`absolute top-full left-0 mt-3 w-56 rounded-xl overflow-hidden z-50 animate-slide-down ${
           isDark
             ? 'bg-slate-800/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
             : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_40px_rgba(0,0,0,0.1)]'
@@ -280,7 +280,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 top-full mt-3 w-96 rounded-2xl overflow-hidden z-50 animate-slide-down ${
+        <div className={`absolute right-0 top-full mt-3 w-96 rounded-xl overflow-hidden z-50 animate-slide-down ${
           isDark 
             ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
             : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
@@ -401,7 +401,7 @@ function UserProfileDropdown({
       </button>
 
       {showRoleSwitcher && (
-        <div className={`absolute right-0 top-full mt-3 w-72 rounded-2xl overflow-hidden z-50 animate-slide-down ${
+        <div className={`absolute right-0 top-full mt-3 w-72 rounded-xl overflow-hidden z-50 animate-slide-down ${
           isDark 
             ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]' 
             : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'

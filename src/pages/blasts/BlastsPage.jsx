@@ -127,11 +127,11 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
           <p className={`text-sm ${tc.textMuted}`}>Total Sent</p>
           <p className={`text-3xl font-bold ${tc.text}`}>{blasts.length}</p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
           <p className={`text-sm ${tc.textMuted}`}>Avg. Read Rate</p>
           <p className={`text-3xl font-bold text-emerald-500`}>
             {blasts.length > 0 
@@ -139,13 +139,13 @@ function BlastsPage({ showToast, activeView, roleContext }) {
               : 0}%
           </p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
           <p className={`text-sm ${tc.textMuted}`}>Pending Reads</p>
           <p className={`text-3xl font-bold text-amber-500`}>
             {blasts.filter(b => b.read_percentage < 100).length}
           </p>
         </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
           <p className={`text-sm ${tc.textMuted}`}>Urgent</p>
           <p className={`text-3xl font-bold text-red-500`}>
             {blasts.filter(b => b.priority === 'urgent').length}
@@ -154,7 +154,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       </div>
       
       {/* Filter Tabs */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
         <div className="flex flex-wrap gap-2">
           {[
             { id: 'all', label: 'All', icon: 'clipboard' },
@@ -186,7 +186,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           <p className={`${tc.textMuted} mt-4`}>Loading announcements...</p>
         </div>
       ) : filteredBlasts.length === 0 ? (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
           <Megaphone className="w-16 h-16" />
           <p className={`text-xl font-semibold ${tc.text} mt-4`}>No announcements yet</p>
           <p className={tc.textMuted}>Send your first announcement to parents and teams</p>
@@ -203,7 +203,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
             <div 
               key={blast.id}
               onClick={() => setSelectedBlast(blast)}
-              className={`${tc.cardBg} border ${tc.border} rounded-2xl p-4 cursor-pointer hover:border-[var(--accent-primary)]/50 transition`}
+              className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 cursor-pointer hover:border-[var(--accent-primary)]/50 transition`}
             >
               <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${getTypeColor(blast.message_type)}`}>
@@ -411,7 +411,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
           <h2 className={`text-xl font-bold ${tc.text}`}>📢 New Announcement</h2>
@@ -582,7 +582,7 @@ function BlastDetailModal({ blast, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border}`}>
           <div className="flex items-center justify-between mb-2">

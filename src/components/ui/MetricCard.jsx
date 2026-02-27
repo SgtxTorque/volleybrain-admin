@@ -37,7 +37,7 @@ export function MetricCard({ label, value, sublabel, icon, status = 'neutral', o
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-2xl border p-6 transition-all duration-200 ${tc.card} ${onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5' : ''}`}
+      className={`relative overflow-hidden rounded-xl border p-6 transition-all duration-200 ${tc.card} ${onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5' : ''}`}
     >
       <div 
         className={`absolute top-0 left-0 right-0 h-1 ${config.indicator}`} 

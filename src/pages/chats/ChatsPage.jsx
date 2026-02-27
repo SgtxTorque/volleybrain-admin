@@ -219,7 +219,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                 </h1>
                 <button
                   onClick={() => setShowNewChat(true)}
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-lg"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-lg"
                   style={{ background: `linear-gradient(135deg, ${accent.primary}, ${accent.primary}dd)`, boxShadow: `0 4px 16px ${accent.primary}40` }}
                 >
                   <Plus className="w-5 h-5 text-white" />
@@ -228,7 +228,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
               
               {/* Search */}
               <div 
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
                 style={{ 
                   background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)',
                   border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.04)',
@@ -316,7 +316,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center ch-ai">
                 <div 
-                  className="w-24 h-24 rounded-3xl flex items-center justify-center mb-5"
+                  className="w-24 h-24 rounded-xl flex items-center justify-center mb-5"
                   style={{ 
                     background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)',
                     border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.04)',
@@ -373,7 +373,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, ac
   return (
     <button
       onClick={onClick}
-      className="w-full p-3 flex items-center gap-3 transition-all rounded-2xl mb-1 ch-sl"
+      className="w-full p-3 flex items-center gap-3 transition-all rounded-xl mb-1 ch-sl"
       style={{ 
         animationDelay: `${index * .03}s`,
         background: isSelected 
@@ -386,7 +386,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, ac
     >
       {/* Avatar with gradient ring */}
       <div className="relative flex-shrink-0">
-        <div className="p-[2px] rounded-2xl" style={{ background: isSelected ? `linear-gradient(135deg, ${teamColor}, ${teamColor}88)` : 'transparent' }}>
+        <div className="p-[2px] rounded-xl" style={{ background: isSelected ? `linear-gradient(135deg, ${teamColor}, ${teamColor}88)` : 'transparent' }}>
           <div 
             className="w-12 h-12 rounded-[14px] flex items-center justify-center text-lg"
             style={{ 

@@ -325,7 +325,7 @@ function WaiversPage({ showToast }) {
             {loading ? (
               <div className={`p-8 text-center ${tc.textMuted}`}>Loading...</div>
             ) : filtered.length === 0 ? (
-              <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6 text-center`}>
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 text-center`}>
                 <p className="text-4xl mb-3">📋</p>
                 <p className={`font-semibold ${tc.text}`}>{templates.length === 0 ? 'No waivers yet' : 'No matches'}</p>
                 {templates.length === 0 && (
@@ -379,7 +379,7 @@ function WaiversPage({ showToast }) {
           {selectedTemplate ? (
             <div className="lg:col-span-3 space-y-4">
               {/* Header Card */}
-              <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <input value={selectedTemplate.name || ''}
@@ -469,7 +469,7 @@ function WaiversPage({ showToast }) {
               </div>
 
               {/* Content: Text Editor + File Upload side by side */}
-              <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-sm font-bold ${tc.text}`}>Waiver Content</h3>
                   <span className={`text-xs ${tc.textMuted}`}>Type text below, upload a file, or both</span>
@@ -522,7 +522,7 @@ function WaiversPage({ showToast }) {
 
               {/* Admin Notes */}
               {!selectedTemplate._legacy && (
-                <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+                <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
                   <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2`}>Admin Notes (internal only)</label>
                   <input value={selectedTemplate.description || ''}
                     onChange={e => setSelectedTemplate({ ...selectedTemplate, description: e.target.value })}
@@ -533,7 +533,7 @@ function WaiversPage({ showToast }) {
 
               {/* Edit History Timeline */}
               {editHistory.length > 0 && (
-                <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+                <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
                   <h3 className={`text-sm font-bold ${tc.text} mb-3`}>📜 Edit History</h3>
                   <div className="space-y-3 relative">
                     {/* Timeline line */}
@@ -557,7 +557,7 @@ function WaiversPage({ showToast }) {
               )}
             </div>
           ) : templates.length > 0 ? (
-            <div className={`lg:col-span-3 ${tc.cardBg} border ${tc.border} rounded-2xl p-10 text-center`}>
+            <div className={`lg:col-span-3 ${tc.cardBg} border ${tc.border} rounded-xl p-10 text-center`}>
               <p className="text-4xl mb-3">👈</p>
               <p className={`font-medium ${tc.text}`}>Select a waiver to edit</p>
             </div>
@@ -592,7 +592,7 @@ function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* Preview Admin Bar */}
         <div className={`px-5 py-2.5 flex items-center justify-between ${tc.cardBg} rounded-t-2xl`}>
           <span className="text-xs font-medium text-slate-300">👁️ Preview — How parents will see this waiver</span>
@@ -765,7 +765,7 @@ function CreateWaiverModal({ tc, isDark, onClose, onCreate, enabledSports }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>
           <h2 className={`text-lg font-bold ${tc.text}`}>Create Waiver Template</h2>
           <button onClick={onClose} className={`${tc.textMuted} text-xl`}>×</button>
@@ -891,7 +891,7 @@ function SignaturesView({ tc, isDark, organization, selectedSeason }) {
     setLoading(false)
   }
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
       <div className={`p-5 border-b ${tc.border}`}>
         <h3 className={`font-bold ${tc.text}`}>✍️ Signed Waivers</h3>
         <p className={`text-sm ${tc.textMuted}`}>{signatures.length} signatures</p>
@@ -941,7 +941,7 @@ function SendHistoryView({ tc, isDark, organization }) {
     setLoading(false)
   }
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
       <div className={`p-5 border-b ${tc.border}`}><h3 className={`font-bold ${tc.text}`}>📨 Send History</h3></div>
       {loading ? <div className={`p-10 text-center ${tc.textMuted}`}>Loading...</div>
        : sends.length === 0 ? (
@@ -1001,7 +1001,7 @@ function SendAdhocModal({ tc, isDark, organization, templates, showToast, onClos
   const filtered = players.filter(p => `${p.first_name} ${p.last_name} ${p.parent_name || ''}`.toLowerCase().includes(search.toLowerCase()))
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-lg max-h-[85vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-5 border-b ${tc.border}`}>
           <h2 className={`text-lg font-bold ${tc.text}`}>📨 Send Ad-Hoc Waiver</h2>
           <p className={`text-sm ${tc.textMuted} mt-1`}>Send a waiver to specific players for signature</p>

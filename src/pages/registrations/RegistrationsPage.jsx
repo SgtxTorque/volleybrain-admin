@@ -228,7 +228,7 @@ export function PlayerDetailModal({ player, editMode, onClose, onUpdate, showToa
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
         
         {/* Header */}
         <div className={`px-6 py-4 border-b ${tc.border} flex items-center justify-between`}>
@@ -493,7 +493,7 @@ export function DenyRegistrationModal({ player, onClose, onDeny }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Deny Registration</h2>
           <p className={`${tc.textMuted} text-sm mt-1`}>{player.first_name} {player.last_name}</p>
@@ -529,7 +529,7 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md`}>
         <div className={`p-6 border-b ${tc.border}`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>Deny {count} Registrations</h2>
           <p className={`${tc.textMuted} text-sm mt-1`}>This action cannot be undone.</p>
@@ -658,7 +658,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
     <div className="space-y-6">
       {/* Top Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${tc.textMuted}`}>Total Registrations</p>
@@ -669,7 +669,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
           <p className={`text-xs ${tc.textMuted} mt-2`}>{familyCount} families</p>
         </div>
 
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${tc.textMuted}`}>Approval Rate</p>
@@ -680,7 +680,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
           <p className={`text-xs ${tc.textMuted} mt-2`}>{statusCounts.approved + statusCounts.rostered} approved</p>
         </div>
 
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${tc.textMuted}`}>Revenue</p>
@@ -691,7 +691,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
           <p className={`text-xs text-amber-400 mt-2`}>${outstandingRevenue.toFixed(0)} outstanding</p>
         </div>
 
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <div className="flex items-center justify-between">
             <div>
               <p className={`text-sm ${tc.textMuted}`}>Collection Rate</p>
@@ -705,7 +705,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
 
       {/* Capacity Bar (if capacity is set) */}
       {capacity > 0 && (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <div className="flex items-center justify-between mb-3">
             <h3 className={`font-semibold ${tc.text}`}>Season Capacity</h3>
             <span className={`text-sm ${capacityPercent >= 90 ? 'text-red-400' : capacityPercent >= 70 ? 'text-amber-400' : 'text-emerald-400'}`}>
@@ -731,7 +731,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Registration Timeline Chart */}
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
             <Calendar className="w-5 h-5" />Registration Timeline (Last 14 Days)
           </h3>
@@ -760,7 +760,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
         </div>
 
         {/* Status Funnel */}
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <h3 className={`font-semibold ${tc.text} mb-4`}>🔄 Registration Funnel</h3>
           <div className="space-y-3">
             {funnel.map((stage, i) => {
@@ -800,7 +800,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
         </div>
 
         {/* Grade Distribution */}
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <h3 className={`font-semibold ${tc.text} mb-4`}>🎓 Grade Distribution</h3>
           <div className="space-y-2">
             {Object.entries(gradeDistribution)
@@ -829,7 +829,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
         </div>
 
         {/* Gender & Family Stats */}
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
           <h3 className={`font-semibold ${tc.text} mb-4`}>Demographics</h3>
           
           {/* Gender Pills */}
@@ -863,7 +863,7 @@ export function RegistrationAnalytics({ registrations, season, statusCounts, sho
       </div>
 
       {/* Revenue Breakdown */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
         <h3 className={`font-semibold ${tc.text} mb-4`}>💵 Revenue Breakdown</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className={`${tc.cardBgAlt} rounded-xl p-4`}>
@@ -1429,7 +1429,7 @@ export function RegistrationsPage({ showToast }) {
           {loading ? (
             <SkeletonRegistrationsPage />
           ) : filteredRegs.length === 0 ? (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
               <ClipboardList className="w-16 h-16" />
               <h3 className={`text-lg font-medium ${tc.text} mt-4`}>No registrations found</h3>
               <p className={`${tc.textSecondary} mt-2`}>
@@ -1437,7 +1437,7 @@ export function RegistrationsPage({ showToast }) {
               </p>
             </div>
           ) : (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
               <table className="w-full">
                 <thead>
                   <tr className={`border-b ${tc.border}`}>

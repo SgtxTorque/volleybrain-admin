@@ -116,7 +116,7 @@ function PlayerStatCard({ player, stats, onChange, onExpand, isExpanded }) {
   const points = (stats?.aces || 0) + (stats?.kills || 0) + (stats?.blocks || 0)
   
   return (
-    <div className={`bg-white rounded-2xl border-2 transition ${
+    <div className={`bg-white rounded-xl border-2 transition ${
       isExpanded ? 'border-indigo-500 shadow-lg' : 'border-slate-200 hover:border-slate-300'
     }`}>
       {/* Player header */}
@@ -243,7 +243,7 @@ function QuickEntryMode({ players, stats, onStatChange, selectedStat, onSelectSt
               onClick={() => {
                 onStatChange(player.id, selectedStat, statValue + 1)
               }}
-              className="bg-white rounded-2xl p-4 border-2 border-slate-200 hover:border-indigo-400 hover:shadow-md transition text-center group"
+              className="bg-white rounded-xl p-4 border-2 border-slate-200 hover:border-indigo-400 hover:shadow-md transition text-center group"
             >
               {player.photo_url ? (
                 <img src={player.photo_url} className="w-14 h-14 rounded-full mx-auto object-cover mb-2" />
@@ -406,7 +406,7 @@ function GameStatsEntryModal({ event, team, roster, onClose, onSave, showToast }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-100 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-slate-100 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
         <div className="bg-white border-b border-slate-200 px-6 py-4">
           <div className="flex items-center justify-between">

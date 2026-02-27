@@ -166,7 +166,7 @@ export default function ParentHeroCard({
   if (!selectedPlayerTeam) {
     return (
       <div
-        className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex items-center justify-center"
+        className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex items-center justify-center"
         style={{ minHeight: '420px' }}
       >
         <div className="text-center text-slate-400 p-8">
@@ -254,7 +254,7 @@ export default function ParentHeroCard({
   return (
     <>
       <div
-        className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"
+        className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"
         style={{ minHeight: '420px' }}
         data-tutorial="player-card"
       >

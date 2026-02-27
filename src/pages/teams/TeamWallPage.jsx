@@ -458,7 +458,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
           {/* Back button */}
           <button onClick={onBack}
-            className="absolute top-5 left-5 z-20 w-11 h-11 rounded-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
+            className="absolute top-5 left-5 z-20 w-11 h-11 rounded-xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
             style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -477,7 +477,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {/* Edit button */}
           {(profile?.role === 'admin' || profile?.role === 'coach') && (
             <button onClick={() => setShowBannerEdit(!showBannerEdit)}
-              className="absolute top-5 right-5 z-20 w-10 h-10 rounded-2xl flex items-center justify-center text-white/40 hover:text-white/80 hover:scale-105 transition-all"
+              className="absolute top-5 right-5 z-20 w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:text-white/80 hover:scale-105 transition-all"
               style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
               ⚙️
             </button>
@@ -510,7 +510,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           <div className="flex items-end gap-6">
             {/* Team logo — large with gradient ring */}
             <div className="relative flex-shrink-0">
-              <div className="p-1 rounded-3xl" style={{ background: `linear-gradient(135deg, ${g}, ${dim})` }}>
+              <div className="p-1 rounded-xl" style={{ background: `linear-gradient(135deg, ${g}, ${dim})` }}>
                 <div className="w-28 h-28 md:w-32 md:h-32 rounded-[22px] flex items-center justify-center overflow-hidden"
                   style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', boxShadow: '0 8px 32px rgba(0,0,0,.3)' }}>
                   {team.logo_url ? (
@@ -569,7 +569,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               ))}
             </div>
             <button onClick={openTeamChat}
-              className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-white font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all"
+              className="flex items-center gap-3 px-6 py-3.5 rounded-xl text-white font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all"
               style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, boxShadow: `0 4px 20px ${g}40` }}>
               <MessageCircle className="w-5 h-5" /> JOIN HUDDLE
             </button>
@@ -613,7 +613,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
       {/* ═══ TICKER ═══ */}
       <div className="mb-6">
-        <div className="rounded-2xl overflow-hidden relative"
+        <div className="rounded-xl overflow-hidden relative"
           style={{
             background: isDark ? `${g}08` : 'rgba(255,255,255,.6)',
             border: `1px solid ${isDark ? g + '1a' : g + '20'}`,
@@ -662,7 +662,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             { icon: '📄', label: 'Docs', action: () => setActiveTab('documents'), primary: false },
           ].filter(Boolean).map((a) => (
             <button key={a.label} onClick={a.action}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold font-bold uppercase tracking-wider transition whitespace-nowrap tw-clift"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl text-[11px] font-bold font-bold uppercase tracking-wider transition whitespace-nowrap tw-clift"
               style={a.primary ? {
                 background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a',
                 boxShadow: `0 4px 20px ${g}30`,
@@ -681,7 +681,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
       {/* ═══ TAB NAVIGATION — Pill style ═══ */}
       <div className="mb-8">
-        <div className="flex gap-1 rounded-2xl p-1.5" style={{ background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)' }}>
+        <div className="flex gap-1 rounded-xl p-1.5" style={{ background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.03)' }}>
           {[
             { key: 'feed', icon: '📰', label: 'Feed' },
             { key: 'challenges', icon: '🏆', label: 'Challenges' },
@@ -734,7 +734,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     ))}
                     {hasMorePosts && (
                       <button onClick={loadMorePosts} disabled={loadingMorePosts}
-                        className="w-full py-4 rounded-2xl text-[11px] font-bold uppercase tracking-wider transition"
+                        className="w-full py-4 rounded-xl text-[11px] font-bold uppercase tracking-wider transition"
                         style={{
                           background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
                           border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)',
@@ -769,7 +769,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 {isAdminOrCoach && (
                   <button
                     onClick={() => setShowCreateChallengeModal(true)}
-                    className="mb-4 flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold font-bold uppercase tracking-wider"
+                    className="mb-4 flex items-center gap-2 px-5 py-3 rounded-xl text-[11px] font-bold font-bold uppercase tracking-wider"
                     style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a' }}
                   >
                     <Trophy className="w-4 h-4" /> CREATE CHALLENGE
@@ -846,9 +846,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                         onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                         {player.photo_url ? (
-                          <img src={player.photo_url} alt="" className="w-14 h-14 rounded-2xl object-cover shadow-md" />
+                          <img src={player.photo_url} alt="" className="w-14 h-14 rounded-xl object-cover shadow-md" />
                         ) : (
-                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-extrabold"
+                          <div className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-extrabold"
                             style={{ background: `${g}12`, color: g, border: `1px solid ${g}20` }}>
                             {player.first_name?.[0]}{player.last_name?.[0]}
                           </div>
@@ -937,7 +937,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                         className="p-5 flex items-center gap-4 transition-all block"
                         onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(56,189,248,.1)' }}>
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'rgba(56,189,248,.1)' }}>
                           <FileText className="w-6 h-6" style={{ color: '#38BDF8' }} />
                         </div>
                         <div className="flex-1">
@@ -1075,7 +1075,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   { v: upcomingEvents.length, l: 'Upcoming', c: '#4ADE80' },
                   { v: posts.length, l: 'Posts', c: '#A78BFA' },
                 ].map(s => (
-                  <div key={s.l} className="text-center py-3.5 rounded-2xl" style={{ background: `${s.c}0a`, border: `1px solid ${s.c}18` }}>
+                  <div key={s.l} className="text-center py-3.5 rounded-xl" style={{ background: `${s.c}0a`, border: `1px solid ${s.c}18` }}>
                     <p className="text-2xl font-extrabold tracking-tight" style={{ color: s.c }}>{s.v}</p>
                     <p className="text-[8px] font-bold uppercase tracking-wider mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>{s.l.toUpperCase()}</p>
                   </div>
@@ -1088,7 +1088,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <p className="text-4xl mb-3">📨</p>
               <p className="text-sm font-bold mb-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Invite to {team.name}</p>
               <p className="text-[11px] mb-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }}>Share a registration link with friends and family</p>
-              <button className="w-full py-3 rounded-2xl text-[11px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110"
+              <button className="w-full py-3 rounded-xl text-[11px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110"
                 style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
                 COPY INVITE LINK
               </button>
@@ -1100,7 +1100,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       {/* ═══ FAB ═══ */}
       {(profile?.role === 'admin' || profile?.role === 'coach' || profile?.role === 'parent') && (
         <button onClick={() => setShowNewPostModal(true)}
-          className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-2xl flex items-center justify-center text-2xl text-black font-bold shadow-2xl transition hover:scale-110 active:scale-95"
+          className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-xl flex items-center justify-center text-2xl text-black font-bold shadow-2xl transition hover:scale-110 active:scale-95"
           style={{
             background: `linear-gradient(135deg,${gb},${g})`,
             boxShadow: `0 8px 32px ${g}40`,
@@ -1269,9 +1269,9 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
         <div className="flex items-center gap-6 md:gap-12 mb-4">
           <div className="text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: `${g}15`, border: `1.5px solid ${g}35` }}>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: `${g}15`, border: `1.5px solid ${g}35` }}>
               {team.logo_url ? (
-                <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-2xl" />
+                <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-xl" />
               ) : (
                 <span className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: g }}>{teamInitials}</span>
               )}
@@ -1280,7 +1280,7 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
           </div>
           <span className="text-5xl md:text-6xl font-extrabold tracking-tight" style={{ color: '#EF4444', animation: 'vsFlash 3s ease-in-out infinite' }}>VS</span>
           <div className="text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(255,255,255,.03)', border: '1.5px solid rgba(255,255,255,.06)' }}>
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(255,255,255,.03)', border: '1.5px solid rgba(255,255,255,.06)' }}>
               <span className="text-3xl md:text-4xl font-extrabold tracking-tight text-white/15">{oppTag}</span>
             </div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/20">{nextGame.opponent || 'Opponent'}</p>

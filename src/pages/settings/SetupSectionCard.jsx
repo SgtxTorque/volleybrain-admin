@@ -33,7 +33,7 @@ function SetupSectionCard({
   const config = statusConfig[status.status]
 
   return (
-    <div className={`rounded-2xl border overflow-hidden transition-all ${tc.card} ${expanded ? 'ring-2' : ''}`} style={{ ringColor: expanded ? accent.primary : 'transparent' }}>
+    <div className={`rounded-xl border overflow-hidden transition-all ${tc.card} ${expanded ? 'ring-2' : ''}`} style={{ ringColor: expanded ? accent.primary : 'transparent' }}>
       {/* Section Header - Always visible */}
       <div
         className={`p-4 cursor-pointer transition-colors ${tc.hoverBg}`}

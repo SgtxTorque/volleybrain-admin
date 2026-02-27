@@ -59,7 +59,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, destructive,
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
-      <div className={`pa-as w-full max-w-md rounded-2xl p-6 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200/60'} shadow-2xl`}>
+      <div className={`pa-as w-full max-w-md rounded-xl p-6 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200/60'} shadow-2xl`}>
         <div className="flex items-center gap-3 mb-4">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${destructive ? 'bg-red-500/20' : 'bg-amber-500/20'}`}>
             <AlertTriangle className={`w-5 h-5 ${destructive ? 'text-red-400' : 'text-amber-400'}`} />
@@ -317,7 +317,7 @@ function OverviewTab({ isDark, tc, accent }) {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, i) => (
-          <div key={card.label} className="pa-glass rounded-2xl p-5 pa-au" style={{ animationDelay: `${i * 60}ms` }}>
+          <div key={card.label} className="pa-glass rounded-xl p-5 pa-au" style={{ animationDelay: `${i * 60}ms` }}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${card.color}20` }}>
                 <card.icon className="w-5 h-5" style={{ color: card.color }} />
@@ -331,7 +331,7 @@ function OverviewTab({ isDark, tc, accent }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Organizations */}
-        <div className="pa-glass rounded-2xl p-5 pa-au" style={{ animationDelay: '240ms' }}>
+        <div className="pa-glass rounded-xl p-5 pa-au" style={{ animationDelay: '240ms' }}>
           <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-4`}>Recent Organizations</h3>
           <div className="space-y-3">
             {recentOrgs.map(org => (
@@ -352,7 +352,7 @@ function OverviewTab({ isDark, tc, accent }) {
         </div>
 
         {/* Recent Users */}
-        <div className="pa-glass rounded-2xl p-5 pa-au" style={{ animationDelay: '300ms' }}>
+        <div className="pa-glass rounded-xl p-5 pa-au" style={{ animationDelay: '300ms' }}>
           <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-4`}>Recent Users</h3>
           <div className="space-y-3">
             {recentUsers.map(u => (
@@ -460,7 +460,7 @@ function OrganizationsTab({ isDark, tc, accent, user, showToast }) {
   return (
     <div className="space-y-4 pa-au">
       {/* Search */}
-      <div className="pa-glass rounded-2xl p-4">
+      <div className="pa-glass rounded-xl p-4">
         <div className="relative">
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${tc.textMuted}`} />
           <input
@@ -480,7 +480,7 @@ function OrganizationsTab({ isDark, tc, accent, user, showToast }) {
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="pa-glass rounded-2xl p-8 text-center">
+        <div className="pa-glass rounded-xl p-8 text-center">
           <Building2 className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
           <p className={`text-sm ${tc.textMuted}`}>{search ? 'No organizations match your search' : 'No organizations found'}</p>
         </div>
@@ -489,7 +489,7 @@ function OrganizationsTab({ isDark, tc, accent, user, showToast }) {
           {filtered.map((org, i) => (
             <div
               key={org.id}
-              className={`pa-glass rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.005] pa-au`}
+              className={`pa-glass rounded-xl p-4 cursor-pointer transition-all hover:scale-[1.005] pa-au`}
               style={{ animationDelay: `${i * 40}ms` }}
               onClick={() => setSelectedOrg(org)}
             >
@@ -615,7 +615,7 @@ function UsersTab({ isDark, tc, accent, user, showToast }) {
   return (
     <div className="space-y-4 pa-au">
       {/* Search */}
-      <div className="pa-glass rounded-2xl p-4">
+      <div className="pa-glass rounded-xl p-4">
         <div className="relative">
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${tc.textMuted}`} />
           <input
@@ -635,12 +635,12 @@ function UsersTab({ isDark, tc, accent, user, showToast }) {
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="pa-glass rounded-2xl p-8 text-center">
+        <div className="pa-glass rounded-xl p-8 text-center">
           <Users className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
           <p className={`text-sm ${tc.textMuted}`}>{search ? 'No users match your search' : 'No users found'}</p>
         </div>
       ) : (
-        <div className="pa-glass rounded-2xl overflow-hidden">
+        <div className="pa-glass rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -780,12 +780,12 @@ function AuditLogTab({ isDark, tc, accent }) {
   return (
     <div className="space-y-4 pa-au">
       {logs.length === 0 ? (
-        <div className="pa-glass rounded-2xl p-8 text-center">
+        <div className="pa-glass rounded-xl p-8 text-center">
           <FileText className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
           <p className={`text-sm ${tc.textMuted}`}>No audit log entries yet</p>
         </div>
       ) : (
-        <div className="pa-glass rounded-2xl divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }}>
+        <div className="pa-glass rounded-xl divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }}>
           {logs.map((log, i) => {
             const { icon: ActionIcon, color } = getActionIcon(log.action_type)
             return (
@@ -828,7 +828,7 @@ function PlatformAdminPage({ showToast }) {
       <div className={`${isDark ? '' : 'pa-light'}`}>
         <style>{PA_STYLES}</style>
         <div className="flex flex-col items-center justify-center py-32">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-red-500/20 mb-4">
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-red-500/20 mb-4">
             <Shield className="w-8 h-8 text-red-400" />
           </div>
           <h1 className={`pa-display text-3xl ${tc.text} mb-2`}>Access Denied</h1>
@@ -843,7 +843,7 @@ function PlatformAdminPage({ showToast }) {
       <style>{PA_STYLES}</style>
 
       {/* Security Warning Banner */}
-      <div className="pa-au mb-6 rounded-2xl p-4 flex items-center gap-3" style={{ background: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
+      <div className="pa-au mb-6 rounded-xl p-4 flex items-center gap-3" style={{ background: isDark ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}>
         <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
         <p className={`text-sm ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
           <span className="font-semibold">Platform Admin Mode</span> — All actions are logged and audited. Use with care.
@@ -860,7 +860,7 @@ function PlatformAdminPage({ showToast }) {
       </div>
 
       {/* Tabs */}
-      <div className="pa-glass rounded-2xl p-1.5 mb-6 inline-flex gap-1 pa-au" style={{ animationDelay: '100ms' }}>
+      <div className="pa-glass rounded-xl p-1.5 mb-6 inline-flex gap-1 pa-au" style={{ animationDelay: '100ms' }}>
         {TABS.map(tab => {
           const isActive = activeTab === tab.id
           return (

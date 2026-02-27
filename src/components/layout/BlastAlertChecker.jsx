@@ -33,7 +33,7 @@ function BlastAlertPopup({ blast, onAcknowledge, remainingCount }) {
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
-      <div className={`${tc.cardBg} rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-bounce-in`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-lg overflow-hidden shadow-2xl animate-bounce-in`}>
         {/* Header with gradient */}
         <div className={`bg-gradient-to-r ${getTypeColor(blast.message_type, blast.priority)} p-6 text-center`}>
           <div className="text-6xl mb-3">

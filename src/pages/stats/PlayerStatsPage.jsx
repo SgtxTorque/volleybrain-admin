@@ -195,7 +195,7 @@ function StatCard({ label, value, trend, trendValue, color, icon, size = 'normal
   
   if (size === 'large') {
     return (
-      <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+      <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
         <div className="flex items-start justify-between mb-2">
           <span className="text-3xl">{icon}</span>
           {trend && (
@@ -462,9 +462,9 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             {/* Player photo & basic info */}
             <div className="flex items-center gap-4">
               {player.photo_url ? (
-                <img src={player.photo_url} className="w-16 h-16 rounded-2xl object-cover shadow" />
+                <img src={player.photo_url} className="w-16 h-16 rounded-xl object-cover shadow" />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow">
                   {player.jersey_number || '?'}
                 </div>
               )}
@@ -525,7 +525,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Season Totals */}
-            <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+            <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
               <h2 className={`text-lg font-bold ${tc.text} mb-4 flex items-center gap-2`}>
                 <CalendarIcon className="w-5 h-5 text-indigo-500" />
                 Season Totals
@@ -553,7 +553,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             </div>
             
             {/* Per Game Averages */}
-            <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+            <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
               <h2 className={`text-lg font-bold ${tc.text} mb-4 flex items-center gap-2`}>
                 <TargetIcon className="w-5 h-5 text-emerald-500" />
                 Per Game Averages
@@ -572,7 +572,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             {/* Progress Charts */}
             <div className="grid md:grid-cols-2 gap-6">
               {/* Aces Trend */}
-              <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+              <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
                 <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                   🏐 Aces Progress
                 </h3>
@@ -581,7 +581,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
               </div>
               
               {/* Kills Trend */}
-              <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+              <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
                 <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                   💥 Kills Progress
                 </h3>
@@ -590,7 +590,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
               </div>
               
               {/* Digs Trend */}
-              <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+              <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
                 <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                   🏃 Digs Progress
                 </h3>
@@ -599,7 +599,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
               </div>
               
               {/* Blocks Trend */}
-              <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+              <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
                 <h3 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                   🛡️ Blocks Progress
                 </h3>
@@ -609,7 +609,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             </div>
             
             {/* Percentages */}
-            <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+            <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
               <h2 className={`text-lg font-bold ${tc.text} mb-4 flex items-center gap-2`}>
                 <AwardIcon className="w-5 h-5 text-amber-500" />
                 Efficiency Ratings
@@ -661,7 +661,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             </div>
             
             {gameHistory.length === 0 ? (
-              <div className={`${tc.cardBg} rounded-2xl p-12 border ${tc.border} text-center`}>
+              <div className={`${tc.cardBg} rounded-xl p-12 border ${tc.border} text-center`}>
                 <CalendarIcon className={`w-12 h-12 ${tc.textMuted} mx-auto mb-4`} />
                 <p className={tc.textMuted}>No game stats recorded yet</p>
               </div>
@@ -684,7 +684,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
         {activeTab === 'skills' && (
           <div className="space-y-6">
             {/* Coach Ratings */}
-            <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+            <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
               <h2 className={`text-lg font-bold ${tc.text} mb-4 flex items-center gap-2`}>
                 <StarIcon className="w-5 h-5 text-amber-500" />
                 Coach Skill Ratings
@@ -728,7 +728,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             
             {/* Coach Notes */}
             {skillRatings?.coach_notes && (
-              <div className={`${tc.cardBg} rounded-2xl p-6 border ${tc.border} shadow-sm`}>
+              <div className={`${tc.cardBg} rounded-xl p-6 border ${tc.border} shadow-sm`}>
                 <h3 className={`font-semibold ${tc.text} mb-3`}>📝 Coach Notes</h3>
                 <p className={`${tc.textMuted} whitespace-pre-wrap`}>{skillRatings.coach_notes}</p>
               </div>

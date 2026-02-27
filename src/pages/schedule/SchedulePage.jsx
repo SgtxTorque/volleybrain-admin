@@ -442,7 +442,7 @@ END:VCALENDAR`
 
       {/* ═══ UPCOMING GAMES STRIP ═══ */}
       {allUpcomingGames.length > 0 && (
-        <div className={`rounded-2xl border overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className={`px-5 py-3 flex items-center justify-between border-b ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-100 bg-slate-50'}`}>
             <div className="flex items-center gap-2">
               <span className="text-sm">🔥</span>

@@ -533,7 +533,7 @@ export function PlayerCardExpanded({
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div 
-        className="w-full max-w-4xl max-h-[95vh] overflow-hidden rounded-3xl shadow-2xl flex flex-col"
+        className="w-full max-w-4xl max-h-[95vh] overflow-hidden rounded-xl shadow-2xl flex flex-col"
         style={{ backgroundColor: theme.modalBg }}
       >
         {/* ═══════════════════════════════════════════════════

@@ -127,7 +127,7 @@ export default function ParentCenterDashboard({
       {visibleAlerts.map(alert => (
         <div
           key={alert.id}
-          className={`rounded-2xl px-5 py-4 flex items-center gap-4 ${
+          className={`rounded-xl px-5 py-4 flex items-center gap-4 ${
             alert.priority === 'urgent'
               ? 'bg-gradient-to-r from-red-600 to-red-500 shadow-lg shadow-red-500/20'
               : 'bg-white border border-slate-200 shadow-sm'
@@ -210,7 +210,7 @@ export default function ParentCenterDashboard({
       {/* Team Hub + Chat Preview Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Team Hub Preview Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-slate-400" />
@@ -261,7 +261,7 @@ export default function ParentCenterDashboard({
         </div>
 
         {/* Chat Preview Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-slate-400" />
@@ -317,7 +317,7 @@ export default function ParentCenterDashboard({
       </div>
 
       {/* Schedule Section */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-slate-400" />
@@ -395,7 +395,7 @@ export default function ParentCenterDashboard({
       {/* Registration Banner */}
       {openSeasons?.length > 0 && (
         <div
-          className="rounded-2xl p-5 flex items-center justify-between gap-4 flex-wrap shadow-sm"
+          className="rounded-xl p-5 flex items-center justify-between gap-4 flex-wrap shadow-sm"
           style={{
             background: `linear-gradient(135deg, ${activeTeamColor}12, ${activeTeamColor}06)`,
             border: `1px solid ${activeTeamColor}25`
@@ -425,7 +425,7 @@ export default function ParentCenterDashboard({
       {/* Invite */}
       <button
         onClick={() => onNavigate?.('invite')}
-        className="w-full rounded-2xl py-4 text-center text-sm font-medium bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
+        className="w-full rounded-xl py-4 text-center text-sm font-medium bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
       >
         Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>

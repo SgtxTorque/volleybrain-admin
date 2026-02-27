@@ -45,7 +45,7 @@ function EventDetailModal({ event, team, onClose }) {
   const eventDate = event.event_date ? new Date(event.event_date + 'T00:00:00') : null
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl shadow-xl bg-white border border-slate-200" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl shadow-xl bg-white border border-slate-200" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl" style={{ backgroundColor: team?.color || '#3B82F6' }}>
@@ -136,7 +136,7 @@ function CoachBlastModal({ team, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl shadow-xl bg-white border border-slate-200" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-xl shadow-xl bg-white border border-slate-200" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-50 border border-purple-100">
@@ -204,7 +204,7 @@ function WarmupTimerModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
-      <div className={`w-full max-w-sm text-center rounded-2xl shadow-xl bg-white border border-slate-200 ${isFinished ? 'ring-2 ring-emerald-500/40' : ''}`} onClick={e => e.stopPropagation()}>
+      <div className={`w-full max-w-sm text-center rounded-xl shadow-xl bg-white border border-slate-200 ${isFinished ? 'ring-2 ring-emerald-500/40' : ''}`} onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center justify-center gap-3">
             <Timer className={`w-6 h-6 ${isFinished ? 'text-emerald-500' : 'text-amber-500'}`} />
@@ -394,7 +394,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     return (
       <div className="flex items-center justify-center bg-slate-50" style={{ minHeight: '60vh' }}>
         <div className="text-center max-w-md mx-auto px-6">
-          <div className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center bg-blue-50 border border-blue-100">
+          <div className="w-20 h-20 rounded-xl mx-auto mb-6 flex items-center justify-center bg-blue-50 border border-blue-100">
             <Shield className="w-10 h-10 text-blue-500" />
           </div>
           <h2 className="text-2xl font-bold mb-2 text-slate-900">No Teams Assigned</h2>

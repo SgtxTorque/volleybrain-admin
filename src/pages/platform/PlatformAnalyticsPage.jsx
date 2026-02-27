@@ -97,7 +97,7 @@ function MiniLoader({ isDark }) {
 // ═══════ KPI CARD ═══════
 function KpiCard({ label, value, trend, trendLabel, icon: Icon, color, isDark, index }) {
   return (
-    <div className="an-glass rounded-2xl p-5 an-au" style={{ animationDelay: `${index * 50}ms` }}>
+    <div className="an-glass rounded-xl p-5 an-au" style={{ animationDelay: `${index * 50}ms` }}>
       <div className="flex items-start justify-between mb-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center`} style={{ background: `${color}20` }}>
           <Icon className="w-5 h-5" style={{ color }} />
@@ -597,7 +597,7 @@ function PlatformAnalyticsPage({ showToast }) {
           {/* ═══ CHARTS ROW 1 ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* User Growth */}
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '200ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '200ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <LineChart className="w-4 h-4" style={{ color: '#10B981' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>User Signups</h3>
@@ -610,7 +610,7 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
 
             {/* Revenue */}
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '250ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '250ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <DollarSign className="w-4 h-4" style={{ color: '#EAB308' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Monthly Revenue</h3>
@@ -626,7 +626,7 @@ function PlatformAnalyticsPage({ showToast }) {
           {/* ═══ CHARTS ROW 2 ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Org Types */}
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '300ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '300ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <PieChart className="w-4 h-4" style={{ color: '#A855F7' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Organizations by Type</h3>
@@ -639,7 +639,7 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
 
             {/* Sport Distribution */}
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '350ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '350ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Star className="w-4 h-4" style={{ color: '#F97316' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Sport Distribution</h3>
@@ -655,7 +655,7 @@ function PlatformAnalyticsPage({ showToast }) {
           {/* ═══ CHARTS ROW 3 ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Orgs by Members */}
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '400ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '400ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Users className="w-4 h-4" style={{ color: '#3B82F6' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Top Orgs by Members</h3>
@@ -668,7 +668,7 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
 
             {/* Registrations over time */}
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '450ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '450ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <TrendingUp className="w-4 h-4" style={{ color: '#06B6D4' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Registrations Over Time</h3>
@@ -684,7 +684,7 @@ function PlatformAnalyticsPage({ showToast }) {
           {/* ═══ TABLES ═══ */}
 
           {/* Top Orgs by Revenue */}
-          <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '500ms' }}>
+          <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '500ms' }}>
             <div className="flex items-center gap-2 mb-5">
               <DollarSign className="w-4 h-4" style={{ color: '#EAB308' }} />
               <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Top Organizations by Revenue</h3>
@@ -703,7 +703,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
           {/* Recent Organizations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '550ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '550ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Recently Created Orgs (30d)</h3>
@@ -720,7 +720,7 @@ function PlatformAnalyticsPage({ showToast }) {
               />
             </div>
 
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '600ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '600ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Users className="w-4 h-4" style={{ color: '#10B981' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Recently Joined Users (30d)</h3>
@@ -740,7 +740,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
           {/* Inactive Orgs */}
           {inactiveOrgs.length > 0 && (
-            <div className="an-glass rounded-2xl p-6 an-au" style={{ animationDelay: '650ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '650ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Orgs With No Seasons (May Need Attention)</h3>

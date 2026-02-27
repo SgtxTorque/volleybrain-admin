@@ -51,7 +51,7 @@ export default function CoachGameDayHero({
 
     return (
       <div
-        className="relative rounded-2xl overflow-hidden bg-cover bg-center"
+        className="relative rounded-xl overflow-hidden bg-cover bg-center"
         style={{
           backgroundImage: `url(/images/volleyball-game.jpg)`,
           minHeight: '220px',
@@ -145,7 +145,7 @@ export default function CoachGameDayHero({
   if (nextEvent && nextEvent.event_type !== 'game') {
     return (
       <div
-        className="relative rounded-2xl overflow-hidden bg-cover bg-center"
+        className="relative rounded-xl overflow-hidden bg-cover bg-center"
         style={{
           backgroundImage: `url(/images/volleyball-practice.jpg)`,
           minHeight: '180px',
@@ -199,7 +199,7 @@ export default function CoachGameDayHero({
 
   // No upcoming events — Season Record fallback
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6">
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
       <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</p>
       <div className="flex items-center gap-4">
         <div className="flex items-baseline gap-3">

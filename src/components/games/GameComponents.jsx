@@ -391,7 +391,7 @@ function GameCompleteModal({
   if (step === 'score') {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`} onClick={e => e.stopPropagation()}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md`} onClick={e => e.stopPropagation()}>
           <div className={`p-5 border-b ${tc.border}`}>
             <div className="flex items-center gap-3">
               <span className="text-3xl">{sportConfig.icon}</span>
@@ -463,7 +463,7 @@ function GameCompleteModal({
   // Step 2: Stats Prompt
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md overflow-hidden`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md overflow-hidden`}>
         {/* Celebration Header */}
         <div className={`p-6 ${gameResult?.won ? 'bg-gradient-to-br from-emerald-500/20 to-green-600/20' : 'bg-gradient-to-br from-blue-500/20 to-indigo-600/20'}`}>
           <div className="text-center">
@@ -774,7 +774,7 @@ function StatsEntryModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>
           <div className="flex items-center gap-3">
@@ -1044,7 +1044,7 @@ function GameCard({
 
   // Full card view
   return (
-    <div className={`rounded-2xl overflow-hidden border ${
+    <div className={`rounded-xl overflow-hidden border ${
       isCompleted ? `${resultStyle.bg} ${resultStyle.border}` : `${tc.cardBg} ${tc.border}`
     }`}>
       {/* Header */}
@@ -1260,7 +1260,7 @@ function TeamGamesWidget({
   
   if (loading) {
     return (
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
         <div className="animate-pulse space-y-4">
           <div className={`h-6 ${tc.cardBgAlt} rounded w-1/3`} />
           <div className={`h-20 ${tc.cardBgAlt} rounded`} />
@@ -1273,7 +1273,7 @@ function TeamGamesWidget({
   const isCoach = viewerRole === 'coach' || viewerRole === 'admin'
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
       {showTitle && (
         <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
           <h3 className={`font-semibold ${tc.text} flex items-center gap-2`}>

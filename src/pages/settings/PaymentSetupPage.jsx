@@ -205,7 +205,7 @@ async function testStripeConnection() {
       {/* Manual Payments Tab */}
       {activeTab === 'manual' && (
         <div className="space-y-6">
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6 space-y-4`}>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 space-y-4`}>
             <h2 className={`text-lg font-semibold ${tc.text}`}>Manual Payment Methods</h2>
             <p className={`${tc.textMuted} text-sm`}>
               Parents will see these options and send payment directly to you.
@@ -237,7 +237,7 @@ async function testStripeConnection() {
             ))}
           </div>
 
-          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
             <label className="flex items-center justify-between cursor-pointer">
               <div>
                 <p className={`font-medium ${tc.text}`}>Accept Manual Payments</p>

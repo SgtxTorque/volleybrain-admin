@@ -44,7 +44,7 @@ function DashCard({ children, className = '', onClick }) {
     <div 
       onClick={onClick}
       className={`
-        bg-white rounded-2xl 
+        bg-white rounded-xl 
         shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]
         border border-slate-100
         ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}
@@ -89,7 +89,7 @@ function EventDetailModal({ event, team, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: team?.color || '#6366F1' }}>

@@ -98,7 +98,7 @@ const MyStatsWidget = ({ playerId, onViewStats }) => {
 
   if (loading) {
     return (
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
         <div className="flex items-center justify-center h-32">
           <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
         </div>
@@ -107,7 +107,7 @@ const MyStatsWidget = ({ playerId, onViewStats }) => {
   }
 
   return (
-    <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5`}>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

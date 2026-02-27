@@ -687,7 +687,7 @@ function OrganizationPage({ showToast }) {
       </div>
 
       {/* Overall Progress Card */}
-      <div className={`p-6 rounded-2xl border ${tc.card}`}>
+      <div className={`p-6 rounded-xl border ${tc.card}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: accent.primary + '20' }}>

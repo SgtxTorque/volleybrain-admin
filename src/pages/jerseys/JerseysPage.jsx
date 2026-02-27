@@ -484,7 +484,7 @@ export function JerseysPage({ showToast }) {
 
       {/* Unrostered Alert */}
       {unrosteredCount > 0 && (
-        <div className={`${isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'} border-2 rounded-2xl p-5`}>
+        <div className={`${isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'} border-2 rounded-xl p-5`}>
           <div className="flex items-start gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
               <Users className="w-6 h-6 text-blue-500" />
@@ -510,7 +510,7 @@ export function JerseysPage({ showToast }) {
       </div>
 
       {/* Tabs */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
         <div className={`flex border-b ${tc.border}`}>
           {[
             { id: 'needs', label: 'Needs Jersey', count: stats.needsJersey, color: 'red' },
@@ -676,7 +676,7 @@ function StatCard({ icon, value, label, color, onClick, tc, isDark }) {
   return (
     <div
       onClick={onClick}
-      className={`${tc.cardBg} border ${tc.border} rounded-2xl p-5 cursor-pointer transition hover:shadow-lg`}
+      className={`${tc.cardBg} border ${tc.border} rounded-xl p-5 cursor-pointer transition hover:shadow-lg`}
     >
       <div className="flex items-center gap-3">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
@@ -735,7 +735,7 @@ function NeedsJerseyList({ players, totalRostered, unrosteredCount, takenNumbers
   return (
     <div className="space-y-4">
       {/* Bulk Auto-Assign Section */}
-      <div className={`${isDark ? 'bg-[var(--accent-primary)]/10 border-[var(--accent-primary)]/30' : 'bg-purple-50 border-purple-200'} border-2 border-dashed rounded-2xl p-6`}>
+      <div className={`${isDark ? 'bg-[var(--accent-primary)]/10 border-[var(--accent-primary)]/30' : 'bg-purple-50 border-purple-200'} border-2 border-dashed rounded-xl p-6`}>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${isDark ? 'bg-[var(--accent-primary)]/20' : 'bg-purple-100'}`}>
@@ -975,7 +975,7 @@ function JerseyAssignmentModal({ player, takenNumbers, teamColor, onAssign, onCl
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border} sticky top-0 ${tc.cardBg}`}>
           <div className="flex items-center justify-between">
             <h2 className={`text-xl font-semibold ${tc.text}`}>Assign Jersey</h2>
@@ -1112,7 +1112,7 @@ function JerseyEditModal({ player, takenNumbers, onUpdateNumber, onUpdateSize, o
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-md`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center justify-between">
             <h2 className={`text-xl font-semibold ${tc.text}`}>Edit Jersey</h2>
@@ -1237,7 +1237,7 @@ function FullLeagueReportModal({ allPlayers, teams, seasonName, onClose, tc, isD
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center justify-between">
             <div>
@@ -1336,7 +1336,7 @@ function FullLeagueReportModal({ allPlayers, teams, seasonName, onClose, tc, isD
 function OrderHistoryModal({ orderedPlayers, teams, seasonName, onClose, tc, isDark }) {
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${tc.border}`}>
           <div className="flex items-center justify-between">
             <div>

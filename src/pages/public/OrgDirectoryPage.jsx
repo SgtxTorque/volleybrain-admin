@@ -77,7 +77,7 @@ function getLocationFromOrg(org) {
 // ═══════ SKELETON CARDS ═══════
 function SkeletonCard() {
   return (
-    <div className="od-glass rounded-2xl p-6 od-au">
+    <div className="od-glass rounded-xl p-6 od-au">
       <div className="flex items-start gap-4 mb-4">
         <div className="w-14 h-14 rounded-xl od-skeleton" />
         <div className="flex-1 space-y-2">
@@ -109,7 +109,7 @@ function OrgCard({ org, onSelect, isDark, index }) {
   return (
     <button
       onClick={() => onSelect(org)}
-      className={`od-glass od-glass-hover rounded-2xl p-6 text-left w-full transition-all duration-300 cursor-pointer od-au`}
+      className={`od-glass od-glass-hover rounded-xl p-6 text-left w-full transition-all duration-300 cursor-pointer od-au`}
       style={{ animationDelay: `${index * 60}ms` }}
     >
       <div className="flex items-start gap-4 mb-4">
@@ -254,7 +254,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
             {/* Org Hero */}
             <div className="od-as flex flex-col items-center text-center pt-4">
               <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold overflow-hidden shadow-xl mb-4"
+                className="w-20 h-20 rounded-xl flex items-center justify-center text-3xl font-bold overflow-hidden shadow-xl mb-4"
                 style={{
                   background: org.logo_url ? 'transparent' : (s.primary_color || ACCENT),
                   color: '#000',
@@ -295,7 +295,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
 
             {/* Description / Mission */}
             {(s.mission || s.tagline) && (
-              <div className="od-glass rounded-2xl p-5 od-au" style={{ animationDelay: '120ms' }}>
+              <div className="od-glass rounded-xl p-5 od-au" style={{ animationDelay: '120ms' }}>
                 <h3 className={`od-heading text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mb-2`}>About</h3>
                 <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'} leading-relaxed`}>
                   {s.mission || s.tagline}
@@ -304,7 +304,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
             )}
 
             {/* Contact Info */}
-            <div className="od-glass rounded-2xl p-5 od-au" style={{ animationDelay: '160ms' }}>
+            <div className="od-glass rounded-xl p-5 od-au" style={{ animationDelay: '160ms' }}>
               <h3 className={`od-heading text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mb-3`}>Contact</h3>
               <div className="space-y-3">
                 {(s.contact_email || s.secondary_email) && (
@@ -353,7 +353,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
 
             {/* Social Media */}
             {(s.facebook || s.instagram || s.twitter) && (
-              <div className="od-glass rounded-2xl p-5 od-au" style={{ animationDelay: '200ms' }}>
+              <div className="od-glass rounded-xl p-5 od-au" style={{ animationDelay: '200ms' }}>
                 <h3 className={`od-heading text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mb-3`}>Follow Us</h3>
                 <div className="flex gap-3">
                   {s.facebook && (
@@ -382,7 +382,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
             )}
 
             {/* Active Seasons */}
-            <div className="od-glass rounded-2xl p-5 od-au" style={{ animationDelay: '240ms' }}>
+            <div className="od-glass rounded-xl p-5 od-au" style={{ animationDelay: '240ms' }}>
               <h3 className={`od-heading text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mb-3`}>
                 Active Seasons
               </h3>
@@ -424,11 +424,11 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-3 od-au" style={{ animationDelay: '280ms' }}>
-              <div className={`od-glass rounded-2xl p-4 text-center`}>
+              <div className={`od-glass rounded-xl p-4 text-center`}>
                 <p className="text-2xl font-bold" style={{ color: ACCENT }}>{org._teamCount || 0}</p>
                 <p className={`od-label text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Teams</p>
               </div>
-              <div className={`od-glass rounded-2xl p-4 text-center`}>
+              <div className={`od-glass rounded-xl p-4 text-center`}>
                 <p className="text-2xl font-bold" style={{ color: ACCENT }}>{org._seasonCount || 0}</p>
                 <p className={`od-label text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Seasons</p>
               </div>
@@ -438,7 +438,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
             <div className="od-au" style={{ animationDelay: '320ms' }}>
               <button
                 onClick={() => onJoin(org)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl text-base font-bold text-black transition hover:opacity-90 hover:scale-[1.01]"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-bold text-black transition hover:opacity-90 hover:scale-[1.01]"
                 style={{ background: `linear-gradient(135deg, ${ACCENT}, #F59E0B)` }}
               >
                 <Building2 className="w-5 h-5" />
@@ -690,7 +690,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
         {/* Hero Section */}
         <div className="text-center py-10 od-au">
           <div className="od-float inline-block mb-4">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: `${ACCENT}20` }}>
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto" style={{ background: `${ACCENT}20` }}>
               <Building2 className="w-8 h-8" style={{ color: ACCENT }} />
             </div>
           </div>
@@ -703,7 +703,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="od-glass-solid rounded-2xl p-4 mb-8 od-au" style={{ animationDelay: '100ms' }}>
+        <div className="od-glass-solid rounded-xl p-4 mb-8 od-au" style={{ animationDelay: '100ms' }}>
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search Input */}
             <div className="flex-1 relative">
@@ -804,8 +804,8 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
 
         {/* RLS Error */}
         {error === 'rls' && (
-          <div className="od-glass rounded-2xl p-8 text-center od-au max-w-2xl mx-auto">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239,68,68,0.15)' }}>
+          <div className="od-glass rounded-xl p-8 text-center od-au max-w-2xl mx-auto">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239,68,68,0.15)' }}>
               <Building2 className="w-8 h-8 text-red-400" />
             </div>
             <h2 className={`od-display text-2xl ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Directory Not Available Yet</h2>
@@ -835,7 +835,7 @@ CREATE POLICY "Public read teams"
 
         {/* Generic Error */}
         {error === 'generic' && (
-          <div className="od-glass rounded-2xl p-8 text-center od-au max-w-md mx-auto">
+          <div className="od-glass rounded-xl p-8 text-center od-au max-w-md mx-auto">
             <p className={`text-lg ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Something went wrong</p>
             <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-4`}>Could not load organizations. Please try again.</p>
             <button onClick={loadOrgs} className="px-5 py-2.5 rounded-xl text-sm font-bold text-black transition hover:opacity-90" style={{ background: ACCENT }}>
@@ -869,7 +869,7 @@ CREATE POLICY "Public read teams"
         {/* Empty State */}
         {!loading && !error && filteredOrgs.length === 0 && orgs.length > 0 && (
           <div className="text-center py-16 od-au">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: `${ACCENT}15` }}>
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: `${ACCENT}15` }}>
               <Search className="w-7 h-7" style={{ color: ACCENT }} />
             </div>
             <h3 className={`od-display text-2xl ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>No Results Found</h3>
@@ -889,7 +889,7 @@ CREATE POLICY "Public read teams"
         {/* No Orgs at all */}
         {!loading && !error && orgs.length === 0 && (
           <div className="text-center py-16 od-au">
-            <div className="od-float w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: `${ACCENT}15` }}>
+            <div className="od-float w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: `${ACCENT}15` }}>
               <Building2 className="w-7 h-7" style={{ color: ACCENT }} />
             </div>
             <h3 className={`od-display text-2xl ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Coming Soon</h3>

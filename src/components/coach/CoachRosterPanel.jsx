@@ -45,7 +45,7 @@ export default function CoachRosterPanel({
     <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
 
       {/* 1. Season Record */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <Trophy className="w-4 h-4 text-amber-500" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Season Record</h3>
@@ -87,7 +87,7 @@ export default function CoachRosterPanel({
       </div>
 
       {/* 2. Top Players Leaderboard */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-amber-500" />
@@ -221,7 +221,7 @@ export default function CoachRosterPanel({
       </div>
 
       {/* 4. Upcoming Events */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
         <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-blue-500" />

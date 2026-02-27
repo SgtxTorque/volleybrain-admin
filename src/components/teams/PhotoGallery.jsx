@@ -66,7 +66,7 @@ export function Lightbox({ images, startIndex, onClose }) {
       {idx > 0 && (
         <button
           onClick={(e) => { e.stopPropagation(); setIdx(i => i - 1) }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-2xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
@@ -74,7 +74,7 @@ export function Lightbox({ images, startIndex, onClose }) {
       {idx < images.length - 1 && (
         <button
           onClick={(e) => { e.stopPropagation(); setIdx(i => i + 1) }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-2xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition"
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-xl flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition"
         >
           <ChevronRight className="w-6 h-6" />
         </button>

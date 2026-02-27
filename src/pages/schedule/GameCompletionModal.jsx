@@ -34,7 +34,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
   const theyWon = complete && theirScore > ourScore
   
   return (
-    <div className={`p-4 rounded-2xl border-2 transition ${
+    <div className={`p-4 rounded-xl border-2 transition ${
       ourWon ? 'bg-emerald-500/10 border-emerald-500/50' :
       theyWon ? 'bg-red-500/10 border-red-500/50' :
       isDark ? 'bg-slate-800/50 border-slate-600' : 'bg-slate-50 border-slate-200'
@@ -347,7 +347,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} ${
           matchResult.result === 'win' ? 'bg-emerald-500/20' : matchResult.result === 'loss' ? 'bg-red-500/20' : ''
@@ -401,7 +401,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
           {step === 2 && (
             <div className="space-y-4">
               {/* Match status */}
-              <div className={`p-4 rounded-2xl text-center ${
+              <div className={`p-4 rounded-xl text-center ${
                 matchResult.result === 'win' ? 'bg-emerald-500/20' : matchResult.result === 'loss' ? 'bg-red-500/20' : tc.cardBgAlt
               }`}>
                 <div className="flex items-center justify-center gap-8">

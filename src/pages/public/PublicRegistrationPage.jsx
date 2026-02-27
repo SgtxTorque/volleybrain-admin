@@ -663,7 +663,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: colors.bg }}>
-        <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+        <div className="rounded-xl p-8 max-w-md text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
           <span className="text-6xl">🎉</span>
           <h1 className="text-2xl font-bold mt-4" style={{ color: colors.text }}>Registration Submitted!</h1>
           <p className="mt-2" style={{ color: colors.textSecondary }}>
@@ -688,7 +688,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   if (error && !season) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: colors.bg }}>
-        <div className="rounded-2xl p-8 max-w-md text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+        <div className="rounded-xl p-8 max-w-md text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
           <span className="text-6xl">😕</span>
           <h1 className="text-2xl font-bold mt-4" style={{ color: colors.text }}>Registration Not Found</h1>
           <p className="mt-2" style={{ color: colors.textSecondary }}>{error}</p>
@@ -786,7 +786,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         <form onSubmit={handleSubmit}>
           {/* Children List */}
           {children.length > 0 && (
-            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+            <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
                 <Users className="w-5 h-5" /> Children to Register ({children.length})
               </h2>
@@ -829,7 +829,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
           {/* Current Child Form - Only show if actively adding/editing */}
           {(children.length === 0 || editingChildIndex !== null || showAddChildForm) && (
-            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+            <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: colors.text }}>
                   👤 {editingChildIndex !== null ? 'Edit Child' : children.length > 0 ? 'Add Another Child' : 'Child Information'}
@@ -888,7 +888,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           )}
 
           {/* Shared Information */}
-          <div className="rounded-2xl p-6 mb-6 space-y-8" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+          <div className="rounded-xl p-6 mb-6 space-y-8" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
             {/* Parent/Guardian Section - Custom grouped layout */}
             {config.parent_fields && Object.entries(config.parent_fields).some(([_, f]) => f?.enabled) && (
               <div>
@@ -950,7 +950,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
           {/* Custom Questions */}
           {config.custom_questions?.length > 0 && (
-            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+            <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
                 <span>❓</span> Additional Questions
               </h2>
@@ -1010,7 +1010,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
           {/* Waivers */}
           {config.waivers && Object.entries(config.waivers).some(([_, w]) => w?.enabled) && (
-            <div className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+            <div className="rounded-xl p-6 mb-6" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: colors.text }}>
                 <span>📝</span> Waivers & Agreements
               </h2>

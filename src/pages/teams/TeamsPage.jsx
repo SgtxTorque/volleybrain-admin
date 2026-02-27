@@ -573,7 +573,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       {loading ? (
         <div className="text-center py-12 text-slate-400">Loading teams...</div>
       ) : teams.length === 0 ? (
-        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
           <Users className="w-12 h-12 mx-auto text-slate-500" />
           <h3 className="text-lg font-medium text-white mt-4">No teams yet</h3>
           <p className="text-slate-400 mt-2">Create your first team to start building rosters</p>
@@ -584,7 +584,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       ) : (
         <div className={`grid gap-6 ${viewMode === 'compact' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
           {teams.map(team => (
-            <div key={team.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
+            <div key={team.id} className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
               <div 
                 className={`p-4 border-b ${tc.border} flex items-center justify-between cursor-pointer`}
                 style={{ borderLeftColor: team.color, borderLeftWidth: 4 }}
@@ -806,7 +806,7 @@ function NewTeamModal({ onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className={`${tc.cardBg} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+      <div className={`${tc.cardBg} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
           <h2 className={`text-xl font-bold ${tc.text}`}>Create New Team</h2>
