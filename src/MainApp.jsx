@@ -393,7 +393,11 @@ function UserProfileDropdown({
       </button>
 
       {showRoleSwitcher && (
-        <div className="absolute right-0 top-full mt-3 w-72 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+        <div className={`absolute right-0 top-full mt-3 w-72 rounded-xl overflow-hidden z-50 animate-slide-down ${
+          isDark
+            ? 'bg-lynx-charcoal backdrop-blur-2xl border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
+            : 'bg-white backdrop-blur-2xl border border-lynx-silver shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
+        }`}>
           <div className={`p-4 border-b ${tc.border} flex items-center gap-3`}>
             <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold overflow-hidden"
               style={{ background: profile?.photo_url ? 'transparent' : accent.primary, color: '#000' }}>
