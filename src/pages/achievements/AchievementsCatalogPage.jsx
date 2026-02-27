@@ -34,7 +34,7 @@ export function AchievementsCatalogPage({
   isAdminPreview = false,
 }) {
   const tc = useThemeClasses()
-  const { colors } = useTheme()
+  const { colors, isDark } = useTheme()
   const { selectedSeason } = useSeason()
   
   // State
@@ -439,7 +439,7 @@ export function AchievementsCatalogPage({
                     <span className={`text-sm ${tc.textMuted}`}>
                       {earnedInCategory}/{categoryAchievements.length}
                     </span>
-                    <div className="flex-1 h-px bg-gradient-to-r from-zinc-700 to-transparent" />
+                    <div className={`flex-1 h-px bg-gradient-to-r ${isDark ? 'from-zinc-700' : 'from-slate-200'} to-transparent`} />
                   </div>
                 )}
                 
