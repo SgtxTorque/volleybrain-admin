@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { X } from '../../constants/icons'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 
 function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const [form, setForm] = useState({
     team_id: '',
     start_time: '18:00',
@@ -146,21 +149,21 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
   const selectedDays = dayConfigs.map(d => d.day)
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-slate-700 flex items-center justify-between sticky top-0 bg-slate-800">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto`}>
+        <div className={`p-6 border-b ${tc.border} flex items-center justify-between sticky top-0 ${tc.cardBg} z-10`}>
           <div>
-            <h2 className="text-xl font-semibold text-white">Create Recurring Practice</h2>
-            <p className="text-sm text-slate-400">Schedule practices with per-day venue control</p>
+            <h2 className={`text-xl font-bold ${tc.text}`}>Create Recurring Practice</h2>
+            <p className={`text-sm ${tc.textMuted}`}>Schedule practices with per-day venue control</p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl">×</button>
+          <button onClick={onClose} className={`${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-900'} text-2xl p-1`}>×</button>
         </div>
         <div className="p-6 space-y-6">
           {/* Team Selection */}
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Team</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Team</label>
             <select value={form.team_id} onChange={e => setForm({...form, team_id: e.target.value})}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white">
+              className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm`}>
               <option value="">All Teams / Org-wide</option>
               {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
@@ -169,34 +172,34 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-400 mb-2">First Practice</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>First Practice</label>
               <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm`} />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-2">Last Practice</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Last Practice</label>
               <input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm`} />
             </div>
           </div>
 
           {/* Default Times */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-400 mb-2">Default Start Time</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Default Start Time</label>
               <input type="time" value={form.start_time} onChange={e => setForm({...form, start_time: e.target.value})}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm`} />
             </div>
             <div>
-              <label className="block text-sm text-slate-400 mb-2">Default End Time</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Default End Time</label>
               <input type="time" value={form.end_time} onChange={e => setForm({...form, end_time: e.target.value})}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm`} />
             </div>
           </div>
 
           {/* Day Selection */}
           <div>
-            <label className="block text-sm text-slate-400 mb-3">Practice Days</label>
+            <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Practice Days</label>
             <div className="flex flex-wrap gap-2">
               {dayOptions.map(day => (
                 <button
@@ -205,7 +208,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                     selectedDays.includes(day.value)
                       ? 'bg-[var(--accent-primary)] text-white'
-                      : 'bg-slate-900 border border-slate-700 text-slate-400 hover:text-white'
+                      : isDark ? 'bg-slate-900 border border-slate-700 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300'
                   }`}
                 >
                   {day.label}
@@ -216,13 +219,13 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
 
           {/* Per-Day Venue Configuration */}
           {dayConfigs.length > 0 && (
-            <div className="bg-slate-900 rounded-xl p-4">
+            <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-medium text-white">Venue per Day</h4>
+                <h4 className={`text-sm font-medium ${tc.text}`}>Venue per Day</h4>
                 {venues.length > 0 && (
-                  <select 
+                  <select
                     onChange={e => e.target.value && applyVenueToAllDays(e.target.value)}
-                    className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1 text-sm text-white"
+                    className={`${tc.input} border rounded-lg px-3 py-1 text-sm`}
                   >
                     <option value="">Apply to all days...</option>
                     {venues.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
@@ -231,37 +234,37 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
               </div>
               <div className="space-y-3">
                 {dayConfigs.sort((a, b) => a.day - b.day).map(dc => (
-                  <div key={dc.day} className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
-                    <div className="w-24 font-medium text-white">
+                  <div key={dc.day} className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-white border border-slate-200'}`}>
+                    <div className={`w-24 font-medium ${tc.text}`}>
                       {dayOptions.find(d => d.value === dc.day)?.label}
                     </div>
-                    <select 
+                    <select
                       value={dc.venue_name}
                       onChange={e => handleVenueSelectForDay(dc.day, e.target.value)}
-                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
+                      className={`flex-1 ${tc.input} border rounded-lg px-3 py-2 text-sm`}
                     >
                       <option value="">Select venue...</option>
                       {venues.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
                     </select>
-                    <input 
+                    <input
                       type="text"
                       placeholder="Ct #"
                       value={dc.court_number || ''}
                       onChange={e => updateDayConfig(dc.day, 'court_number', e.target.value)}
-                      className="w-16 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-white text-center"
+                      className={`w-16 ${tc.input} border rounded-lg px-2 py-2 text-sm text-center`}
                     />
-                    <input 
-                      type="time" 
+                    <input
+                      type="time"
                       value={dc.start_time || form.start_time}
                       onChange={e => updateDayConfig(dc.day, 'start_time', e.target.value)}
-                      className="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-white"
+                      className={`w-28 ${tc.input} border rounded-lg px-2 py-2 text-sm`}
                     />
-                    <span className="text-slate-500">-</span>
-                    <input 
-                      type="time" 
+                    <span className={tc.textMuted}>-</span>
+                    <input
+                      type="time"
                       value={dc.end_time || form.end_time}
                       onChange={e => updateDayConfig(dc.day, 'end_time', e.target.value)}
-                      className="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-white"
+                      className={`w-28 ${tc.input} border rounded-lg px-2 py-2 text-sm`}
                     />
                   </div>
                 ))}
@@ -271,12 +274,12 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
 
           {/* Preview */}
           {preview.length > 0 && (
-            <div className="bg-slate-900 rounded-xl p-4">
+            <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
               <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-white">Preview: {preview.length} practices</h4>
-                <button 
+                <h4 className={`text-sm font-medium ${tc.text}`}>Preview: {preview.length} practices</h4>
+                <button
                   onClick={() => setShowPreviewEdit(!showPreviewEdit)}
-                  className="text-xs text-[var(--accent-primary)] hover:text-yellow-300"
+                  className="text-xs text-[var(--accent-primary)] hover:underline"
                 >
                   {showPreviewEdit ? 'Hide Details' : 'Edit Individual Practices'}
                 </button>
@@ -285,17 +288,17 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
               {showPreviewEdit ? (
                 <div className="max-h-60 overflow-y-auto space-y-2">
                   {preview.map((p, i) => (
-                    <div key={p.id} className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg text-sm">
-                      <span className="w-20 text-slate-400">{p.date.toLocaleDateString()}</span>
-                      <span className="w-16 text-white">{p.dayName?.slice(0, 3)}</span>
-                      <select 
+                    <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg text-sm ${isDark ? 'bg-slate-800' : 'bg-white border border-slate-100'}`}>
+                      <span className={`w-20 ${tc.textMuted}`}>{p.date.toLocaleDateString()}</span>
+                      <span className={`w-16 ${tc.text}`}>{p.dayName?.slice(0, 3)}</span>
+                      <select
                         value={p.venue_name}
                         onChange={e => {
                           const venue = venues.find(v => v.name === e.target.value)
                           updatePreviewItem(p.id, 'venue_name', venue?.name || '')
                           updatePreviewItem(p.id, 'venue_address', venue?.address || '')
                         }}
-                        className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs"
+                        className={`flex-1 ${tc.input} border rounded px-2 py-1 text-xs`}
                       >
                         <option value="">No venue</option>
                         {venues.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
@@ -307,33 +310,33 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
               ) : (
                 <div className="max-h-40 overflow-y-auto space-y-1">
                   {preview.slice(0, 15).map((p, i) => (
-                    <div key={p.id} className="text-sm text-slate-400 flex justify-between">
+                    <div key={p.id} className={`text-sm ${tc.textMuted} flex justify-between`}>
                       <span>{p.dayName} - {p.date.toLocaleDateString()}</span>
-                      <span className="text-slate-500">{p.venue_name || 'No venue'}</span>
+                      <span className={tc.textMuted}>{p.venue_name || 'No venue'}</span>
                     </div>
                   ))}
                   {preview.length > 15 && (
-                    <div className="text-sm text-slate-500">...and {preview.length - 15} more</div>
+                    <div className={`text-sm ${tc.textMuted}`}>...and {preview.length - 15} more</div>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          <label className="flex items-center gap-3 cursor-pointer p-3 bg-slate-900 rounded-xl">
+          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
             <input type="checkbox" checked={form.notify_families} onChange={e => setForm({...form, notify_families: e.target.checked})}
               className="w-5 h-5 rounded" />
-            <span className="text-white">Notify all families after creating</span>
+            <span className={tc.text}>Notify all families after creating</span>
           </label>
         </div>
-        <div className="p-6 border-t border-slate-700 flex justify-between items-center sticky bottom-0 bg-slate-800">
-          <span className="text-slate-400">
+        <div className={`p-6 border-t ${tc.border} flex justify-between items-center sticky bottom-0 ${tc.cardBg} z-10`}>
+          <span className={tc.textMuted}>
             {preview.length > 0 ? `${preview.length} practices will be created` : 'Select days and date range'}
           </span>
           <div className="flex gap-3">
-            <button onClick={onClose} className="px-6 py-2 rounded-xl border border-slate-700 text-white">Cancel</button>
+            <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
             <button onClick={handleSubmit} disabled={preview.length === 0}
-              className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50">
+              className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition disabled:opacity-50">
               Create {preview.length} Practices
             </button>
           </div>
