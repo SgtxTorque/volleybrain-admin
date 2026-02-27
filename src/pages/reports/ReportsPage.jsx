@@ -779,10 +779,10 @@ function ReportsPage({ showToast }) {
                       </thead>
                       <tbody>
                         {sortedData.map((row, i) => (
-                          <tr key={row.id || i} className="transition"
+                          <tr key={row.id || i} className={`transition ${i % 2 === 1 ? tc.zebraRow : ''}`}
                             style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.04)' }}
                             onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.01)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            onMouseLeave={e => e.currentTarget.style.background = ''}>
                             {columns.map(col => (
                               <td key={col.id} className={`px-4 py-3 text-sm ${tc.text}`}>
                                 {col.id === 'team_name' && row.team_color ? (

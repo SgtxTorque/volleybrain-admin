@@ -1366,8 +1366,8 @@ function OrderHistoryModal({ orderedPlayers, teams, seasonName, onClose, tc, isD
                   </tr>
                 </thead>
                 <tbody>
-                  {orderedPlayers.map(p => (
-                    <tr key={p.id} className={`border-b ${tc.border} last:border-b-0`}>
+                  {orderedPlayers.map((p, idx) => (
+                    <tr key={p.id} className={`border-b ${tc.border} last:border-b-0 ${idx % 2 === 1 ? tc.zebraRow : ''}`}>
                       <td className="p-3">
                         <span 
                           className="inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold text-white text-sm"

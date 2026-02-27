@@ -1458,11 +1458,11 @@ export function RegistrationsPage({ showToast }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRegs.map(player => {
+                  {filteredRegs.map((player, idx) => {
                     const reg = player.registrations?.[0]
                     const isSelected = selectedIds.has(player.id)
                     return (
-                      <tr key={player.id} className={`border-b ${tc.border} ${tc.hoverBg} ${isSelected ? 'bg-[var(--accent-primary)]/10' : ''}`}>
+                      <tr key={player.id} className={`border-b ${tc.border} ${tc.hoverBg} ${isSelected ? 'bg-[var(--accent-primary)]/10' : idx % 2 === 1 ? tc.zebraRow : ''}`}>
                         <td className="w-12 px-4 py-4">
                           <input 
                             type="checkbox" 

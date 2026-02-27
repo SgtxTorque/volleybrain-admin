@@ -480,14 +480,14 @@ function AttendancePage({ showToast }) {
 
                     {/* Player List */}
                     <div className="space-y-2">
-                      {teamPlayers.map(tp => {
+                      {teamPlayers.map((tp, idx) => {
                         const player = tp.players
                         if (!player) return null
                         const rsvp = rsvps.find(r => r.player_id === player.id)
                         const status = rsvp?.status
 
                         return (
-                          <div key={tp.id} className={`flex items-center justify-between ${tc.cardBgAlt} rounded-lg p-2`}>
+                          <div key={tp.id} className={`flex items-center justify-between ${idx % 2 === 1 ? tc.zebraRow : tc.cardBgAlt} rounded-lg p-2`}>
                             <div className="flex items-center gap-2">
                               {tp.jersey_number && (
                                 <span className="w-6 h-6 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-xs font-bold flex items-center justify-center">

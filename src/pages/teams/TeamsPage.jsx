@@ -630,10 +630,10 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                   ) : (
                     /* List View */
                     <div className="space-y-2">
-                      {team.team_players?.map(tp => (
-                        <div 
-                          key={tp.id} 
-                          className={`flex items-center justify-between p-2 ${tc.cardBgAlt} rounded-lg ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} transition`}
+                      {team.team_players?.map((tp, idx) => (
+                        <div
+                          key={tp.id}
+                          className={`flex items-center justify-between p-2 ${idx % 2 === 1 ? tc.zebraRow : tc.cardBgAlt} rounded-lg ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} transition`}
                         >
                           <div className="flex items-center gap-3">
                             {showPhotos && (
