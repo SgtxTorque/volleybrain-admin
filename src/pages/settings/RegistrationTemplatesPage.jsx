@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useTheme } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Plus, Edit, Trash2, Copy, ChevronDown, ChevronUp, Eye, EyeOff, X, GripVertical } from 'lucide-react'
 
@@ -83,7 +83,8 @@ const SECTION_INFO = {
 
 function RegistrationTemplatesPage({ showToast }) {
   const { organization } = useAuth()
-  const { colors } = useTheme()
+  const { isDark } = useTheme()
+  const tc = useThemeClasses()
   
   const [templates, setTemplates] = useState([])
   const [sports, setSports] = useState([])
@@ -372,8 +373,8 @@ function RegistrationTemplatesPage({ showToast }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: colors.text }}>Registration Templates</h1>
-          <p style={{ color: colors.textMuted }}>Create reusable registration forms for different sports and programs</p>
+          <h1 className={`text-2xl font-bold ${tc.text}`}>Registration Templates</h1>
+          <p className={tc.textMuted}>Create reusable registration forms for different sports and programs</p>
         </div>
         <button
           onClick={openNew}
@@ -386,10 +387,10 @@ function RegistrationTemplatesPage({ showToast }) {
 
       {/* Templates Grid */}
       {templates.length === 0 ? (
-        <div className="rounded-2xl p-12 text-center" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}>
+        <div className={`rounded-2xl p-12 text-center ${tc.cardBg} border ${tc.border}`}>
           <div className="text-6xl mb-4">📋</div>
-          <h3 className="text-lg font-semibold" style={{ color: colors.text }}>No templates yet</h3>
-          <p className="mb-4" style={{ color: colors.textMuted }}>Create your first registration template to customize what information you collect</p>
+          <h3 className={`text-lg font-semibold ${tc.text}`}>No templates yet</h3>
+          <p className={`mb-4 ${tc.textMuted}`}>Create your first registration template to customize what information you collect</p>
           <button
             onClick={openNew}
             className="px-4 py-2 rounded-xl bg-yellow-500 text-black font-medium hover:bg-yellow-400 transition"
@@ -402,16 +403,15 @@ function RegistrationTemplatesPage({ showToast }) {
           {templates.map(template => (
             <div 
               key={template.id} 
-              className="rounded-2xl p-5 hover:shadow-lg transition"
-              style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}
+              className={`rounded-2xl p-5 hover:shadow-lg transition ${tc.cardBg} border ${tc.border}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   {template.sports?.icon && <span className="text-2xl">{template.sports.icon}</span>}
                   <div>
-                    <h3 className="font-semibold" style={{ color: colors.text }}>{template.name}</h3>
+                    <h3 className={`font-semibold ${tc.text}`}>{template.name}</h3>
                     {template.sports?.name && (
-                      <p className="text-xs" style={{ color: colors.textMuted }}>{template.sports.name}</p>
+                      <p className={`text-xs ${tc.textMuted}`}>{template.sports.name}</p>
                     )}
                   </div>
                 </div>
@@ -423,11 +423,11 @@ function RegistrationTemplatesPage({ showToast }) {
               </div>
               
               {template.description && (
-                <p className="text-sm mb-3 line-clamp-2" style={{ color: colors.textMuted }}>{template.description}</p>
+                <p className={`text-sm mb-3 line-clamp-2 ${tc.textMuted}`}>{template.description}</p>
               )}
               
               {/* Field count */}
-              <div className="text-xs mb-4" style={{ color: colors.textMuted }}>
+              <div className={`text-xs mb-4 ${tc.textMuted}`}>
                 {countFields(template)} fields • {Object.values(template.waivers || {}).filter(w => w.enabled).length} waivers
               </div>
               
@@ -435,16 +435,14 @@ function RegistrationTemplatesPage({ showToast }) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => openEdit(template)}
-                  className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition"
-                  style={{ backgroundColor: colors.cardAlt, color: colors.text }}
+                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-sm transition ${tc.cardBgAlt} ${tc.text}`}
                 >
                   <Edit className="w-4 h-4" />
                   Edit
                 </button>
                 <button
                   onClick={() => handleDuplicate(template)}
-                  className="p-2 rounded-lg transition"
-                  style={{ backgroundColor: colors.cardAlt, color: colors.textMuted }}
+                  className={`p-2 rounded-lg transition ${tc.cardBgAlt} ${tc.textMuted}`}
                   title="Duplicate"
                 >
                   <Copy className="w-4 h-4" />
@@ -468,24 +466,21 @@ function RegistrationTemplatesPage({ showToast }) {
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-start justify-center p-4 z-50 overflow-y-auto">
           <div 
-            className="rounded-2xl w-full max-w-4xl my-8"
-            style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }}
+            className={`rounded-2xl w-full max-w-4xl my-8 ${tc.cardBg} border ${tc.border}`}
           >
             {/* Modal Header */}
             <div 
-              className="p-6 flex items-center justify-between sticky top-0 z-10 rounded-t-2xl"
-              style={{ backgroundColor: colors.card, borderBottom: `1px solid ${colors.border}` }}
+              className={`p-6 flex items-center justify-between sticky top-0 z-10 rounded-t-2xl ${tc.cardBg} border-b ${tc.border}`}
             >
               <div>
-                <h2 className="text-xl font-semibold" style={{ color: colors.text }}>
+                <h2 className={`text-xl font-semibold ${tc.text}`}>
                   {editingTemplate ? 'Edit Template' : 'New Registration Template'}
                 </h2>
-                <p style={{ color: colors.textMuted }}>Configure which fields appear on the registration form</p>
+                <p className={tc.textMuted}>Configure which fields appear on the registration form</p>
               </div>
               <button 
                 onClick={() => setShowModal(false)} 
-                className="p-2 rounded-lg hover:bg-white/10 transition"
-                style={{ color: colors.textMuted }}
+                className={`p-2 rounded-lg hover:bg-white/10 transition ${tc.textMuted}`}
               >
                 <X className="w-6 h-6" />
               </button>
@@ -495,7 +490,7 @@ function RegistrationTemplatesPage({ showToast }) {
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
+                  <label className={`block text-sm font-medium mb-2 ${tc.textMuted}`}>
                     Template Name <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -503,19 +498,17 @@ function RegistrationTemplatesPage({ showToast }) {
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g., Volleyball Rec League"
-                    className="w-full px-4 py-3 rounded-xl"
-                    style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+                    className={`w-full px-4 py-3 rounded-xl ${tc.input}`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
+                  <label className={`block text-sm font-medium mb-2 ${tc.textMuted}`}>
                     Sport (optional)
                   </label>
                   <select
                     value={form.sport_id || ''}
                     onChange={e => handleSportChange(e.target.value || null)}
-                    className="w-full px-4 py-3 rounded-xl"
-                    style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+                    className={`w-full px-4 py-3 rounded-xl ${tc.input}`}
                   >
                     <option value="">All Sports</option>
                     {sports.map(sport => (
@@ -526,7 +519,7 @@ function RegistrationTemplatesPage({ showToast }) {
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
+                  <label className={`block text-sm font-medium mb-2 ${tc.textMuted}`}>
                     Description
                   </label>
                   <input
@@ -534,8 +527,7 @@ function RegistrationTemplatesPage({ showToast }) {
                     value={form.description}
                     onChange={e => setForm({ ...form, description: e.target.value })}
                     placeholder="Brief description of when to use this template"
-                    className="w-full px-4 py-3 rounded-xl"
-                    style={{ backgroundColor: colors.cardAlt, border: `1px solid ${colors.border}`, color: colors.text }}
+                    className={`w-full px-4 py-3 rounded-xl ${tc.input}`}
                   />
                 </div>
               </div>
@@ -548,42 +540,38 @@ function RegistrationTemplatesPage({ showToast }) {
                 const enabledCount = Object.values(fields).filter(f => f.enabled).length
                 
                 return (
-                  <div 
-                    key={sectionKey} 
-                    className="rounded-xl overflow-hidden"
-                    style={{ border: `1px solid ${colors.border}` }}
+                  <div
+                    key={sectionKey}
+                    className={`rounded-xl overflow-hidden border ${tc.border}`}
                   >
                     <button
                       onClick={() => toggleSection(sectionKey)}
-                      className="w-full px-4 py-3 flex items-center justify-between transition"
-                      style={{ backgroundColor: colors.cardAlt }}
+                      className={`w-full px-4 py-3 flex items-center justify-between transition ${tc.cardBgAlt}`}
                     >
-                      <span className="font-medium flex items-center gap-2" style={{ color: colors.text }}>
+                      <span className={`font-medium flex items-center gap-2 ${tc.text}`}>
                         <span>{section.icon}</span> {section.title}
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: colors.border, color: colors.textMuted }}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'} ${tc.textMuted}`}>
                           {enabledCount} fields
                         </span>
                       </span>
                       {isExpanded ? (
-                        <ChevronUp className="w-5 h-5" style={{ color: colors.textMuted }} />
+                        <ChevronUp className={`w-5 h-5 ${tc.textMuted}`} />
                       ) : (
-                        <ChevronDown className="w-5 h-5" style={{ color: colors.textMuted }} />
+                        <ChevronDown className={`w-5 h-5 ${tc.textMuted}`} />
                       )}
                     </button>
                     
                     {isExpanded && (
                       <div className="p-4 space-y-2">
                         {Object.entries(fields).map(([fieldKey, field]) => (
-                          <div 
+                          <div
                             key={fieldKey}
-                            className="flex items-center justify-between p-3 rounded-lg"
-                            style={{ backgroundColor: colors.cardAlt }}
+                            className={`flex items-center justify-between p-3 rounded-lg ${tc.cardBgAlt}`}
                           >
                             <div className="flex items-center gap-3 flex-1">
                               <button
                                 onClick={() => toggleField(sectionKey, fieldKey, 'enabled')}
-                                className={`p-1 rounded transition ${field.enabled ? 'text-emerald-400' : ''}`}
-                                style={{ color: field.enabled ? undefined : colors.textMuted }}
+                                className={`p-1 rounded transition ${field.enabled ? 'text-emerald-400' : tc.textMuted}`}
                               >
                                 {field.enabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                               </button>
@@ -591,8 +579,7 @@ function RegistrationTemplatesPage({ showToast }) {
                                 type="text"
                                 value={field.label}
                                 onChange={e => updateFieldLabel(sectionKey, fieldKey, e.target.value)}
-                                className="bg-transparent flex-1 text-sm"
-                                style={{ color: field.enabled ? colors.text : colors.textMuted }}
+                                className={`bg-transparent flex-1 text-sm ${field.enabled ? tc.text : tc.textMuted}`}
                               />
                             </div>
                             
@@ -604,7 +591,7 @@ function RegistrationTemplatesPage({ showToast }) {
                                   onChange={() => toggleField(sectionKey, fieldKey, 'required')}
                                   className="w-4 h-4 rounded accent-yellow-500"
                                 />
-                                <span className="text-sm" style={{ color: colors.textMuted }}>Required</span>
+                                <span className={`text-sm ${tc.textMuted}`}>Required</span>
                               </label>
                             )}
                           </div>
@@ -616,39 +603,35 @@ function RegistrationTemplatesPage({ showToast }) {
               })}
 
               {/* Waivers Section */}
-              <div 
-                className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${colors.border}` }}
+              <div
+                className={`rounded-xl overflow-hidden border ${tc.border}`}
               >
                 <button
                   onClick={() => toggleSection('waivers')}
-                  className="w-full px-4 py-3 flex items-center justify-between transition"
-                  style={{ backgroundColor: colors.cardAlt }}
+                  className={`w-full px-4 py-3 flex items-center justify-between transition ${tc.cardBgAlt}`}
                 >
-                  <span className="font-medium flex items-center gap-2" style={{ color: colors.text }}>
+                  <span className={`font-medium flex items-center gap-2 ${tc.text}`}>
                     <span>📝</span> Waivers & Agreements
                   </span>
                   {expandedSections.includes('waivers') ? (
-                    <ChevronUp className="w-5 h-5" style={{ color: colors.textMuted }} />
+                    <ChevronUp className={`w-5 h-5 ${tc.textMuted}`} />
                   ) : (
-                    <ChevronDown className="w-5 h-5" style={{ color: colors.textMuted }} />
+                    <ChevronDown className={`w-5 h-5 ${tc.textMuted}`} />
                   )}
                 </button>
                 
                 {expandedSections.includes('waivers') && (
                   <div className="p-4 space-y-4">
                     {Object.entries(form.waivers).map(([key, waiver]) => (
-                      <div 
-                        key={key} 
-                        className="p-4 rounded-lg space-y-3"
-                        style={{ backgroundColor: colors.cardAlt }}
+                      <div
+                        key={key}
+                        className={`p-4 rounded-lg space-y-3 ${tc.cardBgAlt}`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <button
                               onClick={() => updateWaiver(key, { enabled: !waiver.enabled })}
-                              className={`p-1 rounded transition ${waiver.enabled ? 'text-emerald-400' : ''}`}
-                              style={{ color: waiver.enabled ? undefined : colors.textMuted }}
+                              className={`p-1 rounded transition ${waiver.enabled ? 'text-emerald-400' : tc.textMuted}`}
                             >
                               {waiver.enabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                             </button>
@@ -656,8 +639,7 @@ function RegistrationTemplatesPage({ showToast }) {
                               type="text"
                               value={waiver.title}
                               onChange={e => updateWaiver(key, { title: e.target.value })}
-                              className="bg-transparent font-medium"
-                              style={{ color: waiver.enabled ? colors.text : colors.textMuted }}
+                              className={`bg-transparent font-medium ${waiver.enabled ? tc.text : tc.textMuted}`}
                             />
                           </div>
                           
@@ -669,18 +651,17 @@ function RegistrationTemplatesPage({ showToast }) {
                                 onChange={() => updateWaiver(key, { required: !waiver.required })}
                                 className="w-4 h-4 rounded accent-yellow-500"
                               />
-                              <span className="text-sm" style={{ color: colors.textMuted }}>Required</span>
+                              <span className={`text-sm ${tc.textMuted}`}>Required</span>
                             </label>
                           )}
                         </div>
-                        
+
                         {waiver.enabled && (
                           <textarea
                             value={waiver.text}
                             onChange={e => updateWaiver(key, { text: e.target.value })}
                             rows={2}
-                            className="w-full px-3 py-2 rounded-lg text-sm resize-none"
-                            style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}`, color: colors.text }}
+                            className={`w-full px-3 py-2 rounded-lg text-sm resize-none ${tc.cardBg} border ${tc.border} ${tc.text}`}
                             placeholder="Waiver text..."
                           />
                         )}
@@ -691,15 +672,13 @@ function RegistrationTemplatesPage({ showToast }) {
               </div>
 
               {/* Custom Questions Section */}
-              <div 
-                className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${colors.border}` }}
+              <div
+                className={`rounded-xl overflow-hidden border ${tc.border}`}
               >
-                <div 
-                  className="px-4 py-3 flex items-center justify-between"
-                  style={{ backgroundColor: colors.cardAlt }}
+                <div
+                  className={`px-4 py-3 flex items-center justify-between ${tc.cardBgAlt}`}
                 >
-                  <span className="font-medium flex items-center gap-2" style={{ color: colors.text }}>
+                  <span className={`font-medium flex items-center gap-2 ${tc.text}`}>
                     <span>❓</span> Custom Questions
                   </span>
                   <button
@@ -713,10 +692,9 @@ function RegistrationTemplatesPage({ showToast }) {
                 {form.custom_questions.length > 0 && (
                   <div className="p-4 space-y-3">
                     {form.custom_questions.map((q, idx) => (
-                      <div 
-                        key={q.id} 
-                        className="p-4 rounded-lg space-y-3"
-                        style={{ backgroundColor: colors.cardAlt }}
+                      <div
+                        key={q.id}
+                        className={`p-4 rounded-lg space-y-3 ${tc.cardBgAlt}`}
                       >
                         <div className="flex items-start gap-3">
                           <input
@@ -724,14 +702,12 @@ function RegistrationTemplatesPage({ showToast }) {
                             value={q.question}
                             onChange={e => updateCustomQuestion(idx, { question: e.target.value })}
                             placeholder="Enter your question..."
-                            className="flex-1 px-3 py-2 rounded-lg"
-                            style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}`, color: colors.text }}
+                            className={`flex-1 px-3 py-2 rounded-lg ${tc.cardBg} border ${tc.border} ${tc.text}`}
                           />
                           <select
                             value={q.type}
                             onChange={e => updateCustomQuestion(idx, { type: e.target.value })}
-                            className="px-3 py-2 rounded-lg"
-                            style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}`, color: colors.text }}
+                            className={`px-3 py-2 rounded-lg ${tc.cardBg} border ${tc.border} ${tc.text}`}
                           >
                             <option value="text">Short Text</option>
                             <option value="textarea">Long Text</option>
@@ -754,8 +730,7 @@ function RegistrationTemplatesPage({ showToast }) {
                               options: e.target.value.split(',').map(o => o.trim()).filter(Boolean)
                             })}
                             placeholder="Options (comma separated): Option 1, Option 2, Option 3"
-                            className="w-full px-3 py-2 rounded-lg text-sm"
-                            style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}`, color: colors.text }}
+                            className={`w-full px-3 py-2 rounded-lg text-sm ${tc.cardBg} border ${tc.border} ${tc.text}`}
                           />
                         )}
                         
@@ -766,7 +741,7 @@ function RegistrationTemplatesPage({ showToast }) {
                             onChange={e => updateCustomQuestion(idx, { required: e.target.checked })}
                             className="w-4 h-4 rounded accent-yellow-500"
                           />
-                          <span className="text-sm" style={{ color: colors.textMuted }}>Required</span>
+                          <span className={`text-sm ${tc.textMuted}`}>Required</span>
                         </label>
                       </div>
                     ))}
@@ -774,7 +749,7 @@ function RegistrationTemplatesPage({ showToast }) {
                 )}
                 
                 {form.custom_questions.length === 0 && (
-                  <div className="p-4 text-center text-sm" style={{ color: colors.textMuted }}>
+                  <div className={`p-4 text-center text-sm ${tc.textMuted}`}>
                     No custom questions. Click "Add Question" to create one.
                   </div>
                 )}
@@ -783,8 +758,7 @@ function RegistrationTemplatesPage({ showToast }) {
 
             {/* Modal Footer */}
             <div 
-              className="p-6 flex items-center justify-between sticky bottom-0 rounded-b-2xl"
-              style={{ backgroundColor: colors.card, borderTop: `1px solid ${colors.border}` }}
+              className={`p-6 flex items-center justify-between sticky bottom-0 rounded-b-2xl ${tc.cardBg} border-t ${tc.border}`}
             >
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -793,14 +767,13 @@ function RegistrationTemplatesPage({ showToast }) {
                   onChange={e => setForm({ ...form, is_default: e.target.checked })}
                   className="w-4 h-4 rounded accent-yellow-500"
                 />
-                <span style={{ color: colors.textSecondary }}>Set as default template</span>
+                <span className={tc.textMuted}>Set as default template</span>
               </label>
               
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl transition"
-                  style={{ backgroundColor: colors.cardAlt, color: colors.text }}
+                  className={`px-4 py-2 rounded-xl transition ${tc.cardBgAlt} ${tc.text}`}
                 >
                   Cancel
                 </button>
