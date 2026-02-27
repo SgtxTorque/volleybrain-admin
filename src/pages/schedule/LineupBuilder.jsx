@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { X } from '../../constants/icons'
 import { getSportConfig } from '../../components/games/GameComponents'
 
 function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volleyball' }) {
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const { user } = useAuth()
   const [roster, setRoster] = useState([])
   const [lineup, setLineup] = useState([])
@@ -127,7 +128,7 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
   const availablePlayers = roster.filter(p => !isPlayerAssigned(p.id))
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
@@ -162,7 +163,7 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
                     <div
                       key={pos.id}
                       className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition ${
-                        player ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]' : `${tc.cardBgAlt} border-slate-600 hover:border-slate-400`
+                        player ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]' : isDark ? 'bg-slate-900 border-slate-600 hover:border-slate-400' : 'bg-slate-50 border-slate-300 hover:border-slate-400'
                       }`}
                       onClick={() => {
                         if (player) assignPosition(pos.id, null)
@@ -170,8 +171,8 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
                     >
                       {player ? (
                         <>
-                          <span className="font-bold text-white text-lg">#{player.jersey_number || '?'}</span>
-                          <span className="text-xs text-slate-300 truncate w-full text-center px-1">{player.first_name}</span>
+                          <span className={`font-bold ${tc.text} text-lg`}>#{player.jersey_number || '?'}</span>
+                          <span className={`text-xs ${tc.textMuted} truncate w-full text-center px-1`}>{player.first_name}</span>
                           {hasLibero && player.id === liberoId && <span className="text-[10px] text-amber-400">LIBERO</span>}
                         </>
                       ) : (
@@ -208,14 +209,14 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
                       className={`p-3 rounded-xl flex items-center justify-between transition ${
                         assigned
                           ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30'
-                          : `${tc.cardBgAlt} hover:bg-slate-700/50`
+                          : isDark ? 'bg-slate-800/50 hover:bg-slate-700/50' : 'bg-slate-50 hover:bg-slate-100'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         {player.photo_url ? (
                           <img src={player.photo_url} className="w-10 h-10 rounded-full object-cover" />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDark ? 'bg-slate-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
                             {player.jersey_number || '?'}
                           </div>
                         )}
