@@ -138,7 +138,7 @@ function GameDayShareModal({ event, team, organization, season, onClose, showToa
         <div style={{ position:'relative', zIndex:1, padding:40, height:'100%', display:'flex', flexDirection:'column' }}>
           {/* Top */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'auto' }}>
-            <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:4, opacity:0.6 }}>{organization?.name || 'VolleyBrain'}</div>
+            <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:4, opacity:0.6 }}>{organization?.name || 'Lynx'}</div>
             {team?.logo_url && <img src={team.logo_url} alt="" style={{ width:48, height:48, borderRadius:12, objectFit:'cover', border:`2px solid ${hexToRgba(textOnColor,0.2)}` }} />}
           </div>
 

@@ -135,7 +135,7 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors duration-150 ${
                 (item.teamId && directTeamWallId === item.teamId) || currentPage === item.id
-                  ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-semibold' 
+                  ? 'bg-lynx-sky/15 text-lynx-sky font-semibold'
                   : `${tc.text} ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-black/[0.04]'}`
               }`}
             >
@@ -288,7 +288,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
           <div className={`p-3 border-b ${tc.border} flex items-center justify-between`}>
             <span className={`font-semibold ${tc.text}`}>Notifications {unreadCount > 0 && `(${unreadCount})`}</span>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-xs text-[var(--accent-primary)] hover:underline">Mark all read</button>
+              <button onClick={markAllRead} className="text-xs text-lynx-sky hover:underline">Mark all read</button>
             )}
           </div>
           <div className="max-h-96 overflow-y-auto">
@@ -312,7 +312,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
                     <div className="text-xl mt-0.5">{getNotifIcon(notif.type)}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-[var(--accent-primary)] shrink-0" />}
+                        {!notif.is_read && <div className="w-2 h-2 rounded-full bg-lynx-sky shrink-0" />}
                         <p className={`font-medium text-sm ${tc.text} truncate`}>{notif.title}</p>
                       </div>
                       <p className={`text-xs ${tc.textMuted} mt-0.5 line-clamp-2`}>{notif.message}</p>
@@ -332,7 +332,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
           </div>
           {notifications.length > 0 && (
             <div className={`p-3 border-t ${tc.border}`}>
-              <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-[var(--accent-primary)]`}>
+              <button className={`w-full text-center text-sm ${tc.textSecondary} hover:text-lynx-sky`}>
                 View all notifications
               </button>
             </div>
@@ -432,7 +432,7 @@ function UserProfileDropdown({
               onClick={() => { setShowRoleSwitcher(false); navigate('/profile'); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${tc.hoverBg}`}
             >
-              <User className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+              <User className="w-5 h-5 text-lynx-sky" />
               <div className="flex-1 min-w-0">
                 <p className={`font-medium text-sm ${tc.text}`}>My Profile</p>
                 <p className={`text-xs ${tc.textMuted} truncate`}>Edit your personal info</p>
@@ -447,27 +447,16 @@ function UserProfileDropdown({
               <button key={view.id}
                 onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); navigate('/dashboard'); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
-                  activeView === view.id ? 'bg-[var(--accent-primary)]/20' : tc.hoverBg
+                  activeView === view.id ? 'bg-lynx-sky/20' : tc.hoverBg
                 }`}>
                 <NavIcon name={view.icon} className="w-5 h-5" />
                 <div className="flex-1 min-w-0">
-                  <p className={`font-medium text-sm ${activeView === view.id ? 'text-[var(--accent-primary)]' : tc.text}`}>{view.label}</p>
+                  <p className={`font-medium text-sm ${activeView === view.id ? 'text-lynx-sky' : tc.text}`}>{view.label}</p>
                   <p className={`text-xs ${tc.textMuted} truncate`}>{view.description}</p>
                 </div>
-                {activeView === view.id && <Check className="w-4 h-4 text-[var(--accent-primary)]" />}
+                {activeView === view.id && <Check className="w-4 h-4 text-lynx-sky" />}
               </button>
             ))}
-          </div>
-
-          <div className={`p-3 border-b ${tc.border}`}>
-            <p className={`text-xs ${tc.textMuted} mb-2`}>Accent Color</p>
-            <div className="flex gap-2">
-              {Object.entries(accentColors).map(([key, value]) => (
-                <button key={key} onClick={() => changeAccent(key)}
-                  className={`w-7 h-7 rounded-full transition-transform hover:scale-110 ${accentColor === key ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800' : ''}`}
-                  style={{ background: value.primary }} title={key.charAt(0).toUpperCase() + key.slice(1)} />
-              ))}
-            </div>
           </div>
 
           <div className={`p-2 flex gap-2`}>
@@ -662,14 +651,11 @@ function HorizontalNavBar({
   }
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full bg-[#2c3e50] shadow-md">
-      
+    <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full bg-lynx-navy shadow-md">
+
       {/* LEFT: Logo */}
       <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-          <VolleyballIcon className="w-4 h-4 text-white" />
-        </div>
-        <span className="text-base font-bold tracking-widest text-white">VOLLEYBRAIN</span>
+        <img src="/lynx-logo.png" alt="Lynx" className="h-7" />
       </div>
 
       {/* CENTER: Navigation */}

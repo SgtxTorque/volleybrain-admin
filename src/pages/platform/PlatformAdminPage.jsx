@@ -578,7 +578,7 @@ function UsersTab({ isDark, tc, accent, user, showToast }) {
       title: isSuspended ? 'Reactivate User' : 'Suspend User',
       message: isSuspended
         ? `Reactivate "${u.full_name || u.email}"? They will regain access to their account.`
-        : `Suspend "${u.full_name || u.email}"? They will be locked out of VolleyBrain.`,
+        : `Suspend "${u.full_name || u.email}"? They will be locked out of Lynx.`,
       destructive: !isSuspended,
       onConfirm: async () => {
         await supabase.from('profiles').update({ is_suspended: !isSuspended }).eq('id', u.id)

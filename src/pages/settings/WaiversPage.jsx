@@ -719,7 +719,7 @@ function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
             {organization?.name} • {template.is_required ? 'Required Document' : 'Optional Document'}
           </p>
           <p className="text-[10px] text-slate-400" style={{ fontFamily: 'system-ui, sans-serif' }}>
-            v{template.version || 1} • Powered by VolleyBrain
+            v{template.version || 1} • Powered by Lynx
           </p>
         </div>
         <div style={{ background: accent }} className="h-2 rounded-b-2xl" />

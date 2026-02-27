@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase'
 export const PARENT_TUTORIAL_STEPS = [
   {
     id: 'welcome',
-    title: 'Welcome to VolleyBrain! 🎉',
+    title: 'Welcome to Lynx! 🎉',
     description: 'Let\'s get you set up so you can stay connected with your child\'s team. This quick tour will show you everything you need.',
     icon: null,
   },

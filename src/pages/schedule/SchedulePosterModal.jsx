@@ -188,7 +188,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
                 <span style={{ display:'flex', alignItems:'center', gap:5, fontStyle:'italic' }}><span style={{ width:12, height:12, borderRadius:3, background: hexToRgba(textOnColor,0.25) }} /> AWAY</span>
                 {teamEvents.some(e=>e.event_type==='tournament') && <span>* TOURNAMENT</span>}
               </div>
-              <div style={{ fontSize:10, fontWeight:600, opacity:0.4, letterSpacing:1 }}>Powered by VolleyBrain</div>
+              <div style={{ fontSize:10, fontWeight:600, opacity:0.4, letterSpacing:1 }}>Powered by Lynx</div>
             </div>
           </div>
 
@@ -267,7 +267,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
               <span style={{ display:'flex', alignItems:'center', gap:5 }}><span style={{ width:10, height:10, borderRadius:3, background:teamColor }} /> HOME</span>
               <span style={{ display:'flex', alignItems:'center', gap:5, fontStyle:'italic' }}><span style={{ width:10, height:10, borderRadius:3, background:'#333' }} /> AWAY</span>
             </div>
-            <span style={{ letterSpacing:2 }}>Powered by VolleyBrain</span>
+            <span style={{ letterSpacing:2 }}>Powered by Lynx</span>
           </div>
         </div>
       </div>
@@ -320,7 +320,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
             <span>HOME</span><span>|</span><span style={{ fontStyle:'italic' }}>AWAY</span>
             {teamEvents.some(e=>e.event_type==='tournament')&&<><span>|</span><span>*TOURNEY</span></>}
           </div>
-          <div style={{ textAlign:'center', marginTop:14, fontSize:9, opacity:0.3, fontWeight:600, letterSpacing:2 }}>Powered by VolleyBrain</div>
+          <div style={{ textAlign:'center', marginTop:14, fontSize:9, opacity:0.3, fontWeight:600, letterSpacing:2 }}>Powered by Lynx</div>
         </div>
       </div>
     )
@@ -379,7 +379,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
               <span style={{ display:'flex', alignItems:'center', gap:5 }}><span style={{ width:14, height:14, borderRadius:4, background:teamColor }} /> HOME</span>
               <span style={{ display:'flex', alignItems:'center', gap:5 }}><span style={{ width:14, height:14, borderRadius:4, background:'#f1f5f9', border:'1px solid #e2e8f0' }} /> AWAY</span>
             </div>
-            <span>Powered by VolleyBrain</span>
+            <span>Powered by Lynx</span>
           </div>
         </div>
       </div>

@@ -224,7 +224,7 @@ export function JourneyWidget({ onNavigate }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className={`w-full max-w-2xl max-h-[80vh] overflow-auto rounded-2xl ${tc.pageBg}`}>
             <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-inherit">
-              <h2 className={`text-xl font-bold ${tc.text}`}>Your VolleyBrain Journey</h2>
+              <h2 className={`text-xl font-bold ${tc.text}`}>Your Lynx Journey</h2>
               <button 
                 onClick={() => setShowFull(false)}
                 className={`p-2 rounded-lg ${tc.hoverBg}`}

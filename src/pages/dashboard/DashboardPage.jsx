@@ -859,7 +859,7 @@ export function GettingStartedGuide({ onNavigate }) {
         <span className="text-4xl">🎉</span>
       </div>
       <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
-        Welcome to {organization?.name || 'VolleyBrain'}!
+        Welcome to {organization?.name || 'Lynx'}!
       </h1>
       <p className={`mb-8 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
         Let's get your organization set up. Start by creating your first season.

@@ -142,7 +142,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
       
       const description = selected.length === 1
         ? feeNames
-        : `VolleyBrain Fees: ${feeNames}`
+        : `Lynx Fees: ${feeNames}`
 
       const baseUrl = window.location.origin
       const successUrl = `${baseUrl}/payments?success=true&session_id={CHECKOUT_SESSION_ID}`
@@ -420,7 +420,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                 
                 {organization?.payment_venmo && (
                   <a 
-                    href={`https://venmo.com/${organization.payment_venmo}?txn=pay&amount=${selectedTotal.toFixed(2)}&note=VolleyBrain%20Fees`}
+                    href={`https://venmo.com/${organization.payment_venmo}?txn=pay&amount=${selectedTotal.toFixed(2)}&note=Lynx%20Fees`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-4 bg-[#3D95CE]/20 rounded-xl hover:bg-[#3D95CE]/30 transition"

@@ -132,7 +132,7 @@ export default function ParentLeftSidebar({
               <VolleyballIcon className="w-5 h-5 text-[var(--accent-primary)]" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">VolleyBrain</p>
+              <p className="text-sm font-bold text-slate-900">Lynx</p>
             </div>
           </div>
         )}

@@ -46,9 +46,9 @@ export function useDocumentTitle() {
       if (path.startsWith('/teams/')) title = 'Team Hub'
       else if (path.startsWith('/parent/player/')) title = 'Player Profile'
       else if (path.startsWith('/register/')) title = 'Registration'
-      else title = 'VolleyBrain'
+      else title = 'Lynx'
     }
 
-    document.title = title ? `${title} — VolleyBrain` : 'VolleyBrain'
+    document.title = title ? `${title} — Lynx` : 'Lynx'
   }, [location.pathname])
 }

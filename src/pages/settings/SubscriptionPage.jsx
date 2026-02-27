@@ -42,8 +42,8 @@ const PLANS = [
     annualPrice: 0,
     teamLimit: 2,
     playerLimit: 30,
-    features: ['Up to 2 teams', 'Up to 30 players', 'Basic scheduling', 'Payment tracking', 'VolleyBrain branding'],
-    limitations: ['VolleyBrain branding on public pages', 'Email support (48hr response)', 'No custom branding'],
+    features: ['Up to 2 teams', 'Up to 30 players', 'Basic scheduling', 'Payment tracking', 'Lynx branding'],
+    limitations: ['Lynx branding on public pages', 'Email support (48hr response)', 'No custom branding'],
   },
   {
     id: 'starter',
@@ -164,7 +164,7 @@ function SubscriptionPage({ showToast }) {
 
   async function handleChangePlan(planId) {
     if (planId === 'enterprise') {
-      window.open('mailto:support@volleybrain.com?subject=Enterprise Plan Inquiry&body=Organization: ' + encodeURIComponent(organization?.name || ''), '_blank')
+      window.open('mailto:support@thelynxapp.com?subject=Enterprise Plan Inquiry&body=Organization: ' + encodeURIComponent(organization?.name || ''), '_blank')
       return
     }
 
@@ -483,7 +483,7 @@ function SubscriptionPage({ showToast }) {
               <div className="flex-1">
                 <p className={`sb-heading text-base ${tc.text}`}>Stripe Payments Coming Soon</p>
                 <p className={`text-xs ${tc.textMuted} mt-0.5`}>
-                  VolleyBrain is currently in beta. Plans are managed by our team.
+                  Lynx is currently in beta. Plans are managed by our team.
                   Automated billing via Stripe will be available soon.
                 </p>
               </div>

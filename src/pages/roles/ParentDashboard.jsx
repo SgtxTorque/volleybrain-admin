@@ -873,7 +873,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       <div className="max-w-2xl mx-auto space-y-6 py-12">
         <div className="text-center">
           <VolleyballIcon className="w-20 h-20 text-[var(--accent-primary)] mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to VolleyBrain!</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to Lynx!</h2>
           <p className="text-slate-500">You haven't registered any players yet.</p>
           <p className="text-slate-400 mb-6">Get started by registering for an open season below.</p>
         </div>
