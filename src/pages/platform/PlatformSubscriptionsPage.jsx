@@ -14,7 +14,6 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const PS_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
@@ -22,9 +21,6 @@ const PS_STYLES = `
   .ps-au{animation:fadeUp .4s ease-out both}
   .ps-ai{animation:fadeIn .3s ease-out both}
   .ps-as{animation:scaleIn .25s ease-out both}
-  .ps-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .ps-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .ps-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
   .ps-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .ps-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .ps-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.04) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 3s ease-in-out infinite}
@@ -320,10 +316,10 @@ function PlatformSubscriptionsPage({ showToast }) {
         <div className="ps-au" style={{ animationDelay: '.05s' }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className={`ps-display text-3xl sm:text-4xl ${tc.text}`}>PLATFORM SUBSCRIPTIONS</h1>
-              <p className={`ps-label text-sm ${tc.textMuted} mt-1`}>Manage organization plans, billing, and revenue</p>
+              <h1 className={`text-3xl sm:text-4xl ${tc.text}`}>PLATFORM SUBSCRIPTIONS</h1>
+              <p className={`text-sm ${tc.textMuted} mt-1`}>Manage organization plans, billing, and revenue</p>
             </div>
-            <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm ps-label transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'}`}>
+            <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'}`}>
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
@@ -342,9 +338,9 @@ function PlatformSubscriptionsPage({ showToast }) {
               <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <m.icon className="w-4 h-4" style={{ color: m.color }} />
-                  <span className={`text-[11px] ps-label ${tc.textMuted}`}>{m.label}</span>
+                  <span className={`text-[11px] ${tc.textMuted}`}>{m.label}</span>
                 </div>
-                <p className={`ps-display text-2xl ${tc.text}`}>{m.value}</p>
+                <p className={`text-2xl ${tc.text}`}>{m.value}</p>
               </div>
             </div>
           ))}
@@ -353,7 +349,7 @@ function PlatformSubscriptionsPage({ showToast }) {
         {/* TIER BREAKDOWN */}
         <div className="ps-au" style={{ animationDelay: '.3s' }}>
           <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
-            <h3 className={`ps-label text-xs ${tc.textMuted} mb-3`}>REVENUE BY TIER</h3>
+            <h3 className={`text-xs ${tc.textMuted} mb-3`}>REVENUE BY TIER</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(TIER_CONFIG).map(([tierId, tier]) => {
                 const TierIcon = tier.icon
@@ -363,7 +359,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                       <TierIcon className="w-4 h-4" style={{ color: tier.color }} />
                     </div>
                     <div>
-                      <p className={`text-xs ps-label ${tc.text}`}>{tier.label}</p>
+                      <p className={`text-xs ${tc.text}`}>{tier.label}</p>
                       <p className={`text-[11px] ${tc.textMuted}`}>
                         {metrics.tierCounts[tierId] || 0} orgs · {fmtCents(metrics.tierRevenue[tierId] || 0)}/mo
                       </p>
@@ -409,7 +405,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                 <option value="none">No Subscription</option>
               </select>
 
-              <span className={`text-xs ps-label ${tc.textMuted} ml-auto`}>{filteredRows.length} organizations</span>
+              <span className={`text-xs ${tc.textMuted} ml-auto`}>{filteredRows.length} organizations</span>
             </div>
           </div>
         </div>
@@ -421,13 +417,13 @@ function PlatformSubscriptionsPage({ showToast }) {
               <table className="w-full">
                 <thead>
                   <tr className={isDark ? 'bg-white/[.02]' : 'bg-slate-50'}>
-                    <th className={`text-left px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Organization</th>
-                    <th className={`text-left px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Plan</th>
-                    <th className={`text-left px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Status</th>
-                    <th className={`text-left px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Billing</th>
-                    <th className={`text-right px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Revenue</th>
-                    <th className={`text-left px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Period End</th>
-                    <th className={`text-right px-4 py-3 text-xs ps-label ${tc.textMuted}`}>Actions</th>
+                    <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Organization</th>
+                    <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Plan</th>
+                    <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Status</th>
+                    <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Billing</th>
+                    <th className={`text-right px-4 py-3 text-xs ${tc.textMuted}`}>Revenue</th>
+                    <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Period End</th>
+                    <th className={`text-right px-4 py-3 text-xs ${tc.textMuted}`}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -450,18 +446,18 @@ function PlatformSubscriptionsPage({ showToast }) {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5">
                             <TierIcon className="w-3.5 h-3.5" style={{ color: tier.color }} />
-                            <span className="text-sm ps-label" style={{ color: tier.color }}>{tier.label}</span>
+                            <span className="text-sm" style={{ color: tier.color }}>{tier.label}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] ps-label" style={{ backgroundColor: `${statusCfg.color}15`, color: statusCfg.color }}>
+                          <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: `${statusCfg.color}15`, color: statusCfg.color }}>
                             {statusCfg.label}
                           </span>
                         </td>
                         <td className={`px-4 py-3 text-sm ${tc.textMuted}`}>
                           {row.billingCycle === 'annual' ? 'Annual' : 'Monthly'}
                         </td>
-                        <td className={`px-4 py-3 text-sm text-right ps-label ${tc.text}`}>
+                        <td className={`px-4 py-3 text-sm text-right ${tc.text}`}>
                           {row.priceCents > 0 ? fmtCents(row.priceCents) : '—'}
                           {row.priceCents > 0 && <span className={`text-[10px] ${tc.textMuted}`}>/{row.billingCycle === 'annual' ? 'yr' : 'mo'}</span>}
                         </td>
@@ -472,13 +468,13 @@ function PlatformSubscriptionsPage({ showToast }) {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => openEditSub(row)}
-                              className={`px-2.5 py-1.5 rounded-lg text-[11px] ps-label transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                             >
                               Edit Plan
                             </button>
                             <button
                               onClick={() => loadOrgInvoices(row.id)}
-                              className={`px-2.5 py-1.5 rounded-lg text-[11px] ps-label transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                             >
                               Invoices
                             </button>
@@ -508,7 +504,7 @@ function PlatformSubscriptionsPage({ showToast }) {
             <div className={`relative w-full max-w-lg rounded-xl p-6 ps-as ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'} shadow-2xl`}>
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h3 className={`ps-heading text-lg ${tc.text}`}>Edit Subscription</h3>
+                  <h3 className={`text-lg ${tc.text}`}>Edit Subscription</h3>
                   <p className={`text-xs ${tc.textMuted}`}>{editingSub.name}</p>
                 </div>
                 <button onClick={() => setEditingSub(null)} className={`p-1.5 rounded-lg transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
@@ -519,7 +515,7 @@ function PlatformSubscriptionsPage({ showToast }) {
               <div className="space-y-4">
                 {/* Plan Tier */}
                 <div>
-                  <label className={`text-xs ps-label ${tc.textMuted} block mb-1`}>PLAN TIER</label>
+                  <label className={`text-xs ${tc.textMuted} block mb-1`}>PLAN TIER</label>
                   <div className="grid grid-cols-4 gap-2">
                     {Object.entries(TIER_CONFIG).map(([id, tier]) => {
                       const TierIcon = tier.icon
@@ -535,7 +531,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                           style={editForm.plan_tier === id ? { borderColor: tier.color, backgroundColor: `${tier.color}10` } : {}}
                         >
                           <TierIcon className="w-4 h-4" style={{ color: tier.color }} />
-                          <span className={`text-xs ps-label ${editForm.plan_tier === id ? tc.text : tc.textMuted}`}>{tier.label}</span>
+                          <span className={`text-xs ${editForm.plan_tier === id ? tc.text : tc.textMuted}`}>{tier.label}</span>
                         </button>
                       )
                     })}
@@ -544,13 +540,13 @@ function PlatformSubscriptionsPage({ showToast }) {
 
                 {/* Billing Cycle */}
                 <div>
-                  <label className={`text-xs ps-label ${tc.textMuted} block mb-1`}>BILLING CYCLE</label>
+                  <label className={`text-xs ${tc.textMuted} block mb-1`}>BILLING CYCLE</label>
                   <div className="grid grid-cols-2 gap-2">
                     {['monthly', 'annual'].map(cycle => (
                       <button
                         key={cycle}
                         onClick={() => setEditForm({ ...editForm, billing_cycle: cycle })}
-                        className={`px-4 py-2.5 rounded-xl text-sm ps-label border transition ${
+                        className={`px-4 py-2.5 rounded-xl text-sm border transition ${
                           editForm.billing_cycle === cycle
                             ? 'text-white'
                             : isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -570,7 +566,7 @@ function PlatformSubscriptionsPage({ showToast }) {
 
                 {/* Status */}
                 <div>
-                  <label className={`text-xs ps-label ${tc.textMuted} block mb-1`}>STATUS</label>
+                  <label className={`text-xs ${tc.textMuted} block mb-1`}>STATUS</label>
                   <select
                     value={editForm.status}
                     onChange={e => setEditForm({ ...editForm, status: e.target.value })}
@@ -585,7 +581,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                 {/* Trial days (shown only when trialing) */}
                 {editForm.status === 'trialing' && (
                   <div>
-                    <label className={`text-xs ps-label ${tc.textMuted} block mb-1`}>TRIAL DURATION (DAYS)</label>
+                    <label className={`text-xs ${tc.textMuted} block mb-1`}>TRIAL DURATION (DAYS)</label>
                     <input
                       type="number"
                       value={editForm.trial_days}
@@ -601,7 +597,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                   <div className={`flex items-center gap-2 p-3 rounded-xl ${isDark ? 'bg-white/[.03]' : 'bg-slate-50'}`}>
                     <DollarSign className="w-4 h-4" style={{ color: accentColor }} />
                     <span className={`text-sm ${tc.textMuted}`}>Price:</span>
-                    <span className={`text-sm ps-label ${tc.text}`}>
+                    <span className={`text-sm ${tc.text}`}>
                       {fmtCents(editForm.billing_cycle === 'annual' ? TIER_CONFIG[editForm.plan_tier]?.annual : TIER_CONFIG[editForm.plan_tier]?.monthly)}
                       /{editForm.billing_cycle === 'annual' ? 'year' : 'month'}
                     </span>
@@ -613,14 +609,14 @@ function PlatformSubscriptionsPage({ showToast }) {
                 <button
                   onClick={saveSubscription}
                   disabled={savingSub}
-                  className="flex-1 py-2.5 rounded-xl text-sm ps-label text-white transition hover:opacity-90 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-sm text-white transition hover:opacity-90 disabled:opacity-50"
                   style={{ backgroundColor: accentColor }}
                 >
                   {savingSub ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   onClick={() => setEditingSub(null)}
-                  className={`px-6 py-2.5 rounded-xl text-sm ps-label transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                  className={`px-6 py-2.5 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                 >
                   Cancel
                 </button>
@@ -637,7 +633,7 @@ function PlatformSubscriptionsPage({ showToast }) {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h3 className={`ps-heading text-lg ${tc.text}`}>Invoices</h3>
+                    <h3 className={`text-lg ${tc.text}`}>Invoices</h3>
                     <p className={`text-xs ${tc.textMuted}`}>{orgs.find(o => o.id === showInvoicesFor)?.name}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -649,7 +645,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                         else showToast('Cannot create invoice for free plan', 'warning')
                       }}
                       disabled={creatingInvoice}
-                      className="px-3 py-1.5 rounded-lg text-xs ps-label text-white transition hover:opacity-90"
+                      className="px-3 py-1.5 rounded-lg text-xs text-white transition hover:opacity-90"
                       style={{ backgroundColor: accentColor }}
                     >
                       + Create Invoice
@@ -674,8 +670,8 @@ function PlatformSubscriptionsPage({ showToast }) {
                       return (
                         <div key={inv.id} className={`p-4 rounded-xl ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-slate-50 border border-slate-100'}`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className={`text-sm ps-label ${tc.text}`}>{fmtCents(inv.amount_cents)}</span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] ps-label" style={{ backgroundColor: `${statusColors[inv.status] || '#64748B'}15`, color: statusColors[inv.status] || '#64748B' }}>
+                            <span className={`text-sm ${tc.text}`}>{fmtCents(inv.amount_cents)}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: `${statusColors[inv.status] || '#64748B'}15`, color: statusColors[inv.status] || '#64748B' }}>
                               {inv.status.toUpperCase()}
                             </span>
                           </div>
@@ -687,7 +683,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                           {(inv.status === 'open' || inv.status === 'draft') && (
                             <button
                               onClick={() => markInvoicePaid(inv.id)}
-                              className="mt-2 px-3 py-1 rounded-lg text-[11px] ps-label bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition"
+                              className="mt-2 px-3 py-1 rounded-lg text-[11px] bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition"
                             >
                               <Check className="w-3 h-3 inline mr-1" />
                               Mark Paid

@@ -13,16 +13,12 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const PA_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
   .pa-au{animation:fadeUp .4s ease-out both}
   .pa-ai{animation:fadeIn .3s ease-out both}
   .pa-as{animation:scaleIn .25s ease-out both}
-  .pa-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .pa-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .pa-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
   .pa-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .pa-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .pa-nos::-webkit-scrollbar{display:none}.pa-nos{-ms-overflow-style:none;scrollbar-width:none}
@@ -69,7 +65,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, destructive,
         <p className={`text-sm ${tc.textSecondary} mb-4`}>{message}</p>
         {requireTyping && (
           <div className="mb-4">
-            <label className={`pa-label text-xs uppercase ${tc.textMuted} block mb-1`}>Type DELETE to confirm</label>
+            <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Type DELETE to confirm</label>
             <input
               type="text"
               value={typed}
@@ -165,7 +161,7 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
           <div className="p-5 space-y-6">
             {/* Members Section */}
             <div>
-              <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-3`}>Members ({members.length})</h3>
+              <h3 className={`text-sm uppercase ${tc.textMuted} mb-3`}>Members ({members.length})</h3>
               <div className="space-y-2">
                 {members.length === 0 ? (
                   <p className={`text-sm ${tc.textMuted}`}>No members found</p>
@@ -185,7 +181,7 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
 
             {/* Teams Section */}
             <div>
-              <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-3`}>Teams ({teams.length})</h3>
+              <h3 className={`text-sm uppercase ${tc.textMuted} mb-3`}>Teams ({teams.length})</h3>
               <div className="space-y-2">
                 {teams.length === 0 ? (
                   <p className={`text-sm ${tc.textMuted}`}>No teams found</p>
@@ -205,7 +201,7 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
 
             {/* Seasons Section */}
             <div>
-              <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-3`}>Seasons ({seasons.length})</h3>
+              <h3 className={`text-sm uppercase ${tc.textMuted} mb-3`}>Seasons ({seasons.length})</h3>
               <div className="space-y-2">
                 {seasons.length === 0 ? (
                   <p className={`text-sm ${tc.textMuted}`}>No seasons found</p>
@@ -229,7 +225,7 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
 
             {/* Actions */}
             <div className={`border-t ${tc.border} pt-4`}>
-              <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-3`}>Actions</h3>
+              <h3 className={`text-sm uppercase ${tc.textMuted} mb-3`}>Actions</h3>
               <div className="space-y-2">
                 {org?.is_active === false ? (
                   <button
@@ -323,8 +319,8 @@ function OverviewTab({ isDark, tc, accent }) {
                 <card.icon className="w-5 h-5" style={{ color: card.color }} />
               </div>
             </div>
-            <p className={`pa-display text-3xl ${tc.text}`}>{card.value}</p>
-            <p className={`pa-label text-xs uppercase ${tc.textMuted} mt-1`}>{card.label}</p>
+            <p className={`text-3xl ${tc.text}`}>{card.value}</p>
+            <p className={`text-xs uppercase ${tc.textMuted} mt-1`}>{card.label}</p>
           </div>
         ))}
       </div>
@@ -332,7 +328,7 @@ function OverviewTab({ isDark, tc, accent }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Organizations */}
         <div className="pa-glass rounded-xl p-5 pa-au" style={{ animationDelay: '240ms' }}>
-          <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-4`}>Recent Organizations</h3>
+          <h3 className={`text-sm uppercase ${tc.textMuted} mb-4`}>Recent Organizations</h3>
           <div className="space-y-3">
             {recentOrgs.map(org => (
               <div key={org.id} className={`flex items-center justify-between py-2 border-b ${tc.border} last:border-0`}>
@@ -353,7 +349,7 @@ function OverviewTab({ isDark, tc, accent }) {
 
         {/* Recent Users */}
         <div className="pa-glass rounded-xl p-5 pa-au" style={{ animationDelay: '300ms' }}>
-          <h3 className={`pa-heading text-sm uppercase ${tc.textMuted} mb-4`}>Recent Users</h3>
+          <h3 className={`text-sm uppercase ${tc.textMuted} mb-4`}>Recent Users</h3>
           <div className="space-y-3">
             {recentUsers.map(u => (
               <div key={u.id} className={`flex items-center justify-between py-2 border-b ${tc.border} last:border-0`}>
@@ -645,12 +641,12 @@ function UsersTab({ isDark, tc, accent, user, showToast }) {
             <table className="w-full">
               <thead>
                 <tr className={`border-b ${tc.border}`}>
-                  <th className={`pa-label text-xs uppercase ${tc.textMuted} text-left px-4 py-3`}>User</th>
-                  <th className={`pa-label text-xs uppercase ${tc.textMuted} text-left px-4 py-3`}>Email</th>
-                  <th className={`pa-label text-xs uppercase ${tc.textMuted} text-left px-4 py-3`}>Joined</th>
-                  <th className={`pa-label text-xs uppercase ${tc.textMuted} text-center px-4 py-3`}>Status</th>
-                  <th className={`pa-label text-xs uppercase ${tc.textMuted} text-center px-4 py-3`}>Super-Admin</th>
-                  <th className={`pa-label text-xs uppercase ${tc.textMuted} text-right px-4 py-3`}>Actions</th>
+                  <th className={`text-xs uppercase ${tc.textMuted} text-left px-4 py-3`}>User</th>
+                  <th className={`text-xs uppercase ${tc.textMuted} text-left px-4 py-3`}>Email</th>
+                  <th className={`text-xs uppercase ${tc.textMuted} text-left px-4 py-3`}>Joined</th>
+                  <th className={`text-xs uppercase ${tc.textMuted} text-center px-4 py-3`}>Status</th>
+                  <th className={`text-xs uppercase ${tc.textMuted} text-center px-4 py-3`}>Super-Admin</th>
+                  <th className={`text-xs uppercase ${tc.textMuted} text-right px-4 py-3`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -831,7 +827,7 @@ function PlatformAdminPage({ showToast }) {
           <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-red-500/20 mb-4">
             <Shield className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className={`pa-display text-3xl ${tc.text} mb-2`}>Access Denied</h1>
+          <h1 className={`text-3xl ${tc.text} mb-2`}>Access Denied</h1>
           <p className={`text-sm ${tc.textMuted}`}>You do not have platform administrator privileges.</p>
         </div>
       </div>
@@ -852,11 +848,11 @@ function PlatformAdminPage({ showToast }) {
 
       {/* Header */}
       <div className="pa-au mb-6">
-        <h1 className={`pa-display text-4xl ${tc.text} flex items-center gap-3`}>
+        <h1 className={`text-4xl ${tc.text} flex items-center gap-3`}>
           <Shield className="w-8 h-8" style={{ color: accent.primary }} />
           Platform Administration
         </h1>
-        <p className={`pa-label text-sm uppercase ${tc.textMuted} mt-1`}>Super-Admin Control Panel</p>
+        <p className={`text-sm uppercase ${tc.textMuted} mt-1`}>Super-Admin Control Panel</p>
       </div>
 
       {/* Tabs */}

@@ -14,7 +14,6 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const AN_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
@@ -23,9 +22,6 @@ const AN_STYLES = `
   .an-au{animation:fadeUp .4s ease-out both}
   .an-ai{animation:fadeIn .3s ease-out both}
   .an-as{animation:scaleIn .25s ease-out both}
-  .an-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .an-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .an-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
   .an-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .an-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .an-light .an-glass{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.06);box-shadow:0 4px 24px rgba(0,0,0,.06)}
@@ -113,8 +109,8 @@ function KpiCard({ label, value, trend, trendLabel, icon: Icon, color, isDark, i
           </div>
         )}
       </div>
-      <p className={`an-display text-3xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-      <p className={`an-label text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1`}>{label}</p>
+      <p className={`text-3xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+      <p className={`text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1`}>{label}</p>
       {trendLabel && (
         <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-400'} mt-0.5`}>{trendLabel}</p>
       )}
@@ -218,7 +214,7 @@ function DonutChart({ data, isDark, size = 140 }) {
         <text x={size / 2} y={size / 2 - 6} textAnchor="middle" className="an-display" style={{ fontSize: 24, fill: isDark ? '#fff' : '#1e293b' }}>
           {total}
         </text>
-        <text x={size / 2} y={size / 2 + 12} textAnchor="middle" style={{ fontSize: 9, fill: isDark ? '#64748b' : '#94a3b8', fontFamily: 'Rajdhani', fontWeight: 600, letterSpacing: '.05em' }}>
+        <text x={size / 2} y={size / 2 + 12} textAnchor="middle" style={{ fontSize: 9, fill: isDark ? '#64748b' : '#94a3b8', fontWeight: 600, letterSpacing: '.05em' }}>
           TOTAL
         </text>
       </svg>
@@ -285,7 +281,7 @@ function DataTable({ columns, rows, isDark, emptyMessage = 'No data' }) {
         <thead>
           <tr>
             {columns.map((col, i) => (
-              <th key={i} className={`an-label text-[10px] uppercase text-left pb-3 pr-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={col.style}>
+              <th key={i} className={`text-[10px] uppercase text-left pb-3 pr-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={col.style}>
                 {col.label}
               </th>
             ))}
@@ -533,7 +529,7 @@ function PlatformAnalyticsPage({ showToast }) {
         <style>{AN_STYLES}</style>
         <div className="flex flex-col items-center justify-center py-20 an-au">
           <Shield className="w-16 h-16 text-red-400 mb-4" />
-          <h1 className={`an-display text-3xl ${tc.text} mb-2`}>Access Denied</h1>
+          <h1 className={`text-3xl ${tc.text} mb-2`}>Access Denied</h1>
           <p className={tc.textMuted}>Platform super-admin access required.</p>
         </div>
       </div>
@@ -547,11 +543,11 @@ function PlatformAnalyticsPage({ showToast }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 an-au">
         <div>
-          <h1 className={`an-display text-4xl ${tc.text} flex items-center gap-3`}>
+          <h1 className={`text-4xl ${tc.text} flex items-center gap-3`}>
             <BarChart3 className="w-8 h-8" style={{ color: accent.primary }} />
             Platform Analytics
           </h1>
-          <p className={`an-label text-sm uppercase ${tc.textMuted} mt-1`}>Deep insights across all organizations</p>
+          <p className={`text-sm uppercase ${tc.textMuted} mt-1`}>Deep insights across all organizations</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Date Range */}
@@ -600,7 +596,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '200ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <LineChart className="w-4 h-4" style={{ color: '#10B981' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>User Signups</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>User Signups</h3>
               </div>
               {userGrowth.length > 0 ? (
                 <SparkLine data={userGrowth} color="#10B981" isDark={isDark} />
@@ -613,7 +609,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '250ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <DollarSign className="w-4 h-4" style={{ color: '#EAB308' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Monthly Revenue</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Monthly Revenue</h3>
               </div>
               {revenueByMonth.length > 0 ? (
                 <BarChart data={revenueByMonth} color="#EAB308" isDark={isDark} valuePrefix="$" />
@@ -629,7 +625,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '300ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <PieChart className="w-4 h-4" style={{ color: '#A855F7' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Organizations by Type</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Organizations by Type</h3>
               </div>
               {orgTypes.length > 0 ? (
                 <DonutChart data={orgTypes} isDark={isDark} />
@@ -642,7 +638,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '350ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Star className="w-4 h-4" style={{ color: '#4BB9EC' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Sport Distribution</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Sport Distribution</h3>
               </div>
               {sportDist.length > 0 ? (
                 <DonutChart data={sportDist} isDark={isDark} />
@@ -658,7 +654,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '400ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Users className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Top Orgs by Members</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Top Orgs by Members</h3>
               </div>
               {topOrgsByMembers.length > 0 ? (
                 <HBarChart data={topOrgsByMembers} isDark={isDark} />
@@ -671,7 +667,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '450ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <TrendingUp className="w-4 h-4" style={{ color: '#06B6D4' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Registrations Over Time</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Registrations Over Time</h3>
               </div>
               {registrationsByMonth.length > 0 ? (
                 <SparkLine data={registrationsByMonth} color="#06B6D4" isDark={isDark} />
@@ -687,7 +683,7 @@ function PlatformAnalyticsPage({ showToast }) {
           <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '500ms' }}>
             <div className="flex items-center gap-2 mb-5">
               <DollarSign className="w-4 h-4" style={{ color: '#EAB308' }} />
-              <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Top Organizations by Revenue</h3>
+              <h3 className={`text-sm uppercase ${tc.textMuted}`}>Top Organizations by Revenue</h3>
             </div>
             <DataTable
               isDark={isDark}
@@ -706,7 +702,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '550ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Recently Created Orgs (30d)</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Recently Created Orgs (30d)</h3>
               </div>
               <DataTable
                 isDark={isDark}
@@ -723,7 +719,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '600ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Users className="w-4 h-4" style={{ color: '#10B981' }} />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Recently Joined Users (30d)</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Recently Joined Users (30d)</h3>
               </div>
               <DataTable
                 isDark={isDark}
@@ -743,7 +739,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '650ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Orgs With No Seasons (May Need Attention)</h3>
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Orgs With No Seasons (May Need Attention)</h3>
               </div>
               <DataTable
                 isDark={isDark}

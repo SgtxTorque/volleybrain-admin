@@ -129,7 +129,7 @@ function AvailabilityModal({ dates, onSave, onClose, tc, isDark }) {
         <div className="px-6 py-5 space-y-5">
           {/* Status */}
           <div>
-            <label className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+            <label className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>
               Status
             </label>
             <div className="flex gap-2 mt-2">
@@ -154,7 +154,7 @@ function AvailabilityModal({ dates, onSave, onClose, tc, isDark }) {
 
           {/* Reason */}
           <div>
-            <label className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+            <label className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>
               Reason (optional)
             </label>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -176,7 +176,7 @@ function AvailabilityModal({ dates, onSave, onClose, tc, isDark }) {
 
           {/* Notes */}
           <div>
-            <label className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+            <label className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>
               Notes (optional)
             </label>
             <textarea
@@ -640,10 +640,10 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
           ══════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className={`text-3xl font-bold tracking-tight ${tc.text}`} style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+          <h1 className={`text-3xl font-bold tracking-tight ${tc.text}`}>
             {isAdmin ? 'Coach Availability' : 'My Availability'}
           </h1>
-          <p className={`${tc.textMuted} text-sm mt-1`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+          <p className={`${tc.textMuted} text-sm mt-1`}>
             {isAdmin ? 'View coach schedules to help with planning' : 'Mark dates you\'re unavailable for practice or games'}
           </p>
         </div>
@@ -749,7 +749,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
               <div className="text-center">
                 <h2
                   className={`text-2xl font-bold tracking-tight ${tc.text}`}
-                  style={{ fontFamily: 'Bebas Neue, sans-serif' }}
                 >
                   {MONTH_NAMES[currentMonth]} {currentYear}
                 </h2>
@@ -774,7 +773,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                 <div
                   key={d}
                   className={`py-3 text-center text-xs font-bold uppercase tracking-wider ${tc.textMuted}`}
-                  style={{ fontFamily: 'Rajdhani, sans-serif' }}
                 >
                   {d}
                 </div>
@@ -845,7 +843,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                       {status?.reason && day.isCurrentMonth && (
                         <p className={`text-[10px] mt-0.5 truncate ${
                           status.status === 'unavailable' ? 'text-red-500' : 'text-amber-600'
-                        }`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                        }`}>
                           {REASONS.find(r => r.value === status.reason)?.icon} {status.reason}
                         </p>
                       )}
@@ -953,7 +951,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
           }`}>
             <h3
               className={`text-sm font-bold uppercase tracking-wider mb-4 ${tc.textMuted}`}
-              style={{ fontFamily: 'Rajdhani, sans-serif' }}
             >
               This Month
             </h3>
@@ -988,7 +985,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
             <div className={`px-5 py-3 border-b ${tc.border}`}>
               <h3
                 className={`text-sm font-bold uppercase tracking-wider ${tc.textMuted}`}
-                style={{ fontFamily: 'Rajdhani, sans-serif' }}
               >
                 Upcoming Unavailable
               </h3>
@@ -1045,7 +1041,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
               <div className={`px-5 py-3 border-b ${tc.border}`}>
                 <h3
                   className={`text-sm font-bold uppercase tracking-wider ${tc.textMuted}`}
-                  style={{ fontFamily: 'Rajdhani, sans-serif' }}
                 >
                   <Repeat className="w-4 h-4 inline mr-1" />
                   Recurring Patterns
@@ -1084,7 +1079,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
             }`}>
               <h3
                 className={`text-sm font-bold uppercase tracking-wider mb-4 ${tc.textMuted}`}
-                style={{ fontFamily: 'Rajdhani, sans-serif' }}
               >
                 Quick Actions
               </h3>
@@ -1123,7 +1117,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                 : 'bg-amber-50 border border-amber-200'
             }`}>
               <div className={`px-5 py-3 border-b ${isDark ? 'border-amber-500/10' : 'border-amber-200'}`}>
-                <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-amber-300' : 'text-amber-800'}`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+                <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
                   <AlertTriangle className="w-4 h-4 inline mr-1" />
                   Scheduling Conflicts
                 </h3>

@@ -14,16 +14,12 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const SA_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
   .sa-au{animation:fadeUp .4s ease-out both}
   .sa-ai{animation:fadeIn .3s ease-out both}
   .sa-as{animation:scaleIn .25s ease-out both}
-  .sa-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .sa-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .sa-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
   .sa-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .sa-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .sa-light .sa-glass{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.06);box-shadow:0 4px 24px rgba(0,0,0,.06)}
@@ -182,8 +178,8 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                   ].map((s, i) => (
                     <div key={s.label} className={`sa-glass rounded-xl p-4 text-center sa-au`} style={{ animationDelay: `${i * 50}ms` }}>
                       <s.icon className="w-5 h-5 mx-auto mb-2" style={{ color: s.color }} />
-                      <p className={`sa-display text-2xl ${tc.text}`}>{s.value}</p>
-                      <p className={`sa-label text-xs uppercase ${tc.textMuted}`}>{s.label}</p>
+                      <p className={`text-2xl ${tc.text}`}>{s.value}</p>
+                      <p className={`text-xs uppercase ${tc.textMuted}`}>{s.label}</p>
                     </div>
                   ))}
                 </div>
@@ -193,11 +189,11 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                   <div className="sa-glass rounded-xl p-4 sa-au" style={{ animationDelay: '200ms' }}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted}`}>Season Revenue</p>
-                        <p className={`sa-display text-2xl ${tc.text}`}>${totalPaid.toLocaleString()}</p>
+                        <p className={`text-xs uppercase ${tc.textMuted}`}>Season Revenue</p>
+                        <p className={`text-2xl ${tc.text}`}>${totalPaid.toLocaleString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted}`}>Total Billed</p>
+                        <p className={`text-xs uppercase ${tc.textMuted}`}>Total Billed</p>
                         <p className={`text-sm font-medium ${tc.textSecondary}`}>${totalDue.toLocaleString()}</p>
                       </div>
                     </div>
@@ -212,11 +208,11 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                 {/* Standings snapshot */}
                 {teamStandings.some(t => t.gamesPlayed > 0) && (
                   <div className="sa-glass rounded-xl p-4 sa-au" style={{ animationDelay: '260ms' }}>
-                    <h3 className={`sa-heading text-sm uppercase ${tc.textMuted} mb-3`}>Final Standings</h3>
+                    <h3 className={`text-sm uppercase ${tc.textMuted} mb-3`}>Final Standings</h3>
                     <div className="space-y-2">
                       {teamStandings.filter(t => t.gamesPlayed > 0).sort((a, b) => b.wins - a.wins).map((t, i) => (
                         <div key={t.id} className={`flex items-center gap-3 p-2 rounded-lg ${isDark ? 'bg-white/[0.03]' : 'bg-black/[0.02]'}`}>
-                          <span className={`sa-display text-lg w-6 text-center ${i === 0 ? 'text-amber-400' : tc.textMuted}`}>{i + 1}</span>
+                          <span className={`text-lg w-6 text-center ${i === 0 ? 'text-amber-400' : tc.textMuted}`}>{i + 1}</span>
                           <div className="w-6 h-6 rounded-md" style={{ background: t.color || accent.primary }} />
                           <span className={`text-sm font-medium flex-1 ${tc.text}`}>{t.name}</span>
                           <span className={`text-sm font-mono ${tc.textSecondary}`}>{t.wins}W-{t.losses}L{t.ties > 0 ? `-${t.ties}T` : ''}</span>
@@ -249,7 +245,7 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                     {/* Coaches */}
                     {team.team_coaches?.length > 0 && (
                       <div className={`px-4 py-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted} mb-1`}>Coaches</p>
+                        <p className={`text-xs uppercase ${tc.textMuted} mb-1`}>Coaches</p>
                         <div className="flex flex-wrap gap-2">
                           {team.team_coaches.map((tc_item, j) => (
                             <span key={j} className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'} ${tc.textSecondary}`}>
@@ -262,7 +258,7 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                     {/* Roster */}
                     {team.team_players?.length > 0 && (
                       <div className={`px-4 py-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted} mb-1`}>Roster</p>
+                        <p className={`text-xs uppercase ${tc.textMuted} mb-1`}>Roster</p>
                         <div className="flex flex-wrap gap-1.5">
                           {team.team_players.map((tp, j) => (
                             <span key={j} className={`text-xs px-2 py-0.5 rounded-full ${tc.textSecondary}`} style={{ background: `${team.color || accent.primary}15` }}>
@@ -333,13 +329,13 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                       <table className="w-full">
                         <thead>
                           <tr className={`border-b ${tc.border}`}>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-left px-3 py-2`}>Player</th>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>GP</th>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>K</th>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>A</th>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>D</th>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>B</th>
-                            <th className={`sa-label text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>Aces</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-left px-3 py-2`}>Player</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>GP</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>K</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>A</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>D</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>B</th>
+                            <th className={`text-xs uppercase ${tc.textMuted} text-center px-2 py-2`}>Aces</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -391,16 +387,16 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                     {/* Payment summary */}
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="sa-glass rounded-xl p-3 text-center">
-                        <p className={`sa-display text-xl ${tc.text}`}>${totalPaid.toLocaleString()}</p>
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted}`}>Collected</p>
+                        <p className={`text-xl ${tc.text}`}>${totalPaid.toLocaleString()}</p>
+                        <p className={`text-xs uppercase ${tc.textMuted}`}>Collected</p>
                       </div>
                       <div className="sa-glass rounded-xl p-3 text-center">
-                        <p className={`sa-display text-xl ${tc.text}`}>${(totalDue - totalPaid).toLocaleString()}</p>
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted}`}>Outstanding</p>
+                        <p className={`text-xl ${tc.text}`}>${(totalDue - totalPaid).toLocaleString()}</p>
+                        <p className={`text-xs uppercase ${tc.textMuted}`}>Outstanding</p>
                       </div>
                       <div className="sa-glass rounded-xl p-3 text-center">
-                        <p className={`sa-display text-xl ${tc.text}`}>{payments.length}</p>
-                        <p className={`sa-label text-xs uppercase ${tc.textMuted}`}>Records</p>
+                        <p className={`text-xl ${tc.text}`}>{payments.length}</p>
+                        <p className={`text-xs uppercase ${tc.textMuted}`}>Records</p>
                       </div>
                     </div>
                     <div className="sa-glass rounded-xl divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }}>
@@ -570,11 +566,11 @@ function SeasonArchivePage({ showToast, onNavigate }) {
 
       {/* Header */}
       <div className="sa-au mb-6">
-        <h1 className={`sa-display text-4xl ${tc.text} flex items-center gap-3`}>
+        <h1 className={`text-4xl ${tc.text} flex items-center gap-3`}>
           <Trophy className="w-8 h-8" style={{ color: accent.primary }} />
           Season Archives
         </h1>
-        <p className={`sa-label text-sm uppercase ${tc.textMuted} mt-1`}>Browse past seasons, rosters, and results</p>
+        <p className={`text-sm uppercase ${tc.textMuted} mt-1`}>Browse past seasons, rosters, and results</p>
       </div>
 
       {/* Org Tabs (only if user has multiple orgs) */}
@@ -606,7 +602,7 @@ function SeasonArchivePage({ showToast, onNavigate }) {
       ) : seasons.length === 0 ? (
         <div className="sa-glass rounded-xl p-12 text-center sa-au">
           <Trophy className={`w-16 h-16 mx-auto ${tc.textMuted} mb-4 opacity-40`} />
-          <h2 className={`sa-display text-2xl ${tc.text} mb-2`}>No Archived Seasons</h2>
+          <h2 className={`text-2xl ${tc.text} mb-2`}>No Archived Seasons</h2>
           <p className={`text-sm ${tc.textMuted} max-w-sm mx-auto`}>
             {selectedOrg?.name ? `${selectedOrg.name} doesn't have any completed seasons yet.` : 'No past seasons found.'} Completed seasons will appear here as a historical record.
           </p>

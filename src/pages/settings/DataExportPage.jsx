@@ -14,7 +14,6 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const DE_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
@@ -23,9 +22,6 @@ const DE_STYLES = `
   .de-ai{animation:fadeIn .3s ease-out both}
   .de-as{animation:scaleIn .25s ease-out both}
   .de-pulse{animation:pulse 1.5s ease-in-out infinite}
-  .de-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .de-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .de-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
   .de-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .de-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
 `
@@ -692,17 +688,17 @@ function DataExportPage({ showToast }) {
         <div className="de-au" style={{ animationDelay: '.05s' }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className={`de-display text-3xl sm:text-4xl ${tc.text}`}>
+              <h1 className={`text-3xl sm:text-4xl ${tc.text}`}>
                 DATA EXPORT
               </h1>
-              <p className={`de-label text-sm ${tc.textMuted} mt-1`}>
+              <p className={`text-sm ${tc.textMuted} mt-1`}>
                 Download your organization's data as CSV or JSON
               </p>
             </div>
             <button
               onClick={loadMetadata}
               disabled={loading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm de-label transition ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${
                 isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'
               }`}
             >
@@ -718,7 +714,7 @@ function DataExportPage({ showToast }) {
             <div className={`de-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5" style={{ color: accentColor }} />
-                <span className={`de-label text-sm ${tc.text}`}>Platform Admin — Export for:</span>
+                <span className={`text-sm ${tc.text}`}>Platform Admin — Export for:</span>
                 <div className="relative flex-1 max-w-xs">
                   <button
                     onClick={() => setShowOrgSelector(!showOrgSelector)}
@@ -761,7 +757,7 @@ function DataExportPage({ showToast }) {
             <div className="flex flex-wrap items-center gap-4">
               {/* Season Filter */}
               <div className="flex items-center gap-2">
-                <span className={`de-label text-xs ${tc.textMuted}`}>SEASON</span>
+                <span className={`text-xs ${tc.textMuted}`}>SEASON</span>
                 <select
                   value={selectedSeasonId}
                   onChange={e => setSelectedSeasonId(e.target.value)}
@@ -778,13 +774,13 @@ function DataExportPage({ showToast }) {
 
               {/* Format Selector */}
               <div className="flex items-center gap-2">
-                <span className={`de-label text-xs ${tc.textMuted}`}>FORMAT</span>
+                <span className={`text-xs ${tc.textMuted}`}>FORMAT</span>
                 <div className={`flex rounded-lg border overflow-hidden ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                   {['csv', 'json'].map(fmt => (
                     <button
                       key={fmt}
                       onClick={() => setExportFormat(fmt)}
-                      className={`px-3 py-1.5 text-sm de-label transition ${
+                      className={`px-3 py-1.5 text-sm transition ${
                         exportFormat === fmt
                           ? `text-white`
                           : isDark ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-white text-slate-500 hover:bg-slate-50'
@@ -812,8 +808,8 @@ function DataExportPage({ showToast }) {
             <div className={`de-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
               <div className="flex items-center gap-3 mb-2">
                 <RefreshCw className="w-4 h-4 animate-spin" style={{ color: accentColor }} />
-                <span className={`de-label text-sm ${tc.text}`}>{progress.step}</span>
-                <span className={`ml-auto de-label text-sm ${tc.textMuted}`}>{progress.percent}%</span>
+                <span className={`text-sm ${tc.text}`}>{progress.step}</span>
+                <span className={`ml-auto text-sm ${tc.textMuted}`}>{progress.percent}%</span>
               </div>
               <div className={`w-full h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
                 <div
@@ -859,9 +855,9 @@ function DataExportPage({ showToast }) {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className={`de-heading text-base ${tc.text}`}>{cat.label}</h3>
+                        <h3 className={`text-base ${tc.text}`}>{cat.label}</h3>
                         {isFullBackup && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] de-label" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
+                          <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: `${cat.color}20`, color: cat.color }}>
                             ALL DATA
                           </span>
                         )}
@@ -870,7 +866,7 @@ function DataExportPage({ showToast }) {
 
                       <div className="flex items-center gap-3 flex-wrap">
                         {/* Row count */}
-                        <span className={`text-xs de-label ${tc.textMuted}`}>
+                        <span className={`text-xs ${tc.textMuted}`}>
                           {loading ? (
                             <span className="de-pulse">Counting...</span>
                           ) : (
@@ -892,7 +888,7 @@ function DataExportPage({ showToast }) {
                     <button
                       onClick={() => handleExport(cat.id)}
                       disabled={isExporting || loading || (count === 0 && !isFullBackup)}
-                      className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm de-label transition-all ${
+                      className={`shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all ${
                         isExporting
                           ? 'opacity-60 cursor-not-allowed'
                           : count === 0 && !isFullBackup
@@ -930,7 +926,7 @@ function DataExportPage({ showToast }) {
           <div className={`flex items-start gap-3 rounded-xl p-4 ${isDark ? 'bg-amber-500/5 border border-amber-500/10' : 'bg-amber-50 border border-amber-200'}`}>
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <p className={`text-xs de-label ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>Data Privacy Notice</p>
+              <p className={`text-xs ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>Data Privacy Notice</p>
               <p className={`text-xs mt-1 ${isDark ? 'text-amber-300/70' : 'text-amber-600'}`}>
                 Exported data may contain sensitive personal information including names, emails, phone numbers, and medical notes.
                 Handle downloaded files securely and in compliance with your organization's data policies.

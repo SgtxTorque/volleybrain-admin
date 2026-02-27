@@ -15,16 +15,12 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const MP_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
   .mp-au{animation:fadeUp .4s ease-out both}
   .mp-ai{animation:fadeIn .3s ease-out both}
   .mp-as{animation:scaleIn .25s ease-out both}
-  .mp-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .mp-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .mp-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
   .mp-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .mp-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .mp-light .mp-glass{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.06);box-shadow:0 4px 24px rgba(0,0,0,.06)}
@@ -110,7 +106,7 @@ function ProfileInfoSection({ profile, user, isDark, tc, accent, showToast, onPr
 
   return (
     <div className="mp-glass rounded-xl p-6 mp-au">
-      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5`}>Profile Information</h2>
+      <h2 className={`text-sm uppercase ${tc.textMuted} mb-5`}>Profile Information</h2>
 
       <div className="flex flex-col sm:flex-row gap-6">
         {/* Avatar */}
@@ -149,7 +145,7 @@ function ProfileInfoSection({ profile, user, isDark, tc, accent, showToast, onPr
         {/* Form Fields */}
         <div className="flex-1 space-y-4">
           <div>
-            <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Full Name</label>
+            <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Full Name</label>
             <input
               type="text"
               value={form.full_name}
@@ -159,7 +155,7 @@ function ProfileInfoSection({ profile, user, isDark, tc, accent, showToast, onPr
             />
           </div>
           <div>
-            <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Email</label>
+            <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Email</label>
             <div className="relative">
               <input
                 type="email"
@@ -172,7 +168,7 @@ function ProfileInfoSection({ profile, user, isDark, tc, accent, showToast, onPr
             <p className={`text-xs ${tc.textMuted} mt-1`}>Email is managed through your account settings</p>
           </div>
           <div>
-            <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Phone</label>
+            <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Phone</label>
             <div className="relative">
               <input
                 type="tel"
@@ -237,14 +233,14 @@ function EmergencyContactSection({ profile, isDark, tc, accent, showToast, onPro
 
   return (
     <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '100ms' }}>
-      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+      <h2 className={`text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <AlertTriangle className="w-4 h-4 text-amber-400" />
         Emergency Contact
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Contact Name</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Contact Name</label>
           <input
             type="text"
             value={form.emergency_contact_name}
@@ -255,7 +251,7 @@ function EmergencyContactSection({ profile, isDark, tc, accent, showToast, onPro
           />
         </div>
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Phone</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Phone</label>
           <input
             type="tel"
             value={form.emergency_contact_phone}
@@ -266,7 +262,7 @@ function EmergencyContactSection({ profile, isDark, tc, accent, showToast, onPro
           />
         </div>
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Relationship</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Relationship</label>
           <input
             type="text"
             value={form.emergency_contact_relation}
@@ -368,14 +364,14 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
     <>
       {/* Bio Section */}
       <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
-        <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+        <h2 className={`text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
           <UserCog className="w-4 h-4" style={{ color: accent.primary }} />
           Coach Profile
         </h2>
 
         <div className="space-y-4">
           <div>
-            <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Bio / About Me</label>
+            <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Bio / About Me</label>
             <textarea
               value={bio}
               onChange={e => setBio(e.target.value)}
@@ -400,7 +396,7 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
 
       {/* Assigned Teams */}
       <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '260ms' }}>
-        <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
+        <h2 className={`text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Users className="w-4 h-4" style={{ color: accent.primary }} />
           My Teams
         </h2>
@@ -428,7 +424,7 @@ function CoachSection({ profile, isDark, tc, accent, showToast }) {
 
       {/* Upcoming Schedule */}
       <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '320ms' }}>
-        <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
+        <h2 className={`text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Calendar className="w-4 h-4" style={{ color: accent.primary }} />
           Upcoming Schedule
         </h2>
@@ -527,7 +523,7 @@ function ParentSection({ profile, isDark, tc, accent }) {
     <>
       {/* Children's Profiles */}
       <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '200ms' }}>
-        <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
+        <h2 className={`text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Users className="w-4 h-4" style={{ color: accent.primary }} />
           My Children
         </h2>
@@ -574,7 +570,7 @@ function ParentSection({ profile, isDark, tc, accent }) {
 
       {/* Upcoming Schedule */}
       <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '260ms' }}>
-        <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
+        <h2 className={`text-sm uppercase ${tc.textMuted} mb-4 flex items-center gap-2`}>
           <Calendar className="w-4 h-4" style={{ color: accent.primary }} />
           Upcoming Schedule
         </h2>
@@ -669,7 +665,7 @@ function ChangePasswordSection({ isDark, tc, accent, showToast }) {
 
   return (
     <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '400ms' }}>
-      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+      <h2 className={`text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Key className="w-4 h-4" style={{ color: accent.primary }} />
         Change Password
       </h2>
@@ -677,7 +673,7 @@ function ChangePasswordSection({ isDark, tc, accent, showToast }) {
       <div className="space-y-4 max-w-md">
         {/* Current password (UX safety) */}
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Current Password</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Current Password</label>
           <div className="relative">
             <input
               type={showCurrent ? 'text' : 'password'}
@@ -695,7 +691,7 @@ function ChangePasswordSection({ isDark, tc, accent, showToast }) {
 
         {/* New password */}
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>New Password</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>New Password</label>
           <div className="relative">
             <input
               type={showNew ? 'text' : 'password'}
@@ -715,14 +711,14 @@ function ChangePasswordSection({ isDark, tc, accent, showToast }) {
               <div className={`w-full h-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
                 <div className="h-full rounded-full transition-all duration-300" style={{ width: strength.width, backgroundColor: strength.color }} />
               </div>
-              <p className="text-[11px] mt-1 mp-label" style={{ color: strength.color }}>{strength.label}</p>
+              <p className="text-[11px] mt-1" style={{ color: strength.color }}>{strength.label}</p>
             </div>
           )}
         </div>
 
         {/* Confirm password */}
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Confirm New Password</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Confirm New Password</label>
           <input
             type="password"
             value={form.confirmPassword}
@@ -789,7 +785,7 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
 
   return (
     <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '440ms' }}>
-      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+      <h2 className={`text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Mail className="w-4 h-4" style={{ color: accent.primary }} />
         Change Email
       </h2>
@@ -797,7 +793,7 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
       <div className="space-y-4 max-w-md">
         {/* Current email */}
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Current Email</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Current Email</label>
           <div className={`px-3 py-2.5 rounded-xl text-sm ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-slate-50 border border-slate-200'} ${tc.textMuted}`}>
             {user?.email || profile?.email || '—'}
           </div>
@@ -805,7 +801,7 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
 
         {/* New email */}
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>New Email</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>New Email</label>
           <input
             type="email"
             value={newEmail}
@@ -818,7 +814,7 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
 
         {/* Password confirmation */}
         <div>
-          <label className={`mp-label text-xs uppercase ${tc.textMuted} block mb-1`}>Confirm Password</label>
+          <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Confirm Password</label>
           <input
             type="password"
             value={password}
@@ -912,7 +908,7 @@ function OrgMembershipsSection({ profile, isDark, tc, accent }) {
 
   return (
     <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '480ms' }}>
-      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+      <h2 className={`text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Building2 className="w-4 h-4" style={{ color: accent.primary }} />
         Organization Memberships
       </h2>
@@ -923,7 +919,7 @@ function OrgMembershipsSection({ profile, isDark, tc, accent }) {
           <p className={`text-sm ${tc.textMuted} mb-3`}>You're not part of any organization yet</p>
           <button
             onClick={() => navigate('/directory')}
-            className="px-4 py-2 rounded-xl text-sm mp-label text-white transition hover:opacity-90"
+            className="px-4 py-2 rounded-xl text-sm text-white transition hover:opacity-90"
             style={{ background: accent.primary }}
           >
             Browse Org Directory
@@ -1003,7 +999,7 @@ function DeleteAccountSection({ profile, isDark, tc, showToast }) {
         border: `1px solid ${isDark ? 'rgba(239,68,68,.15)' : 'rgba(239,68,68,.2)'}`,
       }}
     >
-      <h2 className={`mp-heading text-sm uppercase mb-5 flex items-center gap-2 ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+      <h2 className={`text-sm uppercase mb-5 flex items-center gap-2 ${isDark ? 'text-red-300' : 'text-red-700'}`}>
         <Trash2 className="w-4 h-4 text-red-400" />
         Danger Zone
       </h2>
@@ -1018,7 +1014,7 @@ function DeleteAccountSection({ profile, isDark, tc, showToast }) {
           </div>
           <button
             onClick={() => setShowConfirm(true)}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-sm mp-label transition ${isDark ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-sm transition ${isDark ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20' : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'}`}
           >
             Delete My Account
           </button>
@@ -1037,7 +1033,7 @@ function DeleteAccountSection({ profile, isDark, tc, showToast }) {
           </div>
 
           <div>
-            <label className={`mp-label text-xs uppercase block mb-1 ${isDark ? 'text-red-300/70' : 'text-red-700'}`}>
+            <label className={`text-xs uppercase block mb-1 ${isDark ? 'text-red-300/70' : 'text-red-700'}`}>
               Type DELETE to confirm
             </label>
             <input
@@ -1056,14 +1052,14 @@ function DeleteAccountSection({ profile, isDark, tc, showToast }) {
             <button
               onClick={handleDelete}
               disabled={confirmText !== 'DELETE' || deleting}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm mp-label text-white transition hover:opacity-90 disabled:opacity-40 bg-red-500"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm text-white transition hover:opacity-90 disabled:opacity-40 bg-red-500"
             >
               {deleting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
               {deleting ? 'Deleting...' : 'Permanently Delete Account'}
             </button>
             <button
               onClick={() => { setShowConfirm(false); setConfirmText('') }}
-              className={`px-5 py-2.5 rounded-xl text-sm mp-label transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+              className={`px-5 py-2.5 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
             >
               Cancel
             </button>
@@ -1223,7 +1219,7 @@ function MyHistorySection({ profile, isDark, tc, accent, onNavigateToArchive }) 
 
   return (
     <div className="mp-glass rounded-xl p-6 mp-au" style={{ animationDelay: '600ms' }}>
-      <h2 className={`mp-heading text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
+      <h2 className={`text-sm uppercase ${tc.textMuted} mb-5 flex items-center gap-2`}>
         <Trophy className="w-4 h-4" style={{ color: accent.primary }} />
         My History
       </h2>
@@ -1326,11 +1322,11 @@ function MyProfilePage({ showToast }) {
 
       {/* Header */}
       <div className="mp-au mb-6">
-        <h1 className={`mp-display text-4xl ${tc.text} flex items-center gap-3`}>
+        <h1 className={`text-4xl ${tc.text} flex items-center gap-3`}>
           <User className="w-8 h-8" style={{ color: accent.primary }} />
           My Profile
         </h1>
-        <p className={`mp-label text-sm uppercase ${tc.textMuted} mt-1`}>Manage your personal information</p>
+        <p className={`text-sm uppercase ${tc.textMuted} mt-1`}>Manage your personal information</p>
       </div>
 
       {/* Content */}

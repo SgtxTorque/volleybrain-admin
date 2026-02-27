@@ -16,7 +16,6 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const FNL_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
@@ -24,8 +23,6 @@ const FNL_STYLES = `
   .fnl-au{animation:fadeUp .4s ease-out both}
   .fnl-ai{animation:fadeIn .3s ease-out both}
   .fnl-as{animation:scaleIn .25s ease-out both}
-  .fnl-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .fnl-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
   .fnl-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .fnl-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .fnl-nos::-webkit-scrollbar{display:none}.fnl-nos{-ms-overflow-style:none;scrollbar-width:none}
@@ -313,19 +310,19 @@ function RegistrationFunnelPage({ showToast }) {
 
   // ═══════ RENDER ═══════
   return (
-    <div className={`flex flex-col h-[calc(100vh-100px)] ${!isDark ? 'fnl-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
+    <div className={`flex flex-col h-[calc(100vh-100px)] ${!isDark ? 'fnl-light' : ''}`}>
       <style>{FNL_STYLES}</style>
 
       {/* HEADER */}
       <div className="px-6 py-5 fnl-glass-solid" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className={`fnl-display text-3xl font-bold ${tc.text}`}>REGISTRATION FUNNEL</h1>
+            <h1 className={`text-3xl font-bold ${tc.text}`}>REGISTRATION FUNNEL</h1>
             <p className={`text-sm mt-0.5 ${tc.textMuted}`}>Track your registration pipeline from views to payment</p>
           </div>
           <div className="flex items-center gap-4">
             <div>
-              <label className={`block text-[10px] font-bold fnl-heading tracking-wider mb-1 ${tc.textMuted}`}>DATE RANGE</label>
+              <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>DATE RANGE</label>
               <select value={dateRange} onChange={e => setDateRange(e.target.value)} className="px-3 py-2 text-sm rounded-xl outline-none min-w-[140px]" style={gi}>
                 <option value="all">All Time</option>
                 <option value="7d">Last 7 Days</option>
@@ -334,7 +331,7 @@ function RegistrationFunnelPage({ showToast }) {
               </select>
             </div>
             <div>
-              <label className={`block text-[10px] font-bold fnl-heading tracking-wider mb-1 ${tc.textMuted}`}>SEASON</label>
+              <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SEASON</label>
               <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className="px-3 py-2 text-sm rounded-xl outline-none min-w-[180px]" style={gi}>
                 <option value="">Select Season</option>
                 {seasons.map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '●' : s.status === 'upcoming' ? '○' : '◌'}</option>)}
@@ -394,14 +391,14 @@ function RegistrationFunnelPage({ showToast }) {
                         </div>
                       </div>
                       <p className={`text-2xl font-bold ${tc.text}`}>{m.raw ? m.value : m.value.toLocaleString()}</p>
-                      <p className={`text-[10px] font-bold fnl-heading tracking-wider mt-1 ${tc.textMuted}`}>{m.label}</p>
+                      <p className={`text-[10px] font-bold tracking-wider mt-1 ${tc.textMuted}`}>{m.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Funnel Visualization */}
                 <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.15s' }}>
-                  <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>CONVERSION FUNNEL</h2>
+                  <h2 className={`text-lg font-bold mb-1 ${tc.text}`}>CONVERSION FUNNEL</h2>
                   <p className={`text-xs mb-6 ${tc.textMuted}`}>
                     {hasFunnelTable ? 'Full funnel tracking active' : 'Based on existing registration & payment data — run the SQL migration to enable full page view tracking'}
                   </p>
@@ -460,15 +457,15 @@ function RegistrationFunnelPage({ showToast }) {
                 {/* Revenue Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="p-5 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.25s' }}>
-                    <p className={`text-[10px] font-bold fnl-heading tracking-wider ${tc.textMuted}`}>TOTAL EXPECTED</p>
+                    <p className={`text-[10px] font-bold tracking-wider ${tc.textMuted}`}>TOTAL EXPECTED</p>
                     <p className={`text-2xl font-bold mt-1 ${tc.text}`}>${metrics.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                   </div>
                   <div className="p-5 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.3s' }}>
-                    <p className={`text-[10px] font-bold fnl-heading tracking-wider ${tc.textMuted}`}>COLLECTED</p>
+                    <p className={`text-[10px] font-bold tracking-wider ${tc.textMuted}`}>COLLECTED</p>
                     <p className="text-2xl font-bold mt-1" style={{ color: '#10b981' }}>${metrics.collectedRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                   </div>
                   <div className="p-5 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.35s' }}>
-                    <p className={`text-[10px] font-bold fnl-heading tracking-wider ${tc.textMuted}`}>COLLECTION RATE</p>
+                    <p className={`text-[10px] font-bold tracking-wider ${tc.textMuted}`}>COLLECTION RATE</p>
                     <p className="text-2xl font-bold mt-1" style={{ color: accent.primary }}>
                       {metrics.totalRevenue > 0 ? Math.round((metrics.collectedRevenue / metrics.totalRevenue) * 100) : 0}%
                     </p>
@@ -567,7 +564,7 @@ function RegistrationFunnelPage({ showToast }) {
                               { id: 'balance', label: 'Balance' },
                             ].map(col => (
                               <th key={col.id} onClick={() => handlePipelineSort(col.id)}
-                                className={`px-4 py-3 text-left text-[10px] font-bold fnl-heading tracking-wider cursor-pointer whitespace-nowrap ${tc.textMuted}`}>
+                                className={`px-4 py-3 text-left text-[10px] font-bold tracking-wider cursor-pointer whitespace-nowrap ${tc.textMuted}`}>
                                 {col.label}{pipelineSort.field === col.id && <span className="ml-1">{pipelineSort.dir === 'asc' ? '↑' : '↓'}</span>}
                               </th>
                             ))}
@@ -613,7 +610,7 @@ function RegistrationFunnelPage({ showToast }) {
               <div className="space-y-6">
                 {/* Registrations Over Time */}
                 <div className="p-6 rounded-xl fnl-au" style={gc}>
-                  <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>REGISTRATIONS OVER TIME</h2>
+                  <h2 className={`text-lg font-bold mb-1 ${tc.text}`}>REGISTRATIONS OVER TIME</h2>
                   <p className={`text-xs mb-5 ${tc.textMuted}`}>Weekly registration volume</p>
 
                   {metrics.timeline.length === 0 ? (
@@ -649,7 +646,7 @@ function RegistrationFunnelPage({ showToast }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Source Breakdown */}
                   <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.1s' }}>
-                    <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>TRAFFIC SOURCES</h2>
+                    <h2 className={`text-lg font-bold mb-1 ${tc.text}`}>TRAFFIC SOURCES</h2>
                     <p className={`text-xs mb-5 ${tc.textMuted}`}>Where registrants come from</p>
 
                     {!hasFunnelTable || Object.keys(metrics.sources).length === 0 ? (
@@ -686,7 +683,7 @@ function RegistrationFunnelPage({ showToast }) {
 
                   {/* Payment Completion Breakdown */}
                   <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.15s' }}>
-                    <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>PAYMENT STATUS</h2>
+                    <h2 className={`text-lg font-bold mb-1 ${tc.text}`}>PAYMENT STATUS</h2>
                     <p className={`text-xs mb-5 ${tc.textMuted}`}>Breakdown of payment completion</p>
 
                     {metrics.totalRegistrations === 0 ? (
@@ -723,7 +720,7 @@ function RegistrationFunnelPage({ showToast }) {
                 {/* Season Comparison */}
                 {seasons.length > 1 && (
                   <div className="p-6 rounded-xl fnl-au" style={{ ...gc, animationDelay: '.2s' }}>
-                    <h2 className={`fnl-heading text-lg font-bold mb-1 ${tc.text}`}>SEASON COMPARISON</h2>
+                    <h2 className={`text-lg font-bold mb-1 ${tc.text}`}>SEASON COMPARISON</h2>
                     <p className={`text-xs mb-5 ${tc.textMuted}`}>Registration counts across seasons (selected season highlighted)</p>
 
                     <SeasonComparisonChart

@@ -16,15 +16,12 @@ import {
 // ═══════════════════════════════════════════════════════════
 
 const RPT_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
   .rpt-au{animation:fadeUp .4s ease-out both}
   .rpt-ai{animation:fadeIn .3s ease-out both}
   .rpt-as{animation:scaleIn .25s ease-out both}
-  .rpt-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .rpt-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
   .rpt-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .rpt-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .rpt-nos::-webkit-scrollbar{display:none}.rpt-nos{-ms-overflow-style:none;scrollbar-width:none}
@@ -541,20 +538,20 @@ function ReportsPage({ showToast }) {
   const gi = `${tc.inputBg} border ${tc.border} ${tc.text} rounded-xl`
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-100px)] ${!isDark ? 'rpt-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
+    <div className={`flex flex-col h-[calc(100vh-100px)] ${!isDark ? 'rpt-light' : ''}`}>
       <style>{RPT_STYLES}</style>
       
       {/* TOP HEADER */}
       <div className={`px-6 py-5 rpt-glass-solid border-b ${tc.border}`}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className={`rpt-display text-3xl font-bold ${tc.text}`}>REPORTS & ANALYTICS</h1>
+            <h1 className={`text-3xl font-bold ${tc.text}`}>REPORTS & ANALYTICS</h1>
             <p className={`text-sm mt-0.5 ${tc.textMuted}`}>Generate, customize, and export reports</p>
           </div>
           <div className="flex items-center gap-4">
             {sports.length > 0 && (
               <div>
-                <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>SPORT</label>
+                <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SPORT</label>
                 <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className={`px-3 py-2 text-sm outline-none min-w-[140px] ${gi}`}>
                   <option value="all">All Sports</option>
                   {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
@@ -562,7 +559,7 @@ function ReportsPage({ showToast }) {
               </div>
             )}
             <div>
-              <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>SEASON</label>
+              <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SEASON</label>
               <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`px-3 py-2 text-sm outline-none min-w-[180px] ${gi}`}>
                 <option value="">Select Season</option>
                 {seasons.map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '●' : s.status === 'upcoming' ? '○' : '◌'}</option>)}
@@ -684,7 +681,7 @@ function ReportsPage({ showToast }) {
                   const isMon = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i])
                   return (<div key={label} className={`p-4 rpt-au ${gc}`} style={{ animationDelay: `${i*.05}s` }}>
                     <p className={`text-2xl font-bold ${tc.text}`}>{isMon ? `$${Number(v).toLocaleString()}` : keys[i].includes('Rate') ? `${v}%` : v}</p>
-                    <p className={`text-[10px] font-bold rpt-heading tracking-wider mt-1 ${tc.textMuted}`}>{label}</p>
+                    <p className={`text-[10px] font-bold tracking-wider mt-1 ${tc.textMuted}`}>{label}</p>
                   </div>)
                 })}
               </div>
@@ -714,12 +711,12 @@ function ReportsPage({ showToast }) {
               <div className={`p-4 mb-4 rpt-as ${gc}`}>
                 <div className="flex flex-wrap gap-4">
                   <div className="flex-1 min-w-[200px]">
-                    <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>SEARCH</label>
+                    <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SEARCH</label>
                     <input type="text" value={filters.search} onChange={e => setFilters({ ...filters, search: e.target.value })} placeholder="Search..." className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
                   </div>
                   {['players','jerseys','schedule'].includes(activeReport) && teams.length > 0 && (
                     <div className="min-w-[160px]">
-                      <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>TEAM</label>
+                      <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>TEAM</label>
                       <select value={filters.team} onChange={e => setFilters({ ...filters, team: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`}>
                         <option value="all">All Teams</option>
                         {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -728,7 +725,7 @@ function ReportsPage({ showToast }) {
                   )}
                   {statusOptions.length > 0 && (
                     <div className="min-w-[140px]">
-                      <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>STATUS</label>
+                      <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>STATUS</label>
                       <select value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`}>
                         {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
@@ -737,11 +734,11 @@ function ReportsPage({ showToast }) {
                   {activeReport === 'financial' && (
                     <>
                       <div className="min-w-[140px]">
-                        <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>FROM DATE</label>
+                        <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>FROM DATE</label>
                         <input type="date" value={filters.dateFrom} onChange={e => setFilters({ ...filters, dateFrom: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
                       </div>
                       <div className="min-w-[140px]">
-                        <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>TO DATE</label>
+                        <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>TO DATE</label>
                         <input type="date" value={filters.dateTo} onChange={e => setFilters({ ...filters, dateTo: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
                       </div>
                     </>
@@ -772,7 +769,7 @@ function ReportsPage({ showToast }) {
                         <tr>
                           {columns.map(col => (
                             <th key={col.id} onClick={() => col.sortable && handleSort(col.id)}
-                              className={`px-4 py-3 text-left text-[10px] font-bold rpt-heading tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer' : ''} ${tc.textMuted}`}
+                              className={`px-4 py-3 text-left text-[10px] font-bold tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer' : ''} ${tc.textMuted}`}
                               onMouseEnter={e => { if (col.sortable) e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.7)' }}
                               onMouseLeave={e => { if (col.sortable) e.currentTarget.style.color = '' }}>
                               {col.label}{col.sortable && sortField === col.id && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
