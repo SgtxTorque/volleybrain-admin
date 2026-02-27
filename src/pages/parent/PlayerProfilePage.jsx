@@ -574,7 +574,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 </div>
 
                 {editingInfo ? (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                     <div className="grid grid-cols-2 gap-4">
                       <FormField label="First Name" value={infoForm.first_name} onChange={v => setInfoForm({ ...infoForm, first_name: v })} />
                       <FormField label="Last Name" value={infoForm.last_name} onChange={v => setInfoForm({ ...infoForm, last_name: v })} />
@@ -596,7 +596,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     <SaveCancelBtns onSave={savePlayerInfo} onCancel={() => setEditingInfo(false)} />
                   </div>
                 ) : (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl px-5`}>
                     <InfoRow label="Full Name" value={`${player.first_name} ${player.last_name}`} icon="👤" />
                     <InfoRow label="Date of Birth" value={player.date_of_birth ? new Date(player.date_of_birth + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : null} icon="🎂" />
                     <InfoRow label="Gender" value={infoForm.gender ? infoForm.gender.charAt(0).toUpperCase() + infoForm.gender.slice(1).replace(/_/g, ' ') : null} icon="⚧" />
@@ -613,7 +613,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {(infoForm.address || infoForm.city || infoForm.state || infoForm.zip) && !editingInfo && (
                 <div>
                   <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl px-5`}>
                     {infoForm.address && <InfoRow label="Street" value={infoForm.address} icon="📍" />}
                     <InfoRow label="City / State / Zip" value={[infoForm.city, infoForm.state, infoForm.zip].filter(Boolean).join(', ') || null} icon="🌐" />
                   </div>
@@ -622,7 +622,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {editingInfo && (
                 <div>
                   <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                     <FormField label="Street Address" value={infoForm.address} onChange={v => setInfoForm({ ...infoForm, address: v })} placeholder="123 Main St" />
                     <div className="grid grid-cols-3 gap-4">
                       <FormField label="City" value={infoForm.city} onChange={v => setInfoForm({ ...infoForm, city: v })} placeholder="City" />
@@ -640,7 +640,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                   {!editingInfo && <EditBtn onClick={() => setEditingInfo(true)} />}
                 </div>
                 {editingInfo ? (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                     <FormField label="Parent Name" value={infoForm.parent_name} onChange={v => setInfoForm({ ...infoForm, parent_name: v })} />
                     <div className="grid grid-cols-2 gap-4">
                       <FormField label="Email" value={infoForm.parent_email} onChange={v => setInfoForm({ ...infoForm, parent_email: v })} type="email" />
@@ -648,7 +648,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     </div>
                   </div>
                 ) : (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl px-5`}>
                     <InfoRow label="Parent Name" value={infoForm.parent_name} icon="👤" />
                     <InfoRow label="Email" value={infoForm.parent_email} icon="✉️" />
                     <InfoRow label="Phone" value={infoForm.parent_phone} icon="📱" />
@@ -661,7 +661,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 <div>
                   <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>👥 Parent / Guardian 2</h3>
                   {editingInfo ? (
-                    <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                    <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                       <FormField label="Parent 2 Name" value={infoForm.parent2_name} onChange={v => setInfoForm({ ...infoForm, parent2_name: v })} placeholder="Optional" />
                       <div className="grid grid-cols-2 gap-4">
                         <FormField label="Email" value={infoForm.parent2_email} onChange={v => setInfoForm({ ...infoForm, parent2_email: v })} type="email" placeholder="Optional" />
@@ -669,7 +669,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                       </div>
                     </div>
                   ) : (
-                    <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                    <div className={`${tc.cardBgAlt} rounded-2xl px-5`}>
                       <InfoRow label="Parent 2 Name" value={infoForm.parent2_name} icon="👤" />
                       <InfoRow label="Email" value={infoForm.parent2_email} icon="✉️" />
                       <InfoRow label="Phone" value={infoForm.parent2_phone} icon="📱" />
@@ -733,7 +733,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 </div>
 
                 {editingJersey ? (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                     <p className={`text-sm ${tc.textMuted}`}>Set your preferred numbers and uniform sizes. The admin will try to honor your choices!</p>
                     
                     {/* Number preferences */}
@@ -818,7 +818,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     <SaveCancelBtns onSave={saveJerseyPreferences} onCancel={() => setEditingJersey(false)} />
                   </div>
                 ) : (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5`}>
                     <div className={`grid ${gridCols} gap-4 text-center`}>
                       <div>
                         <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>1st Choice</p>
@@ -855,7 +855,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 </div>
 
                 {editingEmergency ? (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField label="Contact Name" value={emergencyForm.name} onChange={v => setEmergencyForm({ ...emergencyForm, name: v })} placeholder="Full name" />
                       <FormField label="Phone Number" value={emergencyForm.phone} onChange={v => setEmergencyForm({ ...emergencyForm, phone: v })} type="tel" placeholder="(555) 123-4567" />
@@ -865,7 +865,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     <SaveCancelBtns onSave={saveEmergencyContact} onCancel={() => setEditingEmergency(false)} />
                   </div>
                 ) : (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl px-5`}>
                     <InfoRow label="Name" value={player.emergency_contact_name || player.emergency_name} icon="👤" />
                     <InfoRow label="Phone" value={player.emergency_contact_phone || player.emergency_phone} icon="📱" />
                     <InfoRow label="Relationship" value={player.emergency_contact_relation || player.emergency_relation} icon="🤝" />
@@ -887,7 +887,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 </div>
 
                 {editingMedical ? (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 space-y-4`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl p-5 space-y-4`}>
                     <div>
                       <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>Medical Conditions</label>
                       <textarea value={medicalForm.conditions} onChange={e => setMedicalForm({ ...medicalForm, conditions: e.target.value })}
@@ -903,7 +903,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     <SaveCancelBtns onSave={saveMedicalInfo} onCancel={() => setEditingMedical(false)} />
                   </div>
                 ) : (
-                  <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl px-5`}>
+                  <div className={`${tc.cardBgAlt} rounded-2xl px-5`}>
                     <InfoRow label="Conditions" value={player.medical_conditions || player.medical_notes || 'None reported'} icon="💊" />
                     <InfoRow label="Allergies" value={player.allergies || 'None reported'} icon="⚠️" />
                   </div>
@@ -925,7 +925,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {seasonHistory.length > 0 ? (
                 <div className="space-y-3">
                   {seasonHistory.map((season, i) => (
-                    <div key={i} className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 flex items-center gap-4`}>
+                    <div key={i} className={`${tc.cardBgAlt} rounded-2xl p-5 flex items-center gap-4`}>
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg text-white font-bold shadow-md" style={{ backgroundColor: season.teamColor }}>
                         {season.sportIcon}
                       </div>
@@ -946,7 +946,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                   ))}
                 </div>
               ) : (
-                <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-8 text-center`}>
+                <div className={`${tc.cardBgAlt} rounded-2xl p-8 text-center`}>
                   <span className="text-5xl">📋</span>
                   <p className={`${tc.textSecondary} mt-3 font-medium`}>No season history yet</p>
                   <p className={`text-sm ${tc.textMuted} mt-1`}>Past seasons will appear here once completed.</p>
@@ -1076,7 +1076,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
             { label: 'Photo Release', signed: player.waiver_photo, icon: '📸' },
             { label: 'Code of Conduct', signed: player.waiver_conduct, icon: '🤝' },
           ].map(waiver => (
-            <div key={waiver.label} className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-5 text-center`}>
+            <div key={waiver.label} className={`${tc.cardBgAlt} rounded-2xl p-5 text-center`}>
               <span className="text-3xl">{waiver.icon}</span>
               <p className={`font-semibold ${tc.text} mt-2`}>{waiver.label}</p>
               <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
@@ -1127,7 +1127,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
       {/* Waiver Cards */}
       {waiverTemplates.length === 0 ? (
-        <div className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} rounded-2xl p-8 text-center`}>
+        <div className={`${tc.cardBgAlt} rounded-2xl p-8 text-center`}>
           <span className="text-5xl">📋</span>
           <p className={`${tc.textSecondary} mt-3 font-medium`}>No waivers available</p>
           <p className={`text-sm ${tc.textMuted} mt-1`}>The league admin hasn't created any waivers yet.</p>
