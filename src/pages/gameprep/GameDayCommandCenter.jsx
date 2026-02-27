@@ -6,14 +6,7 @@ import CourtPlayerCard, { positionColors } from './CourtPlayerCard'
 import Scoreboard from './Scoreboard'
 import PostGameSummary from './PostGameSummary'
 
-// Tactical font import
-const GD_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
-if (!GD_FONT_LINK) {
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap'
-  document.head.appendChild(link)
-}
+// Fonts loaded by GamePrepPage (parent context)
 
 // ============================================
 // CONSTANTS & CONFIGURATION

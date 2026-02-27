@@ -13,11 +13,19 @@ import { GameDayCommandCenter } from './GameDayCommandCenter'
 import GameCard from './GameCard'
 import GamePrepCompletionModal from './GamePrepCompletionModal'
 
+// Tactical font loading (shared with GameDayCommandCenter)
+const GP_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
+if (!GP_FONT_LINK) {
+  const link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap'
+  document.head.appendChild(link)
+}
+
 // ============================================
 // TACTICAL BLUEPRINT STYLES
 // ============================================
 const gpStyles = `
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
 .gp-wrap{
   min-height:100vh;background:#0a0a0f;color:#e2e8f0;position:relative;
 }
