@@ -1077,6 +1077,7 @@ function MainApp() {
         {/* Main Content Area — React Router */}
         <div className={`flex-1 relative z-10 ${
           (activeView === 'admin' && mainLocation.pathname === '/dashboard')
+            || (activeView === 'coach' && mainLocation.pathname === '/dashboard')
             || (activeView === 'parent' && mainLocation.pathname === '/dashboard')
             || mainLocation.pathname.startsWith('/teams/')
             ? 'overflow-hidden'
