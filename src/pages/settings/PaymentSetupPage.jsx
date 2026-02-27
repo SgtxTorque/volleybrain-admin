@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
   CreditCard, Key, CheckCircle, AlertCircle, ExternalLink,
@@ -9,6 +10,8 @@ import {
 
 function PaymentSetupPage({ showToast }) {
   const { organization, setOrganization } = useAuth()
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   
   // Manual payment settings
   const [settings, setSettings] = useState({ 
@@ -146,11 +149,11 @@ async function testStripeConnection() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+          <h1 className={`text-3xl font-bold ${tc.text} flex items-center gap-3`}>
             <DollarSign className="w-8 h-8" />
             Payment Setup
           </h1>
-          <p className="text-slate-400 mt-1">Configure how parents can pay fees</p>
+          <p className={`${tc.textMuted} mt-1`}>Configure how parents can pay fees</p>
         </div>
         <button 
           onClick={handleSave} 
@@ -172,13 +175,13 @@ async function testStripeConnection() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-slate-700 pb-2">
+      <div className={`flex gap-2 border-b ${tc.border} pb-2`}>
         <button
           onClick={() => setActiveTab('manual')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             activeTab === 'manual'
-              ? 'bg-slate-700 text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+              : `${tc.textMuted} ${isDark ? 'hover:text-white hover:bg-slate-800' : 'hover:text-slate-900 hover:bg-slate-50'}`
           }`}
         >
           💵 Manual Payments
@@ -187,8 +190,8 @@ async function testStripeConnection() {
           onClick={() => setActiveTab('stripe')}
           className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
             activeTab === 'stripe'
-              ? 'bg-slate-700 text-white'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+              : `${tc.textMuted} ${isDark ? 'hover:text-white hover:bg-slate-800' : 'hover:text-slate-900 hover:bg-slate-50'}`
           }`}
         >
           <CreditCard className="w-4 h-4" />
@@ -202,9 +205,9 @@ async function testStripeConnection() {
       {/* Manual Payments Tab */}
       {activeTab === 'manual' && (
         <div className="space-y-6">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-white">Manual Payment Methods</h2>
-            <p className="text-slate-400 text-sm">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6 space-y-4`}>
+            <h2 className={`text-lg font-semibold ${tc.text}`}>Manual Payment Methods</h2>
+            <p className={`${tc.textMuted} text-sm`}>
               Parents will see these options and send payment directly to you.
             </p>
             
@@ -213,32 +216,32 @@ async function testStripeConnection() {
               { key: 'zelleEmail', label: 'Zelle', placeholder: 'email@example.com', color: '#6D1ED4', icon: 'Z' },
               { key: 'cashappHandle', label: 'Cash App', placeholder: '$YourCashApp', color: '#00D632', icon: '$' },
             ].map(p => (
-              <div key={p.key} className="p-4 bg-slate-900 rounded-xl">
+              <div key={p.key} className={`p-4 ${tc.cardBgAlt} rounded-xl`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <div 
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" 
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
                     style={{ backgroundColor: p.color + '30', color: p.color }}
                   >
                     {p.icon}
                   </div>
-                  <span className="text-white font-medium">{p.label}</span>
+                  <span className={`${tc.text} font-medium`}>{p.label}</span>
                 </div>
-                <input 
-                  type="text" 
-                  value={settings[p.key]} 
-                  onChange={e => setSettings({...settings, [p.key]: e.target.value})} 
+                <input
+                  type="text"
+                  value={settings[p.key]}
+                  onChange={e => setSettings({...settings, [p.key]: e.target.value})}
                   placeholder={p.placeholder}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500" 
+                  className={`w-full ${tc.input} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500`}
                 />
               </div>
             ))}
           </div>
 
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
             <label className="flex items-center justify-between cursor-pointer">
               <div>
-                <p className="font-medium text-white">Accept Manual Payments</p>
-                <p className="text-sm text-slate-400">Show Venmo/Zelle/Cash App options during checkout</p>
+                <p className={`font-medium ${tc.text}`}>Accept Manual Payments</p>
+                <p className={`text-sm ${tc.textMuted}`}>Show Venmo/Zelle/Cash App options during checkout</p>
               </div>
               <input 
                 type="checkbox" 
@@ -283,17 +286,17 @@ async function testStripeConnection() {
           </div>
 
           {/* Enable/Disable Toggle */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  stripeSettings.stripe_enabled ? 'bg-emerald-500/20' : 'bg-slate-700'
+                  stripeSettings.stripe_enabled ? 'bg-emerald-500/20' : isDark ? 'bg-slate-700' : 'bg-slate-100'
                 }`}>
-                  <Zap className={`w-6 h-6 ${stripeSettings.stripe_enabled ? 'text-emerald-400' : 'text-slate-400'}`} />
+                  <Zap className={`w-6 h-6 ${stripeSettings.stripe_enabled ? 'text-emerald-400' : tc.textMuted}`} />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold">Online Card Payments</h3>
-                  <p className="text-slate-400 text-sm">
+                  <h3 className={`${tc.text} font-semibold`}>Online Card Payments</h3>
+                  <p className={`${tc.textMuted} text-sm`}>
                     {stripeSettings.stripe_enabled 
                       ? 'Parents can pay with credit/debit cards'
                       : 'Enable to accept card payments via Stripe'
@@ -317,43 +320,43 @@ async function testStripeConnection() {
           {stripeSettings.stripe_enabled && (
             <>
               {/* Mode Selection */}
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
+                <h3 className={`${tc.text} font-semibold mb-4 flex items-center gap-2`}>
                   <Shield className="w-5 h-5" />
                   Environment Mode
                 </h3>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setStripeSettings(prev => ({ ...prev, stripe_mode: 'test' }))}
                     className={`p-4 rounded-xl border-2 transition text-left ${
                       stripeSettings.stripe_mode === 'test'
                         ? 'border-amber-500 bg-amber-500/10'
-                        : 'border-slate-600 hover:border-slate-500'
+                        : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-3 h-3 rounded-full ${stripeSettings.stripe_mode === 'test' ? 'bg-amber-500' : 'bg-slate-500'}`} />
-                      <span className="font-semibold text-white">Test Mode</span>
+                      <span className={`font-semibold ${tc.text}`}>Test Mode</span>
                     </div>
-                    <p className="text-sm text-slate-400">
+                    <p className={`text-sm ${tc.textMuted}`}>
                       Use test API keys. No real charges.
                     </p>
                   </button>
-                  
+
                   <button
                     onClick={() => setStripeSettings(prev => ({ ...prev, stripe_mode: 'live' }))}
                     className={`p-4 rounded-xl border-2 transition text-left ${
                       stripeSettings.stripe_mode === 'live'
                         ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-slate-600 hover:border-slate-500'
+                        : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-3 h-3 rounded-full ${stripeSettings.stripe_mode === 'live' ? 'bg-emerald-500' : 'bg-slate-500'}`} />
-                      <span className="font-semibold text-white">Live Mode</span>
+                      <span className={`font-semibold ${tc.text}`}>Live Mode</span>
                     </div>
-                    <p className="text-sm text-slate-400">
+                    <p className={`text-sm ${tc.textMuted}`}>
                       Real payments will be processed.
                     </p>
                   </button>
@@ -373,8 +376,8 @@ async function testStripeConnection() {
               </div>
 
               {/* API Keys */}
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
+                <h3 className={`${tc.text} font-semibold mb-4 flex items-center gap-2`}>
                   <Key className="w-5 h-5" />
                   API Keys
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -386,7 +389,7 @@ async function testStripeConnection() {
                   </span>
                 </h3>
                 
-                <p className="text-slate-400 text-sm mb-4">
+                <p className={`${tc.textMuted} text-sm mb-4`}>
                   Get your API keys from{' '}
                   <a 
                     href={`https://dashboard.stripe.com/${stripeSettings.stripe_mode === 'test' ? 'test/' : ''}apikeys`}
@@ -401,26 +404,26 @@ async function testStripeConnection() {
                 <div className="space-y-4">
                   {/* Publishable Key */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className={`block text-sm font-medium ${tc.text} mb-2`}>
                       Publishable Key
-                      <span className="text-slate-500 font-normal ml-2">(starts with pk_)</span>
+                      <span className={`${tc.textMuted} font-normal ml-2`}>(starts with pk_)</span>
                     </label>
                     <input
                       type="text"
                       value={stripeSettings.stripe_publishable_key}
                       onChange={e => setStripeSettings(prev => ({ ...prev, stripe_publishable_key: e.target.value }))}
                       placeholder={`pk_${stripeSettings.stripe_mode}_...`}
-                      className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono text-sm"
+                      className={`w-full px-4 py-3 ${tc.input} rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono text-sm`}
                     />
                   </div>
                   
                   {/* Secret Key - Info Only */}
-                  <div className="p-4 bg-slate-700/50 rounded-lg">
+                  <div className={`p-4 ${tc.cardBgAlt} rounded-lg`}>
                     <div className="flex items-start gap-3">
                       <Shield className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-slate-300 font-medium text-sm">Secret Key</p>
-                        <p className="text-slate-400 text-sm mt-1">
+                        <p className={`${tc.text} font-medium text-sm`}>Secret Key</p>
+                        <p className={`${tc.textMuted} text-sm mt-1`}>
                           Your secret key (sk_...) should be stored securely in your Supabase Edge Function secrets, not here.
                           This will be set up when you deploy the payment processing functions.
                         </p>
@@ -430,11 +433,11 @@ async function testStripeConnection() {
                 </div>
                 
                 {/* Test Connection */}
-                <div className="mt-6 pt-4 border-t border-slate-700">
+                <div className={`mt-6 pt-4 border-t ${tc.border}`}>
                   <button
                     onClick={testStripeConnection}
                     disabled={testing || !stripeSettings.stripe_publishable_key}
-                    className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition disabled:opacity-50 flex items-center gap-2"
+                    className={`px-4 py-2 rounded-lg transition disabled:opacity-50 flex items-center gap-2 ${isDark ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
                   >
                     {testing ? (
                       <>
@@ -469,13 +472,13 @@ async function testStripeConnection() {
               </div>
 
               {/* Payment Options */}
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-                <h3 className="text-white font-semibold mb-4">Payment Options</h3>
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
+                <h3 className={`${tc.text} font-semibold mb-4`}>Payment Options</h3>
                 
                 <div className="space-y-4">
                   {/* Processing Fee Mode */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-3">
+                    <label className={`block text-sm font-medium ${tc.text} mb-3`}>
                       Stripe Processing Fees (2.9% + $0.30)
                     </label>
                     <div className="space-y-2">
@@ -487,8 +490,8 @@ async function testStripeConnection() {
                           key={option.value}
                           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition ${
                             stripeSettings.payment_processing_fee_mode === option.value
-                              ? 'bg-slate-700 border border-orange-500'
-                              : 'bg-slate-700/50 border border-transparent hover:border-slate-600'
+                              ? isDark ? 'bg-slate-700 border border-orange-500' : 'bg-white border border-orange-500 shadow-sm'
+                              : isDark ? 'bg-slate-700/50 border border-transparent hover:border-slate-600' : 'bg-slate-50 border border-transparent hover:border-slate-300'
                           }`}
                         >
                           <input
@@ -500,8 +503,8 @@ async function testStripeConnection() {
                             className="w-4 h-4 text-orange-500"
                           />
                           <div>
-                            <p className="text-white font-medium">{option.label}</p>
-                            <p className="text-slate-400 text-sm">{option.desc}</p>
+                            <p className={`${tc.text} font-medium`}>{option.label}</p>
+                            <p className={`${tc.textMuted} text-sm`}>{option.desc}</p>
                           </div>
                         </label>
                       ))}
@@ -509,10 +512,10 @@ async function testStripeConnection() {
                   </div>
                   
                   {/* Partial Payments */}
-                  <div className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg">
+                  <div className={`flex items-center justify-between p-4 ${tc.cardBgAlt} rounded-lg`}>
                     <div>
-                      <p className="text-white font-medium">Allow Partial Payments</p>
-                      <p className="text-slate-400 text-sm">Let parents pay a portion of their balance</p>
+                      <p className={`${tc.text} font-medium`}>Allow Partial Payments</p>
+                      <p className={`${tc.textMuted} text-sm`}>Let parents pay a portion of their balance</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
@@ -530,10 +533,10 @@ async function testStripeConnection() {
           )}
           
           {!stripeSettings.stripe_enabled && (
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
-              <CreditCard className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-              <h3 className="text-white font-semibold text-lg mb-2">Online Payments Disabled</h3>
-              <p className="text-slate-400 max-w-md mx-auto">
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
+              <CreditCard className={`w-16 h-16 ${tc.textMuted} mx-auto mb-4`} />
+              <h3 className={`${tc.text} font-semibold text-lg mb-2`}>Online Payments Disabled</h3>
+              <p className={`${tc.textMuted} max-w-md mx-auto`}>
                 Enable online payments above to accept credit/debit card payments from parents via Stripe.
               </p>
             </div>
