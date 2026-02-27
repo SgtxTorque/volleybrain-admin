@@ -1194,32 +1194,32 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
       {/* ═══ VIEW WAIVER MODAL ═══ */}
       {viewingWaiver && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
+          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="px-5 py-3 flex items-center justify-between bg-slate-100 rounded-t-2xl">
-              <span className="text-sm font-medium text-slate-700">{viewingWaiver.name}</span>
-              <button onClick={() => setViewingWaiver(null)} className="text-lg text-slate-500 hover:text-slate-800">×</button>
+            <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-slate-900' : 'bg-slate-100'} rounded-t-2xl`}>
+              <span className={`text-sm font-medium ${tc.text}`}>{viewingWaiver.name}</span>
+              <button onClick={() => setViewingWaiver(null)} className={`text-lg ${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-800'}`}>×</button>
             </div>
             {/* Letterhead */}
             <div className="h-1.5" style={{ backgroundColor: teamColor }} />
             <div className="px-6 pt-5 pb-4 flex items-center gap-3" style={{ borderBottom: `2px solid ${teamColor}` }}>
               {organization?.logo_url && <img src={organization.logo_url} alt="" className="h-10 w-10 object-contain" />}
-              <h2 className="text-lg font-bold text-slate-900" style={{ fontFamily: 'Georgia, serif' }}>{organization?.name}</h2>
+              <h2 className={`text-lg font-bold ${tc.text}`} style={{ fontFamily: 'Georgia, serif' }}>{organization?.name}</h2>
             </div>
             {/* Content */}
             <div className="p-6">
-              <h3 className="text-base font-bold text-slate-800 text-center mb-4" style={{ fontFamily: 'Georgia, serif' }}>{viewingWaiver.name}</h3>
+              <h3 className={`text-base font-bold ${tc.text} text-center mb-4`} style={{ fontFamily: 'Georgia, serif' }}>{viewingWaiver.name}</h3>
               {viewingWaiver.pdf_url?.toLowerCase().endsWith('.pdf') && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-slate-200">
+                <div className={`mb-4 rounded-lg overflow-hidden border ${tc.border}`}>
                   <iframe src={viewingWaiver.pdf_url} className="w-full" style={{ height: '450px' }} title="Waiver" />
                 </div>
               )}
               {viewingWaiver.pdf_url && /\.(png|jpg|jpeg)$/i.test(viewingWaiver.pdf_url) && (
-                <img src={viewingWaiver.pdf_url} alt="Waiver" className="w-full rounded-lg border border-slate-200 mb-4" />
+                <img src={viewingWaiver.pdf_url} alt="Waiver" className={`w-full rounded-lg border ${tc.border} mb-4`} />
               )}
               {viewingWaiver.content && (
-                <div className="text-slate-700 leading-relaxed whitespace-pre-wrap text-sm" style={{ fontFamily: 'Georgia, serif' }}>
+                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-sm`} style={{ fontFamily: 'Georgia, serif' }}>
                   {viewingWaiver.content}
                 </div>
               )}
@@ -1231,8 +1231,8 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
       {/* ═══ SIGN WAIVER MODAL ═══ */}
       {signingWaiver && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={() => setSigningWaiver(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSigningWaiver(null)}>
+          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
             {/* Accent top */}
             <div className="h-1.5 rounded-t-2xl" style={{ backgroundColor: teamColor }} />
             
@@ -1241,40 +1241,40 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
               <div className="flex items-center gap-3">
                 {organization?.logo_url && <img src={organization.logo_url} alt="" className="h-10 w-10 object-contain" />}
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900">{signingWaiver.name}</h2>
-                  <p className="text-xs text-slate-500">{organization?.name} • v{signingWaiver.version || 1}</p>
+                  <h2 className={`text-lg font-bold ${tc.text}`}>{signingWaiver.name}</h2>
+                  <p className={`text-xs ${tc.textMuted}`}>{organization?.name} • v{signingWaiver.version || 1}</p>
                 </div>
               </div>
-              <button onClick={() => setSigningWaiver(null)} className="text-lg text-slate-400 hover:text-slate-800">×</button>
+              <button onClick={() => setSigningWaiver(null)} className={`text-lg ${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-800'}`}>×</button>
             </div>
 
             {/* Scrollable Waiver Content */}
             <div className="px-6 py-5 max-h-[40vh] overflow-y-auto" style={{ fontFamily: 'Georgia, serif' }}>
               {signingWaiver.pdf_url?.toLowerCase().endsWith('.pdf') && (
-                <div className="mb-4 rounded-lg overflow-hidden border border-slate-200">
+                <div className={`mb-4 rounded-lg overflow-hidden border ${tc.border}`}>
                   <iframe src={signingWaiver.pdf_url} className="w-full" style={{ height: '350px' }} title="Waiver" />
                 </div>
               )}
               {signingWaiver.pdf_url && /\.(png|jpg|jpeg)$/i.test(signingWaiver.pdf_url) && (
-                <img src={signingWaiver.pdf_url} alt="Waiver" className="w-full rounded-lg border border-slate-200 mb-4" />
+                <img src={signingWaiver.pdf_url} alt="Waiver" className={`w-full rounded-lg border ${tc.border} mb-4`} />
               )}
               {signingWaiver.content && (
-                <div className="text-slate-700 leading-relaxed whitespace-pre-wrap text-sm">
+                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-sm`}>
                   {signingWaiver.content}
                 </div>
               )}
               {!signingWaiver.content && !signingWaiver.pdf_url && (
-                <p className="text-slate-400 italic text-center">(No content)</p>
+                <p className={`${tc.textMuted} italic text-center`}>(No content)</p>
               )}
             </div>
 
             {/* Signature Section */}
-            <div className="px-6 py-5 bg-slate-50 border-t border-slate-200">
+            <div className={`px-6 py-5 ${isDark ? 'bg-slate-900' : 'bg-slate-50'} border-t ${tc.border}`}>
               {/* Agreement */}
-              <label className="flex items-start gap-3 cursor-pointer mb-5 p-4 rounded-xl border border-slate-200 bg-white">
+              <label className={`flex items-start gap-3 cursor-pointer mb-5 p-4 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-800/50' : 'bg-white'}`}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
                   className="w-5 h-5 mt-0.5 rounded accent-current shrink-0" style={{ accentColor: teamColor }} />
-                <p className="text-sm text-slate-700 leading-relaxed">
+                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed`}>
                   I, the undersigned parent/guardian of <strong>{player.first_name} {player.last_name}</strong>, have read and agree to the terms outlined above. 
                   By checking this box, I am providing my electronic signature.
                 </p>
@@ -1282,17 +1282,17 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
               {/* Name Input */}
               <div className="mb-4">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Legal Name</label>
+                <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-1.5`}>Full Legal Name</label>
                 <input value={signerName} onChange={e => setSignerName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm text-slate-900 bg-white focus:ring-2 focus:outline-none"
+                  className={`w-full px-4 py-3 rounded-xl border ${tc.border} text-sm ${tc.text} ${isDark ? 'bg-slate-700' : 'bg-white'} focus:ring-2 focus:outline-none`}
                   style={{ focusRingColor: teamColor }}
                   placeholder="Enter your full name as your electronic signature" />
               </div>
 
               {/* Preview of what will be recorded */}
               {agreed && signerName.trim() && (
-                <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                  <p className="text-[11px] text-emerald-700">
+                <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'} border`}>
+                  <p className={`text-[11px] ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                     ✅ This will be recorded as: <strong>{signerName.trim()}</strong> electronically signed "{signingWaiver.name}" for {player.first_name} {player.last_name} on{' '}
                     {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at{' '}
                     {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
@@ -1303,7 +1303,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
               {/* Submit */}
               <div className="flex justify-end gap-3">
                 <button onClick={() => setSigningWaiver(null)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium text-sm">
+                  className={`px-5 py-2.5 rounded-xl border ${tc.border} ${tc.text} font-medium text-sm`}>
                   Cancel
                 </button>
                 <button onClick={handleSign} disabled={!agreed || !signerName.trim() || submitting}
