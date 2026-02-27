@@ -537,35 +537,33 @@ function ReportsPage({ showToast }) {
   const allColumns = getAvailableColumns()
   const statusOptions = getStatusOptions()
   const selectedSeason = getSelectedSeason()
-  const gc = { background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.7)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', borderRadius: 16 }
-  const gi = { background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', borderRadius: 12, color: isDark ? 'white' : '#1a1a1a' }
-  const tp = { color: isDark ? 'white' : '#1a1a1a' }
-  const tm = { color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)' }
+  const gc = `${tc.cardBg} border ${tc.border} rounded-2xl`
+  const gi = `${tc.inputBg} border ${tc.border} ${tc.text} rounded-xl`
 
   return (
     <div className={`flex flex-col h-[calc(100vh-100px)] ${!isDark ? 'rpt-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
       <style>{RPT_STYLES}</style>
       
       {/* TOP HEADER */}
-      <div className="px-6 py-5 rpt-glass-solid" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
+      <div className={`px-6 py-5 rpt-glass-solid border-b ${tc.border}`}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="rpt-display text-3xl font-bold" style={tp}>REPORTS & ANALYTICS</h1>
-            <p className="text-sm mt-0.5" style={tm}>Generate, customize, and export reports</p>
+            <h1 className={`rpt-display text-3xl font-bold ${tc.text}`}>REPORTS & ANALYTICS</h1>
+            <p className={`text-sm mt-0.5 ${tc.textMuted}`}>Generate, customize, and export reports</p>
           </div>
           <div className="flex items-center gap-4">
             {sports.length > 0 && (
               <div>
-                <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>SPORT</label>
-                <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className="px-3 py-2 text-sm rounded-xl outline-none min-w-[140px]" style={gi}>
+                <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>SPORT</label>
+                <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className={`px-3 py-2 text-sm outline-none min-w-[140px] ${gi}`}>
                   <option value="all">All Sports</option>
                   {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
                 </select>
               </div>
             )}
             <div>
-              <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>SEASON</label>
-              <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className="px-3 py-2 text-sm rounded-xl outline-none min-w-[180px]" style={gi}>
+              <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>SEASON</label>
+              <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`px-3 py-2 text-sm outline-none min-w-[180px] ${gi}`}>
                 <option value="">Select Season</option>
                 {seasons.map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '●' : s.status === 'upcoming' ? '○' : '◌'}</option>)}
               </select>
@@ -576,15 +574,15 @@ function ReportsPage({ showToast }) {
         <div className="flex items-center gap-2">
           {Object.entries(reportCategories).map(([catId, cat]) => (
             <div key={catId} className="relative">
-              <button onClick={() => setOpenDropdown(openDropdown === catId ? null : catId)} className="px-4 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2"
-                style={activeCategory === catId ? { background: accent.primary, color: 'white', boxShadow: `0 2px 12px ${accent.primary}40` } : { ...gc, ...tp }}>
+              <button onClick={() => setOpenDropdown(openDropdown === catId ? null : catId)}
+                className={`px-4 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2 ${activeCategory !== catId ? `${gc} ${tc.text}` : ''}`}
+                style={activeCategory === catId ? { background: accent.primary, color: 'white', boxShadow: `0 2px 12px ${accent.primary}40` } : undefined}>
                 <span>{cat.icon}</span><span>{cat.label}</span><span className="text-[10px] ml-1 opacity-50">▼</span>
               </button>
               {openDropdown === catId && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                  <div className="absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as"
-                    style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', backdropFilter: 'blur(24px)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', borderRadius: 16 }}>
+                  <div className={`absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-2xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
                     {cat.reports.map(report => (
                       <button key={report.id} onClick={() => { setActiveCategory(catId); setActiveReport(report.id); setOpenDropdown(null); setFilters({ team: 'all', status: 'all', dateFrom: '', dateTo: '', search: '' }); setSortField('') }}
                         className="w-full text-left px-4 py-3 transition flex items-center gap-3"
@@ -592,7 +590,7 @@ function ReportsPage({ showToast }) {
                         onMouseEnter={e => { if (activeReport !== report.id) e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)' }}
                         onMouseLeave={e => { if (activeReport !== report.id) e.currentTarget.style.background = 'transparent' }}>
                         <span className="text-xl">{report.icon}</span>
-                        <div className="flex-1"><p className="font-bold text-[13px]" style={tp}>{report.label}</p><p className="text-[11px]" style={tm}>{report.description}</p></div>
+                        <div className="flex-1"><p className={`font-bold text-[13px] ${tc.text}`}>{report.label}</p><p className={`text-[11px] ${tc.textMuted}`}>{report.description}</p></div>
                         {activeReport === report.id && <span style={{ color: accent.primary }}>✓</span>}
                       </button>
                     ))}
@@ -603,20 +601,19 @@ function ReportsPage({ showToast }) {
           ))}
           {/* Presets */}
           <div className="relative ml-auto">
-            <button onClick={() => setOpenDropdown(openDropdown === 'presets' ? null : 'presets')} className="px-4 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2" style={{ ...gc, ...tp }}>
+            <button onClick={() => setOpenDropdown(openDropdown === 'presets' ? null : 'presets')} className={`px-4 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2 ${gc} ${tc.text}`}>
               <Star className="w-4 h-4" style={{ color: '#facc15' }} /><span>Saved</span>
               {savedPresets.length > 0 && <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full text-white" style={{ background: accent.primary }}>{savedPresets.length}</span>}
             </button>
             {openDropdown === 'presets' && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                <div className="absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as"
-                  style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', backdropFilter: 'blur(24px)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', borderRadius: 16 }}>
-                  <div className="px-4 py-3" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                    <p className="font-bold text-sm" style={tp}>Saved Report Presets</p>
+                <div className={`absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-2xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
+                  <div className={`px-4 py-3 border-b ${tc.border}`}>
+                    <p className={`font-bold text-sm ${tc.text}`}>Saved Report Presets</p>
                   </div>
                   {savedPresets.length === 0 ? (
-                    <div className="px-4 py-6 text-center"><p className="text-sm" style={tm}>No saved presets yet</p></div>
+                    <div className="px-4 py-6 text-center"><p className={`text-sm ${tc.textMuted}`}>No saved presets yet</p></div>
                   ) : (
                     <div className="max-h-64 overflow-y-auto rpt-nos">
                       {savedPresets.map(preset => (
@@ -624,15 +621,15 @@ function ReportsPage({ showToast }) {
                           onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <button onClick={() => { loadPreset(preset); setOpenDropdown(null) }} className="flex-1 text-left">
-                            <p className="font-bold text-[13px]" style={tp}>{preset.name}</p>
-                            <p className="text-[11px]" style={tm}>{reportCategories[preset.category]?.reports.find(r => r.id === preset.report)?.label}</p>
+                            <p className={`font-bold text-[13px] ${tc.text}`}>{preset.name}</p>
+                            <p className={`text-[11px] ${tc.textMuted}`}>{reportCategories[preset.category]?.reports.find(r => r.id === preset.report)?.label}</p>
                           </button>
                           <button onClick={() => deletePreset(preset.id)} className="p-1 rounded text-red-400 hover:text-red-500">🗑️</button>
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="px-4 py-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
+                  <div className={`px-4 py-3 border-t ${tc.border}`}>
                     <button onClick={() => { setShowPresetModal(true); setOpenDropdown(null) }} className="w-full px-4 py-2 rounded-xl text-white font-bold text-sm" style={{ background: accent.primary }}>+ Save Current View</button>
                   </div>
                 </div>
@@ -646,19 +643,19 @@ function ReportsPage({ showToast }) {
       <div className="flex-1 flex flex-col overflow-hidden p-6">
         {!selectedSeasonId ? (
           <div className="flex-1 flex items-center justify-center rpt-ai">
-            <div className="text-center"><span className="text-6xl">📅</span><p className="font-bold text-lg mt-4" style={tp}>Select a Season</p><p className="mt-2 text-sm" style={tm}>Choose a season to view reports</p></div>
+            <div className="text-center"><span className="text-6xl">📅</span><p className={`font-bold text-lg mt-4 ${tc.text}`}>Select a Season</p><p className={`mt-2 text-sm ${tc.textMuted}`}>Choose a season to view reports</p></div>
           </div>
         ) : (
           <>
             {/* Report Header + Actions */}
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2" style={tp}><span className="text-2xl">{currentReport?.icon}</span>{currentReport?.label}</h2>
-                <p className="text-sm" style={tm}>{currentReport?.description} • {selectedSeason?.name}</p>
+                <h2 className={`text-xl font-bold flex items-center gap-2 ${tc.text}`}><span className="text-2xl">{currentReport?.icon}</span>{currentReport?.label}</h2>
+                <p className={`text-sm ${tc.textMuted}`}>{currentReport?.description} • {selectedSeason?.name}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setShowColumnPicker(!showColumnPicker)} className="px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition" style={{ ...gc, ...tp }}>⚙️ Columns</button>
-                <button onClick={() => setShowFilters(!showFilters)} className="px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition" style={{ ...gc, ...tp }}>
+                <button onClick={() => setShowColumnPicker(!showColumnPicker)} className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition ${gc} ${tc.text}`}>⚙️ Columns</button>
+                <button onClick={() => setShowFilters(!showFilters)} className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition ${gc} ${tc.text}`}>
                   🔍 Filters {(filters.team !== 'all' || filters.status !== 'all' || filters.search) && <span className="w-2 h-2 rounded-full" style={{ background: accent.primary }} />}
                 </button>
                 <div className="relative">
@@ -666,9 +663,9 @@ function ReportsPage({ showToast }) {
                   {showExportMenu && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden shadow-2xl rpt-as" style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', backdropFilter: 'blur(24px)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', borderRadius: 14 }}>
+                      <div className={`absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden shadow-2xl rpt-as rounded-xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
                         {[{ id:'csv', label:'Download CSV', icon:'📊', action:exportCSV },{ id:'pdf', label:'Download PDF', icon:'📄', action:exportPDF },{ id:'print', label:'Print', icon:'🖨️', action:printReport },{ id:'email', label:'Email', icon:'📧', action:emailReport }].map(opt => (
-                          <button key={opt.id} onClick={opt.action} disabled={exporting} className="w-full text-left px-4 py-2.5 flex items-center gap-2 text-sm transition" style={tp}
+                          <button key={opt.id} onClick={opt.action} disabled={exporting} className={`w-full text-left px-4 py-2.5 flex items-center gap-2 text-sm transition ${tc.text}`}
                             onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.03)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span>{opt.icon}</span><span>{opt.label}</span></button>
                         ))}
@@ -685,9 +682,9 @@ function ReportsPage({ showToast }) {
                 {stats.labels.map((label, i) => {
                   const keys = Object.keys(stats).filter(k => k !== 'labels'); const v = stats[keys[i]]
                   const isMon = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i])
-                  return (<div key={label} className="p-4 rounded-2xl rpt-au" style={{ ...gc, animationDelay: `${i*.05}s` }}>
-                    <p className="text-2xl font-bold" style={tp}>{isMon ? `$${Number(v).toLocaleString()}` : keys[i].includes('Rate') ? `${v}%` : v}</p>
-                    <p className="text-[10px] font-bold rpt-heading tracking-wider mt-1" style={tm}>{label}</p>
+                  return (<div key={label} className={`p-4 rpt-au ${gc}`} style={{ animationDelay: `${i*.05}s` }}>
+                    <p className={`text-2xl font-bold ${tc.text}`}>{isMon ? `$${Number(v).toLocaleString()}` : keys[i].includes('Rate') ? `${v}%` : v}</p>
+                    <p className={`text-[10px] font-bold rpt-heading tracking-wider mt-1 ${tc.textMuted}`}>{label}</p>
                   </div>)
                 })}
               </div>
@@ -695,15 +692,15 @@ function ReportsPage({ showToast }) {
             
             {/* Column Picker */}
             {showColumnPicker && (
-              <div className="p-4 mb-4 rounded-2xl rpt-as" style={gc}>
+              <div className={`p-4 mb-4 rpt-as ${gc}`}>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="font-bold text-sm" style={tp}>Customize Columns</p>
+                  <p className={`font-bold text-sm ${tc.text}`}>Customize Columns</p>
                   <button onClick={() => { const dv = {}; allColumns.forEach(c => { dv[c.id] = c.defaultVisible !== false }); setVisibleColumns(dv) }} className="text-sm font-bold" style={{ color: accent.primary }}>Reset to Default</button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {allColumns.map(col => (
-                    <label key={col.id} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition text-sm font-medium"
-                      style={visibleColumns[col.id] ? { background: `${accent.primary}15`, color: accent.primary } : { ...gc, ...tm }}>
+                    <label key={col.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition text-sm font-medium ${!visibleColumns[col.id] ? `${gc} ${tc.textMuted}` : ''}`}
+                      style={visibleColumns[col.id] ? { background: `${accent.primary}15`, color: accent.primary } : undefined}>
                       <input type="checkbox" checked={visibleColumns[col.id] || false} onChange={e => setVisibleColumns({ ...visibleColumns, [col.id]: e.target.checked })} className="sr-only" />
                       <span>{visibleColumns[col.id] ? '✓' : '○'}</span><span>{col.label}</span>
                     </label>
@@ -714,16 +711,16 @@ function ReportsPage({ showToast }) {
             
             {/* Filters */}
             {showFilters && (
-              <div className="p-4 mb-4 rounded-2xl rpt-as" style={gc}>
+              <div className={`p-4 mb-4 rpt-as ${gc}`}>
                 <div className="flex flex-wrap gap-4">
                   <div className="flex-1 min-w-[200px]">
-                    <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>SEARCH</label>
-                    <input type="text" value={filters.search} onChange={e => setFilters({ ...filters, search: e.target.value })} placeholder="Search..." className="w-full px-3 py-2 text-sm rounded-xl outline-none" style={gi} />
+                    <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>SEARCH</label>
+                    <input type="text" value={filters.search} onChange={e => setFilters({ ...filters, search: e.target.value })} placeholder="Search..." className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
                   </div>
                   {['players','jerseys','schedule'].includes(activeReport) && teams.length > 0 && (
                     <div className="min-w-[160px]">
-                      <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>TEAM</label>
-                      <select value={filters.team} onChange={e => setFilters({ ...filters, team: e.target.value })} className="w-full px-3 py-2 text-sm rounded-xl outline-none" style={gi}>
+                      <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>TEAM</label>
+                      <select value={filters.team} onChange={e => setFilters({ ...filters, team: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`}>
                         <option value="all">All Teams</option>
                         {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                       </select>
@@ -731,8 +728,8 @@ function ReportsPage({ showToast }) {
                   )}
                   {statusOptions.length > 0 && (
                     <div className="min-w-[140px]">
-                      <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>STATUS</label>
-                      <select value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })} className="w-full px-3 py-2 text-sm rounded-xl outline-none" style={gi}>
+                      <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>STATUS</label>
+                      <select value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`}>
                         {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
                     </div>
@@ -740,45 +737,44 @@ function ReportsPage({ showToast }) {
                   {activeReport === 'financial' && (
                     <>
                       <div className="min-w-[140px]">
-                        <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>FROM DATE</label>
-                        <input type="date" value={filters.dateFrom} onChange={e => setFilters({ ...filters, dateFrom: e.target.value })} className="w-full px-3 py-2 text-sm rounded-xl outline-none" style={gi} />
+                        <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>FROM DATE</label>
+                        <input type="date" value={filters.dateFrom} onChange={e => setFilters({ ...filters, dateFrom: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
                       </div>
                       <div className="min-w-[140px]">
-                        <label className="block text-[10px] font-bold rpt-heading tracking-wider mb-1" style={tm}>TO DATE</label>
-                        <input type="date" value={filters.dateTo} onChange={e => setFilters({ ...filters, dateTo: e.target.value })} className="w-full px-3 py-2 text-sm rounded-xl outline-none" style={gi} />
+                        <label className={`block text-[10px] font-bold rpt-heading tracking-wider mb-1 ${tc.textMuted}`}>TO DATE</label>
+                        <input type="date" value={filters.dateTo} onChange={e => setFilters({ ...filters, dateTo: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
                       </div>
                     </>
                   )}
                   <div className="flex items-end">
-                    <button onClick={() => setFilters({ team: 'all', status: 'all', dateFrom: '', dateTo: '', search: '' })} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ ...gc, ...tm }}>Clear</button>
+                    <button onClick={() => setFilters({ team: 'all', status: 'all', dateFrom: '', dateTo: '', search: '' })} className={`px-4 py-2 rounded-xl text-sm font-bold ${gc} ${tc.textMuted}`}>Clear</button>
                   </div>
                 </div>
               </div>
             )}
             
             {/* DATA TABLE */}
-            <div className="flex-1 overflow-hidden flex flex-col min-h-0 rounded-2xl" style={gc}>
+            <div className={`flex-1 overflow-hidden flex flex-col min-h-0 ${gc}`}>
               {loading ? (
                 <div className="flex-1 flex items-center justify-center"><div className="text-center">
                   <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
-                  <p className="mt-3 text-sm" style={tm}>Loading report...</p>
+                  <p className={`mt-3 text-sm ${tc.textMuted}`}>Loading report...</p>
                 </div></div>
               ) : data.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center"><div className="text-center">
-                  <span className="text-5xl">📭</span><p className="font-bold mt-4" style={tp}>No data found</p><p className="text-sm mt-1" style={tm}>Try adjusting your filters or selecting a different season</p>
+                  <span className="text-5xl">📭</span><p className={`font-bold mt-4 ${tc.text}`}>No data found</p><p className={`text-sm mt-1 ${tc.textMuted}`}>Try adjusting your filters or selecting a different season</p>
                 </div></div>
               ) : (
                 <>
                   <div className="flex-1 overflow-auto rpt-nos">
                     <table className="w-full">
-                      <thead className="sticky top-0" style={{ background: isDark ? 'rgba(30,41,59,.95)' : 'rgba(248,250,252,.95)', backdropFilter: 'blur(8px)' }}>
+                      <thead className={`sticky top-0 backdrop-blur-sm ${tc.cardBg}`}>
                         <tr>
                           {columns.map(col => (
                             <th key={col.id} onClick={() => col.sortable && handleSort(col.id)}
-                              className={`px-4 py-3 text-left text-[10px] font-bold rpt-heading tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer' : ''}`}
-                              style={tm}
+                              className={`px-4 py-3 text-left text-[10px] font-bold rpt-heading tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer' : ''} ${tc.textMuted}`}
                               onMouseEnter={e => { if (col.sortable) e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.7)' }}
-                              onMouseLeave={e => { if (col.sortable) e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)' }}>
+                              onMouseLeave={e => { if (col.sortable) e.currentTarget.style.color = '' }}>
                               {col.label}{col.sortable && sortField === col.id && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
                             </th>
                           ))}
@@ -791,7 +787,7 @@ function ReportsPage({ showToast }) {
                             onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.01)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                             {columns.map(col => (
-                              <td key={col.id} className="px-4 py-3 text-sm" style={tp}>
+                              <td key={col.id} className={`px-4 py-3 text-sm ${tc.text}`}>
                                 {col.id === 'team_name' && row.team_color ? (
                                   <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: row.team_color }} />{row[col.id]}</span>
                                 ) : ['payment_status','status','reg_status','roster_status','bg_check_status','display_type'].includes(col.id) ? (
@@ -822,9 +818,9 @@ function ReportsPage({ showToast }) {
                     </table>
                   </div>
                   {/* Footer */}
-                  <div className="px-4 py-3 flex items-center justify-between flex-shrink-0" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)', background: isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.01)' }}>
-                    <p className="text-sm" style={tm}>Showing {sortedData.length} records • {columns.length} columns</p>
-                    <p className="text-xs" style={tm}>{organization?.name} • {selectedSeason?.name}</p>
+                  <div className={`px-4 py-3 flex items-center justify-between flex-shrink-0 border-t ${tc.border} ${tc.cardBgAlt}`}>
+                    <p className={`text-sm ${tc.textMuted}`}>Showing {sortedData.length} records • {columns.length} columns</p>
+                    <p className={`text-xs ${tc.textMuted}`}>{organization?.name} • {selectedSeason?.name}</p>
                   </div>
                 </>
               )}
@@ -836,13 +832,13 @@ function ReportsPage({ showToast }) {
       {/* Save Preset Modal */}
       {showPresetModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 rpt-ai" style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }} onClick={() => { setShowPresetModal(false); setPresetName('') }}>
-          <div className="w-full max-w-md p-6 rpt-as" style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', backdropFilter: 'blur(24px)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', borderRadius: 24 }} onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2" style={tp}>Save Report Preset</h3>
-            <p className="text-sm mb-4" style={tm}>Save your current view (report type, visible columns, filters) as a preset for quick access later.</p>
+          <div className={`w-full max-w-md p-6 rpt-as rounded-3xl border ${tc.modalBg} ${tc.border}`} style={{ backdropFilter: 'blur(24px)' }} onClick={e => e.stopPropagation()}>
+            <h3 className={`text-lg font-bold mb-2 ${tc.text}`}>Save Report Preset</h3>
+            <p className={`text-sm mb-4 ${tc.textMuted}`}>Save your current view (report type, visible columns, filters) as a preset for quick access later.</p>
             <input type="text" value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Preset name (e.g., 'Contact List for Coaches')"
-              className="w-full px-4 py-3 rounded-xl mb-4 outline-none text-sm" style={gi} autoFocus />
+              className={`w-full px-4 py-3 mb-4 outline-none text-sm ${gi}`} autoFocus />
             <div className="flex justify-end gap-3">
-              <button onClick={() => { setShowPresetModal(false); setPresetName('') }} className="px-4 py-2 rounded-xl text-sm font-bold" style={{ ...gc, ...tp }}>Cancel</button>
+              <button onClick={() => { setShowPresetModal(false); setPresetName('') }} className={`px-4 py-2 rounded-xl text-sm font-bold ${gc} ${tc.text}`}>Cancel</button>
               <button onClick={savePreset} disabled={!presetName.trim()} className="px-4 py-2 rounded-xl text-white font-bold text-sm disabled:opacity-50" style={{ background: accent.primary }}>Save Preset</button>
             </div>
           </div>
