@@ -304,7 +304,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                 <div 
                   key={payment.id} 
                   onClick={() => togglePaymentSelection(payment.id)}
-                  className={`${tc.cardBgAlt} rounded-xl p-4 flex items-center gap-4 cursor-pointer transition ${isSelected ? 'ring-2 ring-[var(--accent-primary)]' : 'hover:bg-slate-800/50'}`}
+                  className={`${tc.cardBgAlt} rounded-xl p-4 flex items-center gap-4 cursor-pointer transition ${isSelected ? 'ring-2 ring-[var(--accent-primary)]' : isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-100'}`}
                 >
                   <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition ${isSelected ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)]' : 'border-slate-600'}`}>
                     {isSelected && <span className="text-white text-sm">✓</span>}
