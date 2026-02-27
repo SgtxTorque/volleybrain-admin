@@ -245,10 +245,11 @@ function SkillBar({ label, value, maxValue = 100, isDark }) {
 }
 
 function MiniBarChart({ data, color = '#F59E0B', label, isDark }) {
+  const tc = useThemeClasses()
   const maxValue = Math.max(...(data || []).map(d => d.value), 1)
   if (!data || data.length === 0) {
     return (
-      <div className={`rounded-xl p-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+      <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
         <span className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
         <div className="flex items-center justify-center h-16">
           <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No data yet</span>
@@ -257,7 +258,7 @@ function MiniBarChart({ data, color = '#F59E0B', label, isDark }) {
     )
   }
   return (
-    <div className={`rounded-xl p-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+    <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
       <div className="flex items-center justify-between mb-3">
         <span className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
         <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Last {data.length} games</span>
@@ -512,7 +513,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {activeTab === 'overview' && (
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-4">
-                <div className={`rounded-xl p-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
                   <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Skills</h4>
                   {skills && sc.skills.some(s => skills[s] != null) ? (
                     <div className="space-y-3">{sc.skills.map(s => <SkillBar key={s} label={s} value={getSkillValue(skills[s])} isDark={isDark} />)}</div>
@@ -520,7 +521,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                     <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No skill ratings yet</p>
                   )}
                 </div>
-                <div className={`rounded-xl p-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
                   <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season Progress</h4>
                   {(seasonStats || gamesPlayed > 0) ? (
                     <div className="space-y-2.5">
@@ -544,7 +545,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                 </div>
               </div>
               <div className="space-y-4">
-                <div className={`rounded-xl p-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
                   <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Recent Games</h4>
                   {transformedGames.length > 0 ? transformedGames.slice(0, 3).map((game, i) => (
                     <div key={i} className={`flex items-center gap-2 py-2.5 last:border-0 border-b ${tc.border}`}>
@@ -563,7 +564,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                 {trends[0] && <MiniBarChart data={trends[0].data} color={trends[0].color} label={trends[0].label} isDark={isDark} />}
               </div>
               <div className="space-y-4">
-                <div className={`rounded-xl p-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Badges</h4>
                     <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{badges.length} earned</span>
@@ -604,7 +605,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {/* ═══ STATS ═══ */}
           {activeTab === 'stats' && (
             <div className="space-y-6">
-              <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+              <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
                 <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season Totals</h4>
                 <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(sc.primaryStats.length + 1, 6)}, 1fr)` }}>
                   <div className="text-center">
@@ -624,7 +625,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {sc.detailSections.map((section, si) => (
-                  <div key={si} className={`rounded-xl p-5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                  <div key={si} className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
                     <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{section.title}</h4>
                     <div className={`grid gap-4`} style={{ gridTemplateColumns: `repeat(${Math.min(section.stats.length, 3)}, 1fr)` }}>
                       {section.stats.map(stat => {
@@ -641,7 +642,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                 ))}
               </div>
               {perGameStats && (
-                <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
                   <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Per Game Averages</h4>
                   <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${sc.primaryStats.length}, 1fr)` }}>
                     {perGameStats.map(stat => (
@@ -665,7 +666,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {/* ═══ BADGES ═══ */}
           {activeTab === 'badges' && (
             <div className="space-y-6">
-              <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+              <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
                 <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Earned ({badges.length})</h4>
                 {badges.length > 0 ? (
                   <div className="grid grid-cols-4 gap-6">
@@ -674,7 +675,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                 ) : <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>}
               </div>
               {badgesInProgress.length > 0 && (
-                <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
                   <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>In Progress</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {badgesInProgress.map((b, i) => (
@@ -699,7 +700,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
 
           {/* ═══ GAMES ═══ */}
           {activeTab === 'games' && (
-            <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+            <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
               <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Game Log</h4>
               {transformedGames.length > 0 ? (
                 <>
