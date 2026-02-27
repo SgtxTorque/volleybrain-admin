@@ -594,7 +594,7 @@ function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         {/* Preview Admin Bar */}
-        <div className="px-5 py-2.5 flex items-center justify-between bg-slate-800 rounded-t-2xl">
+        <div className={`px-5 py-2.5 flex items-center justify-between ${tc.cardBg} rounded-t-2xl`}>
           <span className="text-xs font-medium text-slate-300">👁️ Preview — How parents will see this waiver</span>
           <button onClick={onClose} className="text-lg text-slate-400 hover:text-white">×</button>
         </div>
