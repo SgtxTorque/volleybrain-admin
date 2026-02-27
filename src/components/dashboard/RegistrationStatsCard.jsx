@@ -60,7 +60,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
 
       <div className="flex items-center gap-8">
         {/* Donut Chart */}
-        <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
+        <div className="relative flex h-36 w-36 shrink-0 items-center justify-center">
           <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
             <circle
               cx="60" cy="60" r="50"
@@ -82,7 +82,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
             ))}
           </svg>
           <div className="absolute flex flex-col items-center">
-            <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{total}</span>
+            <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{total}</span>
             <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
               Total
             </span>

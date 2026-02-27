@@ -19,7 +19,7 @@ function getOrgInitials(name) {
 function StatItem({ value, label, isDark }) {
   return (
     <div className="flex flex-col items-center">
-      <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
+      <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
       <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
         {label}
       </span>

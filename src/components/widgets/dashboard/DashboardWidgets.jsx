@@ -93,7 +93,7 @@ function WLoading() {
 // ============================================
 // DONUT CHART — matches original RegistrationDonut
 // ============================================
-function DonutChart({ data, total, size = 120 }) {
+function DonutChart({ data, total, size = 138 }) {
   const { isDark } = useTheme()
   const radius = (size - 16) / 2
   const circumference = 2 * Math.PI * radius
@@ -123,7 +123,7 @@ function DonutChart({ data, total, size = 120 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{total.toLocaleString()}</span>
+        <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{total.toLocaleString()}</span>
         <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Total</span>
       </div>
     </div>
@@ -381,7 +381,7 @@ export function PaymentSummaryWidget() {
 
           {/* Chart and Breakdown */}
           <div className="flex items-center gap-6">
-            <DonutChart data={chartData} total={chartTotal} size={140} />
+            <DonutChart data={chartData} total={chartTotal} size={160} />
 
             <div className="flex-1 space-y-3">
               <div className="flex items-center gap-3">
@@ -609,7 +609,7 @@ export function AttendanceTrendsWidget() {
             <>
               <div className="flex items-center justify-between mb-4">
                 <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>RSVP % over last {data.length} events</span>
-                <span className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{data[data.length - 1]?.value || 0}%</span>
+                <span className={`text-3xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{data[data.length - 1]?.value || 0}%</span>
               </div>
               <div className="h-32">
                 <MiniLineChart data={data} width={260} height={100} color="#8B5CF6" />
@@ -1015,15 +1015,15 @@ export function SeasonOverviewWidget() {
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
             <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
-              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
               <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Teams</p>
             </div>
             <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
-              <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
               <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Players</p>
             </div>
             <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
-              <p className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{pct}%</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{pct}%</p>
               <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Collected</p>
             </div>
           </div>

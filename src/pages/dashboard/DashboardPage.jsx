@@ -92,7 +92,7 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
 // ============================================
 // DONUT CHART COMPONENT
 // ============================================
-function DonutChart({ data, total, centerLabel, size = 140 }) {
+function DonutChart({ data, total, centerLabel, size = 160 }) {
   const { isDark } = useTheme()
   const radius = (size - 20) / 2
   const circumference = 2 * Math.PI * radius
@@ -123,7 +123,7 @@ function DonutChart({ data, total, centerLabel, size = 140 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${centerLabel}</span>
+        <span className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${centerLabel}</span>
       </div>
     </div>
   )
@@ -132,7 +132,7 @@ function DonutChart({ data, total, centerLabel, size = 140 }) {
 // ============================================
 // REGISTRATION DONUT CHART
 // ============================================
-function RegistrationDonut({ data, total, size = 120 }) {
+function RegistrationDonut({ data, total, size = 138 }) {
   const { isDark } = useTheme()
   const radius = (size - 16) / 2
   const circumference = 2 * Math.PI * radius
@@ -163,7 +163,7 @@ function RegistrationDonut({ data, total, size = 120 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
+        <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
         <span className={`text-xs ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
       </div>
     </div>
@@ -456,7 +456,7 @@ function FinancialOverview({ monthlyData, totalCollected }) {
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
           <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Registration Payments</span>
-          <span className={`text-2xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
+          <span className={`text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
         </div>
         
         <div className="h-32">
@@ -799,28 +799,28 @@ function OverduePayments({ stats, onNavigate }) {
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
-              <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
+              <span className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
               <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Fees</span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
+              <span className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
               <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Stripe</span>
             </div>
           </div>
           
           {/* Mini Donut */}
-          <div className="relative w-24 h-24">
-            <svg width="96" height="96" className="transform -rotate-90">
+          <div className="relative w-28 h-28">
+            <svg width="112" height="112" className="transform -rotate-90">
               <circle
-                cx="48" cy="48" r="36"
+                cx="56" cy="56" r="42"
                 fill="none" stroke="#FEE2E2" strokeWidth="12"
               />
               <circle
-                cx="48" cy="48" r="36"
+                cx="56" cy="56" r="42"
                 fill="none" stroke="#EF4444" strokeWidth="12"
-                strokeDasharray={`${((stats.overdueFees || 0) / (total || 1)) * 226} 226`}
+                strokeDasharray={`${((stats.overdueFees || 0) / (total || 1)) * 264} 264`}
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
