@@ -19,6 +19,8 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const journey = useJourney()
   const { selectedSeason, seasons, loading: seasonLoading, selectSeason } = useSeason()
   const { user } = useAuth()
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
   const [showNewTeamModal, setShowNewTeamModal] = useState(false)
@@ -362,7 +364,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       return (
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center max-w-md">
-            <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-6">
+            <div className={`w-20 h-20 rounded-full ${tc.cardBgAlt} flex items-center justify-center mx-auto mb-6`}>
               <Calendar className="w-10 h-10 text-slate-400" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-3">Create Your First Season</h2>
@@ -397,7 +399,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                 const s = seasons.find(s => s.id === e.target.value)
                 if (s) selectSeason(s)
               }}
-              className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-white"
+              className={`${tc.input} rounded-xl px-4 py-2`}
             >
               <option value="">Choose a season...</option>
               {seasons.map(s => (
@@ -425,7 +427,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
         </div>
         <div className="flex gap-3">
           {/* View Controls */}
-          <div className="flex bg-slate-800 rounded-xl p-1">
+          <div className={`flex ${tc.cardBgAlt} rounded-xl p-1`}>
             {[
               { id: 'list', icon: '☰', label: 'List' },
               { id: 'cards', icon: '▦', label: 'Cards' },
@@ -446,7 +448,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           <button
             onClick={() => setShowPhotos(!showPhotos)}
             className={`px-3 py-2 rounded-xl text-sm transition ${
-              showPhotos ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-500'
+              showPhotos ? (isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm') : (isDark ? 'bg-slate-800 text-slate-500' : 'bg-transparent text-slate-500')
             }`}
             title={showPhotos ? 'Hide Photos' : 'Show Photos'}
           >
@@ -454,7 +456,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           </button>
           <button 
             onClick={() => exportToCSV(teams, 'teams', csvColumns)}
-            className="bg-slate-700 text-white px-4 py-2 rounded-xl hover:bg-slate-600 flex items-center gap-2"
+            className={`${tc.cardBgAlt} ${tc.text} px-4 py-2 rounded-xl ${isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-200'} flex items-center gap-2`}
           >
             📥 Export
           </button>
@@ -501,7 +503,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           
           {/* Expanded Panel - Quick Assign Interface */}
           {showUnrosteredPanel && (
-            <div className="border-t border-amber-500/20 p-4 bg-slate-800/50">
+            <div className={`border-t border-amber-500/20 p-4 ${tc.cardBgAlt}`}>
               {/* Search/Filter */}
               <div className="flex gap-4 mb-4">
                 <input
@@ -509,7 +511,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                   placeholder="Search unrostered players..."
                   value={unrosteredSearch}
                   onChange={e => setUnrosteredSearch(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className={`flex-1 px-3 py-2 ${tc.input} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500`}
                 />
                 <span className="text-sm text-slate-400 self-center">
                   {filteredUnrostered.length} player{filteredUnrostered.length !== 1 ? 's' : ''}
@@ -521,7 +523,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                 {filteredUnrostered.map(player => (
                   <div 
                     key={player.id} 
-                    className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition"
+                    className={`flex items-center justify-between p-3 ${tc.cardBgAlt} rounded-lg ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} transition`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white text-sm font-medium">
@@ -571,7 +573,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       {loading ? (
         <div className="text-center py-12 text-slate-400">Loading teams...</div>
       ) : teams.length === 0 ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-12 text-center">
+        <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
           <Users className="w-12 h-12 mx-auto text-slate-500" />
           <h3 className="text-lg font-medium text-white mt-4">No teams yet</h3>
           <p className="text-slate-400 mt-2">Create your first team to start building rosters</p>
@@ -582,9 +584,9 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       ) : (
         <div className={`grid gap-6 ${viewMode === 'compact' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
           {teams.map(team => (
-            <div key={team.id} className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+            <div key={team.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl overflow-hidden`}>
               <div 
-                className="p-4 border-b border-slate-700 flex items-center justify-between cursor-pointer"
+                className={`p-4 border-b ${tc.border} flex items-center justify-between cursor-pointer`}
                 style={{ borderLeftColor: team.color, borderLeftWidth: 4 }}
                 onClick={() => setExpandedTeam(expandedTeam === team.id ? null : team.id)}
               >
@@ -631,14 +633,14 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                       {team.team_players?.map(tp => (
                         <div 
                           key={tp.id} 
-                          className="flex items-center justify-between p-2 bg-slate-900 rounded-lg hover:bg-slate-700 transition"
+                          className={`flex items-center justify-between p-2 ${tc.cardBgAlt} rounded-lg ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-200'} transition`}
                         >
                           <div className="flex items-center gap-3">
                             {showPhotos && (
                               tp.players?.photo_url ? (
                                 <img src={tp.players.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                               ) : (
-                                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-500"><User className="w-5 h-5" /></div>
+                                <div className={`w-8 h-8 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'} flex items-center justify-center ${tc.textMuted}`}><User className="w-5 h-5" /></div>
                               )
                             )}
                             {tp.players?.jersey_number && (
@@ -671,9 +673,9 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
               )}
               
               {unrosteredPlayers.length > 0 && (expandedTeam === team.id || viewMode !== 'compact') && (
-                <div className="p-4 border-t border-slate-700">
+                <div className={`p-4 border-t ${tc.border}`}>
                   <select onChange={e => { if (e.target.value) addPlayerToTeam(team.id, e.target.value); e.target.value = '' }}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+                    className={`w-full ${tc.input} rounded-lg px-3 py-2 text-sm`}>
                     <option value="">+ Add player...</option>
                     {unrosteredPlayers.map(p => (
                       <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
