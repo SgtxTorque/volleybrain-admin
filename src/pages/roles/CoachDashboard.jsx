@@ -260,7 +260,7 @@ function WarmupTimerModal({ onClose }) {
 // ============================================
 function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate, onPlayerSelect }) {
   const { profile, user } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, seasons: availableSeasons, selectSeason } = useSeason()
   const { selectedSport } = useSport()
 
   const [loading, setLoading] = useState(true)
@@ -366,6 +366,17 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const nextGame = upcomingEvents.find(e => e.event_type === 'game') || null
   const winRate = (teamRecord.wins + teamRecord.losses) > 0 ? Math.round((teamRecord.wins / (teamRecord.wins + teamRecord.losses)) * 100) : 0
 
+  // Coach-level stats (across all teams)
+  const totalPlayersAcrossTeams = teams.reduce((sum, t) => sum + (t.playerCount || 0), 0)
+  const teamsCount = teams.length
+
+  // Needs Attention items
+  const needsAttentionItems = []
+  if (pendingStats > 0) needsAttentionItems.push({ label: `${pendingStats} game${pendingStats > 1 ? 's' : ''} need stats`, action: () => onNavigate?.('gameprep'), color: '#F59E0B' })
+  const nextEventRsvp = nextEvent && rsvpCounts[nextEvent.id]
+  const notResponded = nextEvent ? Math.max(0, roster.length - (nextEventRsvp?.total || 0)) : 0
+  if (notResponded > 0) needsAttentionItems.push({ label: `${notResponded} pending RSVPs`, action: () => onNavigate?.('schedule'), color: '#8B5CF6' })
+
   // ── Loading State ──
   if (loading) {
     return (
@@ -399,9 +410,10 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       <CoachLeftSidebar
         selectedTeam={selectedTeam}
         coachName={coachName}
-        rosterCount={roster.length}
-        teamRecord={teamRecord}
+        totalPlayers={totalPlayersAcrossTeams}
+        teamsCount={teamsCount}
         winRate={winRate}
+        needsAttentionItems={needsAttentionItems}
         selectedSeason={selectedSeason}
         onNavigate={onNavigate}
         navigateToTeamWall={navigateToTeamWall}
@@ -419,11 +431,15 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         teamRecord={teamRecord}
         winRate={winRate}
         selectedSeason={selectedSeason}
+        availableSeasons={availableSeasons}
+        selectSeason={selectSeason}
         coachName={coachName}
         roster={roster}
+        topPlayers={topPlayers}
         pendingStats={pendingStats}
         onNavigate={onNavigate}
         navigateToTeamWall={navigateToTeamWall}
+        openTeamChat={openTeamChat}
         userId={user?.id}
         showToast={showToast}
         onShowCoachBlast={() => setShowCoachBlast(true)}

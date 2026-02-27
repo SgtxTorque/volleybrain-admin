@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Users, Crosshair, ClipboardList,
   Swords, Zap, Clock, ChevronRight, Bell, Check, Send, Timer,
-  UserCheck, X
+  UserCheck, X, BarChart3, MessageCircle, ChevronDown
 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 import CoachGameDayHero from './CoachGameDayHero'
@@ -36,6 +36,21 @@ function formatDateShort(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr + 'T00:00:00')
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const now = new Date()
+  const date = new Date(dateStr)
+  const diffMs = now - date
+  const diffMins = Math.floor(diffMs / 60000)
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 // ── Quick Attendance Panel ──
@@ -227,6 +242,8 @@ export default function CoachCenterDashboard({
   teamRecord,
   winRate,
   selectedSeason,
+  availableSeasons,
+  selectSeason,
   coachName,
   roster,
   pendingStats,
@@ -238,51 +255,147 @@ export default function CoachCenterDashboard({
   onShowWarmupTimer,
   onPlayerSelect,
   onEventSelect,
+  topPlayers,
+  openTeamChat,
 }) {
+  const [latestPost, setLatestPost] = useState(null)
+  const [recentMessages, setRecentMessages] = useState([])
+
+  // Fetch Team Hub + Chat preview data
+  useEffect(() => {
+    if (!selectedTeam?.id) return
+    let cancelled = false
+
+    async function fetchPreviews() {
+      // Latest team post
+      try {
+        const { data: post } = await supabase
+          .from('team_posts')
+          .select('*, profiles:author_id(full_name, avatar_url)')
+          .eq('team_id', selectedTeam.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (!cancelled) setLatestPost(post)
+      } catch { if (!cancelled) setLatestPost(null) }
+
+      // Team chat — find channel, then last 3 messages
+      try {
+        const { data: channel } = await supabase
+          .from('chat_channels')
+          .select('id')
+          .eq('team_id', selectedTeam.id)
+          .limit(1)
+          .maybeSingle()
+
+        if (channel && !cancelled) {
+          const { data: msgs } = await supabase
+            .from('chat_messages')
+            .select('*, profiles:sender_id(full_name, avatar_url)')
+            .eq('channel_id', channel.id)
+            .order('created_at', { ascending: false })
+            .limit(3)
+          if (!cancelled) setRecentMessages(msgs || [])
+        } else if (!cancelled) {
+          setRecentMessages([])
+        }
+      } catch { if (!cancelled) setRecentMessages([]) }
+    }
+
+    fetchPreviews()
+    return () => { cancelled = true }
+  }, [selectedTeam?.id])
+
+  // Aggregate season totals from available player stats
+  // TODO: Wire to full team season stats query (currently aggregates from top players data)
+  const seasonTotals = (() => {
+    const t = { points: 0, kills: 0, aces: 0, digs: 0, assists: 0, blocks: 0, games: 0 }
+    topPlayers?.forEach(s => {
+      t.points += s.total_points || 0
+      t.kills += s.total_kills || 0
+      t.aces += s.total_aces || 0
+      t.digs += s.total_digs || 0
+      t.assists += s.total_assists || 0
+      t.blocks += s.total_blocks || 0
+      t.games = Math.max(t.games, s.games_played || 0)
+    })
+    return [
+      { label: 'Points', value: t.points },
+      { label: 'Kills', value: t.kills },
+      { label: 'Aces', value: t.aces },
+      { label: 'Digs', value: t.digs },
+      { label: 'Assists', value: t.assists },
+      { label: 'Blocks', value: t.blocks },
+      { label: 'Games', value: t.games },
+    ]
+  })()
+
   return (
     <main className="flex-1 overflow-y-auto p-6 space-y-5 min-w-0">
 
+      {/* Welcome + Season Selector */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Welcome back, {coachName}</h1>
+          <p className="text-sm text-slate-500">{selectedTeam?.name} · {selectedSeason?.name}</p>
+        </div>
+        {availableSeasons?.length > 1 && (
+          <div className="relative">
+            <select
+              value={selectedSeason?.id || ''}
+              onChange={e => {
+                const season = availableSeasons.find(s => s.id === e.target.value)
+                if (season) selectSeason?.(season)
+              }}
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 cursor-pointer"
+            >
+              {availableSeasons.map(s => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        )}
+      </div>
+
       {/* Team Selector (multi-team) */}
       {teams.length > 1 && (
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Select Team</p>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2">
-            {teams.map(team => (
+        <div className="flex gap-3 overflow-x-auto pb-1 -mx-2 px-2">
+          {teams.map(team => {
+            const isSelected = selectedTeam?.id === team.id
+            return (
               <button
                 key={team.id}
                 onClick={() => onTeamSelect?.(team)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border whitespace-nowrap flex-shrink-0 ${
-                  selectedTeam?.id === team.id
-                    ? 'border-blue-300 bg-blue-50'
+                  isSelected
+                    ? 'border-transparent text-white'
                     : 'border-slate-200 bg-white hover:border-slate-300'
                 }`}
+                style={isSelected ? { backgroundColor: team.color || '#3B82F6' } : undefined}
               >
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                  style={{ backgroundColor: team.color || '#3B82F6' }}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                    isSelected ? 'bg-white/20 text-white' : 'text-white'
+                  }`}
+                  style={!isSelected ? { backgroundColor: team.color || '#3B82F6' } : undefined}
                 >
                   {team.name?.charAt(0)}
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-sm text-slate-900">{team.name}</p>
-                  <p className="text-xs text-slate-400">
+                  <p className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-slate-900'}`}>{team.name}</p>
+                  <p className={`text-xs ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
                     {team.coachRole === 'head' ? 'Head Coach' : 'Assistant'} · {team.playerCount} players
                   </p>
                 </div>
-                {selectedTeam?.id === team.id && (
-                  <Check className="w-4 h-4 text-blue-500" />
+                {isSelected && (
+                  <Check className="w-4 h-4 text-white/80" />
                 )}
               </button>
-            ))}
-          </div>
+            )
+          })}
         </div>
       )}
-
-      {/* Welcome Message */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Welcome back, {coachName}</h1>
-        <p className="text-sm text-slate-500">{selectedTeam?.name} · {selectedSeason?.name}</p>
-      </div>
 
       {/* Row 1: Game Day Hero */}
       <CoachGameDayHero
@@ -389,7 +502,110 @@ export default function CoachCenterDashboard({
         )}
       </div>
 
-      {/* Row 3: Quick Attendance */}
+      {/* Row 3: Season Totals */}
+      <button
+        onClick={() => onNavigate?.('leaderboards')}
+        className="w-full bg-white border border-slate-200 rounded-2xl shadow-sm p-5 text-left hover:shadow-md group"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-blue-500" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Season Totals</h3>
+          </div>
+          <span className="text-xs font-semibold text-[#2C5F7C] group-hover:opacity-80">
+            View Full Stats →
+          </span>
+        </div>
+        <div className="flex gap-2 overflow-x-auto">
+          {seasonTotals.map(stat => (
+            <div key={stat.label} className="flex-1 min-w-[70px] text-center py-2 px-1 rounded-xl bg-slate-50">
+              <p className="text-lg font-bold text-slate-900">{stat.value}</p>
+              <p className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </button>
+
+      {/* Row 4: Team Hub + Chat Previews */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Team Hub Preview */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-500" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Team Hub</h3>
+            </div>
+            <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
+              View All →
+            </button>
+          </div>
+          {latestPost ? (
+            <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="w-full text-left">
+              <div className="flex items-start gap-3">
+                {latestPost.profiles?.avatar_url ? (
+                  <img src={latestPost.profiles.avatar_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">
+                    {latestPost.profiles?.full_name?.[0] || '?'}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{latestPost.profiles?.full_name}</p>
+                  <p className="text-xs text-slate-500 line-clamp-2">{latestPost.content}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{timeAgo(latestPost.created_at)}</p>
+                </div>
+              </div>
+            </button>
+          ) : (
+            <div className="text-center py-4">
+              <Users className="w-8 h-8 mx-auto text-slate-300 mb-1" />
+              <p className="text-xs text-slate-400">No posts yet</p>
+            </div>
+          )}
+        </div>
+
+        {/* Team Chat Preview */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-emerald-500" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Team Chat</h3>
+            </div>
+            <button onClick={() => openTeamChat?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
+              View All →
+            </button>
+          </div>
+          {recentMessages.length > 0 ? (
+            <div className="space-y-2">
+              {recentMessages.map(msg => (
+                <div key={msg.id} className="flex items-start gap-2.5">
+                  {msg.profiles?.avatar_url ? (
+                    <img src={msg.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-[10px] font-bold text-emerald-600 flex-shrink-0">
+                      {msg.profiles?.full_name?.[0] || '?'}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs font-semibold text-slate-700">{msg.profiles?.full_name?.split(' ')[0]}</span>
+                      <span className="text-[10px] text-slate-400">{timeAgo(msg.created_at)}</span>
+                    </div>
+                    <p className="text-xs text-slate-600 truncate">{msg.content}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <MessageCircle className="w-8 h-8 mx-auto text-slate-300 mb-1" />
+              <p className="text-xs text-slate-400">No messages yet</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 5: Quick Attendance */}
       {nextEvent && (
         <QuickAttendancePanel
           event={nextEvent}

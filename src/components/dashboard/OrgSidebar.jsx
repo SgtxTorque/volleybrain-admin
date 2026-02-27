@@ -79,7 +79,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
   return (
     <aside className={`flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
-      isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200 bg-slate-50'
+      isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
     }`}>
       {/* Org Card */}
       <div className={`flex flex-col items-center gap-4 rounded-2xl p-6 shadow-sm ${

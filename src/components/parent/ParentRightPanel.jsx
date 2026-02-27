@@ -129,7 +129,7 @@ export default function ParentRightPanel({
   const leaderboardCats = SPORT_LEADERBOARD[sportName?.toLowerCase()] || SPORT_LEADERBOARD.volleyball
 
   return (
-    <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-l border-slate-200/60 bg-white overflow-y-auto p-5 space-y-5">
+    <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5">
 
       {/* Upcoming Events */}
       <div>

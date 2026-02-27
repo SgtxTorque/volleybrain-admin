@@ -544,10 +544,10 @@ function HorizontalNavBar({
 ]},
   ]
 
-  // Coach navigation
+  // Coach navigation (slimmed: Dashboard | My Teams | Schedule | Game Day | Communication | My Stuff)
   const coachNavGroups = [
     { id: 'dashboard', label: 'Dashboard', type: 'single' },
-    { id: 'myteams', label: 'My Teams', type: 'dropdown', items: 
+    { id: 'myteams', label: 'My Teams', type: 'dropdown', items:
       roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
         id: `teamwall-${tc_item.team_id}`,
         label: tc_item.teams?.name + (tc_item.role === 'head' ? ' ⭐' : ''),
@@ -556,18 +556,18 @@ function HorizontalNavBar({
       })) || []
     },
     { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'coach-availability', label: 'My Availability', type: 'single' },
     { id: 'gameday', label: 'Game Day', type: 'dropdown', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
     ]},
-    { id: 'attendance', label: 'Attendance', type: 'single' },
     { id: 'communication', label: 'Communication', type: 'dropdown', items: [
-      { id: 'chats', label: 'Team Chats', icon: 'message' },
+      { id: 'chats', label: 'Team Chat', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
     ]},
-    { id: 'insights', label: 'Insights', type: 'dropdown', items: [
+    { id: 'mystuff', label: 'My Stuff', type: 'dropdown', items: [
+      { id: 'coach-availability', label: 'My Availability', icon: 'calendar' },
       { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},

@@ -51,13 +51,13 @@ export default function CoachGameDayHero({
 
     return (
       <div
-        className="relative rounded-2xl overflow-hidden"
+        className="relative rounded-2xl overflow-hidden bg-cover bg-center"
         style={{
-          background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}ee, ${selectedTeam?.color || '#3B82F6'}99, rgba(15,23,42,0.95))`,
+          backgroundImage: `url(/images/volleyball-game.jpg)`,
           minHeight: '220px',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}dd, ${selectedTeam?.color || '#3B82F6'}99, rgba(15,23,42,0.90))` }} />
         <div className="relative z-10 p-6">
           {/* Label */}
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
@@ -145,13 +145,13 @@ export default function CoachGameDayHero({
   if (nextEvent && nextEvent.event_type !== 'game') {
     return (
       <div
-        className="relative rounded-2xl overflow-hidden"
+        className="relative rounded-2xl overflow-hidden bg-cover bg-center"
         style={{
-          background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}cc, #1e293b)`,
+          backgroundImage: `url(/images/volleyball-practice.jpg)`,
           minHeight: '180px',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}cc, rgba(30,41,59,0.90))` }} />
         <div className="relative z-10 p-6">
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
             {countdownText(nextEvent.event_date) === 'TODAY' ? 'Practice Today' : 'Next Practice'}

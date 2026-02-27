@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { Calendar, ChevronRight, Users, Star, Award } from '../../constants/icons'
+import { Calendar, ChevronRight, Users, Star, Trophy } from '../../constants/icons'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -27,7 +26,8 @@ function countdownText(dateStr) {
 }
 
 /**
- * CoachRosterPanel — Right sidebar (300px) with squad roster, top players, upcoming events
+ * CoachRosterPanel — Right sidebar (300px)
+ * Order: Season Record → Top Players → Squad Roster → Upcoming Events
  */
 export default function CoachRosterPanel({
   roster,
@@ -43,106 +43,69 @@ export default function CoachRosterPanel({
 }) {
   return (
     <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
-      {/* Squad Roster Header */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Squad Roster</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">{roster.length} Players</span>
-            <button
-              onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
-              className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80"
-            >
-              Full Roster →
-            </button>
-          </div>
-        </div>
 
-        {/* Player Cards List */}
-        <div className="space-y-0.5">
-          {roster.length > 0 ? (
-            roster.map(player => (
-              <button
-                key={player.id}
-                onClick={() => onPlayerSelect?.(player)}
-                className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl cursor-pointer text-left border-b border-slate-100 last:border-0"
-              >
-                {player.photo_url ? (
-                  <img
-                    src={player.photo_url}
-                    alt=""
-                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 text-white"
-                    style={{ backgroundColor: selectedTeam?.color || '#3B82F6' }}
-                  >
-                    {player.first_name?.[0]}{player.last_name?.[0]}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {player.first_name} {player.last_name}
-                  </p>
-                  <p className="text-xs text-slate-500">{player.position || 'Player'}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span className="text-[10px] text-slate-400">Active</span>
-                  </div>
-                </div>
-                <span className="text-sm font-bold text-slate-400 flex-shrink-0">
-                  #{player.jersey_number || '—'}
-                </span>
-              </button>
-            ))
-          ) : (
-            <div className="py-10 text-center">
-              <Users className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-400">No players on roster</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Season Record Summary */}
+      {/* 1. Season Record */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</h3>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Trophy className="w-4 h-4 text-amber-500" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Season Record</h3>
+        </div>
+        <div className="flex items-center justify-center gap-4 mb-3">
           <div className="text-center">
-            <div className="text-2xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
+            <div className="text-3xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
             <div className="text-[10px] uppercase font-bold text-slate-400">Wins</div>
           </div>
-          <div className="text-xl font-bold text-slate-300">-</div>
+          <div className="text-2xl font-bold text-slate-300">-</div>
           <div className="text-center">
-            <div className="text-2xl font-black text-red-500">{teamRecord?.losses || 0}</div>
+            <div className="text-3xl font-black text-red-500">{teamRecord?.losses || 0}</div>
             <div className="text-[10px] uppercase font-bold text-slate-400">Losses</div>
           </div>
-          <div className="text-center ml-2 px-2.5 py-1 rounded-lg bg-slate-50">
-            <div className="text-lg font-black text-blue-500">{winRate || 0}%</div>
-            <div className="text-[10px] uppercase font-bold text-slate-400">Win %</div>
-          </div>
         </div>
-      </div>
-
-      {/* Top Players */}
-      {topPlayers.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-amber-500" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Top Players</h3>
+        <p className="text-xs text-center text-slate-400">{winRate || 0}% win rate</p>
+        {/* Recent Form */}
+        {teamRecord?.recentForm?.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Recent Form</p>
+            <div className="flex gap-1.5 justify-center">
+              {teamRecord.recentForm.map((g, i) => (
+                <div
+                  key={i}
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
+                    g.result === 'win'
+                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/25'
+                      : g.result === 'loss'
+                        ? 'bg-red-500/15 text-red-500 border border-red-500/25'
+                        : 'bg-slate-100 text-slate-400 border border-slate-200'
+                  }`}
+                >
+                  {g.result === 'win' ? 'W' : g.result === 'loss' ? 'L' : 'T'}
+                </div>
+              ))}
             </div>
           </div>
+        )}
+      </div>
+
+      {/* 2. Top Players Leaderboard */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-amber-500" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Top Players</h3>
+          </div>
+          <button
+            onClick={() => onNavigate?.('leaderboards')}
+            className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80"
+          >
+            View All →
+          </button>
+        </div>
+        {topPlayers.length > 0 ? (
           <div className="space-y-1">
             {topPlayers.map((stat, i) => {
               const player = roster.find(p => p.id === stat.player_id)
               if (!player) return null
               const ppg = stat.games_played > 0 ? (stat.total_points / stat.games_played).toFixed(1) : '0'
-
               return (
                 <div
                   key={stat.player_id}
@@ -185,10 +148,79 @@ export default function CoachRosterPanel({
               )
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="py-4 text-center">
+            <p className="text-xs text-slate-400">No stats recorded yet</p>
+            <p className="text-[10px] text-slate-300 mt-1">Complete games and enter stats</p>
+          </div>
+        )}
+      </div>
 
-      {/* Upcoming Events */}
+      {/* 3. Squad Roster */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-500" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Squad Roster</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400">{roster.length}</span>
+            <button
+              onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
+              className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80"
+            >
+              Full Roster →
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-0.5">
+          {roster.length > 0 ? (
+            roster.map(player => (
+              <button
+                key={player.id}
+                onClick={() => onPlayerSelect?.(player)}
+                className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl cursor-pointer text-left border-b border-slate-100 last:border-0"
+              >
+                {player.photo_url ? (
+                  <img
+                    src={player.photo_url}
+                    alt=""
+                    className="w-12 h-16 rounded-lg object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div
+                    className="w-12 h-16 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 text-white"
+                    style={{ backgroundColor: selectedTeam?.color || '#3B82F6' }}
+                  >
+                    {player.first_name?.[0]}{player.last_name?.[0]}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {player.first_name} {player.last_name}
+                  </p>
+                  <p className="text-xs text-slate-500">{player.position || 'Player'}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span className="text-[10px] text-slate-400">Active</span>
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-slate-800 flex-shrink-0">
+                  #{player.jersey_number || '—'}
+                </span>
+              </button>
+            ))
+          ) : (
+            <div className="py-10 text-center">
+              <Users className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+              <p className="text-sm text-slate-400">No players on roster</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 4. Upcoming Events */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
         <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -207,7 +239,6 @@ export default function CoachRosterPanel({
             upcomingEvents.slice(0, 4).map(event => {
               const isGame = event.event_type === 'game'
               const isToday = countdownText(event.event_date) === 'TODAY'
-
               return (
                 <div key={event.id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer">
                   <div className="text-center min-w-[36px]">
