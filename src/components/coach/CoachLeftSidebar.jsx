@@ -36,8 +36,8 @@ export default function CoachLeftSidebar({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-slate-900 truncate">{selectedTeam?.name}</p>
-            <p className="text-sm text-slate-500">{selectedSeason?.name} · {sportName}</p>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-lynx-slate">{selectedSeason?.name} · {sportName}</p>
+            <p className="text-sm text-lynx-slate">
               {selectedTeam?.coachRole === 'head' ? 'Head Coach' : 'Assistant'} · {coachName}
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function CoachLeftSidebar({
         ].map(stat => (
           <div key={stat.label} className="text-center p-2 rounded-xl bg-slate-50">
             <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>
-            <p className="text-xs uppercase tracking-wide text-slate-400 font-bold">{stat.label}</p>
+            <p className="text-xs uppercase tracking-wide text-lynx-slate font-bold">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -62,7 +62,7 @@ export default function CoachLeftSidebar({
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-4 h-4 text-amber-500" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Needs Attention</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
           {needsAttentionItems?.length > 0 && (
             <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
               {needsAttentionItems.length} item{needsAttentionItems.length > 1 ? 's' : ''}
@@ -92,7 +92,7 @@ export default function CoachLeftSidebar({
 
       {/* Quick Actions */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Quick Actions</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate mb-3">Quick Actions</h3>
         <div className="space-y-0.5">
           {[
             {
@@ -122,7 +122,7 @@ export default function CoachLeftSidebar({
 
       {/* Quick Links */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Quick Links</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate mb-3">Quick Links</h3>
         <div className="grid grid-cols-2 gap-2">
           {[
             { icon: Calendar, label: 'Schedule', page: 'schedule' },

@@ -57,7 +57,7 @@ export default function LiveActivity({ activities }) {
     <aside className={`flex w-[330px] shrink-0 flex-col gap-4 overflow-y-auto border-l py-8 pl-6 pr-6 ${
       isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
     }`}>
-      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
         Live Activity
       </h3>
 
@@ -89,7 +89,7 @@ export default function LiveActivity({ activities }) {
                       <span> &mdash; {activity.highlight}</span>
                     )}
                   </p>
-                  <p className={`mt-0.5 truncate text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`mt-0.5 truncate text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                     {activity.name}
                     {activity.name && activity.timestamp && ' · '}
                     {activity.timestamp && timeAgo(activity.timestamp)}
@@ -101,7 +101,7 @@ export default function LiveActivity({ activities }) {
         ) : (
           <div className="py-8 text-center">
             <ClipboardCheck className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No recent activity</p>
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No recent activity</p>
           </div>
         )}
       </div>

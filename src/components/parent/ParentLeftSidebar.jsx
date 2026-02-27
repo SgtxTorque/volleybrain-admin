@@ -123,7 +123,7 @@ export default function ParentLeftSidebar({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-900 truncate">{orgName}</p>
-              {orgTagline && <p className="text-sm text-slate-500 truncate">{orgTagline}</p>}
+              {orgTagline && <p className="text-sm text-lynx-slate truncate">{orgTagline}</p>}
             </div>
           </div>
         ) : (
@@ -147,7 +147,7 @@ export default function ParentLeftSidebar({
             )}
             <div>
               <p className="text-sm font-semibold text-slate-900">{profile?.full_name || 'Parent'}</p>
-              <p className="text-sm text-slate-500">Parent</p>
+              <p className="text-sm text-lynx-slate">Parent</p>
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function ParentLeftSidebar({
         ].map(stat => (
           <div key={stat.label} className="flex-1 bg-slate-50 rounded-xl px-3 py-3 text-center">
             <div className="text-xl font-bold text-slate-900">{stat.value}</div>
-            <div className="text-xs text-slate-500 mt-0.5 uppercase font-semibold tracking-wide">{stat.label}</div>
+            <div className="text-xs text-lynx-slate mt-0.5 uppercase font-semibold tracking-wide">{stat.label}</div>
           </div>
         ))}
       </div>
@@ -172,11 +172,11 @@ export default function ParentLeftSidebar({
         className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
         onClick={() => paymentSummary.totalDue > 0 ? onShowPayment?.() : onNavigate?.('payments')}
       >
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Payment Status</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate mb-3">Payment Status</h3>
         {paymentSummary.totalDue > 0 ? (
           <>
             <p className="text-2xl font-black text-red-500">${paymentSummary.totalDue.toFixed(2)}</p>
-            <p className="text-sm text-slate-500 mt-1">Balance due</p>
+            <p className="text-sm text-lynx-slate mt-1">Balance due</p>
             {paymentSummary.totalPaid > 0 && (
               <div className="mt-2">
                 <div className="w-full h-2 rounded-full bg-slate-100">
@@ -185,7 +185,7 @@ export default function ParentLeftSidebar({
                     style={{ width: `${Math.min(100, (paymentSummary.totalPaid / (paymentSummary.totalDue + paymentSummary.totalPaid)) * 100)}%` }}
                   />
                 </div>
-                <p className="text-xs text-slate-400 mt-1">${paymentSummary.totalPaid.toFixed(2)} paid</p>
+                <p className="text-xs text-lynx-slate mt-1">${paymentSummary.totalPaid.toFixed(2)} paid</p>
               </div>
             )}
           </>
@@ -196,7 +196,7 @@ export default function ParentLeftSidebar({
             </div>
             <div>
               <p className="text-sm font-bold text-emerald-600">All Paid Up</p>
-              <p className="text-sm text-slate-400">No outstanding balance</p>
+              <p className="text-sm text-lynx-slate">No outstanding balance</p>
             </div>
           </div>
         )}
@@ -205,7 +205,7 @@ export default function ParentLeftSidebar({
       {/* Needs Attention Card */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Needs Attention</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
           {priorityEngine.count > 0 && (
             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
               {priorityEngine.count}
@@ -231,7 +231,7 @@ export default function ParentLeftSidebar({
                   </div>
                   <div className="text-left">
                     <div className="text-sm font-semibold text-slate-900">{item.title || item.label}</div>
-                    {item.subtitle && <div className="text-sm text-slate-500">{item.subtitle}</div>}
+                    {item.subtitle && <div className="text-sm text-lynx-slate">{item.subtitle}</div>}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition" />
@@ -253,7 +253,7 @@ export default function ParentLeftSidebar({
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-900">All caught up!</p>
-              <p className="text-sm text-slate-400">Nothing needs your attention</p>
+              <p className="text-sm text-lynx-slate">Nothing needs your attention</p>
             </div>
           </div>
         )}
@@ -261,7 +261,7 @@ export default function ParentLeftSidebar({
 
       {/* Quick Actions */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Quick Actions</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate mb-3">Quick Actions</h3>
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: 'Calendar', icon: Calendar, action: () => onNavigate?.('schedule') },
@@ -284,7 +284,7 @@ export default function ParentLeftSidebar({
       {/* Badge Progress Preview */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Badge Progress</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Badge Progress</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             View All →
           </button>
@@ -301,7 +301,7 @@ export default function ParentLeftSidebar({
                   >
                     {def.icon}
                   </div>
-                  <span className="text-xs font-bold text-slate-500 text-center max-w-[60px] leading-tight">{def.name}</span>
+                  <span className="text-xs font-bold text-lynx-slate text-center max-w-[60px] leading-tight">{def.name}</span>
                 </div>
               )
             })}
@@ -322,7 +322,7 @@ export default function ParentLeftSidebar({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-bold text-slate-700 truncate">{def.name}</span>
-                      <span className="text-[10px] text-slate-400 ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
+                      <span className="text-[10px] text-lynx-slate ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: def.color }} />
@@ -333,7 +333,7 @@ export default function ParentLeftSidebar({
             })}
           </div>
         ) : (
-          <p className="text-sm text-slate-400 text-center py-2">No badges earned yet</p>
+          <p className="text-sm text-lynx-slate text-center py-2">No badges earned yet</p>
         )}
       </div>
 

@@ -20,7 +20,7 @@ function StatItem({ value, label, isDark }) {
   return (
     <div className="flex flex-col items-center">
       <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
-      <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+      <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
         {label}
       </span>
     </div>
@@ -103,7 +103,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <h2 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {orgName || 'My Organization'}
           </h2>
-          <p className={`mt-0.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className={`mt-0.5 text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             {season?.name || 'No season selected'}
             {season?.status ? ` · ${season.status.charAt(0).toUpperCase() + season.status.slice(1)}` : ''}
           </p>
@@ -129,7 +129,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
             style={{ width: `${Math.min(100, collectionPct)}%`, backgroundColor: accent.primary || '#0d9488' }}
           />
         </div>
-        <p className={`mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
           ${totalCollected.toLocaleString()} / ${totalExpected.toLocaleString()}
         </p>
       </div>
@@ -138,7 +138,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 px-1 pb-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Needs Attention
           </span>
         </div>
@@ -170,7 +170,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
       {/* Quick Actions */}
       <div className="flex flex-col gap-3">
-        <span className={`px-1 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span className={`px-1 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Quick Actions
         </span>
         <div className="grid grid-cols-2 gap-3">

@@ -140,7 +140,7 @@ export default function ParentCenterDashboard({
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-sm font-bold ${alert.priority === 'urgent' ? 'text-white' : 'text-slate-900'}`}>{alert.title}</p>
-            <p className={`text-sm mt-0.5 ${alert.priority === 'urgent' ? 'text-red-100' : 'text-slate-500'}`}>{alert.content}</p>
+            <p className={`text-sm mt-0.5 ${alert.priority === 'urgent' ? 'text-red-100' : 'text-lynx-slate'}`}>{alert.content}</p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onDismissAlert?.(alert.id) }}
@@ -160,7 +160,7 @@ export default function ParentCenterDashboard({
         <h1 className="text-2xl font-bold text-slate-900">
           Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'} 👋
         </h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <p className="text-sm text-lynx-slate mt-0.5">
           {registrationData?.length || 0} {registrationData?.length === 1 ? 'player' : 'players'} registered
           {activeTeam ? ` · ${activeTeam.name}` : ''}
         </p>
@@ -215,7 +215,7 @@ export default function ParentCenterDashboard({
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-slate-400" />
               <h3 className="text-sm font-bold text-slate-900">Team Hub</h3>
-              {activeTeam && <span className="text-xs text-slate-400">· {activeTeam.name}</span>}
+              {activeTeam && <span className="text-xs text-lynx-slate">· {activeTeam.name}</span>}
             </div>
             <button
               onClick={() => navigateToTeamWall?.(activeTeam?.id)}
@@ -237,12 +237,12 @@ export default function ParentCenterDashboard({
                   )}
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{latestPost.profiles?.full_name || 'Team Member'}</p>
-                    <p className="text-xs text-slate-400">{new Date(latestPost.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    <p className="text-xs text-lynx-slate">{new Date(latestPost.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                   </div>
                 </div>
                 <p className="text-sm text-slate-600 line-clamp-3">{latestPost.content}</p>
                 {latestPost.reaction_count > 0 && (
-                  <div className="flex items-center gap-2 mt-3 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 mt-3 text-xs text-lynx-slate">
                     <span>❤️ {latestPost.reaction_count}</span>
                     {latestPost.comment_count > 0 && <span>💬 {latestPost.comment_count}</span>}
                   </div>
@@ -251,7 +251,7 @@ export default function ParentCenterDashboard({
             ) : (
               <div className="text-center py-6">
                 <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                <p className="text-sm text-slate-400">No recent posts</p>
+                <p className="text-sm text-lynx-slate">No recent posts</p>
                 <button onClick={() => navigateToTeamWall?.(activeTeam?.id)} className="text-xs text-[var(--accent-primary)] font-semibold mt-2 hover:opacity-80 transition">
                   Visit Team Hub →
                 </button>
@@ -266,7 +266,7 @@ export default function ParentCenterDashboard({
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-slate-400" />
               <h3 className="text-sm font-bold text-slate-900">Team Chat</h3>
-              {activeTeam && <span className="text-xs text-slate-400">· {activeTeam.name}</span>}
+              {activeTeam && <span className="text-xs text-lynx-slate">· {activeTeam.name}</span>}
             </div>
             <button
               onClick={() => onNavigate?.('chats')}
@@ -290,7 +290,7 @@ export default function ParentCenterDashboard({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-slate-700">{msg.profiles?.full_name || 'Unknown'}</span>
-                        <span className="text-[10px] text-slate-400">{new Date(msg.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+                        <span className="text-[10px] text-lynx-slate">{new Date(msg.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
                       </div>
                       <p className="text-sm text-slate-600 line-clamp-2">{msg.content}</p>
                     </div>
@@ -300,13 +300,13 @@ export default function ParentCenterDashboard({
             ) : (
               <div className="text-center py-6">
                 <MessageCircle className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                <p className="text-sm text-slate-400">No recent messages</p>
+                <p className="text-sm text-lynx-slate">No recent messages</p>
               </div>
             )}
             <div className="mt-3 pt-3 border-t border-slate-100">
               <button
                 onClick={() => onNavigate?.('chats')}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 text-sm text-slate-400 hover:bg-slate-100 transition"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 text-sm text-lynx-slate hover:bg-slate-100 transition"
               >
                 <Send className="w-4 h-4" />
                 Reply in chat...
@@ -356,7 +356,7 @@ export default function ParentCenterDashboard({
                         {daysUntil === 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-500">TODAY</span>}
                         {daysUntil === 1 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-600">TOMORROW</span>}
                       </div>
-                      <div className="text-sm text-slate-500 mt-0.5">
+                      <div className="text-sm text-lynx-slate mt-0.5">
                         {event.event_time && formatTime12(event.event_time)}{event.venue_name && ` · ${event.venue_name}`}
                       </div>
                       <div className="text-xs font-bold mt-0.5" style={{ color: evtTeamColor }}>{event.teams?.name}</div>
@@ -369,8 +369,8 @@ export default function ParentCenterDashboard({
           ) : (
             <div className="text-center py-8">
               <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm font-medium text-slate-500">No upcoming events</p>
-              <p className="text-sm text-slate-400 mt-1">Check the schedule for past events</p>
+              <p className="text-sm font-medium text-lynx-slate">No upcoming events</p>
+              <p className="text-sm text-lynx-slate mt-1">Check the schedule for past events</p>
             </div>
           )}
         </div>
@@ -405,7 +405,7 @@ export default function ParentCenterDashboard({
             <span className="text-2xl">🎉</span>
             <div>
               <p className="text-sm font-bold text-slate-900">New Season Registration Open!</p>
-              <p className="text-sm text-slate-500">{openSeasons[0].name} — {openSeasons[0].organizations?.name}</p>
+              <p className="text-sm text-lynx-slate">{openSeasons[0].name} — {openSeasons[0].organizations?.name}</p>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -425,7 +425,7 @@ export default function ParentCenterDashboard({
       {/* Invite */}
       <button
         onClick={() => onNavigate?.('invite')}
-        className="w-full rounded-xl py-4 text-center text-sm font-medium bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
+        className="w-full rounded-xl py-4 text-center text-sm font-medium bg-white border border-slate-200 text-lynx-slate hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
       >
         Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>

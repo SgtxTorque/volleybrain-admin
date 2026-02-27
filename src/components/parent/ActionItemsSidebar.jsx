@@ -47,7 +47,7 @@ export function ActionItemsSidebar({ items, onAction, onClose, isOpen }) {
           <button
             onClick={onClose}
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
-              isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+              isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-lynx-slate'
             }`}
           >
             <X className="w-5 h-5" />

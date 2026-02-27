@@ -31,7 +31,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Upcoming Events
         </h3>
         <button
@@ -71,16 +71,16 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
                     {opponent && (
                       <>
                         {' '}
-                        <span className={isDark ? 'text-slate-400' : 'text-slate-500'} style={{ fontWeight: 'normal' }}>vs</span>{' '}
+                        <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'} style={{ fontWeight: 'normal' }}>vs</span>{' '}
                         <span className="text-amber-500">{opponent}</span>
                       </>
                     )}
                   </p>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.location || ''}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{event.location || ''}</p>
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatDate(event.event_date)}</p>
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{formatTime(event.event_time)}</p>
+                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{formatTime(event.event_time)}</p>
                 </div>
               </div>
             )
@@ -88,7 +88,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
         ) : (
           <div className="px-6 py-8 text-center">
             <Calendar className={`h-10 w-10 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-            <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No upcoming events</p>
+            <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No upcoming events</p>
           </div>
         )}
       </div>

@@ -23,7 +23,7 @@ export default function TeamSnapshot({ teams, teamStats, onNavigate }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Team Snapshot
         </h3>
         <button
@@ -50,13 +50,13 @@ export default function TeamSnapshot({ teams, teamStats, onNavigate }) {
               style={{ backgroundColor: team.color }}
             />
             <h4 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{team.name}</h4>
-            <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{team.players} players</p>
+            <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{team.players} players</p>
             <p className="mt-2 text-sm font-semibold" style={{ color: isDark ? '#5eead4' : '#0d9488' }}>{team.record}</p>
           </div>
         ))}
         {teamData.length === 0 && (
           <div className={`col-span-4 rounded-xl p-8 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
-            <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No teams yet. Create your first team to get started.</p>
+            <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No teams yet. Create your first team to get started.</p>
           </div>
         )}
       </div>

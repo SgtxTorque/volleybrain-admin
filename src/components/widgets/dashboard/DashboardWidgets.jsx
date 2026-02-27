@@ -56,7 +56,7 @@ function WHeader({ title, icon: Icon, color = 'blue', action, onAction, children
       {/* Header content */}
       <div className="flex items-center justify-between px-5 py-3">
         <div className="flex items-center gap-2">
-          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />}
+          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`} />}
           <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
         </div>
         <div className="flex items-center gap-2">
@@ -71,7 +71,7 @@ function WHeader({ title, icon: Icon, color = 'blue', action, onAction, children
             </button>
           )}
           <button className={`p-1 rounded-xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
-            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
           </button>
         </div>
       </div>
@@ -124,7 +124,7 @@ function DonutChart({ data, total, size = 120 }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{total.toLocaleString()}</span>
-        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total</span>
+        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Total</span>
       </div>
     </div>
   )
@@ -263,7 +263,7 @@ export function RegistrationStatsWidget() {
           <div className="flex items-stretch gap-4 mb-5">
             <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.total}</p>
-              <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Total Registrations</p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Total Registrations</p>
             </div>
             <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
@@ -376,7 +376,7 @@ export function PaymentSummaryWidget() {
             <span className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
               ${data.collected.toLocaleString()}
             </span>
-            <span className={`text-lg ml-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Collected YTD</span>
+            <span className={`text-lg ml-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Collected YTD</span>
           </div>
 
           {/* Chart and Breakdown */}
@@ -495,7 +495,7 @@ export function UpcomingEventsWidget() {
         {Object.keys(groupedEvents).length === 0 ? (
           <div className="text-center py-8">
             <Calendar className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-            <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No upcoming events</p>
+            <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No upcoming events</p>
           </div>
         ) : (
           Object.entries(groupedEvents).slice(0, 3).map(([date, dateEvents]) => (
@@ -515,7 +515,7 @@ export function UpcomingEventsWidget() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{event.teams?.name || event.title}</p>
-                    <p className={`text-sm flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p className={`text-sm flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                       <span>{fmtTime(event.event_time)}</span>
                       {event.location && (
                         <>
@@ -596,19 +596,19 @@ export function AttendanceTrendsWidget() {
   return (
     <WCard>
       <WHeader title="Attendance Trends" icon={TrendingUp} color="purple" action="View" onAction={() => navigate(getPathForPage('attendance'))}>
-        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'text-slate-400 bg-white/[0.06]' : 'text-slate-500 bg-slate-100'}`}>Last {data.length || 10}</span>
+        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'text-slate-400 bg-white/[0.06]' : 'text-lynx-slate bg-slate-100'}`}>Last {data.length || 10}</span>
       </WHeader>
       {loading ? <WLoading /> : (
         <div className="p-5">
           {data.length === 0 ? (
             <div className="text-center py-6">
               <TrendingUp className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No attendance data yet</p>
+              <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No attendance data yet</p>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between mb-4">
-                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>RSVP % over last {data.length} events</span>
+                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>RSVP % over last {data.length} events</span>
                 <span className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{data[data.length - 1]?.value || 0}%</span>
               </div>
               <div className="h-32">
@@ -677,7 +677,7 @@ export function TeamHealthWidget() {
           {teams.length === 0 ? (
             <div className="text-center py-6">
               <Users className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No teams this season</p>
+              <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No teams this season</p>
             </div>
           ) : teams.map(t => (
             <div
@@ -692,12 +692,12 @@ export function TeamHealthWidget() {
                 <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t.name}</span>
               </div>
               <div className="flex items-center gap-4 text-xs pl-11">
-                <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
+                <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>
                   <Users className="w-3 h-3 inline mr-1" />{t.roster}{t.max_players ? `/${t.max_players}` : ''}
                 </span>
-                <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{t.wins}W-{t.losses}L</span>
+                <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>{t.wins}W-{t.losses}L</span>
                 {t.nextEvent && (
-                  <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>
                     <Calendar className="w-3 h-3 inline mr-1" />
                     {new Date(t.nextEvent.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
@@ -774,7 +774,7 @@ export function NeedsAttentionWidget() {
             <div className="text-center py-6">
               <CheckCircle className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-emerald-500' : 'text-emerald-400'}`} />
               <p className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>All caught up!</p>
-              <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No action items at this time</p>
+              <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No action items at this time</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -874,7 +874,7 @@ export function RecentActivityWidget() {
           {activities.length === 0 ? (
             <div className="text-center py-6">
               <Activity className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>No recent activity</p>
+              <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No recent activity</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -891,7 +891,7 @@ export function RecentActivityWidget() {
                         <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}> {a.highlight}</span>
                       )}
                     </p>
-                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo(a.time)}</p>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{timeAgo(a.time)}</p>
                   </div>
                 </div>
               ))}
@@ -1016,11 +1016,11 @@ export function SeasonOverviewWidget() {
           <div className="grid grid-cols-3 gap-3">
             <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
               <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
-              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Teams</p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Teams</p>
             </div>
             <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
               <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
-              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Players</p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Players</p>
             </div>
             <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
               <p className={`text-2xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{pct}%</p>
@@ -1031,7 +1031,7 @@ export function SeasonOverviewWidget() {
           {/* Collection progress */}
           <div>
             <div className="flex justify-between text-xs mb-1">
-              <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>Collections</span>
+              <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Collections</span>
               <span className={`font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>${data.collected.toLocaleString()} / ${data.expected.toLocaleString()}</span>
             </div>
             <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
@@ -1042,7 +1042,7 @@ export function SeasonOverviewWidget() {
           {/* Mini chart */}
           {data.monthlyData?.some(d => d.value > 0) && (
             <div>
-              <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Monthly Collections</p>
+              <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Monthly Collections</p>
               <div className="h-28">
                 <MiniLineChart data={data.monthlyData} width={260} height={80} color="#10B981" />
               </div>

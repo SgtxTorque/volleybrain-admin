@@ -19,7 +19,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
       isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Payment Summary
         </h3>
         <button
@@ -37,7 +37,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
           <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             ${totalCollected.toLocaleString()}
           </span>
-          <span className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <span className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             / ${totalExpected.toLocaleString()}
           </span>
         </div>
@@ -50,7 +50,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
         </div>
 
         <div className="mt-2 flex items-center justify-between">
-          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{collectionPct}% collected</span>
+          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{collectionPct}% collected</span>
           {pastDue > 0 && (
             <span className="text-sm font-semibold text-red-500">${pastDue.toLocaleString()} overdue</span>
           )}
@@ -60,7 +60,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
       {/* Recent Payments */}
       {recentPayments && recentPayments.length > 0 && (
         <div className="flex flex-col gap-0">
-          <span className={`mb-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <span className={`mb-2 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Recent
           </span>
           {recentPayments.slice(0, 3).map((payment, i) => (

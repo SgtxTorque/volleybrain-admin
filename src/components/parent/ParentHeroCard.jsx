@@ -169,9 +169,9 @@ export default function ParentHeroCard({
         className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex items-center justify-center"
         style={{ minHeight: '420px' }}
       >
-        <div className="text-center text-slate-400 p-8">
+        <div className="text-center text-lynx-slate p-8">
           <div className="text-5xl mb-3">👤</div>
-          <div className="text-lg font-semibold text-slate-500">Loading player...</div>
+          <div className="text-lg font-semibold text-lynx-slate">Loading player...</div>
           <div className="text-sm mt-1">Player information is loading</div>
         </div>
       </div>
@@ -344,7 +344,7 @@ export default function ParentHeroCard({
                   <div className="text-lg font-black uppercase tracking-wide text-slate-900 truncate leading-tight">
                     {teamName}
                   </div>
-                  <div className="text-sm text-slate-500">
+                  <div className="text-sm text-lynx-slate">
                     {position} &middot; {seasonName || 'Current Season'}
                   </div>
                 </div>
@@ -396,7 +396,7 @@ export default function ParentHeroCard({
 
                   {/* LEFT ROW 1: What's Next */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1.5">What's Next</div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-lynx-slate mb-1.5">What's Next</div>
                     <div className="flex flex-wrap gap-1.5">
                       {displayTimeline.length > 0 ? (
                         displayTimeline.map((item, i) => (
@@ -420,7 +420,7 @@ export default function ParentHeroCard({
                           </button>
                         ))
                       ) : (
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-slate-400">
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-lynx-slate">
                           No recent activity
                         </span>
                       )}
@@ -429,7 +429,7 @@ export default function ParentHeroCard({
 
                   {/* RIGHT: Badge Showcase — spans both rows */}
                   <div className="row-span-2 flex flex-col border-l border-slate-100 pl-3">
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1.5">Badge Showcase</div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-lynx-slate mb-1.5">Badge Showcase</div>
                     {earnedBadges.length > 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-evenly">
                         {earnedBadges.slice(0, 3).map((b, i) => {
@@ -463,7 +463,7 @@ export default function ParentHeroCard({
                       <div className="flex-1 flex items-center justify-center rounded-lg bg-slate-50">
                         <div className="text-center">
                           <span className="text-2xl block mb-1">🏅</span>
-                          <p className="text-sm text-slate-400 font-medium">No badges yet</p>
+                          <p className="text-sm text-lynx-slate font-medium">No badges yet</p>
                           <p className="text-xs text-slate-300 mt-0.5">Keep playing!</p>
                         </div>
                       </div>
@@ -478,7 +478,7 @@ export default function ParentHeroCard({
 
                   {/* LEFT ROW 2: Gallery */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1.5">Gallery</div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-lynx-slate mb-1.5">Gallery</div>
                     <div className="flex items-center gap-2">
                       {Array.from({ length: 5 }).map((_, i) => {
                         const url = galleryPhotos[i]
@@ -547,7 +547,7 @@ export default function ParentHeroCard({
                     <p className="text-sm font-bold text-slate-900 truncate">{combo.firstName}</p>
                     <div className="flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: combo.teamColor }} />
-                      <p className="text-sm text-slate-500 truncate">
+                      <p className="text-sm text-lynx-slate truncate">
                         {combo.teamName}
                         {combo.jerseyNumber ? ` · #${combo.jerseyNumber}` : ''}
                       </p>

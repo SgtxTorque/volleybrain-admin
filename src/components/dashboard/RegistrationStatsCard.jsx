@@ -45,7 +45,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
       isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Registration Stats
         </h3>
         <button
@@ -83,7 +83,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
           </svg>
           <div className="absolute flex flex-col items-center">
             <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{total}</span>
-            <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
               Total
             </span>
           </div>
@@ -94,7 +94,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
           {statItems.map((stat) => (
             <div key={stat.label} className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stat.color }} />
-              <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{stat.label}</span>
+              <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</span>
               <span className={`ml-auto text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.count}</span>
             </div>
           ))}

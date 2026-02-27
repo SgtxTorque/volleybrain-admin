@@ -118,7 +118,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Quick Attendance</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Quick Attendance</span>
             {isToday && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -126,7 +126,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
               </span>
             )}
           </div>
-          <p className="text-sm mt-0.5 text-slate-400">
+          <p className="text-sm mt-0.5 text-lynx-slate">
             {event.event_type === 'game' ? `Game vs ${event.opponent_name || 'TBD'}` : 'Practice'}
             {event.event_time ? ` · ${formatTime12(event.event_time)}` : ''}
             {expanded && loaded ? ` — ${presentCount}✓ ${absentCount}✗ ${unmarkedCount > 0 ? `${unmarkedCount} unmarked` : ''}` : ''}
@@ -140,7 +140,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
           {loading ? (
             <div className="py-6 text-center">
               <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm mt-2 text-slate-400">Loading...</p>
+              <p className="text-sm mt-2 text-lynx-slate">Loading...</p>
             </div>
           ) : (
             <>
@@ -156,7 +156,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                 {unmarkedCount > 0 && (
                   <div className="flex items-center gap-1.5">
                     <span className="w-3 h-3 rounded-full bg-slate-300" />
-                    <span className="text-xs text-slate-400">{unmarkedCount} Unmarked</span>
+                    <span className="text-xs text-lynx-slate">{unmarkedCount} Unmarked</span>
                   </div>
                 )}
                 <div className="ml-auto">
@@ -190,7 +190,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate text-slate-900">{player.first_name} {player.last_name}</p>
-                        <p className="text-xs text-slate-400">#{player.jersey_number || '—'} · {player.position || 'Player'}</p>
+                        <p className="text-xs text-lynx-slate">#{player.jersey_number || '—'} · {player.position || 'Player'}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -218,7 +218,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
               {roster.length === 0 && (
                 <div className="py-6 text-center">
                   <Users className="w-8 h-8 mx-auto mb-2 text-slate-400" />
-                  <p className="text-sm text-slate-400">No players on roster</p>
+                  <p className="text-sm text-lynx-slate">No players on roster</p>
                 </div>
               )}
             </>
@@ -337,7 +337,7 @@ export default function CoachCenterDashboard({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Welcome back, {coachName}</h1>
-          <p className="text-sm text-slate-500">{selectedTeam?.name} · {selectedSeason?.name}</p>
+          <p className="text-sm text-lynx-slate">{selectedTeam?.name} · {selectedSeason?.name}</p>
         </div>
         {availableSeasons?.length > 1 && (
           <div className="relative">
@@ -384,7 +384,7 @@ export default function CoachCenterDashboard({
                 </div>
                 <div className="text-left">
                   <p className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-slate-900'}`}>{team.name}</p>
-                  <p className={`text-sm ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
+                  <p className={`text-sm ${isSelected ? 'text-white/70' : 'text-lynx-slate'}`}>
                     {team.coachRole === 'head' ? 'Head Coach' : 'Assistant'} · {team.playerCount} players
                   </p>
                 </div>
@@ -417,7 +417,7 @@ export default function CoachCenterDashboard({
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Game Day Tools</h2>
-            <p className="text-sm text-slate-400">Lineups, scoring, and stats</p>
+            <p className="text-sm text-lynx-slate">Lineups, scoring, and stats</p>
           </div>
         </div>
 
@@ -433,7 +433,7 @@ export default function CoachCenterDashboard({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Lineup Builder</h3>
-                <p className="text-sm text-slate-400">Build & manage lineups</p>
+                <p className="text-sm text-lynx-slate">Build & manage lineups</p>
               </div>
             </div>
             {nextGame ? (
@@ -444,7 +444,7 @@ export default function CoachCenterDashboard({
                 </span>
               </div>
             ) : (
-              <p className="text-sm text-slate-400">No upcoming games</p>
+              <p className="text-sm text-lynx-slate">No upcoming games</p>
             )}
             <div className="flex items-center gap-1 mt-3 text-indigo-500 text-sm font-semibold">
               <span>Open Builder</span>
@@ -463,7 +463,7 @@ export default function CoachCenterDashboard({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Game Day Hub</h3>
-                <p className="text-sm text-slate-400">Live scoring & stats</p>
+                <p className="text-sm text-lynx-slate">Live scoring & stats</p>
               </div>
             </div>
             {nextGame && countdownText(nextGame.event_date) === 'TODAY' ? (
@@ -474,7 +474,7 @@ export default function CoachCenterDashboard({
             ) : (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-100">
                 <Clock className="w-4 h-4 text-amber-500/60" />
-                <span className="text-sm text-slate-500">Score games, track stats, manage rotations</span>
+                <span className="text-sm text-lynx-slate">Score games, track stats, manage rotations</span>
               </div>
             )}
             <div className="flex items-center gap-1 mt-3 text-amber-500 text-sm font-semibold">
@@ -510,7 +510,7 @@ export default function CoachCenterDashboard({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-blue-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Season Totals</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Season Totals</h3>
           </div>
           <span className="text-xs font-semibold text-[#2C5F7C] group-hover:opacity-80">
             View Full Stats →
@@ -520,7 +520,7 @@ export default function CoachCenterDashboard({
           {seasonTotals.map(stat => (
             <div key={stat.label} className="flex-1 min-w-[70px] text-center py-2 px-1 rounded-xl bg-slate-50">
               <p className="text-lg font-bold text-slate-900">{stat.value}</p>
-              <p className="text-xs uppercase tracking-wide text-slate-500 font-bold">{stat.label}</p>
+              <p className="text-xs uppercase tracking-wide text-lynx-slate font-bold">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -533,7 +533,7 @@ export default function CoachCenterDashboard({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-500" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Team Hub</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Team Hub</h3>
             </div>
             <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
               View All →
@@ -551,15 +551,15 @@ export default function CoachCenterDashboard({
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-900 truncate">{latestPost.profiles?.full_name}</p>
-                  <p className="text-sm text-slate-500 line-clamp-2">{latestPost.content}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">{timeAgo(latestPost.created_at)}</p>
+                  <p className="text-sm text-lynx-slate line-clamp-2">{latestPost.content}</p>
+                  <p className="text-[10px] text-lynx-slate mt-1">{timeAgo(latestPost.created_at)}</p>
                 </div>
               </div>
             </button>
           ) : (
             <div className="text-center py-4">
               <Users className="w-8 h-8 mx-auto text-slate-300 mb-1" />
-              <p className="text-sm text-slate-400">No posts yet</p>
+              <p className="text-sm text-lynx-slate">No posts yet</p>
             </div>
           )}
         </div>
@@ -569,7 +569,7 @@ export default function CoachCenterDashboard({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-emerald-500" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Team Chat</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Team Chat</h3>
             </div>
             <button onClick={() => openTeamChat?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
               View All →
@@ -589,7 +589,7 @@ export default function CoachCenterDashboard({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-sm font-semibold text-slate-700">{msg.profiles?.full_name?.split(' ')[0]}</span>
-                      <span className="text-[10px] text-slate-400">{timeAgo(msg.created_at)}</span>
+                      <span className="text-[10px] text-lynx-slate">{timeAgo(msg.created_at)}</span>
                     </div>
                     <p className="text-sm text-slate-600 truncate">{msg.content}</p>
                   </div>
@@ -599,7 +599,7 @@ export default function CoachCenterDashboard({
           ) : (
             <div className="text-center py-4">
               <MessageCircle className="w-8 h-8 mx-auto text-slate-300 mb-1" />
-              <p className="text-sm text-slate-400">No messages yet</p>
+              <p className="text-sm text-lynx-slate">No messages yet</p>
             </div>
           )}
         </div>
@@ -618,7 +618,7 @@ export default function CoachCenterDashboard({
 
       {/* Row 4: Quick Actions (mobile only — replaces sidebar) */}
       <div className="lg:hidden">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Quick Actions</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-lynx-slate mb-3">Quick Actions</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <button
             onClick={() => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') }}
@@ -629,7 +629,7 @@ export default function CoachCenterDashboard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900">Take Attendance</h3>
-              <p className="text-sm truncate text-slate-400">
+              <p className="text-sm truncate text-lynx-slate">
                 {nextEvent ? `${nextEvent.event_type === 'game' ? 'Game' : 'Practice'} · ${formatDateShort(nextEvent.event_date)}` : 'No upcoming events'}
               </p>
             </div>
@@ -645,7 +645,7 @@ export default function CoachCenterDashboard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900">Message Parents</h3>
-              <p className="text-sm truncate text-slate-400">Send announcement to {selectedTeam?.name}</p>
+              <p className="text-sm truncate text-lynx-slate">Send announcement to {selectedTeam?.name}</p>
             </div>
             <ChevronRight className="w-5 h-5 flex-shrink-0 text-slate-400" />
           </button>
@@ -659,7 +659,7 @@ export default function CoachCenterDashboard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-base font-bold text-slate-900">Start Warmup</h3>
-              <p className="text-sm text-slate-400">Countdown timer for drills</p>
+              <p className="text-sm text-lynx-slate">Countdown timer for drills</p>
             </div>
             <ChevronRight className="w-5 h-5 flex-shrink-0 text-slate-400" />
           </button>

@@ -65,7 +65,7 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
       {/* Header content */}
       <div className="flex items-center justify-between px-5 py-3">
         <div className="flex items-center gap-2">
-          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />}
+          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`} />}
           <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
         </div>
         <div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
             </button>
           )}
           <button className={`p-1 rounded-xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
-            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
           </button>
         </div>
       </div>
@@ -164,7 +164,7 @@ function RegistrationDonut({ data, total, size = 120 }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
-        <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Total</span>
+        <span className={`text-xs ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
       </div>
     </div>
   )
@@ -318,9 +318,9 @@ function SeasonCard({ season, stats, onNavigate }) {
       {/* Stats Row */}
       <div className={`px-5 py-4 border-b ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
         <div className={`flex items-center gap-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-          <Users className={`w-4 h-4 ${isDark ? "text-slate-500" : "text-slate-400"}`} />
+          <Users className={`w-4 h-4 ${isDark ? "text-slate-500" : "text-lynx-slate"}`} />
           <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.rosteredPlayers}</span>
-          <span className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>/ {stats.totalCapacity} rostered players</span>
+          <span className={`${isDark ? "text-slate-400" : "text-lynx-slate"}`}>/ {stats.totalCapacity} rostered players</span>
         </div>
         
         <div className="flex items-center gap-2 mt-3">
@@ -385,7 +385,7 @@ function FinancialSummary({ stats, onNavigate }) {
           <span className={`text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
             ${stats.totalCollected?.toLocaleString() || '0'}
           </span>
-          <span className={`text-lg ml-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Collected YTD</span>
+          <span className={`text-lg ml-2 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Collected YTD</span>
         </div>
         
         {/* Chart and Breakdown */}
@@ -450,12 +450,12 @@ function FinancialOverview({ monthlyData, totalCollected }) {
   return (
     <DashCard isDark={isDark}>
       <CardHeader isDark={isDark} title="Financial Overview" color="teal" icon={TrendingUp}>
-        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? "text-slate-400 bg-white/[0.06]" : "text-slate-500 bg-slate-100"}`}>All Seasons</span>
+        <span className={`text-xs px-2 py-1 rounded-full ${isDark ? "text-slate-400 bg-white/[0.06]" : "text-lynx-slate bg-slate-100"}`}>All Seasons</span>
       </CardHeader>
       
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Registration Payments</span>
+          <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Registration Payments</span>
           <span className={`text-2xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
         </div>
         
@@ -467,15 +467,15 @@ function FinancialOverview({ monthlyData, totalCollected }) {
         <div className={`flex items-center gap-4 mt-6 pt-4 border-t ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Online</span>
+            <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Online</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Manual</span>
+            <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Manual</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Refunds</span>
+            <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Refunds</span>
           </div>
         </div>
       </div>
@@ -511,7 +511,7 @@ function RegistrationStats({ stats, onNavigate }) {
           {/* Total Registrations */}
           <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? "bg-white/[0.05]" : "bg-slate-50"}`}>
             <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
-            <p className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Total Registrations</p>
+            <p className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total Registrations</p>
           </div>
           
           {/* Rostered */}
@@ -712,7 +712,7 @@ function UpcomingEvents({ events, onNavigate }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{event.teams?.name || event.title}</p>
-                  <p className={`text-sm flex items-center gap-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                  <p className={`text-sm flex items-center gap-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
                     <span>{formatTime(event.event_time)}</span>
                     {event.location && (
                       <>
@@ -732,7 +732,7 @@ function UpcomingEvents({ events, onNavigate }) {
         {Object.keys(groupedEvents).length === 0 && (
           <div className="text-center py-8">
             <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className={`${isDark ? "text-slate-400" : "text-slate-500"}`}>No upcoming events</p>
+            <p className={`${isDark ? "text-slate-400" : "text-lynx-slate"}`}>No upcoming events</p>
           </div>
         )}
         
@@ -800,13 +800,13 @@ function OverduePayments({ stats, onNavigate }) {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
               <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
-              <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue Fees</span>
+              <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Fees</span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
               <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
-              <span className={`text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue Stripe</span>
+              <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Stripe</span>
             </div>
           </div>
           
@@ -825,7 +825,7 @@ function OverduePayments({ stats, onNavigate }) {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-sm font-bold text-red-600">${total.toLocaleString()}</span>
-              <span className={`text-xs uppercase ${isDark ? "text-slate-400" : "text-slate-500"}`}>Overdue</span>
+              <span className={`text-xs uppercase ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue</span>
             </div>
           </div>
         </div>
@@ -861,7 +861,7 @@ export function GettingStartedGuide({ onNavigate }) {
       <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
         Welcome to {organization?.name || 'Lynx'}!
       </h1>
-      <p className={`mb-8 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+      <p className={`mb-8 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
         Let's get your organization set up. Start by creating your first season.
       </p>
       <button 
@@ -1298,7 +1298,7 @@ export function DashboardPage({ onNavigate }) {
         <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
           Dashboard
         </h1>
-        <p className={`mt-1 text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`mt-1 text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           {getGreeting()}, {profile?.first_name || 'there'}. Here's your overview.
         </p>
       </div>
