@@ -1505,7 +1505,7 @@ function SetupSectionContent({
       {renderContent()}
 
       {/* Save Button */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-700">
+      <div className={`flex items-center justify-between pt-4 border-t ${tc.border}`}>
         <p className={`text-sm ${hasChanges ? 'text-amber-400' : tc.textMuted}`}>
           {hasChanges ? '⚠️ You have unsaved changes' : '✓ All changes saved'}
         </p>
