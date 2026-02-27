@@ -41,26 +41,26 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
     })
 
   return (
-    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow-sm ${
+    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow-sm overflow-hidden ${
       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <h3 className={`text-lg font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Registration Stats
         </h3>
         <button
           onClick={() => onNavigate('registrations')}
-          className="flex items-center gap-1 text-sm font-medium transition-colors"
+          className="flex items-center gap-1 text-lg font-medium transition-colors"
           style={{ color: isDark ? '#5eead4' : '#0d9488' }}
         >
           View All
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-5.5 w-5.5" />
         </button>
       </div>
 
       <div className="flex items-center gap-8">
         {/* Donut Chart */}
-        <div className="relative flex h-36 w-36 shrink-0 items-center justify-center">
+        <div className="relative flex h-40 w-40 shrink-0 items-center justify-center">
           <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
             <circle
               cx="60" cy="60" r="50"
@@ -83,7 +83,7 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
           </svg>
           <div className="absolute flex flex-col items-center">
             <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{total}</span>
-            <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+            <span className={`text-md font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
               Total
             </span>
           </div>
@@ -93,9 +93,9 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
         <div className="flex flex-col gap-3">
           {statItems.map((stat) => (
             <div key={stat.label} className="flex items-center gap-3">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stat.color }} />
-              <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</span>
-              <span className={`ml-auto text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.count}</span>
+              <span className="h-5 w-5 rounded-full" style={{ backgroundColor: stat.color }} />
+              <span className={`text-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</span>
+              <span className={`ml-auto text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.count}</span>
             </div>
           ))}
         </div>

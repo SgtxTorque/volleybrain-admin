@@ -82,7 +82,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-lynx-silver/50 bg-lynx-cloud'
     }`}>
       {/* Org Card */}
-      <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow-sm ${
+      <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow-sm overflow-hidden ${
         isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
       }`}>
         {orgLogo ? (
@@ -123,7 +123,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Collections</span>
           <span className="text-sm font-semibold" style={{ color: accent.primary || '#0d9488' }}>{collectionPct}%</span>
         </div>
-        <div className={`mt-3 h-2 overflow-hidden rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+        <div className={`mt-3 h-2.5 overflow-hidden rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
           <div
             className="h-full rounded-full transition-all"
             style={{ width: `${Math.min(100, collectionPct)}%`, backgroundColor: accent.primary || '#0d9488' }}

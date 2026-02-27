@@ -612,7 +612,7 @@ export function AttendanceTrendsWidget() {
                 <span className={`text-3xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{data[data.length - 1]?.value || 0}%</span>
               </div>
               <div className="h-32">
-                <MiniLineChart data={data} width={260} height={100} color="#8B5CF6" />
+                <MiniLineChart data={data} width={300} height={100} color="#8B5CF6" />
               </div>
             </>
           )}
@@ -1034,7 +1034,7 @@ export function SeasonOverviewWidget() {
               <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Collections</span>
               <span className={`font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>${data.collected.toLocaleString()} / ${data.expected.toLocaleString()}</span>
             </div>
-            <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+            <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
               <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: accent.primary }} />
             </div>
           </div>
@@ -1044,7 +1044,7 @@ export function SeasonOverviewWidget() {
             <div>
               <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Monthly Collections</p>
               <div className="h-28">
-                <MiniLineChart data={data.monthlyData} width={260} height={80} color="#10B981" />
+                <MiniLineChart data={data.monthlyData} width={300} height={80} color="#10B981" />
               </div>
             </div>
           )}

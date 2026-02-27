@@ -460,7 +460,7 @@ function FinancialOverview({ monthlyData, totalCollected }) {
         </div>
         
         <div className="h-32">
-          <MiniLineChart data={monthlyData} width={280} height={100} />
+          <MiniLineChart data={monthlyData} width={320} height={100} />
         </div>
         
         {/* Legend */}
@@ -531,7 +531,7 @@ function RegistrationStats({ stats, onNavigate }) {
               <span>Capacity</span>
               <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
             </div>
-            <div className={`h-2 rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-slate-100"}`}>
+            <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-slate-100"}`}>
               <div 
                 className="h-full bg-blue-500 rounded-full transition-all"
                 style={{ width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%` }}
@@ -811,16 +811,16 @@ function OverduePayments({ stats, onNavigate }) {
           </div>
           
           {/* Mini Donut */}
-          <div className="relative w-28 h-28">
-            <svg width="112" height="112" className="transform -rotate-90">
+          <div className="relative w-32 h-32">
+            <svg width="128" height="128" className="transform -rotate-90">
               <circle
-                cx="56" cy="56" r="42"
+                cx="64" cy="64" r="48"
                 fill="none" stroke="#FEE2E2" strokeWidth="12"
               />
               <circle
-                cx="56" cy="56" r="42"
+                cx="64" cy="64" r="48"
                 fill="none" stroke="#EF4444" strokeWidth="12"
-                strokeDasharray={`${((stats.overdueFees || 0) / (total || 1)) * 264} 264`}
+                strokeDasharray={`${((stats.overdueFees || 0) / (total || 1)) * 301} 301`}
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
