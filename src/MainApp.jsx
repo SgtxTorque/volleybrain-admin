@@ -597,10 +597,10 @@ function HorizontalNavBar({
     ]},
   ]
 
-  // Player navigation
+  // Player navigation (slimmed: Home | My Team | Schedule | Achievements | My Stuff)
   const playerNavGroups = [
     { id: 'dashboard', label: 'Home', type: 'single' },
-    { id: 'myteams', label: 'My Teams', type: 'dropdown', items:
+    { id: 'myteams', label: 'My Team', type: 'dropdown', items:
       roleContext?.playerInfo?.team_players?.map(tp => ({
         id: `teamwall-${tp.team_id}`,
         label: tp.teams?.name,
@@ -609,9 +609,12 @@ function HorizontalNavBar({
       })) || []
     },
     { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'standings', label: 'Standings', type: 'single' },
-    { id: 'leaderboards', label: 'Leaderboards', type: 'single' },
     { id: 'achievements', label: 'Achievements', type: 'single' },
+    { id: 'mystuff', label: 'My Stuff', type: 'dropdown', items: [
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'my-stuff', label: 'Profile & Stats', icon: 'user' },
+    ]},
   ]
 
   const getNavItems = () => {
@@ -1079,6 +1082,7 @@ function MainApp() {
           (activeView === 'admin' && mainLocation.pathname === '/dashboard')
             || (activeView === 'coach' && mainLocation.pathname === '/dashboard')
             || (activeView === 'parent' && mainLocation.pathname === '/dashboard')
+            || (activeView === 'player' && mainLocation.pathname === '/dashboard')
             || mainLocation.pathname.startsWith('/teams/')
             ? 'overflow-hidden'
             : 'px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full animate-slide-up'

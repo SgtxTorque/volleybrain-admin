@@ -201,3 +201,29 @@
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Player dashboard — XP bar shimmer */
+@keyframes playerShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+/* Player dashboard — feed cards entrance */
+@keyframes playerFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Player dashboard — pulse glow for new items */
+@keyframes playerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--player-accent-glow, rgba(232,168,56,0.3)); }
+  50% { box-shadow: 0 0 12px 2px var(--player-accent-glow, rgba(232,168,56,0.3)); }
+}
+.player-shimmer {
+  background-size: 200% 100%;
+  animation: playerShimmer 3s ease-in-out infinite;
+}
+.player-fade-up {
+  animation: playerFadeUp 0.3s ease-out forwards;
+}
+.player-pulse-new {
+  animation: playerPulse 2s ease-in-out infinite;
+}
