@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { X, Check, Award } from '../../constants/icons'
 
 // Volleyball Set Score Input Component
 function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winByTwo, onOurScoreChange, onTheirScoreChange, isDecidingSet, ourTeamName, theirTeamName }) {
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const [ourInput, setOurInput] = useState(ourScore > 0 ? String(ourScore) : '')
   const [theirInput, setTheirInput] = useState(theirScore > 0 ? String(theirScore) : '')
   
@@ -35,11 +37,11 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
     <div className={`p-4 rounded-2xl border-2 transition ${
       ourWon ? 'bg-emerald-500/10 border-emerald-500/50' :
       theyWon ? 'bg-red-500/10 border-red-500/50' :
-      'bg-slate-800/50 border-slate-600'
+      isDark ? 'bg-slate-800/50 border-slate-600' : 'bg-slate-50 border-slate-200'
     }`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className={`text-lg font-bold ${isDecidingSet ? 'text-amber-400' : 'text-white'}`}>
+          <span className={`text-lg font-bold ${isDecidingSet ? 'text-amber-400' : tc.text}`}>
             Set {setNumber}
           </span>
           {isDecidingSet && (
@@ -48,19 +50,19 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
             </span>
           )}
         </div>
-        <span className="text-xs text-slate-400">
+        <span className={`text-xs ${tc.textMuted}`}>
           First to {targetScore} {winByTwo ? '(win by 2)' : ''} {cap ? `• Cap: ${cap}` : ''}
         </span>
       </div>
       
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <label className="text-xs text-slate-400 font-medium mb-1 block truncate">{ourTeamName || 'Us'}</label>
+          <label className={`text-xs ${tc.textMuted} font-medium mb-1 block truncate`}>{ourTeamName || 'Us'}</label>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => onOurScoreChange(Math.max(0, ourScore - 1))}
-              className="w-10 h-10 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition"
+              className={`w-10 h-10 rounded-xl font-bold transition ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
             >-</button>
             <input
               type="text"
@@ -72,8 +74,8 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
                 onOurScoreChange(val === '' ? 0 : parseInt(val, 10))
               }}
               placeholder="0"
-              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 bg-slate-800 focus:outline-none ${
-                ourWon ? 'border-emerald-400 text-emerald-400' : 'border-slate-600 text-white focus:border-purple-500'
+              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${isDark ? 'bg-slate-800' : 'bg-white'} ${
+                ourWon ? 'border-emerald-400 text-emerald-400' : isDark ? 'border-slate-600 text-white focus:border-purple-500' : 'border-slate-300 text-slate-900 focus:border-purple-500'
               }`}
             />
             <button
@@ -84,15 +86,15 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
           </div>
         </div>
         
-        <div className="text-2xl text-slate-500 font-bold">-</div>
+        <div className={`text-2xl ${tc.textMuted} font-bold`}>-</div>
         
         <div className="flex-1">
-          <label className="text-xs text-slate-400 font-medium mb-1 block text-right truncate">{theirTeamName || 'Opponent'}</label>
+          <label className={`text-xs ${tc.textMuted} font-medium mb-1 block text-right truncate`}>{theirTeamName || 'Opponent'}</label>
           <div className="flex items-center gap-2 justify-end">
             <button
               type="button"
               onClick={() => onTheirScoreChange(Math.max(0, theirScore - 1))}
-              className="w-10 h-10 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition"
+              className={`w-10 h-10 rounded-xl font-bold transition ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'}`}
             >-</button>
             <input
               type="text"
@@ -104,8 +106,8 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
                 onTheirScoreChange(val === '' ? 0 : parseInt(val, 10))
               }}
               placeholder="0"
-              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 bg-slate-800 focus:outline-none ${
-                theyWon ? 'border-red-400 text-red-400' : 'border-slate-600 text-white focus:border-purple-500'
+              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${isDark ? 'bg-slate-800' : 'bg-white'} ${
+                theyWon ? 'border-red-400 text-red-400' : isDark ? 'border-slate-600 text-white focus:border-purple-500' : 'border-slate-300 text-slate-900 focus:border-purple-500'
               }`}
             />
             <button
@@ -176,6 +178,7 @@ const SCORING_CONFIGS = {
 
 function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClose, onComplete, showToast }) {
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const { user } = useAuth()
   
   const sportConfig = SCORING_CONFIGS[sport] || SCORING_CONFIGS.volleyball
@@ -343,7 +346,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
   const steps = ['Format', 'Score', 'Attendance', 'Badges', 'Confirm']
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className={`${tc.cardBg} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`p-4 border-b ${tc.border} ${
@@ -523,7 +526,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
                         status === 'late' ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-red-500/10 border border-red-500/30'
                       }`}>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDark ? 'bg-slate-600 text-white' : 'bg-slate-300 text-slate-700'}`}>
                           {player.jersey_number || '?'}
                         </div>
                         <p className={`font-medium ${tc.text}`}>{player.first_name} {player.last_name}</p>
@@ -546,7 +549,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
               <p className={tc.textMuted}>Award badges (optional)</p>
               <div className={`p-3 rounded-xl ${tc.cardBgAlt}`}>
                 <div className="flex flex-wrap gap-2">
-                  {gameBadges.map(b => <span key={b.id} className="px-2 py-1 rounded-full bg-slate-700 text-xs">{b.icon} {b.name}</span>)}
+                  {gameBadges.map(b => <span key={b.id} className={`px-2 py-1 rounded-full text-xs ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-600'}`}>{b.icon} {b.name}</span>)}
                 </div>
               </div>
               <div className="space-y-3">
@@ -555,7 +558,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
                   return (
                     <div key={player.id} className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold text-sm">{player.jersey_number || '?'}</div>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isDark ? 'bg-slate-600 text-white' : 'bg-slate-300 text-slate-700'}`}>{player.jersey_number || '?'}</div>
                         <p className={`font-medium ${tc.text}`}>{player.first_name} {player.last_name}</p>
                         {playerBadges.length > 0 && <span className="text-xs text-[var(--accent-primary)]">{playerBadges.length} badge(s)</span>}
                       </div>
@@ -564,7 +567,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
                           const awarded = playerBadges.some(b => b.badgeType === badge.id)
                           return (
                             <button key={badge.id} onClick={() => toggleBadge(player.id, badge.id)}
-                              className={`px-2 py-1 rounded-lg text-xs transition ${awarded ? 'bg-[var(--accent-primary)] text-white' : `${tc.cardBg} ${tc.textMuted} hover:bg-slate-600`}`}>
+                              className={`px-2 py-1 rounded-lg text-xs transition ${awarded ? 'bg-[var(--accent-primary)] text-white' : `${tc.cardBg} ${tc.textMuted} ${tc.hoverBg}`}`}>
                               {badge.icon} {badge.name}
                             </button>
                           )
@@ -593,7 +596,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
                 {isSetBased && (
                   <>
                     <div className="flex justify-between"><span className={tc.textMuted}>Sets</span><span className={tc.text}>{matchResult.ourSetsWon} - {matchResult.theirSetsWon}</span></div>
-                    <div className="pt-2 border-t border-slate-700">
+                    <div className={`pt-2 border-t ${tc.border}`}>
                       {setScores.slice(0, getSetsToShow()).map((set, idx) => {
                         if (set.our === 0 && set.their === 0) return null
                         return <div key={idx} className="flex justify-between text-sm"><span className={tc.textMuted}>Set {idx + 1}</span><span className={set.our > set.their ? 'text-emerald-400' : 'text-red-400'}>{set.our}-{set.their}</span></div>
