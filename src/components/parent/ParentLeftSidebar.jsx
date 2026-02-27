@@ -112,7 +112,7 @@ export default function ParentLeftSidebar({
   }, [activeChildId])
 
   return (
-    <aside className="hidden xl:flex w-[280px] shrink-0 flex-col border-r border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5">
+    <aside className="hidden xl:flex w-[310px] shrink-0 flex-col border-r border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5">
 
       {/* Org Header Card */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">

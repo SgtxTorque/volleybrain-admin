@@ -117,7 +117,7 @@ export default function PlayerSocialPanel({
 
   return (
     <aside
-      className="hidden lg:flex w-[300px] shrink-0 flex-col overflow-y-auto h-full p-4 space-y-4"
+      className="hidden lg:flex w-[330px] shrink-0 flex-col overflow-y-auto h-full p-4 space-y-4"
       style={{ background: 'var(--player-card)', borderLeft: '1px solid var(--player-border)' }}
     >
 

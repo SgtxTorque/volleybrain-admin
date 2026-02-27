@@ -78,7 +78,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
   const collectionPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
 
   return (
-    <aside className={`flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
+    <aside className={`flex w-[310px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
       isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
     }`}>
       {/* Org Card */}

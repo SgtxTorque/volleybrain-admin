@@ -42,7 +42,7 @@ export default function CoachRosterPanel({
   onPlayerSelect,
 }) {
   return (
-    <aside className="hidden lg:flex w-[300px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
+    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
 
       {/* 1. Season Record */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">

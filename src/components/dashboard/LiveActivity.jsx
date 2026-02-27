@@ -54,7 +54,7 @@ export default function LiveActivity({ activities }) {
   const { isDark } = useTheme()
 
   return (
-    <aside className={`flex w-[300px] shrink-0 flex-col gap-4 overflow-y-auto border-l py-8 pl-6 pr-6 ${
+    <aside className={`flex w-[330px] shrink-0 flex-col gap-4 overflow-y-auto border-l py-8 pl-6 pr-6 ${
       isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
     }`}>
       <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
