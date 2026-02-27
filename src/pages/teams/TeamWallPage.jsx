@@ -69,8 +69,6 @@ const EMOJIS = ['🏐', '🔥', '💪', '🏆', '⭐', '❤️', '💯', '🐝',
 // STYLES — Dramatic visual overhaul
 // ═══════════════════════════════════════════════════════════
 const HUB_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
@@ -93,10 +91,6 @@ const HUB_STYLES = `
   .tw-ac{animation:cardIn .5s ease-out both}
   .cheer-pop{animation:cheerPop .8s cubic-bezier(.17,.67,.83,.67) forwards}
   .live-pulse{animation:livePulse 2s infinite}
-
-  .tw-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .tw-heading{font-family:'Rajdhani','Oswald',sans-serif;font-weight:700;letter-spacing:.04em}
-  .tw-mono{font-family:'JetBrains Mono',monospace}
 
   /* ── Glass Cards ── */
   .tw-glass{
@@ -441,7 +435,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className={`min-h-screen pb-24 ${!isDark ? 'tw-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
+    <div className={`min-h-screen pb-24 ${!isDark ? 'tw-light' : ''}`}>
       <style>{HUB_STYLES}</style>
 
       {/* ═══════════════════════════════════════════════════════
@@ -492,14 +486,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {showBannerEdit && (
             <div className="absolute top-[68px] right-5 z-30 p-5 shadow-2xl tw-as"
               style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', width: 280, borderRadius: 20 }}>
-              <p className="text-[10px] tw-heading tracking-[.2em] mb-4" style={{ color: `${g}88` }}>BANNER SETTINGS</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: `${g}88` }}>BANNER SETTINGS</p>
               {bannerSlides.map((s, i) => (
                 <div key={s.id} className="flex items-center justify-between py-2.5" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}>
                   <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.5)' }}>Slide {i + 1}: {s.label}</span>
                   <button className="text-[9px] px-2.5 py-1 rounded-lg transition" style={{ background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)', color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>Edit</button>
                 </div>
               ))}
-              <button className="mt-4 w-full py-2.5 rounded-xl text-[10px] tw-heading tracking-wider text-center transition"
+              <button className="mt-4 w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition"
                 style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', color: `${g}88` }}>
                 + ADD SLIDE
               </button>
@@ -522,7 +516,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   {team.logo_url ? (
                     <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="tw-display text-5xl md:text-6xl font-bold" style={{ color: g }}>{teamInitials}</span>
+                    <span className="text-5xl md:text-6xl font-extrabold tracking-tight" style={{ color: g }}>{teamInitials}</span>
                   )}
                 </div>
               </div>
@@ -536,7 +530,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
             {/* Name + meta */}
             <div className="flex-1 pb-2">
-              <h1 className="tw-display text-4xl md:text-5xl font-bold leading-none tracking-tight">
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-none tracking-tight">
                 {(team.name || '').split(' ').map((word, i, arr) => (
                   <span key={i}>
                     {i < arr.length - 1 ? (
@@ -569,8 +563,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 { l: 'POSTS', v: posts.length, c: '#A78BFA' },
               ].map(s => (
                 <div key={s.l} className="text-center cursor-default">
-                  <p className="tw-display text-2xl md:text-3xl font-bold leading-none" style={{ color: s.c || (isDark ? 'white' : '#1a1a1a') }}>{s.v}</p>
-                  <p className="text-[8px] tw-heading tracking-[.2em] mt-1" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{s.l}</p>
+                  <p className="text-2xl md:text-3xl font-extrabold tracking-tight leading-none" style={{ color: s.c || (isDark ? 'white' : '#1a1a1a') }}>{s.v}</p>
+                  <p className="text-[8px] font-bold uppercase tracking-wider mt-1" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{s.l}</p>
                 </div>
               ))}
             </div>
@@ -609,7 +603,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 {h.icon}
               </div>
             </div>
-            <span className="text-[9px] tw-heading tracking-[.12em] uppercase transition"
+            <span className="text-[9px] font-semibold uppercase tracking-wide uppercase transition"
               style={{ color: h.active ? g : (isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)') }}>
               {h.label}
             </span>
@@ -631,8 +625,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <input type="text" maxLength={150} value={tickerText} onChange={e => setTickerText(e.target.value)}
                 className="flex-1 bg-transparent text-sm px-3 py-1.5 outline-none" style={{ color: isDark ? 'white' : '#333' }}
                 placeholder="Team message (150 chars max)" autoFocus />
-              <span className="text-[10px] tw-mono mr-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{tickerText.length}/150</span>
-              <button onClick={() => setEditingTicker(false)} className="px-4 py-1.5 rounded-xl text-[10px] tw-heading tracking-wider transition"
+              <span className="text-[10px] font-mono mr-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>{tickerText.length}/150</span>
+              <button onClick={() => setEditingTicker(false)} className="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition"
                 style={{ background: g, color: '#0f172a' }}>SAVE</button>
             </div>
           ) : (
@@ -668,7 +662,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             { icon: '📄', label: 'Docs', action: () => setActiveTab('documents'), primary: false },
           ].filter(Boolean).map((a) => (
             <button key={a.label} onClick={a.action}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold tw-heading tracking-wider transition whitespace-nowrap tw-clift"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold font-bold uppercase tracking-wider transition whitespace-nowrap tw-clift"
               style={a.primary ? {
                 background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a',
                 boxShadow: `0 4px 20px ${g}30`,
@@ -697,7 +691,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             { key: 'documents', icon: '📄', label: 'Documents' },
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className="flex-1 px-4 py-2.5 text-[11px] tw-heading tracking-wider transition-all rounded-xl"
+              className="flex-1 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-all rounded-xl"
               style={activeTab === tab.key ? {
                 background: isDark ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.9)',
                 color: g,
@@ -740,7 +734,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     ))}
                     {hasMorePosts && (
                       <button onClick={loadMorePosts} disabled={loadingMorePosts}
-                        className="w-full py-4 rounded-2xl text-[11px] tw-heading tracking-wider transition"
+                        className="w-full py-4 rounded-2xl text-[11px] font-bold uppercase tracking-wider transition"
                         style={{
                           background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
                           border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)',
@@ -755,7 +749,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       </button>
                     )}
                     {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                      <p className="text-center text-[10px] tw-heading tracking-[.3em] py-6" style={{ color: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.1)' }}>— END OF FEED —</p>
+                      <p className="text-center text-[10px] font-bold uppercase tracking-widest py-6" style={{ color: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.1)' }}>— END OF FEED —</p>
                     )}
                   </div>
                 ) : (
@@ -775,7 +769,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 {isAdminOrCoach && (
                   <button
                     onClick={() => setShowCreateChallengeModal(true)}
-                    className="mb-4 flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold tw-heading tracking-wider"
+                    className="mb-4 flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] font-bold font-bold uppercase tracking-wider"
                     style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a' }}
                   >
                     <Trophy className="w-4 h-4" /> CREATE CHALLENGE
@@ -841,7 +835,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 <SectionHeader icon="👥" title="TEAM" accent="ROSTER" g={g} isDark={isDark} />
                 <div className="tw-glass overflow-hidden">
                   <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                    <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                    <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
                       {sportIcon} ROSTER ({roster.length})
                     </span>
                   </div>
@@ -854,7 +848,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                         {player.photo_url ? (
                           <img src={player.photo_url} alt="" className="w-14 h-14 rounded-2xl object-cover shadow-md" />
                         ) : (
-                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center tw-display text-lg font-bold"
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-extrabold"
                             style={{ background: `${g}12`, color: g, border: `1px solid ${g}20` }}>
                             {player.first_name?.[0]}{player.last_name?.[0]}
                           </div>
@@ -896,16 +890,16 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                           onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <div className="text-center min-w-[48px]">
-                            <p className="text-[8px] tw-heading tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
+                            <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
                               {eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
                             </p>
-                            <p className="tw-display text-3xl font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                            <p className="text-3xl font-extrabold tracking-tight leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                               {eventDate.getDate()}
                             </p>
                           </div>
                           <div className="w-px h-10" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }} />
                           <div className="flex-1">
-                            <span className="px-2.5 py-1 rounded-lg text-[9px] tw-heading tracking-wider font-medium"
+                            <span className="px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider font-medium"
                               style={{ background: isGame ? `${g}15` : 'rgba(56,189,248,.1)', color: isGame ? g : '#38BDF8' }}>
                               {isGame ? '🏐 GAME' : '🏋️ PRACTICE'}
                             </span>
@@ -973,8 +967,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             {/* UPCOMING EVENTS */}
             <div className="tw-glass-glow overflow-hidden tw-au" style={{ animationDelay: '.15s' }}>
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: `1px solid ${g}15` }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: `${g}80` }}>📅 UPCOMING</span>
-                <button onClick={() => setActiveTab('schedule')} className="text-[9px] tw-heading tracking-wider transition"
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: `${g}80` }}>📅 UPCOMING</span>
+                <button onClick={() => setActiveTab('schedule')} className="text-[9px] font-bold uppercase tracking-wider transition"
                   style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>VIEW ALL →</button>
               </div>
               <div className="p-4 space-y-1.5">
@@ -986,10 +980,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <div className="text-center min-w-[36px]">
-                        <p className="text-[8px] tw-heading tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
+                        <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
                           {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
                         </p>
-                        <p className="tw-display text-xl font-bold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{ed.getDate()}</p>
+                        <p className="text-xl font-extrabold tracking-tight leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{ed.getDate()}</p>
                       </div>
                       <div className="w-px h-6" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }} />
                       <div>
@@ -1012,11 +1006,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             {/* ROSTER PREVIEW */}
             <div className="tw-glass overflow-hidden tw-au" style={{ animationDelay: '.2s' }}>
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
                   🏐 ROSTER ({roster.length})
                 </span>
                 <button onClick={() => { setActiveTab('roster'); setShowAllRoster(!showAllRoster) }}
-                  className="text-[9px] tw-heading tracking-wider transition"
+                  className="text-[9px] font-bold uppercase tracking-wider transition"
                   style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>VIEW ALL →</button>
               </div>
               <div className="p-3 space-y-1">
@@ -1025,7 +1019,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-left"
                     onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center tw-display text-sm font-bold flex-shrink-0"
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-extrabold flex-shrink-0"
                       style={{ background: `${g}12`, color: g, border: `1px solid ${g}18` }}>
                       {p.first_name?.[0]}{p.last_name?.[0]}
                     </div>
@@ -1046,12 +1040,12 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             {/* COACHES */}
             <div className="tw-glass overflow-hidden tw-au" style={{ animationDelay: '.25s' }}>
               <div className="px-5 py-4" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>🎓 COACHES</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>🎓 COACHES</span>
               </div>
               <div className="p-4 space-y-2">
                 {coaches.map(coach => (
                   <div key={coach.id} className="flex items-center gap-3.5 p-2.5 rounded-xl">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center tw-display text-base font-bold"
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-extrabold"
                       style={{ background: `${g}15`, color: g }}>
                       {coach.full_name?.charAt(0) || '?'}
                     </div>
@@ -1072,7 +1066,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             {/* QUICK STATS */}
             <div className="tw-glass overflow-hidden tw-au" style={{ animationDelay: '.3s' }}>
               <div className="px-5 py-4" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-                <span className="text-[10px] tw-heading tracking-[.25em]" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>📊 QUICK STATS</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>📊 QUICK STATS</span>
               </div>
               <div className="grid grid-cols-2 gap-3 p-4">
                 {[
@@ -1082,8 +1076,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   { v: posts.length, l: 'Posts', c: '#A78BFA' },
                 ].map(s => (
                   <div key={s.l} className="text-center py-3.5 rounded-2xl" style={{ background: `${s.c}0a`, border: `1px solid ${s.c}18` }}>
-                    <p className="tw-display text-2xl font-bold" style={{ color: s.c }}>{s.v}</p>
-                    <p className="text-[8px] tw-heading tracking-wider mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>{s.l.toUpperCase()}</p>
+                    <p className="text-2xl font-extrabold tracking-tight" style={{ color: s.c }}>{s.v}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-wider mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>{s.l.toUpperCase()}</p>
                   </div>
                 ))}
               </div>
@@ -1094,7 +1088,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <p className="text-4xl mb-3">📨</p>
               <p className="text-sm font-bold mb-1" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Invite to {team.name}</p>
               <p className="text-[11px] mb-4" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }}>Share a registration link with friends and family</p>
-              <button className="w-full py-3 rounded-2xl text-[11px] font-bold tw-heading tracking-wider transition hover:brightness-110"
+              <button className="w-full py-3 rounded-2xl text-[11px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110"
                 style={{ background: `linear-gradient(135deg, ${g}, ${dim})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
                 COPY INVITE LINK
               </button>
@@ -1233,12 +1227,12 @@ function PhotoBanner({ team, g, teamInitials, canEdit, showToast, onBannerUpdate
             {uploading ? (
               <>
                 <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-2" style={{ borderColor: g, borderTopColor: 'transparent' }} />
-                <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOADING...</p>
+                <p className="text-xs text-white/60 font-bold uppercase tracking-wider">UPLOADING...</p>
               </>
             ) : (
               <>
                 <p className="text-4xl mb-2">📷</p>
-                <p className="text-xs text-white/60 tw-heading tracking-wider">UPLOAD COVER PHOTO</p>
+                <p className="text-xs text-white/60 font-bold uppercase tracking-wider">UPLOAD COVER PHOTO</p>
               </>
             )}
           </div>
@@ -1253,8 +1247,8 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
     return (
       <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
         <div className="text-center">
-          <p className="text-[9px] tw-heading tracking-[.4em] text-white/20 mb-2">NO UPCOMING GAMES</p>
-          <p className="tw-display text-3xl font-bold text-white/10">CHECK BACK SOON</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-2">NO UPCOMING GAMES</p>
+          <p className="text-3xl font-extrabold tracking-tight text-white/10">CHECK BACK SOON</p>
         </div>
       </div>
     )
@@ -1266,10 +1260,10 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
     <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
       <div className="absolute" style={{ top: '10%', left: '30%', width: '40%', height: '60%', background: `radial-gradient(ellipse,${g}0a 0%,transparent 60%)`, filter: 'blur(30px)' }} />
       <div className="absolute left-4 top-1/2 -translate-y-1/2 hidden lg:block" style={{ writingMode: 'vertical-rl' }}>
-        <span className="tw-display text-[60px] font-bold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
+        <span className="text-[60px] font-extrabold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
       </div>
       <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden lg:block" style={{ writingMode: 'vertical-rl' }}>
-        <span className="tw-display text-[60px] font-bold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
+        <span className="text-[60px] font-extrabold leading-none tracking-[.15em]" style={{ color: 'rgba(255,255,255,.02)' }}>NEXT MATCH</span>
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
@@ -1279,17 +1273,17 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
               {team.logo_url ? (
                 <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-2xl" />
               ) : (
-                <span className="tw-display text-3xl md:text-4xl font-bold" style={{ color: g }}>{teamInitials}</span>
+                <span className="text-3xl md:text-4xl font-extrabold tracking-tight" style={{ color: g }}>{teamInitials}</span>
               )}
             </div>
-            <p className="text-[10px] tw-heading tracking-wider text-white/40">{team.name}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/40">{team.name}</p>
           </div>
-          <span className="tw-display text-5xl md:text-6xl font-bold" style={{ color: '#EF4444', animation: 'vsFlash 3s ease-in-out infinite' }}>VS</span>
+          <span className="text-5xl md:text-6xl font-extrabold tracking-tight" style={{ color: '#EF4444', animation: 'vsFlash 3s ease-in-out infinite' }}>VS</span>
           <div className="text-center">
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(255,255,255,.03)', border: '1.5px solid rgba(255,255,255,.06)' }}>
-              <span className="tw-display text-3xl md:text-4xl font-bold text-white/15">{oppTag}</span>
+              <span className="text-3xl md:text-4xl font-extrabold tracking-tight text-white/15">{oppTag}</span>
             </div>
-            <p className="text-[10px] tw-heading tracking-wider text-white/20">{nextGame.opponent || 'Opponent'}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/20">{nextGame.opponent || 'Opponent'}</p>
           </div>
         </div>
 
@@ -1299,14 +1293,14 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
           ].map((d, i) => (
             <div key={i} className="flex items-center gap-3">
               <div className="text-center">
-                <span className="tw-display text-3xl md:text-4xl font-bold text-white">{String(d.v).padStart(2, '0')}</span>
-                <p className="text-[7px] tw-heading tracking-[.2em] text-white/20">{d.l}</p>
+                <span className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">{String(d.v).padStart(2, '0')}</span>
+                <p className="text-[7px] font-bold uppercase tracking-wider text-white/20">{d.l}</p>
               </div>
-              {i < 3 && <span className="tw-display text-2xl text-white/10 -mt-3">:</span>}
+              {i < 3 && <span className="text-2xl font-extrabold text-white/10 -mt-3">:</span>}
             </div>
           ))}
         </div>
-        <p className="text-[10px] tw-heading tracking-wider text-white/25">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">
           {nextGame.event_time && formatTime12(nextGame.event_time)}
           {nextGame.venues?.name && ` · ${nextGame.venues.name}`}
         </p>
@@ -1320,23 +1314,23 @@ function SeasonPulseBanner({ team, roster, coaches, g, sportIcon }) {
     <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0d14 0%, #0A0A0F 50%, #0d0f14 100%)' }}>
       <div className="absolute" style={{ top: '20%', left: '20%', width: '60%', height: '50%', background: `radial-gradient(ellipse,${g}08 0%,transparent 60%)`, filter: 'blur(40px)' }} />
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-        <p className="text-[9px] tw-heading tracking-[.4em] text-white/20 mb-2">SEASON SNAPSHOT</p>
-        <h2 className="tw-display text-4xl md:text-5xl font-bold text-white mb-1">{sportIcon} {team.name}</h2>
-        <p className="text-sm tw-heading tracking-wider mb-6" style={{ color: g }}>{team.seasons?.name || 'Current Season'}</p>
+        <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-2">SEASON SNAPSHOT</p>
+        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-1">{sportIcon} {team.name}</h2>
+        <p className="text-sm font-bold uppercase tracking-wider mb-6" style={{ color: g }}>{team.seasons?.name || 'Current Season'}</p>
         <div className="flex gap-8">
           <div className="text-center">
-            <p className="tw-display text-4xl font-bold text-white">{roster.length}</p>
-            <p className="text-[9px] text-white/20 tw-heading tracking-wider">PLAYERS</p>
+            <p className="text-4xl font-extrabold text-white">{roster.length}</p>
+            <p className="text-[9px] text-white/20 font-bold uppercase tracking-wider">PLAYERS</p>
           </div>
           <div className="w-px h-16" style={{ background: 'rgba(255,255,255,.06)' }} />
           <div className="text-center">
-            <p className="tw-display text-4xl font-bold text-white">{coaches.length}</p>
-            <p className="text-[9px] text-white/20 tw-heading tracking-wider">COACHES</p>
+            <p className="text-4xl font-extrabold text-white">{coaches.length}</p>
+            <p className="text-[9px] text-white/20 font-bold uppercase tracking-wider">COACHES</p>
           </div>
           <div className="w-px h-16" style={{ background: 'rgba(255,255,255,.06)' }} />
           <div className="text-center">
-            <p className="tw-display text-4xl font-bold text-white">{roster.filter(r => r.position).length}</p>
-            <p className="text-[9px] text-white/20 tw-heading tracking-wider">POSITIONS SET</p>
+            <p className="text-4xl font-extrabold text-white">{roster.filter(r => r.position).length}</p>
+            <p className="text-[9px] text-white/20 font-bold uppercase tracking-wider">POSITIONS SET</p>
           </div>
         </div>
       </div>
@@ -1351,7 +1345,7 @@ function SectionHeader({ icon, title, accent, g, isDark }) {
   return (
     <div className="flex items-center gap-3 mb-3 tw-au">
       <span className="text-lg">{icon}</span>
-      <h2 className="tw-display text-2xl font-bold">
+      <h2 className="text-2xl font-extrabold tracking-tight">
         <span style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.25)' }}>{title}</span>{' '}
         <span style={{ color: g }}>{accent}</span>
       </h2>

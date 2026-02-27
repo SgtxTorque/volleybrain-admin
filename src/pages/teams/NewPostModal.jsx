@@ -106,7 +106,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         onClick={e => e.stopPropagation()}>
 
         <div className="flex items-center justify-between p-6" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <h2 className="tw-heading text-lg font-bold tracking-wider" style={{ color: g }}>CREATE POST</h2>
+          <h2 className="text-lg font-bold uppercase tracking-wider" style={{ color: g }}>CREATE POST</h2>
           <button onClick={onClose} className="w-10 h-10 rounded-xl flex items-center justify-center transition text-lg"
             style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}
             onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)'}
@@ -116,7 +116,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto tw-nos">
           <div className="flex flex-wrap gap-2">
             {[['announcement', '📢 ANNOUNCEMENT'], ['game_recap', '🏐 GAME RECAP'], ['shoutout', '⭐ SHOUTOUT'], ['milestone', '🏆 MILESTONE'], ['photo', '📷 PHOTO']].map(([k, l]) => (
-              <button key={k} onClick={() => setPostType(k)} className="px-3.5 py-2 rounded-xl text-[10px] font-bold tw-heading tracking-wider transition" style={{
+              <button key={k} onClick={() => setPostType(k)} className="px-3.5 py-2 rounded-xl text-[10px] font-bold font-bold uppercase tracking-wider transition" style={{
                 background: postType === k ? `${g}18` : (isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'),
                 color: postType === k ? g : (isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)'),
                 border: `1px solid ${postType === k ? `${g}30` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)')}`
@@ -141,7 +141,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             <input ref={fr} type="file" accept="image/*,video/*" multiple className="hidden"
               onChange={e => { addFiles(e.target.files || []); e.target.value = '' }} />
             <p className="text-2xl mb-1 opacity-20">📸</p>
-            <p className="text-[9px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }}>DROP FILES OR CLICK</p>
+            <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }}>DROP FILES OR CLICK</p>
           </div>
 
           {/* Image previews */}
@@ -168,18 +168,18 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
           {canPin && (
             <label className="flex items-center gap-2.5 cursor-pointer">
               <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-indigo-500 rounded" />
-              <span className="text-[10px] tw-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>📌 PIN TO TOP</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>📌 PIN TO TOP</span>
             </label>
           )}
         </div>
 
         <div className="p-6 flex gap-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-[10px] font-bold tw-heading tracking-wider transition"
+          <button onClick={onClose} className="flex-1 py-3 rounded-2xl text-[10px] font-bold font-bold uppercase tracking-wider transition"
             style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
             CANCEL
           </button>
           <button onClick={handleSubmit} disabled={!content.trim() || submitting}
-            className="flex-1 py-3 rounded-2xl text-[10px] font-bold tw-heading tracking-wider transition hover:brightness-110 disabled:opacity-25"
+            className="flex-1 py-3 rounded-2xl text-[10px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110 disabled:opacity-25"
             style={{ background: `linear-gradient(135deg,${gb},${g})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
             {submitting ? (uploadProgress || 'POSTING...') : 'PUBLISH'}
           </button>

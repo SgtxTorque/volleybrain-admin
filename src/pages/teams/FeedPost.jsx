@@ -62,7 +62,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               <p className="font-bold text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                 {post.profiles?.full_name || 'Team Admin'}
               </p>
-              <span className="text-[8px] tw-heading tracking-wider px-2 py-0.5 rounded-lg"
+              <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
                 style={{ background: `${g}10`, color: `${g}99` }}>
                 {typeIcon} {postType.replace('_', ' ').toUpperCase()}
               </span>
@@ -149,7 +149,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       {/* Content */}
       <div className="px-6 pb-4">
         {post.title && (
-          <h3 className="font-bold text-[16px] tw-heading tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
+          <h3 className="font-bold text-[16px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
         )}
         <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
       </div>
@@ -173,12 +173,12 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               <MessageCircle className="w-6 h-6" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }} />
               <div className="text-left">
                 <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{localCommentCount}</p>
-                <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>COMMENTS</p>
+                <p className="text-[8px] font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>COMMENTS</p>
               </div>
             </div>
           </div>
 
-          <button className="flex items-center gap-2 text-[10px] tw-heading tracking-wider transition"
+          <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition"
             style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}
             onMouseEnter={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)'}
             onMouseLeave={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)'}>
@@ -203,7 +203,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       {editing && (
         <div className="px-6 pb-5">
           <div className="rounded-xl p-4" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)' }}>
-            <p className="text-[10px] tw-heading tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
             <input
               type="text"
               value={editTitle}
