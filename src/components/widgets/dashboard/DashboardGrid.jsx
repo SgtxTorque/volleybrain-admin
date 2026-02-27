@@ -208,7 +208,7 @@ export function DashboardGrid({ role = 'admin' }) {
       {activeWidgets.length === 0 ? (
         <div className={`rounded-xl border-2 border-dashed p-12 text-center ${isDark ? 'border-white/10' : 'border-lynx-silver'}`}>
           <p className={`text-lg font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>No widgets on your dashboard</p>
-          <p className={`text-sm mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Click "Add Widget" to customize your view</p>
+          <p className={`text-sm mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Click "Add Widget" to customize your view</p>
           <button onClick={() => setShowPicker(true)}
             className="px-4 py-2 rounded-xl text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 transition">
             <Plus className="w-4 h-4 inline mr-1" /> Add Widget

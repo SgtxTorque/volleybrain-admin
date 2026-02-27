@@ -53,7 +53,7 @@ function ActivityItem({ item, isDark }) {
             <span>{' '}&mdash; {item.highlight}</span>
           )}
         </p>
-        <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
           {item.name && <span>{item.name}</span>}
           {item.name && item.timestamp && ' · '}
           {item.timestamp && <span>{timeAgo(item.timestamp)}</span>}
@@ -142,7 +142,7 @@ export default function LiveActivitySidebar({ activities, upcomingEvents, onNavi
             ) : (
               <div className="py-6 text-center">
                 <Activity className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                   No recent activity
                 </p>
               </div>

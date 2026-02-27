@@ -110,9 +110,9 @@ function KpiCard({ label, value, trend, trendLabel, icon: Icon, color, isDark, i
         )}
       </div>
       <p className={`text-3xl ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-      <p className={`text-xs uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1`}>{label}</p>
+      <p className={`text-xs uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'} mt-1`}>{label}</p>
       {trendLabel && (
-        <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-400'} mt-0.5`}>{trendLabel}</p>
+        <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-lynx-slate'} mt-0.5`}>{trendLabel}</p>
       )}
     </div>
   )
@@ -140,7 +140,7 @@ function BarChart({ data, maxVal, color, isDark, valuePrefix = '', labelKey = 'l
                 minHeight: 4,
               }}
             />
-            <span className={`text-[8px] ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate w-full text-center`}>
+            <span className={`text-[8px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'} truncate w-full text-center`}>
               {d[labelKey]}
             </span>
           </div>
@@ -223,7 +223,7 @@ function DonutChart({ data, isDark, size = 140 }) {
           <div key={i} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
             <span className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'} truncate`}>{d.label}</span>
-            <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'} ml-auto shrink-0`}>{d.value}</span>
+            <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-lynx-slate'} ml-auto shrink-0`}>{d.value}</span>
           </div>
         ))}
       </div>
@@ -266,7 +266,7 @@ function SparkLine({ data, color, isDark, height = 120 }) {
       </svg>
       <div className="flex justify-between mt-1">
         {data.map((d, i) => (
-          <span key={i} className={`text-[8px] ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{d.label}</span>
+          <span key={i} className={`text-[8px] ${isDark ? 'text-slate-600' : 'text-lynx-slate'}`}>{d.label}</span>
         ))}
       </div>
     </div>
@@ -281,7 +281,7 @@ function DataTable({ columns, rows, isDark, emptyMessage = 'No data' }) {
         <thead>
           <tr>
             {columns.map((col, i) => (
-              <th key={i} className={`text-[10px] uppercase text-left pb-3 pr-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={col.style}>
+              <th key={i} className={`text-[10px] uppercase text-left pb-3 pr-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} style={col.style}>
                 {col.label}
               </th>
             ))}
@@ -289,7 +289,7 @@ function DataTable({ columns, rows, isDark, emptyMessage = 'No data' }) {
         </thead>
         <tbody>
           {rows.length === 0 ? (
-            <tr><td colSpan={columns.length} className={`py-6 text-center text-xs ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>{emptyMessage}</td></tr>
+            <tr><td colSpan={columns.length} className={`py-6 text-center text-xs ${isDark ? 'text-slate-600' : 'text-lynx-slate'}`}>{emptyMessage}</td></tr>
           ) : rows.map((row, ri) => (
             <tr key={ri} className={`${isDark ? 'border-white/[0.03]' : 'border-slate-100'} border-t`}>
               {columns.map((col, ci) => (
@@ -559,7 +559,7 @@ function PlatformAnalyticsPage({ showToast }) {
             >
               {DATE_RANGES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
             </select>
-            <Calendar className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <Calendar className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
           </div>
           {/* Refresh */}
           <button
@@ -689,7 +689,7 @@ function PlatformAnalyticsPage({ showToast }) {
               isDark={isDark}
               emptyMessage="No revenue data"
               columns={[
-                { label: '#', key: 'rank', style: { width: 32 }, render: (_, i) => <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{topOrgsByRevenue.indexOf(_) + 1}</span> },
+                { label: '#', key: 'rank', style: { width: 32 }, render: (_, i) => <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{topOrgsByRevenue.indexOf(_) + 1}</span> },
                 { label: 'Organization', key: 'label', render: r => <span className="font-medium">{r.label}</span> },
                 { label: 'Revenue', key: 'display', style: { textAlign: 'right' }, render: r => <span className="font-bold" style={{ color: '#EAB308' }}>{r.display}</span> },
               ]}

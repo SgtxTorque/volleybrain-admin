@@ -131,7 +131,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
           <p className={`text-2xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {stats.totalRegistrations || 0}
           </p>
-          <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Players
           </p>
         </div>
@@ -139,7 +139,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
           <p className={`text-2xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {stats.teams || 0}
           </p>
-          <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Teams
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
           <p className={`text-2xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {stats.coachCount || 0}
           </p>
-          <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Coaches
           </p>
         </div>
@@ -167,7 +167,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
             style={{ width: `${Math.min(100, collectionPct)}%`, backgroundColor: accent.primary }}
           />
         </div>
-        <p className={`text-xs mt-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`text-xs mt-1.5 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
           ${totalCollected.toLocaleString()} / ${totalExpected.toLocaleString()}
         </p>
       </div>

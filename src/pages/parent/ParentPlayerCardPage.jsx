@@ -250,9 +250,9 @@ function MiniBarChart({ data, color = '#F59E0B', label, isDark }) {
   if (!data || data.length === 0) {
     return (
       <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
-        <span className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
+        <span className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{label}</span>
         <div className="flex items-center justify-center h-16">
-          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No data yet</span>
+          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No data yet</span>
         </div>
       </div>
     )
@@ -260,14 +260,14 @@ function MiniBarChart({ data, color = '#F59E0B', label, isDark }) {
   return (
     <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
       <div className="flex items-center justify-between mb-3">
-        <span className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
-        <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Last {data.length} games</span>
+        <span className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{label}</span>
+        <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Last {data.length} games</span>
       </div>
       <div className="flex items-end gap-1.5 h-16">
         {data.map((d, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
             <div className="w-full rounded-t transition-all" style={{ height: `${(d.value / maxValue) * 100}%`, backgroundColor: color, minHeight: '4px' }} />
-            <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.value}</span>
+            <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{d.value}</span>
           </div>
         ))}
       </div>
@@ -288,8 +288,8 @@ function BadgeIcon({ badgeId, size = 'md', showLabel = false, earnedDate, isDark
       {showLabel && (
         <>
           <span className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-white' : 'text-slate-900'}`}>{badge.name}</span>
-          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{badge.rarity}</span>
-          {earnedDate && <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Earned {earnedDate}</span>}
+          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{badge.rarity}</span>
+          {earnedDate && <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Earned {earnedDate}</span>}
         </>
       )}
     </div>
@@ -450,7 +450,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
               <div className="absolute inset-0 flex items-center justify-center" style={{ background: isDark ? `linear-gradient(135deg, ${posColor}40, #1e293b)` : `linear-gradient(135deg, ${posColor}30, #f1f5f9)` }}>
                 <div className="text-center">
                   <span className="text-8xl font-black" style={{ color: posColor }}>{jerseyNumber || '?'}</span>
-                  <p className={`text-sm font-bold mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{p.first_name?.[0]}{p.last_name?.[0]}</p>
+                  <p className={`text-sm font-bold mt-2 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{p.first_name?.[0]}{p.last_name?.[0]}</p>
                 </div>
               </div>
             )}
@@ -489,7 +489,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
             {perGameStats.map(stat => (
               <div key={stat.key} className="text-center">
                 <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</span>
-                <p className={`text-[10px] uppercase font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}/G</p>
+                <p className={`text-[10px] uppercase font-semibold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{stat.label}/G</p>
               </div>
             ))}
           </div>
@@ -514,15 +514,15 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-4">
                 <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
-                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Skills</h4>
+                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Skills</h4>
                   {skills && sc.skills.some(s => skills[s] != null) ? (
                     <div className="space-y-3">{sc.skills.map(s => <SkillBar key={s} label={s} value={getSkillValue(skills[s])} isDark={isDark} />)}</div>
                   ) : (
-                    <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No skill ratings yet</p>
+                    <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No skill ratings yet</p>
                   )}
                 </div>
                 <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
-                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season Progress</h4>
+                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Season Progress</h4>
                   {(seasonStats || gamesPlayed > 0) ? (
                     <div className="space-y-2.5">
                       <div className="flex items-center gap-3">
@@ -540,34 +540,34 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                       })}
                     </div>
                   ) : (
-                    <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No season stats yet</p>
+                    <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No season stats yet</p>
                   )}
                 </div>
               </div>
               <div className="space-y-4">
                 <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
-                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Recent Games</h4>
+                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Recent Games</h4>
                   {transformedGames.length > 0 ? transformedGames.slice(0, 3).map((game, i) => (
                     <div key={i} className={`flex items-center gap-2 py-2.5 last:border-0 border-b ${tc.border}`}>
-                      <span className={`text-xs w-10 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</span>
+                      <span className={`text-xs w-10 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</span>
                       <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${game.result === 'W' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>{game.result}</span>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{game.opponent}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{game.score}</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{game.score}</p>
                       </div>
                       <div className="flex gap-2 text-xs font-bold">
                         {game.statValues.slice(0, 3).map((val, si) => <span key={si} style={{ color: sc.primaryStats[si]?.color }}>{val}</span>)}
                       </div>
                     </div>
-                  )) : <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No games played yet</p>}
+                  )) : <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No games played yet</p>}
                 </div>
                 {trends[0] && <MiniBarChart data={trends[0].data} color={trends[0].color} label={trends[0].label} isDark={isDark} />}
               </div>
               <div className="space-y-4">
                 <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Badges</h4>
-                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{badges.length} earned</span>
+                    <h4 className={`text-xs uppercase tracking-wider font-semibold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Badges</h4>
+                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{badges.length} earned</span>
                   </div>
                   {badges.length > 0 ? (
                     <div className="grid grid-cols-3 gap-3">
@@ -578,10 +578,10 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                         </div>
                       ))}
                     </div>
-                  ) : <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>}
+                  ) : <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No badges earned yet</p>}
                   {badgesInProgress.length > 0 && (
                     <>
-                      <h5 className={`text-xs uppercase mt-4 mb-2 font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>In Progress</h5>
+                      <h5 className={`text-xs uppercase mt-4 mb-2 font-semibold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>In Progress</h5>
                       {badgesInProgress.slice(0, 2).map((b, i) => (
                         <div key={i} className="flex items-center gap-3 py-2">
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style={{ backgroundColor: `${badgeDefinitions[b.badge_id]?.color || '#6B7280'}20` }}>{badgeDefinitions[b.badge_id]?.icon || '🏅'}</div>
@@ -591,7 +591,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                               <div className="h-full rounded-full" style={{ width: `${(b.progress / b.target) * 100}%`, backgroundColor: badgeDefinitions[b.badge_id]?.color || '#6B7280' }} />
                             </div>
                           </div>
-                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{b.progress}/{b.target}</span>
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{b.progress}/{b.target}</span>
                         </div>
                       ))}
                     </>
@@ -606,17 +606,17 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {activeTab === 'stats' && (
             <div className="space-y-6">
               <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
-                <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season Totals</h4>
+                <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Season Totals</h4>
                 <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(sc.primaryStats.length + 1, 6)}, 1fr)` }}>
                   <div className="text-center">
-                    <p className={`text-xs uppercase mb-1 flex items-center justify-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Games {sc.icon}</p>
+                    <p className={`text-xs uppercase mb-1 flex items-center justify-center gap-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Games {sc.icon}</p>
                     <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{seasonStats?.games_played || transformedGames.length}</p>
                   </div>
                   {sc.primaryStats.map(stat => {
                     const val = stat.calc ? (seasonStats ? stat.calc(seasonStats) : transformedGames.reduce((s, g) => s + (stat.calc(g.raw) || 0), 0)) : (seasonStats?.[stat.key] || 0)
                     return (
                       <div key={stat.key} className="text-center">
-                        <p className={`text-xs uppercase mb-1 flex items-center justify-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label} <span>{stat.icon}</span></p>
+                        <p className={`text-xs uppercase mb-1 flex items-center justify-center gap-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{stat.label} <span>{stat.icon}</span></p>
                         <p className="text-3xl font-bold" style={{ color: stat.color }}>{val}</p>
                       </div>
                     )
@@ -626,13 +626,13 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
               <div className="grid grid-cols-2 gap-4">
                 {sc.detailSections.map((section, si) => (
                   <div key={si} className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
-                    <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{section.title}</h4>
+                    <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{section.title}</h4>
                     <div className={`grid gap-4`} style={{ gridTemplateColumns: `repeat(${Math.min(section.stats.length, 3)}, 1fr)` }}>
                       {section.stats.map(stat => {
                         const val = stat.calc && seasonStats ? stat.calc(seasonStats) : (seasonStats?.[stat.key] ?? null)
                         return (
                           <div key={stat.key}>
-                            <p className={`text-xs uppercase mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</p>
+                            <p className={`text-xs uppercase mb-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{stat.label}</p>
                             <p className={`text-2xl font-bold ${stat.color || (isDark ? 'text-white' : 'text-slate-900')}`}>{formatStatValue(val, stat.format)}</p>
                           </div>
                         )
@@ -643,13 +643,13 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
               </div>
               {perGameStats && (
                 <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
-                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Per Game Averages</h4>
+                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Per Game Averages</h4>
                   <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${sc.primaryStats.length}, 1fr)` }}>
                     {perGameStats.map(stat => (
                       <div key={stat.key}>
-                        <p className={`text-xs uppercase mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</p>
+                        <p className={`text-xs uppercase mb-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{stat.label}</p>
                         <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>per game</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-lynx-slate'}`}>per game</p>
                       </div>
                     ))}
                   </div>
@@ -667,16 +667,16 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {activeTab === 'badges' && (
             <div className="space-y-6">
               <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
-                <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Earned ({badges.length})</h4>
+                <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Earned ({badges.length})</h4>
                 {badges.length > 0 ? (
                   <div className="grid grid-cols-4 gap-6">
                     {badges.map((b, i) => <BadgeIcon key={i} badgeId={b.badge_id} size="lg" showLabel isDark={isDark} earnedDate={b.earned_at ? new Date(b.earned_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null} />)}
                   </div>
-                ) : <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>}
+                ) : <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No badges earned yet</p>}
               </div>
               {badgesInProgress.length > 0 && (
                 <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
-                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>In Progress</h4>
+                  <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>In Progress</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {badgesInProgress.map((b, i) => (
                       <div key={i} className={`flex items-center gap-4 rounded-xl p-4 ${isDark ? 'bg-slate-700/30' : 'bg-slate-100'}`}>
@@ -687,7 +687,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                             <div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
                               <div className="h-full rounded-full" style={{ width: `${(b.progress / b.target) * 100}%`, backgroundColor: badgeDefinitions[b.badge_id]?.color || '#6B7280' }} />
                             </div>
-                            <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{b.progress}/{b.target}</span>
+                            <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{b.progress}/{b.target}</span>
                           </div>
                         </div>
                       </div>
@@ -701,10 +701,10 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {/* ═══ GAMES ═══ */}
           {activeTab === 'games' && (
             <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
-              <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Game Log</h4>
+              <h4 className={`text-xs uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Game Log</h4>
               {transformedGames.length > 0 ? (
                 <>
-                  <div className={`flex items-center gap-4 py-2 text-xs uppercase font-semibold border-b ${tc.border} ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <div className={`flex items-center gap-4 py-2 text-xs uppercase font-semibold border-b ${tc.border} ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                     <span className="w-12">Date</span><span className="w-8"></span><span className="flex-1">Opponent</span>
                     <div className="flex gap-3 w-48 justify-end">
                       {sc.primaryStats.map(stat => <span key={stat.key} className="w-8 text-center">{stat.short}</span>)}
@@ -712,11 +712,11 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                   </div>
                   {transformedGames.map((game, i) => (
                     <div key={i} className={`flex items-center gap-4 py-3 border-b last:border-0 ${tc.border}`}>
-                      <span className={`text-sm w-12 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</span>
+                      <span className={`text-sm w-12 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</span>
                       <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${game.result === 'W' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>{game.result}</span>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{game.opponent}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{game.score}</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{game.score}</p>
                       </div>
                       <div className="flex gap-3 w-48 justify-end text-sm font-bold">
                         {game.statValues.map((val, si) => <span key={si} className="w-8 text-center" style={{ color: sc.primaryStats[si]?.color }}>{val}</span>)}
@@ -724,7 +724,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                     </div>
                   ))}
                 </>
-              ) : <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No games played yet</p>}
+              ) : <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No games played yet</p>}
             </div>
           )}
         </div>

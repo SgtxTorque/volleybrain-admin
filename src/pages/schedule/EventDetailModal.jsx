@@ -272,7 +272,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
               className={`px-4 py-3 text-sm font-medium transition flex items-center gap-2 ${
                 activeTab === tab.id 
                   ? 'text-[var(--accent-primary)] border-b-2 border-[var(--accent-primary)]' 
-                  : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
+                  : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-lynx-slate hover:text-slate-600'
               }`}
             >
               <span>{tab.icon}</span>
@@ -577,7 +577,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                                 player.photo_url ? (
                                   <img src={player.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
                                 ) : (
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-slate-700 text-slate-500' : 'bg-slate-200 text-slate-400'}`}><User className="w-6 h-6" /></div>
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-slate-700 text-slate-500' : 'bg-slate-200 text-lynx-slate'}`}><User className="w-6 h-6" /></div>
                                 )
                               )}
                               {player.jersey_number && (

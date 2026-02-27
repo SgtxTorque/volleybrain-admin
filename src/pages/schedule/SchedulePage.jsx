@@ -357,7 +357,7 @@ END:VCALENDAR`
               <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl z-30 border overflow-hidden ${
                 isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver'
               }`}>
-                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-lynx-midnight/50' : 'text-slate-400 bg-lynx-cloud'}`}>
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-lynx-midnight/50' : 'text-lynx-slate bg-lynx-cloud'}`}>
                   Generate
                 </div>
                 <button onClick={() => { setShowPosterModal(true); setShowShareMenu(false) }}
@@ -378,7 +378,7 @@ END:VCALENDAR`
                     </div>
                   </button>
                 )}
-                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-lynx-midnight/50 border-lynx-border-dark' : 'text-slate-400 bg-lynx-cloud border-lynx-silver'}`}>
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-lynx-midnight/50 border-lynx-border-dark' : 'text-lynx-slate bg-lynx-cloud border-lynx-silver'}`}>
                   Export
                 </div>
                 <button onClick={() => { exportToICal(); setShowShareMenu(false) }}
@@ -494,7 +494,7 @@ END:VCALENDAR`
                       className={`p-1 rounded-md transition ${isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-100'}`}
                       title="Share game"
                     >
-                      <Share2 className={`w-3.5 h-3.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                      <Share2 className={`w-3.5 h-3.5 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
                     </button>
                   </div>
                   {/* Opponent */}

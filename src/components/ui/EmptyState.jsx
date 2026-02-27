@@ -20,7 +20,7 @@ export function EmptyState({
         <div className={`mx-auto mb-4 ${compact ? 'w-12 h-12' : 'w-20 h-20'} rounded-xl flex items-center justify-center ${
           isDark ? 'bg-lynx-charcoal/60' : 'bg-slate-100'
         }`}>
-          <Icon className={`${compact ? 'w-6 h-6' : 'w-10 h-10'} ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
+          <Icon className={`${compact ? 'w-6 h-6' : 'w-10 h-10'} ${isDark ? 'text-slate-600' : 'text-lynx-slate'}`} />
         </div>
       )}
       <h3 className={`${compact ? 'text-base' : 'text-lg'} font-bold ${tc.text}`}>{title}</h3>

@@ -50,7 +50,7 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
       {/* Day headers */}
       <div className={`grid grid-cols-7 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className={`p-3 text-center text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d}</div>
+          <div key={d} className={`p-3 text-center text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{d}</div>
         ))}
       </div>
       {/* Days grid */}
@@ -162,7 +162,7 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
         <div className="p-3 text-center text-sm font-medium"></div>
         {weekDays.map((day, i) => (
           <div key={i} className={`p-3 text-center ${isToday(day) ? 'bg-[var(--accent-primary)]/10' : ''}`}>
-            <div className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+            <div className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
             <div className={`text-lg font-extrabold ${isToday(day) ? 'text-[var(--accent-primary)]' : tc.text}`}>
               {day.getDate()}
             </div>
@@ -173,7 +173,7 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
       <div className="max-h-[600px] overflow-y-auto">
         {hours.map(hour => (
           <div key={hour} className={`grid grid-cols-8 border-b ${isDark ? 'border-slate-700/50' : 'border-slate-100'}`}>
-            <div className={`p-2 text-xs text-right pr-3 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            <div className={`p-2 text-xs text-right pr-3 font-medium ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
               {hour > 12 ? hour - 12 : hour}{hour >= 12 ? 'pm' : 'am'}
             </div>
             {weekDays.map((day, i) => {
@@ -241,7 +241,7 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
           const hourEvents = dayEvents.filter(e => new Date(e.start_time).getHours() === hour)
           return (
             <div key={hour} className={`flex border-b ${isDark ? 'border-slate-700/50' : 'border-slate-100'}`}>
-              <div className={`w-20 p-3 text-sm text-right shrink-0 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <div className={`w-20 p-3 text-sm text-right shrink-0 font-medium ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                 {hour > 12 ? hour - 12 : hour}:00 {hour >= 12 ? 'PM' : 'AM'}
               </div>
               <div className="flex-1 p-2 min-h-[60px]">
