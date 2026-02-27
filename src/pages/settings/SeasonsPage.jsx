@@ -5,8 +5,8 @@ import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { 
-  Plus, Edit, Trash2, Calendar, DollarSign, Users, Settings, 
+import {
+  Plus, Edit, Trash2, Calendar, DollarSign, Users, Settings,
   Share2, Copy, Check, ExternalLink, X
 } from '../../constants/icons'
 
@@ -15,6 +15,8 @@ function SeasonsPage({ showToast }) {
   const { organization } = useAuth()
   const { refreshSeasons } = useSeason()
   const { selectedSport, sports } = useSport()
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const [seasons, setSeasons] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -23,9 +25,9 @@ function SeasonsPage({ showToast }) {
   const [showShareModal, setShowShareModal] = useState(false)
   const [shareSeason, setShareSeason] = useState(null)
   const [templates, setTemplates] = useState([])
-  const [form, setForm] = useState({ 
-    name: '', status: 'upcoming', start_date: '', end_date: '', 
-    fee_registration: 150, fee_uniform: 35, fee_monthly: 50, fee_per_family: 0, months_in_season: 3, 
+  const [form, setForm] = useState({
+    name: '', status: 'upcoming', start_date: '', end_date: '',
+    fee_registration: 150, fee_uniform: 35, fee_monthly: 50, fee_per_family: 0, months_in_season: 3,
     sibling_discount_type: 'none', sibling_discount_amount: 0, sibling_discount_apply_to: 'additional',
     sport_id: null, registration_opens: '', registration_closes: '',
     early_bird_deadline: '', early_bird_discount: 25, late_registration_deadline: '',
@@ -35,7 +37,7 @@ function SeasonsPage({ showToast }) {
     registration_config: null
   })
 
-  useEffect(() => { 
+  useEffect(() => {
   if (organization?.id) {
     loadSeasons()
     loadTemplates()
@@ -61,16 +63,16 @@ function SeasonsPage({ showToast }) {
   function openNew() {
     setEditingSeason(null)
     // Don't pre-select sport - let user explicitly choose
-    setForm({ 
-      name: '', 
-      status: 'upcoming', 
-      start_date: '', 
-      end_date: '', 
-      fee_registration: 150, 
-      fee_uniform: 35, 
-      fee_monthly: 50, 
+    setForm({
+      name: '',
+      status: 'upcoming',
+      start_date: '',
+      end_date: '',
+      fee_registration: 150,
+      fee_uniform: 35,
+      fee_monthly: 50,
       fee_per_family: 0,
-      months_in_season: 3, 
+      months_in_season: 3,
       sibling_discount_type: 'none',
       sibling_discount_amount: 0,
       sibling_discount_apply_to: 'additional',
@@ -94,16 +96,16 @@ function SeasonsPage({ showToast }) {
 
   function openEdit(season) {
     setEditingSeason(season)
-    setForm({ 
-      name: season.name, 
-      status: season.status, 
-      start_date: season.start_date || '', 
-      end_date: season.end_date || '', 
-      fee_registration: season.fee_registration || 150, 
-      fee_uniform: season.fee_uniform || 35, 
-      fee_monthly: season.fee_monthly || 50, 
+    setForm({
+      name: season.name,
+      status: season.status,
+      start_date: season.start_date || '',
+      end_date: season.end_date || '',
+      fee_registration: season.fee_registration || 150,
+      fee_uniform: season.fee_uniform || 35,
+      fee_monthly: season.fee_monthly || 50,
       fee_per_family: season.fee_per_family || 0,
-      months_in_season: season.months_in_season || 3, 
+      months_in_season: season.months_in_season || 3,
       sibling_discount_type: season.sibling_discount_type || 'none',
       sibling_discount_amount: season.sibling_discount_amount || 0,
       sibling_discount_apply_to: season.sibling_discount_apply_to || 'additional',
@@ -140,12 +142,12 @@ function SeasonsPage({ showToast }) {
         .insert(data)
         .select()
         .single()
-      
+
       if (error) {
         showToast('Error creating season', 'error')
         return
       }
-      
+
       showToast('Season created!', 'success')
       journey?.completeStep('create_season')
       setShowModal(false)
@@ -213,36 +215,36 @@ function SeasonsPage({ showToast }) {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Seasons</h1>
-          <p className="text-slate-400 mt-1">Manage league seasons</p>
+          <h1 className={`text-3xl font-bold ${tc.text}`}>Seasons</h1>
+          <p className={`${tc.textMuted} mt-1`}>Manage league seasons</p>
         </div>
         <button onClick={openNew} className="bg-[var(--accent-primary)] text-white font-semibold px-6 py-3 rounded-xl">➕ New Season</button>
       </div>
 
-      {loading ? <div className="text-center py-12 text-slate-400">Loading...</div> :
+      {loading ? <div className={`text-center py-12 ${tc.textMuted}`}>Loading...</div> :
         seasons.length === 0 ? (
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-12 text-center">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl p-12 text-center`}>
             <Calendar className="w-16 h-16" />
-            <h3 className="text-lg font-medium text-white mt-4">No seasons yet</h3>
+            <h3 className={`text-lg font-medium ${tc.text} mt-4`}>No seasons yet</h3>
             <button onClick={openNew} className="mt-4 bg-[var(--accent-primary)] text-white font-semibold px-6 py-2 rounded-xl">Create Season</button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {seasons.map(season => {
-              const isRegOpen = season.status === 'active' || 
-                (season.registration_opens && new Date(season.registration_opens) <= new Date() && 
+              const isRegOpen = season.status === 'active' ||
+                (season.registration_opens && new Date(season.registration_opens) <= new Date() &&
                  (!season.registration_closes || new Date(season.registration_closes) >= new Date()))
               // Use configured registration URL or default to current origin
               const registrationBaseUrl = organization.settings?.registration_url || window.location.origin
               const regLink = `${registrationBaseUrl}/register/${organization.slug}/${season.id}`
-              
+
               return (
-                <div key={season.id} className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
+                <div key={season.id} className={`${tc.cardBg} border ${tc.border} rounded-2xl p-6`}>
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2">
                         {season.sports?.icon && <span className="text-xl">{season.sports.icon}</span>}
-                        <h3 className="text-lg font-semibold text-white">{season.name}</h3>
+                        <h3 className={`text-lg font-semibold ${tc.text}`}>{season.name}</h3>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 mt-1">
                         <span className={`text-xs px-2 py-1 rounded-full ${season.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : season.status === 'upcoming' ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : 'bg-gray-500/20 text-slate-400'}`}>
@@ -256,32 +258,32 @@ function SeasonsPage({ showToast }) {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => handleClone(season)} className="p-2 rounded-lg hover:bg-slate-700 text-slate-400" title="Clone Season"><Copy className="w-4 h-4" /></button>
-                      <button onClick={() => openEdit(season)} className="p-2 rounded-lg hover:bg-slate-700 text-slate-400" title="Edit"><Edit className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(season)} className="p-2 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleClone(season)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${tc.textMuted}`} title="Clone Season"><Copy className="w-4 h-4" /></button>
+                      <button onClick={() => openEdit(season)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-slate-700' : 'hover:bg-slate-50'} ${tc.textMuted}`} title="Edit"><Edit className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(season)} className={`p-2 rounded-lg hover:bg-red-500/10 ${tc.textMuted} hover:text-red-400`} title="Delete"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
                   <div className="space-y-2 text-sm">
                     {season.start_date && (
-                      <p className="text-slate-400 flex items-center gap-1"><Calendar className="w-4 h-4" /> {new Date(season.start_date).toLocaleDateString()} - {season.end_date ? new Date(season.end_date).toLocaleDateString() : 'TBD'}</p>
+                      <p className={`${tc.textMuted} flex items-center gap-1`}><Calendar className="w-4 h-4" /> {new Date(season.start_date).toLocaleDateString()} - {season.end_date ? new Date(season.end_date).toLocaleDateString() : 'TBD'}</p>
                     )}
-                    <p className="text-slate-400 flex items-center gap-1"><DollarSign className="w-4 h-4" /> ${season.fee_registration || 0} registration</p>
+                    <p className={`${tc.textMuted} flex items-center gap-1`}><DollarSign className="w-4 h-4" /> ${season.fee_registration || 0} registration</p>
                     {season.capacity && (
-                      <p className="text-slate-400">Capacity: {season.capacity} players</p>
+                      <p className={tc.textMuted}>Capacity: {season.capacity} players</p>
                     )}
                   </div>
                   {/* Quick Actions */}
-                  <div className="mt-4 pt-4 border-t border-slate-700 flex gap-2">
-                    <button 
+                  <div className={`mt-4 pt-4 border-t ${tc.border} flex gap-2`}>
+                    <button
                       onClick={() => {
                         setShareSeason(season)
                         setShowShareModal(true)
                       }}
-                      className="flex-1 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium"
+                      className={`flex-1 px-3 py-2 rounded-lg ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-xs font-medium`}
                     >
                       Share
                     </button>
-                    <button 
+                    <button
                       onClick={() => window.open(regLink, '_blank')}
                       className="flex-1 px-3 py-2 rounded-lg bg-[var(--accent-primary)] hover:brightness-110 text-white text-xs font-medium"
                     >
@@ -296,14 +298,14 @@ function SeasonsPage({ showToast }) {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-white">{editingSeason ? 'Edit Season' : 'Create Season'}</h2>
-              <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className="text-slate-400 hover:text-white text-2xl">×</button>
+          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-b ${tc.border} flex items-center justify-between`}>
+              <h2 className={`text-xl font-semibold ${tc.text}`}>{editingSeason ? 'Edit Season' : 'Create Season'}</h2>
+              <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'} text-2xl`}>×</button>
             </div>
-            
+
             {/* Tabs */}
-            <div className="flex border-b border-slate-700">
+            <div className={`flex border-b ${tc.border}`}>
               {[
                 { id: 'basic', label: '📋 Basic Info' },
                 { id: 'registration', label: '📅 Registration' },
@@ -314,8 +316,8 @@ function SeasonsPage({ showToast }) {
                   onClick={() => setModalTab(tab.id)}
                   className={`flex-1 px-4 py-3 text-sm font-medium transition ${
                     modalTab === tab.id
-                      ? 'text-[var(--accent-primary)] border-b-2 border-[var(--accent-primary)] bg-slate-900/50'
-                      : 'text-slate-400 hover:text-white'
+                      ? `text-[var(--accent-primary)] border-b-2 border-[var(--accent-primary)] ${tc.cardBgAlt}`
+                      : `${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'}`
                   }`}
                 >
                   {tab.label}
@@ -330,7 +332,7 @@ function SeasonsPage({ showToast }) {
                   {/* Sport Selection */}
                   {sports && sports.length > 0 && (
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Sport <span className="text-red-400">*</span></label>
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Sport <span className="text-red-400">*</span></label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
                         {sports.map(sport => (
                           <button
@@ -340,11 +342,11 @@ function SeasonsPage({ showToast }) {
                             className={`p-3 rounded-xl border-2 text-left transition-all ${
                               form.sport_id === sport.id
                                 ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                                : 'border-slate-700 hover:border-slate-600'
+                                : `${tc.border} ${isDark ? 'hover:border-slate-600' : 'hover:border-slate-300'}`
                             }`}
                           >
                             <span className="text-xl">{sport.icon}</span>
-                            <p className={`text-sm font-medium mt-1 ${form.sport_id === sport.id ? 'text-white' : 'text-slate-400'}`}>
+                            <p className={`text-sm font-medium mt-1 ${form.sport_id === sport.id ? tc.text : tc.textMuted}`}>
                               {sport.name}
                             </p>
                           </button>
@@ -352,41 +354,41 @@ function SeasonsPage({ showToast }) {
                       </div>
                     </div>
                   )}
-                  
+
                   <div>
-                    <label className="block text-sm text-slate-400 mb-2">Season Name <span className="text-red-400">*</span></label>
+                    <label className={`block text-sm ${tc.textMuted} mb-2`}>Season Name <span className="text-red-400">*</span></label>
                     <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Spring 2026"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                      className={`w-full ${tc.input} rounded-xl px-4 py-3`} />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm text-slate-400 mb-2">Description</label>
-                    <textarea 
-                      value={form.description} 
-                      onChange={e => setForm({...form, description: e.target.value})} 
+                    <label className={`block text-sm ${tc.textMuted} mb-2`}>Description</label>
+                    <textarea
+                      value={form.description}
+                      onChange={e => setForm({...form, description: e.target.value})}
                       placeholder="Brief description shown on registration page..."
                       rows={2}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white resize-none" 
+                      className={`w-full ${tc.input} rounded-xl px-4 py-3 resize-none`}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Season Starts</label>
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Season Starts</label>
                       <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3`} />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Season Ends</label>
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Season Ends</label>
                       <input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" />
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3`} />
                     </div>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm text-slate-400 mb-2">Status</label>
+                    <label className={`block text-sm ${tc.textMuted} mb-2`}>Status</label>
                     <select value={form.status} onChange={e => setForm({...form, status: e.target.value})}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white">
+                      className={`w-full ${tc.input} rounded-xl px-4 py-3`}>
                       <option value="upcoming">Upcoming</option>
                       <option value="active">Active (Registration Open)</option>
                       <option value="completed">Completed</option>
@@ -400,14 +402,14 @@ function SeasonsPage({ showToast }) {
                 <>
                   {/* Registration Form Template */}
                   <div className="mb-6">
-                    <label className="block text-sm text-slate-400 mb-2">📋 Registration Form Template</label>
+                    <label className={`block text-sm ${tc.textMuted} mb-2`}>📋 Registration Form Template</label>
                     <select
                       value={form.registration_template_id || ''}
                       onChange={e => {
                         const templateId = e.target.value || null
                         const template = templates.find(t => t.id === templateId)
                         setForm({
-                          ...form, 
+                          ...form,
                           registration_template_id: templateId,
                           registration_config: template ? {
                             player_fields: template.player_fields,
@@ -419,7 +421,7 @@ function SeasonsPage({ showToast }) {
                           } : null
                         })
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white"
+                      className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                     >
                       <option value="">Use default form</option>
                       {templates.map(t => (
@@ -428,117 +430,117 @@ function SeasonsPage({ showToast }) {
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Select which registration form to use for this season. 
+                    <p className={`text-xs ${tc.textMuted} mt-1`}>
+                      Select which registration form to use for this season.
                       <a href="#" onClick={(e) => { e.preventDefault(); window.open('/templates', '_blank') }} className="text-[var(--accent-primary)] hover:underline ml-1">
                         Manage templates →
                       </a>
                     </p>
                   </div>
 
-                  <div className="bg-slate-900/50 rounded-xl p-4 mb-4">
-                    <p className="text-sm text-slate-300">
+                  <div className={`${tc.cardBgAlt} rounded-xl p-4 mb-4`}>
+                    <p className={`text-sm ${tc.textSecondary}`}>
                       📅 Set when families can register. Leave dates blank to use season status instead.
                     </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Registration Opens</label>
-                      <input 
-                        type="date" 
-                        value={form.registration_opens} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Registration Opens</label>
+                      <input
+                        type="date"
+                        value={form.registration_opens}
                         onChange={e => setForm({...form, registration_opens: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Registration Closes</label>
-                      <input 
-                        type="date" 
-                        value={form.registration_closes} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Registration Closes</label>
+                      <input
+                        type="date"
+                        value={form.registration_closes}
                         onChange={e => setForm({...form, registration_closes: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                       />
                     </div>
                   </div>
-                  
-                  <div className="border-t border-slate-700 pt-4 mt-4">
-                    <h4 className="text-white font-medium mb-3">🎯 Early Bird & Late Registration</h4>
+
+                  <div className={`border-t ${tc.border} pt-4 mt-4`}>
+                    <h4 className={`${tc.text} font-medium mb-3`}>🎯 Early Bird & Late Registration</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">Early Bird Deadline</label>
-                        <input 
-                          type="date" 
-                          value={form.early_bird_deadline} 
+                        <label className={`block text-sm ${tc.textMuted} mb-2`}>Early Bird Deadline</label>
+                        <input
+                          type="date"
+                          value={form.early_bird_deadline}
                           onChange={e => setForm({...form, early_bird_deadline: e.target.value})}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                          className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">Early Bird Discount ($)</label>
-                        <input 
-                          type="number" 
-                          value={form.early_bird_discount} 
+                        <label className={`block text-sm ${tc.textMuted} mb-2`}>Early Bird Discount ($)</label>
+                        <input
+                          type="number"
+                          value={form.early_bird_discount}
                           onChange={e => setForm({...form, early_bird_discount: parseInt(e.target.value) || 0})}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                          className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 mt-3">
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">Late Registration Starts</label>
-                        <input 
-                          type="date" 
-                          value={form.late_registration_deadline} 
+                        <label className={`block text-sm ${tc.textMuted} mb-2`}>Late Registration Starts</label>
+                        <input
+                          type="date"
+                          value={form.late_registration_deadline}
                           onChange={e => setForm({...form, late_registration_deadline: e.target.value})}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                          className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">Late Fee ($)</label>
-                        <input 
-                          type="number" 
-                          value={form.late_registration_fee} 
+                        <label className={`block text-sm ${tc.textMuted} mb-2`}>Late Fee ($)</label>
+                        <input
+                          type="number"
+                          value={form.late_registration_fee}
                           onChange={e => setForm({...form, late_registration_fee: parseInt(e.target.value) || 0})}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                          className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                         />
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="border-t border-slate-700 pt-4 mt-4">
-                    <h4 className="text-white font-medium mb-3">Capacity</h4>
+
+                  <div className={`border-t ${tc.border} pt-4 mt-4`}>
+                    <h4 className={`${tc.text} font-medium mb-3`}>Capacity</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">Max Players</label>
-                        <input 
-                          type="number" 
-                          value={form.capacity || ''} 
+                        <label className={`block text-sm ${tc.textMuted} mb-2`}>Max Players</label>
+                        <input
+                          type="number"
+                          value={form.capacity || ''}
                           onChange={e => setForm({...form, capacity: e.target.value ? parseInt(e.target.value) : null})}
                           placeholder="Unlimited"
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                          className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                         />
-                        <p className="text-xs text-slate-500 mt-1">Leave blank for unlimited</p>
+                        <p className={`text-xs ${tc.textMuted} mt-1`}>Leave blank for unlimited</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-slate-400 mb-2">Waitlist Size</label>
-                        <input 
-                          type="number" 
-                          value={form.waitlist_capacity} 
+                        <label className={`block text-sm ${tc.textMuted} mb-2`}>Waitlist Size</label>
+                        <input
+                          type="number"
+                          value={form.waitlist_capacity}
                           onChange={e => setForm({...form, waitlist_capacity: parseInt(e.target.value) || 0})}
-                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                          className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                         />
                       </div>
                     </div>
                     <label className="flex items-center gap-3 mt-3 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        checked={form.waitlist_enabled} 
+                      <input
+                        type="checkbox"
+                        checked={form.waitlist_enabled}
                         onChange={e => setForm({...form, waitlist_enabled: e.target.checked})}
-                        className="w-5 h-5 rounded border-slate-700"
+                        className={`w-5 h-5 rounded ${tc.border}`}
                       />
-                      <span className="text-slate-300">Enable waitlist when full</span>
+                      <span className={tc.textSecondary}>Enable waitlist when full</span>
                     </label>
                   </div>
                 </>
@@ -547,86 +549,86 @@ function SeasonsPage({ showToast }) {
               {/* Fees Tab */}
               {modalTab === 'fees' && (
                 <>
-                  <div className="bg-slate-900/50 rounded-xl p-4 mb-4">
-                    <p className="text-sm text-slate-300">
+                  <div className={`${tc.cardBgAlt} rounded-xl p-4 mb-4`}>
+                    <p className={`text-sm ${tc.textSecondary}`}>
                       💰 Set the fees for this season. Per-player fees are charged for each child. Per-family fees are charged once per family per season.
                     </p>
                   </div>
-                  
+
                   {/* Per-Player Fees */}
-                  <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Per-Player Fees</h4>
+                  <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3`}>Per-Player Fees</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Registration Fee ($)</label>
-                      <input 
-                        type="number" 
-                        value={form.fee_registration} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Registration Fee ($)</label>
+                      <input
+                        type="number"
+                        value={form.fee_registration}
                         onChange={e => setForm({...form, fee_registration: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3 text-lg`}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Uniform Fee ($)</label>
-                      <input 
-                        type="number" 
-                        value={form.fee_uniform} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Uniform Fee ($)</label>
+                      <input
+                        type="number"
+                        value={form.fee_uniform}
                         onChange={e => setForm({...form, fee_uniform: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3 text-lg`}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Monthly Fee ($)</label>
-                      <input 
-                        type="number" 
-                        value={form.fee_monthly} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Monthly Fee ($)</label>
+                      <input
+                        type="number"
+                        value={form.fee_monthly}
                         onChange={e => setForm({...form, fee_monthly: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3 text-lg`}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Number of Months</label>
-                      <input 
-                        type="number" 
-                        value={form.months_in_season} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Number of Months</label>
+                      <input
+                        type="number"
+                        value={form.months_in_season}
                         onChange={e => setForm({...form, months_in_season: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3 text-lg`}
                       />
                     </div>
                   </div>
-                  
+
                   {/* Per-Family Fee */}
-                  <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3 mt-6">Per-Family Fee</h4>
+                  <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3 mt-6`}>Per-Family Fee</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Family Registration Fee ($)</label>
-                      <input 
-                        type="number" 
-                        value={form.fee_per_family} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Family Registration Fee ($)</label>
+                      <input
+                        type="number"
+                        value={form.fee_per_family}
                         onChange={e => setForm({...form, fee_per_family: e.target.value})}
                         placeholder="0"
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg" 
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3 text-lg`}
                       />
-                      <p className="text-xs text-slate-500 mt-1">Charged once per family, regardless of # of kids</p>
+                      <p className={`text-xs ${tc.textMuted} mt-1`}>Charged once per family, regardless of # of kids</p>
                     </div>
                   </div>
-                  
+
                   {/* Sibling Discount */}
-                  <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3 mt-6">Sibling Discount</h4>
-                  <div className="bg-slate-900/50 rounded-xl p-4 mb-4">
-                    <p className="text-sm text-slate-300">
+                  <h4 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wide mb-3 mt-6`}>Sibling Discount</h4>
+                  <div className={`${tc.cardBgAlt} rounded-xl p-4 mb-4`}>
+                    <p className={`text-sm ${tc.textSecondary}`}>
                       Family: Automatically discount fees when multiple kids from the same family register.
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm text-slate-400 mb-2">Discount Type</label>
-                      <select 
-                        value={form.sibling_discount_type} 
+                      <label className={`block text-sm ${tc.textMuted} mb-2`}>Discount Type</label>
+                      <select
+                        value={form.sibling_discount_type}
                         onChange={e => setForm({...form, sibling_discount_type: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white"
+                        className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                       >
                         <option value="none">No Discount</option>
                         <option value="flat">Flat Amount ($)</option>
@@ -636,23 +638,23 @@ function SeasonsPage({ showToast }) {
                     {form.sibling_discount_type !== 'none' && (
                       <>
                         <div>
-                          <label className="block text-sm text-slate-400 mb-2">
+                          <label className={`block text-sm ${tc.textMuted} mb-2`}>
                             {form.sibling_discount_type === 'flat' ? 'Discount Amount ($)' : 'Discount Percent (%)'}
                           </label>
-                          <input 
-                            type="number" 
-                            value={form.sibling_discount_amount} 
+                          <input
+                            type="number"
+                            value={form.sibling_discount_amount}
                             onChange={e => setForm({...form, sibling_discount_amount: e.target.value})}
                             placeholder={form.sibling_discount_type === 'flat' ? '25' : '10'}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white" 
+                            className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-slate-400 mb-2">Apply To</label>
-                          <select 
-                            value={form.sibling_discount_apply_to} 
+                          <label className={`block text-sm ${tc.textMuted} mb-2`}>Apply To</label>
+                          <select
+                            value={form.sibling_discount_apply_to}
                             onChange={e => setForm({...form, sibling_discount_apply_to: e.target.value})}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white"
+                            className={`w-full ${tc.input} rounded-xl px-4 py-3`}
                           >
                             <option value="additional">2nd Child & Beyond</option>
                             <option value="all">All Children</option>
@@ -664,28 +666,28 @@ function SeasonsPage({ showToast }) {
                   {form.sibling_discount_type !== 'none' && parseFloat(form.sibling_discount_amount) > 0 && (
                     <p className="text-xs text-emerald-400 mt-2">
                       ✓ {form.sibling_discount_apply_to === 'additional' ? '2nd child and beyond' : 'All children'} will receive{' '}
-                      {form.sibling_discount_type === 'flat' 
-                        ? `$${form.sibling_discount_amount} off` 
+                      {form.sibling_discount_type === 'flat'
+                        ? `$${form.sibling_discount_amount} off`
                         : `${form.sibling_discount_amount}% off`
                       } registration and monthly fees
                     </p>
                   )}
-                  
+
                   {/* Fee Summary */}
-                  <div className="bg-slate-900 rounded-xl p-5 mt-6">
-                    <h4 className="text-slate-400 text-sm mb-3">Fee Summary (Per Player)</h4>
+                  <div className={`${tc.cardBgAlt} rounded-xl p-5 mt-6`}>
+                    <h4 className={`${tc.textMuted} text-sm mb-3`}>Fee Summary (Per Player)</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Registration</span>
-                        <span className="text-white">${parseFloat(form.fee_registration) || 0}</span>
+                        <span className={tc.textMuted}>Registration</span>
+                        <span className={tc.text}>${parseFloat(form.fee_registration) || 0}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Uniform</span>
-                        <span className="text-white">${parseFloat(form.fee_uniform) || 0}</span>
+                        <span className={tc.textMuted}>Uniform</span>
+                        <span className={tc.text}>${parseFloat(form.fee_uniform) || 0}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Monthly × {form.months_in_season || 0}</span>
-                        <span className="text-white">${(parseFloat(form.fee_monthly) || 0) * (parseInt(form.months_in_season) || 0)}</span>
+                        <span className={tc.textMuted}>Monthly × {form.months_in_season || 0}</span>
+                        <span className={tc.text}>${(parseFloat(form.fee_monthly) || 0) * (parseInt(form.months_in_season) || 0)}</span>
                       </div>
                       {parseFloat(form.fee_per_family) > 0 && (
                         <div className="flex justify-between text-blue-400">
@@ -699,8 +701,8 @@ function SeasonsPage({ showToast }) {
                           <span>-${form.early_bird_discount}</span>
                         </div>
                       )}
-                      <div className="border-t border-slate-700 pt-2 mt-2 flex justify-between">
-                        <span className="text-white font-medium">Total Per Player (Regular)</span>
+                      <div className={`border-t ${tc.border} pt-2 mt-2 flex justify-between`}>
+                        <span className={`${tc.text} font-medium`}>Total Per Player (Regular)</span>
                         <span className="text-2xl font-bold text-[var(--accent-primary)]">${totalFee.toFixed(0)}</span>
                       </div>
                       {form.early_bird_discount > 0 && (
@@ -711,21 +713,21 @@ function SeasonsPage({ showToast }) {
                       )}
                     </div>
                     {/* Example calculation with sibling discount */}
-                    <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-2">
-                      <p className="text-xs text-slate-500">
+                    <div className={`mt-4 pt-4 border-t ${tc.border} space-y-2`}>
+                      <p className={`text-xs ${tc.textMuted}`}>
                         💡 <strong>Example - 1 Child:</strong>{' '}
-                        <span className="text-white">
+                        <span className={tc.text}>
                           ${((totalFee - (form.early_bird_discount > 0 ? form.early_bird_discount : 0)) + (parseFloat(form.fee_per_family) || 0)).toFixed(0)}
                         </span>
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className={`text-xs ${tc.textMuted}`}>
                         💡 <strong>Example - 2 Children:</strong>{' '}
                         {(() => {
                           const basePerPlayer = totalFee - (form.early_bird_discount > 0 ? form.early_bird_discount : 0)
                           const familyFee = parseFloat(form.fee_per_family) || 0
                           let child1 = basePerPlayer
                           let child2 = basePerPlayer
-                          
+
                           if (form.sibling_discount_type !== 'none' && parseFloat(form.sibling_discount_amount) > 0) {
                             const discountAmount = parseFloat(form.sibling_discount_amount)
                             if (form.sibling_discount_apply_to === 'all') {
@@ -750,7 +752,7 @@ function SeasonsPage({ showToast }) {
                           const savings = (basePerPlayer * 2 + familyFee) - total
                           return (
                             <>
-                              <span className="text-white">${total.toFixed(0)}</span>
+                              <span className={tc.text}>${total.toFixed(0)}</span>
                               {savings > 0 && (
                                 <span className="text-emerald-400 ml-2">(saves ${savings.toFixed(0)})</span>
                               )}
@@ -763,31 +765,31 @@ function SeasonsPage({ showToast }) {
                 </>
               )}
             </div>
-            
-            <div className="p-6 border-t border-slate-700 flex justify-between">
-              <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className="px-6 py-2 rounded-xl border border-slate-700 text-white">
+
+            <div className={`p-6 border-t ${tc.border} flex justify-between`}>
+              <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}>
                 Cancel
               </button>
               <div className="flex gap-3">
                 {modalTab !== 'basic' && (
-                  <button 
+                  <button
                     onClick={() => setModalTab(modalTab === 'fees' ? 'registration' : 'basic')}
-                    className="px-6 py-2 rounded-xl border border-slate-700 text-white"
+                    className={`px-6 py-2 rounded-xl border ${tc.border} ${tc.text}`}
                   >
                     ← Back
                   </button>
                 )}
                 {modalTab !== 'fees' ? (
-                  <button 
+                  <button
                     onClick={() => setModalTab(modalTab === 'basic' ? 'registration' : 'fees')}
                     className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold"
                   >
                     Next →
                   </button>
                 ) : (
-                  <button 
-                    onClick={handleSave} 
-                    disabled={!form.name || (sports && sports.length > 0 && !form.sport_id)} 
+                  <button
+                    onClick={handleSave}
+                    disabled={!form.name || (sports && sports.length > 0 && !form.sport_id)}
                     className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50"
                   >
                     {editingSeason ? '💾 Save Changes' : '✨ Create Season'}
@@ -802,35 +804,35 @@ function SeasonsPage({ showToast }) {
       {/* Share Hub Modal */}
       {showShareModal && shareSeason && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-700 flex items-center justify-between">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
+            <div className={`p-6 border-b ${tc.border} flex items-center justify-between`}>
               <div>
-                <h2 className="text-xl font-semibold text-white">Share Registration</h2>
-                <p className="text-sm text-slate-400 mt-1">{shareSeason.name}</p>
+                <h2 className={`text-xl font-semibold ${tc.text}`}>Share Registration</h2>
+                <p className={`text-sm ${tc.textMuted} mt-1`}>{shareSeason.name}</p>
               </div>
-              <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-white text-2xl">×</button>
+              <button onClick={() => setShowShareModal(false)} className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'} text-2xl`}>×</button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               {/* Registration Link */}
               {(() => {
                 const registrationBaseUrl = organization.settings?.registration_url || window.location.origin
                 const shareLink = `${registrationBaseUrl}/register/${organization.slug}/${shareSeason.id}`
                 const totalFee = (parseFloat(shareSeason.fee_registration) || 0) + (parseFloat(shareSeason.fee_uniform) || 0) + ((parseFloat(shareSeason.fee_monthly) || 0) * (parseInt(shareSeason.months_in_season) || 0))
-                
+
                 return (
                   <>
                     {/* Direct Link */}
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">📋 Registration Link</label>
+                      <label className={`block text-sm font-medium ${tc.text} mb-2`}>📋 Registration Link</label>
                       <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          value={shareLink} 
-                          readOnly 
-                          className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm"
+                        <input
+                          type="text"
+                          value={shareLink}
+                          readOnly
+                          className={`flex-1 ${tc.input} rounded-xl px-4 py-3 text-sm`}
                         />
-                        <button 
+                        <button
                           onClick={() => {
                             navigator.clipboard.writeText(shareLink)
                             showToast('Link copied!', 'success')
@@ -844,25 +846,25 @@ function SeasonsPage({ showToast }) {
 
                     {/* QR Code */}
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">📱 QR Code</label>
+                      <label className={`block text-sm font-medium ${tc.text} mb-2`}>📱 QR Code</label>
                       <div className="flex gap-4 items-start">
                         <div className="bg-white p-4 rounded-xl">
-                          <img 
+                          <img
                             src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareLink)}`}
                             alt="QR Code"
                             className="w-36 h-36"
                           />
                         </div>
                         <div className="flex-1 space-y-2">
-                          <p className="text-sm text-slate-400">Scan to register! Perfect for flyers, posters, and social media.</p>
-                          <button 
+                          <p className={`text-sm ${tc.textMuted}`}>Scan to register! Perfect for flyers, posters, and social media.</p>
+                          <button
                             onClick={() => {
                               const link = document.createElement('a')
                               link.href = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(shareLink)}`
                               link.download = `${organization.name}-${shareSeason.name}-QR.png`
                               link.click()
                             }}
-                            className="px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-600"
+                            className={`px-4 py-2 rounded-lg ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm`}
                           >
                             ⬇️ Download QR Code
                           </button>
@@ -872,19 +874,19 @@ function SeasonsPage({ showToast }) {
 
                     {/* Quick Share Buttons */}
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">🚀 Quick Share</label>
+                      <label className={`block text-sm font-medium ${tc.text} mb-2`}>🚀 Quick Share</label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        <button 
+                        <button
                           onClick={() => {
                             const text = `Register for ${organization.name} ${shareSeason.name}! ${shareLink}`
                             navigator.clipboard.writeText(text)
                             showToast('Text copied!', 'success')
                           }}
-                          className="px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium flex items-center justify-center gap-2"
+                          className={`px-4 py-3 rounded-xl ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm font-medium flex items-center justify-center gap-2`}
                         >
                           💬 Text
                         </button>
-                        <button 
+                        <button
                           onClick={() => {
                             const text = encodeURIComponent(`Register for ${organization.name} ${shareSeason.name}!`)
                             window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}&quote=${text}`, '_blank', 'width=600,height=400')
@@ -893,19 +895,19 @@ function SeasonsPage({ showToast }) {
                         >
                           📘 Facebook
                         </button>
-                        <button 
+                        <button
                           onClick={() => {
                             const subject = encodeURIComponent(`Registration Open: ${organization.name} ${shareSeason.name}`)
                             const body = encodeURIComponent(`Hi!\n\nRegistration is now open for ${shareSeason.name}.\n\nRegister here: ${shareLink}\n\nFee: $${totalFee}\n\nSee you on the court!`)
                             window.location.href = `mailto:?subject=${subject}&body=${body}`
                           }}
-                          className="px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium flex items-center justify-center gap-2"
+                          className={`px-4 py-3 rounded-xl ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm font-medium flex items-center justify-center gap-2`}
                         >
                           ✉️ Email
                         </button>
-                        <button 
+                        <button
                           onClick={() => window.open(shareLink, '_blank')}
-                          className="px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium flex items-center justify-center gap-2"
+                          className={`px-4 py-3 rounded-xl ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm font-medium flex items-center justify-center gap-2`}
                         >
                           👁️ Preview
                         </button>
@@ -914,9 +916,9 @@ function SeasonsPage({ showToast }) {
 
                     {/* Email Template */}
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">Email Template</label>
-                      <div className="bg-slate-900 rounded-xl p-4 border border-slate-700">
-                        <div className="text-sm text-slate-300 whitespace-pre-wrap font-mono">
+                      <label className={`block text-sm font-medium ${tc.text} mb-2`}>Email Template</label>
+                      <div className={`${tc.cardBgAlt} rounded-xl p-4 border ${tc.border}`}>
+                        <div className={`text-sm ${tc.textSecondary} whitespace-pre-wrap font-mono`}>
 {`Subject: Registration Open - ${shareSeason.name}
 
 Hi [Parent Name]!
@@ -934,13 +936,13 @@ Questions? Reply to this email.
 See you on the court!
 ${organization.name}`}
                         </div>
-                        <button 
+                        <button
                           onClick={() => {
                             const template = `Subject: Registration Open - ${shareSeason.name}\n\nHi [Parent Name]!\n\nRegistration is now open for ${organization.name} ${shareSeason.name}!\n\n📅 Season: ${shareSeason.start_date ? new Date(shareSeason.start_date).toLocaleDateString() : 'TBD'} - ${shareSeason.end_date ? new Date(shareSeason.end_date).toLocaleDateString() : 'TBD'}\n💰 Fee: $${totalFee}\n${shareSeason.early_bird_deadline ? `🎉 Early Bird Deadline: ${new Date(shareSeason.early_bird_deadline).toLocaleDateString()} (Save $${shareSeason.early_bird_discount || 0}!)` : ''}\n\nRegister now: ${shareLink}\n\nQuestions? Reply to this email.\n\nSee you on the court!\n${organization.name}`
                             navigator.clipboard.writeText(template)
                             showToast('Email template copied!', 'success')
                           }}
-                          className="mt-3 px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-600"
+                          className={`mt-3 px-4 py-2 rounded-lg ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm`}
                         >
                           📋 Copy Email Template
                         </button>
@@ -949,9 +951,9 @@ ${organization.name}`}
 
                     {/* Social Media Post */}
                     <div>
-                      <label className="block text-sm font-medium text-white mb-2">📱 Social Media Post</label>
-                      <div className="bg-slate-900 rounded-xl p-4 border border-slate-700">
-                        <div className="text-sm text-slate-300">
+                      <label className={`block text-sm font-medium ${tc.text} mb-2`}>📱 Social Media Post</label>
+                      <div className={`${tc.cardBgAlt} rounded-xl p-4 border ${tc.border}`}>
+                        <div className={`text-sm ${tc.textSecondary}`}>
 {`🏐 Registration is OPEN!
 
 ${shareSeason.name} is here! Join ${organization.name} for an amazing season.
@@ -967,13 +969,13 @@ ${shareSeason.early_bird_deadline ? `⏰ Early bird pricing ends ${new Date(shar
 
 #youth${shareSeason.sports?.name || 'sports'} #${organization.name.replace(/\s+/g, '')} #registration`}
                         </div>
-                        <button 
+                        <button
                           onClick={() => {
                             const post = `🏐 Registration is OPEN! 🏐\n\n${shareSeason.name} is here! Join ${organization.name} for an amazing season.\n\n✅ All skill levels welcome\n✅ Expert coaching\n✅ Fun team environment\n\nRegister now 👇\n${shareLink}\n\n${shareSeason.early_bird_deadline ? `⏰ Early bird pricing ends ${new Date(shareSeason.early_bird_deadline).toLocaleDateString()}!` : ''}\n\n#youth${shareSeason.sports?.name || 'sports'} #${organization.name.replace(/\s+/g, '')} #registration`
                             navigator.clipboard.writeText(post)
                             showToast('Social post copied!', 'success')
                           }}
-                          className="mt-3 px-4 py-2 rounded-lg bg-slate-700 text-white text-sm hover:bg-slate-600"
+                          className={`mt-3 px-4 py-2 rounded-lg ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm`}
                         >
                           📋 Copy Social Post
                         </button>
@@ -985,8 +987,8 @@ ${shareSeason.early_bird_deadline ? `⏰ Early bird pricing ends ${new Date(shar
                       <div className="flex items-start gap-3">
                         <span className="text-2xl">💡</span>
                         <div>
-                          <p className="font-medium text-white">Pro Tip: Print a Flyer!</p>
-                          <p className="text-sm text-slate-400 mt-1">Download the QR code and add it to a flyer. Parents can scan with their phone to register instantly!</p>
+                          <p className={`font-medium ${tc.text}`}>Pro Tip: Print a Flyer!</p>
+                          <p className={`text-sm ${tc.textMuted} mt-1`}>Download the QR code and add it to a flyer. Parents can scan with their phone to register instantly!</p>
                         </div>
                       </div>
                     </div>
@@ -994,10 +996,10 @@ ${shareSeason.early_bird_deadline ? `⏰ Early bird pricing ends ${new Date(shar
                 )
               })()}
             </div>
-            
-            <div className="p-6 border-t border-slate-700 flex justify-end">
-              <button 
-                onClick={() => setShowShareModal(false)} 
+
+            <div className={`p-6 border-t ${tc.border} flex justify-end`}>
+              <button
+                onClick={() => setShowShareModal(false)}
                 className="px-6 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold"
               >
                 Done
