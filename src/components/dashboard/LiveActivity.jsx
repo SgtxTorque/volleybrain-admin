@@ -89,7 +89,7 @@ export default function LiveActivity({ activities }) {
                       <span> &mdash; {activity.highlight}</span>
                     )}
                   </p>
-                  <p className={`mt-0.5 truncate text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+                  <p className={`mt-0.5 truncate text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                     {activity.name}
                     {activity.name && activity.timestamp && ' · '}
                     {activity.timestamp && timeAgo(activity.timestamp)}

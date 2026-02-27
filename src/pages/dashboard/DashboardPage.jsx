@@ -164,7 +164,7 @@ function RegistrationDonut({ data, total, size = 138 }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
-        <span className={`text-xs ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
+        <span className={`text-sm ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
       </div>
     </div>
   )

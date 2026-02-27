@@ -80,7 +80,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatDate(event.event_date)}</p>
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{formatTime(event.event_time)}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{formatTime(event.event_time)}</p>
                 </div>
               </div>
             )
