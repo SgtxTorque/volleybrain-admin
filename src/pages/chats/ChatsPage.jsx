@@ -10,8 +10,6 @@ import ChatThread from './ChatThread'
 // STYLES
 // ═══════════════════════════════════════════════════════════
 const CHAT_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
-
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
@@ -24,9 +22,6 @@ const CHAT_STYLES = `
   .ch-as{animation:scaleIn .25s ease-out both}
   .ch-sl{animation:slideIn .3s ease-out both}
   .ch-msg{animation:msgIn .3s ease-out both}
-
-  .ch-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .ch-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
 
   .ch-glass{
     background:rgba(255,255,255,.03);
@@ -203,7 +198,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className={`${!isDark ? 'ch-light' : ''}`} style={{ fontFamily: "'DM Sans', system-ui" }}>
+    <div className={`${!isDark ? 'ch-light' : ''}`}>
       <style>{CHAT_STYLES}</style>
 
       <div 
@@ -219,7 +214,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             {/* Header */}
             <div className="p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h1 className="ch-display text-3xl font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                   CHATS
                 </h1>
                 <button
@@ -256,7 +251,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                   <button
                     key={type}
                     onClick={() => setFilterType(type)}
-                    className="flex-1 px-3 py-1.5 rounded-lg text-[11px] font-bold ch-heading tracking-wider transition-all"
+                    className="flex-1 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all"
                     style={filterType === type ? { 
                       background: accent.primary, color: 'white',
                       boxShadow: `0 2px 8px ${accent.primary}40`
@@ -329,7 +324,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                 >
                   <span className="text-5xl">💬</span>
                 </div>
-                <h2 className="ch-display text-2xl font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                   SELECT A CONVERSATION
                 </h2>
                 <p className="mt-2 text-sm" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
@@ -417,7 +412,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, ac
           <span className="font-bold text-[14px] truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
             {channel.name}
           </span>
-          <span className="text-[10px] flex-shrink-0 ch-heading tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+          <span className="text-[10px] flex-shrink-0 font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
             {formatTime(channel.last_message?.created_at)}
           </span>
         </div>
@@ -500,7 +495,7 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
         }}
         onClick={e => e.stopPropagation()}>
         <div className="p-5 flex items-center justify-between" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <h2 className="ch-display text-xl font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>NEW CHAT</h2>
+          <h2 className="text-xl font-extrabold tracking-tight" style={{ color: isDark ? 'white' : '#1a1a1a' }}>NEW CHAT</h2>
           <button onClick={onClose} className="p-2 rounded-xl transition"
             style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}
             onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)'}
@@ -519,7 +514,7 @@ function NewChatModal({ onClose, onCreated, showToast, isDark, accent }) {
             <div className="p-8 text-center" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No teams found</div>
           ) : (
             <div className="p-3">
-              <p className="px-3 py-2 text-[9px] font-bold ch-heading tracking-[.2em]" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+              <p className="px-3 py-2 text-[9px] font-bold uppercase tracking-[.2em]" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
                 CREATE TEAM CHAT
               </p>
               {teams.map(team => (

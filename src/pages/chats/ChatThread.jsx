@@ -464,7 +464,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
               {/* Date divider */}
               <div className="flex items-center gap-4 my-6">
                 <div className="flex-1 h-px" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }} />
-                <span className="text-[10px] font-bold ch-heading tracking-wider px-3 py-1.5 rounded-full"
+                <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full"
                   style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)', color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
                   {formatDate(date)}
                 </span>
