@@ -62,7 +62,7 @@ function QuickActionTile({ icon: Icon, label, badge, onClick, isDark, iconColor 
         }`}
     >
       {badge > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-lynx-sky text-white text-[10px] font-bold flex items-center justify-center">
           {badge}
         </span>
       )}

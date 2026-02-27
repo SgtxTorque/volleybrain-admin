@@ -35,7 +35,7 @@ const GRADIENT_MAP = {
   blue:   'bg-gradient-to-r from-blue-500 to-blue-600',
   green:  'bg-gradient-to-r from-emerald-500 to-emerald-600',
   purple: 'bg-gradient-to-r from-purple-500 to-purple-600',
-  orange: 'bg-gradient-to-r from-orange-500 to-orange-600',
+  orange: 'bg-gradient-to-r from-lynx-sky to-lynx-deep',
   red:    'bg-gradient-to-r from-red-500 to-red-600',
   teal:   'bg-gradient-to-r from-teal-500 to-teal-600',
   indigo: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
@@ -536,7 +536,7 @@ export function UpcomingEventsWidget() {
         {/* View All Link */}
         <button
           onClick={() => navigate(getPathForPage('schedule'))}
-          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
         >
           View All Events
           <ChevronRight className="w-4 h-4" />
@@ -901,7 +901,7 @@ export function RecentActivityWidget() {
           {/* View All */}
           <button
             onClick={() => navigate(getPathForPage('registrations'))}
-            className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+            className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-sm font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
           >
             Manage All Tasks
             <ChevronRight className="w-4 h-4" />

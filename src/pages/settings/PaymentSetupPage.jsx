@@ -231,7 +231,7 @@ async function testStripeConnection() {
                   value={settings[p.key]}
                   onChange={e => setSettings({...settings, [p.key]: e.target.value})}
                   placeholder={p.placeholder}
-                  className={`w-full ${tc.input} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500`}
+                  className={`w-full ${tc.input} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-lynx-sky`}
                 />
               </div>
             ))}
@@ -247,7 +247,7 @@ async function testStripeConnection() {
                 type="checkbox" 
                 checked={settings.acceptManualPayments} 
                 onChange={e => setSettings({...settings, acceptManualPayments: e.target.checked})}
-                className="w-6 h-6 rounded accent-orange-500" 
+                className="w-6 h-6 rounded accent-[#4BB9EC]" 
               />
             </label>
           </div>
@@ -413,7 +413,7 @@ async function testStripeConnection() {
                       value={stripeSettings.stripe_publishable_key}
                       onChange={e => setStripeSettings(prev => ({ ...prev, stripe_publishable_key: e.target.value }))}
                       placeholder={`pk_${stripeSettings.stripe_mode}_...`}
-                      className={`w-full px-4 py-3 ${tc.input} rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono text-sm`}
+                      className={`w-full px-4 py-3 ${tc.input} rounded-lg focus:outline-none focus:ring-2 focus:ring-lynx-sky font-mono text-sm`}
                     />
                   </div>
                   
@@ -490,7 +490,7 @@ async function testStripeConnection() {
                           key={option.value}
                           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition ${
                             stripeSettings.payment_processing_fee_mode === option.value
-                              ? isDark ? 'bg-slate-700 border border-orange-500' : 'bg-white border border-orange-500 shadow-sm'
+                              ? isDark ? 'bg-slate-700 border border-lynx-sky' : 'bg-white border border-lynx-sky shadow-sm'
                               : isDark ? 'bg-slate-700/50 border border-transparent hover:border-slate-600' : 'bg-slate-50 border border-transparent hover:border-slate-300'
                           }`}
                         >
@@ -500,7 +500,7 @@ async function testStripeConnection() {
                             value={option.value}
                             checked={stripeSettings.payment_processing_fee_mode === option.value}
                             onChange={e => setStripeSettings(prev => ({ ...prev, payment_processing_fee_mode: e.target.value }))}
-                            className="w-4 h-4 text-orange-500"
+                            className="w-4 h-4 text-lynx-sky"
                           />
                           <div>
                             <p className={`${tc.text} font-medium`}>{option.label}</p>
@@ -524,7 +524,7 @@ async function testStripeConnection() {
                         onChange={e => setStripeSettings(prev => ({ ...prev, allow_partial_payments: e.target.checked }))}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500" />
+                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lynx-sky" />
                     </label>
                   </div>
                 </div>

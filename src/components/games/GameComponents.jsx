@@ -778,7 +778,7 @@ function StatsEntryModal({
         {/* Header */}
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-lynx-sky to-lynx-deep flex items-center justify-center text-2xl">
               {sportConfig.icon}
             </div>
             <div>

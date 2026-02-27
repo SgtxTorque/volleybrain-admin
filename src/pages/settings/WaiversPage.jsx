@@ -588,7 +588,7 @@ function WaiverPreviewModal({ tc, isDark, template, organization, onClose }) {
   const now = new Date()
   const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#f97316'
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#4BB9EC'
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>

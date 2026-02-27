@@ -128,7 +128,7 @@ const EXPORT_CATEGORIES = [
     label: 'Schedule / Events',
     description: 'All events with dates, locations, teams, results',
     icon: Calendar,
-    color: '#F97316',
+    color: '#4BB9EC',
     table: 'schedule_events',
   },
   {

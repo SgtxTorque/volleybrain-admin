@@ -89,7 +89,7 @@ const LEADERBOARD_CATEGORIES = [
     statKey: 'total_digs', 
     perGameKey: 'digs_per_game',
     icon: '🏃', 
-    color: '#F97316',
+    color: '#4BB9EC',
     description: 'Defensive digs'
   },
   { 

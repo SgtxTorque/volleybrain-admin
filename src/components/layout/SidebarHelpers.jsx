@@ -35,12 +35,7 @@ export function AccentColorPicker({ compact = true }) {
   const [isOpen, setIsOpen] = useState(false)
   
   const colors = [
-    { id: 'orange', color: '#F97316', label: 'Orange' },
-    { id: 'blue', color: '#0EA5E9', label: 'Blue' },
-    { id: 'purple', color: '#8B5CF6', label: 'Purple' },
-    { id: 'green', color: '#10B981', label: 'Green' },
-    { id: 'rose', color: '#F43F5E', label: 'Rose' },
-    { id: 'slate', color: '#64748B', label: 'Slate' },
+    { id: 'lynx', color: '#4BB9EC', label: 'Lynx' },
   ]
   
   return (

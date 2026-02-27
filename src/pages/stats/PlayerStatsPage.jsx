@@ -706,7 +706,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
                     <h4 className={`font-semibold ${tc.text}`}>Intangibles</h4>
                     <SkillRatingBar label="Hustle" value={skillRatings.hustle_rating || 50} color="#EC4899" />
                     <SkillRatingBar label="Coachability" value={skillRatings.coachability_rating || 50} color="#14B8A6" />
-                    <SkillRatingBar label="Teamwork" value={skillRatings.teamwork_rating || 50} color="#F97316" />
+                    <SkillRatingBar label="Teamwork" value={skillRatings.teamwork_rating || 50} color="#4BB9EC" />
                     
                     {/* Overall */}
                     <div className={`mt-6 p-4 ${isDark ? 'bg-white/5' : 'bg-gradient-to-r from-indigo-50 to-purple-50'} rounded-xl`}>

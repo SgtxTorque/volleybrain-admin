@@ -1417,7 +1417,7 @@ function SetupSectionContent({
                     max="15"
                     value={Math.round((localData.background?.opacity || 0.08) * 100)}
                     onChange={(e) => updateField('background', { ...localData.background, opacity: parseInt(e.target.value) / 100 })}
-                    className="w-full accent-orange-500"
+                    className="w-full accent-[#4BB9EC]"
                   />
                 </div>
               )}

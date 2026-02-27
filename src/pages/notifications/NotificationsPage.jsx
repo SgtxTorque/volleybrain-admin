@@ -113,7 +113,7 @@ export function NotificationsPage({ showToast }) {
     registration_approved: { icon: '✅', label: 'Registration', color: '#06B6D4' },
     team_assignment: { icon: '👕', label: 'Team Assignment', color: '#6366F1' },
     chat_message: { icon: '💬', label: 'Chat Message', color: '#14B8A6' },
-    schedule_change: { icon: '📅', label: 'Schedule Change', color: '#F97316' },
+    schedule_change: { icon: '📅', label: 'Schedule Change', color: '#4BB9EC' },
     general: { icon: '🔔', label: 'General', color: '#6B7280' },
   };
 

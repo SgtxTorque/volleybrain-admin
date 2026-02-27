@@ -590,7 +590,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <KpiCard label="Total Users" value={formatNumber(kpis.userCount)} trend={kpis.newUsersThisMonth} trendLabel="new this month" icon={Users} color="#10B981" isDark={isDark} index={1} />
             <KpiCard label="Revenue" value={formatCurrency(kpis.totalRevenue)} trend={kpis.revTrend} trendLabel={`${formatCurrency(kpis.thisMonthRev)} this month`} icon={DollarSign} color="#EAB308" isDark={isDark} index={2} />
             <KpiCard label="Active Seasons" value={formatNumber(kpis.seasonCount)} icon={Calendar} color="#A855F7" isDark={isDark} index={3} />
-            <KpiCard label="Total Teams" value={formatNumber(kpis.teamCount)} icon={Target} color="#F97316" isDark={isDark} index={4} />
+            <KpiCard label="Total Teams" value={formatNumber(kpis.teamCount)} icon={Target} color="#4BB9EC" isDark={isDark} index={4} />
             <KpiCard label="Avg Users / Org" value={kpis.avgUsersPerOrg} icon={Activity} color="#06B6D4" isDark={isDark} index={5} />
           </div>
 
@@ -641,7 +641,7 @@ function PlatformAnalyticsPage({ showToast }) {
             {/* Sport Distribution */}
             <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '350ms' }}>
               <div className="flex items-center gap-2 mb-5">
-                <Star className="w-4 h-4" style={{ color: '#F97316' }} />
+                <Star className="w-4 h-4" style={{ color: '#4BB9EC' }} />
                 <h3 className={`an-heading text-sm uppercase ${tc.textMuted}`}>Sport Distribution</h3>
               </div>
               {sportDist.length > 0 ? (

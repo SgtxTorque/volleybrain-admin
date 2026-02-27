@@ -212,7 +212,7 @@ function RosterWidget({ roster, onViewAll, onPlayerClick }) {
               {player.photo_url ? (
                 <img src={player.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lynx-sky to-lynx-deep flex items-center justify-center text-white font-bold text-sm">
                   {player.first_name?.[0]}{player.last_name?.[0]}
                 </div>
               )}
@@ -426,7 +426,7 @@ function TopPlayerWidget({ topPlayer, statCategory, onViewLeaderboards }) {
             {topPlayer.photo_url ? (
               <img src={topPlayer.photo_url} alt="" className="w-16 h-16 rounded-full mx-auto mb-3 object-cover" />
             ) : (
-              <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-lynx-sky to-lynx-deep flex items-center justify-center text-white font-bold text-xl">
                 {topPlayer.first_name?.[0]}{topPlayer.last_name?.[0]}
               </div>
             )}

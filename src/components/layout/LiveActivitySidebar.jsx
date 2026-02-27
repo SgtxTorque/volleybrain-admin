@@ -17,7 +17,7 @@ function ActivityItem({ item, isDark }) {
   const iconMap = {
     registration: { Icon: ClipboardList, color: '#3B82F6' },
     payment: { Icon: DollarSign, color: '#10B981' },
-    event: { Icon: Calendar, color: '#F97316' },
+    event: { Icon: Calendar, color: '#4BB9EC' },
     team: { Icon: Users, color: '#8B5CF6' },
   }
 
@@ -157,7 +157,7 @@ export default function LiveActivitySidebar({ activities, upcomingEvents, onNavi
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-orange-500" />
+                <Calendar className="w-4 h-4 text-lynx-sky" />
                 <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   Coming Up
                 </h4>
