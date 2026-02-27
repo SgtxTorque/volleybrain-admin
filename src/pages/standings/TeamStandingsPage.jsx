@@ -232,7 +232,7 @@ export default function TeamStandingsPage() {
                         setSelectedTeam(team)
                         setShowTeamDropdown(false)
                       }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'} ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'} ${
                         team.id === selectedTeam?.id ? 'bg-[var(--accent-primary)]/20' : ''
                       }`}
                     >

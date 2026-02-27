@@ -34,7 +34,7 @@ function AttentionItem({ icon: Icon, label, value, isAmount, onClick, isDark }) 
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 py-2.5 text-left transition rounded-lg px-1
-        ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}
+        ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'}`}
     >
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0
         ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
@@ -58,7 +58,7 @@ function QuickActionTile({ icon: Icon, label, badge, onClick, isDark, iconColor 
       className={`relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl transition
         ${isDark
           ? 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06]'
-          : 'bg-slate-50 hover:bg-slate-100 border border-slate-200/60'
+          : 'bg-lynx-cloud hover:bg-slate-100 border border-lynx-silver/60'
         }`}
     >
       {badge > 0 && (
@@ -87,8 +87,8 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
   const { orgName, orgLogo } = useOrgBranding()
 
   const panelClass = isDark
-    ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
-    : 'bg-white border border-slate-200/60 shadow-[0_2px_20px_rgba(0,0,0,0.06)]'
+    ? 'bg-lynx-charcoal/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
+    : 'bg-white border border-lynx-silver/60 shadow-[0_2px_20px_rgba(0,0,0,0.06)]'
 
   const initials = getOrgInitials(orgName)
 

@@ -16,7 +16,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
 
   return (
     <div className={`flex flex-col gap-5 rounded-xl p-6 shadow-sm ${
-      isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
+      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
     }`}>
       <div className="flex items-center justify-between">
         <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>

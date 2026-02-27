@@ -239,7 +239,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
     <div className={`p-4 rounded-xl border-2 transition ${
       ourWon ? 'bg-emerald-50 border-emerald-300' :
       theyWon ? 'bg-red-50 border-red-300' :
-      'bg-white border-slate-200'
+      'bg-white border-lynx-silver'
     }`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -273,7 +273,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
               value={ourScore}
               onChange={(e) => onOurScoreChange(Math.max(0, parseInt(e.target.value) || 0))}
               className={`w-20 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${
-                ourWon ? 'border-emerald-400 bg-emerald-100 text-emerald-700' : 'border-slate-200 focus:border-indigo-400'
+                ourWon ? 'border-emerald-400 bg-emerald-100 text-emerald-700' : 'border-lynx-silver focus:border-indigo-400'
               }`}
               min="0"
             />
@@ -303,7 +303,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
               value={theirScore}
               onChange={(e) => onTheirScoreChange(Math.max(0, parseInt(e.target.value) || 0))}
               className={`w-20 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${
-                theyWon ? 'border-red-400 bg-red-100 text-red-700' : 'border-slate-200 focus:border-indigo-400'
+                theyWon ? 'border-red-400 bg-red-100 text-red-700' : 'border-lynx-silver focus:border-indigo-400'
               }`}
               min="0"
             />
@@ -333,7 +333,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
 // ============================================
 function PeriodScoreInput({ periodNumber, periodName, periodAbbr, ourScore, theirScore, onOurScoreChange, onTheirScoreChange, isOvertime }) {
   return (
-    <div className={`p-3 rounded-xl border ${isOvertime ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'}`}>
+    <div className={`p-3 rounded-xl border ${isOvertime ? 'bg-amber-50 border-amber-200' : 'bg-white border-lynx-silver'}`}>
       <div className="text-center mb-2">
         <span className={`text-sm font-semibold ${isOvertime ? 'text-amber-700' : 'text-slate-600'}`}>
           {isOvertime ? 'OT' : `${periodAbbr}${periodNumber}`}
@@ -646,7 +646,7 @@ function GameScoringModal({ event, team, sport = 'volleyball', onClose, onSave, 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full" />
+              <div className="animate-spin w-10 h-10 border-4 border-lynx-sky border-t-transparent rounded-full" />
             </div>
           ) : (
             <>
@@ -661,7 +661,7 @@ function GameScoringModal({ event, team, sport = 'volleyball', onClose, onSave, 
                       className={`p-3 rounded-xl text-left transition border-2 ${
                         selectedFormat.id === format.id
                           ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-slate-200 hover:border-slate-300'
+                          : 'border-lynx-silver hover:border-slate-300'
                       }`}
                     >
                       <p className="font-semibold text-slate-800">{format.name}</p>
@@ -803,7 +803,7 @@ function GameScoringModal({ event, team, sport = 'volleyball', onClose, onSave, 
         </div>
         
         {/* Footer */}
-        <div className="border-t border-slate-200 px-6 py-4 bg-slate-50">
+        <div className="border-t border-lynx-silver px-6 py-4 bg-lynx-cloud">
           <div className="flex items-center justify-between">
             <button
               onClick={onClose}

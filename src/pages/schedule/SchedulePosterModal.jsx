@@ -392,7 +392,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-      <div className={`relative z-10 w-full max-w-[1500px] max-h-[95vh] overflow-hidden rounded-xl ${isDark?'bg-slate-900 border-slate-700':'bg-white border-slate-200'} border shadow-2xl flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`relative z-10 w-full max-w-[1500px] max-h-[95vh] overflow-hidden rounded-xl ${isDark?'bg-lynx-midnight border-lynx-border-dark':'bg-white border-lynx-silver'} border shadow-2xl flex flex-col`} onClick={e => e.stopPropagation()}>
         
         {/* TOOLBAR */}
         {showControls && (
@@ -401,7 +401,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
               <h2 className={`text-lg font-bold ${tc.text}`}>📋 Season Schedule Poster</h2>
               {allTeams.length > 1 && (
                 <select value={selectedTeam?.id||''} onChange={e => setSelectedTeam(allTeams.find(t=>t.id===e.target.value))}
-                  className={`text-sm px-3 py-1.5 rounded-lg border ${isDark?'bg-slate-800 border-slate-600 text-white':'bg-slate-50 border-slate-200'}`}>
+                  className={`text-sm px-3 py-1.5 rounded-lg border ${isDark?'bg-lynx-charcoal border-slate-600 text-white':'bg-lynx-cloud border-lynx-silver'}`}>
                   {allTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
               )}
@@ -412,12 +412,12 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
                 ))}
               </div>
               <button onClick={() => setGamesOnly(!gamesOnly)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${gamesOnly?'bg-amber-500/15 border-amber-500/30 text-amber-600':isDark?'bg-slate-800 border-slate-600 text-slate-400':'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${gamesOnly?'bg-amber-500/15 border-amber-500/30 text-amber-600':isDark?'bg-lynx-charcoal border-slate-600 text-slate-400':'bg-lynx-cloud border-lynx-silver text-slate-500'}`}>
                 {gamesOnly ? '🏐 Games Only' : '📅 All Events'}
               </button>
               {roster.filter(p=>p.photo_url).length > 0 && (
                 <button onClick={() => setShowPlayerPicker(!showPlayerPicker)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${isDark?'bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700':'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${isDark?'bg-lynx-charcoal border-slate-600 text-slate-300 hover:bg-slate-700':'bg-lynx-cloud border-lynx-silver text-slate-600 hover:bg-slate-100'}`}>
                   <Image className="w-3.5 h-3.5" /> Players ({featuredPlayers.length}/3)
                 </button>
               )}
@@ -440,7 +440,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
 
         {/* Player picker */}
         {showPlayerPicker && showControls && (
-          <div className={`px-4 py-3 border-b ${tc.border} ${isDark?'bg-slate-800/50':'bg-slate-50'}`}>
+          <div className={`px-4 py-3 border-b ${tc.border} ${isDark?'bg-lynx-charcoal/50':'bg-lynx-cloud'}`}>
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-xs font-semibold ${tc.textMuted} mr-2`}>Featured players (up to 3):</span>
               {roster.filter(p=>p.photo_url).map(player => (
@@ -448,7 +448,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
                     featuredPlayers.includes(player.id)
                       ? 'bg-[var(--accent-primary)]/15 border-[var(--accent-primary)]/40 text-[var(--accent-primary)]'
-                      : isDark?'border-slate-600 text-slate-400 hover:bg-slate-700':'border-slate-200 text-slate-500 hover:bg-slate-100'
+                      : isDark?'border-slate-600 text-slate-400 hover:bg-slate-700':'border-lynx-silver text-slate-500 hover:bg-slate-100'
                   }`}>
                   <img src={player.photo_url} alt="" className="w-5 h-5 rounded-full object-cover" />
                   #{player.jersey_number} {player.first_name}
@@ -472,7 +472,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
         {/* Empty state */}
         {teamEvents.length === 0 && showControls && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
-            <div className={`${isDark?'bg-slate-800':'bg-white'} rounded-xl p-8 text-center max-w-sm`}>
+            <div className={`${isDark?'bg-lynx-charcoal':'bg-white'} rounded-xl p-8 text-center max-w-sm`}>
               <div className="text-4xl mb-3">📅</div>
               <h3 className={`text-lg font-bold ${tc.text} mb-2`}>No events to show</h3>
               <p className={`text-sm ${tc.textMuted}`}>{gamesOnly ? 'No games found — try "All Events".' : 'Add events to generate a poster.'}</p>

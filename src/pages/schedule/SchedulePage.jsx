@@ -331,7 +331,7 @@ END:VCALENDAR`
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${isDark ? 'bg-lynx-charcoal' : 'bg-slate-100'}`}>
               {sportIcon}
             </div>
             <div>
@@ -347,21 +347,21 @@ END:VCALENDAR`
               onClick={() => setShowShareMenu(!showShareMenu)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
                 isDark 
-                  ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700' 
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
+                  ? 'bg-lynx-charcoal border border-lynx-border-dark text-slate-300 hover:bg-slate-700' 
+                  : 'bg-white border border-lynx-silver text-slate-700 hover:bg-lynx-cloud shadow-sm'
               }`}
             >
               <Share2 className="w-4 h-4" /> Share & Export ▾
             </button>
             {showShareMenu && (
               <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl z-30 border overflow-hidden ${
-                isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+                isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver'
               }`}>
-                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-slate-900/50' : 'text-slate-400 bg-slate-50'}`}>
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-lynx-midnight/50' : 'text-slate-400 bg-lynx-cloud'}`}>
                   Generate
                 </div>
                 <button onClick={() => { setShowPosterModal(true); setShowShareMenu(false) }}
-                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                   <span className="text-lg">📋</span>
                   <div>
                     <div className="font-semibold text-sm">Season Poster</div>
@@ -370,7 +370,7 @@ END:VCALENDAR`
                 </button>
                 {upcomingGames.length > 0 && (
                   <button onClick={() => { setShowGameDayCard(upcomingGames[0]); setShowShareMenu(false) }}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                     <span className="text-lg">🏟️</span>
                     <div>
                       <div className="font-semibold text-sm">Game Day Card</div>
@@ -378,11 +378,11 @@ END:VCALENDAR`
                     </div>
                   </button>
                 )}
-                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-slate-900/50 border-slate-700' : 'text-slate-400 bg-slate-50 border-slate-200'}`}>
+                <div className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-lynx-midnight/50 border-lynx-border-dark' : 'text-slate-400 bg-lynx-cloud border-lynx-silver'}`}>
                   Export
                 </div>
                 <button onClick={() => { exportToICal(); setShowShareMenu(false) }}
-                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                   <span className="text-lg">📅</span>
                   <div>
                     <div className="font-semibold text-sm">Export to Calendar</div>
@@ -390,7 +390,7 @@ END:VCALENDAR`
                   </div>
                 </button>
                 <button onClick={() => { window.print(); setShowShareMenu(false) }}
-                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                   <span className="text-lg">🖨️</span>
                   <div>
                     <div className="font-semibold text-sm">Print Schedule</div>
@@ -411,26 +411,26 @@ END:VCALENDAR`
               </button>
               {showQuickActions && (
                 <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-2xl z-30 border overflow-hidden ${
-                  isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+                  isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver'
                 }`}>
                   <button onClick={() => { setShowAddEvent(true); setShowQuickActions(false) }}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                     <span>📝</span> Single Event
                   </button>
                   <button onClick={() => { setShowBulkPractice(true); setShowQuickActions(false) }}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                     <span>🔄</span> Recurring Practice
                   </button>
                   <button onClick={() => { setShowBulkGames(true); setShowQuickActions(false) }}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                     <VolleyballIcon className="w-4 h-4" /> Bulk Add Games
                   </button>
                   <button onClick={() => { setShowVenueManager(true); setShowQuickActions(false) }}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                     <span>📍</span> Manage Venues
                   </button>
                   <button onClick={() => { setShowAvailabilitySurvey(true); setShowQuickActions(false) }}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-slate-50'}`}>
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 ${isDark ? 'text-white hover:bg-slate-700' : 'text-slate-800 hover:bg-lynx-cloud'}`}>
                     <BarChart3 className="w-5 h-5" /> Availability Survey
                   </button>
                 </div>
@@ -442,8 +442,8 @@ END:VCALENDAR`
 
       {/* ═══ UPCOMING GAMES STRIP ═══ */}
       {allUpcomingGames.length > 0 && (
-        <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className={`px-5 py-3 flex items-center justify-between border-b ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-100 bg-slate-50'}`}>
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-lynx-charcoal/50 border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
+          <div className={`px-5 py-3 flex items-center justify-between border-b ${isDark ? 'border-lynx-border-dark bg-lynx-charcoal' : 'border-slate-100 bg-lynx-cloud'}`}>
             <div className="flex items-center gap-2">
               <span className="text-sm">🔥</span>
               <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming Games</span>
@@ -472,7 +472,7 @@ END:VCALENDAR`
                       ? 'border-amber-400 shadow-amber-100' 
                       : isTomorrow
                         ? (isDark ? 'border-slate-600 hover:border-slate-500' : 'border-blue-200 hover:border-blue-300')
-                        : (isDark ? 'border-slate-700 hover:border-slate-600' : 'border-slate-200 hover:border-slate-300')
+                        : (isDark ? 'border-lynx-border-dark hover:border-slate-600' : 'border-lynx-silver hover:border-slate-300')
                   }`}
                   style={{ 
                     minWidth: 180,
@@ -528,14 +528,14 @@ END:VCALENDAR`
         <div className="flex gap-3 items-center">
           <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
             className={`rounded-xl px-4 py-2.5 text-sm font-medium border ${
-              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
+              isDark ? 'bg-lynx-charcoal border-lynx-border-dark text-white' : 'bg-white border-lynx-silver text-slate-800 shadow-sm'
             }`}>
             <option value="all">All Teams</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
           <select value={selectedEventType} onChange={e => setSelectedEventType(e.target.value)}
             className={`rounded-xl px-4 py-2.5 text-sm font-medium border ${
-              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
+              isDark ? 'bg-lynx-charcoal border-lynx-border-dark text-white' : 'bg-white border-lynx-silver text-slate-800 shadow-sm'
             }`}>
             <option value="all">All Types</option>
             <option value="practice">Practices</option>
@@ -559,7 +559,7 @@ END:VCALENDAR`
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
+          <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-slate-100 border-lynx-silver'}`}>
             {['month', 'week', 'day', 'list'].map(v => (
               <button key={v} onClick={() => setView(v)}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all capitalize ${
@@ -574,7 +574,7 @@ END:VCALENDAR`
 
       {/* Calendar Navigation */}
       <div className={`flex items-center justify-between rounded-xl p-3 border ${
-        isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'
+        isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'
       }`}>
         <button onClick={prevMonth} className={`p-2 rounded-lg transition font-semibold text-sm ${
           isDark ? 'hover:bg-slate-700 text-slate-300' : 'hover:bg-slate-100 text-slate-600'

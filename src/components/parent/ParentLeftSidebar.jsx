@@ -112,10 +112,10 @@ export default function ParentLeftSidebar({
   }, [activeChildId])
 
   return (
-    <aside className="hidden xl:flex w-[310px] shrink-0 flex-col border-r border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5">
+    <aside className="hidden xl:flex w-[310px] shrink-0 flex-col border-r border-lynx-silver/50 bg-white overflow-y-auto p-5 space-y-5">
 
       {/* Org Header Card */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-5">
         {orgLogo ? (
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-slate-100">
@@ -160,7 +160,7 @@ export default function ParentLeftSidebar({
           { value: [...new Set(registrationData.map(c => c.season?.id).filter(Boolean))].length, label: 'Seasons' },
           { value: teamIds.length, label: 'Teams' },
         ].map(stat => (
-          <div key={stat.label} className="flex-1 bg-slate-50 rounded-xl px-3 py-3 text-center">
+          <div key={stat.label} className="flex-1 bg-lynx-cloud rounded-xl px-3 py-3 text-center">
             <div className="text-xl font-bold text-slate-900">{stat.value}</div>
             <div className="text-xs text-lynx-slate mt-0.5 uppercase font-semibold tracking-wide">{stat.label}</div>
           </div>
@@ -169,7 +169,7 @@ export default function ParentLeftSidebar({
 
       {/* Payment Summary Card */}
       <div
-        className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+        className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
         onClick={() => paymentSummary.totalDue > 0 ? onShowPayment?.() : onNavigate?.('payments')}
       >
         <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate mb-3">Payment Status</h3>
@@ -203,7 +203,7 @@ export default function ParentLeftSidebar({
       </div>
 
       {/* Needs Attention Card */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
           {priorityEngine.count > 0 && (
@@ -272,7 +272,7 @@ export default function ParentLeftSidebar({
             <button
               key={btn.label}
               onClick={btn.action}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-lynx-cloud hover:bg-slate-100 transition-colors"
             >
               <btn.icon className="w-5 h-5 text-slate-600" />
               <span className="text-sm font-semibold text-slate-700">{btn.label}</span>
@@ -282,7 +282,7 @@ export default function ParentLeftSidebar({
       </div>
 
       {/* Badge Progress Preview */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Badge Progress</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">

@@ -332,7 +332,7 @@ function GameDayShareModal({ event, team, organization, season, onClose, showToa
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-      <div className={`relative z-10 w-full max-w-[720px] max-h-[95vh] overflow-hidden rounded-xl ${isDark?'bg-slate-900 border-slate-700':'bg-white border-slate-200'} border shadow-2xl flex flex-col`}
+      <div className={`relative z-10 w-full max-w-[720px] max-h-[95vh] overflow-hidden rounded-xl ${isDark?'bg-lynx-midnight border-lynx-border-dark':'bg-white border-lynx-silver'} border shadow-2xl flex flex-col`}
         onClick={e => e.stopPropagation()}>
         
         {/* Toolbar */}
@@ -366,16 +366,16 @@ function GameDayShareModal({ event, team, organization, season, onClose, showToa
 
         {/* Player selector */}
         {roster.filter(p=>p.photo_url).length > 0 && (style === 'bold' || style === 'dark' || style === 'hype') && (
-          <div className={`px-4 py-2.5 border-b ${tc.border} ${isDark?'bg-slate-800/50':'bg-slate-50'} flex items-center gap-2`}>
+          <div className={`px-4 py-2.5 border-b ${tc.border} ${isDark?'bg-slate-800/50':'bg-lynx-cloud'} flex items-center gap-2`}>
             <span className={`text-xs font-semibold ${tc.textMuted}`}>Featured:</span>
             <button onClick={() => setFeaturedPlayer(null)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${!featuredPlayer ? 'bg-[var(--accent-primary)]/15 border-[var(--accent-primary)]/40 text-[var(--accent-primary)]' : isDark?'border-slate-600 text-slate-400':'border-slate-200 text-slate-500'}`}>
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${!featuredPlayer ? 'bg-[var(--accent-primary)]/15 border-[var(--accent-primary)]/40 text-[var(--accent-primary)]' : isDark?'border-slate-600 text-slate-400':'border-lynx-silver text-slate-500'}`}>
               None
             </button>
             {roster.filter(p=>p.photo_url).slice(0,6).map(player => (
               <button key={player.id} onClick={() => setFeaturedPlayer(player)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
-                  featuredPlayer?.id===player.id ? 'bg-[var(--accent-primary)]/15 border-[var(--accent-primary)]/40 text-[var(--accent-primary)]' : isDark?'border-slate-600 text-slate-400 hover:bg-slate-700':'border-slate-200 text-slate-500 hover:bg-slate-100'
+                  featuredPlayer?.id===player.id ? 'bg-[var(--accent-primary)]/15 border-[var(--accent-primary)]/40 text-[var(--accent-primary)]' : isDark?'border-slate-600 text-slate-400 hover:bg-slate-700':'border-lynx-silver text-slate-500 hover:bg-slate-100'
                 }`}>
                 <img src={player.photo_url} alt="" className="w-4 h-4 rounded-full object-cover" />
                 #{player.jersey_number}
@@ -395,7 +395,7 @@ function GameDayShareModal({ event, team, organization, season, onClose, showToa
         </div>
 
         {/* Quick share text preview */}
-        <div className={`px-4 py-3 border-t ${tc.border} ${isDark?'bg-slate-800/50':'bg-slate-50'}`}>
+        <div className={`px-4 py-3 border-t ${tc.border} ${isDark?'bg-slate-800/50':'bg-lynx-cloud'}`}>
           <div className="flex items-center justify-between">
             <div className={`text-xs ${tc.textMuted} max-w-lg`}>
               <span className="font-semibold">Share text:</span> {sportIcon} GAME DAY! {team?.name} vs {opponent} • {dayName}, {monthDay} • {fmtTime12(event?.event_time)} • {event?.venue_name || 'TBD'}

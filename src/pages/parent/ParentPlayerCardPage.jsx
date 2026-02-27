@@ -371,7 +371,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
     catch { setSkills(null) }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full" /></div>
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" /></div>
   if (!player) return <div className="text-center py-12"><span className="text-6xl">😕</span><h2 className={`text-xl font-bold ${tc.text} mt-4`}>Player Not Found</h2></div>
 
   // ── Sport config ──

@@ -136,11 +136,11 @@ function BulkGamesModal({ teams, venues, onClose, onCreate }) {
             </table>
           </div>
 
-          <button onClick={addRow} className={`mt-4 px-4 py-2 border border-dashed rounded-xl w-full transition ${isDark ? 'border-slate-700 text-slate-400 hover:text-white' : 'border-slate-300 text-slate-400 hover:text-slate-700'} hover:border-[var(--accent-primary)]/30`}>
+          <button onClick={addRow} className={`mt-4 px-4 py-2 border border-dashed rounded-xl w-full transition ${isDark ? 'border-lynx-border-dark text-slate-400 hover:text-white' : 'border-slate-300 text-slate-400 hover:text-slate-700'} hover:border-[var(--accent-primary)]/30`}>
             + Add Another Game
           </button>
 
-          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl mt-4 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl mt-4 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
             <input type="checkbox" checked={notifyFamilies} onChange={e => setNotifyFamilies(e.target.checked)}
               className="w-5 h-5 rounded" />
             <span className={tc.text}>Notify all families after creating</span>
@@ -151,7 +151,7 @@ function BulkGamesModal({ teams, venues, onClose, onCreate }) {
             {games.filter(g => g.date && g.time).length} valid game{games.filter(g => g.date && g.time).length !== 1 ? 's' : ''}
           </span>
           <div className="flex gap-3">
-            <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+            <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Cancel</button>
             <button onClick={handleSubmit} className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">
               Create Games
             </button>

@@ -785,7 +785,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
       
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full" />
+          <div className="animate-spin w-10 h-10 border-4 border-lynx-sky border-t-transparent rounded-full" />
         </div>
       ) : (
         <div className="flex-1 flex overflow-hidden">

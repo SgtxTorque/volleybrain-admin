@@ -389,7 +389,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   <div className="grid grid-cols-2 gap-6">
                     {/* Left Column - Event Info */}
                     <div className="space-y-4">
-                      <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4 space-y-3`}>
+                      <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4 space-y-3`}>
                         <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>Event Information</h4>
                         <div className="grid grid-cols-2 gap-3">
                           <DetailItem label="Date" value={event.event_date ? new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'} />
@@ -404,7 +404,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                       </div>
 
                       {event.description && (
-                        <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                        <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                           <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-2`}>Notes</h4>
                           <p className={`${tc.text} text-sm`}>{event.description}</p>
                         </div>
@@ -414,7 +414,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                     {/* Right Column - Quick Stats */}
                     <div className="space-y-4">
                       {/* RSVP Summary */}
-                      <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                      <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                         <div className="flex items-center justify-between mb-3">
                           <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted}`}>RSVP Summary</h4>
                           <button 
@@ -458,7 +458,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 
                       {/* Volunteers Summary (Games only) */}
                       {isGame && (
-                        <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                        <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                           <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-3`}>Volunteers</h4>
                           <div className="space-y-2">
                             <VolunteerSlot 
@@ -479,11 +479,11 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 
                       {/* Coaches */}
                       {coaches.length > 0 && (
-                        <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                        <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                           <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-3`}>Coaches</h4>
                           <div className="space-y-2">
                             {coaches.map(coach => (
-                              <div key={coach.id} className={`flex items-center gap-3 p-2 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-white border border-slate-100'}`}>
+                              <div key={coach.id} className={`flex items-center gap-3 p-2 rounded-lg ${isDark ? 'bg-lynx-charcoal' : 'bg-white border border-slate-100'}`}>
                                 {showPhotos && coach.photo_url ? (
                                   <img src={coach.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                                 ) : (
@@ -571,7 +571,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                         const isOwnChild = parentChildIds.includes(player.id)
                         
                         return (
-                          <div key={player.id} className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-3 flex items-center justify-between ${isParentView && isOwnChild ? 'ring-2 ring-[var(--accent-primary)]/50' : ''}`}>
+                          <div key={player.id} className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-3 flex items-center justify-between ${isParentView && isOwnChild ? 'ring-2 ring-[var(--accent-primary)]/50' : ''}`}>
                             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedPlayer(player)}>
                               {showPhotos && (
                                 player.photo_url ? (
@@ -677,7 +677,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   )}
 
                   {/* Line Judge */}
-                  <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                  <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                     <h4 className={`text-lg font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                       <span>🚩</span> Line Judge
                     </h4>
@@ -689,7 +689,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                         const userAlreadyVolunteering = volunteers.some(v => v.profile_id === user?.id)
                         
                         return (
-                          <div key={position} className={`flex items-center justify-between p-3 rounded-lg ${isCurrentUser ? 'bg-emerald-500/10 border border-emerald-500/30' : isDark ? 'bg-slate-800' : 'bg-white border border-slate-100'}`}>
+                          <div key={position} className={`flex items-center justify-between p-3 rounded-lg ${isCurrentUser ? 'bg-emerald-500/10 border border-emerald-500/30' : isDark ? 'bg-lynx-charcoal' : 'bg-white border border-slate-100'}`}>
                             <div className="flex items-center gap-3">
                               <span className={position === 'primary' ? 'text-[var(--accent-primary)]' : 'text-slate-500'}>
                                 {position === 'primary' ? <Star className="w-4 h-4" /> : ''}
@@ -743,7 +743,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   </div>
 
                   {/* Scorekeeper */}
-                  <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                  <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                     <h4 className={`text-lg font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                       <ClipboardList className="w-5 h-5" /> Scorekeeper
                     </h4>
@@ -755,7 +755,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                         const userAlreadyVolunteering = volunteers.some(v => v.profile_id === user?.id)
                         
                         return (
-                          <div key={position} className={`flex items-center justify-between p-3 rounded-lg ${isCurrentUser ? 'bg-emerald-500/10 border border-emerald-500/30' : isDark ? 'bg-slate-800' : 'bg-white border border-slate-100'}`}>
+                          <div key={position} className={`flex items-center justify-between p-3 rounded-lg ${isCurrentUser ? 'bg-emerald-500/10 border border-emerald-500/30' : isDark ? 'bg-lynx-charcoal' : 'bg-white border border-slate-100'}`}>
                             <div className="flex items-center gap-3">
                               <span className={position === 'primary' ? 'text-[var(--accent-primary)]' : 'text-slate-500'}>
                                 {position === 'primary' ? <Star className="w-4 h-4" /> : ''}
@@ -826,7 +826,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {coaches.map(coach => (
-                        <div key={coach.id} className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4 flex items-center gap-4`}>
+                        <div key={coach.id} className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4 flex items-center gap-4`}>
                           {showPhotos && coach.photo_url ? (
                             <img src={coach.photo_url} alt="" className="w-16 h-16 rounded-full object-cover" />
                           ) : (
@@ -928,7 +928,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   
                   {/* Quick Actions for Game Day */}
                   {event.game_status !== 'completed' && (
-                    <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                    <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                       <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-4`}>Game Day Prep</h4>
                       <div className="grid grid-cols-2 gap-3">
                         <button
@@ -985,7 +985,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   )}
                   
                   {/* Game Info Summary */}
-                  <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                  <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                     <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-3`}>📍 Game Details</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1008,7 +1008,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                   </div>
                   
                   {/* Coach Notes */}
-                  <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                  <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                     <h4 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-2`}>📝 Game Notes</h4>
                     <p className={`${tc.textMuted} text-sm`}>{event.description || event.notes || 'No notes added'}</p>
                   </div>
@@ -1026,12 +1026,12 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
           <div className="flex gap-3">
             {isEditing ? (
               <>
-                <button onClick={() => setIsEditing(false)} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+                <button onClick={() => setIsEditing(false)} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Cancel</button>
                 <button onClick={handleSave} className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">Save Changes</button>
               </>
             ) : (
               <>
-                <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Close</button>
+                <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Close</button>
                 <button onClick={() => setIsEditing(true)} className="px-6 py-2 rounded-xl bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"><Edit className="w-4 h-4 inline mr-1" />Edit Event</button>
               </>
             )}
@@ -1114,7 +1114,7 @@ function VolunteerSlot({ role, volunteer, icon, onClick }) {
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   return (
-    <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-white border border-slate-100'}`}>
+    <div className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-lynx-charcoal' : 'bg-white border border-slate-100'}`}>
       <div className="flex items-center gap-2">
         <span>{icon}</span>
         <span className={`${tc.textMuted} text-sm`}>{role}</span>

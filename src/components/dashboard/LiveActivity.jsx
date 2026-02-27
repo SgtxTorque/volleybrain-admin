@@ -55,7 +55,7 @@ export default function LiveActivity({ activities }) {
 
   return (
     <aside className={`flex w-[330px] shrink-0 flex-col gap-4 overflow-y-auto border-l py-8 pl-6 pr-6 ${
-      isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
+      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-lynx-silver/50 bg-lynx-cloud'
     }`}>
       <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
         Live Activity
@@ -71,7 +71,7 @@ export default function LiveActivity({ activities }) {
               <div
                 key={i}
                 className={`flex items-start gap-3 py-4 ${
-                  i > 0 ? (isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200') : ''
+                  i > 0 ? (isDark ? 'border-t border-white/[0.06]' : 'border-t border-lynx-silver') : ''
                 }`}
               >
                 {/* Icon Avatar */}

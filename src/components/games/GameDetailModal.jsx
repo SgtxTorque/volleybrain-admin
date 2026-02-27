@@ -472,7 +472,7 @@ export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = fa
                   
                   {/* Add stats button for admins */}
                   {isAdmin && onEditStats && playerStats.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-700">
+                    <div className="mt-4 pt-4 border-t border-lynx-border-dark">
                       <button
                         onClick={() => onEditStats(game)}
                         className="w-full py-3 rounded-xl border-2 border-dashed border-slate-600 text-slate-400 hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] transition"

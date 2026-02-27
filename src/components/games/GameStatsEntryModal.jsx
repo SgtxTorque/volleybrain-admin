@@ -71,7 +71,7 @@ const VOLLEYBALL_STAT_FIELDS = [
 // ============================================
 function StatInput({ value, onChange, label, icon, color, negative }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+    <div className="flex items-center justify-between p-3 bg-lynx-cloud rounded-xl">
       <div className="flex items-center gap-2">
         <span className="text-lg">{icon}</span>
         <span className="text-sm text-slate-600">{label}</span>
@@ -91,7 +91,7 @@ function StatInput({ value, onChange, label, icon, color, negative }) {
           className={`w-16 h-10 text-center font-bold text-lg rounded-lg border-2 focus:outline-none ${
             negative 
               ? 'border-red-200 bg-red-50 text-red-600 focus:border-red-400'
-              : 'border-slate-200 focus:border-indigo-400'
+              : 'border-lynx-silver focus:border-indigo-400'
           }`}
           style={!negative ? { color } : {}}
           min="0"
@@ -117,7 +117,7 @@ function PlayerStatCard({ player, stats, onChange, onExpand, isExpanded }) {
   
   return (
     <div className={`bg-white rounded-xl border-2 transition ${
-      isExpanded ? 'border-indigo-500 shadow-lg' : 'border-slate-200 hover:border-slate-300'
+      isExpanded ? 'border-indigo-500 shadow-lg' : 'border-lynx-silver hover:border-slate-300'
     }`}>
       {/* Player header */}
       <div 
@@ -164,7 +164,7 @@ function PlayerStatCard({ player, stats, onChange, onExpand, isExpanded }) {
       
       {/* Expanded stats entry */}
       {isExpanded && (
-        <div className="border-t border-slate-200 p-4 space-y-4">
+        <div className="border-t border-lynx-silver p-4 space-y-4">
           {VOLLEYBALL_STAT_FIELDS.map(section => (
             <div key={section.section}>
               <h4 
@@ -220,7 +220,7 @@ function QuickEntryMode({ players, stats, onStatChange, selectedStat, onSelectSt
             className={`px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 ${
               selectedStat === stat.key
                 ? 'text-white shadow-lg'
-                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-white border border-lynx-silver text-slate-600 hover:bg-lynx-cloud'
             }`}
             style={selectedStat === stat.key ? { backgroundColor: stat.color } : {}}
           >
@@ -243,7 +243,7 @@ function QuickEntryMode({ players, stats, onStatChange, selectedStat, onSelectSt
               onClick={() => {
                 onStatChange(player.id, selectedStat, statValue + 1)
               }}
-              className="bg-white rounded-xl p-4 border-2 border-slate-200 hover:border-indigo-400 hover:shadow-md transition text-center group"
+              className="bg-white rounded-xl p-4 border-2 border-lynx-silver hover:border-indigo-400 hover:shadow-md transition text-center group"
             >
               {player.photo_url ? (
                 <img src={player.photo_url} className="w-14 h-14 rounded-full mx-auto object-cover mb-2" />
@@ -408,7 +408,7 @@ function GameStatsEntryModal({ event, team, roster, onClose, onSave, showToast }
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-100 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
+        <div className="bg-white border-b border-lynx-silver px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button 
@@ -462,7 +462,7 @@ function GameStatsEntryModal({ event, team, roster, onClose, onSave, showToast }
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full" />
+              <div className="animate-spin w-10 h-10 border-4 border-lynx-sky border-t-transparent rounded-full" />
             </div>
           ) : (
             <>
@@ -497,7 +497,7 @@ function GameStatsEntryModal({ event, team, roster, onClose, onSave, showToast }
         </div>
         
         {/* Footer - Team Totals */}
-        <div className="bg-white border-t border-slate-200 px-6 py-4">
+        <div className="bg-white border-t border-lynx-silver px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Team Totals</p>

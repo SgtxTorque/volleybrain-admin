@@ -21,8 +21,8 @@ function WCard({ children, className = '' }) {
     <div className={`
       h-full rounded-xl overflow-hidden transition-all duration-300
       ${isDark
-        ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
-        : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
+        ? 'bg-lynx-charcoal/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
+        : 'bg-white/90 backdrop-blur-xl border border-lynx-silver/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
       } ${className}
     `}>
       {children}
@@ -261,7 +261,7 @@ export function RegistrationStatsWidget() {
         <div className="p-5">
           {/* Main Stats Row */}
           <div className="flex items-stretch gap-4 mb-5">
-            <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
+            <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.total}</p>
               <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Total Registrations</p>
             </div>
@@ -504,7 +504,7 @@ export function UpcomingEventsWidget() {
               {dateEvents.map((event, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-2 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
+                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-2 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
                   onClick={() => navigate(getPathForPage('schedule'))}
                 >
                   <div
@@ -682,7 +682,7 @@ export function TeamHealthWidget() {
           ) : teams.map(t => (
             <div
               key={t.id}
-              className={`p-3 rounded-xl cursor-pointer transition ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]' : 'bg-slate-50 hover:bg-slate-100 border border-slate-100'}`}
+              className={`p-3 rounded-xl cursor-pointer transition ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]' : 'bg-lynx-cloud hover:bg-slate-100 border border-slate-100'}`}
               onClick={() => navigate(getPathForPage('teams'))}
             >
               <div className="flex items-center gap-3 mb-2">
@@ -779,7 +779,7 @@ export function NeedsAttentionWidget() {
           ) : (
             <div className="space-y-2">
               {items.map((item, i) => (
-                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
+                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
                   onClick={() => navigate(getPathForPage(item.page))}>
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.color + '20' }}>
                     <item.icon className="w-5 h-5" style={{ color: item.color }} />
@@ -977,7 +977,7 @@ export function SeasonOverviewWidget() {
       {/* Season header with gradient mountain background — matching original SeasonCard */}
       <div
         className="relative px-5 py-4"
-        style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #2C3E50 50%, #34495E 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #10284C 50%, #183658 100%)' }}
       >
         <div
           className="absolute inset-0 opacity-20"
@@ -1014,11 +1014,11 @@ export function SeasonOverviewWidget() {
         <div className="p-5 space-y-4">
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
-            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
+            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
               <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Teams</p>
             </div>
-            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-slate-50'}`}>
+            <div className={`p-3 rounded-xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
               <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Players</p>
             </div>

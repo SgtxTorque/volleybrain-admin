@@ -794,7 +794,7 @@ function ChangeEmailSection({ user, profile, isDark, tc, accent, showToast }) {
         {/* Current email */}
         <div>
           <label className={`text-xs uppercase ${tc.textMuted} block mb-1`}>Current Email</label>
-          <div className={`px-3 py-2.5 rounded-xl text-sm ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-slate-50 border border-slate-200'} ${tc.textMuted}`}>
+          <div className={`px-3 py-2.5 rounded-xl text-sm ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-lynx-cloud border border-lynx-silver'} ${tc.textMuted}`}>
             {user?.email || profile?.email || '—'}
           </div>
         </div>

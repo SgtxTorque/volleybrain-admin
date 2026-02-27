@@ -111,7 +111,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
   const unmarkedCount = roster.length - presentCount - absentCount
 
   return (
-    <div className={`bg-white border border-slate-200 rounded-xl shadow-sm ${isToday ? 'ring-1 ring-emerald-500/25' : ''}`}>
+    <div className={`bg-white border border-lynx-silver rounded-xl shadow-sm ${isToday ? 'ring-1 ring-emerald-500/25' : ''}`}>
       <button onClick={handleExpand} className="w-full flex items-center gap-4 p-5 text-left">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 border border-emerald-100">
           <UserCheck className="w-6 h-6 text-emerald-500" />
@@ -180,7 +180,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                   const isPresent = status === 'yes' || status === 'going'
                   const isAbsent = status === 'no' || status === 'not_going'
                   return (
-                    <div key={player.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-slate-50">
+                    <div key={player.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-lynx-cloud">
                       {player.photo_url ? (
                         <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
                       ) : (
@@ -196,7 +196,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                         <button
                           onClick={() => markPlayer(player.id, 'yes')}
                           className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                            isPresent ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-slate-50 border border-slate-200'
+                            isPresent ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-lynx-cloud border border-lynx-silver'
                           }`}
                         >
                           <Check className={`w-4 h-4 ${isPresent ? 'text-emerald-500' : 'text-slate-400'}`} />
@@ -204,7 +204,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                         <button
                           onClick={() => markPlayer(player.id, 'no')}
                           className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                            isAbsent ? 'bg-red-500/20 border border-red-500/40' : 'bg-slate-50 border border-slate-200'
+                            isAbsent ? 'bg-red-500/20 border border-red-500/40' : 'bg-lynx-cloud border border-lynx-silver'
                           }`}
                         >
                           <X className={`w-4 h-4 ${isAbsent ? 'text-red-500' : 'text-slate-400'}`} />
@@ -347,7 +347,7 @@ export default function CoachCenterDashboard({
                 const season = availableSeasons.find(s => s.id === e.target.value)
                 if (season) selectSeason?.(season)
               }}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 cursor-pointer"
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl bg-white border border-lynx-silver text-sm font-semibold text-slate-700 hover:border-slate-300 cursor-pointer"
             >
               {availableSeasons.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
@@ -370,7 +370,7 @@ export default function CoachCenterDashboard({
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border whitespace-nowrap flex-shrink-0 ${
                   isSelected
                     ? 'border-transparent text-white'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    : 'border-lynx-silver bg-white hover:border-slate-300'
                 }`}
                 style={isSelected ? { backgroundColor: team.color || '#3B82F6' } : undefined}
               >
@@ -410,7 +410,7 @@ export default function CoachCenterDashboard({
       />
 
       {/* Row 2: Game Day Tools */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm">
         <div className="flex items-center gap-3 p-5 border-b border-slate-100">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-50">
             <Crosshair className="w-5 h-5 text-blue-500" />
@@ -425,7 +425,7 @@ export default function CoachCenterDashboard({
           {/* Lineup Builder */}
           <button
             onClick={() => onNavigate?.('gameprep')}
-            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 text-left hover:shadow-md"
+            className="bg-white border border-lynx-silver rounded-xl shadow-sm p-5 text-left hover:shadow-md"
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-indigo-50 border border-indigo-100">
@@ -455,7 +455,7 @@ export default function CoachCenterDashboard({
           {/* Game Day Hub */}
           <button
             onClick={() => onNavigate?.('gameprep')}
-            className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 text-left hover:shadow-md"
+            className="bg-white border border-lynx-silver rounded-xl shadow-sm p-5 text-left hover:shadow-md"
           >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-amber-50 border border-amber-100">
@@ -505,7 +505,7 @@ export default function CoachCenterDashboard({
       {/* Row 3: Season Totals */}
       <button
         onClick={() => onNavigate?.('leaderboards')}
-        className="w-full bg-white border border-slate-200 rounded-xl shadow-sm p-5 text-left hover:shadow-md group"
+        className="w-full bg-white border border-lynx-silver rounded-xl shadow-sm p-5 text-left hover:shadow-md group"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -518,7 +518,7 @@ export default function CoachCenterDashboard({
         </div>
         <div className="flex gap-2 overflow-x-auto">
           {seasonTotals.map(stat => (
-            <div key={stat.label} className="flex-1 min-w-[70px] text-center py-2 px-1 rounded-xl bg-slate-50">
+            <div key={stat.label} className="flex-1 min-w-[70px] text-center py-2 px-1 rounded-xl bg-lynx-cloud">
               <p className="text-lg font-bold text-slate-900">{stat.value}</p>
               <p className="text-xs uppercase tracking-wide text-lynx-slate font-bold">{stat.label}</p>
             </div>
@@ -529,7 +529,7 @@ export default function CoachCenterDashboard({
       {/* Row 4: Team Hub + Chat Previews */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Team Hub Preview */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-500" />
@@ -565,7 +565,7 @@ export default function CoachCenterDashboard({
         </div>
 
         {/* Team Chat Preview */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+        <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-emerald-500" />
@@ -622,7 +622,7 @@ export default function CoachCenterDashboard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <button
             onClick={() => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') }}
-            className="bg-white border border-slate-200 rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md"
+            className="bg-white border border-lynx-silver rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md"
           >
             <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-50 border border-emerald-100">
               <Check className="w-6 h-6 text-emerald-500" />
@@ -638,7 +638,7 @@ export default function CoachCenterDashboard({
 
           <button
             onClick={() => onShowCoachBlast?.()}
-            className="bg-white border border-slate-200 rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md"
+            className="bg-white border border-lynx-silver rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md"
           >
             <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-purple-50 border border-purple-100">
               <Send className="w-6 h-6 text-purple-500" />
@@ -652,7 +652,7 @@ export default function CoachCenterDashboard({
 
           <button
             onClick={() => onShowWarmupTimer?.()}
-            className="bg-white border border-slate-200 rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md"
+            className="bg-white border border-lynx-silver rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md"
           >
             <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50 border border-amber-100">
               <Timer className="w-6 h-6 text-amber-500" />

@@ -129,14 +129,14 @@ function EventDetailModal({ event, team, onClose }) {
           )}
 
           {event.notes && (
-            <div className="bg-slate-50 rounded-xl p-4">
+            <div className="bg-lynx-cloud rounded-xl p-4">
               <p className="text-sm text-slate-600">{event.notes}</p>
             </div>
           )}
         </div>
 
         <div className="p-6 border-t border-slate-100">
-          <button onClick={onClose} className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition">
+          <button onClick={onClose} className="w-full py-3 rounded-xl border border-lynx-silver text-slate-700 font-medium hover:bg-lynx-cloud transition">
             Close
           </button>
         </div>
@@ -204,7 +204,7 @@ function RosterWidget({ roster, onViewAll, onPlayerClick }) {
             <div 
               key={player.id}
               onClick={() => onPlayerClick?.(player)}
-              className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition"
+              className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-lynx-cloud transition"
             >
               <div className="flex items-center gap-1 text-slate-500 font-bold text-sm w-8">
                 {player.jersey_number ? `#${player.jersey_number}` : '—'}
@@ -254,7 +254,7 @@ function QuickActionsWidget({ onNavigate }) {
             <button
               key={action.page}
               onClick={() => onNavigate?.(action.page)}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition group"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-lynx-cloud hover:bg-slate-100 transition group"
             >
               <div 
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm"
@@ -297,7 +297,7 @@ function UpcomingWidget({ events, onViewAll, onEventClick }) {
               <div 
                 key={event.id}
                 onClick={() => onEventClick?.(event)}
-                className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-slate-50 transition"
+                className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-lynx-cloud transition"
               >
                 <div className="text-center min-w-[45px]">
                   <p className="text-[10px] text-slate-400 font-medium">{day}</p>
@@ -388,7 +388,7 @@ function TeamRecordWidget({ stats }) {
             ) : (
               <>
                 {[1,2,3,4,5].map(i => (
-                  <div key={i} className="w-9 h-9 rounded-lg bg-slate-100 border-2 border-dashed border-slate-200" />
+                  <div key={i} className="w-9 h-9 rounded-lg bg-slate-100 border-2 border-dashed border-lynx-silver" />
                 ))}
               </>
             )}
@@ -472,7 +472,7 @@ function TeamSelector({ teams, selectedTeam, onSelect }) {
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition flex-shrink-0 ${
             selectedTeam?.id === team.id 
               ? 'border-blue-500 bg-blue-50' 
-              : 'border-slate-200 bg-white hover:border-blue-300'
+              : 'border-lynx-silver bg-white hover:border-blue-300'
           }`}
         >
           <div 
@@ -662,7 +662,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" />
       </div>
     )
   }

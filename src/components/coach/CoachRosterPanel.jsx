@@ -42,10 +42,10 @@ export default function CoachRosterPanel({
   onPlayerSelect,
 }) {
   return (
-    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
+    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col border-l border-lynx-silver/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
 
       {/* 1. Season Record */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <Trophy className="w-4 h-4 text-amber-500" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Season Record</h3>
@@ -75,7 +75,7 @@ export default function CoachRosterPanel({
                       ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/25'
                       : g.result === 'loss'
                         ? 'bg-red-500/15 text-red-500 border border-red-500/25'
-                        : 'bg-slate-100 text-slate-400 border border-slate-200'
+                        : 'bg-slate-100 text-slate-400 border border-lynx-silver'
                   }`}
                 >
                   {g.result === 'win' ? 'W' : g.result === 'loss' ? 'L' : 'T'}
@@ -87,7 +87,7 @@ export default function CoachRosterPanel({
       </div>
 
       {/* 2. Top Players Leaderboard */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-amber-500" />
@@ -110,7 +110,7 @@ export default function CoachRosterPanel({
                 <div
                   key={stat.player_id}
                   onClick={() => onPlayerSelect?.(player)}
-                  className="flex items-center gap-2.5 p-2 rounded-xl cursor-pointer hover:bg-slate-50"
+                  className="flex items-center gap-2.5 p-2 rounded-xl cursor-pointer hover:bg-lynx-cloud"
                 >
                   <span className={`text-sm font-black w-5 text-center ${
                     i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-400'
@@ -180,7 +180,7 @@ export default function CoachRosterPanel({
               <button
                 key={player.id}
                 onClick={() => onPlayerSelect?.(player)}
-                className="w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl cursor-pointer text-left border-b border-slate-100 last:border-0"
+                className="w-full flex items-center gap-3 p-3 hover:bg-lynx-cloud rounded-xl cursor-pointer text-left border-b border-slate-100 last:border-0"
               >
                 {player.photo_url ? (
                   <img
@@ -221,7 +221,7 @@ export default function CoachRosterPanel({
       </div>
 
       {/* 4. Upcoming Events */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm">
         <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-blue-500" />
@@ -240,7 +240,7 @@ export default function CoachRosterPanel({
               const isGame = event.event_type === 'game'
               const isToday = countdownText(event.event_date) === 'TODAY'
               return (
-                <div key={event.id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer">
+                <div key={event.id} className="px-4 py-3 flex items-center gap-3 hover:bg-lynx-cloud cursor-pointer">
                   <div className="text-center min-w-[36px]">
                     <p className="text-[10px] font-semibold uppercase text-slate-400">
                       {new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })}

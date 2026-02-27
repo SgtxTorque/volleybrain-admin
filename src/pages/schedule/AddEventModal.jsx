@@ -166,14 +166,14 @@ function AddEventModal({ teams, venues, onClose, onCreate }) {
               className={`w-full ${tc.input} border rounded-xl px-4 py-3 text-sm min-h-[80px]`} />
           </div>
 
-          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
             <input type="checkbox" checked={form.notify_families} onChange={e => setForm({...form, notify_families: e.target.checked})}
               className="w-5 h-5 rounded" />
             <span className={tc.text}>Notify all families after creating</span>
           </label>
         </div>
         <div className={`p-6 border-t ${tc.border} flex justify-end gap-3 sticky bottom-0 ${tc.cardBg}`}>
-          <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+          <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Cancel</button>
           <button onClick={handleSubmit} className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">Create Event</button>
         </div>
       </div>

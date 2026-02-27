@@ -36,7 +36,7 @@ function MyStuffPage({ roleContext, showToast }) {
       </div>
 
       {/* Tab Bar */}
-      <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+      <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-lynx-charcoal/60' : 'bg-slate-100'}`}>
         {TABS.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -173,7 +173,7 @@ function ProfileTab({ showToast }) {
               type="text"
               value={form.full_name}
               onChange={e => set('full_name', e.target.value)}
-              className={`w-full px-4 py-2.5 rounded-xl text-sm border ${tc.border} ${isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50`}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border ${tc.border} ${isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-slate-900'} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50`}
             />
           </div>
           <div>
@@ -193,7 +193,7 @@ function ProfileTab({ showToast }) {
               value={form.phone}
               onChange={e => set('phone', e.target.value)}
               placeholder="(555) 123-4567"
-              className={`w-full px-4 py-2.5 rounded-xl text-sm border ${tc.border} ${isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50`}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border ${tc.border} ${isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-slate-900'} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50`}
             />
           </div>
 
@@ -267,7 +267,7 @@ function PaymentsTab({ roleContext, showToast }) {
           </h3>
           <div className="space-y-2">
             {unpaid.map(p => (
-              <div key={p.id} className={`${isDark ? 'bg-slate-800' : 'bg-slate-50'} rounded-xl p-4 flex items-center gap-3`}>
+              <div key={p.id} className={`${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'} rounded-xl p-4 flex items-center gap-3`}>
                 <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-red-500" />
                 </div>
@@ -291,7 +291,7 @@ function PaymentsTab({ roleContext, showToast }) {
         {paid.length > 0 ? (
           <div className="space-y-2">
             {paid.slice(0, 10).map(p => (
-              <div key={p.id} className={`${isDark ? 'bg-slate-800' : 'bg-slate-50'} rounded-xl p-3 flex items-center gap-3`}>
+              <div key={p.id} className={`${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'} rounded-xl p-3 flex items-center gap-3`}>
                 <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm ${tc.text} truncate`}>{p.fee_name || p.description || 'Payment'}</p>
@@ -421,7 +421,7 @@ function WaiversTab({ roleContext, showToast }) {
                 const isSigningThis = signingWaiver?.waiverId === waiver.id && signingWaiver?.playerId === child.id
 
                 return (
-                  <div key={child.id} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                  <div key={child.id} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'}`}>
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${signed ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
                       {signed ? <Check className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-amber-500" />}
                     </div>
@@ -530,7 +530,7 @@ function SettingsTab({ showToast }) {
         {settingsItems.map(item => {
           const Icon = item.icon
           return (
-            <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+            <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'}`}>
               <div className="flex items-center gap-3">
                 <Icon className={`w-5 h-5 ${tc.textMuted}`} />
                 <div>

@@ -199,7 +199,7 @@ export default function CoachGameDayHero({
 
   // No upcoming events — Season Record fallback
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+    <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-6">
       <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</p>
       <div className="flex items-center gap-4">
         <div className="flex items-baseline gap-3">

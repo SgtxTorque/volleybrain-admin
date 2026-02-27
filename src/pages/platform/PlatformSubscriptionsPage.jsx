@@ -80,7 +80,7 @@ function PlatformSubscriptionsPage({ showToast }) {
   if (!isPlatformAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'} border rounded-xl p-8 text-center max-w-md`}>
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-lynx-silver'} border rounded-xl p-8 text-center max-w-md`}>
           <Shield className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h2 className={`text-xl font-bold ${tc.text} mb-2`}>Access Denied</h2>
           <p className={tc.textMuted}>Only platform super-admins can manage subscriptions.</p>
@@ -319,7 +319,7 @@ function PlatformSubscriptionsPage({ showToast }) {
               <h1 className={`text-3xl sm:text-4xl ${tc.text}`}>PLATFORM SUBSCRIPTIONS</h1>
               <p className={`text-sm ${tc.textMuted} mt-1`}>Manage organization plans, billing, and revenue</p>
             </div>
-            <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'}`}>
+            <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-lynx-cloud text-slate-600 border border-lynx-silver'}`}>
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
@@ -335,7 +335,7 @@ function PlatformSubscriptionsPage({ showToast }) {
             { label: 'Orgs on Platform', value: metrics.totalOrgs, icon: Building2, color: '#F59E0B' },
           ].map((m, i) => (
             <div key={i} className="ps-au" style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
-              <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+              <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-lynx-silver'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <m.icon className="w-4 h-4" style={{ color: m.color }} />
                   <span className={`text-[11px] ${tc.textMuted}`}>{m.label}</span>
@@ -348,13 +348,13 @@ function PlatformSubscriptionsPage({ showToast }) {
 
         {/* TIER BREAKDOWN */}
         <div className="ps-au" style={{ animationDelay: '.3s' }}>
-          <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-lynx-silver'}`}>
             <h3 className={`text-xs ${tc.textMuted} mb-3`}>REVENUE BY TIER</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.entries(TIER_CONFIG).map(([tierId, tier]) => {
                 const TierIcon = tier.icon
                 return (
-                  <div key={tierId} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-white/[.02]' : 'bg-slate-50'}`}>
+                  <div key={tierId} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-white/[.02]' : 'bg-lynx-cloud'}`}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${tier.color}15` }}>
                       <TierIcon className="w-4 h-4" style={{ color: tier.color }} />
                     </div>
@@ -373,10 +373,10 @@ function PlatformSubscriptionsPage({ showToast }) {
 
         {/* FILTERS */}
         <div className="ps-au" style={{ animationDelay: '.35s' }}>
-          <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`ps-glass rounded-xl p-4 ${isDark ? '' : 'bg-white/80 border-lynx-silver'}`}>
             <div className="flex flex-wrap items-center gap-3">
               {/* Search */}
-              <div className={`flex items-center gap-2 flex-1 min-w-[200px] px-3 py-2 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
+              <div className={`flex items-center gap-2 flex-1 min-w-[200px] px-3 py-2 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-lynx-silver'}`}>
                 <Search className="w-4 h-4" style={{ color: `${accentColor}80` }} />
                 <input
                   type="text"
@@ -389,7 +389,7 @@ function PlatformSubscriptionsPage({ showToast }) {
               </div>
 
               {/* Tier filter */}
-              <select value={filterTier} onChange={e => setFilterTier(e.target.value)} className={`px-3 py-2 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+              <select value={filterTier} onChange={e => setFilterTier(e.target.value)} className={`px-3 py-2 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}>
                 <option value="all">All Tiers</option>
                 {Object.entries(TIER_CONFIG).map(([id, t]) => (
                   <option key={id} value={id}>{t.label}</option>
@@ -397,7 +397,7 @@ function PlatformSubscriptionsPage({ showToast }) {
               </select>
 
               {/* Status filter */}
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`px-3 py-2 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={`px-3 py-2 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}>
                 <option value="all">All Status</option>
                 {Object.entries(STATUS_CONFIG).map(([id, s]) => (
                   <option key={id} value={id}>{s.label}</option>
@@ -412,11 +412,11 @@ function PlatformSubscriptionsPage({ showToast }) {
 
         {/* ORGANIZATIONS TABLE */}
         <div className="ps-au" style={{ animationDelay: '.4s' }}>
-          <div className={`ps-glass rounded-xl overflow-hidden ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`ps-glass rounded-xl overflow-hidden ${isDark ? '' : 'bg-white/80 border-lynx-silver'}`}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className={isDark ? 'bg-white/[.02]' : 'bg-slate-50'}>
+                  <tr className={isDark ? 'bg-white/[.02]' : 'bg-lynx-cloud'}>
                     <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Organization</th>
                     <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Plan</th>
                     <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Status</th>
@@ -433,7 +433,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                     const TierIcon = tier.icon
 
                     return (
-                      <tr key={row.id} className={`border-t ${isDark ? 'border-white/[.04] hover:bg-white/[.02]' : 'border-slate-100 hover:bg-slate-50'} transition`}>
+                      <tr key={row.id} className={`border-t ${isDark ? 'border-white/[.04] hover:bg-white/[.02]' : 'border-slate-100 hover:bg-lynx-cloud'} transition`}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <Building2 className="w-4 h-4" style={{ color: tier.color }} />
@@ -501,7 +501,7 @@ function PlatformSubscriptionsPage({ showToast }) {
         {editingSub && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditingSub(null)} />
-            <div className={`relative w-full max-w-lg rounded-xl p-6 ps-as ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'} shadow-2xl`}>
+            <div className={`relative w-full max-w-lg rounded-xl p-6 ps-as ${isDark ? 'bg-lynx-charcoal border border-white/10' : 'bg-white border border-lynx-silver'} shadow-2xl`}>
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h3 className={`text-lg ${tc.text}`}>Edit Subscription</h3>
@@ -526,7 +526,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                           className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition text-center ${
                             editForm.plan_tier === id
                               ? `border-2`
-                              : isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'
+                              : isDark ? 'border-white/10 hover:bg-white/5' : 'border-lynx-silver hover:bg-lynx-cloud'
                           }`}
                           style={editForm.plan_tier === id ? { borderColor: tier.color, backgroundColor: `${tier.color}10` } : {}}
                         >
@@ -549,7 +549,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                         className={`px-4 py-2.5 rounded-xl text-sm border transition ${
                           editForm.billing_cycle === cycle
                             ? 'text-white'
-                            : isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            : isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-lynx-silver text-slate-600 hover:bg-lynx-cloud'
                         }`}
                         style={editForm.billing_cycle === cycle ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
                       >
@@ -570,7 +570,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                   <select
                     value={editForm.status}
                     onChange={e => setEditForm({ ...editForm, status: e.target.value })}
-                    className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}
+                    className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
                   >
                     {Object.entries(STATUS_CONFIG).map(([id, s]) => (
                       <option key={id} value={id}>{s.label}</option>
@@ -587,14 +587,14 @@ function PlatformSubscriptionsPage({ showToast }) {
                       value={editForm.trial_days}
                       onChange={e => setEditForm({ ...editForm, trial_days: parseInt(e.target.value) || 0 })}
                       min={1} max={90}
-                      className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}
+                      className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
                     />
                   </div>
                 )}
 
                 {/* Price preview */}
                 {editForm.plan_tier !== 'free' && editForm.plan_tier !== 'enterprise' && (
-                  <div className={`flex items-center gap-2 p-3 rounded-xl ${isDark ? 'bg-white/[.03]' : 'bg-slate-50'}`}>
+                  <div className={`flex items-center gap-2 p-3 rounded-xl ${isDark ? 'bg-white/[.03]' : 'bg-lynx-cloud'}`}>
                     <DollarSign className="w-4 h-4" style={{ color: accentColor }} />
                     <span className={`text-sm ${tc.textMuted}`}>Price:</span>
                     <span className={`text-sm ${tc.text}`}>
@@ -629,7 +629,7 @@ function PlatformSubscriptionsPage({ showToast }) {
         {showInvoicesFor && (
           <div className="fixed inset-0 z-50 flex justify-end">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowInvoicesFor(null)} />
-            <div className={`relative w-full max-w-lg h-full overflow-y-auto ps-as ${isDark ? 'bg-slate-900 border-l border-white/10' : 'bg-white border-l border-slate-200'} shadow-2xl`}>
+            <div className={`relative w-full max-w-lg h-full overflow-y-auto ps-as ${isDark ? 'bg-lynx-midnight border-l border-white/10' : 'bg-white border-l border-lynx-silver'} shadow-2xl`}>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-5">
                   <div>
@@ -668,7 +668,7 @@ function PlatformSubscriptionsPage({ showToast }) {
                         paid: '#10B981', open: '#3B82F6', draft: '#64748B', void: '#64748B', uncollectible: '#EF4444'
                       }
                       return (
-                        <div key={inv.id} className={`p-4 rounded-xl ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-slate-50 border border-slate-100'}`}>
+                        <div key={inv.id} className={`p-4 rounded-xl ${isDark ? 'bg-white/[.03] border border-white/[.06]' : 'bg-lynx-cloud border border-slate-100'}`}>
                           <div className="flex items-center justify-between mb-2">
                             <span className={`text-sm ${tc.text}`}>{fmtCents(inv.amount_cents)}</span>
                             <span className="px-2 py-0.5 rounded-full text-[10px]" style={{ backgroundColor: `${statusColors[inv.status] || '#64748B'}15`, color: statusColors[inv.status] || '#64748B' }}>

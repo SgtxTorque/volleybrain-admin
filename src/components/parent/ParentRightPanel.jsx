@@ -129,7 +129,7 @@ export default function ParentRightPanel({
   const leaderboardCats = SPORT_LEADERBOARD[sportName?.toLowerCase()] || SPORT_LEADERBOARD.volleyball
 
   return (
-    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col border-l border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5">
+    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col border-l border-lynx-silver/50 bg-white overflow-y-auto p-5 space-y-5">
 
       {/* Upcoming Events */}
       <div>
@@ -144,7 +144,7 @@ export default function ParentRightPanel({
             <ParentEventCard key={event.id} event={event} onClick={onShowEventDetail} />
           ))}
           {(!activeChildEvents || activeChildEvents.length === 0) && (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-center">
+            <div className="bg-white border border-lynx-silver rounded-xl p-6 text-center">
               <Calendar className="w-8 h-8 mx-auto text-slate-300 mb-2" />
               <p className="text-sm text-slate-400">No upcoming events</p>
             </div>
@@ -153,7 +153,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Season Record */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</h3>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
@@ -179,7 +179,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Achievements Preview */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Achievements</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
@@ -240,7 +240,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Leaderboard Preview */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Leaderboard</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
@@ -259,7 +259,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Player Stats Preview */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Player Stats</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">

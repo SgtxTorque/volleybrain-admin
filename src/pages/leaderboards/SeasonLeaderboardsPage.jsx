@@ -227,7 +227,7 @@ function CategoryTab({ category, isActive, onClick }) {
       className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition whitespace-nowrap ${
         isActive
           ? 'text-white shadow-lg'
-          : `${tc.cardBg} border ${tc.border} ${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-600 hover:bg-slate-50'}`
+          : `${tc.cardBg} border ${tc.border} ${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-600 hover:bg-lynx-cloud'}`
       }`}
       style={isActive ? { backgroundColor: category.color } : {}}
     >
@@ -272,7 +272,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
             <div 
               key={entry.player_id}
               onClick={() => onPlayerClick?.(entry)}
-              className={`flex items-center gap-3 cursor-pointer ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'} rounded-lg p-2 -mx-2 transition`}
+              className={`flex items-center gap-3 cursor-pointer ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'} rounded-lg p-2 -mx-2 transition`}
             >
               <RankBadge rank={idx + 1} />
               

@@ -448,7 +448,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           <button
             onClick={() => setShowPhotos(!showPhotos)}
             className={`px-3 py-2 rounded-xl text-sm transition ${
-              showPhotos ? (isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm') : (isDark ? 'bg-slate-800 text-slate-500' : 'bg-transparent text-lynx-slate')
+              showPhotos ? (isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm') : (isDark ? 'bg-lynx-charcoal text-slate-500' : 'bg-transparent text-lynx-slate')
             }`}
             title={showPhotos ? 'Hide Photos' : 'Show Photos'}
           >

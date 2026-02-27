@@ -208,7 +208,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
                     selectedDays.includes(day.value)
                       ? 'bg-[var(--accent-primary)] text-white'
-                      : isDark ? 'bg-slate-900 border border-slate-700 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300'
+                      : isDark ? 'bg-lynx-midnight border border-lynx-border-dark text-slate-400 hover:text-white' : 'bg-white border border-lynx-silver text-slate-500 hover:text-slate-800 hover:border-slate-300'
                   }`}
                 >
                   {day.label}
@@ -219,7 +219,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
 
           {/* Per-Day Venue Configuration */}
           {dayConfigs.length > 0 && (
-            <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+            <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
               <div className="flex items-center justify-between mb-4">
                 <h4 className={`text-sm font-medium ${tc.text}`}>Venue per Day</h4>
                 {venues.length > 0 && (
@@ -234,7 +234,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
               </div>
               <div className="space-y-3">
                 {dayConfigs.sort((a, b) => a.day - b.day).map(dc => (
-                  <div key={dc.day} className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-white border border-slate-200'}`}>
+                  <div key={dc.day} className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-lynx-charcoal' : 'bg-white border border-lynx-silver'}`}>
                     <div className={`w-24 font-medium ${tc.text}`}>
                       {dayOptions.find(d => d.value === dc.day)?.label}
                     </div>
@@ -274,7 +274,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
 
           {/* Preview */}
           {preview.length > 0 && (
-            <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+            <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className={`text-sm font-medium ${tc.text}`}>Preview: {preview.length} practices</h4>
                 <button
@@ -288,7 +288,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
               {showPreviewEdit ? (
                 <div className="max-h-60 overflow-y-auto space-y-2">
                   {preview.map((p, i) => (
-                    <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg text-sm ${isDark ? 'bg-slate-800' : 'bg-white border border-slate-100'}`}>
+                    <div key={p.id} className={`flex items-center gap-2 p-2 rounded-lg text-sm ${isDark ? 'bg-lynx-charcoal' : 'bg-white border border-slate-100'}`}>
                       <span className={`w-20 ${tc.textMuted}`}>{p.date.toLocaleDateString()}</span>
                       <span className={`w-16 ${tc.text}`}>{p.dayName?.slice(0, 3)}</span>
                       <select
@@ -323,7 +323,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
             </div>
           )}
 
-          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+          <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
             <input type="checkbox" checked={form.notify_families} onChange={e => setForm({...form, notify_families: e.target.checked})}
               className="w-5 h-5 rounded" />
             <span className={tc.text}>Notify all families after creating</span>
@@ -334,7 +334,7 @@ function BulkPracticeModal({ teams, venues, onClose, onCreate }) {
             {preview.length > 0 ? `${preview.length} practices will be created` : 'Select days and date range'}
           </span>
           <div className="flex gap-3">
-            <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+            <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Cancel</button>
             <button onClick={handleSubmit} disabled={preview.length === 0}
               className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition disabled:opacity-50">
               Create {preview.length} Practices

@@ -281,7 +281,7 @@ function SeasonCard({ season, stats, onNavigate }) {
       <div 
         className="relative px-5 py-4"
         style={{
-          background: 'linear-gradient(135deg, #1E3A5F 0%, #2C3E50 50%, #34495E 100%)',
+          background: 'linear-gradient(135deg, #1E3A5F 0%, #10284C 50%, #183658 100%)',
         }}
       >
         {/* Mountain silhouette overlay */}
@@ -509,7 +509,7 @@ function RegistrationStats({ stats, onNavigate }) {
         {/* Main Stats Row */}
         <div className="flex items-stretch gap-4 mb-5">
           {/* Total Registrations */}
-          <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? "bg-white/[0.05]" : "bg-slate-50"}`}>
+          <div className={`flex-1 p-4 rounded-xl text-center ${isDark ? "bg-white/[0.05]" : "bg-lynx-cloud"}`}>
             <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
             <p className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total Registrations</p>
           </div>
@@ -623,9 +623,9 @@ function RecentActivity({ tasks, onNavigate }) {
             <div 
               key={i}
               onClick={task.action}
-              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"}`}
+              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
             >
-              <div 
+              <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: task.color + '20' }}
               >
@@ -701,7 +701,7 @@ function UpcomingEvents({ events, onNavigate }) {
             {dateEvents.map((event, i) => (
               <div 
                 key={i}
-                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-50"}`}
+                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition mb-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
                 onClick={() => onNavigate('schedule')}
               >
                 <div 

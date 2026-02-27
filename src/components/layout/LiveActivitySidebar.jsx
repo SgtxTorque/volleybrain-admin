@@ -87,7 +87,7 @@ function EventPreview({ event, isDark, onNavigate }) {
     <button
       onClick={() => onNavigate('schedule')}
       className={`w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition
-        ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`}
+        ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
     >
       <div
         className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
@@ -116,8 +116,8 @@ export default function LiveActivitySidebar({ activities, upcomingEvents, onNavi
   const { isDark } = useTheme()
 
   const cardClass = isDark
-    ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
-    : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
+    ? 'bg-lynx-charcoal/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
+    : 'bg-white/90 backdrop-blur-xl border border-lynx-silver/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
 
   return (
     <>

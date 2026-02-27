@@ -130,7 +130,7 @@ export default function ParentCenterDashboard({
           className={`rounded-xl px-5 py-4 flex items-center gap-4 ${
             alert.priority === 'urgent'
               ? 'bg-gradient-to-r from-red-600 to-red-500 shadow-lg shadow-red-500/20'
-              : 'bg-white border border-slate-200 shadow-sm'
+              : 'bg-white border border-lynx-silver shadow-sm'
           }`}
         >
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg ${
@@ -210,7 +210,7 @@ export default function ParentCenterDashboard({
       {/* Team Hub + Chat Preview Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Team Hub Preview Card */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-slate-400" />
@@ -261,7 +261,7 @@ export default function ParentCenterDashboard({
         </div>
 
         {/* Chat Preview Card */}
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-slate-400" />
@@ -306,7 +306,7 @@ export default function ParentCenterDashboard({
             <div className="mt-3 pt-3 border-t border-slate-100">
               <button
                 onClick={() => onNavigate?.('chats')}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 text-sm text-lynx-slate hover:bg-slate-100 transition"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-lynx-cloud text-sm text-lynx-slate hover:bg-slate-100 transition"
               >
                 <Send className="w-4 h-4" />
                 Reply in chat...
@@ -317,7 +317,7 @@ export default function ParentCenterDashboard({
       </div>
 
       {/* Schedule Section */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-slate-400" />
@@ -339,7 +339,7 @@ export default function ParentCenterDashboard({
                   <button
                     key={event.id}
                     onClick={() => onShowEventDetail?.(event)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all bg-white border border-lynx-silver hover:border-slate-300 hover:shadow-sm"
                   >
                     <div className="text-center w-12 flex-shrink-0">
                       <div className="text-[9px] uppercase font-bold text-slate-400">{eventDate.toLocaleDateString('en-US', { weekday: 'short' })}</div>
@@ -425,7 +425,7 @@ export default function ParentCenterDashboard({
       {/* Invite */}
       <button
         onClick={() => onNavigate?.('invite')}
-        className="w-full rounded-xl py-4 text-center text-sm font-medium bg-white border border-slate-200 text-lynx-slate hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
+        className="w-full rounded-xl py-4 text-center text-sm font-medium bg-white border border-lynx-silver text-lynx-slate hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
       >
         Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>

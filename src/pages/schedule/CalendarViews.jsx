@@ -46,9 +46,9 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
   }
 
   return (
-    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
       {/* Day headers */}
-      <div className={`grid grid-cols-7 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+      <div className={`grid grid-cols-7 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
           <div key={d} className={`p-3 text-center text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d}</div>
         ))}
@@ -68,7 +68,7 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
                 ? (isDark ? 'bg-slate-900/30' : 'bg-slate-50/50')
                 : today
                   ? (isDark ? 'bg-[var(--accent-primary)]/5' : 'bg-[var(--accent-primary)]/5')
-                  : `${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50'} cursor-pointer`
+                  : `${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-lynx-cloud'} cursor-pointer`
               } ${past && day ? 'opacity-60' : ''}`}
               onClick={() => day && onSelectDate(new Date(year, month, day))}
             >
@@ -156,9 +156,9 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
   }
 
   return (
-    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
       {/* Day headers */}
-      <div className={`grid grid-cols-8 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+      <div className={`grid grid-cols-8 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
         <div className="p-3 text-center text-sm font-medium"></div>
         {weekDays.map((day, i) => (
           <div key={i} className={`p-3 text-center ${isToday(day) ? 'bg-[var(--accent-primary)]/10' : ''}`}>
@@ -229,8 +229,8 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
   }
 
   return (
-    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-      <div className={`p-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
+      <div className={`p-4 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
         <h3 className={`text-lg font-bold ${tc.text}`}>
           {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </h3>
@@ -316,8 +316,8 @@ export function ListView({ events, onSelectEvent, teams }) {
                 onClick={() => onSelectEvent(event)}
                 className={`rounded-xl p-4 cursor-pointer transition-all border ${
                   isDark
-                    ? 'bg-slate-800 border-slate-700 hover:border-[var(--accent-primary)]/30'
-                    : 'bg-white border-slate-200 hover:border-[var(--accent-primary)]/40 shadow-sm hover:shadow-md'
+                    ? 'bg-lynx-charcoal border-lynx-border-dark hover:border-[var(--accent-primary)]/30'
+                    : 'bg-white border-lynx-silver hover:border-[var(--accent-primary)]/40 shadow-sm hover:shadow-md'
                 }`}
               >
                 <div className="flex items-center justify-between">

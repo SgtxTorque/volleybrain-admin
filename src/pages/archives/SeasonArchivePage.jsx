@@ -124,9 +124,9 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={`relative w-full max-w-2xl sa-ai ${isDark ? 'bg-slate-900 border-l border-white/[0.08]' : 'bg-white border-l border-slate-200'} shadow-2xl overflow-y-auto`}>
+      <div className={`relative w-full max-w-2xl sa-ai ${isDark ? 'bg-lynx-midnight border-l border-white/[0.08]' : 'bg-white border-l border-lynx-silver'} shadow-2xl overflow-y-auto`}>
         {/* Header */}
-        <div className={`sticky top-0 z-10 border-b ${isDark ? 'bg-slate-900/95 border-white/[0.08]' : 'bg-white/95 border-slate-200'} backdrop-blur-xl`}>
+        <div className={`sticky top-0 z-10 border-b ${isDark ? 'bg-slate-900/95 border-white/[0.08]' : 'bg-white/95 border-lynx-silver'} backdrop-blur-xl`}>
           <div className="p-5">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-3">
@@ -150,7 +150,7 @@ function SeasonDetailPanel({ season, isOpen, onClose, isDark, tc, accent }) {
                 className={`px-3 py-2 text-sm font-medium rounded-t-lg whitespace-nowrap transition ${
                   activeDetailTab === tab.id
                     ? `${isDark ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900'} border-b-2`
-                    : `${tc.textMuted} ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`
+                    : `${tc.textMuted} ${isDark ? 'hover:bg-white/5' : 'hover:bg-lynx-cloud'}`
                 }`}
                 style={activeDetailTab === tab.id ? { borderBottomColor: accent.primary } : {}}
               >

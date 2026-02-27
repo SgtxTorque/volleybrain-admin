@@ -53,7 +53,7 @@ export function ClickablePlayerName({ player, className = '', children, onPlayer
 // ============================================
 function InfoRow({ label, value, tc }) {
   return (
-    <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-slate-900'} rounded-lg px-3 py-2`}>
+    <div className={`${tc?.cardBgAlt || 'bg-slate-100 dark:bg-lynx-midnight'} rounded-lg px-3 py-2`}>
       <p className={`text-xs uppercase tracking-wider font-bold ${tc?.textMuted || 'text-slate-400'}`}>{label}</p>
       <p className={`${tc?.text || 'text-slate-900 dark:text-white'} font-semibold text-sm mt-0.5`}>{value || '—'}</p>
     </div>
@@ -77,7 +77,7 @@ function WaiverBadge({ label, signed, tc }) {
 // EDIT FIELD (for edit modals) — themed
 // ============================================
 function EditField({ label, value, onChange, type = 'text', options, multiline, tc }) {
-  const inputCls = `w-full ${tc?.cardBg || 'bg-slate-100 dark:bg-slate-900'} border ${tc?.border || 'border-slate-200 dark:border-slate-700'} rounded-lg px-3 py-2 ${tc?.text || 'text-slate-900 dark:text-white'} text-sm`
+  const inputCls = `w-full ${tc?.cardBg || 'bg-slate-100 dark:bg-lynx-midnight'} border ${tc?.border || 'border-lynx-silver dark:border-lynx-border-dark'} rounded-lg px-3 py-2 ${tc?.text || 'text-slate-900 dark:text-white'} text-sm`
   if (options) {
     return (
       <div>
@@ -504,7 +504,7 @@ export function DenyRegistrationModal({ player, onClose, onDeny }) {
             value={reason} 
             onChange={e => setReason(e.target.value)}
             placeholder="Enter reason..."
-            className={`w-full ${isDark ? 'bg-slate-900 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'} border rounded-xl px-4 py-3 min-h-[100px]`}
+            className={`w-full ${isDark ? 'bg-lynx-midnight border-lynx-border-dark text-white' : 'bg-lynx-cloud border-lynx-silver text-slate-900'} border rounded-xl px-4 py-3 min-h-[100px]`}
           />
         </div>
         <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>

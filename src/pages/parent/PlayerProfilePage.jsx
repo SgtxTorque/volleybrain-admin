@@ -552,7 +552,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
                 activeTab === tab.id 
                   ? 'border-[var(--accent-primary)] text-[var(--accent-primary)]' 
-                  : `border-transparent ${tc.textMuted} hover:${isDark ? 'bg-slate-700/50' : 'bg-slate-50'}`
+                  : `border-transparent ${tc.textMuted} hover:${isDark ? 'bg-slate-700/50' : 'bg-lynx-cloud'}`
               }`}
               style={activeTab === tab.id ? { borderColor: teamColor, color: teamColor } : {}}
             >
@@ -1195,9 +1195,9 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
       {/* ═══ VIEW WAIVER MODAL ═══ */}
       {viewingWaiver && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
-          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
+          <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-slate-900' : 'bg-slate-100'} rounded-t-2xl`}>
+            <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-lynx-midnight' : 'bg-slate-100'} rounded-t-2xl`}>
               <span className={`text-sm font-medium ${tc.text}`}>{viewingWaiver.name}</span>
               <button onClick={() => setViewingWaiver(null)} className={`text-lg ${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-800'}`}>×</button>
             </div>
@@ -1232,7 +1232,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
       {/* ═══ SIGN WAIVER MODAL ═══ */}
       {signingWaiver && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setSigningWaiver(null)}>
-          <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
+          <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
             {/* Accent top */}
             <div className="h-1.5 rounded-t-2xl" style={{ backgroundColor: teamColor }} />
             
@@ -1269,7 +1269,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
             </div>
 
             {/* Signature Section */}
-            <div className={`px-6 py-5 ${isDark ? 'bg-slate-900' : 'bg-slate-50'} border-t ${tc.border}`}>
+            <div className={`px-6 py-5 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} border-t ${tc.border}`}>
               {/* Agreement */}
               <label className={`flex items-start gap-3 cursor-pointer mb-5 p-4 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-800/50' : 'bg-white'}`}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}

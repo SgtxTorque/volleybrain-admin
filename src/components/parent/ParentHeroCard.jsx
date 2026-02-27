@@ -166,7 +166,7 @@ export default function ParentHeroCard({
   if (!selectedPlayerTeam) {
     return (
       <div
-        className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex items-center justify-center"
+        className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden flex items-center justify-center"
         style={{ minHeight: '420px' }}
       >
         <div className="text-center text-lynx-slate p-8">
@@ -254,7 +254,7 @@ export default function ParentHeroCard({
   return (
     <>
       <div
-        className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"
+        className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden"
         style={{ minHeight: '420px' }}
         data-tutorial="player-card"
       >
@@ -331,7 +331,7 @@ export default function ParentHeroCard({
           <div className="flex-1 flex flex-col min-w-0 bg-white">
 
             {/* Top Identity Bar — Premium Header */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-lynx-silver">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0"
@@ -369,7 +369,7 @@ export default function ParentHeroCard({
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="flex border-b border-slate-200">
+            <div className="flex border-b border-lynx-silver">
               {[
                 { label: 'Player Card', icon: '🪪', action: () => onNavigate?.(`player-${playerId}`) },
                 { label: 'Team Hub', icon: '👥', action: () => navigateToTeamWall?.(teamId) },
@@ -380,8 +380,8 @@ export default function ParentHeroCard({
                   key={btn.label}
                   onClick={btn.action}
                   className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 px-1
-                    text-slate-500 hover:text-[var(--accent-primary)] hover:bg-slate-50
-                    ${i < arr.length - 1 ? 'border-r border-slate-200' : ''}`}
+                    text-slate-500 hover:text-[var(--accent-primary)] hover:bg-lynx-cloud
+                    ${i < arr.length - 1 ? 'border-r border-lynx-silver' : ''}`}
                 >
                   <span className="text-base">{btn.icon}</span>
                   <span className="text-xs font-medium text-slate-600">{btn.label}</span>
@@ -412,7 +412,7 @@ export default function ParentHeroCard({
                                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                                 : item.type === 'shoutout_given'
                                 ? 'border-blue-200 bg-blue-50 text-blue-700'
-                                : 'border-slate-200 bg-white text-slate-600'
+                                : 'border-lynx-silver bg-white text-slate-600'
                             }`}
                           >
                             <span className="text-sm flex-shrink-0">{item.icon}</span>
@@ -420,7 +420,7 @@ export default function ParentHeroCard({
                           </button>
                         ))
                       ) : (
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-lynx-slate">
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-lynx-cloud text-lynx-slate">
                           No recent activity
                         </span>
                       )}
@@ -460,7 +460,7 @@ export default function ParentHeroCard({
                         })}
                       </div>
                     ) : (
-                      <div className="flex-1 flex items-center justify-center rounded-lg bg-slate-50">
+                      <div className="flex-1 flex items-center justify-center rounded-lg bg-lynx-cloud">
                         <div className="text-center">
                           <span className="text-2xl block mb-1">🏅</span>
                           <p className="text-sm text-lynx-slate font-medium">No badges yet</p>
@@ -485,7 +485,7 @@ export default function ParentHeroCard({
                         return url ? (
                           <div
                             key={i}
-                            className="flex-1 min-w-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200"
+                            className="flex-1 min-w-0 rounded-lg overflow-hidden bg-slate-100 border border-lynx-silver"
                             style={{ aspectRatio: '1' }}
                           >
                             <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -493,7 +493,7 @@ export default function ParentHeroCard({
                         ) : (
                           <div
                             key={i}
-                            className="flex-1 min-w-0 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center"
+                            className="flex-1 min-w-0 rounded-lg bg-slate-100 border border-lynx-silver flex items-center justify-center"
                             style={{ aspectRatio: '1' }}
                           >
                             <span className="text-slate-300 text-sm">📷</span>
@@ -529,7 +529,7 @@ export default function ParentHeroCard({
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl flex-shrink-0 border ${
                     isSelected
                       ? 'bg-white border-2 shadow-md'
-                      : 'bg-slate-50 border-slate-200 hover:bg-white hover:shadow-sm'
+                      : 'bg-lynx-cloud border-lynx-silver hover:bg-white hover:shadow-sm'
                   }`}
                   style={isSelected ? { borderColor: combo.teamColor } : {}}
                 >

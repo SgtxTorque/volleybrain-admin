@@ -27,7 +27,7 @@ function AuthenticatedApp() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: colors.bg }}>
-        <div className="w-10 h-10 border-3 rounded-full animate-spin" style={{ borderColor: colors.border, borderTopColor: '#EAB308' }} />
+        <div className="w-10 h-10 border-3 rounded-full animate-spin" style={{ borderColor: colors.border, borderTopColor: '#4BB9EC' }} />
         <p className="mt-4" style={{ color: colors.textSecondary }}>Loading...</p>
         <style>{`.animate-spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>

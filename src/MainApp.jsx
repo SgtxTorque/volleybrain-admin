@@ -298,7 +298,7 @@ function NotificationDropdown({ tc, organization, isDark }) {
                 <div 
                   key={notif.id} 
                   onClick={() => !notif.is_read && markAsRead(notif.id)}
-                  className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition ${!notif.is_read ? (isDark ? 'bg-slate-800/60' : 'bg-blue-50/50') : ''}`}
+                  className={`p-3 border-b ${tc.border} ${tc.hoverBg} cursor-pointer transition ${!notif.is_read ? (isDark ? 'bg-lynx-charcoal/60' : 'bg-blue-50/50') : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="text-xl mt-0.5">{getNotifIcon(notif.type)}</div>
@@ -763,7 +763,7 @@ function OrgBackgroundLayer({ isDark }) {
     return (
       <div className={`fixed inset-0 pointer-events-none ${
         isDark
-          ? 'bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800'
+          ? 'bg-gradient-to-br from-lynx-midnight via-lynx-midnight to-lynx-charcoal'
           : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
       }`} />
     )
@@ -778,16 +778,16 @@ function OrgBackgroundLayer({ isDark }) {
 
   if (background.type === 'gradient') {
     const grad = BACKGROUND_GRADIENTS[background.value]
-    if (!grad) return <div className="fixed inset-0 pointer-events-none bg-slate-900" />
+    if (!grad) return <div className="fixed inset-0 pointer-events-none bg-lynx-midnight" />
     return <div className="fixed inset-0 pointer-events-none" style={{ background: grad }} />
   }
 
   if (background.type === 'pattern') {
     const pattern = BACKGROUND_PATTERNS[background.value]
-    if (!pattern) return <div className="fixed inset-0 pointer-events-none bg-slate-900" />
+    if (!pattern) return <div className="fixed inset-0 pointer-events-none bg-lynx-midnight" />
     return (
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-slate-900" />
+        <div className="absolute inset-0 bg-lynx-midnight" />
         <div className="absolute inset-0" style={{ backgroundImage: pattern, backgroundRepeat: 'repeat', opacity }} />
       </div>
     )
@@ -796,7 +796,7 @@ function OrgBackgroundLayer({ isDark }) {
   if (background.type === 'custom' && background.value) {
     return (
       <div className="fixed inset-0 pointer-events-none">
-        <div className={`absolute inset-0 ${isDark ? 'bg-slate-900' : 'bg-[#F0F1F5]'}`} />
+        <div className={`absolute inset-0 ${isDark ? 'bg-lynx-midnight' : 'bg-[#F0F1F5]'}`} />
         <img
           src={background.value}
           alt=""
@@ -810,7 +810,7 @@ function OrgBackgroundLayer({ isDark }) {
   return (
     <div className={`fixed inset-0 pointer-events-none ${
       isDark
-        ? 'bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800'
+        ? 'bg-gradient-to-br from-lynx-midnight via-lynx-midnight to-lynx-charcoal'
         : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
     }`} />
   )
@@ -1032,7 +1032,7 @@ function MainApp() {
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider>
-      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
+      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />

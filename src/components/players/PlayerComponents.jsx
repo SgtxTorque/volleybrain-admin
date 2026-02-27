@@ -57,7 +57,7 @@ export const getIconComponent = (iconName, size = "w-4 h-4") => {
 // ============================================
 export function InfoBox({ label, value, highlight }) {
   return (
-    <div className="bg-slate-900 rounded-lg p-3">
+    <div className="bg-lynx-midnight rounded-lg p-3">
       <div className="text-xs text-slate-500">{label}</div>
       <div className={`font-medium ${highlight ? 'text-[var(--accent-primary)]' : 'text-white'}`}>{value || '—'}</div>
     </div>
@@ -66,7 +66,7 @@ export function InfoBox({ label, value, highlight }) {
 
 export function ActionButton({ label, icon, onClick, variant = 'default' }) {
   const variants = {
-    default: 'bg-slate-900 text-gray-300 hover:bg-slate-700 hover:text-white',
+    default: 'bg-lynx-midnight text-gray-300 hover:bg-slate-700 hover:text-white',
     primary: 'bg-[var(--accent-primary)] text-white hover:brightness-110',
     danger: 'bg-red-500/20 text-red-400 hover:bg-red-500/30',
   }
@@ -276,7 +276,7 @@ function BadgeDisplay({ badge }) {
   }
   
   return (
-    <div className="bg-slate-900 rounded-xl p-3 flex items-center gap-3">
+    <div className="bg-lynx-midnight rounded-xl p-3 flex items-center gap-3">
       <div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
         {badgeIcons[badge.badge_type] || '🏅'}
       </div>
@@ -307,7 +307,7 @@ function GoalCard({ goal, onUpdate, editable }) {
     : null
 
   return (
-    <div className="bg-slate-900 rounded-xl p-4">
+    <div className="bg-lynx-midnight rounded-xl p-4">
       <div className="flex items-start justify-between mb-2">
         <div>
           <h4 className="text-white font-semibold">{goal.title}</h4>
@@ -366,7 +366,7 @@ function CoachNote({ note }) {
   }
   
   return (
-    <div className={`bg-slate-900 rounded-xl p-4 border-l-4 ${typeColors[note.note_type] || typeColors.general}`}>
+    <div className={`bg-lynx-midnight rounded-xl p-4 border-l-4 ${typeColors[note.note_type] || typeColors.general}`}>
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs text-slate-500 uppercase">{note.note_type}</span>
         <span className="text-xs text-slate-600">
@@ -838,7 +838,7 @@ export function PlayerCardExpanded({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-lynx-charcoal border border-lynx-border-dark rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="relative p-6 text-center" style={{ background: `linear-gradient(180deg, ${posColor}30 0%, #141414 100%)` }}>
           <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl">×</button>
@@ -902,7 +902,7 @@ export function PlayerCardExpanded({
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-700 overflow-x-auto">
+        <div className="flex border-b border-lynx-border-dark overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -941,7 +941,7 @@ export function PlayerCardExpanded({
                     <div className="mt-6">
                       <h4 className="text-sm font-semibold text-slate-400 uppercase mb-3">Team Assignments</h4>
                       {teamAssignments.map(ta => (
-                        <div key={ta.id} className="bg-slate-900 rounded-lg p-3 mb-2 flex items-center justify-between">
+                        <div key={ta.id} className="bg-lynx-midnight rounded-lg p-3 mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: ta.teams?.color || '#EAB308' }} />
                             <span className="text-white">{ta.teams?.name}</span>
@@ -968,7 +968,7 @@ export function PlayerCardExpanded({
               {activeTab === 'development' && (
                 <div className="space-y-6">
                   {/* Skills Section */}
-                  <div className="bg-slate-900 rounded-xl p-5">
+                  <div className="bg-lynx-midnight rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-semibold text-white flex items-center gap-2">
                         <Target className="w-5 h-5 text-[var(--accent-primary)]" />
@@ -1012,7 +1012,7 @@ export function PlayerCardExpanded({
                   </div>
 
                   {/* Evaluation History */}
-                  <div className="bg-slate-900 rounded-xl p-5">
+                  <div className="bg-lynx-midnight rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-semibold text-white">Evaluation History</h4>
                       {canEdit && (
@@ -1025,7 +1025,7 @@ export function PlayerCardExpanded({
                     ) : (
                       <div className="space-y-3">
                         {evaluations.map(ev => (
-                          <div key={ev.id} className="bg-slate-800 rounded-lg p-3 border-l-4 border-[var(--accent-primary)]">
+                          <div key={ev.id} className="bg-lynx-charcoal rounded-lg p-3 border-l-4 border-[var(--accent-primary)]">
                             <div className="flex justify-between items-start">
                               <div>
                                 <span className="text-white font-medium capitalize">{ev.evaluation_type.replace('_', ' ')}</span>
@@ -1106,25 +1106,25 @@ export function PlayerCardExpanded({
                     <>
                       {/* Aggregate Stats */}
                       <div className="grid grid-cols-4 gap-3">
-                        <div className="bg-slate-900 rounded-xl p-4 text-center">
+                        <div className="bg-lynx-midnight rounded-xl p-4 text-center">
                           <div className="text-2xl font-bold text-white">
                             {gameStats.reduce((sum, g) => sum + (g.kills || 0), 0)}
                           </div>
                           <div className="text-xs text-slate-500">Total Kills</div>
                         </div>
-                        <div className="bg-slate-900 rounded-xl p-4 text-center">
+                        <div className="bg-lynx-midnight rounded-xl p-4 text-center">
                           <div className="text-2xl font-bold text-white">
                             {gameStats.reduce((sum, g) => sum + (g.aces || 0), 0)}
                           </div>
                           <div className="text-xs text-slate-500">Total Aces</div>
                         </div>
-                        <div className="bg-slate-900 rounded-xl p-4 text-center">
+                        <div className="bg-lynx-midnight rounded-xl p-4 text-center">
                           <div className="text-2xl font-bold text-white">
                             {gameStats.reduce((sum, g) => sum + (g.digs || 0), 0)}
                           </div>
                           <div className="text-xs text-slate-500">Total Digs</div>
                         </div>
-                        <div className="bg-slate-900 rounded-xl p-4 text-center">
+                        <div className="bg-lynx-midnight rounded-xl p-4 text-center">
                           <div className="text-2xl font-bold text-white">
                             {gameStats.reduce((sum, g) => sum + (g.blocks || 0), 0)}
                           </div>
@@ -1137,7 +1137,7 @@ export function PlayerCardExpanded({
                         <h5 className="text-sm font-semibold text-slate-400 uppercase mb-3">Recent Games</h5>
                         <div className="space-y-2">
                           {gameStats.slice(0, 5).map(game => (
-                            <div key={game.id} className="bg-slate-900 rounded-lg p-3 flex items-center justify-between">
+                            <div key={game.id} className="bg-lynx-midnight rounded-lg p-3 flex items-center justify-between">
                               <div className="text-slate-400 text-sm">
                                 {game.created_at ? new Date(game.created_at).toLocaleDateString() : 'Game'}
                               </div>
@@ -1213,7 +1213,7 @@ export function PlayerCardExpanded({
               {activeTab === 'contact' && (
                 <div className="space-y-4">
                   {/* Primary Parent */}
-                  <div className="bg-slate-900 rounded-xl p-4">
+                  <div className="bg-lynx-midnight rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-slate-400 uppercase mb-3">Primary Contact</h4>
                     <div className="space-y-2">
                       <ContactRow icon="user" label="Name" value={p.parent_name} />
@@ -1224,7 +1224,7 @@ export function PlayerCardExpanded({
 
                   {/* Secondary Parent */}
                   {p.parent_2_name && (
-                    <div className="bg-slate-900 rounded-xl p-4">
+                    <div className="bg-lynx-midnight rounded-xl p-4">
                       <h4 className="text-sm font-semibold text-slate-400 uppercase mb-3">Secondary Contact</h4>
                       <div className="space-y-2">
                         <ContactRow icon="user" label="Name" value={p.parent_2_name} />
@@ -1245,7 +1245,7 @@ export function PlayerCardExpanded({
                   </div>
 
                   {p.address && (
-                    <div className="bg-slate-900 rounded-xl p-4">
+                    <div className="bg-lynx-midnight rounded-xl p-4">
                       <h4 className="text-sm font-semibold text-slate-400 uppercase mb-3">Address</h4>
                       <p className="text-white">{p.address}</p>
                     </div>
@@ -1274,7 +1274,7 @@ export function PlayerCardExpanded({
                     </div>
                   </div>
 
-                  <div className="bg-slate-900 rounded-xl p-4">
+                  <div className="bg-lynx-midnight rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-slate-400 uppercase mb-3">Documents</h4>
                     <div className="space-y-2">
                       <DocumentRow label="Birth Certificate" url={p.birth_certificate_url} />
@@ -1287,7 +1287,7 @@ export function PlayerCardExpanded({
               {/* REGISTRATION TAB */}
               {activeTab === 'registration' && (
                 <div className="space-y-4">
-                  <div className="bg-slate-900 rounded-xl p-4">
+                  <div className="bg-lynx-midnight rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-slate-400 uppercase mb-3">Waiver Status</h4>
                     <div className="grid grid-cols-3 gap-4">
                       <PlayerWaiverBadge label="Liability" signed={p.waiver_liability} />
@@ -1307,7 +1307,7 @@ export function PlayerCardExpanded({
                       <p className="text-slate-500 text-sm">No registrations found</p>
                     ) : (
                       registrations.map(reg => (
-                        <div key={reg.id} className="bg-slate-900 rounded-lg p-3 mb-2 flex items-center justify-between">
+                        <div key={reg.id} className="bg-lynx-midnight rounded-lg p-3 mb-2 flex items-center justify-between">
                           <div>
                             <span className="text-white">{reg.seasons?.name || 'Unknown Season'}</span>
                             <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
@@ -1341,7 +1341,7 @@ export function PlayerCardExpanded({
                       <div className="text-2xl font-bold text-red-400">${totalOwed}</div>
                       <div className="text-xs text-red-400">Outstanding</div>
                     </div>
-                    <div className="bg-slate-900 rounded-xl p-4 text-center">
+                    <div className="bg-lynx-midnight rounded-xl p-4 text-center">
                       <div className="text-2xl font-bold text-white">{payments.length}</div>
                       <div className="text-xs text-slate-400">Transactions</div>
                     </div>
@@ -1353,7 +1353,7 @@ export function PlayerCardExpanded({
                       <p className="text-slate-500 text-sm">No payments found</p>
                     ) : (
                       payments.map(pay => (
-                        <div key={pay.id} className="bg-slate-900 rounded-lg p-3 mb-2 flex items-center justify-between">
+                        <div key={pay.id} className="bg-lynx-midnight rounded-lg p-3 mb-2 flex items-center justify-between">
                           <div>
                             <span className="text-white">{pay.fee_name || pay.fee_type}</span>
                             <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
@@ -1429,7 +1429,7 @@ function AddGoalModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-60 p-4">
-      <div className="bg-slate-800 rounded-xl w-full max-w-md p-6">
+      <div className="bg-lynx-charcoal rounded-xl w-full max-w-md p-6">
         <h3 className="text-xl font-bold text-white mb-4">Add Goal</h3>
         
         <div className="space-y-4">
@@ -1439,7 +1439,7 @@ function AddGoalModal({ onClose, onSave }) {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               placeholder="e.g., Improve serving accuracy"
             />
           </div>
@@ -1449,7 +1449,7 @@ function AddGoalModal({ onClose, onSave }) {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               rows={3}
               placeholder="Details about this goal..."
             />
@@ -1461,7 +1461,7 @@ function AddGoalModal({ onClose, onSave }) {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+                className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               >
                 <option value="skill">Skill</option>
                 <option value="fitness">Fitness</option>
@@ -1476,7 +1476,7 @@ function AddGoalModal({ onClose, onSave }) {
                 type="number"
                 value={targetValue}
                 onChange={(e) => setTargetValue(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+                className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
                 placeholder="e.g., 90"
               />
             </div>
@@ -1488,7 +1488,7 @@ function AddGoalModal({ onClose, onSave }) {
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
             />
           </div>
         </div>
@@ -1516,7 +1516,7 @@ function AddNoteModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-60 p-4">
-      <div className="bg-slate-800 rounded-xl w-full max-w-md p-6">
+      <div className="bg-lynx-charcoal rounded-xl w-full max-w-md p-6">
         <h3 className="text-xl font-bold text-white mb-4">Add Coach Note</h3>
         <p className="text-red-400 text-sm mb-4">🔒 This note is private and only visible to coaches/admins.</p>
         
@@ -1526,7 +1526,7 @@ function AddNoteModal({ onClose, onSave }) {
             <select
               value={noteType}
               onChange={(e) => setNoteType(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
             >
               <option value="general">General</option>
               <option value="praise">Praise</option>
@@ -1541,7 +1541,7 @@ function AddNoteModal({ onClose, onSave }) {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               rows={4}
               placeholder="Write your note here..."
             />
@@ -1590,7 +1590,7 @@ function AddEvaluationModal({ onClose, playerId, seasonId, skillTemplates, onSav
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-60 p-4">
-      <div className="bg-slate-800 rounded-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
+      <div className="bg-lynx-charcoal rounded-xl w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
         <h3 className="text-xl font-bold text-white mb-4">Add Evaluation</h3>
         
         <div className="space-y-4">
@@ -1600,7 +1600,7 @@ function AddEvaluationModal({ onClose, playerId, seasonId, skillTemplates, onSav
               <select
                 value={evaluationType}
                 onChange={(e) => setEvaluationType(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+                className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               >
                 <option value="tryout">Tryout</option>
                 <option value="mid_season">Mid-Season</option>
@@ -1613,7 +1613,7 @@ function AddEvaluationModal({ onClose, playerId, seasonId, skillTemplates, onSav
               <select
                 value={overallScore}
                 onChange={(e) => setOverallScore(parseInt(e.target.value))}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+                className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               >
                 {[1,2,3,4,5,6,7,8,9,10].map(n => (
                   <option key={n} value={n}>{n}</option>
@@ -1636,7 +1636,7 @@ function AddEvaluationModal({ onClose, playerId, seasonId, skillTemplates, onSav
           {/* Skill Ratings */}
           <div>
             <label className="text-sm text-slate-400 mb-2 block">Skill Ratings</label>
-            <div className="bg-slate-900 rounded-lg p-4 space-y-3">
+            <div className="bg-lynx-midnight rounded-lg p-4 space-y-3">
               {skillTemplates.map(template => (
                 <div key={template.skill_key} className="flex items-center justify-between">
                   <span className="text-slate-300">{template.skill_name}</span>
@@ -1659,7 +1659,7 @@ function AddEvaluationModal({ onClose, playerId, seasonId, skillTemplates, onSav
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               rows={3}
               placeholder="Evaluation notes..."
             />
@@ -1723,7 +1723,7 @@ function AddBadgeModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-60 p-4">
-      <div className="bg-slate-800 rounded-xl w-full max-w-md p-6 max-h-[80vh] overflow-y-auto">
+      <div className="bg-lynx-charcoal rounded-xl w-full max-w-md p-6 max-h-[80vh] overflow-y-auto">
         <h3 className="text-xl font-bold text-white mb-2">🏆 Award Badge</h3>
         <p className="text-slate-400 text-sm mb-4">Recognize this player's achievement!</p>
         
@@ -1739,7 +1739,7 @@ function AddBadgeModal({ onClose, onSave }) {
                   className={`p-3 rounded-xl text-left transition ${
                     badgeType === badge.type 
                       ? 'bg-[var(--accent-primary)]/20 border-2 border-[var(--accent-primary)]' 
-                      : 'bg-slate-900 border-2 border-transparent hover:border-slate-700'
+                      : 'bg-lynx-midnight border-2 border-transparent hover:border-lynx-border-dark'
                   }`}
                 >
                   <div className="text-lg">{badge.name.split(' ')[0]}</div>
@@ -1757,7 +1757,7 @@ function AddBadgeModal({ onClose, onSave }) {
                 type="text"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+                className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
                 placeholder="e.g., Best Server"
               />
             </div>
@@ -1765,7 +1765,7 @@ function AddBadgeModal({ onClose, onSave }) {
 
           {/* Selected Badge Preview */}
           {selectedBadge && (
-            <div className="bg-slate-900 rounded-xl p-4 text-center">
+            <div className="bg-lynx-midnight rounded-xl p-4 text-center">
               <div className="text-4xl mb-2">{selectedBadge.name.split(' ')[0]}</div>
               <div className="text-white font-semibold">
                 {badgeType === 'custom' ? (customName || 'Custom Badge') : selectedBadge.name.replace(/^[^\s]+\s/, '')}
@@ -1780,7 +1780,7 @@ function AddBadgeModal({ onClose, onSave }) {
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white mt-1"
+              className="w-full bg-lynx-midnight border border-lynx-border-dark rounded-lg px-3 py-2 text-white mt-1"
               rows={2}
               placeholder="e.g., Game vs Eagles - 15 kills!"
             />

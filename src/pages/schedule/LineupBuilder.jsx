@@ -163,7 +163,7 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
                     <div
                       key={pos.id}
                       className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition ${
-                        player ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]' : isDark ? 'bg-slate-900 border-slate-600 hover:border-slate-400' : 'bg-slate-50 border-slate-300 hover:border-slate-400'
+                        player ? 'bg-[var(--accent-primary)]/20 border-[var(--accent-primary)]' : isDark ? 'bg-lynx-midnight border-slate-600 hover:border-slate-400' : 'bg-lynx-cloud border-slate-300 hover:border-slate-400'
                       }`}
                       onClick={() => {
                         if (player) assignPosition(pos.id, null)
@@ -209,7 +209,7 @@ function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volle
                       className={`p-3 rounded-xl flex items-center justify-between transition ${
                         assigned
                           ? 'bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30'
-                          : isDark ? 'bg-slate-800/50 hover:bg-slate-700/50' : 'bg-slate-50 hover:bg-slate-100'
+                          : isDark ? 'bg-slate-800/50 hover:bg-slate-700/50' : 'bg-lynx-cloud hover:bg-slate-100'
                       }`}
                     >
                       <div className="flex items-center gap-3">

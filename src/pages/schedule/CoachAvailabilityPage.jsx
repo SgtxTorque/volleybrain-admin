@@ -108,7 +108,7 @@ function AvailabilityModal({ dates, onSave, onClose, tc, isDark }) {
       <div
         className={`w-full max-w-md rounded-xl overflow-hidden shadow-2xl avail-modal-enter ${
           isDark
-            ? 'bg-slate-800 border border-white/[0.08]'
+            ? 'bg-lynx-charcoal border border-white/[0.08]'
             : 'bg-white/95 backdrop-blur-xl border border-slate-200/60'
         }`}
         onClick={e => e.stopPropagation()}
@@ -187,14 +187,14 @@ function AvailabilityModal({ dates, onSave, onClose, tc, isDark }) {
               className={`mt-2 w-full px-4 py-3 rounded-xl text-sm resize-none ${
                 isDark
                   ? 'bg-white/[0.06] border border-white/[0.08] text-white placeholder-slate-500 focus:border-[var(--accent-primary)]'
-                  : 'bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-[var(--accent-primary)]'
+                  : 'bg-lynx-cloud border border-lynx-silver text-slate-800 placeholder-slate-400 focus:border-[var(--accent-primary)]'
               } outline-none transition`}
             />
           </div>
 
           {/* Recurring */}
           {dates.length === 1 && (
-            <div className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+            <div className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
               <button
                 onClick={() => setRecurring(!recurring)}
                 className={`w-6 h-6 rounded-lg flex items-center justify-center transition ${
@@ -656,7 +656,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition ${
                 isDark
                   ? 'bg-white/[0.06] border border-white/[0.08] hover:bg-white/10'
-                  : 'bg-white border border-slate-200 hover:border-slate-300 shadow-sm'
+                  : 'bg-white border border-lynx-silver hover:border-slate-300 shadow-sm'
               }`}
             >
               {selectedCoach?.photo_url ? (
@@ -677,7 +677,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                 <div className="fixed inset-0 z-40" onClick={() => setCoachDropdownOpen(false)} />
                 <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto ${
                   isDark
-                    ? 'bg-slate-800 backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
+                    ? 'bg-lynx-charcoal backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
                     : 'bg-white/95 backdrop-blur-2xl border border-slate-200/60 shadow-[0_8px_40px_rgba(0,0,0,0.12)]'
                 }`}>
                   {coaches.map(c => (
@@ -687,7 +687,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                       className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${
                         selectedCoachId === c.id
                           ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
-                          : `${tc.text} ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-50'}`
+                          : `${tc.text} ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`
                       }`}
                     >
                       {c.photo_url ? (
@@ -1001,7 +1001,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                   {upcomingUnavailable.slice(0, 8).map((item, idx) => (
                     <div
                       key={item.dateStr + idx}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'}`}
                     >
                       <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                         item.status === 'unavailable' ? 'bg-red-500' : 'bg-amber-500'
@@ -1050,7 +1050,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                 {recurringPatterns.map(p => (
                   <div
                     key={p.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-slate-50'}`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-lynx-cloud'}`}
                   >
                     <Repeat className="w-4 h-4 text-[var(--accent-primary)] shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -1088,7 +1088,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
                     isDark
                       ? 'bg-white/[0.06] text-slate-200 hover:bg-white/10'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                      : 'bg-lynx-cloud text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <CalendarX2 className="w-5 h-5 text-red-400" />
@@ -1099,7 +1099,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
                     isDark
                       ? 'bg-white/[0.06] text-slate-200 hover:bg-white/10'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                      : 'bg-lynx-cloud text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <Trash2 className="w-5 h-5 text-slate-400" />

@@ -45,7 +45,7 @@ function EventDetailModal({ event, team, onClose }) {
   const eventDate = event.event_date ? new Date(event.event_date + 'T00:00:00') : null
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl shadow-xl bg-white border border-slate-200" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl shadow-xl bg-white border border-lynx-silver" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl" style={{ backgroundColor: team?.color || '#3B82F6' }}>
@@ -84,13 +84,13 @@ function EventDetailModal({ event, team, onClose }) {
             </div>
           )}
           {event.notes && (
-            <div className="rounded-xl p-4 bg-slate-50 border border-slate-100">
+            <div className="rounded-xl p-4 bg-lynx-cloud border border-slate-100">
               <p className="text-sm text-slate-600">{event.notes}</p>
             </div>
           )}
         </div>
         <div className="p-6 border-t border-slate-100">
-          <button onClick={onClose} className="w-full py-3 rounded-xl font-medium border border-slate-200 text-slate-600 hover:bg-slate-50">Close</button>
+          <button onClick={onClose} className="w-full py-3 rounded-xl font-medium border border-lynx-silver text-slate-600 hover:bg-lynx-cloud">Close</button>
         </div>
       </div>
     </div>
@@ -136,7 +136,7 @@ function CoachBlastModal({ team, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-xl shadow-xl bg-white border border-slate-200" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-xl shadow-xl bg-white border border-lynx-silver" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-50 border border-purple-100">
@@ -154,22 +154,22 @@ function CoachBlastModal({ team, onClose, showToast }) {
         <div className="p-6 space-y-4">
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-500">Subject</label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Practice time change tomorrow" className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400" />
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Practice time change tomorrow" className="w-full px-4 py-3 rounded-xl bg-lynx-cloud border border-lynx-silver text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-500">Message</label>
-            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message to parents..." rows={4} className="w-full px-4 py-3 rounded-xl resize-none bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400" />
+            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message to parents..." rows={4} className="w-full px-4 py-3 rounded-xl resize-none bg-lynx-cloud border border-lynx-silver text-slate-900 placeholder-slate-400" />
           </div>
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider block mb-1.5 text-slate-500">Priority</label>
             <div className="flex gap-2">
-              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? 'bg-blue-50 border border-blue-300 text-blue-600' : 'bg-slate-50 border border-slate-200 text-slate-500'}`}>Normal</button>
-              <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'urgent' ? 'bg-red-50 border border-red-300 text-red-600' : 'bg-slate-50 border border-slate-200 text-slate-500'}`}>Urgent</button>
+              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? 'bg-blue-50 border border-blue-300 text-blue-600' : 'bg-lynx-cloud border border-lynx-silver text-slate-500'}`}>Normal</button>
+              <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'urgent' ? 'bg-red-50 border border-red-300 text-red-600' : 'bg-lynx-cloud border border-lynx-silver text-slate-500'}`}>Urgent</button>
             </div>
           </div>
         </div>
         <div className="p-6 border-t border-slate-100 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl font-medium border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl font-medium border border-lynx-silver text-slate-600 hover:bg-lynx-cloud">Cancel</button>
           <button onClick={handleSend} disabled={sending || !title.trim() || !body.trim()} className="flex-1 py-3 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50">
             {sending ? 'Sending...' : 'Send Message'}
           </button>
@@ -204,7 +204,7 @@ function WarmupTimerModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
-      <div className={`w-full max-w-sm text-center rounded-xl shadow-xl bg-white border border-slate-200 ${isFinished ? 'ring-2 ring-emerald-500/40' : ''}`} onClick={e => e.stopPropagation()}>
+      <div className={`w-full max-w-sm text-center rounded-xl shadow-xl bg-white border border-lynx-silver ${isFinished ? 'ring-2 ring-emerald-500/40' : ''}`} onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center justify-center gap-3">
             <Timer className={`w-6 h-6 ${isFinished ? 'text-emerald-500' : 'text-amber-500'}`} />
@@ -242,7 +242,7 @@ function WarmupTimerModal({ onClose }) {
                 ) : seconds > 0 ? (
                   <button onClick={() => setRunning(true)} className="flex-1 py-3 rounded-xl font-bold bg-emerald-50 border border-emerald-200 text-emerald-600">Resume</button>
                 ) : null}
-                <button onClick={resetTimer} className="flex-1 py-3 rounded-xl font-bold border border-slate-200 text-slate-600">Reset</button>
+                <button onClick={resetTimer} className="flex-1 py-3 rounded-xl font-bold border border-lynx-silver text-slate-600">Reset</button>
               </div>
             </div>
           )}
@@ -380,9 +380,9 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── Loading State ──
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-slate-50" style={{ minHeight: '60vh' }}>
+      <div className="flex items-center justify-center bg-lynx-cloud" style={{ minHeight: '60vh' }}>
         <div className="text-center">
-          <div className="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-12 h-12 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="mt-4 text-sm tracking-wide text-slate-500">Loading dashboard...</p>
         </div>
       </div>
@@ -392,7 +392,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── No Teams State ──
   if (teams.length === 0) {
     return (
-      <div className="flex items-center justify-center bg-slate-50" style={{ minHeight: '60vh' }}>
+      <div className="flex items-center justify-center bg-lynx-cloud" style={{ minHeight: '60vh' }}>
         <div className="text-center max-w-md mx-auto px-6">
           <div className="w-20 h-20 rounded-xl mx-auto mb-6 flex items-center justify-center bg-blue-50 border border-blue-100">
             <Shield className="w-10 h-10 text-blue-500" />
@@ -406,7 +406,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // ── Main Render: 3-Column Layout ──
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-slate-50">
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-lynx-cloud">
       <CoachLeftSidebar
         selectedTeam={selectedTeam}
         coachName={coachName}

@@ -24,7 +24,7 @@ export default function CoachLeftSidebar({
   const sportName = selectedTeam?.seasons?.sports?.name || 'Volleyball'
 
   return (
-    <aside className="w-[240px] shrink-0 border-r border-slate-200/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
+    <aside className="w-[240px] shrink-0 border-r border-lynx-silver/50 bg-white overflow-y-auto p-5 space-y-5 h-full">
       {/* Team Header */}
       <div>
         <div className="flex items-center gap-3">
@@ -51,7 +51,7 @@ export default function CoachLeftSidebar({
           { value: teamsCount, label: 'Teams', color: 'text-blue-500' },
           { value: `${winRate}%`, label: 'Win %', color: 'text-emerald-500' },
         ].map(stat => (
-          <div key={stat.label} className="text-center p-2 rounded-xl bg-slate-50">
+          <div key={stat.label} className="text-center p-2 rounded-xl bg-lynx-cloud">
             <p className={`text-lg font-black ${stat.color}`}>{stat.value}</p>
             <p className="text-xs uppercase tracking-wide text-lynx-slate font-bold">{stat.label}</p>
           </div>
@@ -59,7 +59,7 @@ export default function CoachLeftSidebar({
       </div>
 
       {/* Needs Attention */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-4 h-4 text-amber-500" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
@@ -75,7 +75,7 @@ export default function CoachLeftSidebar({
               <button
                 key={i}
                 onClick={item.action}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 text-left"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-lynx-cloud text-left"
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                 <span className="text-sm font-medium text-slate-700">{item.label}</span>
@@ -109,7 +109,7 @@ export default function CoachLeftSidebar({
               <button
                 key={action.label}
                 onClick={action.onClick}
-                className="w-full flex items-center gap-3 py-2.5 px-3 hover:bg-slate-50 rounded-xl cursor-pointer text-left"
+                className="w-full flex items-center gap-3 py-2.5 px-3 hover:bg-lynx-cloud rounded-xl cursor-pointer text-left"
               >
                 <Icon className="w-4 h-4 text-slate-500" />
                 <span className="text-sm font-medium text-slate-700">{action.label}</span>
@@ -135,7 +135,7 @@ export default function CoachLeftSidebar({
               <button
                 key={action.page}
                 onClick={() => onNavigate?.(action.page)}
-                className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-left"
+                className="flex items-center gap-2 p-2.5 rounded-xl bg-lynx-cloud hover:bg-slate-100 text-left"
               >
                 <Icon className="w-4 h-4 text-slate-500" />
                 <span className="text-sm font-semibold text-slate-600">{action.label}</span>

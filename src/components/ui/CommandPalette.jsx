@@ -156,9 +156,9 @@ export function CommandPalette({ isOpen, onClose }) {
 
   if (!isOpen) return null
 
-  const bg = isDark ? 'bg-slate-900/95' : 'bg-white/95'
-  const cardBg = isDark ? 'bg-slate-800' : 'bg-white'
-  const border = isDark ? 'border-slate-700' : 'border-slate-200'
+  const bg = isDark ? 'bg-lynx-midnight/95' : 'bg-white/95'
+  const cardBg = isDark ? 'bg-lynx-charcoal' : 'bg-white'
+  const border = isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
   const text = isDark ? 'text-white' : 'text-slate-900'
   const textSec = isDark ? 'text-slate-400' : 'text-slate-500'
   const hoverBg = isDark ? 'bg-slate-700/50' : 'bg-slate-100'

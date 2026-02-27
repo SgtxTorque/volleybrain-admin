@@ -55,7 +55,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, destructive,
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
-      <div className={`pa-as w-full max-w-md rounded-xl p-6 ${isDark ? 'bg-slate-800 border border-white/[0.08]' : 'bg-white border border-slate-200/60'} shadow-2xl`}>
+      <div className={`pa-as w-full max-w-md rounded-xl p-6 ${isDark ? 'bg-lynx-charcoal border border-white/[0.08]' : 'bg-white border border-slate-200/60'} shadow-2xl`}>
         <div className="flex items-center gap-3 mb-4">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${destructive ? 'bg-red-500/20' : 'bg-amber-500/20'}`}>
             <AlertTriangle className={`w-5 h-5 ${destructive ? 'text-red-400' : 'text-amber-400'}`} />
@@ -132,9 +132,9 @@ function OrgDetailSlideOver({ org, isOpen, onClose, isDark, tc, accent, onAction
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={`relative w-full max-w-lg pa-ai ${isDark ? 'bg-slate-900 border-l border-white/[0.08]' : 'bg-white border-l border-slate-200'} shadow-2xl overflow-y-auto`}>
+      <div className={`relative w-full max-w-lg pa-ai ${isDark ? 'bg-lynx-midnight border-l border-white/[0.08]' : 'bg-white border-l border-lynx-silver'} shadow-2xl overflow-y-auto`}>
         {/* Header */}
-        <div className={`sticky top-0 z-10 p-5 border-b ${isDark ? 'bg-slate-900/95 border-white/[0.08]' : 'bg-white/95 border-slate-200'} backdrop-blur-xl`}>
+        <div className={`sticky top-0 z-10 p-5 border-b ${isDark ? 'bg-slate-900/95 border-white/[0.08]' : 'bg-white/95 border-lynx-silver'} backdrop-blur-xl`}>
           <div className="flex items-center justify-between mb-1">
             <h2 className={`text-xl font-bold ${tc.text}`}>{org?.name}</h2>
             <button onClick={onClose} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'} transition`}>

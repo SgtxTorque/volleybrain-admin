@@ -31,7 +31,7 @@ export function ActionItemsSidebar({ items, onAction, onClose, isOpen }) {
 
       {/* Sidebar panel */}
       <div className={`fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col shadow-2xl transition-transform ${
-        isDark ? 'bg-slate-900 border-l border-slate-700' : 'bg-white border-l border-slate-200'
+        isDark ? 'bg-lynx-midnight border-l border-lynx-border-dark' : 'bg-white border-l border-lynx-silver'
       }`}>
         {/* Header */}
         <div className={`px-6 py-5 border-b ${tc.border} flex items-center justify-between flex-shrink-0`}>
@@ -47,7 +47,7 @@ export function ActionItemsSidebar({ items, onAction, onClose, isOpen }) {
           <button
             onClick={onClose}
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition ${
-              isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-lynx-slate'
+              isDark ? 'hover:bg-lynx-charcoal text-slate-400' : 'hover:bg-slate-100 text-lynx-slate'
             }`}
           >
             <X className="w-5 h-5" />
@@ -121,7 +121,7 @@ function SummaryStat({ label, count, color, extra }) {
 
   return (
     <div
-      className={`rounded-xl p-3 text-center ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}
+      className={`rounded-xl p-3 text-center ${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'}`}
       style={{ borderLeft: `3px solid ${color}` }}
     >
       <div className="text-xl font-black" style={{ color }}>{extra || count}</div>

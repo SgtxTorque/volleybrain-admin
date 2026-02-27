@@ -37,7 +37,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
     <div className={`p-4 rounded-xl border-2 transition ${
       ourWon ? 'bg-emerald-500/10 border-emerald-500/50' :
       theyWon ? 'bg-red-500/10 border-red-500/50' :
-      isDark ? 'bg-slate-800/50 border-slate-600' : 'bg-slate-50 border-slate-200'
+      isDark ? 'bg-slate-800/50 border-slate-600' : 'bg-lynx-cloud border-lynx-silver'
     }`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
                 onOurScoreChange(val === '' ? 0 : parseInt(val, 10))
               }}
               placeholder="0"
-              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${isDark ? 'bg-slate-800' : 'bg-white'} ${
+              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${isDark ? 'bg-lynx-charcoal' : 'bg-white'} ${
                 ourWon ? 'border-emerald-400 text-emerald-400' : isDark ? 'border-slate-600 text-white focus:border-purple-500' : 'border-slate-300 text-slate-900 focus:border-purple-500'
               }`}
             />
@@ -106,7 +106,7 @@ function SetScoreInput({ setNumber, ourScore, theirScore, targetScore, cap, winB
                 onTheirScoreChange(val === '' ? 0 : parseInt(val, 10))
               }}
               placeholder="0"
-              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${isDark ? 'bg-slate-800' : 'bg-white'} ${
+              className={`w-16 h-12 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none ${isDark ? 'bg-lynx-charcoal' : 'bg-white'} ${
                 theyWon ? 'border-red-400 text-red-400' : isDark ? 'border-slate-600 text-white focus:border-purple-500' : 'border-slate-300 text-slate-900 focus:border-purple-500'
               }`}
             />

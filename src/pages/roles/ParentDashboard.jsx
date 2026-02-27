@@ -50,8 +50,8 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-slate-200">
+      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-lynx-silver">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: team?.color || '#6366F1' }}>
               {event.event_type === 'practice' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> :
@@ -91,14 +91,14 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
           )}
 
           {event.notes && (
-            <div className="bg-slate-50 rounded-xl p-4">
+            <div className="bg-lynx-cloud rounded-xl p-4">
               <p className="text-sm text-slate-600">{event.notes}</p>
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-slate-200">
-          <button onClick={onClose} className="w-full py-3 rounded-xl border border-slate-200 text-slate-900 font-medium hover:bg-slate-50 transition">
+        <div className="p-6 border-t border-lynx-silver">
+          <button onClick={onClose} className="w-full py-3 rounded-xl border border-lynx-silver text-slate-900 font-medium hover:bg-lynx-cloud transition">
             Close
           </button>
         </div>
@@ -151,8 +151,8 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-2xl">
-        <div className="p-5 border-b border-slate-200">
+      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg shadow-2xl">
+        <div className="p-5 border-b border-lynx-silver">
           <h2 className="text-xl font-bold text-slate-900">Make a Payment</h2>
           <div className="flex items-center justify-between mt-2">
             <p className="text-slate-500 text-sm">Total Due</p>
@@ -162,7 +162,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 
         <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
           {fees.length > 0 && (
-            <div className="bg-slate-50 rounded-xl overflow-hidden">
+            <div className="bg-lynx-cloud rounded-xl overflow-hidden">
               <button
                 onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
                 className="w-full p-3 flex items-center justify-between text-slate-900 hover:opacity-80"
@@ -171,7 +171,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
                 <span className={`transition-transform ${showFeeBreakdown ? 'rotate-180' : ''}`}>▼</span>
               </button>
               {showFeeBreakdown && (
-                <div className="px-3 pb-3 border-t border-slate-200">
+                <div className="px-3 pb-3 border-t border-lynx-silver">
                   {Object.entries(feesByPlayer).map(([playerName, playerFees]) => (
                     <div key={playerName} className="mt-3">
                       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{playerName}</p>
@@ -183,7 +183,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
                       ))}
                     </div>
                   ))}
-                  <div className="flex justify-between font-semibold pt-2 mt-2 border-t border-slate-200">
+                  <div className="flex justify-between font-semibold pt-2 mt-2 border-t border-lynx-silver">
                     <span className="text-slate-900">Total</span>
                     <span className="text-[var(--accent-primary)]">${amount?.toFixed(2)}</span>
                   </div>
@@ -193,7 +193,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
 
           {hasPaymentMethods && (
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-lynx-cloud rounded-xl p-3">
               <p className="text-xs text-slate-500 mb-1">Include this note with your payment:</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-sm text-slate-900 bg-slate-200/60 px-2 py-1 rounded">
@@ -264,14 +264,14 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
 
           {organization?.payment_instructions && (
-            <div className="bg-slate-50 rounded-xl p-3">
+            <div className="bg-lynx-cloud rounded-xl p-3">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Additional Instructions</p>
               <p className="text-sm text-slate-600 whitespace-pre-wrap">{organization.payment_instructions}</p>
             </div>
           )}
 
           {!hasPaymentMethods && !organization?.payment_instructions && (
-            <div className="bg-slate-50 rounded-xl p-6 text-center">
+            <div className="bg-lynx-cloud rounded-xl p-6 text-center">
               <p className="text-3xl mb-2">💳</p>
               <p className="font-medium text-slate-900">Payment methods coming soon!</p>
               <p className="text-sm text-slate-500 mt-1">Contact your league administrator for payment options.</p>
@@ -288,13 +288,13 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
         </div>
 
-        <div className="p-5 border-t border-slate-200 space-y-2">
+        <div className="p-5 border-t border-lynx-silver space-y-2">
           {amount > 100 && (
             <button
               onClick={() => {
                 showToast?.('Payment plan requests coming soon!', 'info')
               }}
-              className="w-full py-2 rounded-xl border border-slate-200 text-slate-500 text-sm hover:bg-slate-50 transition"
+              className="w-full py-2 rounded-xl border border-lynx-silver text-slate-500 text-sm hover:bg-lynx-cloud transition"
             >
               Need a payment plan? Contact admin
             </button>
@@ -366,8 +366,8 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl">
-        <div className="p-6 border-b border-slate-200">
+      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl">
+        <div className="p-6 border-b border-lynx-silver">
           <h2 className="text-xl font-semibold text-slate-900">Add Another Child</h2>
           <p className="text-slate-500 text-sm mt-1">Select a season to register a sibling</p>
         </div>
@@ -392,7 +392,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
                   href={getSiblingRegistrationUrl(season)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-slate-50 rounded-xl p-4 flex items-center gap-4 hover:bg-slate-100 transition block"
+                  className="bg-lynx-cloud rounded-xl p-4 flex items-center gap-4 hover:bg-slate-100 transition block"
                 >
                   <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                     {season.sports?.icon || '🏐'}
@@ -413,8 +413,8 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
           )}
         </div>
 
-        <div className="p-6 border-t border-slate-200">
-          <button onClick={onClose} className="w-full py-2 rounded-xl border border-slate-200 text-slate-900 hover:bg-slate-50 transition">
+        <div className="p-6 border-t border-lynx-silver">
+          <button onClick={onClose} className="w-full py-2 rounded-xl border border-lynx-silver text-slate-900 hover:bg-lynx-cloud transition">
             Close
           </button>
         </div>
@@ -465,14 +465,14 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-md shadow-xl">
-        <div className="p-6 border-b border-slate-200">
+      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-md shadow-xl">
+        <div className="p-6 border-b border-lynx-silver">
           <h2 className="text-xl font-semibold text-slate-900">Re-Register {player.first_name}</h2>
           <p className="text-slate-500 text-sm mt-1">for {season.name}</p>
         </div>
 
         <div className="p-6 space-y-4">
-          <div className="bg-slate-50 rounded-xl p-4">
+          <div className="bg-lynx-cloud rounded-xl p-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                 {season.sports?.icon || '🏅'}
@@ -491,8 +491,8 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
           </div>
         </div>
 
-        <div className="p-6 border-t border-slate-200 flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2 rounded-xl border border-slate-200 text-slate-900 hover:bg-slate-50 transition">
+        <div className="p-6 border-t border-lynx-silver flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2 rounded-xl border border-lynx-silver text-slate-900 hover:bg-lynx-cloud transition">
             Cancel
           </button>
           <a
@@ -519,8 +519,8 @@ function AlertDetailModal({ alert, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-slate-200">
+      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-lynx-silver">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
               alert.priority === 'urgent' ? 'bg-red-50 text-red-500' : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
@@ -538,8 +538,8 @@ function AlertDetailModal({ alert, onClose }) {
           <p className="text-slate-600 whitespace-pre-wrap">{alert.content}</p>
         </div>
 
-        <div className="p-6 border-t border-slate-200">
-          <button onClick={onClose} className="w-full py-3 rounded-xl border border-slate-200 text-slate-900 font-medium hover:bg-slate-50 transition">
+        <div className="p-6 border-t border-lynx-silver">
+          <button onClick={onClose} className="w-full py-3 rounded-xl border border-lynx-silver text-slate-900 font-medium hover:bg-lynx-cloud transition">
             Close
           </button>
         </div>
@@ -879,7 +879,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
 
         {openSeasons.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div className="bg-white border border-lynx-silver rounded-xl p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Open Registrations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {openSeasons.map(season => (
@@ -888,7 +888,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   href={getRegistrationUrl(season)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-slate-50 rounded-xl p-4 flex items-center gap-4 hover:bg-slate-100 transition"
+                  className="bg-lynx-cloud rounded-xl p-4 flex items-center gap-4 hover:bg-slate-100 transition"
                 >
                   <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                     {season.sports?.icon || '🏐'}
@@ -940,7 +940,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // RENDER — 3-COLUMN LAYOUT
   // ============================================
   return (
-    <div data-tutorial="dashboard-header" className="flex h-[calc(100vh-4rem)] overflow-hidden bg-slate-50">
+    <div data-tutorial="dashboard-header" className="flex h-[calc(100vh-4rem)] overflow-hidden bg-lynx-cloud">
 
       {/* LEFT SIDEBAR (280px) */}
       <ParentLeftSidebar

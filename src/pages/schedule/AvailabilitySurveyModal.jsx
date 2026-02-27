@@ -102,7 +102,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
                 <h3 className={`text-xs font-semibold uppercase tracking-wider mb-3 ${tc.textMuted}`}>Existing Surveys</h3>
                 <div className="space-y-2">
                   {surveys.map(survey => (
-                    <div key={survey.id} className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4 flex items-center justify-between`}>
+                    <div key={survey.id} className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4 flex items-center justify-between`}>
                       <div>
                         <p className={`font-medium ${tc.text}`}>{survey.title}</p>
                         <p className={`text-sm ${tc.textMuted}`}>{survey.responses?.length || 0} responses</p>
@@ -166,7 +166,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
                       </div>
                     ))}
                     <button onClick={addSlot}
-                      className={`w-full px-4 py-2 border border-dashed rounded-xl transition ${isDark ? 'border-slate-700 text-slate-400 hover:text-white' : 'border-slate-300 text-slate-400 hover:text-slate-700'} hover:border-[var(--accent-primary)]/30`}>
+                      className={`w-full px-4 py-2 border border-dashed rounded-xl transition ${isDark ? 'border-lynx-border-dark text-slate-400 hover:text-white' : 'border-slate-300 text-slate-400 hover:text-slate-700'} hover:border-[var(--accent-primary)]/30`}>
                       + Add Time Slot
                     </button>
                   </div>
@@ -195,7 +195,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
                 </div>
 
                 {/* Results heatmap */}
-                <div className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4`}>
+                <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4`}>
                   <h4 className={`text-xs font-semibold uppercase tracking-wider mb-4 ${tc.textMuted}`}>Availability Summary</h4>
                   <div className="space-y-3">
                     {selectedSurvey.slots.map((slot, i) => {
@@ -235,7 +235,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
                     <h4 className={`text-xs font-semibold uppercase tracking-wider mb-3 ${tc.textMuted}`}>Individual Responses</h4>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {selectedSurvey.responses.map((response, i) => (
-                        <div key={i} className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-lg p-3 text-sm`}>
+                        <div key={i} className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-lg p-3 text-sm`}>
                           <p className={`${tc.text} font-medium`}>{response.name}</p>
                           <p className={`text-xs ${tc.textMuted}`}>
                             Available: {response.available?.map(idx => selectedSurvey.slots[idx]?.day).join(', ') || 'None'}
@@ -258,7 +258,7 @@ function AvailabilitySurveyModal({ teams, organization, onClose, showToast }) {
         )}
 
         <div className={`p-6 border-t ${tc.border} flex justify-end gap-3 sticky bottom-0 ${tc.cardBg} z-10`}>
-          <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Close</button>
+          <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Close</button>
           {step === 'create' && (
             <button onClick={createSurvey} disabled={form.slots.length === 0}
               className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition disabled:opacity-50">

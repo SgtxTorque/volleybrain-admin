@@ -44,7 +44,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
         </button>
       </div>
 
-      <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'}`}>
+      <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'}`}>
         {events && events.length > 0 ? (
           events.slice(0, 5).map((event, i) => {
             const teamColor = event.teams?.color || EVENT_COLORS[i % EVENT_COLORS.length]
@@ -55,7 +55,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
               <div
                 key={event.id || i}
                 className={`flex items-center gap-4 px-6 py-4 transition-colors cursor-pointer ${
-                  isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
+                  isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'
                 } ${i > 0 ? (isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-100') : ''}`}
                 onClick={() => onNavigate('schedule')}
               >

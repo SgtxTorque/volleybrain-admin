@@ -555,7 +555,7 @@ function PlatformAnalyticsPage({ showToast }) {
             <select
               value={dateRange}
               onChange={e => setDateRange(e.target.value)}
-              className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300' : 'bg-white border-slate-200 text-slate-700'} border focus:outline-none cursor-pointer`}
+              className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300' : 'bg-white border-lynx-silver text-slate-700'} border focus:outline-none cursor-pointer`}
             >
               {DATE_RANGES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
             </select>
@@ -565,7 +565,7 @@ function PlatformAnalyticsPage({ showToast }) {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className={`p-2.5 rounded-xl transition ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400' : 'bg-white hover:bg-slate-50 text-slate-500'} border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}
+            className={`p-2.5 rounded-xl transition ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400' : 'bg-white hover:bg-lynx-cloud text-slate-500'} border ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>

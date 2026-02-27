@@ -41,7 +41,7 @@ export default function TeamSnapshot({ teams, teamStats, onNavigate }) {
             key={team.id}
             className={`group relative overflow-hidden rounded-xl p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
               isDark
-                ? 'bg-slate-800 border border-white/[0.06]'
+                ? 'bg-lynx-charcoal border border-white/[0.06]'
                 : 'bg-white'
             }`}
           >
@@ -55,7 +55,7 @@ export default function TeamSnapshot({ teams, teamStats, onNavigate }) {
           </div>
         ))}
         {teamData.length === 0 && (
-          <div className={`col-span-4 rounded-xl p-8 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+          <div className={`col-span-4 rounded-xl p-8 text-center shadow-sm ${isDark ? 'bg-lynx-charcoal' : 'bg-white'}`}>
             <p className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>No teams yet. Create your first team to get started.</p>
           </div>
         )}

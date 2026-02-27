@@ -79,11 +79,11 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
   return (
     <aside className={`flex w-[310px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
-      isDark ? 'border-white/[0.06] bg-slate-900' : 'border-slate-200/50 bg-slate-50'
+      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-lynx-silver/50 bg-lynx-cloud'
     }`}>
       {/* Org Card */}
       <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow-sm ${
-        isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
       }`}>
         {orgLogo ? (
           <img
@@ -94,7 +94,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
         ) : (
           <div
             className="flex h-16 w-16 items-center justify-center rounded-xl text-xl font-bold text-white shadow-sm"
-            style={{ backgroundColor: accent.primary || '#2c3e50' }}
+            style={{ backgroundColor: accent.primary || '#10284C' }}
           >
             {initials}
           </div>
@@ -117,7 +117,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
       {/* Collections Progress */}
       <div className={`rounded-xl p-5 shadow-sm ${
-        isDark ? 'bg-slate-800 border border-white/[0.06]' : 'bg-white'
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between">
           <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Collections</span>

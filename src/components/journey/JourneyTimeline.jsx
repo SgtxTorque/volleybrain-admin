@@ -79,7 +79,7 @@ export function JourneyTimeline({ onNavigate, expanded = false }) {
                           ? 'text-white border-white dark:border-slate-800' 
                           : isCurrent 
                             ? 'border-white dark:border-slate-800 animate-pulse'
-                            : 'bg-slate-200 dark:bg-slate-700 text-slate-400 border-slate-200 dark:border-slate-700'
+                            : 'bg-slate-200 dark:bg-slate-700 text-slate-400 border-lynx-silver dark:border-lynx-border-dark'
                       }`}
                       style={{ 
                         backgroundColor: isCompleted || isCurrent ? accent.primary : undefined,
@@ -166,7 +166,7 @@ export function JourneyTimeline({ onNavigate, expanded = false }) {
           )}
 
           {/* Dismiss options */}
-          <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between pt-2 border-t border-lynx-silver dark:border-lynx-border-dark">
             <button 
               onClick={() => journey.dismissJourney('day')}
               className={`text-sm ${tc.textMuted} hover:underline`}
@@ -223,7 +223,7 @@ export function JourneyWidget({ onNavigate }) {
       {showFull && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className={`w-full max-w-2xl max-h-[80vh] overflow-auto rounded-xl ${tc.pageBg}`}>
-            <div className="sticky top-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-inherit">
+            <div className="sticky top-0 flex items-center justify-between p-4 border-b border-lynx-silver dark:border-lynx-border-dark bg-inherit">
               <h2 className={`text-xl font-bold ${tc.text}`}>Your Lynx Journey</h2>
               <button 
                 onClick={() => setShowFull(false)}
@@ -317,7 +317,7 @@ export function BadgeShowcase() {
               className={`aspect-square rounded-xl flex flex-col items-center justify-center p-2 transition-all ${
                 isEarned 
                   ? 'bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/30 dark:to-yellow-800/30' 
-                  : 'bg-slate-100 dark:bg-slate-800 opacity-40'
+                  : 'bg-slate-100 dark:bg-lynx-charcoal opacity-40'
               }`}
               title={`${badge.name}: ${badge.description}`}
             >

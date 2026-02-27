@@ -36,7 +36,7 @@ function VenueManagerModal({ venues, onClose, onSave }) {
           {/* Existing venues */}
           <div className="space-y-2">
             {localVenues.map((venue, i) => (
-              <div key={i} className={`${isDark ? 'bg-slate-900' : 'bg-slate-50'} rounded-xl p-4 flex items-start justify-between`}>
+              <div key={i} className={`${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'} rounded-xl p-4 flex items-start justify-between`}>
                 <div>
                   <p className={`font-medium ${tc.text}`}>{venue.name}</p>
                   {venue.address && <p className={`text-sm ${tc.textMuted}`}>{venue.address}</p>}
@@ -68,7 +68,7 @@ function VenueManagerModal({ venues, onClose, onSave }) {
           </div>
         </div>
         <div className={`p-6 border-t ${tc.border} flex justify-end gap-3`}>
-          <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>Cancel</button>
+          <button onClick={onClose} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Cancel</button>
           <button onClick={handleSave} className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">Save Venues</button>
         </div>
       </div>

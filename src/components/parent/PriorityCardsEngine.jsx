@@ -276,8 +276,8 @@ function PriorityCard({ item, onAction, compact = false }) {
       className={`group flex items-center gap-3 rounded-xl border transition-all cursor-pointer ${
         compact ? 'px-3 py-2.5' : 'px-4 py-3'
       } ${isDark
-        ? 'bg-slate-800/80 border-slate-700 hover:border-slate-500 hover:bg-slate-750'
-        : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-md'
+        ? 'bg-lynx-charcoal/80 border-lynx-border-dark hover:border-slate-500 hover:bg-slate-750'
+        : 'bg-white border-lynx-silver hover:border-slate-300 hover:shadow-md'
       }`}
       onClick={() => onAction?.(item)}
     >
@@ -334,7 +334,7 @@ export function PriorityCardsList({ items, onAction, maxItems = 5, compact = fal
         <button
           onClick={() => setExpanded(true)}
           className={`w-full py-2 text-xs font-semibold text-center rounded-lg transition ${
-            isDark ? 'text-slate-400 hover:text-slate-300 hover:bg-slate-800' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            isDark ? 'text-slate-400 hover:text-slate-300 hover:bg-lynx-charcoal' : 'text-slate-500 hover:text-slate-700 hover:bg-lynx-cloud'
           }`}
         >
           Show {items.length - maxItems} more items...
