@@ -158,6 +158,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const [showShoutoutModal, setShowShoutoutModal] = useState(false)
   const [showCreateChallengeModal, setShowCreateChallengeModal] = useState(false)
   const [activePlayerPopup, setActivePlayerPopup] = useState(null)
+  const [shoutoutPreselect, setShoutoutPreselect] = useState(null)
   const [activeChallenges, setActiveChallenges] = useState([])
 
   // Gallery lightbox
@@ -349,6 +350,80 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   function openTeamChat() {
     sessionStorage.setItem('openTeamChat', teamId)
     if (onNavigate) onNavigate('messages')
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // SHOUTOUT AGGREGATION (6-hour rolling window)
+  // ═══════════════════════════════════════════════════════════
+
+  function aggregateShoutouts(rawPosts) {
+    const WINDOW_MS = 6 * 60 * 60 * 1000
+    const result = []
+    const shoutoutGroups = new Map()
+
+    for (const post of rawPosts) {
+      if (post.post_type !== 'shoutout') {
+        result.push(post)
+        continue
+      }
+
+      let meta = null
+      try { if (post.title) meta = JSON.parse(post.title) } catch {}
+
+      if (!meta?.receiverId) {
+        result.push(post)
+        continue
+      }
+
+      const recipientKey = meta.receiverId
+      const postTime = new Date(post.created_at).getTime()
+
+      if (shoutoutGroups.has(recipientKey)) {
+        const group = shoutoutGroups.get(recipientKey)
+        if (Math.abs(postTime - group.latestTime) <= WINDOW_MS) {
+          group.posts.push(post)
+          group.latestTime = Math.max(group.latestTime, postTime)
+          continue
+        }
+      }
+
+      shoutoutGroups.set(recipientKey, {
+        posts: [post],
+        latestTime: postTime,
+        recipientKey,
+      })
+    }
+
+    for (const [key, group] of shoutoutGroups) {
+      if (group.posts.length === 1) {
+        result.push(group.posts[0])
+      } else {
+        const firstPost = group.posts[0]
+        let firstMeta = null
+        try { firstMeta = JSON.parse(firstPost.title) } catch {}
+
+        const givers = group.posts.map(p => p.profiles?.full_name || 'Someone')
+        const categories = group.posts.map(p => {
+          try { return JSON.parse(p.title) } catch { return null }
+        }).filter(Boolean)
+
+        result.push({
+          ...firstPost,
+          id: `agg-${key}-${firstPost.id}`,
+          _isAggregated: true,
+          _aggregateCount: group.posts.length,
+          _aggregateGivers: givers,
+          _aggregateCategories: categories,
+          _aggregatePosts: group.posts,
+          _recipientName: firstMeta?.receiverName || 'Player',
+          _recipientPhoto: firstMeta?.receiverPhotoUrl || null,
+          created_at: new Date(group.latestTime).toISOString(),
+        })
+      }
+    }
+
+    result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    return result
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -748,9 +823,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
             )}
 
             {/* ─── Post Feed ─── */}
-            {posts.length > 0 ? (
+            {(() => {
+              const displayPosts = aggregateShoutouts(posts)
+              return displayPosts.length > 0 ? (
               <div className="flex flex-col gap-5">
-                {posts.map((post, i) => (
+                {displayPosts.map((post, i) => (
                   <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
                     isAdminOrCoach={isAdminOrCoach}
                     currentUserId={user?.id}
@@ -793,7 +870,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                   Be the first to share with the team!
                 </p>
               </div>
-            )}
+            )
+            })()}
           </div>
         </main>
 
@@ -856,6 +934,19 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 <ChevronRight className="w-4 h-4" style={{ color: textMuted }} />
               </button>
             ))}
+          </div>
+
+          {/* ─── Give Shoutout Link ─── */}
+          <div
+            onClick={() => { setShoutoutPreselect(null); setShowShoutoutModal(true) }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+              cursor: 'pointer', transition: 'all 200ms', borderRadius: 10,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <span style={{ fontSize: 18 }}>⭐</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: '#4BB9EC' }}>Give Shoutout</span>
           </div>
 
           {/* ─── Head Coach Profile Card ─── */}
@@ -928,7 +1019,16 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                   </div>
                   {/* Shoutout button */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); setShowShoutoutModal(true) }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShoutoutPreselect({
+                        id: player.id,
+                        name: `${player.first_name} ${player.last_name}`,
+                        photo: player.photo_url,
+                        type: 'player',
+                      })
+                      setShowShoutoutModal(true)
+                    }}
                     title="Give Shoutout"
                     style={{
                       width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
@@ -1033,8 +1133,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       <GiveShoutoutModal
         visible={showShoutoutModal}
         teamId={teamId}
-        onClose={() => setShowShoutoutModal(false)}
-        onSuccess={() => { loadPosts(1, true); showToast?.('Shoutout sent!', 'success') }}
+        preselectedRecipient={shoutoutPreselect}
+        onClose={() => { setShowShoutoutModal(false); setShoutoutPreselect(null) }}
+        onSuccess={() => { loadPosts(1, true); showToast?.('Shoutout sent!', 'success'); setShoutoutPreselect(null) }}
       />
       <CreateChallengeModal
         visible={showCreateChallengeModal}

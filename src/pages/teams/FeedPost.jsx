@@ -93,10 +93,11 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   })() : null
 
   // Layout conditionals
+  const isAggregatedShoutout = post._isAggregated === true
   const hasMedia = mediaUrls.length > 0
   const isShoutout = postType === 'shoutout' && !!shoutoutMeta
   const isMilestone = postType === 'milestone' && !!milestoneMeta
-  const isTextOnly = !hasMedia && !isShoutout && !isMilestone
+  const isTextOnly = !hasMedia && !isShoutout && !isMilestone && !isAggregatedShoutout
 
   // Detect bgColor from title JSON (for colored text posts)
   const bgColorMeta = (() => {
@@ -270,10 +271,17 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               <p className="font-bold text-[17px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                 {post.profiles?.full_name || 'Team Admin'}
               </p>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
-                style={{ background: `${g}10`, color: `${g}99` }}>
-                {typeIcon} {postType.replace('_', ' ').toUpperCase()}
-              </span>
+              {isAggregatedShoutout ? (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
+                  style={{ background: 'rgba(75,185,236,.12)', color: '#4BB9EC' }}>
+                  ⭐ {post._aggregateCount} SHOUTOUTS
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
+                  style={{ background: `${g}10`, color: `${g}99` }}>
+                  {typeIcon} {postType.replace('_', ' ').toUpperCase()}
+                </span>
+              )}
             </div>
             <p className="text-[13px] mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.55)' }}>
               {new Date(post.created_at).toLocaleDateString('en-US', {
@@ -345,8 +353,68 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         document.body
       )}
 
-      {/* ── Shoutout card (above interaction) ── */}
-      {isShoutout && (
+      {/* ── Aggregated shoutout wave card ── */}
+      {isAggregatedShoutout ? (
+        <div className="px-6 pb-3">
+          <div style={{
+            background: isDark ? 'rgba(75,185,236,.06)' : 'rgba(75,185,236,.04)',
+            border: `1.5px solid ${isDark ? 'rgba(75,185,236,.15)' : 'rgba(75,185,236,.1)'}`,
+            borderRadius: 12,
+            padding: '20px 24px',
+            textAlign: 'center',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 12 }}>
+              <span style={{ fontSize: 24 }}>⭐</span>
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4BB9EC' }}>
+                SHOUTOUT WAVE
+              </span>
+              <span style={{ fontSize: 24 }}>⭐</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 }}>
+              {post._recipientPhoto && (
+                <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', border: '2px solid #4BB9EC' }}>
+                  <img src={post._recipientPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+              <p style={{ fontSize: 18, fontWeight: 700, color: isDark ? '#fff' : '#10284C' }}>
+                {post._recipientName}
+              </p>
+            </div>
+
+            <p style={{ fontSize: 15, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)' }}>
+              received <span style={{ fontWeight: 700, color: '#4BB9EC' }}>{post._aggregateCount}</span> shoutouts!
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+              {(() => {
+                const catCounts = {}
+                post._aggregateCategories?.forEach(c => {
+                  const key = c.categoryName || c.categoryEmoji || 'Shoutout'
+                  catCounts[key] = (catCounts[key] || 0) + 1
+                })
+                return Object.entries(catCounts).map(([name, count]) => (
+                  <span key={name} style={{
+                    padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                    background: isDark ? 'rgba(75,185,236,.12)' : 'rgba(75,185,236,.08)',
+                    color: '#4BB9EC',
+                  }}>
+                    {name} {count > 1 ? `×${count}` : ''}
+                  </span>
+                ))
+              })()}
+            </div>
+
+            <p style={{ fontSize: 12, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.4)', marginTop: 10 }}>
+              From {(() => {
+                const unique = [...new Set(post._aggregateGivers || [])]
+                if (unique.length <= 3) return unique.join(', ')
+                return `${unique.slice(0, 2).join(', ')}, and ${unique.length - 2} others`
+              })()}
+            </p>
+          </div>
+        </div>
+      ) : isShoutout ? (
         <div className="px-6 pb-3">
           <ShoutoutCard
             metadataJson={post.title}
@@ -355,7 +423,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             isDark={isDark}
           />
         </div>
-      )}
+      ) : null}
 
       {/* ── Milestone card (above interaction) ── */}
       {isMilestone && (
