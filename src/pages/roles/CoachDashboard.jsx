@@ -45,7 +45,7 @@ function EventDetailModal({ event, team, onClose }) {
   if (!event) return null
   const eventDate = event.event_date ? new Date(event.event_date + 'T00:00:00') : null
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl shadow-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'}`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ function CoachBlastModal({ team, onClose, showToast }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className={`w-full max-w-lg rounded-xl shadow-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'}`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
@@ -206,7 +206,7 @@ function WarmupTimerModal({ onClose }) {
   function resetTimer() { setRunning(false); setSeconds(0); setTotalSeconds(0) }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={!running ? onClose : undefined}>
       <div className={`w-full max-w-sm text-center rounded-xl shadow-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} ${isFinished ? 'ring-2 ring-emerald-500/40' : ''}`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center justify-center gap-3">
