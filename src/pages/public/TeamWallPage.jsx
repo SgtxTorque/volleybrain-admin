@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
+import NewPostModal from '../teams/NewPostModal'
 import {
   ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
   FileText, Plus, Send, X, ChevronRight, Star, Check,
@@ -833,13 +834,15 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       {/* ═══ NEW POST MODAL ═══ */}
       {showNewPostModal && (
         <NewPostModal
-          teamId={teamId} isDark={isDark}
+          teamId={teamId}
+          g={g}
+          gb={g}
+          dim={isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)'}
+          isDark={isDark}
           onClose={() => setShowNewPostModal(false)}
           onSuccess={() => { loadPosts(1, true); setShowNewPostModal(false) }}
           showToast={showToast}
           canPin={isAdmin || isCoach}
-          profile={profile}
-          user={user}
         />
       )}
 
@@ -1063,165 +1066,6 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
           }}
         />
       )}
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════
-// NEW POST MODAL — Preserved with v0 styling
-// ═══════════════════════════════════════════════════════════
-function NewPostModal({ teamId, isDark, onClose, onSuccess, showToast, canPin = false, profile, user }) {
-  const [postType, setPostType] = useState('announcement')
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [isPinned, setIsPinned] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [drag, setDrag] = useState(false)
-  const [media, setMedia] = useState([])
-  const fr = useRef(null)
-
-  async function handleSubmit() {
-    if (!content.trim()) return
-    setSubmitting(true)
-    try {
-      const { error } = await supabase.from('team_posts').insert({
-        team_id: teamId,
-        author_id: user?.id,
-        title: title.trim() || null,
-        content: content.trim(),
-        post_type: postType,
-        is_pinned: isPinned,
-        is_published: true
-      })
-      if (error) throw error
-      showToast?.('Post created!', 'success')
-      onSuccess()
-    } catch (err) {
-      console.error('Error creating post:', err)
-      showToast?.('Error creating post', 'error')
-    }
-    setSubmitting(false)
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
-      <div
-        className={`w-full max-w-lg overflow-hidden rounded-xl shadow-2xl ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}`}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-          <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Create Post</h2>
-          <button onClick={onClose} className={`rounded-lg p-1.5 transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700' : 'text-slate-400 hover:bg-slate-100'}`}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-          {/* Post type selector */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              ['announcement', '📢 Announcement'],
-              ['game_recap', '🏐 Game Recap'],
-              ['shoutout', '⭐ Shoutout'],
-              ['milestone', '🏆 Milestone'],
-              ['photo', '📷 Photo'],
-            ].map(([k, l]) => (
-              <button
-                key={k}
-                onClick={() => setPostType(k)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  postType === k
-                    ? 'bg-teal-600 text-white'
-                    : isDark
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-
-          <input
-            type="text"
-            placeholder="Title (optional)"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className={`w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-              isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
-            } border`}
-          />
-
-          <textarea
-            placeholder="Share with the team..."
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            rows={4}
-            className={`w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none ${
-              isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
-            } border`}
-          />
-
-          {/* Drag-drop media */}
-          <div
-            onDragEnter={e => { e.preventDefault(); setDrag(true) }}
-            onDragLeave={e => { e.preventDefault(); setDrag(false) }}
-            onDragOver={e => e.preventDefault()}
-            onDrop={e => { e.preventDefault(); setDrag(false); setMedia(p => [...p, ...Array.from(e.dataTransfer?.files || []).map(f => f.name)]) }}
-            onClick={() => fr.current?.click()}
-            className={`border-2 border-dashed p-5 text-center cursor-pointer transition rounded-xl ${
-              drag
-                ? 'border-teal-500 bg-teal-50'
-                : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-300 hover:border-slate-400'
-            }`}
-          >
-            <input ref={fr} type="file" accept="image/*,video/*" multiple className="hidden"
-              onChange={e => setMedia(p => [...p, ...Array.from(e.target.files || []).map(f => f.name)])} />
-            <Upload className={`w-6 h-6 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-            <p className={`mt-1 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Drop files or click to upload</p>
-          </div>
-
-          {media.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {media.map((f, i) => (
-                <span key={i} className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 ${
-                  isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  📎 {f}
-                  <button onClick={() => setMedia(p => p.filter((_, j) => j !== i))} className="hover:text-red-500">×</button>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {canPin && (
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-teal-600 rounded" />
-              <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>📌 Pin to top</span>
-            </label>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className={`flex gap-3 px-6 py-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-          <button
-            onClick={onClose}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-              isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!content.trim() || submitting}
-            className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-500 transition-colors disabled:opacity-40"
-          >
-            {submitting ? 'Posting...' : 'Publish'}
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

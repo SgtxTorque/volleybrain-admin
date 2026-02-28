@@ -51,11 +51,12 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       const ext = file.name.split('.').pop()
       const path = `team-wall/${teamId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
-      console.log('UPLOADING TO:', 'media', path)
+      console.log('UPLOADING TO:', 'media', path, 'contentType:', file.type)
       const { data, error } = await supabase.storage
         .from('media')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
+        .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || 'image/jpeg' })
 
+      alert('Upload response: ' + JSON.stringify({ data, error }))
       console.log('UPLOAD RESPONSE:', data, error)
       if (error) {
         console.error('Upload error:', error, { bucket: 'media', path })
