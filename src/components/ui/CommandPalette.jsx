@@ -23,7 +23,8 @@ const PAGE_ENTRIES = Object.entries(ROUTES).map(([pageId, path]) => ({
 
 export function CommandPalette({ isOpen, onClose }) {
   const navigate = useNavigate()
-  const { isDark, accent } = useTheme()
+  const theme = useTheme() || {}
+  const { isDark, accent } = theme
   const { selectedSeason } = useSeason()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
