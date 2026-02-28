@@ -155,11 +155,11 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           <div className={`grid ${mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
             {mediaUrls.map((url, idx) => (
               <div key={idx} onClick={() => setLightboxIdx(idx)}
-                className={`relative rounded-xl overflow-hidden group cursor-pointer flex items-center justify-center ${isDark ? 'bg-black/30' : 'bg-neutral-100'}`}
-                style={{ maxHeight: mediaUrls.length === 1 ? 500 : 280, width: '100%' }}>
+                className="relative rounded-xl overflow-hidden group cursor-pointer"
+                style={{ width: '100%' }}>
                 <img src={url} alt=""
-                  className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
-                  style={{ maxHeight: mediaUrls.length === 1 ? 500 : 280 }} />
+                  className="block w-full transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ height: 'auto' }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none">
                   <div className="absolute bottom-3 right-3">
                     <Maximize2 className="w-5 h-5 text-white/70" />
