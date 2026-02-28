@@ -26,7 +26,6 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   }
 
   function addFiles(files) {
-    console.log('FILES SELECTED:', files)
     const validFiles = Array.from(files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'))
     if (validFiles.length === 0) return
     setMediaFiles(prev => [...prev, ...validFiles])
@@ -51,15 +50,12 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       const ext = file.name.split('.').pop()
       const path = `team-wall/${teamId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
-      console.log('UPLOADING TO:', 'media', path, 'contentType:', file.type)
       const { data, error } = await supabase.storage
         .from('media')
         .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type || 'image/jpeg' })
 
-      alert('Upload response: ' + JSON.stringify({ data, error }))
-      console.log('UPLOAD RESPONSE:', data, error)
       if (error) {
-        console.error('Upload error:', error, { bucket: 'media', path })
+        console.debug('Upload error:', error, { bucket: 'media', path })
         if (error.message?.includes('not found') || error.statusCode === '404') {
           showToast?.('Storage bucket "media" not found — check Supabase storage settings', 'warning')
         } else {
@@ -72,7 +68,6 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         .from('media')
         .getPublicUrl(data.path)
 
-      console.log('PUBLIC URL:', publicUrl)
       if (publicUrl?.publicUrl) urls.push(publicUrl.publicUrl)
     }
     setUploadProgress(null)
@@ -95,9 +90,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         is_published: true,
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
       }
-      console.log('INSERTING POST WITH MEDIA_URLS:', mediaUrls)
       const { data: insertData, error } = await supabase.from('team_posts').insert(insertPayload).select()
-      console.log('INSERT RESPONSE:', insertData, error)
       if (error) throw error
       showToast?.('Post created!', 'success')
       onSuccess()
