@@ -48,16 +48,16 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       setUploadProgress(`Uploading ${i + 1}/${mediaFiles.length}...`)
       const file = mediaFiles[i]
       const ext = file.name.split('.').pop()
-      const path = `${teamId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const path = `team-wall/${teamId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
       const { data, error } = await supabase.storage
-        .from('team-photos')
+        .from('media')
         .upload(path, file, { cacheControl: '3600', upsert: false })
 
       if (error) {
-        console.error('Upload error:', error)
+        console.error('Upload error:', error, { bucket: 'media', path })
         if (error.message?.includes('not found') || error.statusCode === '404') {
-          showToast?.('Storage bucket not found — ask admin to create "team-photos" bucket in Supabase', 'warning')
+          showToast?.('Storage bucket "media" not found — check Supabase storage settings', 'warning')
         } else {
           showToast?.(`Photo upload failed: ${error.message || 'Unknown error'}`, 'error')
         }
@@ -65,7 +65,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       }
 
       const { data: publicUrl } = supabase.storage
-        .from('team-photos')
+        .from('media')
         .getPublicUrl(data.path)
 
       if (publicUrl?.publicUrl) urls.push(publicUrl.publicUrl)
