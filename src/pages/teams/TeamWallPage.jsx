@@ -23,6 +23,39 @@ import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
 import NewPostModal from './NewPostModal'
 
 // ═══════════════════════════════════════════════════════════
+// LYNX BRAND TOKENS
+// ═══════════════════════════════════════════════════════════
+const LX = {
+  sky: '#4BB9EC',
+  deep: '#2A9BD4',
+  navy: '#10284C',
+  ice: '#E8F4FD',
+  slate: '#5A6B7F',
+  silver: '#DFE4EA',
+  cloud: '#F5F7FA',
+  frost: '#F0F3F7',
+  midnight: '#0A1B33',
+  charcoal: '#1A2332',
+  graphite: '#232F3E',
+  border: '#2A3545',
+}
+
+function lx(isDark) {
+  return {
+    pageBg: isDark ? LX.midnight : LX.cloud,
+    card: isDark ? LX.charcoal : '#fff',
+    cardBorder: isDark ? LX.border : LX.silver,
+    inner: isDark ? LX.graphite : LX.frost,
+    text: isDark ? '#fff' : LX.navy,
+    textSec: isDark ? '#CBD5E1' : LX.slate,
+    textMuted: isDark ? '#94A3B8' : LX.slate,
+    divider: isDark ? LX.border : LX.silver,
+    hoverBg: isDark ? LX.graphite : LX.frost,
+    cardShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,.05)',
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════
 
@@ -72,6 +105,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const { profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const t = lx(isDark)
 
   // ── Core data ──
   const [team, setTeam] = useState(null)
@@ -106,7 +140,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   // Gallery lightbox
   const [galleryLightboxIdx, setGalleryLightboxIdx] = useState(null)
 
-  const g = team?.color || '#6366F1'
+  const g = team?.color || LX.sky
   const gb = adjustBrightness(g, 20)
   const dim = adjustBrightness(g, -30)
 
@@ -356,7 +390,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full" style={{ borderColor: LX.sky, borderTopColor: 'transparent' }} />
       </div>
     )
   }
@@ -364,9 +398,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   if (!team) {
     return (
       <div className="text-center py-12">
-        <VolleyballIcon className={`w-16 h-16 mx-auto ${tc.textMuted}`} />
-        <p className={`${tc.text} mt-4`}>Team not found</p>
-        <button onClick={onBack} className="mt-4 text-[var(--accent-primary)]">← Go Back</button>
+        <VolleyballIcon className={`w-16 h-16 mx-auto`} style={{ color: t.textMuted }} />
+        <p className="mt-4" style={{ color: t.text }}>Team not found</p>
+        <button onClick={onBack} className="mt-4 font-medium" style={{ color: LX.sky }}>← Go Back</button>
       </div>
     )
   }
@@ -390,13 +424,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-4rem)] ${!isDark ? 'tw-light' : ''}`} style={{ background: isDark ? undefined : '#f5f6f8' }}>
+    <div className={`flex flex-col h-[calc(100vh-4rem)] ${!isDark ? 'tw-light' : ''}`} style={{ background: t.pageBg, fontFamily: "'Tele-Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       <style>{HUB_STYLES}</style>
 
       {/* ═══ HERO BANNER ═══ */}
       <div className="shrink-0 px-6 pt-6">
-        <div className={`relative overflow-hidden rounded-xl shadow-md ${isDark ? 'shadow-black/20' : ''}`}>
-          <div className="relative h-56">
+        <div className="relative overflow-hidden rounded-xl" style={{ boxShadow: isDark ? '0 4px 24px rgba(0,0,0,.3)' : '0 1px 3px rgba(0,0,0,.08)' }}>
+          <div className="relative h-48">
             {/* Banner slides */}
             {bannerSlides.map((slide, idx) => (
               <div key={slide.id} className="absolute inset-0 transition-opacity duration-700"
@@ -412,7 +446,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
             {/* Back button */}
             <button onClick={onBack}
-              className="absolute top-4 left-4 z-20 w-10 h-10 rounded-xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
+              className="absolute top-4 left-4 z-20 w-10 h-10 rounded-[10px] flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
               style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -422,45 +456,45 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               {bannerSlides.map((_, i) => (
                 <button key={i} onClick={() => setBannerSlide(i)} className="transition-all rounded-full" style={{
                   width: bannerSlide === i ? 20 : 6, height: 6,
-                  background: bannerSlide === i ? g : 'rgba(255,255,255,.3)',
+                  background: bannerSlide === i ? LX.sky : 'rgba(255,255,255,.3)',
                 }} />
               ))}
             </div>
 
             {/* Gradient fade */}
             <div className="absolute bottom-0 left-0 right-0 h-24 z-10"
-              style={{ background: isDark ? 'linear-gradient(transparent, rgb(15,23,42))' : 'linear-gradient(transparent, #f5f6f8)' }} />
+              style={{ background: `linear-gradient(transparent, ${t.pageBg})` }} />
 
             {/* Team info overlay */}
             <div className="absolute bottom-0 left-0 flex w-full items-end justify-between p-6 z-10">
               <div className="flex items-end gap-4">
                 {/* Team logo */}
                 <div className="p-0.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${g}, ${dim})` }}>
-                  <div className="w-16 h-16 rounded-[14px] flex items-center justify-center overflow-hidden"
-                    style={{ background: isDark ? 'rgb(15,23,42)' : '#fff' }}>
+                  <div className="w-14 h-14 rounded-[10px] flex items-center justify-center overflow-hidden"
+                    style={{ background: t.pageBg }}>
                     {team.logo_url ? (
                       <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-2xl font-extrabold" style={{ color: g }}>{teamInitials}</span>
+                      <span className="text-xl font-extrabold" style={{ color: g }}>{teamInitials}</span>
                     )}
                   </div>
                 </div>
                 <div className="pb-1">
-                  <h1 className="text-xl font-extrabold tracking-tight text-white leading-tight">{team.name}</h1>
+                  <h1 className="text-lg font-bold tracking-tight leading-tight" style={{ color: t.text }}>{team.name}</h1>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-white/50">{roster.length} Players</span>
-                    <span className="text-white/20">·</span>
-                    <span className="text-[10px] text-white/50">{seasonLabel}</span>
-                    <span className="text-white/20">·</span>
-                    <span className="flex items-center gap-1 text-[10px] text-emerald-400">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Active
+                    <span className="text-[10px]" style={{ color: t.textMuted }}>{roster.length} Players</span>
+                    <span style={{ color: t.textMuted, opacity: .4 }}>·</span>
+                    <span className="text-[10px]" style={{ color: t.textMuted }}>{seasonLabel}</span>
+                    <span style={{ color: t.textMuted, opacity: .4 }}>·</span>
+                    <span className="flex items-center gap-1 text-[10px]" style={{ color: '#10B981' }}>
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10B981' }} /> Active
                     </span>
                   </div>
                 </div>
               </div>
               <button onClick={openTeamChat}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white transition hover:scale-105"
-                style={{ background: `${g}cc`, backdropFilter: 'blur(8px)' }}>
+                className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-xs font-semibold text-white transition hover:brightness-110"
+                style={{ background: LX.sky }}>
                 <MessageCircle className="w-4 h-4" /> Join Huddle
               </button>
             </div>
@@ -472,13 +506,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ═══ LEFT: Roster Sidebar ═══ */}
-        <aside className={`hidden lg:flex w-[220px] shrink-0 flex-col overflow-y-auto py-6 pl-6 pr-4 border-r tw-nos ${isDark ? 'border-white/[.06]' : 'border-slate-200'}`}>
+        <aside className="hidden lg:flex w-[220px] shrink-0 flex-col overflow-y-auto py-6 pl-6 pr-4 tw-nos"
+          style={{ borderRight: `1px solid ${t.divider}` }}>
           {/* Roster header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
               Roster
             </h3>
-            <span className="text-[10px] font-medium" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+            <span className="text-[10px] font-medium" style={{ color: t.textMuted }}>
               {roster.length}
             </span>
           </div>
@@ -487,25 +522,25 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           <div className="flex flex-col gap-0.5">
             {roster.map(player => (
               <button key={player.id} onClick={() => setSelectedPlayer(player)}
-                className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors"
-                onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
+                className="group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-left transition-colors"
+                onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                  style={{ background: `${g}15`, color: g }}>
+                  style={{ background: LX.ice, color: LX.deep }}>
                   {player.jersey_number || (player.first_name?.[0] || '') + (player.last_name?.[0] || '')}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold truncate" style={{ color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.7)' }}>
+                  <p className="text-xs font-semibold truncate" style={{ color: t.text }}>
                     {player.first_name} {player.last_name?.[0]}.
                   </p>
-                  <p className="text-[10px] truncate" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+                  <p className="text-[10px] truncate" style={{ color: t.textMuted }}>
                     {player.position || 'Player'}
                   </p>
                 </div>
               </button>
             ))}
             {roster.length === 0 && (
-              <p className="text-center py-6 text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>
+              <p className="text-center py-6 text-[10px]" style={{ color: t.textMuted }}>
                 No players yet
               </p>
             )}
@@ -515,21 +550,21 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {coaches.length > 0 && (
             <>
               <div className="mt-6 mb-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
                   Coaches
                 </h3>
               </div>
               {coaches.map(coach => (
                 <div key={coach.id} className="flex items-center gap-3 px-3 py-2">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                    style={{ background: `${g}15`, color: g }}>
+                    style={{ background: LX.ice, color: LX.deep }}>
                     {coach.full_name?.charAt(0) || '?'}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate" style={{ color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.7)' }}>
+                    <p className="text-xs font-semibold truncate" style={{ color: t.text }}>
                       {coach.full_name}
                     </p>
-                    <p className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+                    <p className="text-[10px]" style={{ color: t.textMuted }}>
                       {coach.role === 'head' ? 'Head Coach' : 'Assistant'}
                     </p>
                   </div>
@@ -544,14 +579,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
             {/* Tab Navigation */}
-            <div className="flex items-center rounded-xl p-1.5 shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
+            <div className="flex items-center rounded-xl p-1.5" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
               {tabs.map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-medium transition-all"
                   style={activeTab === tab.id ? {
-                    background: g, color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+                    background: LX.sky, color: '#fff', boxShadow: '0 2px 8px rgba(75,185,236,.25)',
                   } : {
-                    color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)',
+                    color: t.textMuted,
                   }}>
                   <span>{tab.icon}</span> {tab.label}
                 </button>
@@ -563,7 +598,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
               <>
                 {/* Post Composer */}
                 {canPost && (
-                  <div className="overflow-hidden rounded-xl shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
+                  <div className="overflow-hidden rounded-xl" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
                     <div className="flex items-center gap-3 px-5 pt-4 pb-3">
                       <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold text-white overflow-hidden"
                         style={{ background: `linear-gradient(135deg, ${g}, ${gb})` }}>
@@ -574,20 +609,20 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                         )}
                       </div>
                       <button onClick={() => setShowNewPostModal(true)}
-                        className="flex flex-1 items-center rounded-xl border px-4 py-2.5 text-sm text-left transition-colors"
+                        className="flex flex-1 items-center rounded-[10px] border px-4 py-2.5 text-sm text-left transition-colors"
                         style={{
-                          borderColor: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.1)',
-                          color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)',
-                          background: isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)',
+                          borderColor: t.cardBorder,
+                          color: t.textMuted,
+                          background: t.inner,
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)'}
-                        onMouseLeave={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'}>
+                        onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
+                        onMouseLeave={e => e.currentTarget.style.background = t.inner}>
                         What's on your mind?
                       </button>
                     </div>
 
                     {/* Quick action buttons */}
-                    <div className="flex items-center gap-1 border-t px-5 py-2" style={{ borderColor: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }}>
+                    <div className="flex items-center gap-1 border-t px-5 py-2" style={{ borderColor: t.cardBorder }}>
                       {[
                         { icon: '📷', label: 'Photo/Video', action: () => setShowNewPostModal(true) },
                         { icon: '⭐', label: 'Shoutout', action: () => setShowShoutoutModal(true) },
@@ -595,8 +630,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       ].filter(a => a.show !== false).map(action => (
                         <button key={action.label} onClick={action.action}
                           className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors"
-                          style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.45)' }}
-                          onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
+                          style={{ color: t.textSec }}
+                          onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                           <span>{action.icon}</span>
                           <span className="hidden xl:inline">{action.label}</span>
@@ -627,23 +662,24 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       <button onClick={loadMorePosts} disabled={loadingMorePosts}
                         className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
                         style={{
-                          background: isDark ? 'rgba(255,255,255,.04)' : '#fff',
-                          color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.5)',
+                          background: t.card,
+                          color: t.textSec,
+                          border: `1px solid ${t.cardBorder}`,
                         }}>
                         {loadingMorePosts ? 'Loading...' : 'Load More Posts'}
                       </button>
                     )}
                     {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                      <p className="text-center text-xs py-4" style={{ color: isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.15)' }}>
+                      <p className="text-center text-xs py-4" style={{ color: t.textMuted }}>
                         End of feed
                       </p>
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-xl p-12 text-center shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
-                    <Megaphone className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }} />
-                    <p className="mt-4 text-sm font-semibold" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No posts yet</p>
-                    <p className="text-xs mt-1" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>Be the first to share with the team!</p>
+                  <div className="rounded-xl p-12 text-center" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
+                    <Megaphone className="w-12 h-12 mx-auto" style={{ color: t.textMuted }} />
+                    <p className="mt-4 text-sm font-semibold" style={{ color: t.textSec }}>No posts yet</p>
+                    <p className="text-xs mt-1" style={{ color: t.textMuted }}>Be the first to share with the team!</p>
                   </div>
                 )}
               </>
@@ -651,46 +687,46 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
             {/* ═══ SCHEDULE TAB ═══ */}
             {activeTab === 'schedule' && (
-              <div className="rounded-xl overflow-hidden shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
+              <div className="rounded-xl overflow-hidden" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
                 {upcomingEvents.map(event => {
                   const eventDate = new Date(event.event_date)
                   const isGame = event.event_type === 'game'
                   return (
                     <div key={event.id}
                       className="flex items-center gap-5 px-5 py-4 transition-colors cursor-pointer"
-                      style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}
-                      onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
+                      style={{ borderBottom: `1px solid ${t.cardBorder}` }}
+                      onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <div className="text-center min-w-[44px]">
-                        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
+                        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: isGame ? LX.sky : '#38BDF8' }}>
                           {eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
                         </p>
-                        <p className="text-2xl font-extrabold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                        <p className="text-2xl font-extrabold leading-none" style={{ color: t.text }}>
                           {eventDate.getDate()}
                         </p>
                       </div>
-                      <div className="w-px h-8" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)' }} />
+                      <div className="w-px h-8" style={{ background: t.cardBorder }} />
                       <div className="flex-1">
                         <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
-                          style={{ background: isGame ? `${g}15` : 'rgba(56,189,248,.1)', color: isGame ? g : '#38BDF8' }}>
+                          style={{ background: isGame ? `${LX.sky}15` : 'rgba(56,189,248,.1)', color: isGame ? LX.sky : '#38BDF8' }}>
                           {isGame ? '🏐 Game' : '🏋️ Practice'}
                         </span>
-                        <p className="font-semibold mt-1 text-sm" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                        <p className="font-semibold mt-1 text-sm" style={{ color: t.text }}>
                           {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
                         </p>
-                        <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
+                        <p className="text-xs" style={{ color: t.textMuted }}>
                           {event.event_time && formatTime12(event.event_time)}
                           {event.location && ` · ${event.location}`}
                         </p>
                       </div>
-                      <ChevronRight className="w-4 h-4" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }} />
+                      <ChevronRight className="w-4 h-4" style={{ color: t.textMuted }} />
                     </div>
                   )
                 })}
                 {upcomingEvents.length === 0 && (
                   <div className="p-12 text-center">
-                    <Calendar className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }} />
-                    <p className="mt-4 text-sm" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No upcoming events</p>
+                    <Calendar className="w-12 h-12 mx-auto" style={{ color: t.textMuted }} />
+                    <p className="mt-4 text-sm" style={{ color: t.textSec }}>No upcoming events</p>
                   </div>
                 )}
               </div>
@@ -702,7 +738,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 {isAdminOrCoach && (
                   <button onClick={() => setShowCreateChallengeModal(true)}
                     className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white transition hover:brightness-110"
-                    style={{ background: `linear-gradient(135deg, ${g}, ${dim})` }}>
+                    style={{ background: LX.sky }}>
                     <Trophy className="w-4 h-4" /> Create Challenge
                   </button>
                 )}
@@ -741,9 +777,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     ))}
                   </div>
                 ) : (
-                  <div className="rounded-xl p-12 text-center shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
-                    <Trophy className="w-12 h-12 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }} />
-                    <p className="mt-4 text-sm" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>No active challenges</p>
+                  <div className="rounded-xl p-12 text-center" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
+                    <Trophy className="w-12 h-12 mx-auto" style={{ color: t.textMuted }} />
+                    <p className="mt-4 text-sm" style={{ color: t.textSec }}>No active challenges</p>
                   </div>
                 )}
               </>
@@ -757,15 +793,16 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         </main>
 
         {/* ═══ RIGHT: Widgets Sidebar ═══ */}
-        <aside className={`hidden xl:flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto py-6 pl-6 pr-6 border-l tw-nos ${isDark ? 'border-white/[.06]' : 'border-slate-200'}`}>
+        <aside className="hidden xl:flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto py-6 pl-6 pr-6 tw-nos"
+          style={{ borderLeft: `1px solid ${t.divider}` }}>
 
           {/* UPCOMING EVENTS */}
           <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
                 Upcoming
               </h3>
-              <button onClick={() => setActiveTab('schedule')} className="flex items-center gap-1 text-[10px] font-medium transition" style={{ color: g }}>
+              <button onClick={() => setActiveTab('schedule')} className="flex items-center gap-1 text-[10px] font-medium transition" style={{ color: LX.sky }}>
                 Full Calendar <ChevronRight className="h-3 w-3" />
               </button>
             </div>
@@ -774,23 +811,21 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 const ed = new Date(event.event_date)
                 const isGame = event.event_type === 'game'
                 return (
-                  <div key={event.id} className="rounded-xl p-3.5 shadow-sm transition-all cursor-pointer"
-                    style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}
-                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,.08)'}
-                    onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,.04)'}>
+                  <div key={event.id} className="rounded-xl p-3.5 transition-all cursor-pointer"
+                    style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
                     <div className="flex items-center gap-3">
                       <div className="text-center min-w-[32px]">
-                        <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: isGame ? g : '#38BDF8' }}>
+                        <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: isGame ? LX.sky : '#38BDF8' }}>
                           {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
                         </p>
-                        <p className="text-lg font-extrabold leading-none" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{ed.getDate()}</p>
+                        <p className="text-lg font-extrabold leading-none" style={{ color: t.text }}>{ed.getDate()}</p>
                       </div>
-                      <div className="w-px h-6" style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.08)' }} />
+                      <div className="w-px h-6" style={{ background: t.cardBorder }} />
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold truncate" style={{ color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.7)' }}>
+                        <p className="text-xs font-semibold truncate" style={{ color: t.text }}>
                           {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
                         </p>
-                        <p className="text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
+                        <p className="text-[10px]" style={{ color: t.textMuted }}>
                           {event.event_time && formatTime12(event.event_time)}
                         </p>
                       </div>
@@ -799,7 +834,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 )
               })}
               {upcomingEvents.length === 0 && (
-                <p className="text-center py-4 text-[10px]" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.2)' }}>
+                <p className="text-center py-4 text-[10px]" style={{ color: t.textMuted }}>
                   No upcoming events
                 </p>
               )}
@@ -808,17 +843,17 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
           {/* SEASON RECORD */}
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
               Season Record
             </h3>
-            <div className="flex flex-col items-center gap-2 rounded-xl p-6 shadow-sm"
-              style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
+            <div className="flex flex-col items-center gap-2 rounded-xl p-6"
+              style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-extrabold" style={{ color: g }}>{gameRecord.wins}</span>
-                <span className="text-xl" style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}>&mdash;</span>
+                <span className="text-4xl font-extrabold" style={{ color: LX.sky }}>{gameRecord.wins}</span>
+                <span className="text-xl" style={{ color: t.textMuted }}>&mdash;</span>
                 <span className="text-4xl font-extrabold text-red-500">{gameRecord.losses}</span>
               </div>
-              <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>
+              <p className="text-xs" style={{ color: t.textMuted }}>
                 {totalGames > 0 ? `${winRate}% win rate` : 'No games played'}
               </p>
             </div>
@@ -826,7 +861,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
           {/* GALLERY */}
           <section className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+            <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
               Gallery
             </h3>
             {galleryImages.length > 0 ? (
@@ -839,9 +874,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl p-6 text-center shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
-                <ImageIcon className="w-8 h-8 mx-auto" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }} />
-                <p className="text-[10px] mt-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>No photos yet</p>
+              <div className="rounded-xl p-6 text-center" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
+                <ImageIcon className="w-8 h-8 mx-auto" style={{ color: t.textMuted }} />
+                <p className="text-[10px] mt-2" style={{ color: t.textMuted }}>No photos yet</p>
               </div>
             )}
           </section>
@@ -849,18 +884,18 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {/* DOCUMENTS */}
           {documents.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+              <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
                 Documents
               </h3>
-              <div className="rounded-xl overflow-hidden shadow-sm" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#fff' }}>
+              <div className="rounded-xl overflow-hidden" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
                 {documents.slice(0, 3).map(doc => (
                   <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-3 px-4 py-3 transition-colors"
-                    style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.06)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'}
+                    style={{ borderBottom: `1px solid ${t.cardBorder}` }}
+                    onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <FileText className="h-4 w-4 shrink-0" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }} />
-                    <span className="text-xs truncate" style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>{doc.name}</span>
+                    <FileText className="h-4 w-4 shrink-0" style={{ color: t.textMuted }} />
+                    <span className="text-xs truncate" style={{ color: t.textSec }}>{doc.name}</span>
                   </a>
                 ))}
               </div>
@@ -873,7 +908,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       {canPost && (
         <button onClick={() => setShowNewPostModal(true)}
           className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-lg transition hover:scale-110 active:scale-95"
-          style={{ background: `linear-gradient(135deg, ${gb}, ${g})`, boxShadow: `0 8px 32px ${g}40` }}>
+          style={{ background: LX.sky, boxShadow: `0 8px 32px ${LX.sky}40` }}>
           <Plus className="w-6 h-6" />
         </button>
       )}
@@ -975,7 +1010,7 @@ function PhotoBanner({ team, g, teamInitials, canEdit, showToast, onBannerUpdate
   }
 
   return (
-    <div className="absolute inset-0" style={{ background: team.banner_url ? undefined : `linear-gradient(135deg, #1a1520 0%, #0d1117 50%, #141820 100%)` }}>
+    <div className="absolute inset-0" style={{ background: team.banner_url ? undefined : `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
       {team.banner_url ? (
         <img src={team.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
       ) : (
@@ -990,7 +1025,7 @@ function PhotoBanner({ team, g, teamInitials, canEdit, showToast, onBannerUpdate
           <div className="text-center">
             {uploading ? (
               <>
-                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-2" style={{ borderColor: g, borderTopColor: 'transparent' }} />
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-2" style={{ borderColor: LX.sky, borderTopColor: 'transparent' }} />
                 <p className="text-xs text-white/60 font-bold uppercase tracking-wider">UPLOADING...</p>
               </>
             ) : (
@@ -1009,7 +1044,7 @@ function PhotoBanner({ team, g, teamInitials, canEdit, showToast, onBannerUpdate
 function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
   if (!nextGame) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
         <div className="text-center">
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-2">NO UPCOMING GAMES</p>
           <p className="text-3xl font-extrabold tracking-tight text-white/10">CHECK BACK SOON</p>
@@ -1021,16 +1056,16 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
   const oppTag = (nextGame.opponent || 'OPP').slice(0, 4).toUpperCase()
 
   return (
-    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0e0a14 0%, #0A0A0F 50%, #0a0f14 100%)' }}>
-      <div className="absolute" style={{ top: '10%', left: '30%', width: '40%', height: '60%', background: `radial-gradient(ellipse,${g}0a 0%,transparent 60%)`, filter: 'blur(30px)' }} />
+    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
+      <div className="absolute" style={{ top: '10%', left: '30%', width: '40%', height: '60%', background: `radial-gradient(ellipse,${LX.sky}0a 0%,transparent 60%)`, filter: 'blur(30px)' }} />
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
         <div className="flex items-center gap-6 md:gap-10 mb-3">
           <div className="text-center">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center mx-auto mb-1.5" style={{ background: `${g}15`, border: `1.5px solid ${g}35` }}>
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center mx-auto mb-1.5" style={{ background: `${LX.sky}15`, border: `1.5px solid ${LX.sky}35` }}>
               {team.logo_url ? (
                 <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-xl" />
               ) : (
-                <span className="text-2xl md:text-3xl font-extrabold" style={{ color: g }}>{teamInitials}</span>
+                <span className="text-2xl md:text-3xl font-extrabold" style={{ color: LX.sky }}>{teamInitials}</span>
               )}
             </div>
             <p className="text-[9px] font-bold uppercase tracking-wider text-white/40">{team.name}</p>
@@ -1067,12 +1102,12 @@ function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
 
 function SeasonPulseBanner({ team, roster, coaches, g, sportIcon }) {
   return (
-    <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0d14 0%, #0A0A0F 50%, #0d0f14 100%)' }}>
-      <div className="absolute" style={{ top: '20%', left: '20%', width: '60%', height: '50%', background: `radial-gradient(ellipse,${g}08 0%,transparent 60%)`, filter: 'blur(40px)' }} />
+    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
+      <div className="absolute" style={{ top: '20%', left: '20%', width: '60%', height: '50%', background: `radial-gradient(ellipse,${LX.sky}08 0%,transparent 60%)`, filter: 'blur(40px)' }} />
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
         <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-2">SEASON SNAPSHOT</p>
         <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-1">{sportIcon} {team.name}</h2>
-        <p className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: g }}>{team.seasons?.name || 'Current Season'}</p>
+        <p className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: LX.sky }}>{team.seasons?.name || 'Current Season'}</p>
         <div className="flex gap-8">
           <div className="text-center">
             <p className="text-3xl font-extrabold text-white">{roster.length}</p>
