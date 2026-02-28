@@ -120,7 +120,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
       </div>
 
       {/* Registration Dates Table */}
-      {(season?.registration_opens || season?.registration_closes) && (() => {
+      {season && (() => {
         const daysLeft = getDaysUntilClose(season.registration_closes)
         return (
           <div className={`grid grid-cols-3 gap-4 pt-5 mt-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
