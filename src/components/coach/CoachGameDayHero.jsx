@@ -57,7 +57,7 @@ export default function CoachGameDayHero({
           minHeight: '220px',
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}dd, ${selectedTeam?.color || '#3B82F6'}99, rgba(15,23,42,0.90))` }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#4BB9EC'}dd, ${selectedTeam?.color || '#4BB9EC'}99, rgba(15,23,42,0.90))` }} />
         <div className="relative z-10 p-6">
           {/* Label */}
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
@@ -69,7 +69,7 @@ export default function CoachGameDayHero({
             <div className="text-center">
               <div
                 className="w-16 h-16 rounded-xl mx-auto flex items-center justify-center text-white text-2xl font-black border-2 border-white/20"
-                style={{ backgroundColor: selectedTeam?.color || '#3B82F6' }}
+                style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
               >
                 {selectedTeam?.name?.charAt(0)}
               </div>
@@ -151,7 +151,7 @@ export default function CoachGameDayHero({
           minHeight: '180px',
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#3B82F6'}cc, rgba(30,41,59,0.90))` }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#4BB9EC'}cc, rgba(30,41,59,0.90))` }} />
         <div className="relative z-10 p-6">
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90">
             {countdownText(nextEvent.event_date) === 'TODAY' ? 'Practice Today' : 'Next Practice'}

@@ -32,7 +32,7 @@ export default function CoachLeftSidebar({
         <div className="flex items-center gap-3">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold"
-            style={{ backgroundColor: selectedTeam?.color || '#3B82F6' }}
+            style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
           >
             {selectedTeam?.name?.charAt(0)}
           </div>
@@ -50,7 +50,7 @@ export default function CoachLeftSidebar({
       <div className="grid grid-cols-3 gap-1.5">
         {[
           { value: totalPlayers, label: 'Players', color: isDark ? 'text-white' : 'text-slate-900' },
-          { value: teamsCount, label: 'Teams', color: 'text-blue-500' },
+          { value: teamsCount, label: 'Teams', color: 'text-lynx-sky' },
           { value: `${winRate}%`, label: 'Win %', color: 'text-emerald-500' },
         ].map(stat => (
           <div key={stat.label} className={`text-center p-2 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>

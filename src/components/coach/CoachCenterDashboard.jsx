@@ -188,7 +188,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                       {player.photo_url ? (
                         <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-blue-50 text-blue-600">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-lynx-ice text-lynx-sky">
                           {player.first_name?.[0]}{player.last_name?.[0]}
                         </div>
                       )}
@@ -263,7 +263,7 @@ export default function CoachCenterDashboard({
   openTeamChat,
 }) {
   const { isDark } = useTheme()
-  const g = selectedTeam?.color || '#6366F1'
+  const g = selectedTeam?.color || '#4BB9EC'
   const gb = adjustBrightness(g, 20)
   const [latestPost, setLatestPost] = useState(null)
   const [recentMessages, setRecentMessages] = useState([])
@@ -409,13 +409,13 @@ export default function CoachCenterDashboard({
                     ? 'border-transparent text-white'
                     : isDark ? 'border-white/[0.06] bg-lynx-charcoal hover:border-white/[0.12]' : 'border-lynx-silver bg-white hover:border-slate-300'
                 }`}
-                style={isSelected ? { backgroundColor: team.color || '#3B82F6' } : undefined}
+                style={isSelected ? { backgroundColor: team.color || '#4BB9EC' } : undefined}
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
                     isSelected ? 'bg-white/20 text-white' : 'text-white'
                   }`}
-                  style={!isSelected ? { backgroundColor: team.color || '#3B82F6' } : undefined}
+                  style={!isSelected ? { backgroundColor: team.color || '#4BB9EC' } : undefined}
                 >
                   {team.name?.charAt(0)}
                 </div>
@@ -449,8 +449,8 @@ export default function CoachCenterDashboard({
       {/* Row 2: Game Day Tools */}
       <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm`}>
         <div className={`flex items-center gap-3 p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-            <Crosshair className="w-5 h-5 text-blue-500" />
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+            <Crosshair className="w-5 h-5 text-lynx-sky" />
           </div>
           <div>
             <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Game Day Tools</h2>
@@ -465,8 +465,8 @@ export default function CoachCenterDashboard({
             className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5 text-left hover:shadow-md`}
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-indigo-50 border border-indigo-100'}`}>
-                <ClipboardList className="w-6 h-6 text-indigo-500" />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
+                <ClipboardList className="w-6 h-6 text-lynx-sky" />
               </div>
               <div>
                 <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Lineup Builder</h3>
@@ -474,8 +474,8 @@ export default function CoachCenterDashboard({
               </div>
             </div>
             {nextGame ? (
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-indigo-50 border border-indigo-100'}`}>
-                <Swords className="w-4 h-4 text-indigo-500" />
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
+                <Swords className="w-4 h-4 text-lynx-sky" />
                 <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   Next: vs {nextGame.opponent_name || 'TBD'} · {countdownText(nextGame.event_date)}
                 </span>
@@ -483,7 +483,7 @@ export default function CoachCenterDashboard({
             ) : (
               <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No upcoming games</p>
             )}
-            <div className="flex items-center gap-1 mt-3 text-indigo-500 text-sm font-semibold">
+            <div className="flex items-center gap-1 mt-3 text-lynx-sky text-sm font-semibold">
               <span>Open Builder</span>
               <ChevronRight className="w-4 h-4" />
             </div>
@@ -546,10 +546,10 @@ export default function CoachCenterDashboard({
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-blue-500" />
+            <BarChart3 className="w-4 h-4 text-lynx-sky" />
             <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Season Totals</h3>
           </div>
-          <span className="text-xs font-semibold text-[#2C5F7C] group-hover:opacity-80">
+          <span className="text-xs font-semibold text-lynx-sky group-hover:text-lynx-deep">
             View Full Stats →
           </span>
         </div>
@@ -569,10 +569,10 @@ export default function CoachCenterDashboard({
         <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
           <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-500" />
+              <Users className="w-4 h-4 text-lynx-sky" />
               <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Team Hub</h3>
             </div>
-            <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
+            <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep">
               Go To Team Page →
             </button>
           </div>
@@ -613,7 +613,7 @@ export default function CoachCenterDashboard({
               <MessageCircle className="w-4 h-4 text-emerald-500" />
               <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Team Chat</h3>
             </div>
-            <button onClick={() => openTeamChat?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
+            <button onClick={() => openTeamChat?.(selectedTeam?.id)} className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep">
               Go to Chat →
             </button>
           </div>
@@ -739,8 +739,8 @@ export default function CoachCenterDashboard({
             onClick={() => onShowCoachBlast?.()}
             className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md`}
           >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-purple-50 border border-purple-100'}`}>
-              <Send className="w-6 h-6 text-purple-500" />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
+              <Send className="w-6 h-6 text-lynx-sky" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Message Parents</h3>

@@ -49,7 +49,7 @@ function EventDetailModal({ event, team, onClose }) {
       <div className={`w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl shadow-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'}`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl" style={{ backgroundColor: team?.color || '#3B82F6' }}>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl" style={{ backgroundColor: team?.color || '#4BB9EC' }}>
               {event.event_type === 'game' ? '🏐' : '⚡'}
             </div>
             <div>
@@ -63,7 +63,7 @@ function EventDetailModal({ event, team, onClose }) {
         </div>
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-blue-500" />
+            <Calendar className="w-5 h-5 text-lynx-sky" />
             <div>
               <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{eventDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
               {event.event_time && <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{formatTime12(event.event_time)}</p>}
@@ -71,7 +71,7 @@ function EventDetailModal({ event, team, onClose }) {
           </div>
           {(event.location || event.venue_name) && (
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-blue-500" />
+              <MapPin className="w-5 h-5 text-lynx-sky" />
               <div>
                 <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{event.venue_name || event.location}</p>
                 {event.venue_address && <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.venue_address}</p>}
@@ -141,8 +141,8 @@ function CoachBlastModal({ team, onClose, showToast }) {
       <div className={`w-full max-w-lg rounded-xl shadow-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'}`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-purple-50 border border-purple-100'}`}>
-              <Send className="w-6 h-6 text-purple-500" />
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
+              <Send className="w-6 h-6 text-lynx-sky" />
             </div>
             <div>
               <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Message Parents</h2>
@@ -165,14 +165,14 @@ function CoachBlastModal({ team, onClose, showToast }) {
           <div>
             <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Priority</label>
             <div className="flex gap-2">
-              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? (isDark ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : 'bg-blue-50 border border-blue-300 text-blue-600') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-lynx-cloud border border-lynx-silver text-slate-500')}`}>Normal</button>
+              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? (isDark ? 'bg-lynx-sky/10 border border-lynx-sky/30 text-lynx-sky' : 'bg-lynx-ice border border-lynx-sky/30 text-lynx-sky') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-lynx-cloud border border-lynx-silver text-slate-500')}`}>Normal</button>
               <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'urgent' ? (isDark ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-red-50 border border-red-300 text-red-600') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-lynx-cloud border border-lynx-silver text-slate-500')}`}>Urgent</button>
             </div>
           </div>
         </div>
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} flex gap-3`}>
           <button onClick={onClose} className={`flex-1 py-3 rounded-xl font-medium ${isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-600 hover:bg-lynx-cloud'}`}>Cancel</button>
-          <button onClick={handleSend} disabled={sending || !title.trim() || !body.trim()} className="flex-1 py-3 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50">
+          <button onClick={handleSend} disabled={sending || !title.trim() || !body.trim()} className="flex-1 py-3 rounded-xl font-bold text-white bg-lynx-sky hover:bg-lynx-deep disabled:opacity-50">
             {sending ? 'Sending...' : 'Send Message'}
           </button>
         </div>
@@ -398,8 +398,8 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     return (
       <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`} style={{ minHeight: '60vh' }}>
         <div className="text-center max-w-md mx-auto px-6">
-          <div className={`w-20 h-20 rounded-xl mx-auto mb-6 flex items-center justify-center ${isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
-            <Shield className="w-10 h-10 text-blue-500" />
+          <div className={`w-20 h-20 rounded-xl mx-auto mb-6 flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
+            <Shield className="w-10 h-10 text-lynx-sky" />
           </div>
           <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No Teams Assigned</h2>
           <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Contact your league administrator to get started.</p>

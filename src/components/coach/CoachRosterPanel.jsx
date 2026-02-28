@@ -98,7 +98,7 @@ export default function CoachRosterPanel({
           </div>
           <button
             onClick={() => onNavigate?.('leaderboards')}
-            className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80"
+            className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep"
           >
             View All →
           </button>
@@ -123,7 +123,7 @@ export default function CoachRosterPanel({
                   {player.photo_url ? (
                     <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
                   ) : (
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-blue-50 text-blue-600">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-lynx-ice text-lynx-sky">
                       {player.first_name?.[0]}{player.last_name?.[0]}
                     </div>
                   )}
@@ -163,14 +163,14 @@ export default function CoachRosterPanel({
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-500" />
+            <Users className="w-4 h-4 text-lynx-sky" />
             <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Squad Roster</h3>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-400">{roster.length}</span>
             <button
               onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
-              className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80"
+              className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep"
             >
               Full Roster →
             </button>
@@ -194,7 +194,7 @@ export default function CoachRosterPanel({
                 ) : (
                   <div
                     className="w-12 h-16 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 text-white"
-                    style={{ backgroundColor: selectedTeam?.color || '#3B82F6' }}
+                    style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
                   >
                     {player.first_name?.[0]}{player.last_name?.[0]}
                   </div>
@@ -227,12 +227,12 @@ export default function CoachRosterPanel({
       <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm`}>
         <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-blue-500" />
+            <Calendar className="w-4 h-4 text-lynx-sky" />
             <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
           </div>
           <button
             onClick={() => onNavigate?.('schedule')}
-            className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80"
+            className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep"
           >
             Schedule →
           </button>
@@ -254,7 +254,7 @@ export default function CoachRosterPanel({
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                      isGame ? 'text-red-500 bg-red-500/10' : 'text-blue-500 bg-blue-500/10'
+                      isGame ? 'text-red-500 bg-red-500/10' : 'text-lynx-sky bg-lynx-sky/10'
                     }`}>
                       {isGame ? 'GAME' : 'PRACTICE'}
                     </span>
