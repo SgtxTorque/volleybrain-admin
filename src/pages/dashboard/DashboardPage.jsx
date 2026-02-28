@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { JourneyTimeline, JourneyWidget } from '../../components/journey'
@@ -8,7 +9,8 @@ import { supabase } from '../../lib/supabase'
 import {
   Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
   ChevronRight, MoreHorizontal, TrendingUp, CreditCard, Play,
-  CheckCircle, Clock, AlertCircle, Star, MapPin, LayoutDashboard
+  CheckCircle, Clock, AlertCircle, Star, MapPin, LayoutDashboard,
+  Filter, ChevronDown
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
@@ -880,8 +882,10 @@ export function GettingStartedGuide({ onNavigate }) {
 // ============================================
 export function DashboardPage({ onNavigate }) {
   const { organization, profile } = useAuth()
-  const { selectedSeason, loading: seasonLoading } = useSeason()
+  const { seasons, allSeasons, selectedSeason, selectSeason, loading: seasonLoading } = useSeason()
+  const { sports, selectedSport, selectSport } = useSport()
   const { isDark, accent } = useTheme()
+  const [filterTeam, setFilterTeam] = useState('all')
   const [stats, setStats] = useState({
     // Season stats
     teams: 0,
@@ -917,13 +921,18 @@ export function DashboardPage({ onNavigate }) {
   const [recentPaymentsNamed, setRecentPaymentsNamed] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // Reset team filter when season changes
+  useEffect(() => {
+    setFilterTeam('all')
+  }, [selectedSeason?.id])
+
   useEffect(() => {
     if (selectedSeason?.id) {
       loadDashboardData()
     } else if (!seasonLoading) {
       setLoading(false)
     }
-  }, [selectedSeason?.id, seasonLoading])
+  }, [selectedSeason?.id, seasonLoading, filterTeam])
 
   async function loadDashboardData() {
     setLoading(true)
@@ -937,8 +946,9 @@ export function DashboardPage({ onNavigate }) {
         .select('id, name, color, max_players', { count: 'exact' })
         .eq('season_id', seasonId)
 
-      // Get ACTUAL rostered count from team_players (source of truth)
-      const teamIds = teams?.map(t => t.id) || []
+      // Apply team filter — use all teams for teamsData display, but filter stats
+      const allTeamIds = teams?.map(t => t.id) || []
+      const teamIds = filterTeam !== 'all' ? [filterTeam] : allTeamIds
       let actualRosteredCount = 0
       if (teamIds.length > 0) {
         const { data: teamPlayers } = await supabase
@@ -954,8 +964,23 @@ export function DashboardPage({ onNavigate }) {
         .select('*, registrations(*)')
         .eq('season_id', seasonId)
 
+      // If filtering by team, get that team's player IDs to scope stats
+      let teamPlayerIds = null
+      if (filterTeam !== 'all' && teamIds.length > 0) {
+        const { data: filteredTp } = await supabase
+          .from('team_players')
+          .select('player_id')
+          .in('team_id', teamIds)
+        teamPlayerIds = new Set(filteredTp?.map(tp => tp.player_id) || [])
+      }
+
+      // Filter players if team is selected
+      const scopedPlayers = teamPlayerIds
+        ? (players || []).filter(p => teamPlayerIds.has(p.id))
+        : players || []
+
       // Get registration status from the joined registrations
-      const registrations = players?.map(p => ({
+      const registrations = scopedPlayers.map(p => ({
         id: p.registrations?.[0]?.id,
         status: p.registrations?.[0]?.status,
         first_name: p.first_name,
@@ -984,19 +1009,33 @@ export function DashboardPage({ onNavigate }) {
       const totalCapacity = seasonCapacity || (teamCount || 0) * 12
 
       // Fetch payments for this season
-      const { data: payments } = await supabase
+      const { data: allPayments } = await supabase
         .from('payments')
-        .select('amount, paid, payment_method, fee_type, created_at, due_date')
+        .select('amount, paid, payment_method, fee_type, created_at, due_date, player_id')
         .eq('season_id', seasonId)
 
-      const paidPayments = payments?.filter(p => p.paid) || []
-      const unpaidPayments = payments?.filter(p => !p.paid) || []
+      // Scope payments to team's players if filtered
+      const payments = teamPlayerIds
+        ? (allPayments || []).filter(p => teamPlayerIds.has(p.player_id))
+        : allPayments || []
+
+      const paidPayments = payments.filter(p => p.paid)
+      const unpaidPayments = payments.filter(p => !p.paid)
       
       const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
       const totalExpected = payments?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
       const pastDue = unpaidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
       const paidOnline = paidPayments.filter(p => p.payment_method === 'stripe').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
       const paidManual = paidPayments.filter(p => p.payment_method !== 'stripe').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+
+      // Per-source breakdowns
+      const paidBySource = {
+        stripe: paidOnline,
+        zelle: paidPayments.filter(p => p.payment_method === 'zelle').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        cashapp: paidPayments.filter(p => p.payment_method === 'cashapp').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        venmo: paidPayments.filter(p => p.payment_method === 'venmo').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        cash_check: paidPayments.filter(p => ['cash', 'check', 'cash_check'].includes(p.payment_method)).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+      }
 
       // Group payments by fee type for breakdown
       const paymentsByType = {
@@ -1145,14 +1184,14 @@ export function DashboardPage({ onNavigate }) {
           // games table may not exist — gracefully degrade
         }
       }
-      // Count teams below roster threshold (75% of max_players, default 12)
-      let understaffedTeams = 0
+      // Count open spots (max_players - current players) across filtered teams
+      let openSpots = 0
       if (teams?.length > 0) {
         teams.forEach(t => {
+          if (!teamIds.includes(t.id)) return
           const maxP = t.max_players || 12
-          const threshold = Math.ceil(maxP * 0.75)
           const current = perTeamStats[t.id]?.playerCount || 0
-          if (current < threshold) understaffedTeams++
+          openSpots += Math.max(0, maxP - current)
         })
       }
 
@@ -1161,19 +1200,34 @@ export function DashboardPage({ onNavigate }) {
 
       // Build recent payments with player names for PaymentSummaryCard
       try {
-        const { data: namedPayments } = await supabase
+        let recentQuery = supabase
           .from('payments')
-          .select('amount, created_at, player_id, players(first_name, last_name)')
+          .select('amount, created_at, fee_type, player_id, players(first_name, last_name)')
           .eq('season_id', seasonId)
           .eq('paid', true)
           .order('created_at', { ascending: false })
-          .limit(3)
+          .limit(teamPlayerIds ? 50 : 5)
+
+        const { data: namedPayments } = await recentQuery
+
+        // Filter by team players if needed, then take 5
+        const scopedRecent = teamPlayerIds
+          ? (namedPayments || []).filter(p => teamPlayerIds.has(p.player_id)).slice(0, 5)
+          : (namedPayments || []).slice(0, 5)
 
         setRecentPaymentsNamed(
-          (namedPayments || []).map(p => ({
-            name: p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown',
-            amount: `$${parseFloat(p.amount).toLocaleString()}`,
-          }))
+          scopedRecent.map(p => {
+            const d = new Date(p.created_at)
+            const mm = String(d.getMonth() + 1).padStart(2, '0')
+            const dd = String(d.getDate()).padStart(2, '0')
+            const yy = String(d.getFullYear()).slice(-2)
+            return {
+              name: p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown',
+              date: `${mm}/${dd}/${yy}`,
+              lineItem: p.fee_type ? p.fee_type.charAt(0).toUpperCase() + p.fee_type.slice(1) : '—',
+              amount: `$${parseFloat(p.amount).toLocaleString()}`,
+            }
+          })
         )
       } catch {
         setRecentPaymentsNamed([])
@@ -1183,7 +1237,7 @@ export function DashboardPage({ onNavigate }) {
       setRecentActivity(recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5))
 
       setStats({
-        teams: teamCount || 0,
+        teams: teamIds.length,
         rosteredPlayers: regStats.rostered,
         approvedPlayers: regStats.approved,
         pendingPlayers: regStats.pending,
@@ -1201,10 +1255,11 @@ export function DashboardPage({ onNavigate }) {
         capacity: totalCapacity,
         passTypeName: selectedSeason?.name || 'Season Pass',
         paymentsByType,
+        paidBySource,
         coachCount,
         unsignedWaivers,
         teamsWithCoach: teamsWithCoachCount,
-        understaffedTeams,
+        openSpots,
       })
 
       // Generate monthly payment data for chart (real data based on payments)
@@ -1318,8 +1373,76 @@ export function DashboardPage({ onNavigate }) {
         </p>
       </div>
 
-      {/* Team Snapshot */}
-      <TeamSnapshot teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
+      {/* Dashboard Filters */}
+      <div className={`flex w-[calc(50%-12px)] items-center gap-3 rounded-lg px-4 py-1.5 ${
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver/50'
+      }`}>
+        <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`} />
+
+        {/* Season selector */}
+        <div className="relative">
+          <select
+            value={selectedSeason?.id || ''}
+            onChange={(e) => {
+              const season = (seasons || allSeasons || []).find(s => s.id === e.target.value)
+              if (season) selectSeason(season)
+            }}
+            className={`appearance-none rounded-lg px-3 pr-8 py-2 text-sm font-bold text-center cursor-pointer transition-colors ${
+              isDark
+                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
+                : 'bg-lynx-cloud text-slate-800 border border-lynx-silver/50 hover:bg-slate-100'
+            }`}
+          >
+            {(seasons || allSeasons || []).map(s => (
+              <option key={s.id} value={s.id}>
+                {s.name} · {s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : 'Unknown'}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+        </div>
+
+        {/* Sport selector */}
+        <div className="relative">
+          <select
+            value={selectedSport?.id || ''}
+            onChange={(e) => {
+              const sport = sports.find(s => s.id === e.target.value) || null
+              selectSport(sport)
+            }}
+            className={`appearance-none rounded-lg px-3 pr-8 py-2 text-sm font-bold text-center cursor-pointer transition-colors ${
+              isDark
+                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
+                : 'bg-lynx-cloud text-slate-800 border border-lynx-silver/50 hover:bg-slate-100'
+            }`}
+          >
+            <option value="">All Sports</option>
+            {sports.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+        </div>
+
+        {/* Team selector */}
+        <div className="relative">
+          <select
+            value={filterTeam}
+            onChange={(e) => setFilterTeam(e.target.value)}
+            className={`appearance-none rounded-lg px-3 pr-8 py-2 text-sm font-bold text-center cursor-pointer transition-colors ${
+              isDark
+                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
+                : 'bg-lynx-cloud text-slate-800 border border-lynx-silver/50 hover:bg-slate-100'
+            }`}
+          >
+            <option value="all">All Teams</option>
+            {teamsData.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+        </div>
+      </div>
 
       {/* Stats Row: Registration Stats + Payment Summary */}
       <div className="grid grid-cols-2 gap-6">
@@ -1328,7 +1451,12 @@ export function DashboardPage({ onNavigate }) {
       </div>
 
       {/* Upcoming Events */}
-      <UpcomingEventsCard events={upcomingEvents} onNavigate={onNavigate} />
+      <div className="w-[calc(50%-12px)]">
+        <UpcomingEventsCard events={upcomingEvents} onNavigate={onNavigate} />
+      </div>
+
+      {/* Team Snapshot */}
+      <TeamSnapshot teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
 
       {/* Journey Progress */}
       <JourneyTimeline onNavigate={onNavigate} />

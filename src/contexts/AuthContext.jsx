@@ -78,6 +78,9 @@ export function AuthProvider({ children }) {
   }
 
   async function signIn(email, password) {
+    // Clear filter preferences so dashboard defaults to "all" on login
+    localStorage.removeItem('vb_selected_season')
+    localStorage.removeItem('vb_selected_sport')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
     await init()

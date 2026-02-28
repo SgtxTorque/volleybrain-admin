@@ -6,9 +6,10 @@
 import React from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
+import { useJourney, JOURNEY_BADGES } from '../../contexts/JourneyContext'
 import {
-  AlertTriangle, ClipboardCheck, DollarSign, FileWarning,
-  Megaphone, UserPlus, CreditCard
+  AlertTriangle, ArrowRight, ClipboardCheck, DollarSign, FileWarning,
+  Megaphone, UserPlus, CreditCard, ChevronRight, Award
 } from 'lucide-react'
 
 function getOrgInitials(name) {
@@ -66,16 +67,32 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
   )
 }
 
+const ONBOARDING_NAV_MAP = {
+  create_org: 'seasons',
+  create_season: 'seasons',
+  add_teams: 'teams',
+  join_create_team: 'teams',
+  add_roster: 'teams',
+  add_coaches: 'coaches',
+  assign_coach: 'coaches',
+  register_players: 'registrations',
+  create_schedule: 'schedule',
+  first_practice: 'schedule',
+  first_game: 'schedule',
+  view_roster: 'teams',
+  create_lineup: 'gameprep',
+  plan_practice: 'schedule',
+  game_prep: 'gameprep',
+}
+
 export default function OrgSidebar({ stats, season, onNavigate }) {
   const { isDark, accent } = useTheme()
   const { orgName, orgLogo } = useOrgBranding()
+  const journey = useJourney()
 
   const initials = getOrgInitials(orgName)
 
-  // Collections progress
-  const totalExpected = stats.totalExpected || stats.totalCollected || 0
-  const totalCollected = stats.totalCollected || 0
-  const collectionPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
+  const showOnboarding = journey && !journey.loading && !journey.isComplete && !journey.isDismissed
 
   return (
     <aside className={`flex w-[330px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
@@ -115,24 +132,43 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
         </div>
       </div>
 
-      {/* Collections Progress */}
-      <div className={`-mt-[20px] rounded-xl p-5 shadow-sm ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
-      }`}>
-        <div className="flex items-center justify-between">
-          <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Collections</span>
-          <span className="text-sm font-semibold" style={{ color: accent.primary || '#0d9488' }}>{collectionPct}%</span>
-        </div>
-        <div className={`mt-3 h-2.5 overflow-hidden rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-          <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${Math.min(100, collectionPct)}%`, backgroundColor: accent.primary || '#0d9488' }}
-          />
-        </div>
-        <p className={`mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
-          ${totalCollected.toLocaleString()} / ${totalExpected.toLocaleString()}
-        </p>
-      </div>
+      {/* Onboarding Progress — disappears when all steps done */}
+      {showOnboarding && (
+        <button
+          onClick={() => {
+            if (journey.currentStep && ONBOARDING_NAV_MAP[journey.currentStep.id]) {
+              onNavigate(ONBOARDING_NAV_MAP[journey.currentStep.id])
+            }
+          }}
+          className={`-mt-[19px] rounded-xl p-5 shadow-sm text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+            isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Setup Progress</span>
+            <span className="text-sm font-bold" style={{ color: accent.primary || '#0d9488' }}>
+              {journey.completedCount}/{journey.totalSteps}
+            </span>
+          </div>
+          <div className={`mt-3 h-2.5 overflow-hidden rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${Math.min(100, journey.progressPercent)}%`, backgroundColor: accent.primary || '#0d9488' }}
+            />
+          </div>
+          {journey.currentStep && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+                Next:
+              </span>
+              <span className={`text-sm font-bold flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                {journey.currentStep.title}
+              </span>
+              <ChevronRight className="h-4 w-4" style={{ color: accent.primary || '#0d9488' }} />
+            </div>
+          )}
+        </button>
+      )}
 
       {/* Needs Attention */}
       <div className="flex flex-col gap-1">
@@ -201,6 +237,49 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           />
         </div>
       </div>
+
+      {/* Recent Badges */}
+      {journey?.earnedBadges?.length > 0 && (() => {
+        const recentBadges = journey.earnedBadges.slice(-3).reverse()
+        return (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 px-1">
+              <Award className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+              <span className={`text-xs font-semibold uppercase tracking-wider flex-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                Recent Badges
+              </span>
+              <button
+                onClick={() => onNavigate('badges')}
+                className="flex items-center gap-1 text-xs font-bold transition-colors"
+                style={{ color: isDark ? '#5eead4' : '#0d9488' }}
+              >
+                View All
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {recentBadges.map(badgeId => {
+                const badge = JOURNEY_BADGES[badgeId]
+                if (!badge) return null
+                return (
+                  <div
+                    key={badgeId}
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
+                      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
+                    }`}
+                  >
+                    <span className="text-2xl">{badge.icon}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{badge.name}</span>
+                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{badge.description}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
     </aside>
   )
 }

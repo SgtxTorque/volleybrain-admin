@@ -145,39 +145,39 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
               <div className={`w-full rounded-xl p-4 ${
                 isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver/50'
               }`}>
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-3 text-center">
                   {(() => {
                     const rosterMatch = rostered === total
                     const coachMatch = (stats.teamsWithCoach || 0) === (stats.teams || 0)
-                    const lowRoster = stats.understaffedTeams || 0
+                    const spots = stats.openSpots || 0
                     return (
                       <>
-                        <div>
+                        <div className="min-w-0">
                           <p className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Rostered
                           </p>
-                          <p className="text-xl font-black">
+                          <p className="text-lg font-black whitespace-nowrap">
                             <span className={rosterMatch ? (isDark ? 'text-white' : 'text-slate-900') : 'text-amber-500'}>{rostered}</span>
                             <span className={isDark ? 'text-white' : 'text-slate-900'}>/{total}</span>
                           </p>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <p className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Coached
                           </p>
-                          <p className="text-xl font-black">
+                          <p className="text-lg font-black whitespace-nowrap">
                             <span className={coachMatch ? (isDark ? 'text-white' : 'text-slate-900') : 'text-amber-500'}>{stats.teamsWithCoach || 0}</span>
                             <span className={isDark ? 'text-white' : 'text-slate-900'}>/{stats.teams || 0}</span>
                           </p>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <p className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-                            Low Roster
+                            Open Spots
                           </p>
-                          <p className={`text-xl font-black ${
-                            lowRoster > 0 ? 'text-amber-500' : isDark ? 'text-emerald-400' : 'text-emerald-500'
+                          <p className={`text-lg font-black ${
+                            spots > 0 ? 'text-amber-500' : isDark ? 'text-emerald-400' : 'text-emerald-500'
                           }`}>
-                            {lowRoster}
+                            {spots}
                           </p>
                         </div>
                       </>
