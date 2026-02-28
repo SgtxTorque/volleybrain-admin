@@ -50,7 +50,10 @@ import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
 import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage } from './pages/parent'
 
 // Public Pages
-import { TeamWallPage, OrgDirectoryPage } from './pages/public'
+import { OrgDirectoryPage } from './pages/public'
+
+// Team Wall (authenticated — has lightbox, shared FeedPost, photo grid)
+import { TeamWallPage } from './pages/teams/TeamWallPage'
 
 // Core Admin Pages
 import { RegistrationsPage } from './pages/registrations'
