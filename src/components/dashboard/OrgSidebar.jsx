@@ -37,8 +37,8 @@ function AttentionItem({ icon, label, badge, badgeColor, onClick, isDark }) {
       }`}
     >
       <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{icon}</span>
-      <span className={`flex-1 text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{label}</span>
-      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeColor}`}>
+      <span className={`flex-1 text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{label}</span>
+      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${badgeColor}`}>
         {badge}
       </span>
     </button>
@@ -78,7 +78,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
   const collectionPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
 
   return (
-    <aside className={`flex w-[310px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
+    <aside className={`flex w-[330px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
       isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-lynx-silver/50 bg-lynx-cloud'
     }`}>
       {/* Org Card */}
@@ -89,21 +89,21 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <img
             src={orgLogo}
             alt={orgName}
-            className="h-16 w-16 rounded-xl object-cover shadow-sm"
+            className="h-[200px] w-[200px] rounded-xl object-cover shadow-sm -mt-[30px]"
           />
         ) : (
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-xl text-xl font-bold text-white shadow-sm"
+            className="flex h-[200px] w-[200px] items-center justify-center rounded-xl text-4xl font-bold text-white shadow-sm -mt-[30px]"
             style={{ backgroundColor: accent.primary || '#10284C' }}
           >
             {initials}
           </div>
         )}
         <div className="text-center">
-          <h2 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {orgName || 'My Organization'}
           </h2>
-          <p className={`mt-0.5 text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <p className={`mt-0.5 text-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             {season?.name || 'No season selected'}
             {season?.status ? ` · ${season.status.charAt(0).toUpperCase() + season.status.slice(1)}` : ''}
           </p>
@@ -116,7 +116,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       </div>
 
       {/* Collections Progress */}
-      <div className={`rounded-xl p-5 shadow-sm ${
+      <div className={`-mt-[20px] rounded-xl p-5 shadow-sm ${
         isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
       }`}>
         <div className="flex items-center justify-between">
@@ -138,7 +138,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 px-1 pb-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Needs Attention
           </span>
         </div>
@@ -154,7 +154,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           icon={<DollarSign className="h-4 w-4" />}
           label="Overdue payments"
           badge={stats.pastDue > 0 ? `$${stats.pastDue.toLocaleString()}` : null}
-          badgeColor={isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'}
+          badgeColor={isDark ? 'bg-red-500/20 text-red-400 !text-sm !font-black' : 'bg-red-50 text-red-600 !text-sm !font-black'}
           onClick={() => onNavigate('payments')}
           isDark={isDark}
         />

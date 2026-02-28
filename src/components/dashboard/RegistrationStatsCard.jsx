@@ -6,7 +6,25 @@ import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 
-export default function RegistrationStatsCard({ stats, onNavigate }) {
+function formatDateShort(dateStr) {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr + 'T00:00:00')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const yy = String(d.getFullYear()).slice(-2)
+  return `${mm}/${dd}/${yy}`
+}
+
+function getDaysUntilClose(closeDate) {
+  if (!closeDate) return null
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  const close = new Date(closeDate + 'T00:00:00')
+  const diff = Math.ceil((close - now) / (1000 * 60 * 60 * 24))
+  return diff
+}
+
+export default function RegistrationStatsCard({ stats, season, onNavigate }) {
   const { isDark } = useTheme()
 
   const rostered = stats.rostered || 0
@@ -100,6 +118,45 @@ export default function RegistrationStatsCard({ stats, onNavigate }) {
           ))}
         </div>
       </div>
+
+      {/* Registration Dates Table */}
+      {(season?.registration_opens || season?.registration_closes) && (() => {
+        const daysLeft = getDaysUntilClose(season.registration_closes)
+        return (
+          <div className={`grid grid-cols-3 gap-4 pt-5 mt-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+            <div className="text-center">
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                Reg Open Date
+              </p>
+              <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {formatDateShort(season.registration_opens)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                Reg Close Date
+              </p>
+              <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {formatDateShort(season.registration_closes)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                Days Left
+              </p>
+              <p className={`text-3xl font-black ${
+                daysLeft != null && daysLeft <= 7
+                  ? 'text-red-500'
+                  : daysLeft != null && daysLeft <= 30
+                    ? 'text-amber-500'
+                    : isDark ? 'text-white' : 'text-slate-900'
+              }`}>
+                {daysLeft != null ? (daysLeft > 0 ? daysLeft : 'Closed') : '—'}
+              </p>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

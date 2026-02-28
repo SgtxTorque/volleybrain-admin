@@ -40,8 +40,8 @@ function AttentionItem({ icon: Icon, label, value, isAmount, onClick, isDark }) 
         ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
         <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
       </div>
-      <span className={`text-sm flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{label}</span>
-      <span className={`text-sm font-bold ${isAmount ? 'text-orange-500' : ''} ${!isAmount ? (isDark ? 'text-orange-400' : 'text-orange-600') : ''}`}>
+      <span className={`text-sm font-bold flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{label}</span>
+      <span className={`${isAmount ? 'text-base font-black text-orange-500' : 'text-sm font-bold'} ${!isAmount ? (isDark ? 'text-orange-400' : 'text-orange-600') : ''}`}>
         {display}
       </span>
     </button>
@@ -178,7 +178,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
       <div className="px-5 py-4">
         <div className="flex items-center gap-1.5 mb-2">
           <Zap className="w-3.5 h-3.5 text-amber-500" />
-          <h4 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h4 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Needs Attention
           </h4>
         </div>

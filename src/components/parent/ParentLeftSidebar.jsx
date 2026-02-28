@@ -205,7 +205,7 @@ export default function ParentLeftSidebar({
       {/* Needs Attention Card */}
       <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
           {priorityEngine.count > 0 && (
             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">
               {priorityEngine.count}
@@ -230,7 +230,7 @@ export default function ParentLeftSidebar({
                     {item.actionType === 'payment' ? '💰' : item.actionType === 'waiver' ? '📋' : item.actionType === 'rsvp' ? '📅' : '⚠️'}
                   </div>
                   <div className="text-left">
-                    <div className="text-sm font-semibold text-slate-900">{item.title || item.label}</div>
+                    <div className="text-sm font-bold text-slate-900">{item.title || item.label}</div>
                     {item.subtitle && <div className="text-sm text-lynx-slate">{item.subtitle}</div>}
                   </div>
                 </div>

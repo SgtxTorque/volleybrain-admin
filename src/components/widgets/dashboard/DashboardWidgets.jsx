@@ -785,9 +785,9 @@ export function NeedsAttentionWidget() {
                     <item.icon className="w-5 h-5" style={{ color: item.color }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{item.label}</p>
+                    <p className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{item.label}</p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold text-white" style={{ backgroundColor: item.color }}>{item.count}</span>
+                  <span className={`px-2.5 py-1 rounded-full text-white ${typeof item.count === 'string' && item.count.startsWith('$') ? 'text-sm font-black' : 'text-xs font-bold'}`} style={{ backgroundColor: item.color }}>{item.count}</span>
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </div>
               ))}

@@ -1308,7 +1308,7 @@ export function DashboardPage({ onNavigate }) {
 
       {/* Stats Row: Registration Stats + Payment Summary */}
       <div className="grid grid-cols-2 gap-6">
-        <RegistrationStatsCard stats={stats} onNavigate={onNavigate} />
+        <RegistrationStatsCard stats={stats} season={selectedSeason} onNavigate={onNavigate} />
         <PaymentSummaryCard stats={stats} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
       </div>
 

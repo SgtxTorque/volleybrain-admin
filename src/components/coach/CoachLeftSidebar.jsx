@@ -62,7 +62,7 @@ export default function CoachLeftSidebar({
       <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-4 h-4 text-amber-500" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wider text-lynx-slate">Needs Attention</h3>
           {needsAttentionItems?.length > 0 && (
             <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
               {needsAttentionItems.length} item{needsAttentionItems.length > 1 ? 's' : ''}
@@ -78,7 +78,7 @@ export default function CoachLeftSidebar({
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-lynx-cloud text-left"
               >
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                <span className="text-sm font-medium text-slate-700">{item.label}</span>
+                <span className="text-sm font-bold text-slate-700">{item.label}</span>
                 <ChevronRight className="w-3 h-3 ml-auto text-slate-400" />
               </button>
             ))}
