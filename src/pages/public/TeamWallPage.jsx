@@ -994,16 +994,27 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
         <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{post.content}</p>
       </div>
 
-      {/* Full-bleed Image */}
+      {/* Photos */}
       {post.media_urls?.length > 0 && (
-        <div className={`${post.media_urls.length === 1 ? '' : 'px-4 pb-3'}`}>
-          <div className={`${post.media_urls.length === 1 ? '' : 'grid grid-cols-2 gap-2'}`}>
-            {post.media_urls.map((url, idx) => (
-              <div key={idx} className={`relative overflow-hidden ${post.media_urls.length === 1 ? 'w-full h-72' : 'rounded-xl h-48'}`}>
-                <img src={url} alt="Post image" className="w-full h-full object-cover" />
-              </div>
-            ))}
-          </div>
+        <div className="px-4 pb-3">
+          {post.media_urls.length === 1 ? (
+            <div className="w-full overflow-hidden rounded-xl">
+              <img src={post.media_urls[0]} alt="" className="w-full h-auto block" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+              {post.media_urls.slice(0, 4).map((url, idx) => (
+                <div key={idx} className="aspect-square relative">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  {idx === 3 && post.media_urls.length > 4 && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">+{post.media_urls.length - 4}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

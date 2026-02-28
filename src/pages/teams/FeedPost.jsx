@@ -70,15 +70,17 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     const count = mediaUrls.length
     if (count === 0) return null
 
-    // Single image — full width, natural aspect ratio
+    // Single image — full width, natural aspect ratio, NO cropping
     if (count === 1) {
       return (
         <div className="px-4 pb-4">
-          <div
-            className="rounded-xl overflow-hidden cursor-pointer hover:brightness-95 transition"
-            onClick={() => setLightboxIdx(0)}
-          >
-            <img src={mediaUrls[0]} alt="" className="w-full h-auto block" />
+          <div className="w-full overflow-hidden rounded-xl">
+            <img
+              src={mediaUrls[0]}
+              alt=""
+              className="w-full h-auto block cursor-pointer hover:brightness-95 transition"
+              onClick={() => setLightboxIdx(0)}
+            />
           </div>
         </div>
       )
