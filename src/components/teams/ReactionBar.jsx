@@ -196,7 +196,7 @@ export function ReactionBar({ postId, reactionCount = 0, isDark, g, onCountChang
           {totalReactions > 0 && (
             <div className="text-left">
               <p className="text-sm font-bold" style={{ color: myReaction ? g : (isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)') }}>{totalReactions}</p>
-              <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
                 {totalReactions === 1 ? 'REACTION' : 'REACTIONS'}
               </p>
             </div>
@@ -204,7 +204,7 @@ export function ReactionBar({ postId, reactionCount = 0, isDark, g, onCountChang
           {totalReactions === 0 && (
             <div className="text-left">
               <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)' }}>0</p>
-              <p className="text-[8px] tw-heading tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>REACTIONS</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>REACTIONS</p>
             </div>
           )}
         </button>
