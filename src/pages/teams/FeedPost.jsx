@@ -36,6 +36,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   })() : null
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
+  const [showComments, setShowComments] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState(null)
   const [showMenu, setShowMenu] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -73,8 +74,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     // Single image — full width, natural aspect ratio, NO cropping
     if (count === 1) {
       return (
-        <div className="px-4 pb-4">
-          <div className="w-full overflow-hidden rounded-xl">
+        <div>
+          <div className="w-full overflow-hidden">
             <img
               src={mediaUrls[0]}
               alt=""
@@ -89,8 +90,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     // Two images — side by side, equal height
     if (count === 2) {
       return (
-        <div className="px-4 pb-4">
-          <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+        <div>
+          <div className="grid grid-cols-2 gap-1 overflow-hidden">
             {mediaUrls.map((url, idx) => (
               <div
                 key={idx}
@@ -108,8 +109,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     // Three images — 1 large left, 2 stacked right
     if (count === 3) {
       return (
-        <div className="px-4 pb-4">
-          <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden" style={{ height: 320 }}>
+        <div>
+          <div className="grid grid-cols-2 gap-1 overflow-hidden" style={{ height: 320 }}>
             <div
               className="row-span-2 cursor-pointer hover:brightness-95 transition"
               onClick={() => setLightboxIdx(0)}
@@ -136,8 +137,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     // Four images — 2x2 grid
     if (count === 4) {
       return (
-        <div className="px-4 pb-4">
-          <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+        <div>
+          <div className="grid grid-cols-2 gap-1 overflow-hidden">
             {mediaUrls.map((url, idx) => (
               <div
                 key={idx}
@@ -154,8 +155,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
 
     // Five+ images — 2x2 grid, last cell has +N overlay
     return (
-      <div className="px-4 pb-4">
-        <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+      <div>
+        <div className="grid grid-cols-2 gap-1 overflow-hidden">
           {mediaUrls.slice(0, 4).map((url, idx) => (
             <div
               key={idx}
@@ -176,7 +177,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   }
 
   return (
-    <article className={`tw-glass overflow-hidden tw-ac ${accentClass}`} style={{ animationDelay: `${.1 + i * .05}s` }}>
+    <article className={`tw-post-card overflow-hidden tw-ac ${accentClass}`} style={{ animationDelay: `${.1 + i * .05}s` }}>
       {/* Post Header — Instagram style */}
       <div className="px-6 pt-6 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -193,15 +194,15 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <p className="font-bold text-[15px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+              <p className="font-bold text-[17px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                 {post.profiles?.full_name || 'Team Admin'}
               </p>
-              <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
                 style={{ background: `${g}10`, color: `${g}99` }}>
                 {typeIcon} {postType.replace('_', ' ').toUpperCase()}
               </span>
             </div>
-            <p className="text-[11px] mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+            <p className="text-[13px] mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
               {new Date(post.created_at).toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
               })}
@@ -259,41 +260,6 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
       </div>
 
-      {/* Content — before photos like Facebook */}
-      <div className="px-6 pb-3">
-        {shoutoutMeta ? (
-          <ShoutoutCard
-            metadataJson={post.title}
-            giverName={post.profiles?.full_name || 'Someone'}
-            createdAt={post.created_at}
-            isDark={isDark}
-          />
-        ) : milestoneMeta ? (
-          <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${milestoneMeta.tierColor || milestoneMeta.achievementColor || g}`, background: `${milestoneMeta.tierColor || g}08` }}>
-            <div className="h-1" style={{ background: milestoneMeta.tierColor || g }} />
-            <div className="p-5 flex flex-col items-center gap-2.5">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
-                style={{ background: `${milestoneMeta.tierColor || g}20`, color: milestoneMeta.tierColor || g }}>
-                {milestoneMeta.type === 'level_up' ? '⬆️' : '🏆'} {milestoneMeta.type === 'level_up' ? 'Level Up' : 'Achievement'}
-              </div>
-              <span className="text-5xl my-1">{milestoneMeta.achievementIcon || '🏆'}</span>
-              <p className="text-[15px] font-medium text-center leading-relaxed" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                {post.content}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {post.title && !titleIsJson && (
-              <h3 className="font-bold text-[16px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
-            )}
-            {post.content && (
-              <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
-            )}
-          </>
-        )}
-      </div>
-
       {/* Media — Facebook-style photo grid */}
       {renderPhotoGrid()}
 
@@ -307,7 +273,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       )}
 
       {/* Interaction Bar — Cheers + Comments + Share */}
-      <div className="px-6 pb-6">
+      <div className="px-6 pb-4">
         <div className="flex items-center justify-between pt-4" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
           <div className="flex items-center gap-6">
             <ReactionBar
@@ -321,16 +287,16 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               }}
             />
 
-            <div className="flex items-center gap-2.5">
+            <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2.5" style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
               <MessageCircle className="w-6 h-6" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.3)' }} />
               <div className="text-left">
                 <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)' }}>{localCommentCount}</p>
-                <p className="text-[8px] font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>COMMENTS</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }}>COMMENTS</p>
               </div>
-            </div>
+            </button>
           </div>
 
-          <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition"
+          <button className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider transition"
             style={{ color: isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)' }}
             onMouseEnter={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.5)'}
             onMouseLeave={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.15)' : 'rgba(0,0,0,.15)'}>
@@ -339,23 +305,57 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
       </div>
 
-      {/* Comments */}
-      <CommentSection
-        postId={post.id}
-        commentCount={localCommentCount}
-        isDark={isDark}
-        g={g}
-        onCountChange={(count) => {
-          setLocalCommentCount(count)
-          onCommentCountChange?.(post.id, count)
-        }}
-      />
+      {/* Content/Caption — below interaction bar (Instagram layout) */}
+      <div className="px-6 pb-3">
+        {shoutoutMeta ? (
+          <ShoutoutCard
+            metadataJson={post.title}
+            giverName={post.profiles?.full_name || 'Someone'}
+            createdAt={post.created_at}
+            isDark={isDark}
+          />
+        ) : milestoneMeta ? (
+          <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${milestoneMeta.tierColor || milestoneMeta.achievementColor || g}`, background: `${milestoneMeta.tierColor || g}08` }}>
+            <div className="h-1" style={{ background: milestoneMeta.tierColor || g }} />
+            <div className="p-5 flex flex-col items-center gap-2.5">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-bold uppercase tracking-wider"
+                style={{ background: `${milestoneMeta.tierColor || g}20`, color: milestoneMeta.tierColor || g }}>
+                {milestoneMeta.type === 'level_up' ? '⬆️' : '🏆'} {milestoneMeta.type === 'level_up' ? 'Level Up' : 'Achievement'}
+              </div>
+              <span className="text-5xl my-1">{milestoneMeta.achievementIcon || '🏆'}</span>
+              <p className="text-[17px] font-medium text-center leading-relaxed" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                {post.content}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {post.content && (
+              <p className="text-[16px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Comments (toggled by MessageCircle button) */}
+      {showComments && (
+        <CommentSection
+          postId={post.id}
+          commentCount={localCommentCount}
+          isDark={isDark}
+          g={g}
+          onCountChange={(count) => {
+            setLocalCommentCount(count)
+            onCommentCountChange?.(post.id, count)
+          }}
+        />
+      )}
 
       {/* Edit Post Overlay */}
       {editing && (
         <div className="px-6 pb-5">
           <div className="rounded-xl p-4" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)' }}>
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
+            <p className="text-[12px] font-bold uppercase tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
             <input
               type="text"
               value={editTitle}

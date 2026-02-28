@@ -302,13 +302,15 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             <div className="flex flex-wrap gap-1.5">
               {[['announcement', '📢 Announcement'], ['game_recap', '🏐 Game Recap'], ['shoutout', '⭐ Shoutout'], ['milestone', '🏆 Milestone'], ['photo', '📷 Photo']].map(([k, l]) => (
                 <button key={k} onClick={() => setPostType(k)}
-                  className="px-3 py-1.5 rounded-lg transition"
+                  className="transition"
                   style={{
                     fontSize: 13,
                     fontWeight: 500,
+                    padding: '6px 14px',
+                    borderRadius: 999,
                     background: postType === k ? '#4BB9EC' : (isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'),
                     color: postType === k ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#10284C'),
-                    border: `1px solid ${postType === k ? '#4BB9EC' : (isDark ? '#2A3545' : '#DFE4EA')}`,
+                    border: `1.5px solid ${postType === k ? '#4BB9EC' : (isDark ? '#2A3545' : '#DFE4EA')}`,
                   }}
                 >
                   {l}

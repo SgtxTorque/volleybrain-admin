@@ -156,6 +156,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   // Engagement
   const [showShoutoutModal, setShowShoutoutModal] = useState(false)
   const [showCreateChallengeModal, setShowCreateChallengeModal] = useState(false)
+  const [activePlayerPopup, setActivePlayerPopup] = useState(null)
   const [activeChallenges, setActiveChallenges] = useState([])
 
   // Gallery lightbox
@@ -167,6 +168,18 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   // Back-to-top FAB
   const centerRef = useRef(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
+
+  const playerPopupRef = useRef(null)
+
+  // Close player popup on outside click
+  useEffect(() => {
+    if (!activePlayerPopup) return
+    const handleClick = (e) => {
+      if (playerPopupRef.current && !playerPopupRef.current.contains(e.target)) setActivePlayerPopup(null)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [activePlayerPopup])
 
   const isAdminOrCoach = profile?.role === 'admin' || profile?.role === 'coach'
   const canPost = isAdminOrCoach || profile?.role === 'parent'
@@ -418,7 +431,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const headCoach = coaches.find(c => c.role === 'head') || coaches[0] || null
 
   // Label style helper (11px/Hal 500/0.1em/uppercase/Slate)
-  const labelStyle = { fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND.slate }
+  const labelStyle = { fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND.slate }
 
   // ═══════════════════════════════════════════════════════════
   // RENDER — 3-column layout
@@ -427,7 +440,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]"
       style={{ background: pageBg, fontFamily: FONT_STACK }}>
-      <style>{FONT_STYLES}{HUB_STYLES}</style>
+      <style>{FONT_STYLES}{HUB_STYLES}{`
+.tw-hide-scrollbar::-webkit-scrollbar { width: 0; background: transparent; }
+.tw-hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+`}</style>
 
       {/* ═══ MOBILE HEADER (below lg) ═══ */}
       <div className="lg:hidden flex items-center gap-3 px-4 py-3 shrink-0"
@@ -449,18 +465,18 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       </div>
 
       {/* ═══ 3-COLUMN GRID ═══ */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, alignItems: 'start' }}>
 
         {/* ═══════════════════════════════════════════════════ */}
         {/* LEFT COLUMN — Team Identity (Static, No Scroll)   */}
         {/* ═══════════════════════════════════════════════════ */}
-        <aside className="hidden lg:flex w-[220px] xl:w-[280px] shrink-0 flex-col gap-4 p-4 xl:p-5 overflow-hidden"
-          style={{ borderRight: `1px solid ${borderColor}` }}>
+        <aside className="hidden lg:flex flex-col gap-4 p-4 xl:p-5 overflow-hidden"
+          style={{ position: 'sticky', top: 0, alignSelf: 'start', height: 'fit-content' }}>
 
           {/* Back button */}
           <button onClick={onBack}
             className="flex items-center gap-2 self-start transition-all"
-            style={{ fontSize: 13, fontWeight: 500, color: BRAND.sky, borderRadius: 10, padding: '4px 8px', marginBottom: -4 }}
+            style={{ fontSize: 15, fontWeight: 500, color: BRAND.sky, borderRadius: 10, padding: '4px 8px', marginBottom: -4 }}
             onMouseEnter={e => e.currentTarget.style.background = isDark ? `${BRAND.sky}15` : BRAND.ice}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <ArrowLeft className="w-4 h-4" /> Back
@@ -483,7 +499,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               </div>
 
               {/* Name */}
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>
                 {team.name}
               </h1>
 
@@ -515,7 +531,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 </div>
 
                 {/* Win % */}
-                <p style={{ fontSize: 14, fontWeight: 400, color: textPrimary, textAlign: 'center', marginTop: 4 }}>
+                <p style={{ fontSize: 16, fontWeight: 400, color: textPrimary, textAlign: 'center', marginTop: 4 }}>
                   {totalGames > 0 ? `${winRate}%` : 'No games played'}
                 </p>
 
@@ -546,88 +562,59 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
             </div>
           </div>
 
-          {/* ─── Next Event Hero Card ─── */}
+          {/* ─── Next Event Hero Card (Photo Background) ─── */}
           {nextGame && (
-            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden', position: 'relative' }}>
-              {/* Decorative volleyball */}
-              <VolleyballIcon className="absolute -right-4 -bottom-4 w-20 h-20"
-                style={{ color: BRAND.sky, opacity: 0.05 }} />
+            <div style={{ borderRadius: 12, overflow: 'hidden', position: 'relative', minHeight: 180, border: `1px solid ${borderColor}`, boxShadow: shadow }}>
+              {/* Background image or gradient */}
+              <div style={{
+                position: 'absolute', inset: 0,
+                backgroundImage: nextGame.image_url ? `url(${nextGame.image_url})` : `linear-gradient(135deg, ${BRAND.navy}, ${BRAND.deepSky})`,
+                backgroundSize: 'cover', backgroundPosition: 'center',
+              }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.2) 100%)' }} />
 
-              <div className="p-4 relative z-10">
-                {/* Badges */}
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span style={{
-                    fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 6,
-                    background: isDark ? `${BRAND.sky}20` : BRAND.ice, color: BRAND.sky,
-                    textTransform: 'uppercase', letterSpacing: '0.1em',
-                  }}>
-                    {nextGame.event_type === 'game' ? '🏐 Game' : '🏋️ Practice'}
+              {/* Content overlaid */}
+              <div style={{ position: 'relative', zIndex: 1, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 180 }}>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: 'rgba(75,185,236,.9)', color: '#fff' }}>
+                    {(nextGame.event_type || 'game').toUpperCase()}
                   </span>
                   {(() => {
                     const dayLabel = getEventDayLabel(nextGame.event_date)
                     if (!dayLabel) return null
                     return (
-                      <span style={{
-                        fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 6,
-                        background: `${warningColor}20`, color: warningColor,
-                        textTransform: 'uppercase', letterSpacing: '0.1em',
-                      }}>
+                      <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: 'rgba(245,158,11,.9)', color: '#fff' }}>
                         {dayLabel}
                       </span>
                     )
                   })()}
                 </div>
-
-                {/* Heading */}
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: textPrimary, marginBottom: 2 }}>
-                  {nextGame.event_type === 'game' ? 'Game Day' : 'Practice'}
-                </h3>
+                <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>
+                  {nextGame.event_type === 'game' ? 'Game Day' : (nextGame.title || 'Practice')}
+                </p>
                 {nextGame.opponent && (
-                  <p style={{ fontSize: 18, fontWeight: 700, color: textPrimary }}>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>
                     vs {nextGame.opponent}
                   </p>
                 )}
-
-                {/* Details */}
-                <div className="flex flex-col gap-1.5 mt-3">
+                <div style={{ fontSize: 14, color: 'rgba(255,255,255,.7)', marginTop: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {nextGame.event_date && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5" style={{ color: textMuted }} />
-                      <span style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
-                        {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
+                    <span>📅 {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                   )}
-                  {nextGame.event_time && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5" style={{ color: textMuted }} />
-                      <span style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
-                        {formatTime12(nextGame.event_time)}
-                      </span>
-                    </div>
-                  )}
-                  {nextGame.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5" style={{ color: textMuted }} />
-                      <span style={{ fontSize: 12, fontWeight: 400, color: textMuted }} className="truncate">
-                        {nextGame.location}
-                      </span>
-                    </div>
-                  )}
+                  {nextGame.event_time && <span>🕐 {formatTime12(nextGame.event_time)}</span>}
+                  {nextGame.location && <span>📍 {nextGame.location}</span>}
                 </div>
-
-                {/* Get Directions */}
                 {nextGame.location && (
                   <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nextGame.location)}`}
                     target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 mt-4 py-2 transition-all"
                     style={{
-                      borderRadius: 10, border: `1px solid ${BRAND.sky}`, color: BRAND.sky,
-                      fontSize: 13, fontWeight: 500, transition: 'all 250ms',
+                      marginTop: 12, padding: '8px 16px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)',
+                      color: '#fff', fontSize: 15, fontWeight: 600, textDecoration: 'none', transition: 'all 250ms',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = `${BRAND.sky}10`; e.currentTarget.style.transform = 'translateY(-1px)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'translateY(0)' }}>
-                    <MapPin className="w-4 h-4" /> Get Directions
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.25)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.15)' }}>
+                    📍 Get Directions
                   </a>
                 )}
               </div>
@@ -640,7 +627,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               <span style={labelStyle}>Upcoming</span>
               <button onClick={() => onNavigate?.('schedule')}
                 className="flex items-center gap-1 transition-all"
-                style={{ fontSize: 12, fontWeight: 500, color: BRAND.sky }}
+                style={{ fontSize: 14, fontWeight: 500, color: BRAND.sky }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
                 Full Calendar <ChevronRight className="w-3 h-3" />
@@ -662,10 +649,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                       </p>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p style={{ fontSize: 14, fontWeight: 500, color: textPrimary }} className="truncate">
+                      <p style={{ fontSize: 16, fontWeight: 500, color: textPrimary }} className="truncate">
                         {event.title || event.event_type}{event.opponent ? ` vs ${event.opponent}` : ''}
                       </p>
-                      <p style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
+                      <p style={{ fontSize: 14, fontWeight: 400, color: textMuted }}>
                         {event.event_time && formatTime12(event.event_time)}
                         {event.location ? ` · ${event.location}` : ''}
                       </p>
@@ -676,7 +663,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               {upcomingEvents.length === 0 && (
                 <div className="p-6 text-center">
                   <Calendar className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                  <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 8 }}>No upcoming events</p>
+                  <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 8 }}>No upcoming events</p>
                 </div>
               )}
             </div>
@@ -694,7 +681,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               ].map(item => (
                 <button key={item.label} onClick={item.action}
                   className="flex items-center gap-3 w-full p-2.5 transition-all"
-                  style={{ borderRadius: 10, fontSize: 14, fontWeight: 500, color: textPrimary, transition: 'all 250ms' }}
+                  style={{ borderRadius: 10, fontSize: 16, fontWeight: 500, color: textPrimary, transition: 'all 250ms' }}
                   onMouseEnter={e => e.currentTarget.style.background = innerBg}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   <item.icon className="w-[18px] h-[18px]" style={{ color: BRAND.slate }} />
@@ -710,8 +697,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         {/* CENTER COLUMN — Social Feed (Scrollable)          */}
         {/* ═══════════════════════════════════════════════════ */}
         <main ref={centerRef} onScroll={handleCenterScroll}
-          className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-4 lg:px-6 py-5 flex flex-col gap-5">
+          className="overflow-y-auto tw-hide-scrollbar"
+          style={{ height: 'calc(100vh - 64px)' }}>
+          <div className="px-4 lg:px-6 py-5 flex flex-col gap-5">
 
             {/* ─── Create Post Bar ─── */}
             {canPost && (
@@ -729,7 +717,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     className="flex flex-1 items-center px-4 py-2.5 text-left transition-all"
                     style={{
                       borderRadius: 999, border: `1px solid ${borderColor}`,
-                      color: textMuted, fontSize: 14, fontWeight: 400,
+                      color: textMuted, fontSize: 16, fontWeight: 400,
                       background: innerBg, transition: 'all 250ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = isDark ? BRAND.graphite : '#E8ECF0'}
@@ -743,24 +731,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <Camera className="w-5 h-5" />
                   </button>
-                </div>
-
-                {/* Quick action row */}
-                <div className="flex items-center gap-1 px-4 py-2" style={{ borderTop: `1px solid ${borderColor}` }}>
-                  {[
-                    { icon: '📷', label: 'Photo/Video', action: () => setShowNewPostModal(true) },
-                    { icon: '⭐', label: 'Shoutout', action: () => setShowShoutoutModal(true) },
-                    { icon: '🏆', label: 'Challenge', action: () => setShowCreateChallengeModal(true), show: isAdminOrCoach },
-                  ].filter(a => a.show !== false).map(action => (
-                    <button key={action.label} onClick={action.action}
-                      className="flex flex-1 items-center justify-center gap-2 py-2 transition-all"
-                      style={{ borderRadius: 10, color: textSecondary, fontSize: 12, fontWeight: 500, transition: 'all 250ms' }}
-                      onMouseEnter={e => e.currentTarget.style.background = innerBg}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <span>{action.icon}</span>
-                      <span className="hidden xl:inline">{action.label}</span>
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
@@ -788,7 +758,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     className="w-full py-3 text-center transition-all"
                     style={{
                       borderRadius: 12, background: cardBg, border: `1px solid ${borderColor}`,
-                      color: textSecondary, fontSize: 14, fontWeight: 500, transition: 'all 250ms',
+                      color: textSecondary, fontSize: 16, fontWeight: 500, transition: 'all 250ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
@@ -797,7 +767,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 )}
 
                 {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                  <p className="text-center py-4" style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
+                  <p className="text-center py-4" style={{ fontSize: 14, fontWeight: 400, color: textMuted }}>
                     End of feed
                   </p>
                 )}
@@ -806,8 +776,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               <div className="text-center p-12"
                 style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
                 <Megaphone className="w-12 h-12 mx-auto" style={{ color: textMuted }} />
-                <p style={{ fontSize: 14, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
-                <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 4 }}>
+                <p style={{ fontSize: 16, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
+                <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 4 }}>
                   Be the first to share with the team!
                 </p>
               </div>
@@ -818,8 +788,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         {/* ═══════════════════════════════════════════════════ */}
         {/* RIGHT COLUMN — Discovery & Community (Scrollable) */}
         {/* ═══════════════════════════════════════════════════ */}
-        <aside className="hidden md:flex w-[240px] xl:w-[300px] shrink-0 flex-col gap-4 p-4 xl:p-5 overflow-y-auto"
-          style={{ borderLeft: `1px solid ${borderColor}` }}>
+        <aside className="hidden md:flex flex-col gap-4 p-4 xl:p-5 overflow-y-auto tw-hide-scrollbar"
+          style={{ height: 'calc(100vh - 64px)' }}>
 
           {/* ─── Gallery ─── */}
           <div>
@@ -841,7 +811,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               <div className="text-center p-6"
                 style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
                 <ImageIcon className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 8 }}>No photos yet</p>
+                <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 8 }}>No photos yet</p>
               </div>
             )}
           </div>
@@ -862,10 +832,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 onMouseEnter={e => e.currentTarget.style.background = innerBg}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <item.icon className="w-5 h-5" style={{ color: BRAND.sky }} />
-                <span style={{ fontSize: 14, fontWeight: 500, flex: 1 }}>{item.label}</span>
+                <span style={{ fontSize: 16, fontWeight: 500, flex: 1 }}>{item.label}</span>
                 {item.count > 0 && (
                   <span style={{
-                    fontSize: 11, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
+                    fontSize: 13, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
                     background: isDark ? `${BRAND.sky}20` : BRAND.ice, color: BRAND.sky,
                   }}>
                     {item.count}
@@ -892,11 +862,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               </div>
               <div>
                 <span style={labelStyle}>Head Coach</span>
-                <p style={{ fontSize: 15, fontWeight: 700, color: textPrimary, marginTop: 2 }}>
+                <p style={{ fontSize: 17, fontWeight: 700, color: textPrimary, marginTop: 2 }}>
                   {headCoach.full_name}
                 </p>
                 {headCoach.email && (
-                  <p style={{ fontSize: 12, fontWeight: 400, color: textMuted }} className="truncate">
+                  <p style={{ fontSize: 14, fontWeight: 400, color: textMuted }} className="truncate">
                     {headCoach.email}
                   </p>
                 )}
@@ -914,10 +884,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 <div key={player.id}
                   className="group flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-all"
                   style={{
+                    position: 'relative',
                     borderBottom: i < roster.length - 1 ? `1px solid ${borderColor}` : 'none',
                     transition: 'all 250ms',
                   }}
-                  onClick={() => setSelectedPlayer(player)}
+                  onClick={() => setActivePlayerPopup(activePlayerPopup === player.id ? null : player.id)}
                   onMouseEnter={e => e.currentTarget.style.background = innerBg}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                   {/* Avatar */}
@@ -931,32 +902,47 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                   </div>
                   {/* Info */}
                   <div className="min-w-0 flex-1">
-                    <p style={{ fontSize: 13, fontWeight: 500, color: textPrimary }} className="truncate">
+                    <p style={{ fontSize: 15, fontWeight: 500, color: textPrimary }} className="truncate">
                       {player.first_name} {player.last_name}
                     </p>
-                    <p style={{ fontSize: 11, fontWeight: 400, color: BRAND.slate }}>
+                    <p style={{ fontSize: 13, fontWeight: 400, color: BRAND.slate }}>
                       {player.jersey_number ? `#${player.jersey_number}` : ''}
                       {player.jersey_number && player.position ? ' · ' : ''}
                       {player.position || ''}
                     </p>
                   </div>
-                  {/* Shoutout button (hover) */}
-                  <button
-                    onClick={e => { e.stopPropagation(); setShowShoutoutModal(true) }}
-                    className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all"
-                    style={{
-                      background: isDark ? `${BRAND.sky}20` : BRAND.ice,
-                      color: BRAND.sky, transition: 'all 250ms',
-                    }}
-                    title="Give Shoutout">
-                    <Star className="w-3.5 h-3.5" />
-                  </button>
+                  {/* Player popup */}
+                  {activePlayerPopup === player.id && (
+                    <div ref={playerPopupRef} style={{
+                      position: 'absolute',
+                      right: '100%',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      marginRight: 8,
+                      background: isDark ? BRAND.charcoal : BRAND.white,
+                      border: `1px solid ${isDark ? BRAND.darkBorder : BRAND.silver}`,
+                      borderRadius: 12,
+                      boxShadow: isDark ? '0 8px 24px rgba(0,0,0,.3)' : '0 8px 24px rgba(0,0,0,.08)',
+                      padding: 12,
+                      minWidth: 160,
+                      zIndex: 50,
+                    }}>
+                      <button onClick={(e) => { e.stopPropagation(); setShowShoutoutModal(true); setActivePlayerPopup(null) }}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 10, background: BRAND.sky, color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', marginBottom: 6 }}>
+                        ⭐ Give Shoutout
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedPlayer(player); setActivePlayerPopup(null) }}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 10, background: 'transparent', color: isDark ? '#B0BEC5' : BRAND.slate, fontSize: 13, fontWeight: 500, border: `1.5px solid ${isDark ? BRAND.darkBorder : BRAND.silver}`, cursor: 'pointer' }}>
+                        👤 View Profile
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
               {roster.length === 0 && (
                 <div className="p-6 text-center">
                   <Users className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                  <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 8 }}>No players yet</p>
+                  <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 8 }}>No players yet</p>
                 </div>
               )}
             </div>
@@ -977,7 +963,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     onMouseEnter={e => e.currentTarget.style.background = innerBg}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <FileText className="h-4 w-4 shrink-0" style={{ color: textMuted }} />
-                    <span style={{ fontSize: 12, fontWeight: 400, color: textSecondary }} className="truncate">
+                    <span style={{ fontSize: 14, fontWeight: 400, color: textSecondary }} className="truncate">
                       {doc.name}
                     </span>
                   </a>

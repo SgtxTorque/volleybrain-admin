@@ -51,6 +51,21 @@ export const HUB_STYLES = `
   .tw-nos::-webkit-scrollbar{display:none}.tw-nos{-ms-overflow-style:none;scrollbar-width:none}
   .tw-clift{transition:transform .2s}.tw-clift:hover{transform:translateY(-2px)}
 
+  /* ── Post Cards (invisible at rest, hover-only) ── */
+  .tw-post-card{
+    background:transparent;
+    border:none;
+    border-radius:16px;
+    transition:all 250ms;
+    overflow:hidden
+  }
+  .tw-post-card:hover{
+    background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 8px 24px rgba(0,0,0,.3);
+    transform:translateY(-2px)
+  }
+
   .tw-auto-accent{border-left:3px solid rgba(99,102,241,.3);background:linear-gradient(90deg,rgba(99,102,241,.04),transparent 30%)}
   .tw-badge-accent{border-left:3px solid rgba(168,85,247,.4);background:linear-gradient(90deg,rgba(168,85,247,.04),transparent 30%)}
   .tw-reminder-accent{border-left:3px solid rgba(56,189,248,.4);background:linear-gradient(90deg,rgba(56,189,248,.04),transparent 30%)}
@@ -68,6 +83,18 @@ export const HUB_STYLES = `
     box-shadow:0 4px 24px rgba(0,0,0,.06)
   }
   .tw-light .tw-glass-glow:hover{box-shadow:0 16px 48px rgba(0,0,0,.1)}
+
+  .tw-light .tw-post-card{
+    background:transparent;
+    border:none;
+    box-shadow:none
+  }
+  .tw-light .tw-post-card:hover{
+    background:rgba(255,255,255,.9);
+    border:1px solid rgba(0,0,0,.06);
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+    transform:translateY(-2px)
+  }
 `
 
 export function adjustBrightness(hex, amount) {
