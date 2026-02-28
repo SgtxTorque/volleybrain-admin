@@ -340,8 +340,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   return (
     <div className={`flex flex-col h-[calc(100vh-4rem)] ${isDark ? 'bg-slate-900' : 'bg-[#f5f6f8]'}`}>
 
-      {/* ═══ HERO BANNER — matching v0 team-hero.tsx ═══ */}
-      <div className="shrink-0 px-6 pt-6">
+      {/* Scrollbar hiding CSS (Fix 10) */}
+      <style>{`
+        .teamwall-scroll::-webkit-scrollbar { width: 0; background: transparent; }
+        .teamwall-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+      `}</style>
+      {/* ═══ HERO BANNER — hidden per Fix 8 ═══ */}
+      {false && <div className="shrink-0 px-6 pt-6">
         <div className={`relative overflow-hidden rounded-xl shadow-md ${isDark ? 'shadow-black/20' : ''}`}>
           <div className="relative h-56">
             {/* Background image or gradient fallback */}
@@ -428,18 +433,51 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
-      {/* ═══ 3-PANEL LAYOUT — matching v0 page structure ═══ */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* ═══ 3-PANEL LAYOUT — centered (Fix 9) ═══ */}
+      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-[320px_1fr] xl:grid-cols-[320px_1fr_320px] gap-6" style={{ maxWidth: 1600, margin: '0 auto', padding: '24px 32px 0' }}>
 
         {/* ═══ LEFT: Roster Sidebar ═══ */}
-        <aside className={`hidden lg:flex w-[220px] shrink-0 flex-col gap-4 overflow-y-auto py-6 pl-6 pr-4 border-r ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+        <aside className="hidden lg:flex flex-col gap-4 overflow-y-auto py-6 px-4 teamwall-scroll">
+          {/* ← Back link (Fix 8) */}
+          <button onClick={onBack} className="flex items-center gap-2 font-medium mb-2" style={{ color: '#4BB9EC', fontSize: 14 }}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+
+          {/* Team info card */}
+          <div className={`rounded-xl p-5 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+            <div className="flex flex-col items-center gap-3">
+              {team.logo_url ? (
+                <img src={team.logo_url} alt={team.name} className="w-16 h-16 rounded-full object-cover" />
+              ) : (
+                <div className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-white" style={{ background: g, fontSize: 18 }}>
+                  {teamInitials}
+                </div>
+              )}
+              <h2 className={`font-bold text-center ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ fontSize: 20 }}>
+                {team.name}
+              </h2>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`} style={{ fontSize: 14 }}>
+                {roster.length} Players · {coaches.length} Coaches · {seasonLabel}
+              </p>
+              {totalGames > 0 && (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-bold text-emerald-500" style={{ fontSize: 18 }}>{gameRecord.wins}W</span>
+                  <span className={`${isDark ? 'text-slate-500' : 'text-slate-400'}`}>—</span>
+                  <span className="font-bold text-red-500" style={{ fontSize: 18 }}>{gameRecord.losses}L</span>
+                  <span className={`ml-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} style={{ fontSize: 14 }}>({winRate}%)</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Roster */}
           <div className="flex items-center justify-between">
-            <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <h3 className={`font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`} style={{ fontSize: 13 }}>
               Roster
             </h3>
-            <span className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <span className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} style={{ fontSize: 13 }}>
               <span className="h-2 w-2 rounded-full bg-teal-600" />
               {roster.length} players
             </span>
@@ -461,10 +499,10 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   {player.jersey_number || (player.first_name?.[0] + (player.last_name?.[0] || ''))}
                 </span>
                 <div className="flex-1 overflow-hidden">
-                  <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {player.first_name} {player.last_name?.[0]}.
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                  <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
                     {player.position || 'Player'}
                   </p>
                 </div>
@@ -477,7 +515,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         </aside>
 
         {/* ═══ CENTER: Feed ═══ */}
-        <main className="flex-1 overflow-y-auto px-8 py-6">
+        <main className="overflow-y-auto py-6 px-4 teamwall-scroll">
           <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
             {/* Tab Bar — matching v0 feed-tabs.tsx */}
@@ -488,7 +526,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                    className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-base font-medium transition-all ${
                       isActive
                         ? 'bg-teal-600 text-white shadow-sm'
                         : isDark
@@ -515,7 +553,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       </div>
                       <button
                         onClick={() => setShowNewPostModal(true)}
-                        className={`flex flex-1 items-center rounded-xl border px-4 py-2.5 text-sm text-left ${
+                        className={`flex flex-1 items-center rounded-xl border px-4 py-2.5 text-base text-left ${
                           isDark
                             ? 'border-slate-700 bg-slate-700/50 text-slate-400'
                             : 'border-slate-200 bg-slate-50 text-slate-400'
@@ -534,7 +572,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                         <button
                           key={action.label}
                           onClick={() => setShowNewPostModal(true)}
-                          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                          className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-base font-medium transition-colors ${
                             isDark ? 'text-slate-400 hover:bg-slate-700' : action.color
                           }`}
                         >
@@ -682,17 +720,17 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         </main>
 
         {/* ═══ RIGHT: Widgets Sidebar ═══ */}
-        <aside className={`hidden xl:flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto py-6 pl-6 pr-6 border-l ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+        <aside className="hidden xl:flex flex-col gap-6 overflow-y-auto py-6 px-4 teamwall-scroll">
 
           {/* Upcoming Events */}
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Upcoming
               </h3>
               <button
                 onClick={() => onNavigate?.('schedule')}
-                className="flex items-center gap-1 text-xs font-medium text-teal-600 transition-colors hover:text-teal-500"
+                className="flex items-center gap-1 text-sm font-medium text-teal-600 transition-colors hover:text-teal-500"
               >
                 Full Calendar
                 <ChevronRight className="h-3 w-3" />
@@ -707,14 +745,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     className={`rounded-xl p-4 shadow-sm transition-all hover:shadow-md cursor-pointer ${isDark ? 'bg-slate-800' : 'bg-white'}`}
                     onClick={() => setShowEventDetail(event)}
                   >
-                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <p className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {isGame && event.opponent ? (
                         <>Game vs <span className="text-teal-600">{event.opponent}</span></>
                       ) : (
                         event.title || (isGame ? 'Game' : 'Practice')
                       )}
                     </p>
-                    <p className={`mt-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       {new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       {event.event_time && ` · ${formatTime12(event.event_time)}`}
                     </p>
@@ -722,14 +760,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 )
               })}
               {upcomingEvents.length === 0 && (
-                <p className={`text-center py-6 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
+                <p className={`text-center py-6 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
               )}
             </div>
           </section>
 
           {/* Season Record */}
           <section className="flex flex-col gap-4">
-            <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Season Record
             </h3>
             <div className={`flex flex-col items-center gap-3 rounded-xl p-6 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
@@ -738,7 +776,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                 <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>&mdash;</span>
                 <span className="text-4xl font-bold text-red-500">{gameRecord.losses}</span>
               </div>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {totalGames > 0 ? `${winRate}% win rate` : 'No games played'}
               </p>
             </div>
@@ -746,7 +784,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
           {/* Gallery */}
           <section className="flex flex-col gap-4">
-            <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Gallery
             </h3>
             {galleryImages.length > 0 ? (
@@ -760,7 +798,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             ) : (
               <div className={`rounded-xl p-6 text-center shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 <Camera className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-                <p className={`mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No photos yet</p>
+                <p className={`mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No photos yet</p>
               </div>
             )}
           </section>
@@ -768,7 +806,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {/* Documents link */}
           {documents.length > 0 && (
             <section className="flex flex-col gap-4">
-              <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Documents
               </h3>
               <div className={`rounded-xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
@@ -783,7 +821,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                     } ${i > 0 ? (isDark ? 'border-t border-slate-700' : 'border-t border-slate-200') : ''}`}
                   >
                     <FileText className={`h-4 w-4 shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                    <span className={`text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{doc.name}</span>
+                    <span className={`text-base truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{doc.name}</span>
                   </a>
                 ))}
               </div>
@@ -793,7 +831,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           {/* Coaches */}
           {coaches.length > 0 && (
             <section className="flex flex-col gap-4">
-              <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <h3 className={`text-[13px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Coaches
               </h3>
               <div className={`rounded-xl shadow-sm overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
@@ -808,8 +846,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       {coach.full_name?.charAt(0) || '?'}
                     </div>
                     <div>
-                      <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{coach.full_name}</p>
-                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <p className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{coach.full_name}</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                         {coach.role === 'head' ? 'Head Coach' : coach.role === 'assistant' ? 'Assistant' : 'Coach'}
                       </p>
                     </div>
@@ -923,7 +961,12 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
   })()
 
   return (
-    <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+    <div
+      className={`overflow-hidden rounded-xl ${isDark ? 'bg-slate-800' : 'bg-white'}`}
+      style={{ border: 'none', boxShadow: 'none', outline: 'none', transition: 'all 250ms' }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = isDark ? '0 8px 24px rgba(0,0,0,.3)' : '0 8px 24px rgba(0,0,0,.08)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none' }}
+    >
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-3">
         <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold overflow-hidden ${
@@ -937,11 +980,11 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <span className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
               {post.profiles?.full_name || 'Team Admin'}
             </span>
-            <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo}</span>
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${badge.color}`}>
+            <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[13px] font-medium ${badge.color}`}>
               {badge.label}
             </span>
           </div>
@@ -986,23 +1029,13 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-5 pb-3">
-        {post.title && (
-          <h3 className={`font-bold text-base mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{post.title}</h3>
-        )}
-        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{post.content}</p>
-      </div>
-
-      {/* Photos */}
+      {/* Photos — edge-to-edge (Fix 1), content moved below (Fix 4) */}
       {post.media_urls?.length > 0 && (
-        <div className="px-4 pb-3">
+        <div style={{ margin: 0, width: '100%' }}>
           {post.media_urls.length === 1 ? (
-            <div className="w-full overflow-hidden rounded-xl">
-              <img src={post.media_urls[0]} alt="" className="w-full h-auto block" />
-            </div>
+            <img src={post.media_urls[0]} alt="" style={{ width: '100%', display: 'block', objectFit: 'cover' }} />
           ) : (
-            <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+            <div className="grid grid-cols-2 gap-1 overflow-hidden">
               {post.media_urls.slice(0, 4).map((url, idx) => (
                 <div key={idx} className="aspect-square relative">
                   <img src={url} alt="" className="w-full h-full object-cover" />
@@ -1020,11 +1053,11 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
 
       {/* Engagement summary */}
       <div className="flex items-center gap-4 px-5 py-2.5">
-        <span className={`flex items-center gap-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span className={`flex items-center gap-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           <Heart className="h-3.5 w-3.5 text-amber-500" />
           {localReactionCount}
         </span>
-        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           {localCommentCount} {localCommentCount === 1 ? 'comment' : 'comments'}
         </span>
       </div>
@@ -1047,7 +1080,7 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
         </div>
         <button
           onClick={() => setShowComments(!showComments)}
-          className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+          className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-base font-medium transition-colors ${
             isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
           }`}
         >
@@ -1055,7 +1088,7 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
           <span>Comment</span>
         </button>
         <button
-          className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+          className={`flex flex-1 items-center justify-center gap-2 py-2.5 text-base font-medium transition-colors ${
             isDark ? 'text-slate-400 hover:bg-slate-700/60 hover:text-slate-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
           }`}
         >
@@ -1063,6 +1096,21 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
           <span>Share</span>
         </button>
       </div>
+
+      {/* Caption/text — below engagement (Fix 4) */}
+      {(post.content || post.title) && (
+        <div className="px-5 py-2">
+          {post.title && (
+            <h3 className={`font-bold text-lg mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{post.title}</h3>
+          )}
+          {post.content && (
+            <p className={`text-base leading-relaxed whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              <span className={`font-bold mr-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{post.profiles?.full_name || 'Team Admin'}</span>
+              {post.content}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Comments section */}
       {showComments && (

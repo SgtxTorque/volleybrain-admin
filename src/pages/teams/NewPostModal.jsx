@@ -36,7 +36,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
     }
   }, [mediaPreviews.length])
 
-  const showTitle = postType !== 'photo' && postType !== 'text'
+  const showTitle = false
 
   function handleBackdropClick() {
     if (content.trim() || mediaPreviews.length > 0) {
@@ -258,7 +258,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
               className="w-full bg-transparent focus:outline-none resize-none text-[15px] leading-relaxed"
               style={{
                 color: isDark ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.85)',
-                minHeight: 80,
+                minHeight: 120,
               }}
             />
           </div>
@@ -302,11 +302,13 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             <div className="flex flex-wrap gap-1.5">
               {[['announcement', '📢 Announcement'], ['game_recap', '🏐 Game Recap'], ['shoutout', '⭐ Shoutout'], ['milestone', '🏆 Milestone'], ['photo', '📷 Photo']].map(([k, l]) => (
                 <button key={k} onClick={() => setPostType(k)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                  className="px-3 py-1.5 rounded-lg transition"
                   style={{
-                    background: postType === k ? `${g}18` : (isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'),
-                    color: postType === k ? g : (isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)'),
-                    border: `1px solid ${postType === k ? `${g}30` : 'transparent'}`,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    background: postType === k ? '#4BB9EC' : (isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'),
+                    color: postType === k ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#10284C'),
+                    border: `1px solid ${postType === k ? '#4BB9EC' : (isDark ? '#2A3545' : '#DFE4EA')}`,
                   }}
                 >
                   {l}
