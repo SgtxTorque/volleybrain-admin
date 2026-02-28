@@ -1,6 +1,6 @@
 import {
   Check, Send, Timer, Users, MessageCircle,
-  ChevronRight, Calendar, Target, AlertCircle
+  ChevronRight, AlertCircle
 } from '../../constants/icons'
 import { useTheme } from '../../contexts/ThemeContext'
 
@@ -122,30 +122,6 @@ export default function CoachLeftSidebar({
         </div>
       </div>
 
-      {/* Quick Links */}
-      <div>
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-3`}>Quick Links</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { icon: Calendar, label: 'Schedule', page: 'schedule' },
-            { icon: Check, label: 'Attendance', page: 'attendance' },
-            { icon: Target, label: 'Game Prep', page: 'gameprep' },
-            { icon: MessageCircle, label: 'Messages', page: 'chats' },
-          ].map(action => {
-            const Icon = action.icon
-            return (
-              <button
-                key={action.page}
-                onClick={() => onNavigate?.(action.page)}
-                className={`flex items-center gap-2 p-2.5 rounded-xl ${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud hover:bg-slate-100'} text-left`}
-              >
-                <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{action.label}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
     </aside>
   )
 }
