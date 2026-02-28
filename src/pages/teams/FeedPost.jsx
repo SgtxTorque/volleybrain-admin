@@ -91,6 +91,15 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     try { return JSON.parse(post.title) } catch { return null }
   })() : null
 
+  // Detect bgColor from title JSON (for colored text posts)
+  const bgColorMeta = (() => {
+    if (!titleIsJson || isShoutout || isMilestone) return null
+    try {
+      const parsed = JSON.parse(post.title)
+      return parsed.bgColor || null
+    } catch { return null }
+  })()
+
   // Layout conditionals
   const hasMedia = mediaUrls.length > 0
   const isShoutout = postType === 'shoutout' && !!shoutoutMeta
@@ -368,14 +377,39 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       {/* ── Text-only posts: styled card with truncation ── */}
       {isTextOnly && (
         <div className="px-6 pb-3">
-          <div style={{
-            background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'}`,
-            borderRadius: 12,
-            padding: '16px 20px',
-          }}>
-            <TextContent content={post.content} isDark={isDark} />
-          </div>
+          {bgColorMeta ? (
+            <div style={{
+              background: bgColorMeta,
+              borderRadius: 12,
+              padding: '32px 24px',
+              minHeight: 180,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <p style={{
+                fontSize: 22,
+                fontWeight: 700,
+                color: '#FFFFFF',
+                textAlign: 'center',
+                textShadow: '0 1px 4px rgba(0,0,0,.3)',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                lineHeight: 1.5,
+              }}
+                dangerouslySetInnerHTML={{ __html: formatPostText(post.content) }}
+              />
+            </div>
+          ) : (
+            <div style={{
+              background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'}`,
+              borderRadius: 12,
+              padding: '16px 20px',
+            }}>
+              <TextContent content={post.content} isDark={isDark} />
+            </div>
+          )}
         </div>
       )}
 

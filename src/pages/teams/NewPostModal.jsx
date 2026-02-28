@@ -20,6 +20,8 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   const [uploadProgress, setUploadProgress] = useState(null)
   const fileRef = useRef(null)
   const textareaRef = useRef(null)
+  const [bgColor, setBgColor] = useState(null)
+  const [showBgPicker, setShowBgPicker] = useState(false)
 
   // Auto-expand textarea
   useEffect(() => {
@@ -37,6 +39,43 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   }, [mediaPreviews.length])
 
   const showTitle = false
+
+  const BG_OPTIONS = [
+    null, '#1A1A2E', '#E74C3C', '#FF1493', '#2C2C2C',
+    'linear-gradient(135deg, #667eea, #764ba2)',
+    'linear-gradient(135deg, #f093fb, #f5576c)',
+    'linear-gradient(135deg, #4facfe, #00f2fe)',
+    'linear-gradient(135deg, #43e97b, #38f9d7)',
+    'linear-gradient(135deg, #fa709a, #fee140)',
+    'linear-gradient(135deg, #a18cd1, #fbc2eb)',
+    'linear-gradient(135deg, #ffecd2, #fcb69f)',
+    'linear-gradient(135deg, #8360c3, #2ebf91)',
+  ]
+
+  // Clear bgColor when photos are attached (bg is text-only)
+  useEffect(() => {
+    if (mediaPreviews.length > 0 && bgColor) {
+      setBgColor(null)
+      setShowBgPicker(false)
+    }
+  }, [mediaPreviews.length])
+
+  function insertFormat(format) {
+    const ta = textareaRef.current
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const selected = content.substring(start, end)
+
+    if (format === 'bullet') {
+      const before = content.substring(0, start)
+      const lineStart = before.lastIndexOf('\n') + 1
+      setContent(content.substring(0, lineStart) + '• ' + content.substring(lineStart))
+    } else {
+      const wrap = format === 'bold' ? '**' : format === 'italic' ? '*' : '__'
+      setContent(content.substring(0, start) + wrap + selected + wrap + content.substring(end))
+    }
+  }
 
   function handleBackdropClick() {
     if (content.trim() || mediaPreviews.length > 0) {
@@ -104,9 +143,9 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       const insertPayload = {
         team_id: teamId,
         author_id: user?.id,
-        title: showTitle && title.trim() ? title.trim() : null,
+        title: bgColor ? JSON.stringify({ bgColor }) : (showTitle && title.trim() ? title.trim() : null),
         content: content.trim() || null,
-        post_type: postType,
+        post_type: bgColor ? 'announcement' : postType,
         is_pinned: isPinned,
         is_published: true,
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
@@ -249,19 +288,82 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
           )}
 
           {/* Auto-expanding textarea */}
-          <div className="px-5 pt-2 pb-1">
+          <div className="px-5 pt-2 pb-1" style={{
+            ...(bgColor && {
+              background: bgColor,
+              minHeight: 200,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 -1px',
+              padding: '32px 24px',
+            }),
+          }}>
             <textarea
               ref={textareaRef}
               placeholder="What's on your mind?"
               value={content}
               onChange={e => setContent(e.target.value)}
-              className="w-full bg-transparent focus:outline-none resize-none text-[15px] leading-relaxed"
+              className="w-full bg-transparent focus:outline-none resize-none leading-relaxed"
               style={{
-                color: isDark ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.85)',
-                minHeight: 120,
+                color: bgColor ? '#FFFFFF' : (isDark ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.85)'),
+                fontSize: bgColor ? 22 : 15,
+                fontWeight: bgColor ? 700 : 400,
+                textAlign: bgColor ? 'center' : 'left',
+                minHeight: bgColor ? 'auto' : 120,
+                textShadow: bgColor ? '0 1px 4px rgba(0,0,0,.3)' : 'none',
               }}
             />
           </div>
+
+          {/* Formatting toolbar */}
+          <div className="px-5 pb-2 flex items-center gap-1">
+            <button onClick={() => insertFormat('bold')} title="Bold"
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, fontWeight: 700, color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              B
+            </button>
+            <button onClick={() => insertFormat('italic')} title="Italic"
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, fontStyle: 'italic', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              I
+            </button>
+            <button onClick={() => insertFormat('underline')} title="Underline"
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, textDecoration: 'underline', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              U
+            </button>
+            <button onClick={() => insertFormat('bullet')} title="Bullet Point"
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              •
+            </button>
+            <div style={{ flex: 1 }} />
+            {mediaPreviews.length === 0 && (
+              <button onClick={() => setShowBgPicker(!showBgPicker)} title="Choose background"
+                style={{
+                  width: 32, height: 32, borderRadius: 8, fontSize: 14, fontWeight: 700,
+                  background: bgColor || (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)'),
+                  color: bgColor ? '#fff' : (isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)'),
+                  border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                Aa
+              </button>
+            )}
+          </div>
+
+          {/* Background color picker */}
+          {showBgPicker && (
+            <div className="px-5 pb-2">
+              <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }} className="tw-hide-scrollbar">
+                {BG_OPTIONS.map((bg, idx) => (
+                  <button key={idx} onClick={() => setBgColor(bg)}
+                    style={{
+                      width: 32, height: 32, borderRadius: 8, flexShrink: 0, cursor: 'pointer',
+                      background: bg || (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)'),
+                      border: bgColor === bg ? '2px solid #4BB9EC' : `1px solid ${isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.1)'}`,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Photo preview grid */}
           {mediaPreviews.length > 0 && (
