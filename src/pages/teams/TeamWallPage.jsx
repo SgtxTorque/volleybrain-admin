@@ -278,14 +278,19 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       try {
         const { data: games } = await supabase
           .from('games')
-          .select('result, created_at')
+          .select('team_score, opponent_score, status, date')
           .eq('team_id', teamId)
-          .not('result', 'is', null)
-          .order('created_at', { ascending: false })
+          .eq('status', 'completed')
+          .order('date', { ascending: false })
         if (games) {
-          const wins = games.filter(g => g.result === 'win').length
-          const losses = games.filter(g => g.result === 'loss').length
-          setGameRecord({ wins, losses, recentForm: games.slice(0, 5).map(g => g.result) })
+          let wins = 0, losses = 0
+          const recentForm = []
+          games.forEach((g, i) => {
+            const won = (g.team_score || 0) > (g.opponent_score || 0)
+            if (won) wins++; else losses++
+            if (i < 5) recentForm.push(won ? 'win' : 'loss')
+          })
+          setGameRecord({ wins, losses, recentForm })
         }
       } catch (err) {
         console.log('Could not load game record:', err)
@@ -563,63 +568,68 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           </div>
 
           {/* ─── Next Event Hero Card (Photo Background) ─── */}
-          {nextGame && (
-            <div style={{ borderRadius: 12, overflow: 'hidden', position: 'relative', minHeight: 180, border: `1px solid ${borderColor}`, boxShadow: shadow }}>
-              {/* Background image or gradient */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: nextGame.image_url ? `url(${nextGame.image_url})` : `linear-gradient(135deg, ${BRAND.navy}, ${BRAND.deepSky})`,
-                backgroundSize: 'cover', backgroundPosition: 'center',
-              }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.7) 0%, rgba(0,0,0,.2) 100%)' }} />
+          {nextGame && (() => {
+            const isGame = nextGame.event_type === 'game' || nextGame.event_type === 'tournament'
+            const bgImage = isGame ? '/images/volleyball-game.jpg' : '/images/volleyball-practice.jpg'
+            const dayLabel = getEventDayLabel(nextGame.event_date)
 
-              {/* Content overlaid */}
-              <div style={{ position: 'relative', zIndex: 1, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 180 }}>
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: 'rgba(75,185,236,.9)', color: '#fff' }}>
-                    {(nextGame.event_type || 'game').toUpperCase()}
-                  </span>
-                  {(() => {
-                    const dayLabel = getEventDayLabel(nextGame.event_date)
-                    if (!dayLabel) return null
-                    return (
-                      <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 13, fontWeight: 600, background: 'rgba(245,158,11,.9)', color: '#fff' }}>
+            return (
+              <div style={{
+                borderRadius: 12, overflow: 'hidden', position: 'relative', minHeight: 200,
+                border: `1px solid ${borderColor}`, boxShadow: shadow,
+              }}>
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  backgroundImage: `url(${bgImage})`,
+                  backgroundSize: 'cover', backgroundPosition: 'center',
+                }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.15) 100%)' }} />
+                <div style={{ position: 'relative', zIndex: 1, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 200 }}>
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                    <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#4BB9EC', color: '#fff' }}>
+                      {(nextGame.event_type || 'GAME').toUpperCase()}
+                    </span>
+                    {dayLabel && (
+                      <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#F59E0B', color: '#fff' }}>
                         {dayLabel}
                       </span>
-                    )
-                  })()}
-                </div>
-                <p style={{ fontSize: 17, fontWeight: 700, color: '#fff' }}>
-                  {nextGame.event_type === 'game' ? 'Game Day' : (nextGame.title || 'Practice')}
-                </p>
-                {nextGame.opponent && (
-                  <p style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>
-                    vs {nextGame.opponent}
+                    )}
+                  </div>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.8)' }}>
+                    {nextGame.event_type === 'practice' ? 'Practice' : 'Game Day'}
                   </p>
-                )}
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,.7)', marginTop: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {nextGame.event_date && (
-                    <span>📅 {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>
+                    {nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title || 'Practice'}
+                  </p>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {nextGame.event_date && (
+                      <span>📅 {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                    )}
+                    {nextGame.event_time && <span>🕐 {formatTime12(nextGame.event_time)}</span>}
+                    {nextGame.location && <span>📍 {nextGame.location}</span>}
+                  </div>
+                  {nextGame.location && (
+                    <button
+                      onClick={() => {
+                        const q = encodeURIComponent(nextGame.location || '')
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank')
+                      }}
+                      style={{
+                        marginTop: 12, padding: '8px 16px', borderRadius: 10,
+                        background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)',
+                        color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 6, width: 'fit-content',
+                        transition: 'all 250ms',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.25)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.15)' }}>
+                      📍 Get Directions
+                    </button>
                   )}
-                  {nextGame.event_time && <span>🕐 {formatTime12(nextGame.event_time)}</span>}
-                  {nextGame.location && <span>📍 {nextGame.location}</span>}
                 </div>
-                {nextGame.location && (
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nextGame.location)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    style={{
-                      marginTop: 12, padding: '8px 16px', borderRadius: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)',
-                      color: '#fff', fontSize: 15, fontWeight: 600, textDecoration: 'none', transition: 'all 250ms',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.25)' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.15)' }}>
-                    📍 Get Directions
-                  </a>
-                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* ─── Upcoming Events ─── */}
           <div>
