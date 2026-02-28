@@ -62,6 +62,12 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply bg-gold text-dark-darker font-semibold px-6 py-3 rounded-xl 

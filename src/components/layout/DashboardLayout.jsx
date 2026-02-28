@@ -5,10 +5,13 @@
 // =============================================================================
 
 import React from 'react'
+import { useTheme } from '../../contexts/ThemeContext'
 
 export default function DashboardLayout({ leftSidebar, rightSidebar, children }) {
+  const { isDark } = useTheme()
+
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
       {/* Left Sidebar — 280px, hidden below xl */}
       {leftSidebar && (
         <div className="hidden xl:contents">

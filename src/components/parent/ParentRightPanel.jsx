@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Calendar, Award, BarChart3 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
+import { useTheme } from '../../contexts/ThemeContext'
 import ParentEventCard from './ParentEventCard'
 
 const BADGE_DEFS = {
@@ -56,6 +57,7 @@ export default function ParentRightPanel({
   const [teamRecord, setTeamRecord] = useState(null)
   const [playerBadges, setPlayerBadges] = useState([])
   const [badgesInProgress, setBadgesInProgress] = useState([])
+  const { isDark } = useTheme()
 
   const teamId = activeTeam?.id
   const playerId = activeChild?.id
@@ -129,12 +131,12 @@ export default function ParentRightPanel({
   const leaderboardCats = SPORT_LEADERBOARD[sportName?.toLowerCase()] || SPORT_LEADERBOARD.volleyball
 
   return (
-    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col border-l border-lynx-silver/50 bg-white overflow-y-auto p-5 space-y-5">
+    <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-white'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
       {/* Upcoming Events */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Upcoming</h3>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
           <button onClick={() => onNavigate?.('schedule')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             Full Calendar →
           </button>
@@ -144,44 +146,44 @@ export default function ParentRightPanel({
             <ParentEventCard key={event.id} event={event} onClick={onShowEventDetail} />
           ))}
           {(!activeChildEvents || activeChildEvents.length === 0) && (
-            <div className="bg-white border border-lynx-silver rounded-xl p-6 text-center">
-              <Calendar className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm text-slate-400">No upcoming events</p>
+            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl p-6 text-center`}>
+              <Calendar className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Season Record */}
-      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</h3>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
+        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-3`}>Season Record</h3>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
             <div className="text-3xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
-            <div className="text-xs uppercase font-bold text-slate-400">Wins</div>
+            <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Wins</div>
           </div>
-          <div className="text-2xl font-bold text-slate-300">-</div>
+          <div className={`text-2xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
           <div className="text-center">
             <div className="text-3xl font-black text-red-500">{teamRecord?.losses || 0}</div>
-            <div className="text-xs uppercase font-bold text-slate-400">Losses</div>
+            <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Losses</div>
           </div>
           {(teamRecord?.ties || 0) > 0 && (
             <>
-              <div className="text-2xl font-bold text-slate-300">-</div>
+              <div className={`text-2xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
               <div className="text-center">
                 <div className="text-3xl font-black text-amber-500">{teamRecord.ties}</div>
-                <div className="text-xs uppercase font-bold text-slate-400">Ties</div>
+                <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Ties</div>
               </div>
             </>
           )}
         </div>
-        <p className="text-sm text-center mt-2 text-slate-400">{activeTeam?.name}</p>
+        <p className={`text-sm text-center mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeTeam?.name}</p>
       </div>
 
       {/* Achievements Preview */}
-      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Achievements</h3>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             View All →
           </button>
@@ -199,7 +201,7 @@ export default function ParentRightPanel({
                   >
                     {def.icon}
                   </div>
-                  <span className="text-xs font-bold text-slate-500 text-center max-w-[60px] leading-tight">{def.name}</span>
+                  <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'} text-center max-w-[60px] leading-tight`}>{def.name}</span>
                 </div>
               )
             })}
@@ -219,10 +221,10 @@ export default function ParentRightPanel({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-slate-700 truncate">{def.name}</span>
-                      <span className="text-[10px] text-slate-400 ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
+                      <span className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} truncate`}>{def.name}</span>
+                      <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'} ml-2 flex-shrink-0`}>{b.current_value}/{b.target_value}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div className={`h-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: def.color }} />
                     </div>
                   </div>
@@ -232,45 +234,45 @@ export default function ParentRightPanel({
           </div>
         ) : (
           <div className="text-center py-4">
-            <Award className="w-8 h-8 mx-auto text-slate-300 mb-1" />
-            <p className="text-sm text-slate-400">No badges earned yet</p>
-            <p className="text-sm text-slate-300 mt-1">Keep playing to unlock badges!</p>
+            <Award className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-1`} />
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>
+            <p className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Keep playing to unlock badges!</p>
           </div>
         )}
       </div>
 
       {/* Leaderboard Preview */}
-      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Leaderboard</h3>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Leaderboard</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             View All →
           </button>
         </div>
         <div className="space-y-1">
           {leaderboardCats.map(stat => (
-            <div key={stat.cat} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-b-0">
-              <span className="text-sm font-semibold text-slate-600">{stat.cat}</span>
+            <div key={stat.cat} className={`flex items-center justify-between py-2 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} last:border-b-0`}>
+              <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{stat.cat}</span>
               {/* TODO: Wire to actual game_stats rankings when data exists */}
-              <span className="text-sm font-bold px-3 py-1 rounded-lg bg-slate-100 text-slate-400">—</span>
+              <span className={`text-sm font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Player Stats Preview */}
-      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-4">
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Player Stats</h3>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Player Stats</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             Full Stats →
           </button>
         </div>
         {/* TODO: Wire to Supabase game_stats for actual player stats */}
         <div className="text-center py-4">
-          <BarChart3 className="w-8 h-8 mx-auto text-slate-300 mb-1" />
-          <p className="text-sm text-slate-400">Stats update after games</p>
-          <p className="text-sm text-slate-300 mt-1">Check leaderboards for rankings</p>
+          <BarChart3 className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-1`} />
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Stats update after games</p>
+          <p className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Check leaderboards for rankings</p>
         </div>
       </div>
     </aside>

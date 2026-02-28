@@ -59,7 +59,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
     })
 
   return (
-    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow-sm overflow-hidden ${
+    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow overflow-hidden ${
       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
     }`}>
       <div className="flex items-center justify-between">

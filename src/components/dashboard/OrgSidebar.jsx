@@ -50,7 +50,7 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center gap-2 rounded-xl p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
+      className={`relative flex flex-col items-center gap-2 rounded-xl p-4 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
         isDark
           ? 'bg-slate-700/60 border border-white/[0.06]'
           : 'bg-white border border-slate-100'
@@ -95,32 +95,32 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
   const showOnboarding = journey && !journey.loading && !journey.isComplete && !journey.isDismissed
 
   return (
-    <aside className={`flex w-[330px] shrink-0 flex-col gap-6 overflow-y-auto border-r py-8 pl-6 pr-4 ${
-      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-lynx-silver/50 bg-lynx-cloud'
-    }`}>
+    <aside className={`flex w-[360px] shrink-0 flex-col gap-6 overflow-y-auto py-8 pl-6 pr-4 scrollbar-hide ${
+      isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'
+    }`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {/* Org Card */}
-      <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow-sm overflow-hidden ${
+      <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow ${
         isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
       }`}>
         {orgLogo ? (
           <img
             src={orgLogo}
             alt={orgName}
-            className="h-[200px] w-[200px] rounded-xl object-cover shadow-sm -mt-[30px]"
+            className="h-[200px] w-[200px] rounded-xl object-cover shadow -mt-[30px]"
           />
         ) : (
           <div
-            className="flex h-[200px] w-[200px] items-center justify-center rounded-xl text-4xl font-bold text-white shadow-sm -mt-[30px]"
+            className="flex h-[200px] w-[200px] items-center justify-center rounded-xl text-4xl font-bold text-white shadow -mt-[30px]"
             style={{ backgroundColor: accent.primary || '#10284C' }}
           >
             {initials}
           </div>
         )}
-        <div className="text-center">
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <div className="text-center w-full">
+          <h2 className={`text-2xl font-bold break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {orgName || 'My Organization'}
           </h2>
-          <p className={`mt-0.5 text-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <p className={`mt-0.5 text-base break-words ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             {season?.name || 'No season selected'}
             {season?.status ? ` · ${season.status.charAt(0).toUpperCase() + season.status.slice(1)}` : ''}
           </p>
@@ -140,7 +140,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
               onNavigate(ONBOARDING_NAV_MAP[journey.currentStep.id])
             }
           }}
-          className={`-mt-[19px] rounded-xl p-5 shadow-sm text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+          className={`-mt-[19px] rounded-xl p-5 shadow text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
             isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
           }`}
         >

@@ -108,7 +108,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
                 className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-all ${
                   isDark
                     ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-white/[0.12]'
-                    : 'bg-white border border-lynx-silver hover:border-slate-300 hover:shadow-sm'
+                    : 'bg-white border border-lynx-silver hover:border-slate-300 hover:shadow'
                 }`}
               >
                 {/* Date badge */}

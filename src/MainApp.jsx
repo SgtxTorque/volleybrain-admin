@@ -88,11 +88,14 @@ import { SeasonArchivePage } from './pages/archives'
 // ============================================
 // NAV DROPDOWN COMPONENT
 // ============================================
-function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTeamWallId }) {
+function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTeamWallId, navPosition }) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+
+  // In light mode, buttons on the left (>50% of bar) sit on light bg, right side on dark bg
+  const onDarkBg = isDark || navPosition === 'dark'
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -110,10 +113,14 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1 px-5 py-2 text-sm rounded-full transition-all duration-200 whitespace-nowrap ${
+        className={`flex items-center gap-1 px-5 py-2 text-lg rounded-full transition-all duration-200 whitespace-nowrap font-bold ${
           isActive
-            ? 'bg-white/15 text-white font-semibold'
-            : 'text-white/80 hover:text-white hover:bg-white/10 font-medium'
+            ? onDarkBg
+              ? 'bg-white/15 text-white'
+              : 'bg-[#10284C]/10 text-[#10284C]'
+            : onDarkBg
+              ? 'text-white/80 hover:text-white hover:bg-white/10'
+              : 'text-[#10284C]/70 hover:text-[#10284C] hover:bg-[#10284C]/[0.06]'
         }`}
       >
         {label}
@@ -121,7 +128,11 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-3 w-56 rounded-xl overflow-hidden z-50 animate-slide-down bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+        <div className={`absolute top-full left-0 mt-3 w-56 rounded-xl overflow-hidden z-50 animate-slide-down ${
+          isDark
+            ? 'bg-lynx-charcoal border border-lynx-border-dark shadow-[0_8px_40px_rgba(0,0,0,0.5)]'
+            : 'bg-white border border-lynx-silver shadow-[0_8px_40px_rgba(0,0,0,0.1)]'
+        }`}>
           {items.map(item => (
             <button
               key={item.id}
@@ -129,10 +140,14 @@ function NavDropdown({ label, items, currentPage, onNavigate, isActive, directTe
                 onNavigate(item.id, item)
                 setIsOpen(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-colors duration-150 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left text-lg transition-colors duration-150 ${
                 (item.teamId && directTeamWallId === item.teamId) || currentPage === item.id
-                  ? 'bg-lynx-sky/15 text-lynx-sky font-semibold'
-                  : 'text-white/90 hover:text-white hover:bg-white/[0.06]'
+                  ? isDark
+                    ? 'bg-lynx-sky/15 text-lynx-sky font-semibold'
+                    : 'bg-[#4BB9EC]/10 text-[#10284C] font-semibold'
+                  : isDark
+                    ? 'text-white/90 hover:text-white hover:bg-white/[0.06]'
+                    : 'text-slate-700 hover:text-[#10284C] hover:bg-slate-50'
               }`}
             >
               <NavIcon name={item.icon} className="w-4 h-4" />
@@ -375,7 +390,7 @@ function UserProfileDropdown({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button className="flex items-center gap-2 px-2 py-1.5 rounded-full transition hover:bg-white/10"
+      <button className="flex items-center gap-2.5 px-2 py-1.5 rounded-full transition hover:bg-white/10"
         onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}>
         <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm overflow-hidden border-2 border-white/20"
           style={{
@@ -388,7 +403,10 @@ function UserProfileDropdown({
             profile?.full_name?.charAt(0) || '?'
           )}
         </div>
-        <span className="text-sm font-medium hidden sm:block text-white">{getDisplayName()}</span>
+        <div className="hidden sm:flex flex-col items-start leading-tight">
+          <span className="text-sm font-bold text-white">{getDisplayName()}</span>
+          <span className="text-[11px] font-semibold text-white/60">{getRoleLabel()}</span>
+        </div>
         <ChevronDown className={`w-4 h-4 transition-transform text-white/80 ${showRoleSwitcher ? 'rotate-180' : ''}`} />
       </button>
 
@@ -408,12 +426,12 @@ function UserProfileDropdown({
               )}
             </div>
             <div>
-              <p className={`font-semibold ${tc.text}`}>{profile?.full_name || 'User'}</p>
+              <p className={`text-base font-bold ${tc.text}`}>{profile?.full_name || 'User'}</p>
               <p className={`text-sm ${tc.textMuted} flex items-center gap-1`}>
-                {activeView === 'admin' && <Shield className="w-3 h-3" />}
-                {activeView === 'coach' && <UserCog className="w-3 h-3" />}
-                {activeView === 'parent' && <Users className="w-3 h-3" />}
-                {activeView === 'player' && <VolleyballIcon className="w-3 h-3" />}
+                {activeView === 'admin' && <Shield className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
+                {activeView === 'coach' && <UserCog className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
+                {activeView === 'parent' && <Users className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
+                {activeView === 'player' && <VolleyballIcon className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {getRoleLabel()}
               </p>
             </div>
@@ -424,27 +442,27 @@ function UserProfileDropdown({
               onClick={() => { setShowRoleSwitcher(false); navigate('/profile'); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${tc.hoverBg}`}
             >
-              <User className="w-5 h-5 text-lynx-sky" />
+              <User className={`w-5 h-5 ${isDark ? 'text-lynx-sky' : 'text-[#10284C]'}`} />
               <div className="flex-1 min-w-0">
-                <p className={`font-medium text-sm ${tc.text}`}>My Profile</p>
-                <p className={`text-xs ${tc.textMuted} truncate`}>Edit your personal info</p>
+                <p className={`font-bold text-base ${tc.text}`}>My Profile</p>
+                <p className={`text-sm ${tc.textMuted} truncate`}>Edit your personal info</p>
               </div>
               <ChevronRight className={`w-4 h-4 ${tc.textMuted}`} />
             </button>
           </div>
 
           <div className={`p-2 border-b ${tc.border}`}>
-            <p className={`text-xs ${tc.textMuted} px-2 py-1`}>Switch View</p>
+            <p className={`text-sm ${tc.textMuted} px-2 py-1`}>Switch View</p>
             {getAvailableViews().map(view => (
               <button key={view.id}
                 onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); navigate('/dashboard'); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
                   activeView === view.id ? 'bg-lynx-sky/20' : tc.hoverBg
                 }`}>
-                <NavIcon name={view.icon} className="w-5 h-5" />
+                <NavIcon name={view.icon} className={`w-5 h-5 ${isDark ? '' : 'text-[#10284C]'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className={`font-medium text-sm ${activeView === view.id ? 'text-lynx-sky' : tc.text}`}>{view.label}</p>
-                  <p className={`text-xs ${tc.textMuted} truncate`}>{view.description}</p>
+                  <p className={`font-bold text-base ${activeView === view.id ? 'text-lynx-sky' : tc.text}`}>{view.label}</p>
+                  <p className={`text-sm ${tc.textMuted} truncate`}>{view.description}</p>
                 </div>
                 {activeView === view.id && <Check className="w-4 h-4 text-lynx-sky" />}
               </button>
@@ -453,12 +471,12 @@ function UserProfileDropdown({
 
           <div className={`p-2 flex gap-2`}>
             <button onClick={toggleTheme}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg ${tc.hoverBg} ${tc.textSecondary} text-sm`}>
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg ${tc.hoverBg} ${tc.textSecondary} text-base`}>
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               <span>{isDark ? 'Light' : 'Dark'}</span>
             </button>
             <button onClick={signOut}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg hover:bg-red-500/10 text-red-400 text-sm`}>
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg hover:bg-red-500/10 text-red-400 text-base`}>
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>
             </button>
@@ -644,7 +662,11 @@ function HorizontalNavBar({
 
   return (
     <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full shadow-lg"
-      style={{ background: 'linear-gradient(135deg, #10284C 0%, #153050 50%, #1B3A5C 100%)' }}>
+      style={{
+        background: isDark
+          ? 'linear-gradient(135deg, #10284C 0%, #153050 50%, #1B3A5C 100%)'
+          : 'linear-gradient(to right, #F5F7FA 0%, #F5F7FA 55%, #E8F4FD 65%, #4BB9EC 80%, #10284C 100%)'
+      }}>
 
       {/* LEFT: Logo */}
       <div className="flex items-center gap-3">
@@ -653,15 +675,23 @@ function HorizontalNavBar({
 
       {/* CENTER: Navigation */}
       <nav className="flex items-center gap-1">
-        {navItems.map(item => {
+        {navItems.map((item, idx) => {
+          // In light mode: all nav buttons use navy text to stay readable on the gradient
+          const navPosition = 'light'
+          const onDarkBg = isDark || navPosition === 'dark'
+
           if (item.type === 'single') {
             const isActive = page === item.id && !directTeamWallId
             return (
               <button key={item.id} onClick={() => handleNavigate(item.id)}
-                className={`px-5 py-2 text-sm rounded-full transition-all duration-200 whitespace-nowrap ${
+                className={`px-5 py-2 text-lg rounded-full transition-all duration-200 whitespace-nowrap font-bold ${
                   isActive
-                    ? 'bg-white/15 text-white font-semibold'
-                    : 'text-white/80 hover:text-white hover:bg-white/10 font-medium'
+                    ? onDarkBg
+                      ? 'bg-white/15 text-white'
+                      : 'bg-[#10284C]/10 text-[#10284C]'
+                    : onDarkBg
+                      ? 'text-white/80 hover:text-white hover:bg-white/10'
+                      : 'text-[#10284C]/70 hover:text-[#10284C] hover:bg-[#10284C]/[0.06]'
                 }`}>
                 {item.label}
               </button>
@@ -670,7 +700,8 @@ function HorizontalNavBar({
             return (
               <NavDropdown key={item.id} label={item.label} items={item.items} currentPage={page}
                 onNavigate={(id, navItem) => handleNavigate(id, navItem)}
-                isActive={isGroupActive(item)} directTeamWallId={directTeamWallId} />
+                isActive={isGroupActive(item)} directTeamWallId={directTeamWallId}
+                navPosition={navPosition} />
             )
           }
           return null

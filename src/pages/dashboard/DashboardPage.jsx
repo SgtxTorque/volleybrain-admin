@@ -1471,7 +1471,7 @@ export function DashboardPage({ onNavigate }) {
           <button
             key={page}
             onClick={() => onNavigate(page)}
-            className={`flex flex-col items-center gap-3 rounded-xl p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
+            className={`flex flex-col items-center gap-3 rounded-xl p-6 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
               isDark
                 ? 'bg-lynx-charcoal border border-white/[0.06]'
                 : 'bg-white border border-lynx-silver/50'

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSport } from '../../contexts/SportContext'
-import { useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
@@ -39,6 +39,7 @@ function formatTime12(timeStr) {
 // EVENT DETAIL MODAL (Parent View)
 // ============================================
 function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView }) {
+  const { isDark } = useTheme()
   const tc = useThemeClasses()
   const { selectedSport } = useSport()
   const primarySport = selectedSport || { name: 'Volleyball', icon: '🏐' }
@@ -50,55 +51,55 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-lynx-silver">
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl`} onClick={e => e.stopPropagation()}>
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: team?.color || '#6366F1' }}>
               {event.event_type === 'practice' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> :
                event.event_type === 'game' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> : '📅'}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">{event.title || event.event_type}</h2>
-              <p className="text-slate-500">{team?.name}</p>
+              <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title || event.event_type}</h2>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{team?.name}</p>
             </div>
           </div>
         </div>
 
         <div className="p-6 space-y-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-slate-400" />
+            <Calendar className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
             <div>
-              <p className="text-slate-900">{eventDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-              {event.event_time && <p className="text-slate-500">{formatTime12(event.event_time)}</p>}
+              <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{eventDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              {event.event_time && <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{formatTime12(event.event_time)}</p>}
             </div>
           </div>
 
           {(event.location || venue || event.venue_name) && (
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-slate-400" />
+              <MapPin className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
               <div>
-                <p className="text-slate-900">{event.venue_name || event.location || venue?.name}</p>
-                {(venue?.address || event.venue_address) && <p className="text-sm text-slate-500">{event.venue_address || venue?.address}</p>}
+                <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{event.venue_name || event.location || venue?.name}</p>
+                {(venue?.address || event.venue_address) && <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.venue_address || venue?.address}</p>}
               </div>
             </div>
           )}
 
           {(event.opponent || event.opponent_name) && (
             <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-slate-400" />
-              <p className="text-slate-900">vs {event.opponent_name || event.opponent}</p>
+              <Users className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+              <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>vs {event.opponent_name || event.opponent}</p>
             </div>
           )}
 
           {event.notes && (
-            <div className="bg-lynx-cloud rounded-xl p-4">
-              <p className="text-sm text-slate-600">{event.notes}</p>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-4`}>
+              <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-lynx-silver">
-          <button onClick={onClose} className="w-full py-3 rounded-xl border border-lynx-silver text-slate-900 font-medium hover:bg-lynx-cloud transition">
+        <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
             Close
           </button>
         </div>
@@ -111,6 +112,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 // PAYMENT OPTIONS MODAL
 // ============================================
 function PaymentOptionsModal({ amount, organization, fees = [], players = [], onClose, showToast, onRequestPaymentPlan }) {
+  const { isDark } = useTheme()
   const tc = useThemeClasses()
   const [copied, setCopied] = useState(null)
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(true)
@@ -151,40 +153,40 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg shadow-2xl">
-        <div className="p-5 border-b border-lynx-silver">
-          <h2 className="text-xl font-bold text-slate-900">Make a Payment</h2>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl w-full max-w-lg shadow-2xl`}>
+        <div className={`p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Make a Payment</h2>
           <div className="flex items-center justify-between mt-2">
-            <p className="text-slate-500 text-sm">Total Due</p>
+            <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-sm`}>Total Due</p>
             <p className="text-2xl font-bold text-[var(--accent-primary)]">${amount?.toFixed(2) || '0.00'}</p>
           </div>
         </div>
 
         <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
           {fees.length > 0 && (
-            <div className="bg-lynx-cloud rounded-xl overflow-hidden">
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl overflow-hidden`}>
               <button
                 onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
-                className="w-full p-3 flex items-center justify-between text-slate-900 hover:opacity-80"
+                className={`w-full p-3 flex items-center justify-between ${isDark ? 'text-white' : 'text-slate-900'} hover:opacity-80`}
               >
                 <span className="font-medium text-sm">Fee Breakdown</span>
                 <span className={`transition-transform ${showFeeBreakdown ? 'rotate-180' : ''}`}>▼</span>
               </button>
               {showFeeBreakdown && (
-                <div className="px-3 pb-3 border-t border-lynx-silver">
+                <div className={`px-3 pb-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
                   {Object.entries(feesByPlayer).map(([playerName, playerFees]) => (
                     <div key={playerName} className="mt-3">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{playerName}</p>
+                      <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-1`}>{playerName}</p>
                       {playerFees.map((fee, idx) => (
                         <div key={idx} className="flex justify-between text-sm py-1">
-                          <span className="text-slate-600">{fee.fee_name}</span>
-                          <span className="text-slate-900">${fee.amount?.toFixed(2)}</span>
+                          <span className={`${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{fee.fee_name}</span>
+                          <span className={`${isDark ? 'text-white' : 'text-slate-900'}`}>${fee.amount?.toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
                   ))}
-                  <div className="flex justify-between font-semibold pt-2 mt-2 border-t border-lynx-silver">
-                    <span className="text-slate-900">Total</span>
+                  <div className={`flex justify-between font-semibold pt-2 mt-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-900'}`}>Total</span>
                     <span className="text-[var(--accent-primary)]">${amount?.toFixed(2)}</span>
                   </div>
                 </div>
@@ -193,10 +195,10 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
 
           {hasPaymentMethods && (
-            <div className="bg-lynx-cloud rounded-xl p-3">
-              <p className="text-xs text-slate-500 mb-1">Include this note with your payment:</p>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-3`}>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Include this note with your payment:</p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-sm text-slate-900 bg-slate-200/60 px-2 py-1 rounded">
+                <code className={`flex-1 text-sm ${isDark ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-200/60'} px-2 py-1 rounded`}>
                   {paymentNote}
                 </code>
                 <button
@@ -211,7 +213,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 
           {hasPaymentMethods && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Payment Methods</p>
+              <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide`}>Payment Methods</p>
 
               {organization?.payment_venmo && (
                 <a
@@ -223,7 +225,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
                   <div className="w-10 h-10 rounded-full bg-[#008CFF] flex items-center justify-center text-white font-bold text-lg">V</div>
                   <div className="flex-1">
                     <p className="font-semibold text-[#008CFF]">Venmo</p>
-                    <p className="text-sm text-slate-500">@{organization.payment_venmo.replace('@', '')}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>@{organization.payment_venmo.replace('@', '')}</p>
                   </div>
                   <span className="text-[#008CFF] group-hover:translate-x-1 transition-transform">→</span>
                 </a>
@@ -234,7 +236,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
                   <div className="w-10 h-10 rounded-full bg-[#6D1ED4] flex items-center justify-center text-white font-bold text-lg">Z</div>
                   <div className="flex-1">
                     <p className="font-semibold text-[#6D1ED4]">Zelle</p>
-                    <p className="text-sm text-slate-500">{organization.payment_zelle}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization.payment_zelle}</p>
                   </div>
                   <button
                     onClick={() => copyToClipboard(organization.payment_zelle, 'Zelle')}
@@ -255,7 +257,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
                   <div className="w-10 h-10 rounded-full bg-[#00D632] flex items-center justify-center text-white font-bold text-lg">$</div>
                   <div className="flex-1">
                     <p className="font-semibold text-[#00D632]">Cash App</p>
-                    <p className="text-sm text-slate-500">{organization.payment_cashapp}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization.payment_cashapp}</p>
                   </div>
                   <span className="text-[#00D632] group-hover:translate-x-1 transition-transform">→</span>
                 </a>
@@ -264,42 +266,42 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
 
           {organization?.payment_instructions && (
-            <div className="bg-lynx-cloud rounded-xl p-3">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Additional Instructions</p>
-              <p className="text-sm text-slate-600 whitespace-pre-wrap">{organization.payment_instructions}</p>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-3`}>
+              <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-2`}>Additional Instructions</p>
+              <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'} whitespace-pre-wrap`}>{organization.payment_instructions}</p>
             </div>
           )}
 
           {!hasPaymentMethods && !organization?.payment_instructions && (
-            <div className="bg-lynx-cloud rounded-xl p-6 text-center">
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-6 text-center`}>
               <p className="text-3xl mb-2">💳</p>
-              <p className="font-medium text-slate-900">Payment methods coming soon!</p>
-              <p className="text-sm text-slate-500 mt-1">Contact your league administrator for payment options.</p>
+              <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Payment methods coming soon!</p>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-1`}>Contact your league administrator for payment options.</p>
             </div>
           )}
 
           {hasPaymentMethods && (
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2">
               <span className="text-amber-500">💡</span>
-              <p className="text-amber-700 text-sm">
+              <p className={`${isDark ? 'text-amber-400' : 'text-amber-700'} text-sm`}>
                 After sending payment, your admin will mark it as paid within 1-2 business days.
               </p>
             </div>
           )}
         </div>
 
-        <div className="p-5 border-t border-lynx-silver space-y-2">
+        <div className={`p-5 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'} space-y-2`}>
           {amount > 100 && (
             <button
               onClick={() => {
                 showToast?.('Payment plan requests coming soon!', 'info')
               }}
-              className="w-full py-2 rounded-xl border border-lynx-silver text-slate-500 text-sm hover:bg-lynx-cloud transition"
+              className={`w-full py-2 rounded-xl text-sm transition ${isDark ? 'border border-white/[0.06] text-slate-400 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-500 hover:bg-lynx-cloud'}`}
             >
               Need a payment plan? Contact admin
             </button>
           )}
-          <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-900 font-medium hover:bg-slate-200 transition">
+          <button onClick={onClose} className={`w-full py-2.5 rounded-xl font-medium transition ${isDark ? 'bg-white/10 hover:bg-white/[0.15] text-white' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}>
             Close
           </button>
         </div>
@@ -312,6 +314,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 // ADD CHILD MODAL
 // ============================================
 function AddChildModal({ existingChildren, onClose, showToast }) {
+  const { isDark } = useTheme()
   const [openSeasons, setOpenSeasons] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -366,10 +369,10 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl">
-        <div className="p-6 border-b border-lynx-silver">
-          <h2 className="text-xl font-semibold text-slate-900">Add Another Child</h2>
-          <p className="text-slate-500 text-sm mt-1">Select a season to register a sibling</p>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl`}>
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+          <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Add Another Child</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-sm mt-1`}>Select a season to register a sibling</p>
         </div>
 
         <div className="p-6 space-y-4">
@@ -380,8 +383,8 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
           ) : openSeasons.length > 0 ? (
             <>
               {templateChild && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                  <p className="text-emerald-700 text-sm">
+                <div className={`${isDark ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'} rounded-xl p-4 mb-4`}>
+                  <p className={`${isDark ? 'text-emerald-400' : 'text-emerald-700'} text-sm`}>
                     Parent info will be pre-filled from {templateChild.first_name}'s registration
                   </p>
                 </div>
@@ -392,14 +395,14 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
                   href={getSiblingRegistrationUrl(season)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-lynx-cloud rounded-xl p-4 flex items-center gap-4 hover:bg-slate-100 transition block"
+                  className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition block`}
                 >
                   <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                     {season.sports?.icon || '🏐'}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{season.name}</p>
-                    <p className="text-sm text-slate-500">{season.organizations?.name}</p>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
                   </div>
                   <span className="text-[var(--accent-primary)] font-semibold">Register →</span>
                 </a>
@@ -407,14 +410,14 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
             </>
           ) : (
             <div className="text-center py-8">
-              <Calendar className="w-12 h-12 mx-auto text-slate-400" />
-              <p className="text-slate-500 mt-2">No open registrations at this time</p>
+              <Calendar className={`w-12 h-12 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} mt-2`}>No open registrations at this time</p>
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-lynx-silver">
-          <button onClick={onClose} className="w-full py-2 rounded-xl border border-lynx-silver text-slate-900 hover:bg-lynx-cloud transition">
+        <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+          <button onClick={onClose} className={`w-full py-2 rounded-xl transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
             Close
           </button>
         </div>
@@ -427,6 +430,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
 // RE-REGISTER MODAL
 // ============================================
 function ReRegisterModal({ player, season, onClose, showToast }) {
+  const { isDark } = useTheme()
   const [copied, setCopied] = useState(false)
 
   const orgSlug = season.organizations?.slug || 'black-hornets'
@@ -465,34 +469,34 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-md shadow-xl">
-        <div className="p-6 border-b border-lynx-silver">
-          <h2 className="text-xl font-semibold text-slate-900">Re-Register {player.first_name}</h2>
-          <p className="text-slate-500 text-sm mt-1">for {season.name}</p>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl w-full max-w-md shadow-xl`}>
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+          <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Re-Register {player.first_name}</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-sm mt-1`}>for {season.name}</p>
         </div>
 
         <div className="p-6 space-y-4">
-          <div className="bg-lynx-cloud rounded-xl p-4">
+          <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-4`}>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                 {season.sports?.icon || '🏅'}
               </div>
               <div>
-                <p className="font-semibold text-slate-900">{season.name}</p>
-                <p className="text-sm text-slate-500">{season.organizations?.name}</p>
+                <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-            <p className="text-emerald-700 text-sm">
+          <div className={`${isDark ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'} rounded-xl p-4`}>
+            <p className={`${isDark ? 'text-emerald-400' : 'text-emerald-700'} text-sm`}>
               {player.first_name}'s information will be pre-filled to save time!
             </p>
           </div>
         </div>
 
-        <div className="p-6 border-t border-lynx-silver flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2 rounded-xl border border-lynx-silver text-slate-900 hover:bg-lynx-cloud transition">
+        <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'} flex gap-3`}>
+          <button onClick={onClose} className={`flex-1 py-2 rounded-xl transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
             Cancel
           </button>
           <a
@@ -513,33 +517,34 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
 // ALERT/ANNOUNCEMENT DETAIL MODAL
 // ============================================
 function AlertDetailModal({ alert, onClose }) {
+  const { isDark } = useTheme()
   if (!alert) return null
 
   const createdDate = new Date(alert.created_at)
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="bg-white border border-lynx-silver rounded-xl w-full max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="p-6 border-b border-lynx-silver">
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl w-full max-w-lg shadow-xl`} onClick={e => e.stopPropagation()}>
+        <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              alert.priority === 'urgent' ? 'bg-red-50 text-red-500' : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+              alert.priority === 'urgent' ? (isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-500') : 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
             }`}>
               {alert.priority === 'urgent' ? <AlertTriangle className="w-6 h-6" /> : <Megaphone className="w-6 h-6" />}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">{alert.title}</h2>
-              <p className="text-slate-500">{createdDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+              <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{alert.title}</h2>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{createdDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
             </div>
           </div>
         </div>
 
         <div className="p-6">
-          <p className="text-slate-600 whitespace-pre-wrap">{alert.content}</p>
+          <p className={`${isDark ? 'text-slate-300' : 'text-slate-600'} whitespace-pre-wrap`}>{alert.content}</p>
         </div>
 
-        <div className="p-6 border-t border-lynx-silver">
-          <button onClick={onClose} className="w-full py-3 rounded-xl border border-lynx-silver text-slate-900 font-medium hover:bg-lynx-cloud transition">
+        <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
+          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
             Close
           </button>
         </div>
@@ -558,6 +563,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const { profile } = useAuth()
   const { orgLogo, orgName, orgTagline } = useOrgBranding()
   const { selectedSport } = useSport()
+  const { isDark } = useTheme()
   const parentTutorial = useParentTutorial()
 
   // Core state
@@ -861,7 +867,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // ============================================
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className={`flex items-center justify-center h-64 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
         <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
       </div>
     )
@@ -870,17 +876,17 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // Empty state - no registered players
   if (registrationData.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6 py-12">
+      <div className={`max-w-2xl mx-auto space-y-6 py-12 ${isDark ? 'bg-lynx-midnight' : ''}`}>
         <div className="text-center">
           <VolleyballIcon className="w-20 h-20 text-[var(--accent-primary)] mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to Lynx!</h2>
-          <p className="text-slate-500">You haven't registered any players yet.</p>
-          <p className="text-slate-400 mb-6">Get started by registering for an open season below.</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You haven't registered any players yet.</p>
+          <p className={`${isDark ? 'text-slate-500' : 'text-slate-400'} mb-6`}>Get started by registering for an open season below.</p>
         </div>
 
         {openSeasons.length > 0 && (
-          <div className="bg-white border border-lynx-silver rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Open Registrations</h2>
+          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl p-6 shadow-sm`}>
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Open Registrations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {openSeasons.map(season => (
                 <a
@@ -888,14 +894,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   href={getRegistrationUrl(season)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-lynx-cloud rounded-xl p-4 flex items-center gap-4 hover:bg-slate-100 transition"
+                  className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}
                 >
                   <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                     {season.sports?.icon || '🏐'}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{season.name}</p>
-                    <p className="text-sm text-slate-500">{season.organizations?.name}</p>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
                   </div>
                   <span className="text-[var(--accent-primary)] font-semibold">Register →</span>
                 </a>
@@ -940,7 +946,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // RENDER — 3-COLUMN LAYOUT
   // ============================================
   return (
-    <div data-tutorial="dashboard-header" className="flex h-[calc(100vh-4rem)] overflow-hidden bg-lynx-cloud">
+    <div data-tutorial="dashboard-header" className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
 
       {/* LEFT SIDEBAR (280px) */}
       <ParentLeftSidebar

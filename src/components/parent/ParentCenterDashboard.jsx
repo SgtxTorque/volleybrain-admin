@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Calendar, ChevronRight, Users, MessageCircle, Send, User as UserCircle } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
+import { useTheme } from '../../contexts/ThemeContext'
 import ParentHeroCard from './ParentHeroCard'
 import TeamStandingsWidget from '../widgets/parent/TeamStandingsWidget'
 import ChildStatsWidget from '../widgets/parent/ChildStatsWidget'
@@ -49,6 +50,8 @@ export default function ParentCenterDashboard({
   primarySeason,
   carouselRef,
 }) {
+  const { isDark } = useTheme()
+
   // Team hub + chat fetched by this component
   const [latestPost, setLatestPost] = useState(null)
   const [chatMessages, setChatMessages] = useState([])
@@ -130,7 +133,7 @@ export default function ParentCenterDashboard({
           className={`rounded-xl px-5 py-4 flex items-center gap-4 ${
             alert.priority === 'urgent'
               ? 'bg-gradient-to-r from-red-600 to-red-500 shadow-lg shadow-red-500/20'
-              : 'bg-white border border-lynx-silver shadow-sm'
+              : `${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} shadow-sm`
           }`}
         >
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg ${
@@ -139,15 +142,15 @@ export default function ParentCenterDashboard({
             {alert.priority === 'urgent' ? '🚨' : '📣'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-bold ${alert.priority === 'urgent' ? 'text-white' : 'text-slate-900'}`}>{alert.title}</p>
-            <p className={`text-sm mt-0.5 ${alert.priority === 'urgent' ? 'text-red-100' : 'text-lynx-slate'}`}>{alert.content}</p>
+            <p className={`text-sm font-bold ${alert.priority === 'urgent' ? 'text-white' : isDark ? 'text-white' : 'text-slate-900'}`}>{alert.title}</p>
+            <p className={`text-sm mt-0.5 ${alert.priority === 'urgent' ? 'text-red-100' : isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{alert.content}</p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onDismissAlert?.(alert.id) }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex-shrink-0 transition-all ${
               alert.priority === 'urgent'
                 ? 'bg-white/25 text-white hover:bg-white/35'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
+                : isDark ? 'bg-white/10 hover:bg-white/20 text-slate-400' : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
             }`}
           >
             {alert.priority === 'urgent' ? 'Got It' : 'Dismiss'}
@@ -157,10 +160,10 @@ export default function ParentCenterDashboard({
 
       {/* Welcome Message */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
           Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'} 👋
         </h1>
-        <p className="text-sm text-lynx-slate mt-0.5">
+        <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           {registrationData?.length || 0} {registrationData?.length === 1 ? 'player' : 'players'} registered
           {activeTeam ? ` · ${activeTeam.name}` : ''}
         </p>
@@ -210,12 +213,12 @@ export default function ParentCenterDashboard({
       {/* Team Hub + Chat Preview Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Team Hub Preview Card */}
-        <div className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
+          <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-slate-400" />
-              <h3 className="text-sm font-bold text-slate-900">Team Hub</h3>
-              {activeTeam && <span className="text-xs text-lynx-slate">· {activeTeam.name}</span>}
+              <Users className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+              <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Team Hub</h3>
+              {activeTeam && <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>· {activeTeam.name}</span>}
             </div>
             <button
               onClick={() => navigateToTeamWall?.(activeTeam?.id)}
@@ -231,18 +234,18 @@ export default function ParentCenterDashboard({
                   {latestPost.profiles?.avatar_url ? (
                     <img src={latestPost.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                      <UserCircle className="w-5 h-5 text-slate-400" />
+                    <div className={`w-8 h-8 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} flex items-center justify-center`}>
+                      <UserCircle className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">{latestPost.profiles?.full_name || 'Team Member'}</p>
-                    <p className="text-xs text-lynx-slate">{new Date(latestPost.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{latestPost.profiles?.full_name || 'Team Member'}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{new Date(latestPost.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600 line-clamp-3">{latestPost.content}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'} line-clamp-3`}>{latestPost.content}</p>
                 {latestPost.reaction_count > 0 && (
-                  <div className="flex items-center gap-2 mt-3 text-xs text-lynx-slate">
+                  <div className={`flex items-center gap-2 mt-3 text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                     <span>❤️ {latestPost.reaction_count}</span>
                     {latestPost.comment_count > 0 && <span>💬 {latestPost.comment_count}</span>}
                   </div>
@@ -250,8 +253,8 @@ export default function ParentCenterDashboard({
               </div>
             ) : (
               <div className="text-center py-6">
-                <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                <p className="text-sm text-lynx-slate">No recent posts</p>
+                <Users className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No recent posts</p>
                 <button onClick={() => navigateToTeamWall?.(activeTeam?.id)} className="text-xs text-[var(--accent-primary)] font-semibold mt-2 hover:opacity-80 transition">
                   Visit Team Hub →
                 </button>
@@ -261,12 +264,12 @@ export default function ParentCenterDashboard({
         </div>
 
         {/* Chat Preview Card */}
-        <div className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
+          <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4 text-slate-400" />
-              <h3 className="text-sm font-bold text-slate-900">Team Chat</h3>
-              {activeTeam && <span className="text-xs text-lynx-slate">· {activeTeam.name}</span>}
+              <MessageCircle className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+              <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Team Chat</h3>
+              {activeTeam && <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>· {activeTeam.name}</span>}
             </div>
             <button
               onClick={() => onNavigate?.('chats')}
@@ -283,30 +286,30 @@ export default function ParentCenterDashboard({
                     {msg.profiles?.avatar_url ? (
                       <img src={msg.profiles.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5" />
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <UserCircle className="w-4 h-4 text-slate-400" />
+                      <div className={`w-7 h-7 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                        <UserCircle className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
                       </div>
                     )}
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-slate-700">{msg.profiles?.full_name || 'Unknown'}</span>
-                        <span className="text-[10px] text-lynx-slate">{new Date(msg.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+                        <span className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{msg.profiles?.full_name || 'Unknown'}</span>
+                        <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{new Date(msg.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
                       </div>
-                      <p className="text-sm text-slate-600 line-clamp-2">{msg.content}</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'} line-clamp-2`}>{msg.content}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-6">
-                <MessageCircle className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                <p className="text-sm text-lynx-slate">No recent messages</p>
+                <MessageCircle className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No recent messages</p>
               </div>
             )}
-            <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className={`mt-3 pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
               <button
                 onClick={() => onNavigate?.('chats')}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-lynx-cloud text-sm text-lynx-slate hover:bg-slate-100 transition"
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/[0.06] text-slate-400 hover:bg-white/10' : 'bg-lynx-cloud text-lynx-slate hover:bg-slate-100'}`}
               >
                 <Send className="w-4 h-4" />
                 Reply in chat...
@@ -317,11 +320,11 @@ export default function ParentCenterDashboard({
       </div>
 
       {/* Schedule Section */}
-      <div className="bg-white border border-lynx-silver rounded-xl shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
+        <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <h3 className="text-sm font-bold text-slate-900">Upcoming Schedule</h3>
+            <Calendar className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Upcoming Schedule</h3>
           </div>
           <button onClick={() => onNavigate?.('schedule')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition flex items-center gap-1">
             Full Calendar <ChevronRight className="w-3.5 h-3.5" />
@@ -339,12 +342,12 @@ export default function ParentCenterDashboard({
                   <button
                     key={event.id}
                     onClick={() => onShowEventDetail?.(event)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all bg-white border border-lynx-silver hover:border-slate-300 hover:shadow-sm"
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-white/[0.12]' : 'bg-white border border-lynx-silver hover:border-slate-300'}`}
                   >
                     <div className="text-center w-12 flex-shrink-0">
-                      <div className="text-[9px] uppercase font-bold text-slate-400">{eventDate.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                      <div className="text-xl font-black text-slate-900 leading-tight">{eventDate.getDate()}</div>
-                      <div className="text-[9px] uppercase font-bold text-slate-400">{eventDate.toLocaleDateString('en-US', { month: 'short' })}</div>
+                      <div className={`text-[9px] uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{eventDate.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                      <div className={`text-xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{eventDate.getDate()}</div>
+                      <div className={`text-[9px] uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{eventDate.toLocaleDateString('en-US', { month: 'short' })}</div>
                     </div>
                     <div className="w-1 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: isGame ? '#f59e0b' : '#3b82f6' }} />
                     <div className="flex-1 min-w-0">
@@ -352,25 +355,25 @@ export default function ParentCenterDashboard({
                         <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md ${isGame ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
                           {isGame ? 'GAME' : 'PRACTICE'}
                         </span>
-                        {event.opponent && <span className="text-sm font-semibold text-slate-600">vs {event.opponent}</span>}
+                        {event.opponent && <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>vs {event.opponent}</span>}
                         {daysUntil === 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-red-50 text-red-500">TODAY</span>}
                         {daysUntil === 1 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-600">TOMORROW</span>}
                       </div>
-                      <div className="text-sm text-lynx-slate mt-0.5">
+                      <div className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                         {event.event_time && formatTime12(event.event_time)}{event.venue_name && ` · ${event.venue_name}`}
                       </div>
                       <div className="text-xs font-bold mt-0.5" style={{ color: evtTeamColor }}>{event.teams?.name}</div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                    <ChevronRight className={`w-4 h-4 ${isDark ? 'text-slate-600' : 'text-slate-300'} flex-shrink-0`} />
                   </button>
                 )
               })}
             </div>
           ) : (
             <div className="text-center py-8">
-              <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm font-medium text-lynx-slate">No upcoming events</p>
-              <p className="text-sm text-lynx-slate mt-1">Check the schedule for past events</p>
+              <Calendar className={`w-10 h-10 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
+              <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No upcoming events</p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Check the schedule for past events</p>
             </div>
           )}
         </div>
@@ -404,8 +407,8 @@ export default function ParentCenterDashboard({
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎉</span>
             <div>
-              <p className="text-sm font-bold text-slate-900">New Season Registration Open!</p>
-              <p className="text-sm text-lynx-slate">{openSeasons[0].name} — {openSeasons[0].organizations?.name}</p>
+              <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>New Season Registration Open!</p>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{openSeasons[0].name} — {openSeasons[0].organizations?.name}</p>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -425,7 +428,7 @@ export default function ParentCenterDashboard({
       {/* Invite */}
       <button
         onClick={() => onNavigate?.('invite')}
-        className="w-full rounded-xl py-4 text-center text-sm font-medium bg-white border border-lynx-silver text-lynx-slate hover:border-slate-300 hover:text-slate-700 shadow-sm hover:shadow-md transition-all"
+        className={`w-full rounded-xl py-4 text-center text-sm font-medium shadow-sm hover:shadow-md transition-all ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-slate-400 hover:border-white/[0.12] hover:text-slate-200' : 'bg-white border border-lynx-silver text-lynx-slate hover:border-slate-300 hover:text-slate-700'}`}
       >
         Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>
