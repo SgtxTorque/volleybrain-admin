@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
@@ -416,7 +417,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     return (
       <div className="text-center py-12" style={{ fontFamily: FONT_STACK }}>
         <VolleyballIcon className="w-16 h-16 mx-auto" style={{ color: textMuted }} />
-        <p className="mt-4" style={{ color: textPrimary, fontSize: 14, fontWeight: 400 }}>Team not found</p>
+        <p className="mt-4" style={{ color: textPrimary, fontSize: 14, fontWeight: 500 }}>Team not found</p>
         <button onClick={onBack} className="mt-4" style={{ color: BRAND.sky, fontSize: 14, fontWeight: 500 }}>
           ← Go Back
         </button>
@@ -663,7 +664,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                       <p style={{ fontSize: 16, fontWeight: 500, color: textPrimary }} className="truncate">
                         {event.title || event.event_type}{event.opponent ? ` vs ${event.opponent}` : ''}
                       </p>
-                      <p style={{ fontSize: 14, fontWeight: 400, color: textMuted }}>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: textMuted }}>
                         {event.event_time && formatTime12(event.event_time)}
                         {event.location ? ` · ${event.location}` : ''}
                       </p>
@@ -674,7 +675,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               {upcomingEvents.length === 0 && (
                 <div className="p-6 text-center">
                   <Calendar className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                  <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 8 }}>No upcoming events</p>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No upcoming events</p>
                 </div>
               )}
             </div>
@@ -728,7 +729,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     className="flex flex-1 items-center px-4 py-2.5 text-left transition-all"
                     style={{
                       borderRadius: 999, border: `1px solid ${borderColor}`,
-                      color: textMuted, fontSize: 16, fontWeight: 400,
+                      color: textMuted, fontSize: 16, fontWeight: 500,
                       background: innerBg, transition: 'all 250ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = isDark ? BRAND.graphite : '#E8ECF0'}
@@ -778,7 +779,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 )}
 
                 {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                  <p className="text-center py-4" style={{ fontSize: 14, fontWeight: 400, color: textMuted }}>
+                  <p className="text-center py-4" style={{ fontSize: 14, fontWeight: 500, color: textMuted }}>
                     End of feed
                   </p>
                 )}
@@ -788,7 +789,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
                 <Megaphone className="w-12 h-12 mx-auto" style={{ color: textMuted }} />
                 <p style={{ fontSize: 16, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
-                <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 4 }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 4 }}>
                   Be the first to share with the team!
                 </p>
               </div>
@@ -822,7 +823,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               <div className="text-center p-6"
                 style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
                 <ImageIcon className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 8 }}>No photos yet</p>
+                <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No photos yet</p>
               </div>
             )}
           </div>
@@ -877,7 +878,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                   {headCoach.full_name}
                 </p>
                 {headCoach.email && (
-                  <p style={{ fontSize: 14, fontWeight: 400, color: textMuted }} className="truncate">
+                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted }} className="truncate">
                     {headCoach.email}
                   </p>
                 )}
@@ -893,67 +894,58 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
             <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
               {roster.map((player, i) => (
                 <div key={player.id}
-                  className="group flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-all"
                   style={{
-                    position: 'relative',
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
+                    cursor: 'pointer', transition: 'all 200ms',
                     borderBottom: i < roster.length - 1 ? `1px solid ${borderColor}` : 'none',
-                    transition: 'all 250ms',
                   }}
-                  onClick={() => setActivePlayerPopup(activePlayerPopup === player.id ? null : player.id)}
                   onMouseEnter={e => e.currentTarget.style.background = innerBg}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  {/* Avatar */}
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-                    style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 10, fontWeight: 700 }}>
-                    {player.photo_url ? (
-                      <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      (player.first_name?.[0] || '') + (player.last_name?.[0] || '')
-                    )}
-                  </div>
-                  {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <p style={{ fontSize: 15, fontWeight: 500, color: textPrimary }} className="truncate">
-                      {player.first_name} {player.last_name}
-                    </p>
-                    <p style={{ fontSize: 13, fontWeight: 400, color: BRAND.slate }}>
-                      {player.jersey_number ? `#${player.jersey_number}` : ''}
-                      {player.jersey_number && player.position ? ' · ' : ''}
-                      {player.position || ''}
-                    </p>
-                  </div>
-                  {/* Player popup */}
-                  {activePlayerPopup === player.id && (
-                    <div ref={playerPopupRef} style={{
-                      position: 'absolute',
-                      right: '100%',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      marginRight: 8,
-                      background: isDark ? BRAND.charcoal : BRAND.white,
-                      border: `1px solid ${isDark ? BRAND.darkBorder : BRAND.silver}`,
-                      borderRadius: 12,
-                      boxShadow: isDark ? '0 8px 24px rgba(0,0,0,.3)' : '0 8px 24px rgba(0,0,0,.08)',
-                      padding: 12,
-                      minWidth: 160,
-                      zIndex: 50,
+                  {/* Avatar + Info — clicking opens profile */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}
+                    onClick={() => setSelectedPlayer(player)}>
+                    <div className="shrink-0 overflow-hidden" style={{
+                      width: 36, height: 36, borderRadius: '50%',
+                      background: BRAND.ice, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: BRAND.deepSky, fontSize: 11, fontWeight: 700,
                     }}>
-                      <button onClick={(e) => { e.stopPropagation(); setShowShoutoutModal(true); setActivePlayerPopup(null) }}
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: 10, background: BRAND.sky, color: '#fff', fontSize: 13, fontWeight: 600, border: 'none', cursor: 'pointer', marginBottom: 6 }}>
-                        ⭐ Give Shoutout
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedPlayer(player); setActivePlayerPopup(null) }}
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: 10, background: 'transparent', color: isDark ? '#B0BEC5' : BRAND.slate, fontSize: 13, fontWeight: 500, border: `1.5px solid ${isDark ? BRAND.darkBorder : BRAND.silver}`, cursor: 'pointer' }}>
-                        👤 View Profile
-                      </button>
+                      {player.photo_url ? (
+                        <img src={player.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        (player.first_name?.[0] || '') + (player.last_name?.[0] || '')
+                      )}
                     </div>
-                  )}
+                    <div className="min-w-0">
+                      <p style={{ fontSize: 14, fontWeight: 600, color: textPrimary }} className="truncate">
+                        {player.first_name} {player.last_name}
+                      </p>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.45)' }}>
+                        {player.jersey_number ? `#${player.jersey_number}` : ''}
+                        {player.jersey_number && player.position ? ' · ' : ''}
+                        {player.position || ''}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Shoutout button */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowShoutoutModal(true) }}
+                    title="Give Shoutout"
+                    style={{
+                      width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'transparent', border: 'none', cursor: 'pointer',
+                      fontSize: 16, transition: 'all 200ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(75,185,236,.15)' : 'rgba(75,185,236,.1)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    ⭐
+                  </button>
                 </div>
               ))}
               {roster.length === 0 && (
                 <div className="p-6 text-center">
                   <Users className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                  <p style={{ fontSize: 14, fontWeight: 400, color: textMuted, marginTop: 8 }}>No players yet</p>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No players yet</p>
                 </div>
               )}
             </div>
@@ -974,7 +966,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     onMouseEnter={e => e.currentTarget.style.background = innerBg}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <FileText className="h-4 w-4 shrink-0" style={{ color: textMuted }} />
-                    <span style={{ fontSize: 14, fontWeight: 400, color: textSecondary }} className="truncate">
+                    <span style={{ fontSize: 14, fontWeight: 500, color: textSecondary }} className="truncate">
                       {doc.name}
                     </span>
                   </a>
@@ -1002,12 +994,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       )}
 
       {/* ═══ GALLERY LIGHTBOX ═══ */}
-      {galleryLightboxIdx !== null && (
+      {galleryLightboxIdx !== null && createPortal(
         <PhotoLightbox
           photos={galleryImages}
           initialIndex={galleryLightboxIdx}
           onClose={() => setGalleryLightboxIdx(null)}
-        />
+        />,
+        document.body
       )}
 
       {/* ═══ NEW POST MODAL ═══ */}
@@ -1027,6 +1020,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           player={selectedPlayer}
           visible={!!selectedPlayer}
           onClose={() => setSelectedPlayer(null)}
+          onBack={() => setSelectedPlayer(null)}
           context="roster"
           viewerRole={profile?.role === 'parent' ? 'parent' : profile?.role === 'coach' ? 'coach' : 'admin'}
           seasonId={team?.season_id}

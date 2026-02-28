@@ -242,7 +242,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
           <button
             onClick={handleBackdropClick}
             className="w-9 h-9 rounded-full flex items-center justify-center transition"
-            style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)' }}
+            style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)' }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -264,7 +264,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
                 {profile?.full_name || 'You'}
               </p>
               <span className="text-[11px] px-1.5 py-0.5 rounded"
-                style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>
                 Team Post
               </span>
             </div>
@@ -311,7 +311,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
                 fontWeight: bgColor ? 700 : 400,
                 textAlign: bgColor ? 'center' : 'left',
                 minHeight: bgColor ? 'auto' : 120,
-                textShadow: bgColor ? '0 1px 4px rgba(0,0,0,.3)' : 'none',
+                textShadow: bgColor ? '0 1px 4px rgba(0,0,0,.55)' : 'none',
               }}
             />
           </div>
@@ -319,19 +319,19 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
           {/* Formatting toolbar */}
           <div className="px-5 pb-2 flex items-center gap-1">
             <button onClick={() => insertFormat('bold')} title="Bold"
-              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, fontWeight: 700, color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, fontWeight: 700, color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
               B
             </button>
             <button onClick={() => insertFormat('italic')} title="Italic"
-              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, fontStyle: 'italic', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, fontStyle: 'italic', color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
               I
             </button>
             <button onClick={() => insertFormat('underline')} title="Underline"
-              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, textDecoration: 'underline', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, textDecoration: 'underline', color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
               U
             </button>
             <button onClick={() => insertFormat('bullet')} title="Bullet Point"
-              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 13, color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
               •
             </button>
             <div style={{ flex: 1 }} />
@@ -340,7 +340,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
                 style={{
                   width: 32, height: 32, borderRadius: 8, fontSize: 14, fontWeight: 700,
                   background: bgColor || (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)'),
-                  color: bgColor ? '#fff' : (isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)'),
+                  color: bgColor ? '#fff' : (isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)'),
                   border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                 Aa
@@ -389,8 +389,8 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             >
               <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
                 onChange={e => { addFiles(e.target.files || []); e.target.value = '' }} />
-              <ImageIcon className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }} />
-              <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+              <ImageIcon className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }} />
+              <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.55)' }}>
                 {mediaPreviews.length > 0 ? 'Add more photos' : 'Add photos or drag & drop'}
               </p>
             </div>
@@ -398,7 +398,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
 
           {/* Post type selector */}
           <div className="px-5 pb-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.5)' }}>
               Post Type
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -427,7 +427,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)}
                   className="rounded" style={{ accentColor: g }} />
-                <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)' }}>
+                <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.55)' : 'rgba(0,0,0,.6)' }}>
                   📌 Pin to top of feed
                 </span>
               </label>
@@ -443,7 +443,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             className="w-full py-3 rounded-xl text-sm font-bold transition hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               background: canPublish ? `linear-gradient(135deg, ${gb || g}, ${g})` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'),
-              color: canPublish ? '#fff' : (isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)'),
+              color: canPublish ? '#fff' : (isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.5)'),
               boxShadow: canPublish ? `0 4px 16px ${g}30` : 'none',
             }}
           >

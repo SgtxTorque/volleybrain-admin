@@ -59,9 +59,16 @@ function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onClose() }}
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition"
+            style={{
+              width: 44, height: 44, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.2)',
+              color: '#FFFFFF', cursor: 'pointer', transition: 'all 200ms',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.3)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.15)' }}
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: 22, height: 22 }} />
           </button>
         </div>
       </div>
