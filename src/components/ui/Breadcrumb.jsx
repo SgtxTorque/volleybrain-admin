@@ -58,7 +58,7 @@ export function Breadcrumb({ teamName, playerName }) {
   const { isDark, accent } = useTheme()
 
   const pathname = location.pathname
-  if (pathname === '/dashboard' || pathname === '/') return null
+  if (pathname === '/dashboard' || pathname === '/' || pathname.startsWith('/teams/')) return null
 
   const segments = pathname.split('/').filter(Boolean)
   const crumbs = []

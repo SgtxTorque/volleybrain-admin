@@ -465,13 +465,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       </div>
 
       {/* ═══ 3-COLUMN GRID ═══ */}
-      <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, alignItems: 'start' }}>
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
 
         {/* ═══════════════════════════════════════════════════ */}
         {/* LEFT COLUMN — Team Identity (Static, No Scroll)   */}
         {/* ═══════════════════════════════════════════════════ */}
-        <aside className="hidden lg:flex flex-col gap-4 p-4 xl:p-5 overflow-hidden"
-          style={{ position: 'sticky', top: 0, alignSelf: 'start', height: 'fit-content' }}>
+        <aside className="hidden lg:flex flex-col gap-4 p-4 xl:p-5 overflow-y-auto tw-hide-scrollbar"
+          style={{ height: '100%' }}>
 
           {/* Back button */}
           <button onClick={onBack}
@@ -698,7 +698,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         {/* ═══════════════════════════════════════════════════ */}
         <main ref={centerRef} onScroll={handleCenterScroll}
           className="overflow-y-auto tw-hide-scrollbar"
-          style={{ height: 'calc(100vh - 64px)' }}>
+          style={{ height: '100%' }}>
           <div className="px-4 lg:px-6 py-5 flex flex-col gap-5">
 
             {/* ─── Create Post Bar ─── */}
@@ -789,7 +789,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         {/* RIGHT COLUMN — Discovery & Community (Scrollable) */}
         {/* ═══════════════════════════════════════════════════ */}
         <aside className="hidden md:flex flex-col gap-4 p-4 xl:p-5 overflow-y-auto tw-hide-scrollbar"
-          style={{ height: 'calc(100vh - 64px)' }}>
+          style={{ height: '100%' }}>
 
           {/* ─── Gallery ─── */}
           <div>
@@ -817,7 +817,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           </div>
 
           {/* ─── Challenges / Achievements / Leaderboard ─── */}
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
+          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
             {[
               { icon: Trophy, label: 'Challenges', count: activeChallenges.length, nav: 'challenges' },
               { icon: Award, label: 'Achievements', nav: 'achievements' },
