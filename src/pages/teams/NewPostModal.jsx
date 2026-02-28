@@ -147,18 +147,18 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
 
           {/* Image previews */}
           {mediaPreviews.length > 0 && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-2">
               {mediaPreviews.map((preview, i) => (
-                <div key={i} className="relative rounded-xl overflow-hidden group" style={{ height: 80 }}>
+                <div key={i} className="relative rounded-xl overflow-hidden group">
                   {preview.type.startsWith('image/') ? (
-                    <img src={preview.url} alt="" className="w-full h-full object-cover" />
+                    <img src={preview.url} alt="" className="w-full h-auto block" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
+                    <div className="w-full py-8 flex items-center justify-center rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
                       <span className="text-lg">🎬</span>
                     </div>
                   )}
                   <button onClick={(e) => { e.stopPropagation(); removeFile(i) }}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
                     ✕
                   </button>
                 </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { MoreVertical, Trash2, Edit, MessageCircle, Share2, Maximize2 } from '../../constants/icons'
+import { MoreVertical, Trash2, Edit, MessageCircle, Share2 } from '../../constants/icons'
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
 import { Lightbox } from '../../components/teams/PhotoGallery'
@@ -155,16 +155,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           <div className={`grid ${mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
             {mediaUrls.map((url, idx) => (
               <div key={idx} onClick={() => setLightboxIdx(idx)}
-                className="relative rounded-xl overflow-hidden group cursor-pointer"
-                style={{ width: '100%' }}>
-                <img src={url} alt=""
-                  className="block w-full transition-transform duration-500 group-hover:scale-[1.02]"
-                  style={{ height: 'auto' }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                  <div className="absolute bottom-3 right-3">
-                    <Maximize2 className="w-5 h-5 text-white/70" />
-                  </div>
-                </div>
+                className="rounded-xl overflow-hidden cursor-pointer">
+                <img src={url} alt="" className="w-full h-auto block" />
               </div>
             ))}
           </div>
