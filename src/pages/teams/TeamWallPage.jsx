@@ -330,14 +330,32 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     try {
       const from = (page - 1) * POSTS_PER_PAGE
       const to = from + POSTS_PER_PAGE - 1
-      const { data: postsData } = await supabase
+
+      // Try with profile join first
+      let { data: postsData, error } = await supabase
         .from('team_posts')
-        .select('*, profiles:author_id(id, full_name, avatar_url)', { count: 'exact' })
+        .select('*, profiles:author_id(id, full_name, avatar_url)')
         .eq('team_id', teamId)
         .eq('is_published', true)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .range(from, to)
+
+      // Fallback: if join fails, fetch without profile join
+      if (error) {
+        console.error('Posts query error (with join):', error)
+        const fallback = await supabase
+          .from('team_posts')
+          .select('*')
+          .eq('team_id', teamId)
+          .eq('is_published', true)
+          .order('is_pinned', { ascending: false })
+          .order('created_at', { ascending: false })
+          .range(from, to)
+        postsData = fallback.data
+        if (fallback.error) console.error('Posts fallback query error:', fallback.error)
+      }
+
       if (reset) {
         setPosts(postsData || [])
       } else {
@@ -539,7 +557,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       </div>
 
       {/* ═══ 3-COLUMN GRID ═══ */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-8" style={{ maxWidth: 1520, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
 
         {/* ═══════════════════════════════════════════════════ */}
         {/* LEFT COLUMN — Team Identity (Static, No Scroll)   */}
@@ -778,7 +796,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         <main ref={centerRef} onScroll={handleCenterScroll}
           className="overflow-y-auto tw-hide-scrollbar"
           style={{ height: '100%' }}>
-          <div className="px-4 lg:px-6 py-5 flex flex-col gap-5">
+          <div className="px-3 lg:px-4 py-5 flex flex-col gap-5">
 
             {/* ─── Create Post Bar ─── */}
             {canPost && (
