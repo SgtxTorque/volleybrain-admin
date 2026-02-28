@@ -160,6 +160,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const [activePlayerPopup, setActivePlayerPopup] = useState(null)
   const [shoutoutPreselect, setShoutoutPreselect] = useState(null)
   const [activeChallenges, setActiveChallenges] = useState([])
+  const [shoutoutDigest, setShoutoutDigest] = useState({ recent: [], total: 0, lastShoutoutDate: null })
 
   // Gallery lightbox
   const [galleryLightboxIdx, setGalleryLightboxIdx] = useState(null)
@@ -256,6 +257,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       }
 
       await loadPosts(1, true)
+      loadShoutoutDigest()
 
       try {
         const challenges = await fetchActiveChallenges(teamId)
@@ -352,78 +354,51 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     if (onNavigate) onNavigate('messages')
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // SHOUTOUT AGGREGATION (6-hour rolling window)
-  // ═══════════════════════════════════════════════════════════
+  async function loadShoutoutDigest() {
+    try {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  function aggregateShoutouts(rawPosts) {
-    const WINDOW_MS = 6 * 60 * 60 * 1000
-    const result = []
-    const shoutoutGroups = new Map()
+      const { data: recentShoutouts } = await supabase
+        .from('shoutouts')
+        .select('id, receiver_id, category, message, created_at, giver_id, players:receiver_id(first_name, last_name, photo_url)')
+        .eq('team_id', teamId)
+        .gte('created_at', sevenDaysAgo)
+        .order('created_at', { ascending: false })
 
-    for (const post of rawPosts) {
-      if (post.post_type !== 'shoutout') {
-        result.push(post)
-        continue
+      if (!recentShoutouts || recentShoutouts.length === 0) {
+        setShoutoutDigest({ recent: [], total: 0, lastShoutoutDate: null })
+        return
       }
 
-      let meta = null
-      try { if (post.title) meta = JSON.parse(post.title) } catch {}
-
-      if (!meta?.receiverId) {
-        result.push(post)
-        continue
-      }
-
-      const recipientKey = meta.receiverId
-      const postTime = new Date(post.created_at).getTime()
-
-      if (shoutoutGroups.has(recipientKey)) {
-        const group = shoutoutGroups.get(recipientKey)
-        if (Math.abs(postTime - group.latestTime) <= WINDOW_MS) {
-          group.posts.push(post)
-          group.latestTime = Math.max(group.latestTime, postTime)
-          continue
+      // Group by receiver
+      const byReceiver = new Map()
+      for (const s of recentShoutouts) {
+        const rid = s.receiver_id
+        if (!byReceiver.has(rid)) {
+          byReceiver.set(rid, {
+            receiverId: rid,
+            name: s.players ? `${s.players.first_name} ${s.players.last_name}` : 'Player',
+            photo: s.players?.photo_url || null,
+            count: 0,
+            categories: [],
+          })
         }
+        const entry = byReceiver.get(rid)
+        entry.count++
+        if (!entry.categories.includes(s.category)) entry.categories.push(s.category)
       }
 
-      shoutoutGroups.set(recipientKey, {
-        posts: [post],
-        latestTime: postTime,
-        recipientKey,
+      // Sort by count descending
+      const ranked = Array.from(byReceiver.values()).sort((a, b) => b.count - a.count)
+
+      setShoutoutDigest({
+        recent: ranked,
+        total: recentShoutouts.length,
+        lastShoutoutDate: recentShoutouts[0]?.created_at || null,
       })
+    } catch (err) {
+      console.log('Could not load shoutout digest:', err)
     }
-
-    for (const [key, group] of shoutoutGroups) {
-      if (group.posts.length === 1) {
-        result.push(group.posts[0])
-      } else {
-        const firstPost = group.posts[0]
-        let firstMeta = null
-        try { firstMeta = JSON.parse(firstPost.title) } catch {}
-
-        const givers = group.posts.map(p => p.profiles?.full_name || 'Someone')
-        const categories = group.posts.map(p => {
-          try { return JSON.parse(p.title) } catch { return null }
-        }).filter(Boolean)
-
-        result.push({
-          ...firstPost,
-          id: `agg-${key}-${firstPost.id}`,
-          _isAggregated: true,
-          _aggregateCount: group.posts.length,
-          _aggregateGivers: givers,
-          _aggregateCategories: categories,
-          _aggregatePosts: group.posts,
-          _recipientName: firstMeta?.receiverName || 'Player',
-          _recipientPhoto: firstMeta?.receiverPhotoUrl || null,
-          created_at: new Date(group.latestTime).toISOString(),
-        })
-      }
-    }
-
-    result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    return result
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -822,12 +797,121 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               </div>
             )}
 
+            {/* ─── Shoutout Digest Card ─── */}
+            {(() => {
+              const hasActivity = shoutoutDigest.total > 0
+
+              const nudges = [
+                "Who impressed you this week? \u{1F3D0}",
+                "Recognize a teammate's hard work \u2B50",
+                "Shoutouts boost team morale! \u{1F4AA}",
+                "Be the first to give props this week \u{1F64C}",
+                "Your teammates love recognition \u2764\uFE0F",
+              ]
+              const nudge = nudges[Math.floor(Date.now() / 86400000) % nudges.length]
+
+              return (
+                <div style={{
+                  background: isDark ? 'rgba(75,185,236,.06)' : 'rgba(75,185,236,.03)',
+                  border: `1px solid ${isDark ? 'rgba(75,185,236,.12)' : 'rgba(75,185,236,.08)'}`,
+                  borderRadius: 12,
+                  padding: '14px 18px',
+                  transition: 'all 250ms',
+                }}>
+                  {hasActivity ? (
+                    <>
+                      {/* Header row */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 16 }}>⭐</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#4BB9EC', letterSpacing: '0.05em' }}>
+                            {shoutoutDigest.total} SHOUTOUT{shoutoutDigest.total !== 1 ? 'S' : ''} THIS WEEK
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => { setShoutoutPreselect(null); setShowShoutoutModal(true) }}
+                          style={{
+                            padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                            background: '#4BB9EC', color: '#fff', border: 'none', cursor: 'pointer',
+                            transition: 'all 200ms',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#2A9BD4'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#4BB9EC'}
+                        >
+                          Give Shoutout
+                        </button>
+                      </div>
+
+                      {/* Player summary — show top 4 max */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        {shoutoutDigest.recent.slice(0, 4).map((r) => (
+                          <div key={r.receiverId} style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            padding: '4px 10px 4px 4px', borderRadius: 999,
+                            background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)',
+                            fontSize: 12, fontWeight: 600,
+                            color: isDark ? 'rgba(255,255,255,.75)' : 'rgba(0,0,0,.7)',
+                          }}>
+                            <div style={{
+                              width: 22, height: 22, borderRadius: '50%', overflow: 'hidden',
+                              background: '#4BB9EC', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#fff', fontSize: 9, fontWeight: 700, flexShrink: 0,
+                            }}>
+                              {r.photo ? (
+                                <img src={r.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                r.name.split(' ').map(n => n[0]).join('')
+                              )}
+                            </div>
+                            {r.name.split(' ')[0]}
+                            <span style={{ color: '#4BB9EC', fontWeight: 700 }}>({r.count})</span>
+                          </div>
+                        ))}
+                        {shoutoutDigest.recent.length > 4 && (
+                          <span style={{ fontSize: 12, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)' }}>
+                            +{shoutoutDigest.recent.length - 4} more
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    /* Nudge state — no shoutouts in 7 days */
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 20 }}>⭐</span>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)' }}>
+                            No shoutouts this week
+                          </p>
+                          <p style={{ fontSize: 12, fontWeight: 400, color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)', marginTop: 2 }}>
+                            {nudge}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setShoutoutPreselect(null); setShowShoutoutModal(true) }}
+                        style={{
+                          padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                          background: '#4BB9EC', color: '#fff', border: 'none', cursor: 'pointer',
+                          transition: 'all 200ms', whiteSpace: 'nowrap',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#2A9BD4'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#4BB9EC'}
+                      >
+                        Be the first ⭐
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
             {/* ─── Post Feed ─── */}
             {(() => {
-              const displayPosts = aggregateShoutouts(posts)
-              return displayPosts.length > 0 ? (
-              <div className="flex flex-col gap-5">
-                {displayPosts.map((post, i) => (
+              const feedPosts = posts.filter(p => p.post_type !== 'shoutout')
+              return feedPosts.length > 0 ? (
+              <div className="flex flex-col" style={{ gap: '17px' }}>
+                {feedPosts.map((post, i) => (
                   <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
                     isAdminOrCoach={isAdminOrCoach}
                     currentUserId={user?.id}
@@ -1023,9 +1107,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                       e.stopPropagation()
                       setShoutoutPreselect({
                         id: player.id,
-                        name: `${player.first_name} ${player.last_name}`,
-                        photo: player.photo_url,
-                        type: 'player',
+                        full_name: `${player.first_name} ${player.last_name}`,
+                        avatar_url: player.photo_url || null,
+                        role: 'player',
                       })
                       setShowShoutoutModal(true)
                     }}
@@ -1135,7 +1219,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         teamId={teamId}
         preselectedRecipient={shoutoutPreselect}
         onClose={() => { setShowShoutoutModal(false); setShoutoutPreselect(null) }}
-        onSuccess={() => { loadPosts(1, true); showToast?.('Shoutout sent!', 'success'); setShoutoutPreselect(null) }}
+        onSuccess={() => { loadPosts(1, true); loadShoutoutDigest(); showToast?.('Shoutout sent!', 'success'); setShoutoutPreselect(null) }}
       />
       <CreateChallengeModal
         visible={showCreateChallengeModal}

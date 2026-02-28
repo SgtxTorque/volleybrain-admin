@@ -37,7 +37,7 @@ export default function GiveShoutoutModal({ visible, teamId, onClose, onSuccess,
       setSearch('')
       loadData()
     }
-  }, [visible])
+  }, [visible, preselectedRecipient])
 
   // Load team members + categories
   const loadData = useCallback(async () => {
@@ -113,7 +113,7 @@ export default function GiveShoutoutModal({ visible, teamId, onClose, onSuccess,
         giverName: profile.full_name || 'Someone',
         receiverId: selectedRecipient.id,
         receiverRole: selectedRecipient.role,
-        receiverName: selectedRecipient.full_name,
+        receiverName: selectedRecipient.full_name || selectedRecipient.name || 'Player',
         receiverAvatar: selectedRecipient.avatar_url,
         teamId,
         organizationId: profile.current_organization_id || '',
