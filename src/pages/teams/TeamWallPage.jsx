@@ -1,67 +1,85 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
 import {
   ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
-  FileText, Plus, Send, X, ChevronRight, Star, Check,
-  BarChart3, Camera, Edit, Flag, Megaphone, Trash2, Trophy, UserCog,
-  Share2, MoreVertical, Download, Maximize2, Upload, Image as ImageIcon
+  FileText, ChevronRight, ChevronUp, Star,
+  BarChart3, Camera, Megaphone, Trophy,
+  Image as ImageIcon, Award
 } from '../../constants/icons'
-import { CommentSection } from '../../components/teams/CommentSection'
-import { ReactionBar } from '../../components/teams/ReactionBar'
-import { PhotoGallery } from '../../components/teams/PhotoGallery'
 import PhotoLightbox from '../../components/common/PhotoLightbox'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
-import ChallengeCard, { parseChallengeMetadata } from '../../components/engagement/ChallengeCard'
 import CreateChallengeModal from '../../components/engagement/CreateChallengeModal'
-import ChallengeDetailModal from '../../components/engagement/ChallengeDetailModal'
-import { fetchActiveChallenges, optInToChallenge } from '../../lib/challenge-service'
+import { fetchActiveChallenges } from '../../lib/challenge-service'
 import FeedPost from './FeedPost'
 import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
 import NewPostModal from './NewPostModal'
 
 // ═══════════════════════════════════════════════════════════
-// LYNX BRAND TOKENS
+// @font-face — Tele-Grotesk (LOCAL FILES)
 // ═══════════════════════════════════════════════════════════
-const LX = {
-  sky: '#4BB9EC',
-  deep: '#2A9BD4',
+const FONT_STYLES = `
+@font-face {
+  font-family: 'Tele-Grotesk';
+  src: url('/fonts/Tele-GroteskNor-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tele-Grotesk';
+  src: url('/fonts/Tele-GroteskHal-Regular.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tele-Grotesk';
+  src: url('/fonts/Tele-GroteskFet-Regular.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tele-Grotesk';
+  src: url('/fonts/Tele-GroteskUlt-Regular.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+`
+
+const FONT_STACK = "'Tele-Grotesk', -apple-system, system-ui, sans-serif"
+
+// ═══════════════════════════════════════════════════════════
+// BRAND CONSTANTS (from lynx-brandbook-v2.html)
+// ═══════════════════════════════════════════════════════════
+const BRAND = {
   navy: '#10284C',
+  sky: '#4BB9EC',
+  deepSky: '#2A9BD4',
   ice: '#E8F4FD',
   slate: '#5A6B7F',
   silver: '#DFE4EA',
   cloud: '#F5F7FA',
+  white: '#FFFFFF',
   frost: '#F0F3F7',
   midnight: '#0A1B33',
   charcoal: '#1A2332',
   graphite: '#232F3E',
-  border: '#2A3545',
-}
-
-function lx(isDark) {
-  return {
-    pageBg: isDark ? LX.midnight : LX.cloud,
-    card: isDark ? LX.charcoal : '#fff',
-    cardBorder: isDark ? LX.border : LX.silver,
-    inner: isDark ? LX.graphite : LX.frost,
-    text: isDark ? '#fff' : LX.navy,
-    textSec: isDark ? '#CBD5E1' : LX.slate,
-    textMuted: isDark ? '#94A3B8' : LX.slate,
-    divider: isDark ? LX.border : LX.silver,
-    hoverBg: isDark ? LX.graphite : LX.frost,
-    cardShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,.05)',
-  }
+  darkBorder: '#2A3545',
 }
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════
 
-function VolleyballIcon({ className }) {
+function VolleyballIcon({ className, style }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="10" />
       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10" />
       <path d="M2 12a15.3 15.3 0 0 1 10-4 15.3 15.3 0 0 1 10 4" />
@@ -78,34 +96,45 @@ function formatTime12(timeStr) {
   return hour12 + ':' + minutes + ' ' + ampm
 }
 
-function useCountdown(targetDate) {
-  const [val, setVal] = useState({})
-  useEffect(() => {
-    if (!targetDate) return
-    const tick = () => {
-      const d = Math.max(0, new Date(targetDate).getTime() - Date.now())
-      setVal({
-        d: Math.floor(d / 864e5),
-        h: Math.floor((d % 864e5) / 36e5),
-        m: Math.floor((d % 36e5) / 6e4),
-        s: Math.floor((d % 6e4) / 1e3),
-      })
-    }
-    tick()
-    const i = setInterval(tick, 1000)
-    return () => clearInterval(i)
-  }, [targetDate])
-  return val
+function getEventDayLabel(dateStr) {
+  if (!dateStr) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const eventDate = new Date(dateStr)
+  eventDate.setHours(0, 0, 0, 0)
+  const diff = Math.round((eventDate - today) / (1000 * 60 * 60 * 24))
+  if (diff === 0) return 'TODAY'
+  if (diff === 1) return 'TOMORROW'
+  return null
 }
 
 // ═══════════════════════════════════════════════════════════
-// TEAM WALL PAGE — 3-column layout
+// TEAM WALL PAGE — Instagram/Facebook-inspired 3-column layout
 // ═══════════════════════════════════════════════════════════
-function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
+function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const { profile, user } = useAuth()
-  const tc = useThemeClasses()
+  const { completeStep } = useParentTutorial?.() || {}
   const { isDark } = useTheme()
-  const t = lx(isDark)
+  const tc = useThemeClasses()
+
+  // ── Theme derived values ──
+  const pageBg = isDark ? BRAND.midnight : BRAND.cloud
+  const cardBg = isDark ? BRAND.charcoal : BRAND.white
+  const innerBg = isDark ? BRAND.graphite : BRAND.frost
+  const borderColor = isDark ? BRAND.darkBorder : BRAND.silver
+  const textPrimary = isDark ? '#FFFFFF' : BRAND.navy
+  const textSecondary = isDark ? '#B0BEC5' : BRAND.slate
+  const textMuted = isDark ? '#7B8FA0' : BRAND.slate
+  const successColor = isDark ? '#34D399' : '#10B981'
+  const errorColor = isDark ? '#F87171' : '#EF4444'
+  const warningColor = isDark ? '#FBBF24' : '#F59E0B'
+  const shadow = isDark ? '0 1px 3px rgba(0,0,0,.3)' : '0 1px 3px rgba(0,0,0,.05)'
+  const shadowElevated = isDark ? '0 8px 24px rgba(0,0,0,.3)' : '0 8px 24px rgba(0,0,0,.08)'
+
+  // Accent — always Sky Blue per brand book
+  const g = BRAND.sky
+  const gb = adjustBrightness(g, 20)
+  const dim = adjustBrightness(g, -30)
 
   // ── Core data ──
   const [team, setTeam] = useState(null)
@@ -121,56 +150,32 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const POSTS_PER_PAGE = 10
 
   const [documents, setDocuments] = useState([])
-  const [activeTab, setActiveTab] = useState('feed')
-
   const [showNewPostModal, setShowNewPostModal] = useState(false)
   const [selectedPlayer, setSelectedPlayer] = useState(null)
-  const [showEventDetail, setShowEventDetail] = useState(null)
 
-  const [bannerSlide, setBannerSlide] = useState(0)
-  const [showBannerEdit, setShowBannerEdit] = useState(false)
-
-  // Engagement state
+  // Engagement
   const [showShoutoutModal, setShowShoutoutModal] = useState(false)
   const [showCreateChallengeModal, setShowCreateChallengeModal] = useState(false)
-  const [showChallengeDetailModal, setShowChallengeDetailModal] = useState(false)
-  const [selectedChallengeId, setSelectedChallengeId] = useState(null)
   const [activeChallenges, setActiveChallenges] = useState([])
 
   // Gallery lightbox
   const [galleryLightboxIdx, setGalleryLightboxIdx] = useState(null)
 
-  const g = team?.color || LX.sky
-  const gb = adjustBrightness(g, 20)
-  const dim = adjustBrightness(g, -30)
+  // Game record + recent form
+  const [gameRecord, setGameRecord] = useState({ wins: 0, losses: 0, recentForm: [] })
 
-  const bannerSlides = [
-    { id: 1, type: 'photo', label: 'Team Photo' },
-    { id: 2, type: 'next_game', label: 'Next Game' },
-    { id: 3, type: 'season_stats', label: 'Season Pulse' },
-  ]
-
-  const nextGame = upcomingEvents.find(e => e.event_type === 'game') || upcomingEvents[0]
-  const countdownTarget = nextGame ? `${nextGame.event_date}T${nextGame.event_time || '19:00:00'}` : null
-  const cd = useCountdown(countdownTarget)
+  // Back-to-top FAB
+  const centerRef = useRef(null)
+  const [showBackToTop, setShowBackToTop] = useState(false)
 
   const isAdminOrCoach = profile?.role === 'admin' || profile?.role === 'coach'
   const canPost = isAdminOrCoach || profile?.role === 'parent'
 
-  // Gallery images from posts
   const galleryImages = useMemo(() => {
     return posts
       .filter(p => p.media_urls?.length > 0)
       .flatMap(p => Array.isArray(p.media_urls) ? p.media_urls : [])
   }, [posts])
-
-  // Game record
-  const [gameRecord, setGameRecord] = useState({ wins: 0, losses: 0 })
-
-  useEffect(() => {
-    const i = setInterval(() => setBannerSlide(p => (p + 1) % bannerSlides.length), 7000)
-    return () => clearInterval(i)
-  }, [bannerSlides.length])
 
   // ═══════════════════════════════════════════════════════════
   // DATA LOADING
@@ -188,20 +193,12 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         .select('*, seasons(name, sports(name, icon))')
         .eq('id', teamId)
         .single()
-
       setTeam(teamData)
 
       const { data: players } = await supabase
         .from('team_players')
-        .select(`
-          *,
-          players (
-            id, first_name, last_name, photo_url, jersey_number, position,
-            parent_name, parent_email
-          )
-        `)
+        .select(`*, players (id, first_name, last_name, photo_url, jersey_number, position, parent_name, parent_email)`)
         .eq('team_id', teamId)
-
       setRoster(players?.map(p => p.players).filter(Boolean) || [])
 
       try {
@@ -209,15 +206,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           .from('team_coaches')
           .select('*, coach_id')
           .eq('team_id', teamId)
-
         if (coachesData?.length > 0) {
           const coachIds = coachesData.map(c => c.coach_id).filter(Boolean)
           if (coachIds.length > 0) {
             const { data: profiles } = await supabase
               .from('profiles')
-              .select('id, full_name, email, phone')
+              .select('id, full_name, email, phone, avatar_url')
               .in('id', coachIds)
-
             setCoaches(coachesData.map(c => ({
               ...profiles?.find(p => p.id === c.coach_id),
               role: c.role
@@ -239,7 +234,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           .order('event_date')
           .order('event_time')
           .limit(5)
-
         setUpcomingEvents(events || [])
       } catch (err) {
         console.log('Could not load events:', err)
@@ -248,7 +242,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
 
       await loadPosts(1, true)
 
-      // Load active challenges
       try {
         const challenges = await fetchActiveChallenges(teamId)
         setActiveChallenges(challenges)
@@ -263,30 +256,29 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           .select('*')
           .eq('team_id', teamId)
           .order('created_at', { ascending: false })
-
         setDocuments(docs || [])
       } catch (err) {
         console.log('Could not load documents:', err)
         setDocuments([])
       }
 
-      // Load game record
       try {
         const { data: games } = await supabase
           .from('games')
-          .select('result')
+          .select('result, created_at')
           .eq('team_id', teamId)
           .not('result', 'is', null)
-
+          .order('created_at', { ascending: false })
         if (games) {
           const wins = games.filter(g => g.result === 'win').length
           const losses = games.filter(g => g.result === 'loss').length
-          setGameRecord({ wins, losses })
+          setGameRecord({ wins, losses, recentForm: games.slice(0, 5).map(g => g.result) })
         }
       } catch (err) {
         console.log('Could not load game record:', err)
       }
 
+      completeStep?.('join_team_hub')
     } catch (err) {
       console.error('Error loading team data:', err)
       showToast?.('Error loading team data', 'error')
@@ -309,8 +301,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
     try {
       const from = (page - 1) * POSTS_PER_PAGE
       const to = from + POSTS_PER_PAGE - 1
-
-      const { data: postsData, count } = await supabase
+      const { data: postsData } = await supabase
         .from('team_posts')
         .select('*, profiles:author_id(id, full_name, avatar_url)', { count: 'exact' })
         .eq('team_id', teamId)
@@ -318,7 +309,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .range(from, to)
-
       if (reset) {
         setPosts(postsData || [])
       } else {
@@ -333,21 +323,18 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   }
 
   function loadMorePosts() {
-    if (hasMorePosts && !loadingMorePosts) {
-      loadPosts(postsPage + 1, false)
-    }
+    if (hasMorePosts && !loadingMorePosts) loadPosts(postsPage + 1, false)
   }
 
   function openTeamChat() {
     sessionStorage.setItem('openTeamChat', teamId)
-    if (onNavigate) {
-      onNavigate('messages')
-    } else {
-      console.warn('TeamWallPage: onNavigate prop not provided - cannot navigate to chat')
-    }
+    if (onNavigate) onNavigate('messages')
   }
 
-  // Post management functions
+  // ═══════════════════════════════════════════════════════════
+  // POST MANAGEMENT
+  // ═══════════════════════════════════════════════════════════
+
   async function deletePost(postId) {
     try {
       await supabase.from('team_posts').delete().eq('id', postId)
@@ -384,536 +371,640 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   }
 
   // ═══════════════════════════════════════════════════════════
+  // SCROLL HANDLER (back-to-top FAB)
+  // ═══════════════════════════════════════════════════════════
+
+  function handleCenterScroll() {
+    if (centerRef.current) {
+      setShowBackToTop(centerRef.current.scrollTop > 1500)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // LOADING / ERROR STATES
   // ═══════════════════════════════════════════════════════════
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full" style={{ borderColor: LX.sky, borderTopColor: 'transparent' }} />
+      <div className="flex items-center justify-center h-64" style={{ fontFamily: FONT_STACK }}>
+        <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full"
+          style={{ borderColor: BRAND.sky, borderTopColor: 'transparent' }} />
       </div>
     )
   }
 
   if (!team) {
     return (
-      <div className="text-center py-12">
-        <VolleyballIcon className={`w-16 h-16 mx-auto`} style={{ color: t.textMuted }} />
-        <p className="mt-4" style={{ color: t.text }}>Team not found</p>
-        <button onClick={onBack} className="mt-4 font-medium" style={{ color: LX.sky }}>← Go Back</button>
+      <div className="text-center py-12" style={{ fontFamily: FONT_STACK }}>
+        <VolleyballIcon className="w-16 h-16 mx-auto" style={{ color: textMuted }} />
+        <p className="mt-4" style={{ color: textPrimary, fontSize: 14, fontWeight: 400 }}>Team not found</p>
+        <button onClick={onBack} className="mt-4" style={{ color: BRAND.sky, fontSize: 14, fontWeight: 500 }}>
+          ← Go Back
+        </button>
       </div>
     )
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // COMPUTED VALUES
+  // ═══════════════════════════════════════════════════════════
+
   const teamInitials = (team.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const seasonLabel = team.seasons?.name || ''
   const sportIcon = team.seasons?.sports?.icon || '🏐'
-
-  const tabs = [
-    { id: 'feed', label: 'Feed', icon: '📰' },
-    { id: 'schedule', label: 'Schedule', icon: '📅' },
-    { id: 'challenges', label: 'Challenges', icon: '🏆' },
-    { id: 'gallery', label: 'Gallery', icon: '📷' },
-  ]
-
   const totalGames = gameRecord.wins + gameRecord.losses
   const winRate = totalGames > 0 ? Math.round((gameRecord.wins / totalGames) * 100) : 0
+  const nextGame = upcomingEvents.find(e => e.event_type === 'game') || upcomingEvents[0]
+  const headCoach = coaches.find(c => c.role === 'head') || coaches[0] || null
+
+  // Label style helper (11px/Hal 500/0.1em/uppercase/Slate)
+  const labelStyle = { fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND.slate }
 
   // ═══════════════════════════════════════════════════════════
   // RENDER — 3-column layout
   // ═══════════════════════════════════════════════════════════
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-4rem)] ${!isDark ? 'tw-light' : ''}`} style={{ background: t.pageBg, fontFamily: "'Tele-Grotesk', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-      <style>{HUB_STYLES}</style>
+    <div className="flex flex-col h-[calc(100vh-4rem)]"
+      style={{ background: pageBg, fontFamily: FONT_STACK }}>
+      <style>{FONT_STYLES}{HUB_STYLES}</style>
 
-      {/* ═══ HERO BANNER ═══ */}
-      <div className="shrink-0 px-6 pt-6">
-        <div className="relative overflow-hidden rounded-xl" style={{ boxShadow: isDark ? '0 4px 24px rgba(0,0,0,.3)' : '0 1px 3px rgba(0,0,0,.08)' }}>
-          <div className="relative h-48">
-            {/* Banner slides */}
-            {bannerSlides.map((slide, idx) => (
-              <div key={slide.id} className="absolute inset-0 transition-opacity duration-700"
-                style={{ opacity: bannerSlide === idx ? 1 : 0, zIndex: bannerSlide === idx ? 1 : 0 }}>
-                {slide.type === 'photo' && <PhotoBanner team={team} g={g} teamInitials={teamInitials}
-                  canEdit={isAdminOrCoach}
-                  showToast={showToast}
-                  onBannerUpdate={(url) => setTeam(prev => ({ ...prev, banner_url: url }))} />}
-                {slide.type === 'next_game' && <NextGameBanner team={team} nextGame={nextGame} cd={cd} g={g} teamInitials={teamInitials} />}
-                {slide.type === 'season_stats' && <SeasonPulseBanner team={team} roster={roster} coaches={coaches} g={g} sportIcon={sportIcon} />}
-              </div>
-            ))}
-
-            {/* Back button */}
-            <button onClick={onBack}
-              className="absolute top-4 left-4 z-20 w-10 h-10 rounded-[10px] flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all"
-              style={{ background: 'rgba(0,0,0,.35)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,.1)' }}>
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-
-            {/* Banner dots */}
-            <div className="absolute bottom-3 right-4 z-20 flex gap-1.5">
-              {bannerSlides.map((_, i) => (
-                <button key={i} onClick={() => setBannerSlide(i)} className="transition-all rounded-full" style={{
-                  width: bannerSlide === i ? 20 : 6, height: 6,
-                  background: bannerSlide === i ? LX.sky : 'rgba(255,255,255,.3)',
-                }} />
-              ))}
-            </div>
-
-            {/* Gradient fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-24 z-10"
-              style={{ background: `linear-gradient(transparent, ${t.pageBg})` }} />
-
-            {/* Team info overlay */}
-            <div className="absolute bottom-0 left-0 flex w-full items-end justify-between p-6 z-10">
-              <div className="flex items-end gap-4">
-                {/* Team logo */}
-                <div className="p-0.5 rounded-xl" style={{ background: `linear-gradient(135deg, ${g}, ${dim})` }}>
-                  <div className="w-14 h-14 rounded-[10px] flex items-center justify-center overflow-hidden"
-                    style={{ background: t.pageBg }}>
-                    {team.logo_url ? (
-                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-xl font-extrabold" style={{ color: g }}>{teamInitials}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="pb-1">
-                  <h1 className="text-lg font-bold tracking-tight leading-tight" style={{ color: t.text }}>{team.name}</h1>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px]" style={{ color: t.textMuted }}>{roster.length} Players</span>
-                    <span style={{ color: t.textMuted, opacity: .4 }}>·</span>
-                    <span className="text-[10px]" style={{ color: t.textMuted }}>{seasonLabel}</span>
-                    <span style={{ color: t.textMuted, opacity: .4 }}>·</span>
-                    <span className="flex items-center gap-1 text-[10px]" style={{ color: '#10B981' }}>
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10B981' }} /> Active
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <button onClick={openTeamChat}
-                className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-xs font-semibold text-white transition hover:brightness-110"
-                style={{ background: LX.sky }}>
-                <MessageCircle className="w-4 h-4" /> Join Huddle
-              </button>
-            </div>
+      {/* ═══ MOBILE HEADER (below lg) ═══ */}
+      <div className="lg:hidden flex items-center gap-3 px-4 py-3 shrink-0"
+        style={{ borderBottom: `1px solid ${borderColor}` }}>
+        <button onClick={onBack}
+          className="shrink-0 w-8 h-8 flex items-center justify-center"
+          style={{ borderRadius: 10, background: innerBg, color: textPrimary, transition: 'all 250ms' }}>
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        {team.logo_url ? (
+          <img src={team.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+        ) : (
+          <div className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 12, fontWeight: 700 }}>
+            {teamInitials}
           </div>
-        </div>
+        )}
+        <h1 style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>{team.name}</h1>
       </div>
 
-      {/* ═══ 3-PANEL LAYOUT ═══ */}
+      {/* ═══ 3-COLUMN GRID ═══ */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ═══ LEFT: Roster Sidebar ═══ */}
-        <aside className="hidden lg:flex w-[220px] shrink-0 flex-col overflow-y-auto py-6 pl-6 pr-4 tw-nos"
-          style={{ borderRight: `1px solid ${t.divider}` }}>
-          {/* Roster header */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
-              Roster
-            </h3>
-            <span className="text-[10px] font-medium" style={{ color: t.textMuted }}>
-              {roster.length}
-            </span>
-          </div>
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* LEFT COLUMN — Team Identity (Static, No Scroll)   */}
+        {/* ═══════════════════════════════════════════════════ */}
+        <aside className="hidden lg:flex w-[220px] xl:w-[280px] shrink-0 flex-col gap-4 p-4 xl:p-5 overflow-hidden"
+          style={{ borderRight: `1px solid ${borderColor}` }}>
 
-          {/* Roster list */}
-          <div className="flex flex-col gap-0.5">
-            {roster.map(player => (
-              <button key={player.id} onClick={() => setSelectedPlayer(player)}
-                className="group flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-left transition-colors"
-                onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                  style={{ background: LX.ice, color: LX.deep }}>
-                  {player.jersey_number || (player.first_name?.[0] || '') + (player.last_name?.[0] || '')}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold truncate" style={{ color: t.text }}>
-                    {player.first_name} {player.last_name?.[0]}.
-                  </p>
-                  <p className="text-[10px] truncate" style={{ color: t.textMuted }}>
-                    {player.position || 'Player'}
-                  </p>
-                </div>
-              </button>
-            ))}
-            {roster.length === 0 && (
-              <p className="text-center py-6 text-[10px]" style={{ color: t.textMuted }}>
-                No players yet
-              </p>
-            )}
-          </div>
+          {/* Back button */}
+          <button onClick={onBack}
+            className="flex items-center gap-2 self-start transition-all"
+            style={{ fontSize: 13, fontWeight: 500, color: BRAND.sky, borderRadius: 10, padding: '4px 8px', marginBottom: -4 }}
+            onMouseEnter={e => e.currentTarget.style.background = isDark ? `${BRAND.sky}15` : BRAND.ice}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
 
-          {/* Coaches */}
-          {coaches.length > 0 && (
-            <>
-              <div className="mt-6 mb-3">
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
-                  Coaches
-                </h3>
+          {/* ─── Team Hero Header ─── */}
+          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
+            <div className="flex flex-col items-center p-5 gap-3">
+              {/* Logo */}
+              <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
+                style={{ border: `3px solid ${borderColor}` }}>
+                {team.logo_url ? (
+                  <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"
+                    style={{ background: BRAND.ice }}>
+                    <span style={{ fontSize: 24, fontWeight: 700, color: BRAND.navy }}>{teamInitials}</span>
+                  </div>
+                )}
               </div>
-              {coaches.map(coach => (
-                <div key={coach.id} className="flex items-center gap-3 px-3 py-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                    style={{ background: LX.ice, color: LX.deep }}>
-                    {coach.full_name?.charAt(0) || '?'}
+
+              {/* Name */}
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>
+                {team.name}
+              </h1>
+
+              {/* Season */}
+              {seasonLabel && (
+                <span style={labelStyle}>
+                  {sportIcon} {seasonLabel}
+                </span>
+              )}
+
+              {/* ─── Season Record ─── */}
+              <div className="w-full pt-3 mt-1" style={{ borderTop: `1px solid ${borderColor}` }}>
+                <p style={{ ...labelStyle, marginBottom: 8 }}>Season Record</p>
+
+                <div className="flex items-center justify-center gap-4">
+                  <div className="text-center">
+                    <span style={{ fontSize: 36, fontWeight: 900, color: successColor, lineHeight: 1 }}>
+                      {gameRecord.wins}
+                    </span>
+                    <p style={labelStyle}>W</p>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate" style={{ color: t.text }}>
-                      {coach.full_name}
-                    </p>
-                    <p className="text-[10px]" style={{ color: t.textMuted }}>
-                      {coach.role === 'head' ? 'Head Coach' : 'Assistant'}
-                    </p>
+                  <span style={{ fontSize: 20, color: textMuted }}>—</span>
+                  <div className="text-center">
+                    <span style={{ fontSize: 36, fontWeight: 900, color: errorColor, lineHeight: 1 }}>
+                      {gameRecord.losses}
+                    </span>
+                    <p style={labelStyle}>L</p>
                   </div>
                 </div>
-              ))}
-            </>
-          )}
-        </aside>
 
-        {/* ═══ CENTER: Feed ═══ */}
-        <main className="flex-1 overflow-y-auto px-6 lg:px-8 py-6 tw-nos">
-          <div className="max-w-2xl mx-auto flex flex-col gap-6">
+                {/* Win % */}
+                <p style={{ fontSize: 14, fontWeight: 400, color: textPrimary, textAlign: 'center', marginTop: 4 }}>
+                  {totalGames > 0 ? `${winRate}%` : 'No games played'}
+                </p>
 
-            {/* Tab Navigation */}
-            <div className="flex items-center rounded-xl p-1.5" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-              {tabs.map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-medium transition-all"
-                  style={activeTab === tab.id ? {
-                    background: LX.sky, color: '#fff', boxShadow: '0 2px 8px rgba(75,185,236,.25)',
-                  } : {
-                    color: t.textMuted,
-                  }}>
-                  <span>{tab.icon}</span> {tab.label}
-                </button>
-              ))}
-            </div>
+                {/* Progress bar */}
+                {totalGames > 0 && (
+                  <div className="mt-3 w-full rounded-full overflow-hidden"
+                    style={{ height: 5, background: isDark ? BRAND.graphite : BRAND.silver }}>
+                    <div className="h-full rounded-full transition-all"
+                      style={{ width: `${winRate}%`, background: 'linear-gradient(90deg, #10B981, #4BB9EC)', transition: 'width 250ms' }} />
+                  </div>
+                )}
 
-            {/* ═══ FEED TAB ═══ */}
-            {activeTab === 'feed' && (
-              <>
-                {/* Post Composer */}
-                {canPost && (
-                  <div className="overflow-hidden rounded-xl" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                    <div className="flex items-center gap-3 px-5 pt-4 pb-3">
-                      <div className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-sm font-semibold text-white overflow-hidden"
-                        style={{ background: `linear-gradient(135deg, ${g}, ${gb})` }}>
-                        {profile?.avatar_url ? (
-                          <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          profile?.full_name?.charAt(0) || 'U'
-                        )}
-                      </div>
-                      <button onClick={() => setShowNewPostModal(true)}
-                        className="flex flex-1 items-center rounded-[10px] border px-4 py-2.5 text-sm text-left transition-colors"
-                        style={{
-                          borderColor: t.cardBorder,
-                          color: t.textMuted,
-                          background: t.inner,
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
-                        onMouseLeave={e => e.currentTarget.style.background = t.inner}>
-                        What's on your mind?
-                      </button>
-                    </div>
-
-                    {/* Quick action buttons */}
-                    <div className="flex items-center gap-1 border-t px-5 py-2" style={{ borderColor: t.cardBorder }}>
-                      {[
-                        { icon: '📷', label: 'Photo/Video', action: () => setShowNewPostModal(true) },
-                        { icon: '⭐', label: 'Shoutout', action: () => setShowShoutoutModal(true) },
-                        { icon: '🏆', label: 'Challenge', action: () => setShowCreateChallengeModal(true), show: isAdminOrCoach },
-                      ].filter(a => a.show !== false).map(action => (
-                        <button key={action.label} onClick={action.action}
-                          className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors"
-                          style={{ color: t.textSec }}
-                          onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          <span>{action.icon}</span>
-                          <span className="hidden xl:inline">{action.label}</span>
-                        </button>
+                {/* Recent form dots */}
+                {gameRecord.recentForm.length > 0 && (
+                  <div className="mt-3">
+                    <p style={{ ...labelStyle, marginBottom: 6 }}>Recent Form</p>
+                    <div className="flex items-center justify-center gap-2">
+                      {gameRecord.recentForm.map((result, i) => (
+                        <div key={i} className="w-3 h-3 rounded-full" style={{
+                          background: result === 'win' ? successColor : result === 'loss' ? errorColor : warningColor,
+                          transition: 'all 250ms',
+                        }} />
                       ))}
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
 
-                {/* Feed Posts */}
-                {posts.length > 0 ? (
-                  <div className="flex flex-col gap-6">
-                    {posts.map((post, i) => (
-                      <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
-                        isAdminOrCoach={isAdminOrCoach}
-                        currentUserId={user?.id}
-                        onDelete={deletePost}
-                        onTogglePin={togglePinPost}
-                        onEdit={editPostContent}
-                        onCommentCountChange={(postId, count) => {
-                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: count } : p))
-                        }}
-                        onReactionCountChange={(postId, count) => {
-                          setPosts(prev => prev.map(p => p.id === postId ? { ...p, reaction_count: count } : p))
-                        }} />
-                    ))}
-                    {hasMorePosts && (
-                      <button onClick={loadMorePosts} disabled={loadingMorePosts}
-                        className="w-full py-3 rounded-xl text-sm font-medium transition-colors"
-                        style={{
-                          background: t.card,
-                          color: t.textSec,
-                          border: `1px solid ${t.cardBorder}`,
-                        }}>
-                        {loadingMorePosts ? 'Loading...' : 'Load More Posts'}
-                      </button>
-                    )}
-                    {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                      <p className="text-center text-xs py-4" style={{ color: t.textMuted }}>
-                        End of feed
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="rounded-xl p-12 text-center" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                    <Megaphone className="w-12 h-12 mx-auto" style={{ color: t.textMuted }} />
-                    <p className="mt-4 text-sm font-semibold" style={{ color: t.textSec }}>No posts yet</p>
-                    <p className="text-xs mt-1" style={{ color: t.textMuted }}>Be the first to share with the team!</p>
-                  </div>
+          {/* ─── Next Event Hero Card ─── */}
+          {nextGame && (
+            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden', position: 'relative' }}>
+              {/* Decorative volleyball */}
+              <VolleyballIcon className="absolute -right-4 -bottom-4 w-20 h-20"
+                style={{ color: BRAND.sky, opacity: 0.05 }} />
+
+              <div className="p-4 relative z-10">
+                {/* Badges */}
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <span style={{
+                    fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 6,
+                    background: isDark ? `${BRAND.sky}20` : BRAND.ice, color: BRAND.sky,
+                    textTransform: 'uppercase', letterSpacing: '0.1em',
+                  }}>
+                    {nextGame.event_type === 'game' ? '🏐 Game' : '🏋️ Practice'}
+                  </span>
+                  {(() => {
+                    const dayLabel = getEventDayLabel(nextGame.event_date)
+                    if (!dayLabel) return null
+                    return (
+                      <span style={{
+                        fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 6,
+                        background: `${warningColor}20`, color: warningColor,
+                        textTransform: 'uppercase', letterSpacing: '0.1em',
+                      }}>
+                        {dayLabel}
+                      </span>
+                    )
+                  })()}
+                </div>
+
+                {/* Heading */}
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: textPrimary, marginBottom: 2 }}>
+                  {nextGame.event_type === 'game' ? 'Game Day' : 'Practice'}
+                </h3>
+                {nextGame.opponent && (
+                  <p style={{ fontSize: 18, fontWeight: 700, color: textPrimary }}>
+                    vs {nextGame.opponent}
+                  </p>
                 )}
-              </>
-            )}
 
-            {/* ═══ SCHEDULE TAB ═══ */}
-            {activeTab === 'schedule' && (
-              <div className="rounded-xl overflow-hidden" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                {upcomingEvents.map(event => {
-                  const eventDate = new Date(event.event_date)
-                  const isGame = event.event_type === 'game'
-                  return (
-                    <div key={event.id}
-                      className="flex items-center gap-5 px-5 py-4 transition-colors cursor-pointer"
-                      style={{ borderBottom: `1px solid ${t.cardBorder}` }}
-                      onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                      <div className="text-center min-w-[44px]">
-                        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: isGame ? LX.sky : '#38BDF8' }}>
-                          {eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                        </p>
-                        <p className="text-2xl font-extrabold leading-none" style={{ color: t.text }}>
-                          {eventDate.getDate()}
-                        </p>
-                      </div>
-                      <div className="w-px h-8" style={{ background: t.cardBorder }} />
-                      <div className="flex-1">
-                        <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
-                          style={{ background: isGame ? `${LX.sky}15` : 'rgba(56,189,248,.1)', color: isGame ? LX.sky : '#38BDF8' }}>
-                          {isGame ? '🏐 Game' : '🏋️ Practice'}
-                        </span>
-                        <p className="font-semibold mt-1 text-sm" style={{ color: t.text }}>
-                          {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
-                        </p>
-                        <p className="text-xs" style={{ color: t.textMuted }}>
-                          {event.event_time && formatTime12(event.event_time)}
-                          {event.location && ` · ${event.location}`}
-                        </p>
-                      </div>
-                      <ChevronRight className="w-4 h-4" style={{ color: t.textMuted }} />
+                {/* Details */}
+                <div className="flex flex-col gap-1.5 mt-3">
+                  {nextGame.event_date && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5" style={{ color: textMuted }} />
+                      <span style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
+                        {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
-                  )
-                })}
-                {upcomingEvents.length === 0 && (
-                  <div className="p-12 text-center">
-                    <Calendar className="w-12 h-12 mx-auto" style={{ color: t.textMuted }} />
-                    <p className="mt-4 text-sm" style={{ color: t.textSec }}>No upcoming events</p>
-                  </div>
+                  )}
+                  {nextGame.event_time && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5" style={{ color: textMuted }} />
+                      <span style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
+                        {formatTime12(nextGame.event_time)}
+                      </span>
+                    </div>
+                  )}
+                  {nextGame.location && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5" style={{ color: textMuted }} />
+                      <span style={{ fontSize: 12, fontWeight: 400, color: textMuted }} className="truncate">
+                        {nextGame.location}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Get Directions */}
+                {nextGame.location && (
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nextGame.location)}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 mt-4 py-2 transition-all"
+                    style={{
+                      borderRadius: 10, border: `1px solid ${BRAND.sky}`, color: BRAND.sky,
+                      fontSize: 13, fontWeight: 500, transition: 'all 250ms',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${BRAND.sky}10`; e.currentTarget.style.transform = 'translateY(-1px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'translateY(0)' }}>
+                    <MapPin className="w-4 h-4" /> Get Directions
+                  </a>
                 )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* ═══ CHALLENGES TAB ═══ */}
-            {activeTab === 'challenges' && (
-              <>
-                {isAdminOrCoach && (
-                  <button onClick={() => setShowCreateChallengeModal(true)}
-                    className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-white transition hover:brightness-110"
-                    style={{ background: LX.sky }}>
-                    <Trophy className="w-4 h-4" /> Create Challenge
-                  </button>
-                )}
-                {activeChallenges.length > 0 ? (
-                  <div className="flex flex-col gap-4">
-                    {activeChallenges.map(ch => (
-                      <ChallengeCard
-                        key={ch.id}
-                        metadataJson={JSON.stringify({
-                          title: ch.title,
-                          description: ch.description,
-                          challengeType: ch.challenge_type,
-                          targetValue: ch.target_value,
-                          xpReward: ch.xp_reward,
-                          startsAt: ch.starts_at,
-                          endsAt: ch.ends_at,
-                        })}
-                        coachName=""
-                        createdAt={ch.created_at}
-                        participantCount={ch.participants?.length || 0}
-                        isOptedIn={ch.participants?.some(p => p.player_id === user?.id)}
-                        userProgress={ch.participants?.find(p => p.player_id === user?.id)?.current_value || 0}
-                        teamProgress={ch.totalProgress || 0}
-                        isDark={isDark}
-                        accentColor={g}
-                        onOptIn={async () => {
-                          if (!user?.id) return
-                          await optInToChallenge(ch.id, user.id)
-                          reloadChallenges()
-                        }}
-                        onViewDetails={() => {
-                          setSelectedChallengeId(ch.id)
-                          setShowChallengeDetailModal(true)
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="rounded-xl p-12 text-center" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                    <Trophy className="w-12 h-12 mx-auto" style={{ color: t.textMuted }} />
-                    <p className="mt-4 text-sm" style={{ color: t.textSec }}>No active challenges</p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* ═══ GALLERY TAB ═══ */}
-            {activeTab === 'gallery' && (
-              <PhotoGallery teamId={teamId} isDark={isDark} g={g} />
-            )}
-          </div>
-        </main>
-
-        {/* ═══ RIGHT: Widgets Sidebar ═══ */}
-        <aside className="hidden xl:flex w-[280px] shrink-0 flex-col gap-6 overflow-y-auto py-6 pl-6 pr-6 tw-nos"
-          style={{ borderLeft: `1px solid ${t.divider}` }}>
-
-          {/* UPCOMING EVENTS */}
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
-                Upcoming
-              </h3>
-              <button onClick={() => setActiveTab('schedule')} className="flex items-center gap-1 text-[10px] font-medium transition" style={{ color: LX.sky }}>
-                Full Calendar <ChevronRight className="h-3 w-3" />
+          {/* ─── Upcoming Events ─── */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span style={labelStyle}>Upcoming</span>
+              <button onClick={() => onNavigate?.('schedule')}
+                className="flex items-center gap-1 transition-all"
+                style={{ fontSize: 12, fontWeight: 500, color: BRAND.sky }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                Full Calendar <ChevronRight className="w-3 h-3" />
               </button>
             </div>
-            <div className="flex flex-col gap-2">
-              {upcomingEvents.slice(0, 3).map(event => {
+
+            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
+              {upcomingEvents.slice(0, 3).map((event, i) => {
                 const ed = new Date(event.event_date)
-                const isGame = event.event_type === 'game'
                 return (
-                  <div key={event.id} className="rounded-xl p-3.5 transition-all cursor-pointer"
-                    style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                    <div className="flex items-center gap-3">
-                      <div className="text-center min-w-[32px]">
-                        <p className="text-[8px] font-bold uppercase tracking-wider" style={{ color: isGame ? LX.sky : '#38BDF8' }}>
-                          {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                        </p>
-                        <p className="text-lg font-extrabold leading-none" style={{ color: t.text }}>{ed.getDate()}</p>
-                      </div>
-                      <div className="w-px h-6" style={{ background: t.cardBorder }} />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold truncate" style={{ color: t.text }}>
-                          {event.title || event.event_type}{event.opponent && ` vs ${event.opponent}`}
-                        </p>
-                        <p className="text-[10px]" style={{ color: t.textMuted }}>
-                          {event.event_time && formatTime12(event.event_time)}
-                        </p>
-                      </div>
+                  <div key={event.id} className="flex items-center gap-3 p-3.5"
+                    style={{ borderBottom: i < Math.min(upcomingEvents.length, 3) - 1 ? `1px solid ${borderColor}` : 'none' }}>
+                    <div className="text-center min-w-[36px]">
+                      <p style={{ ...labelStyle, color: BRAND.sky, fontSize: 10 }}>
+                        {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
+                      </p>
+                      <p style={{ fontSize: 28, fontWeight: 900, color: textPrimary, lineHeight: 1 }}>
+                        {ed.getDate()}
+                      </p>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p style={{ fontSize: 14, fontWeight: 500, color: textPrimary }} className="truncate">
+                        {event.title || event.event_type}{event.opponent ? ` vs ${event.opponent}` : ''}
+                      </p>
+                      <p style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
+                        {event.event_time && formatTime12(event.event_time)}
+                        {event.location ? ` · ${event.location}` : ''}
+                      </p>
                     </div>
                   </div>
                 )
               })}
               {upcomingEvents.length === 0 && (
-                <p className="text-center py-4 text-[10px]" style={{ color: t.textMuted }}>
-                  No upcoming events
-                </p>
+                <div className="p-6 text-center">
+                  <Calendar className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
+                  <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 8 }}>No upcoming events</p>
+                </div>
               )}
             </div>
-          </section>
+          </div>
 
-          {/* SEASON RECORD */}
-          <section className="flex flex-col gap-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
-              Season Record
-            </h3>
-            <div className="flex flex-col items-center gap-2 rounded-xl p-6"
-              style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-extrabold" style={{ color: LX.sky }}>{gameRecord.wins}</span>
-                <span className="text-xl" style={{ color: t.textMuted }}>&mdash;</span>
-                <span className="text-4xl font-extrabold text-red-500">{gameRecord.losses}</span>
-              </div>
-              <p className="text-xs" style={{ color: t.textMuted }}>
-                {totalGames > 0 ? `${winRate}% win rate` : 'No games played'}
-              </p>
+          {/* ─── Quick Actions ─── */}
+          <div>
+            <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>Quick Actions</span>
+            <div className="flex flex-col gap-1">
+              {[
+                { icon: Calendar, label: 'View Schedule', action: () => onNavigate?.('schedule') },
+                { icon: MessageCircle, label: 'Team Chat', action: openTeamChat },
+                { icon: BarChart3, label: 'Standings', action: () => onNavigate?.('standings') },
+                { icon: Trophy, label: 'Achievements', action: () => onNavigate?.('achievements') },
+              ].map(item => (
+                <button key={item.label} onClick={item.action}
+                  className="flex items-center gap-3 w-full p-2.5 transition-all"
+                  style={{ borderRadius: 10, fontSize: 14, fontWeight: 500, color: textPrimary, transition: 'all 250ms' }}
+                  onMouseEnter={e => e.currentTarget.style.background = innerBg}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <item.icon className="w-[18px] h-[18px]" style={{ color: BRAND.slate }} />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  <ChevronRight className="w-4 h-4" style={{ color: textMuted }} />
+                </button>
+              ))}
             </div>
-          </section>
+          </div>
+        </aside>
 
-          {/* GALLERY */}
-          <section className="flex flex-col gap-3">
-            <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
-              Gallery
-            </h3>
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* CENTER COLUMN — Social Feed (Scrollable)          */}
+        {/* ═══════════════════════════════════════════════════ */}
+        <main ref={centerRef} onScroll={handleCenterScroll}
+          className="flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-4 lg:px-6 py-5 flex flex-col gap-5">
+
+            {/* ─── Create Post Bar ─── */}
+            {canPost && (
+              <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
+                <div className="flex items-center gap-3 p-4">
+                  <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center overflow-hidden"
+                    style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 14, fontWeight: 700 }}>
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      profile?.full_name?.charAt(0) || 'U'
+                    )}
+                  </div>
+                  <button onClick={() => setShowNewPostModal(true)}
+                    className="flex flex-1 items-center px-4 py-2.5 text-left transition-all"
+                    style={{
+                      borderRadius: 999, border: `1px solid ${borderColor}`,
+                      color: textMuted, fontSize: 14, fontWeight: 400,
+                      background: innerBg, transition: 'all 250ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? BRAND.graphite : '#E8ECF0'}
+                    onMouseLeave={e => e.currentTarget.style.background = innerBg}>
+                    Share a Moment...
+                  </button>
+                  <button onClick={() => setShowNewPostModal(true)}
+                    className="w-9 h-9 shrink-0 flex items-center justify-center transition-all"
+                    style={{ borderRadius: 999, color: BRAND.sky, transition: 'all 250ms' }}
+                    onMouseEnter={e => e.currentTarget.style.background = isDark ? `${BRAND.sky}15` : BRAND.ice}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <Camera className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Quick action row */}
+                <div className="flex items-center gap-1 px-4 py-2" style={{ borderTop: `1px solid ${borderColor}` }}>
+                  {[
+                    { icon: '📷', label: 'Photo/Video', action: () => setShowNewPostModal(true) },
+                    { icon: '⭐', label: 'Shoutout', action: () => setShowShoutoutModal(true) },
+                    { icon: '🏆', label: 'Challenge', action: () => setShowCreateChallengeModal(true), show: isAdminOrCoach },
+                  ].filter(a => a.show !== false).map(action => (
+                    <button key={action.label} onClick={action.action}
+                      className="flex flex-1 items-center justify-center gap-2 py-2 transition-all"
+                      style={{ borderRadius: 10, color: textSecondary, fontSize: 12, fontWeight: 500, transition: 'all 250ms' }}
+                      onMouseEnter={e => e.currentTarget.style.background = innerBg}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <span>{action.icon}</span>
+                      <span className="hidden xl:inline">{action.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ─── Post Feed ─── */}
+            {posts.length > 0 ? (
+              <div className="flex flex-col gap-5">
+                {posts.map((post, i) => (
+                  <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
+                    isAdminOrCoach={isAdminOrCoach}
+                    currentUserId={user?.id}
+                    onDelete={deletePost}
+                    onTogglePin={togglePinPost}
+                    onEdit={editPostContent}
+                    onCommentCountChange={(postId, count) => {
+                      setPosts(prev => prev.map(p => p.id === postId ? { ...p, comment_count: count } : p))
+                    }}
+                    onReactionCountChange={(postId, count) => {
+                      setPosts(prev => prev.map(p => p.id === postId ? { ...p, reaction_count: count } : p))
+                    }} />
+                ))}
+
+                {hasMorePosts && (
+                  <button onClick={loadMorePosts} disabled={loadingMorePosts}
+                    className="w-full py-3 text-center transition-all"
+                    style={{
+                      borderRadius: 12, background: cardBg, border: `1px solid ${borderColor}`,
+                      color: textSecondary, fontSize: 14, fontWeight: 500, transition: 'all 250ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                    {loadingMorePosts ? 'Loading...' : 'Load More Posts'}
+                  </button>
+                )}
+
+                {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
+                  <p className="text-center py-4" style={{ fontSize: 12, fontWeight: 400, color: textMuted }}>
+                    End of feed
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="text-center p-12"
+                style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
+                <Megaphone className="w-12 h-12 mx-auto" style={{ color: textMuted }} />
+                <p style={{ fontSize: 14, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
+                <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 4 }}>
+                  Be the first to share with the team!
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* RIGHT COLUMN — Discovery & Community (Scrollable) */}
+        {/* ═══════════════════════════════════════════════════ */}
+        <aside className="hidden md:flex w-[240px] xl:w-[300px] shrink-0 flex-col gap-4 p-4 xl:p-5 overflow-y-auto"
+          style={{ borderLeft: `1px solid ${borderColor}` }}>
+
+          {/* ─── Gallery ─── */}
+          <div>
+            <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>Gallery</span>
             {galleryImages.length > 0 ? (
               <div className="grid grid-cols-3 gap-1.5">
                 {galleryImages.slice(0, 6).map((src, i) => (
-                  <div key={i} className="relative aspect-square overflow-hidden rounded-lg cursor-pointer transition hover:brightness-90"
-                    onClick={() => setGalleryLightboxIdx(i)}>
+                  <div key={i}
+                    className="relative aspect-square overflow-hidden cursor-pointer"
+                    style={{ borderRadius: 8, transition: 'transform 250ms' }}
+                    onClick={() => setGalleryLightboxIdx(i)}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
                     <img src={src} alt="" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl p-6 text-center" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                <ImageIcon className="w-8 h-8 mx-auto" style={{ color: t.textMuted }} />
-                <p className="text-[10px] mt-2" style={{ color: t.textMuted }}>No photos yet</p>
+              <div className="text-center p-6"
+                style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
+                <ImageIcon className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
+                <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 8 }}>No photos yet</p>
               </div>
             )}
-          </section>
+          </div>
 
-          {/* DOCUMENTS */}
+          {/* ─── Challenges / Achievements / Leaderboard ─── */}
+          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
+            {[
+              { icon: Trophy, label: 'Challenges', count: activeChallenges.length, nav: 'challenges' },
+              { icon: Award, label: 'Achievements', nav: 'achievements' },
+              { icon: BarChart3, label: 'Leaderboard', nav: 'leaderboards' },
+            ].map((item, i, arr) => (
+              <button key={item.label} onClick={() => onNavigate?.(item.nav)}
+                className="flex items-center gap-3 w-full p-3.5 transition-all text-left"
+                style={{
+                  borderBottom: i < arr.length - 1 ? `1px solid ${borderColor}` : 'none',
+                  color: textPrimary, transition: 'all 250ms',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = innerBg}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <item.icon className="w-5 h-5" style={{ color: BRAND.sky }} />
+                <span style={{ fontSize: 14, fontWeight: 500, flex: 1 }}>{item.label}</span>
+                {item.count > 0 && (
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
+                    background: isDark ? `${BRAND.sky}20` : BRAND.ice, color: BRAND.sky,
+                  }}>
+                    {item.count}
+                  </span>
+                )}
+                <ChevronRight className="w-4 h-4" style={{ color: textMuted }} />
+              </button>
+            ))}
+          </div>
+
+          {/* ─── Head Coach Profile Card ─── */}
+          {headCoach && (
+            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, transition: 'all 250ms', cursor: 'pointer' }}
+              className="flex items-center gap-3 p-4"
+              onMouseEnter={e => e.currentTarget.style.boxShadow = shadowElevated}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = shadow}>
+              <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center shrink-0"
+                style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 20, fontWeight: 700 }}>
+                {headCoach.avatar_url ? (
+                  <img src={headCoach.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  headCoach.full_name?.charAt(0) || '?'
+                )}
+              </div>
+              <div>
+                <span style={labelStyle}>Head Coach</span>
+                <p style={{ fontSize: 15, fontWeight: 700, color: textPrimary, marginTop: 2 }}>
+                  {headCoach.full_name}
+                </p>
+                {headCoach.email && (
+                  <p style={{ fontSize: 12, fontWeight: 400, color: textMuted }} className="truncate">
+                    {headCoach.email}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ─── Team Roster ─── */}
+          <div>
+            <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>
+              Roster · {roster.length}
+            </span>
+            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
+              {roster.map((player, i) => (
+                <div key={player.id}
+                  className="group flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-all"
+                  style={{
+                    borderBottom: i < roster.length - 1 ? `1px solid ${borderColor}` : 'none',
+                    transition: 'all 250ms',
+                  }}
+                  onClick={() => setSelectedPlayer(player)}
+                  onMouseEnter={e => e.currentTarget.style.background = innerBg}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  {/* Avatar */}
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+                    style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 10, fontWeight: 700 }}>
+                    {player.photo_url ? (
+                      <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (player.first_name?.[0] || '') + (player.last_name?.[0] || '')
+                    )}
+                  </div>
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <p style={{ fontSize: 13, fontWeight: 500, color: textPrimary }} className="truncate">
+                      {player.first_name} {player.last_name}
+                    </p>
+                    <p style={{ fontSize: 11, fontWeight: 400, color: BRAND.slate }}>
+                      {player.jersey_number ? `#${player.jersey_number}` : ''}
+                      {player.jersey_number && player.position ? ' · ' : ''}
+                      {player.position || ''}
+                    </p>
+                  </div>
+                  {/* Shoutout button (hover) */}
+                  <button
+                    onClick={e => { e.stopPropagation(); setShowShoutoutModal(true) }}
+                    className="opacity-0 group-hover:opacity-100 shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all"
+                    style={{
+                      background: isDark ? `${BRAND.sky}20` : BRAND.ice,
+                      color: BRAND.sky, transition: 'all 250ms',
+                    }}
+                    title="Give Shoutout">
+                    <Star className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+              {roster.length === 0 && (
+                <div className="p-6 text-center">
+                  <Users className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
+                  <p style={{ fontSize: 12, fontWeight: 400, color: textMuted, marginTop: 8 }}>No players yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ─── Documents ─── */}
           {documents.length > 0 && (
-            <section className="flex flex-col gap-3">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: LX.slate }}>
-                Documents
-              </h3>
-              <div className="rounded-xl overflow-hidden" style={{ background: t.card, border: `1px solid ${t.cardBorder}`, boxShadow: t.cardShadow }}>
-                {documents.slice(0, 3).map(doc => (
+            <div>
+              <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>Documents</span>
+              <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
+                {documents.slice(0, 3).map((doc, i) => (
                   <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-3 transition-colors"
-                    style={{ borderBottom: `1px solid ${t.cardBorder}` }}
-                    onMouseEnter={e => e.currentTarget.style.background = t.hoverBg}
+                    className="flex items-center gap-3 px-4 py-3 transition-all"
+                    style={{
+                      borderBottom: i < Math.min(documents.length, 3) - 1 ? `1px solid ${borderColor}` : 'none',
+                      transition: 'all 250ms',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = innerBg}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <FileText className="h-4 w-4 shrink-0" style={{ color: t.textMuted }} />
-                    <span className="text-xs truncate" style={{ color: t.textSec }}>{doc.name}</span>
+                    <FileText className="h-4 w-4 shrink-0" style={{ color: textMuted }} />
+                    <span style={{ fontSize: 12, fontWeight: 400, color: textSecondary }} className="truncate">
+                      {doc.name}
+                    </span>
                   </a>
                 ))}
               </div>
-            </section>
+            </div>
           )}
         </aside>
       </div>
 
-      {/* ═══ FAB ═══ */}
-      {canPost && (
-        <button onClick={() => setShowNewPostModal(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-xl flex items-center justify-center text-white shadow-lg transition hover:scale-110 active:scale-95"
-          style={{ background: LX.sky, boxShadow: `0 8px 32px ${LX.sky}40` }}>
-          <Plus className="w-6 h-6" />
+      {/* ═══ BACK-TO-TOP FAB ═══ */}
+      {showBackToTop && (
+        <button
+          onClick={() => centerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full flex items-center justify-center text-white"
+          style={{
+            background: BRAND.sky,
+            boxShadow: `0 4px 16px ${BRAND.sky}40`,
+            transition: 'all 250ms',
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          <ChevronUp className="w-5 h-5" />
         </button>
       )}
 
-      {/* ═══ Gallery Lightbox ═══ */}
+      {/* ═══ GALLERY LIGHTBOX ═══ */}
       {galleryLightboxIdx !== null && (
         <PhotoLightbox
           photos={galleryImages}
@@ -961,165 +1052,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         onClose={() => setShowCreateChallengeModal(false)}
         onSuccess={() => { reloadChallenges(); loadPosts(1, true); showToast?.('Challenge created!', 'success') }}
       />
-      <ChallengeDetailModal
-        visible={showChallengeDetailModal}
-        challengeId={selectedChallengeId}
-        onClose={() => { setShowChallengeDetailModal(false); setSelectedChallengeId(null) }}
-        onOptInSuccess={reloadChallenges}
-      />
-    </div>
-  )
-}
-
-// ═══════════════════════════════════════════════════════════
-// BANNER SLIDES
-// ═══════════════════════════════════════════════════════════
-
-function PhotoBanner({ team, g, teamInitials, canEdit, showToast, onBannerUpdate }) {
-  const coverRef = useRef(null)
-  const [uploading, setUploading] = useState(false)
-
-  async function handleCoverUpload(e) {
-    const file = e.target.files?.[0]
-    if (!file || !canEdit) return
-    setUploading(true)
-    try {
-      const ext = file.name.split('.').pop()
-      const path = `covers/${team.id}-${Date.now()}.${ext}`
-      const { data, error } = await supabase.storage
-        .from('team-photos')
-        .upload(path, file, { cacheControl: '3600', upsert: true })
-
-      if (error) throw error
-
-      const { data: publicUrl } = supabase.storage
-        .from('team-photos')
-        .getPublicUrl(data.path)
-
-      const url = publicUrl?.publicUrl
-      if (url) {
-        await supabase.from('teams').update({ banner_url: url }).eq('id', team.id)
-        onBannerUpdate?.(url)
-        showToast?.('Cover photo updated!', 'success')
-      }
-    } catch (err) {
-      console.error('Cover upload error:', err)
-      showToast?.('Failed to upload cover photo', 'error')
-    }
-    setUploading(false)
-  }
-
-  return (
-    <div className="absolute inset-0" style={{ background: team.banner_url ? undefined : `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
-      {team.banner_url ? (
-        <img src={team.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-[120px] opacity-[.03]">🐝</p>
-        </div>
-      )}
-      {canEdit && (
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition cursor-pointer" style={{ background: 'rgba(0,0,0,.4)' }}
-          onClick={() => coverRef.current?.click()}>
-          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
-          <div className="text-center">
-            {uploading ? (
-              <>
-                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-2" style={{ borderColor: LX.sky, borderTopColor: 'transparent' }} />
-                <p className="text-xs text-white/60 font-bold uppercase tracking-wider">UPLOADING...</p>
-              </>
-            ) : (
-              <>
-                <p className="text-4xl mb-2">📷</p>
-                <p className="text-xs text-white/60 font-bold uppercase tracking-wider">UPLOAD COVER PHOTO</p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function NextGameBanner({ team, nextGame, cd, g, teamInitials }) {
-  if (!nextGame) {
-    return (
-      <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
-        <div className="text-center">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-2">NO UPCOMING GAMES</p>
-          <p className="text-3xl font-extrabold tracking-tight text-white/10">CHECK BACK SOON</p>
-        </div>
-      </div>
-    )
-  }
-
-  const oppTag = (nextGame.opponent || 'OPP').slice(0, 4).toUpperCase()
-
-  return (
-    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
-      <div className="absolute" style={{ top: '10%', left: '30%', width: '40%', height: '60%', background: `radial-gradient(ellipse,${LX.sky}0a 0%,transparent 60%)`, filter: 'blur(30px)' }} />
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-        <div className="flex items-center gap-6 md:gap-10 mb-3">
-          <div className="text-center">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center mx-auto mb-1.5" style={{ background: `${LX.sky}15`, border: `1.5px solid ${LX.sky}35` }}>
-              {team.logo_url ? (
-                <img src={team.logo_url} alt="" className="w-full h-full object-cover rounded-xl" />
-              ) : (
-                <span className="text-2xl md:text-3xl font-extrabold" style={{ color: LX.sky }}>{teamInitials}</span>
-              )}
-            </div>
-            <p className="text-[9px] font-bold uppercase tracking-wider text-white/40">{team.name}</p>
-          </div>
-          <span className="text-4xl md:text-5xl font-extrabold" style={{ color: '#EF4444', animation: 'vsFlash 3s ease-in-out infinite' }}>VS</span>
-          <div className="text-center">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center mx-auto mb-1.5" style={{ background: 'rgba(255,255,255,.03)', border: '1.5px solid rgba(255,255,255,.06)' }}>
-              <span className="text-2xl md:text-3xl font-extrabold text-white/15">{oppTag}</span>
-            </div>
-            <p className="text-[9px] font-bold uppercase tracking-wider text-white/20">{nextGame.opponent || 'Opponent'}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mb-2">
-          {cd.d !== undefined && [
-            { v: cd.d, l: 'DAYS' }, { v: cd.h, l: 'HRS' }, { v: cd.m, l: 'MIN' }, { v: cd.s, l: 'SEC' },
-          ].map((d, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className="text-center">
-                <span className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">{String(d.v).padStart(2, '0')}</span>
-                <p className="text-[7px] font-bold uppercase tracking-wider text-white/20">{d.l}</p>
-              </div>
-              {i < 3 && <span className="text-xl font-extrabold text-white/10 -mt-3">:</span>}
-            </div>
-          ))}
-        </div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">
-          {nextGame.event_time && formatTime12(nextGame.event_time)}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function SeasonPulseBanner({ team, roster, coaches, g, sportIcon }) {
-  return (
-    <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${LX.navy} 0%, ${LX.midnight} 50%, #0E1F38 100%)` }}>
-      <div className="absolute" style={{ top: '20%', left: '20%', width: '60%', height: '50%', background: `radial-gradient(ellipse,${LX.sky}08 0%,transparent 60%)`, filter: 'blur(40px)' }} />
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6">
-        <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 mb-2">SEASON SNAPSHOT</p>
-        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-1">{sportIcon} {team.name}</h2>
-        <p className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: LX.sky }}>{team.seasons?.name || 'Current Season'}</p>
-        <div className="flex gap-8">
-          <div className="text-center">
-            <p className="text-3xl font-extrabold text-white">{roster.length}</p>
-            <p className="text-[8px] text-white/20 font-bold uppercase tracking-wider">PLAYERS</p>
-          </div>
-          <div className="w-px h-12" style={{ background: 'rgba(255,255,255,.06)' }} />
-          <div className="text-center">
-            <p className="text-3xl font-extrabold text-white">{coaches.length}</p>
-            <p className="text-[8px] text-white/20 font-bold uppercase tracking-wider">COACHES</p>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
