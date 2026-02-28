@@ -91,6 +91,12 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
     try { return JSON.parse(post.title) } catch { return null }
   })() : null
 
+  // Layout conditionals
+  const hasMedia = mediaUrls.length > 0
+  const isShoutout = postType === 'shoutout' && !!shoutoutMeta
+  const isMilestone = postType === 'milestone' && !!milestoneMeta
+  const isTextOnly = !hasMedia && !isShoutout && !isMilestone
+
   // Detect bgColor from title JSON (for colored text posts)
   const bgColorMeta = (() => {
     if (!titleIsJson || isShoutout || isMilestone) return null
@@ -99,12 +105,6 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       return parsed.bgColor || null
     } catch { return null }
   })()
-
-  // Layout conditionals
-  const hasMedia = mediaUrls.length > 0
-  const isShoutout = postType === 'shoutout' && !!shoutoutMeta
-  const isMilestone = postType === 'milestone' && !!milestoneMeta
-  const isTextOnly = !hasMedia && !isShoutout && !isMilestone
 
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
