@@ -66,7 +66,7 @@ export default function CoachLeftSidebar({
           <AlertCircle className="w-4 h-4 text-amber-500" />
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Needs Attention</h3>
           {needsAttentionItems?.length > 0 && (
-            <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
+            <span className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-100 text-amber-700'}`}>
               {needsAttentionItems.length} item{needsAttentionItems.length > 1 ? 's' : ''}
             </span>
           )}

@@ -1,4 +1,5 @@
 import { Calendar, MapPin, Clock, ClipboardList, Zap, UserCheck, Timer, Shield } from '../../constants/icons'
+import { useTheme } from '../../contexts/ThemeContext'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -44,6 +45,8 @@ export default function CoachGameDayHero({
   onNavigate,
   onShowWarmupTimer,
 }) {
+  const { isDark } = useTheme()
+
   // Next game hero
   if (nextGame) {
     const isToday = countdownText(nextGame.event_date) === 'TODAY'
@@ -199,21 +202,23 @@ export default function CoachGameDayHero({
 
   // No upcoming events — Season Record fallback
   return (
-    <div className="bg-white border border-lynx-silver rounded-xl shadow-sm p-6">
-      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Season Record</p>
+    <div className={`${isDark ? 'bg-lynx-charcoal border border-lynx-border-dark' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-6`}>
+      <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Season Record</p>
       <div className="flex items-center gap-4">
         <div className="flex items-baseline gap-3">
           <span className="text-5xl font-black text-emerald-500">{teamRecord.wins}</span>
-          <span className="text-3xl font-bold text-slate-300">-</span>
+          <span className={`text-3xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</span>
           <span className="text-5xl font-black text-red-500">{teamRecord.losses}</span>
-          <span className="text-sm ml-2 text-slate-500">{winRate}% win rate</span>
+          <span className={`text-sm ml-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{winRate}% win rate</span>
         </div>
       </div>
-      <p className="text-sm mt-2 text-slate-500">{selectedTeam?.name} · {selectedSeason?.name}</p>
+      <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{selectedTeam?.name} · {selectedSeason?.name}</p>
       <div className="mt-4">
         <button
           onClick={() => onNavigate?.('schedule')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold"
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold ${
+            isDark ? 'bg-white/[0.06] hover:bg-white/10 text-slate-200' : 'bg-lynx-cloud hover:bg-slate-200 text-slate-700'
+          }`}
         >
           <Calendar className="w-4 h-4" />
           View Schedule

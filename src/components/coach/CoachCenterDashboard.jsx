@@ -171,7 +171,7 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
                       setAttendance(all)
                       roster.forEach(p => markPlayer(p.id, 'yes'))
                     }}
-                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-600 hover:bg-emerald-100"
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border border-emerald-200 text-emerald-600 hover:bg-emerald-100'}`}
                   >
                     ALL PRESENT
                   </button>
@@ -504,7 +504,7 @@ export default function CoachCenterDashboard({
               </div>
             </div>
             {nextGame && countdownText(nextGame.event_date) === 'TODAY' ? (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-sm text-red-500 font-semibold">Game Day — vs {nextGame.opponent_name || 'TBD'}</span>
               </div>
@@ -523,11 +523,11 @@ export default function CoachCenterDashboard({
 
         {/* Pending Stats Alert */}
         {pendingStats > 0 && (
-          <div className="mx-5 mb-5 flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+          <div className={`mx-5 mb-5 flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
             <Bell className="w-5 h-5 text-amber-500" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-700">{pendingStats} game{pendingStats > 1 ? 's' : ''} need stats</p>
-              <p className="text-sm text-amber-600/70">Stats power leaderboards, badges, and parent views</p>
+              <p className={`text-sm font-semibold ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>{pendingStats} game{pendingStats > 1 ? 's' : ''} need stats</p>
+              <p className={`text-sm ${isDark ? 'text-amber-500/70' : 'text-amber-600/70'}`}>Stats power leaderboards, badges, and parent views</p>
             </div>
             <button
               onClick={() => onNavigate?.('gameprep')}
