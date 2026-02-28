@@ -4,7 +4,24 @@ import { supabase } from '../lib/supabase'
 // ============================================
 // AUTH CONTEXT
 // ============================================
-const AuthContext = createContext(null)
+const AuthContext = createContext({
+  user: null,
+  profile: null,
+  organization: null,
+  isAdmin: false,
+  isPlatformAdmin: false,
+  loading: true,
+  needsOnboarding: false,
+  signIn: async () => {},
+  signUp: async () => {},
+  signInWithGoogle: async () => {},
+  signInWithApple: async () => {},
+  signOut: async () => {},
+  setOrganization: () => {},
+  setProfile: () => {},
+  completeOnboarding: async () => {},
+  refreshAuth: async () => {},
+})
 
 export function useAuth() {
   return useContext(AuthContext)
