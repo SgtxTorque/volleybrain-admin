@@ -49,7 +49,7 @@ export default function CoachGameDayHero({
               <p className="text-white/80 text-sm font-semibold mt-2 max-w-[120px] truncate">{selectedTeam?.name}</p>
             </div>
             <div className="text-center">
-              <p className="text-white/40 text-sm font-bold uppercase tracking-wider">VS</p>
+              <p className="text-white/40 text-xs font-bold uppercase tracking-wider">VS</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 rounded-xl mx-auto flex items-center justify-center bg-white/10 border-2 border-white/20 text-2xl">
