@@ -931,10 +931,10 @@ export function DashboardPage({ onNavigate }) {
       const seasonId = selectedSeason.id
       const orgId = selectedSeason.organization_id
 
-      // Fetch teams for this season (include color)
+      // Fetch teams for this season (include color + max_players for roster health)
       const { data: teams, count: teamCount } = await supabase
         .from('teams')
-        .select('id, name, color', { count: 'exact' })
+        .select('id, name, color, max_players', { count: 'exact' })
         .eq('season_id', seasonId)
 
       // Get ACTUAL rostered count from team_players (source of truth)
@@ -1074,14 +1074,16 @@ export function DashboardPage({ onNavigate }) {
         })
       })
 
-      // Fetch coach count for this season's teams
+      // Fetch coach count for this season's teams + track which teams have a coach
       let coachCount = 0
+      let teamsWithCoachCount = 0
       if (teamIds.length > 0) {
         const { data: teamCoaches } = await supabase
           .from('team_coaches')
-          .select('coach_id')
+          .select('coach_id, team_id')
           .in('team_id', teamIds)
         coachCount = new Set(teamCoaches?.map(tc => tc.coach_id) || []).size
+        teamsWithCoachCount = new Set(teamCoaches?.map(tc => tc.team_id) || []).size
       }
 
       // Fetch unsigned waivers count
@@ -1143,6 +1145,17 @@ export function DashboardPage({ onNavigate }) {
           // games table may not exist — gracefully degrade
         }
       }
+      // Count teams below roster threshold (75% of max_players, default 12)
+      let understaffedTeams = 0
+      if (teams?.length > 0) {
+        teams.forEach(t => {
+          const maxP = t.max_players || 12
+          const threshold = Math.ceil(maxP * 0.75)
+          const current = perTeamStats[t.id]?.playerCount || 0
+          if (current < threshold) understaffedTeams++
+        })
+      }
+
       setTeamsData(teams || [])
       setTeamStats(perTeamStats)
 
@@ -1190,6 +1203,8 @@ export function DashboardPage({ onNavigate }) {
         paymentsByType,
         coachCount,
         unsignedWaivers,
+        teamsWithCoach: teamsWithCoachCount,
+        understaffedTeams,
       })
 
       // Generate monthly payment data for chart (real data based on payments)
