@@ -92,7 +92,7 @@ export default function ParentRightPanel({
         try {
           const { data, error } = await supabase
             .from('player_achievements')
-            .select('*')
+            .select('*, achievements(name, icon, rarity, color_primary)')
             .eq('player_id', playerId)
             .order('created_at', { ascending: false })
           if (cancelled) return
@@ -109,7 +109,7 @@ export default function ParentRightPanel({
         try {
           const { data, error } = await supabase
             .from('player_achievement_progress')
-            .select('*')
+            .select('*, achievements(name, icon, rarity, color_primary)')
             .eq('player_id', playerId)
           if (cancelled) return
           if (error) {
@@ -136,8 +136,8 @@ export default function ParentRightPanel({
       {/* Upcoming Events */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
-          <button onClick={() => onNavigate?.('schedule')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
+          <button onClick={() => onNavigate?.('schedule')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             Full Calendar →
           </button>
         </div>
@@ -146,53 +146,58 @@ export default function ParentRightPanel({
             <ParentEventCard key={event.id} event={event} onClick={onShowEventDetail} />
           ))}
           {(!activeChildEvents || activeChildEvents.length === 0) && (
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl p-6 text-center`}>
+            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-6 text-center transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
               <Calendar className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
-              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
+              <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Season Record */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-3`}>Season Record</h3>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+        <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-3`}>Season Record</h3>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <div className="text-3xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
-            <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Wins</div>
+            <div className="text-4xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
+            <div className={`text-sm uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Wins</div>
           </div>
-          <div className={`text-2xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
+          <div className={`text-3xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
           <div className="text-center">
-            <div className="text-3xl font-black text-red-500">{teamRecord?.losses || 0}</div>
-            <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Losses</div>
+            <div className="text-4xl font-black text-red-500">{teamRecord?.losses || 0}</div>
+            <div className={`text-sm uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Losses</div>
           </div>
           {(teamRecord?.ties || 0) > 0 && (
             <>
-              <div className={`text-2xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
+              <div className={`text-3xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
               <div className="text-center">
-                <div className="text-3xl font-black text-amber-500">{teamRecord.ties}</div>
-                <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Ties</div>
+                <div className="text-4xl font-black text-amber-500">{teamRecord.ties}</div>
+                <div className={`text-sm uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Ties</div>
               </div>
             </>
           )}
         </div>
-        <p className={`text-sm text-center mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeTeam?.name}</p>
+        <p className={`text-base text-center mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeTeam?.name}</p>
       </div>
 
       {/* Achievements Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
-          <button onClick={() => onNavigate?.('achievements')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
+          <button onClick={() => onNavigate?.('achievements')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             View All →
           </button>
         </div>
         {playerBadges.length > 0 ? (
           <div className="flex flex-wrap gap-3">
             {playerBadges.slice(0, 4).map((b, i) => {
-              const def = BADGE_DEFS[b.badge_id] || BADGE_DEFS[b.achievement_id] || { name: 'Badge', icon: '🏅', color: '#6B7280', rarity: 'Common' }
-              const rarityColor = RARITY_COLORS[def.rarity] || '#6B7280'
+              const def = BADGE_DEFS[b.achievement_id] || {
+                name: b.achievements?.name || 'Badge',
+                icon: b.achievements?.icon || '🏅',
+                color: b.achievements?.color_primary || '#6B7280',
+                rarity: b.achievements?.rarity || 'Common',
+              }
+              const rarityColor = RARITY_COLORS[def.rarity] || RARITY_COLORS[b.achievements?.rarity] || '#6B7280'
               return (
                 <div key={i} className="flex flex-col items-center gap-1.5">
                   <div
@@ -201,7 +206,7 @@ export default function ParentRightPanel({
                   >
                     {def.icon}
                   </div>
-                  <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'} text-center max-w-[60px] leading-tight`}>{def.name}</span>
+                  <span className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'} text-center max-w-[60px] leading-tight`}>{def.name}</span>
                 </div>
               )
             })}
@@ -209,7 +214,11 @@ export default function ParentRightPanel({
         ) : badgesInProgress.length > 0 ? (
           <div className="space-y-3">
             {badgesInProgress.slice(0, 3).map((b, i) => {
-              const def = BADGE_DEFS[b.badge_id] || BADGE_DEFS[b.achievement_id] || { name: 'Badge', icon: '🏅', color: '#6B7280' }
+              const def = BADGE_DEFS[b.achievement_id] || {
+                name: b.achievements?.name || 'Badge',
+                icon: b.achievements?.icon || '🏅',
+                color: b.achievements?.color_primary || '#6B7280',
+              }
               const pct = b.target_value > 0 ? Math.min((b.current_value / b.target_value) * 100, 100) : 0
               return (
                 <div key={i} className="flex items-center gap-3">
@@ -221,8 +230,8 @@ export default function ParentRightPanel({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} truncate`}>{def.name}</span>
-                      <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'} ml-2 flex-shrink-0`}>{b.current_value}/{b.target_value}</span>
+                      <span className={`text-base font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} truncate`}>{def.name}</span>
+                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'} ml-2 flex-shrink-0`}>{b.current_value}/{b.target_value}</span>
                     </div>
                     <div className={`h-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: def.color }} />
@@ -235,44 +244,44 @@ export default function ParentRightPanel({
         ) : (
           <div className="text-center py-4">
             <Award className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-1`} />
-            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>
-            <p className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Keep playing to unlock badges!</p>
+            <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>
+            <p className={`text-base ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Keep playing to unlock badges!</p>
           </div>
         )}
       </div>
 
       {/* Leaderboard Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Leaderboard</h3>
-          <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Leaderboard</h3>
+          <button onClick={() => onNavigate?.('leaderboards')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             View All →
           </button>
         </div>
         <div className="space-y-1">
           {leaderboardCats.map(stat => (
             <div key={stat.cat} className={`flex items-center justify-between py-2 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} last:border-b-0`}>
-              <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{stat.cat}</span>
+              <span className={`text-base font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{stat.cat}</span>
               {/* TODO: Wire to actual game_stats rankings when data exists */}
-              <span className={`text-sm font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
+              <span className={`text-base font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Player Stats Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Player Stats</h3>
-          <button onClick={() => onNavigate?.('leaderboards')} className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Player Stats</h3>
+          <button onClick={() => onNavigate?.('leaderboards')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
             Full Stats →
           </button>
         </div>
         {/* TODO: Wire to Supabase game_stats for actual player stats */}
         <div className="text-center py-4">
           <BarChart3 className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-1`} />
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Stats update after games</p>
-          <p className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Check leaderboards for rankings</p>
+          <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Stats update after games</p>
+          <p className={`text-base ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Check leaderboards for rankings</p>
         </div>
       </div>
     </aside>

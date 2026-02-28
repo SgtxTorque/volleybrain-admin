@@ -3,6 +3,7 @@ import { MoreVertical, Trash2, Edit, MessageCircle, Share2, Maximize2 } from '..
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
 import { Lightbox } from '../../components/teams/PhotoGallery'
+import ShoutoutCard, { parseShoutoutMetadata } from '../../components/engagement/ShoutoutCard'
 
 // ═══════════════════════════════════════════════════════════
 // FEED POST — Social media card with cheer animation
@@ -10,6 +11,29 @@ import { Lightbox } from '../../components/teams/PhotoGallery'
 function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCountChange, onDelete, onTogglePin, onEdit, isAdminOrCoach, currentUserId }) {
   const isPinned = post.is_pinned
   const postType = post.post_type || 'announcement'
+
+  // Normalize media_urls — handle string, JSON string, or array
+  const mediaUrls = (() => {
+    const raw = post.media_urls
+    if (!raw) return []
+    if (Array.isArray(raw)) return raw
+    if (typeof raw === 'string') {
+      try { const parsed = JSON.parse(raw); return Array.isArray(parsed) ? parsed : [] } catch { return [] }
+    }
+    return []
+  })()
+
+  // Detect JSON metadata in title (shoutouts, milestones, level-ups store JSON here)
+  const titleIsJson = (() => {
+    if (!post.title || typeof post.title !== 'string') return false
+    const trimmed = post.title.trim()
+    return trimmed.startsWith('{') && trimmed.endsWith('}')
+  })()
+
+  const shoutoutMeta = postType === 'shoutout' ? parseShoutoutMetadata(post.title) : null
+  const milestoneMeta = (postType === 'milestone' && titleIsJson) ? (() => {
+    try { return JSON.parse(post.title) } catch { return null }
+  })() : null
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
   const [lightboxIdx, setLightboxIdx] = useState(null)
@@ -126,13 +150,17 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       </div>
 
       {/* Media — Cinematic with Lightbox */}
-      {post.media_urls?.length > 0 && (
+      {mediaUrls.length > 0 && (
         <div className="px-4 pb-4">
-          <div className={`grid ${post.media_urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-            {post.media_urls.map((url, idx) => (
-              <div key={idx} onClick={() => setLightboxIdx(idx)} className="relative rounded-xl overflow-hidden group cursor-pointer" style={{ height: post.media_urls.length === 1 ? 320 : 200 }}>
-                <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition">
+          <div className={`grid ${mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
+            {mediaUrls.map((url, idx) => (
+              <div key={idx} onClick={() => setLightboxIdx(idx)}
+                className={`relative rounded-xl overflow-hidden group cursor-pointer flex items-center justify-center ${isDark ? 'bg-black/30' : 'bg-neutral-100'}`}
+                style={{ maxHeight: mediaUrls.length === 1 ? 500 : 280, width: '100%' }}>
+                <img src={url} alt=""
+                  className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ maxHeight: mediaUrls.length === 1 ? 500 : 280 }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition pointer-events-none">
                   <div className="absolute bottom-3 right-3">
                     <Maximize2 className="w-5 h-5 text-white/70" />
                   </div>
@@ -141,17 +169,42 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             ))}
           </div>
           {lightboxIdx !== null && (
-            <Lightbox images={post.media_urls} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+            <Lightbox images={mediaUrls} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
           )}
         </div>
       )}
 
       {/* Content */}
       <div className="px-6 pb-4">
-        {post.title && (
-          <h3 className="font-bold text-[16px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
+        {shoutoutMeta ? (
+          <ShoutoutCard
+            metadataJson={post.title}
+            giverName={post.profiles?.full_name || 'Someone'}
+            createdAt={post.created_at}
+            isDark={isDark}
+          />
+        ) : milestoneMeta ? (
+          <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${milestoneMeta.tierColor || milestoneMeta.achievementColor || g}`, background: `${milestoneMeta.tierColor || g}08` }}>
+            <div className="h-1" style={{ background: milestoneMeta.tierColor || g }} />
+            <div className="p-5 flex flex-col items-center gap-2.5">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
+                style={{ background: `${milestoneMeta.tierColor || g}20`, color: milestoneMeta.tierColor || g }}>
+                {milestoneMeta.type === 'level_up' ? '⬆️' : '🏆'} {milestoneMeta.type === 'level_up' ? 'Level Up' : 'Achievement'}
+              </div>
+              <span className="text-5xl my-1">{milestoneMeta.achievementIcon || '🏆'}</span>
+              <p className="text-[15px] font-medium text-center leading-relaxed" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                {post.content}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {post.title && !titleIsJson && (
+              <h3 className="font-bold text-[16px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
+            )}
+            <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+          </>
         )}
-        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
       </div>
 
       {/* Interaction Bar — Cheers + Comments + Share */}

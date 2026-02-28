@@ -56,9 +56,10 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
 
       if (error) {
         console.error('Upload error:', error)
-        // Try creating bucket if it doesn't exist
         if (error.message?.includes('not found') || error.statusCode === '404') {
           showToast?.('Storage bucket not found — ask admin to create "team-photos" bucket in Supabase', 'warning')
+        } else {
+          showToast?.(`Photo upload failed: ${error.message || 'Unknown error'}`, 'error')
         }
         continue
       }

@@ -7,6 +7,8 @@ import {
 import { supabase } from '../../lib/supabase'
 import CoachGameDayHero from './CoachGameDayHero'
 import { useTheme } from '../../contexts/ThemeContext'
+import FeedPost from '../../pages/teams/FeedPost'
+import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -261,8 +263,13 @@ export default function CoachCenterDashboard({
   openTeamChat,
 }) {
   const { isDark } = useTheme()
+  const g = selectedTeam?.color || '#6366F1'
+  const gb = adjustBrightness(g, 20)
   const [latestPost, setLatestPost] = useState(null)
   const [recentMessages, setRecentMessages] = useState([])
+  const [chatChannelId, setChatChannelId] = useState(null)
+  const [chatInput, setChatInput] = useState('')
+  const [sendingChat, setSendingChat] = useState(false)
 
   // Fetch Team Hub + Chat preview data
   useEffect(() => {
@@ -276,6 +283,7 @@ export default function CoachCenterDashboard({
           .from('team_posts')
           .select('*, profiles:author_id(full_name, avatar_url)')
           .eq('team_id', selectedTeam.id)
+          .eq('is_published', true)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -292,13 +300,15 @@ export default function CoachCenterDashboard({
           .maybeSingle()
 
         if (channel && !cancelled) {
+          setChatChannelId(channel.id)
           const { data: msgs } = await supabase
             .from('chat_messages')
             .select('*, profiles:sender_id(full_name, avatar_url)')
             .eq('channel_id', channel.id)
+            .eq('is_deleted', false)
             .order('created_at', { ascending: false })
-            .limit(3)
-          if (!cancelled) setRecentMessages(msgs || [])
+            .limit(5)
+          if (!cancelled) setRecentMessages((msgs || []).reverse())
         } else if (!cancelled) {
           setRecentMessages([])
         }
@@ -332,6 +342,30 @@ export default function CoachCenterDashboard({
       { label: 'Games', value: t.games },
     ]
   })()
+
+  async function handleSendChatMessage(e) {
+    e?.preventDefault()
+    if (!chatInput.trim() || sendingChat || !chatChannelId) return
+    setSendingChat(true)
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          channel_id: chatChannelId,
+          sender_id: userId,
+          content: chatInput.trim(),
+          message_type: 'text',
+        })
+        .select('*, profiles:sender_id(full_name, avatar_url)')
+        .single()
+      if (error) throw error
+      setRecentMessages(prev => [...prev, data])
+      setChatInput('')
+    } catch (err) {
+      console.error('Error sending message:', err)
+    }
+    setSendingChat(false)
+  }
 
   return (
     <main className="flex-1 overflow-y-auto p-6 space-y-5 min-w-0">
@@ -532,79 +566,141 @@ export default function CoachCenterDashboard({
       {/* Row 4: Team Hub + Chat Previews */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Team Hub Preview */}
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5`}>
-          <div className="flex items-center justify-between mb-3">
+        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
+          <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-blue-500" />
               <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Team Hub</h3>
             </div>
             <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
-              View All →
+              Go To Team Page →
             </button>
           </div>
-          {latestPost ? (
-            <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="w-full text-left">
-              <div className="flex items-start gap-3">
-                {latestPost.profiles?.avatar_url ? (
-                  <img src={latestPost.profiles.avatar_url} alt="" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-xs font-bold text-blue-600 flex-shrink-0">
-                    {latestPost.profiles?.full_name?.[0] || '?'}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{latestPost.profiles?.full_name}</p>
-                  <p className={`text-sm line-clamp-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{latestPost.content}</p>
-                  <p className={`text-[10px] mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{timeAgo(latestPost.created_at)}</p>
-                </div>
+          <div className={!isDark ? 'tw-light' : ''}>
+            <style>{HUB_STYLES}</style>
+            {latestPost ? (
+              <FeedPost
+                post={latestPost}
+                g={g}
+                gb={gb}
+                i={0}
+                isDark={isDark}
+                isAdminOrCoach={true}
+                currentUserId={userId}
+                onDelete={() => {}}
+                onTogglePin={() => {}}
+                onEdit={() => {}}
+                onCommentCountChange={(postId, count) => {
+                  setLatestPost(prev => prev ? { ...prev, comment_count: count } : prev)
+                }}
+                onReactionCountChange={(postId, count) => {
+                  setLatestPost(prev => prev ? { ...prev, reaction_count: count } : prev)
+                }}
+              />
+            ) : (
+              <div className="text-center py-4 px-5">
+                <Users className={`w-8 h-8 mx-auto mb-1 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No posts yet</p>
               </div>
-            </button>
-          ) : (
-            <div className="text-center py-4">
-              <Users className={`w-8 h-8 mx-auto mb-1 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No posts yet</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Team Chat Preview */}
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5`}>
-          <div className="flex items-center justify-between mb-3">
+        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
+          <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-emerald-500" />
               <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Team Chat</h3>
             </div>
             <button onClick={() => openTeamChat?.(selectedTeam?.id)} className="text-xs text-[#2C5F7C] font-semibold hover:opacity-80">
-              View All →
+              Go to Chat →
             </button>
           </div>
-          {recentMessages.length > 0 ? (
-            <div className="space-y-2">
-              {recentMessages.map(msg => (
-                <div key={msg.id} className="flex items-start gap-2.5">
-                  {msg.profiles?.avatar_url ? (
-                    <img src={msg.profiles.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-[10px] font-bold text-emerald-600 flex-shrink-0">
-                      {msg.profiles?.full_name?.[0] || '?'}
+          <div className="p-4">
+            {recentMessages.length > 0 ? (
+              <div className="space-y-2.5">
+                {recentMessages.map((msg) => {
+                  const isOwn = msg.sender_id === userId
+                  return (
+                    <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} gap-2`}>
+                      {!isOwn && (
+                        msg.profiles?.avatar_url ? (
+                          <img src={msg.profiles.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                        ) : (
+                          <div className={`w-7 h-7 rounded-full ${isDark ? 'bg-white/10' : 'bg-emerald-50'} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                            <span className={`text-xs font-bold ${isDark ? 'text-slate-400' : 'text-emerald-600'}`}>
+                              {msg.profiles?.full_name?.charAt(0) || '?'}
+                            </span>
+                          </div>
+                        )
+                      )}
+                      <div className="max-w-[75%]">
+                        {!isOwn && (
+                          <p className={`text-[10px] font-semibold mb-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            {msg.profiles?.full_name?.split(' ')[0]}
+                          </p>
+                        )}
+                        <div
+                          className={`px-3 py-2 rounded-2xl ${isOwn ? 'rounded-br-md' : 'rounded-bl-md'}`}
+                          style={isOwn ? {
+                            background: isDark
+                              ? `linear-gradient(135deg, ${g}, ${gb})`
+                              : `${g}18`,
+                            color: isDark ? 'white' : '#1a1a1a',
+                            boxShadow: isDark ? `0 4px 16px ${g}25` : `0 2px 12px ${g}10`,
+                          } : {
+                            background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.04)',
+                            color: isDark ? 'white' : '#1a1a1a',
+                            border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)',
+                          }}
+                        >
+                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                          <p className={`text-[10px] mt-0.5 ${isOwn ? 'opacity-60' : (isDark ? 'text-slate-500' : 'text-slate-400')}`}>
+                            {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{msg.profiles?.full_name?.split(' ')[0]}</span>
-                      <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{timeAgo(msg.created_at)}</span>
-                    </div>
-                    <p className={`text-sm truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{msg.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <MessageCircle className={`w-8 h-8 mx-auto mb-1 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No messages yet</p>
-            </div>
-          )}
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <MessageCircle className={`w-8 h-8 mx-auto mb-1 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No messages yet</p>
+              </div>
+            )}
+
+            {/* Inline Chat Input */}
+            <form onSubmit={handleSendChatMessage} className={`mt-3 pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} flex items-center gap-2`}>
+              <div className="flex-1 flex items-center px-3 py-2 rounded-xl"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)',
+                  border: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.05)',
+                }}>
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 bg-transparent outline-none text-sm"
+                  style={{ color: isDark ? 'white' : '#1a1a1a' }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!chatInput.trim() || sendingChat}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all disabled:opacity-20"
+                style={{
+                  background: chatInput.trim() ? g : 'transparent',
+                  color: chatInput.trim() ? 'white' : (isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)'),
+                }}
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 

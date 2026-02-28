@@ -168,13 +168,13 @@ export default function ParentHeroCard({
   if (!selectedPlayerTeam) {
     return (
       <div
-        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden flex items-center justify-center`}
+        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl overflow-hidden flex items-center justify-center`}
         style={{ minHeight: '420px' }}
       >
         <div className={`text-center ${isDark ? 'text-slate-400' : 'text-lynx-slate'} p-8`}>
           <div className="text-5xl mb-3">👤</div>
-          <div className={`text-lg font-semibold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Loading player...</div>
-          <div className="text-sm mt-1">Player information is loading</div>
+          <div className={`text-xl font-semibold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Loading player...</div>
+          <div className="text-base mt-1">Player information is loading</div>
         </div>
       </div>
     )
@@ -256,7 +256,7 @@ export default function ParentHeroCard({
   return (
     <>
       <div
-        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}
+        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl overflow-hidden`}
         style={{ minHeight: '420px' }}
         data-tutorial="player-card"
       >
@@ -294,7 +294,7 @@ export default function ParentHeroCard({
               <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
               <div className="text-center text-white">
                 <div className="text-3xl mb-1">📷</div>
-                <div className="text-xs font-bold">{playerPhoto ? 'Change Photo' : 'Upload Photo'}</div>
+                <div className="text-sm font-bold">{playerPhoto ? 'Change Photo' : 'Upload Photo'}</div>
               </div>
             </label>
 
@@ -313,11 +313,11 @@ export default function ParentHeroCard({
               style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)' }}
             >
               <div className="uppercase font-black leading-none tracking-tight">
-                <span className="block text-sm text-white/70">{firstName}</span>
-                <span className="block text-2xl text-white mt-0.5">{lastName}</span>
+                <span className="block text-base text-white/70">{firstName}</span>
+                <span className="block text-3xl text-white mt-0.5">{lastName}</span>
               </div>
               <div className="mt-2">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold backdrop-blur-sm ${
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${
                   isActive
                     ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/30'
                     : 'bg-amber-500/30 text-amber-300 border border-amber-400/30'
@@ -343,16 +343,16 @@ export default function ParentHeroCard({
                 </div>
                 <div className={`w-px h-8 ${isDark ? 'bg-white/10' : 'bg-slate-200'} flex-shrink-0`} />
                 <div className="min-w-0">
-                  <div className={`text-lg font-black uppercase tracking-wide ${isDark ? 'text-white' : 'text-slate-900'} truncate leading-tight`}>
+                  <div className={`text-xl font-black uppercase tracking-wide ${isDark ? 'text-white' : 'text-slate-900'} truncate leading-tight`}>
                     {teamName}
                   </div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                  <div className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                     {position} &middot; {seasonName || 'Current Season'}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold ${
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-sm font-bold ${
                   isActive
                     ? `${isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`
                     : `${isDark ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 'bg-amber-50 text-amber-600 border border-amber-200'}`
@@ -361,11 +361,11 @@ export default function ParentHeroCard({
                   {isActive ? 'Active' : 'Pending'}
                 </span>
                 {unpaidAmount > 0 ? (
-                  <button onClick={() => onShowPayment?.()} className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold ${isDark ? 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'}`}>
+                  <button onClick={() => onShowPayment?.()} className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-sm font-bold ${isDark ? 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'}`}>
                     ${unpaidAmount.toFixed(2)} due
                   </button>
                 ) : (
-                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-bold ${isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-sm font-bold ${isDark ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                     Paid Up
                   </span>
                 )}
@@ -383,12 +383,12 @@ export default function ParentHeroCard({
                 <button
                   key={btn.label}
                   onClick={btn.action}
-                  className={`flex-1 flex flex-col items-center justify-center gap-1 py-1.5 px-1
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-2
                     ${isDark ? 'text-slate-400 hover:text-[var(--accent-primary)] hover:bg-white/[0.06]' : 'text-slate-500 hover:text-[var(--accent-primary)] hover:bg-lynx-cloud'}
                     ${i < arr.length - 1 ? `border-r ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}` : ''}`}
                 >
-                  <span className="text-base">{btn.icon}</span>
-                  <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{btn.label}</span>
+                  <span className="text-3xl">{btn.icon}</span>
+                  <span className={`text-xl font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{btn.label}</span>
                 </button>
               ))}
             </div>
@@ -400,14 +400,14 @@ export default function ParentHeroCard({
 
                   {/* LEFT ROW 1: What's Next */}
                   <div>
-                    <div className={`text-[10px] uppercase tracking-widest font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-1.5`}>What's Next</div>
+                    <div className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-1.5`}>What's Next</div>
                     <div className="flex flex-wrap gap-1.5">
                       {displayTimeline.length > 0 ? (
                         displayTimeline.map((item, i) => (
                           <button
                             key={`${item.type}-${i}`}
                             onClick={item.onClick || undefined}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold border ${
                               item.type === 'event'
                                 ? `${isDark ? 'border-amber-500/30 bg-amber-500/10 text-amber-400 hover:border-amber-400' : 'border-amber-200 bg-amber-50 text-amber-700 hover:border-amber-400'}`
                                 : item.type === 'achievement'
@@ -424,7 +424,7 @@ export default function ParentHeroCard({
                           </button>
                         ))
                       ) : (
-                        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-lynx-cloud text-lynx-slate'}`}>
+                        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-lynx-cloud text-lynx-slate'}`}>
                           No recent activity
                         </span>
                       )}
@@ -433,7 +433,7 @@ export default function ParentHeroCard({
 
                   {/* RIGHT: Badge Showcase — spans both rows */}
                   <div className={`row-span-2 flex flex-col border-l ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} pl-3`}>
-                    <div className={`text-[10px] uppercase tracking-widest font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-1.5`}>Badge Showcase</div>
+                    <div className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-1.5`}>Badge Showcase</div>
                     {earnedBadges.length > 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-evenly">
                         {earnedBadges.slice(0, 3).map((b, i) => {
@@ -456,7 +456,7 @@ export default function ParentHeroCard({
                               >
                                 {def.icon}
                               </div>
-                              <span className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-600'} text-center max-w-[70px] leading-tight truncate`}>
+                              <span className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-600'} text-center max-w-[70px] leading-tight truncate`}>
                                 {def.name}
                               </span>
                             </div>
@@ -467,14 +467,14 @@ export default function ParentHeroCard({
                       <div className={`flex-1 flex items-center justify-center rounded-lg ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
                         <div className="text-center">
                           <span className="text-2xl block mb-1">🏅</span>
-                          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'} font-medium`}>No badges yet</p>
-                          <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-0.5`}>Keep playing!</p>
+                          <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'} font-medium`}>No badges yet</p>
+                          <p className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-0.5`}>Keep playing!</p>
                         </div>
                       </div>
                     )}
                     <button
                       onClick={() => onNavigate?.('achievements')}
-                      className="text-[11px] text-[var(--accent-primary)] font-semibold hover:opacity-80 text-center mt-1.5"
+                      className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 text-center mt-1.5"
                     >
                       View all badges →
                     </button>
@@ -482,14 +482,14 @@ export default function ParentHeroCard({
 
                   {/* LEFT ROW 2: Gallery */}
                   <div>
-                    <div className={`text-[10px] uppercase tracking-widest font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-1.5`}>Gallery</div>
+                    <div className={`text-xs uppercase tracking-widest font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-1.5`}>Gallery</div>
                     <div className="flex items-center gap-2">
                       {Array.from({ length: 5 }).map((_, i) => {
                         const url = galleryPhotos[i]
                         return url ? (
                           <div
                             key={i}
-                            className={`flex-1 min-w-0 rounded-lg overflow-hidden ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-slate-100 border border-lynx-silver'}`}
+                            className={`flex-1 min-w-0 rounded-lg overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl ${isDark ? 'bg-white/[0.06] border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-slate-100 border border-lynx-silver shadow-sm'}`}
                             style={{ aspectRatio: '1' }}
                           >
                             <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -497,7 +497,7 @@ export default function ParentHeroCard({
                         ) : (
                           <div
                             key={i}
-                            className={`flex-1 min-w-0 rounded-lg ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-slate-100 border border-lynx-silver'} flex items-center justify-center`}
+                            className={`flex-1 min-w-0 rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-xl ${isDark ? 'bg-white/[0.06] border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-slate-100 border border-lynx-silver shadow-sm'} flex items-center justify-center`}
                             style={{ aspectRatio: '1' }}
                           >
                             <span className={`${isDark ? 'text-slate-600' : 'text-slate-300'} text-sm`}>📷</span>
@@ -506,7 +506,7 @@ export default function ParentHeroCard({
                       })}
                       <button
                         onClick={() => navigateToTeamWall?.(teamId)}
-                        className="text-[11px] text-[var(--accent-primary)] font-semibold hover:opacity-80 flex-shrink-0 whitespace-nowrap"
+                        className="text-xs text-[var(--accent-primary)] font-semibold hover:opacity-80 flex-shrink-0 whitespace-nowrap"
                       >
                         See all →
                       </button>
@@ -530,15 +530,15 @@ export default function ParentHeroCard({
                 <button
                   key={`${combo.playerId}-${combo.teamId}`}
                   onClick={() => onSelectPlayerTeam?.(combo)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl flex-shrink-0 border ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl flex-shrink-0 border transition-all hover:-translate-y-0.5 hover:shadow-xl ${
                     isSelected
-                      ? `${isDark ? 'bg-lynx-charcoal' : 'bg-white'} border-2 shadow-md`
-                      : `${isDark ? 'bg-white/[0.06] border-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud border-lynx-silver hover:bg-white'} hover:shadow-sm`
+                      ? `${isDark ? 'bg-lynx-charcoal shadow-lg shadow-black/25' : 'bg-white shadow-sm'} border-2 shadow-md`
+                      : `${isDark ? 'bg-white/[0.06] border-white/[0.08] hover:bg-white/10 shadow-lg shadow-black/25' : 'bg-lynx-cloud border-lynx-silver hover:bg-white shadow-sm'}`
                   }`}
                   style={isSelected ? { borderColor: combo.teamColor } : {}}
                 >
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base overflow-hidden flex-shrink-0"
                     style={{ backgroundColor: combo.teamColor }}
                   >
                     {combo.playerPhoto ? (
@@ -548,10 +548,10 @@ export default function ParentHeroCard({
                     )}
                   </div>
                   <div className="min-w-0 text-left">
-                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>{combo.firstName}</p>
+                    <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>{combo.firstName}</p>
                     <div className="flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: combo.teamColor }} />
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'} truncate`}>
+                      <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'} truncate`}>
                         {combo.teamName}
                         {combo.jerseyNumber ? ` · #${combo.jerseyNumber}` : ''}
                       </p>
@@ -568,7 +568,7 @@ export default function ParentHeroCard({
               className={`flex items-center gap-2 px-4 py-3 rounded-xl flex-shrink-0 border-2 border-dashed ${isDark ? 'border-white/[0.12] text-slate-500 hover:border-emerald-500 hover:text-emerald-400' : 'border-slate-300 text-slate-400 hover:border-emerald-500 hover:text-emerald-600'}`}
             >
               <span className="text-lg font-bold">+</span>
-              <span className="text-sm font-semibold">Add Child</span>
+              <span className="text-base font-semibold">Add Child</span>
             </button>
           </div>
         </div>

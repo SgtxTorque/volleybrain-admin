@@ -447,7 +447,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
     return (
       <div className="text-center py-12">
         <span className="text-6xl">😕</span>
-        <h2 className={`text-xl font-bold ${tc.text} mt-4`}>Player Not Found</h2>
+        <h2 className={`text-3xl font-bold ${tc.text} mt-4`}>Player Not Found</h2>
       </div>
     )
   }
@@ -460,24 +460,24 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   // Helper for info rows
   const InfoRow = ({ label, value, icon }) => (
     <div className={`flex items-center gap-3 py-3 border-b last:border-b-0 ${tc.border}`}>
-      {icon && <span className={`text-sm ${tc.textMuted}`}>{icon}</span>}
-      <span className={`text-sm ${tc.textMuted} w-32 flex-shrink-0`}>{label}</span>
-      <span className={`text-sm font-medium ${tc.text}`}>{value || '—'}</span>
+      {icon && <span className={`text-lg ${tc.textMuted}`}>{icon}</span>}
+      <span className={`text-lg ${tc.textMuted} w-32 flex-shrink-0`}>{label}</span>
+      <span className={`text-lg font-medium ${tc.text}`}>{value || '—'}</span>
     </div>
   )
 
   const EditBtn = ({ onClick }) => (
-    <button onClick={onClick} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20 transition">
+    <button onClick={onClick} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-base font-semibold bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20 transition">
       <Edit className="w-3.5 h-3.5" /> Edit
     </button>
   )
 
   const SaveCancelBtns = ({ onSave, onCancel }) => (
     <div className="flex gap-2 mt-4">
-      <button onClick={onCancel} className={`flex-1 py-2.5 rounded-xl ${tc.cardBg} border ${tc.border} ${tc.text} font-medium text-sm hover:opacity-80 transition`}>
+      <button onClick={onCancel} className={`flex-1 py-2.5 rounded-xl ${tc.cardBg} border ${tc.border} ${tc.text} font-medium text-lg hover:opacity-80 transition`}>
         Cancel
       </button>
-      <button onClick={onSave} className="flex-1 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold text-sm hover:opacity-90 transition">
+      <button onClick={onSave} className="flex-1 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold text-lg hover:opacity-90 transition">
         Save Changes
       </button>
     </div>
@@ -485,15 +485,15 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
   const FormField = ({ label, value, onChange, type = 'text', placeholder, options }) => (
     <div>
-      <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{label}</label>
+      <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>{label}</label>
       {options ? (
-        <select value={value} onChange={e => onChange(e.target.value)} className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+        <select value={value} onChange={e => onChange(e.target.value)} className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg`}>
           <option value="">Select...</option>
           {options.map(opt => <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>)}
         </select>
       ) : (
         <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-          className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`} />
+          className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg`} />
       )}
     </div>
   )
@@ -515,15 +515,15 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
           {player.photo_url ? (
             <img src={player.photo_url} alt={player.first_name} className="w-20 h-20 rounded-xl object-cover border-2 shadow-md" style={{ borderColor: teamColor }} />
           ) : (
-            <div className="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-bold border-2 shadow-md" style={{ backgroundColor: `${teamColor}20`, borderColor: teamColor, color: teamColor }}>
+            <div className="w-20 h-20 rounded-xl flex items-center justify-center text-4xl font-bold border-2 shadow-md" style={{ backgroundColor: `${teamColor}20`, borderColor: teamColor, color: teamColor }}>
               {player.first_name?.[0]}{player.last_name?.[0]}
             </div>
           )}
           <div className="flex-1">
-            <h1 className={`text-2xl font-bold ${tc.text}`}>{player.first_name} {player.last_name}</h1>
-            <div className={`flex items-center gap-2 mt-1 ${tc.textMuted} text-sm`}>
+            <h1 className={`text-4xl font-bold ${tc.text}`}>{player.first_name} {player.last_name}</h1>
+            <div className={`flex items-center gap-2 mt-1 ${tc.textMuted} text-lg`}>
               {primaryTeam && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: teamColor }}>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-base font-semibold text-white" style={{ backgroundColor: teamColor }}>
                   {primaryTeam.name}
                 </span>
               )}
@@ -531,7 +531,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {assignedJersey && <span>• #{assignedJersey}</span>}
             </div>
           </div>
-          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${
+          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-lg font-bold ${
             player.status === 'active' 
               ? (isDark ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border border-emerald-200') 
               : (isDark ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' : 'bg-amber-50 text-amber-600 border border-amber-200')
@@ -549,7 +549,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-5 py-3.5 text-lg font-semibold whitespace-nowrap transition-all border-b-2 ${
                 activeTab === tab.id 
                   ? 'border-[var(--accent-primary)] text-[var(--accent-primary)]' 
                   : `border-transparent ${tc.textMuted} hover:${isDark ? 'bg-slate-700/50' : 'bg-lynx-cloud'}`
@@ -569,7 +569,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>👤 Player Information</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>👤 Player Information</h3>
                   {!editingInfo && <EditBtn onClick={() => setEditingInfo(true)} />}
                 </div>
 
@@ -612,7 +612,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {/* Address */}
               {(infoForm.address || infoForm.city || infoForm.state || infoForm.zip) && !editingInfo && (
                 <div>
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
                   <div className={`${tc.cardBgAlt} rounded-xl px-5`}>
                     {infoForm.address && <InfoRow label="Street" value={infoForm.address} icon="📍" />}
                     <InfoRow label="City / State / Zip" value={[infoForm.city, infoForm.state, infoForm.zip].filter(Boolean).join(', ') || null} icon="🌐" />
@@ -621,7 +621,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               )}
               {editingInfo && (
                 <div>
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2 mb-4`}>🏠 Address</h3>
                   <div className={`${tc.cardBgAlt} rounded-xl p-5 space-y-4`}>
                     <FormField label="Street Address" value={infoForm.address} onChange={v => setInfoForm({ ...infoForm, address: v })} placeholder="123 Main St" />
                     <div className="grid grid-cols-3 gap-4">
@@ -636,7 +636,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {/* Parent / Guardian 1 */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>👨‍👩‍👧 Parent / Guardian</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>👨‍👩‍👧 Parent / Guardian</h3>
                   {!editingInfo && <EditBtn onClick={() => setEditingInfo(true)} />}
                 </div>
                 {editingInfo ? (
@@ -659,7 +659,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {/* Parent / Guardian 2 (only show if data exists or editing) */}
               {(infoForm.parent2_name || infoForm.parent2_email || infoForm.parent2_phone || editingInfo) && (
                 <div>
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>👥 Parent / Guardian 2</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2 mb-4`}>👥 Parent / Guardian 2</h3>
                   {editingInfo ? (
                     <div className={`${tc.cardBgAlt} rounded-xl p-5 space-y-4`}>
                       <FormField label="Parent 2 Name" value={infoForm.parent2_name} onChange={v => setInfoForm({ ...infoForm, parent2_name: v })} placeholder="Optional" />
@@ -705,21 +705,21 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             return (
             <div className="space-y-6">
               <div>
-                <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2 mb-4`}>👕 Current {topLabel}</h3>
+                <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2 mb-4`}>👕 Current {topLabel}</h3>
                 <div className="flex items-center gap-6">
                   <div className="w-28 h-32 rounded-xl flex flex-col items-center justify-center text-white relative overflow-hidden shadow-lg" style={{ backgroundColor: teamColor }}>
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-3 rounded-b-full" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} />
                     <span className="text-5xl font-black mt-2">{assignedJersey || '?'}</span>
-                    <span className="text-xs opacity-80 mt-1 font-medium">{primaryTeam?.name}</span>
+                    <span className="text-base opacity-80 mt-1 font-medium">{primaryTeam?.name}</span>
                   </div>
                   <div className="space-y-2">
-                    <div className={`text-sm ${tc.text}`}><span className="font-semibold">Number:</span> {assignedJersey ? `#${assignedJersey}` : 'Not assigned yet'}</div>
+                    <div className={`text-lg ${tc.text}`}><span className="font-semibold">Number:</span> {assignedJersey ? `#${assignedJersey}` : 'Not assigned yet'}</div>
                     {sizePieces.map(piece => (
-                      <div key={piece.label} className={`text-sm ${tc.text}`}>
+                      <div key={piece.label} className={`text-lg ${tc.text}`}>
                         <span className="font-semibold">{piece.label} Size:</span> {piece.value || 'Not set'}
                       </div>
                     ))}
-                    <div className={`text-xs ${tc.textMuted}`}>
+                    <div className={`text-base ${tc.textMuted}`}>
                       {assignedJersey ? '✅ Assigned by admin' : '⏳ Waiting for admin to assign'}
                     </div>
                   </div>
@@ -728,13 +728,13 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>⭐ Your Preferences</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>⭐ Your Preferences</h3>
                   {!editingJersey && <EditBtn onClick={() => setEditingJersey(true)} />}
                 </div>
 
                 {editingJersey ? (
                   <div className={`${tc.cardBgAlt} rounded-xl p-5 space-y-4`}>
-                    <p className={`text-sm ${tc.textMuted}`}>Set your preferred numbers and uniform sizes. The admin will try to honor your choices!</p>
+                    <p className={`text-lg ${tc.textMuted}`}>Set your preferred numbers and uniform sizes. The admin will try to honor your choices!</p>
                     
                     {/* Number preferences */}
                     <div className="grid grid-cols-3 gap-4">
@@ -744,10 +744,10 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                         { key: 'pref3', label: '3rd Choice' },
                       ].map(({ key, label }) => (
                         <div key={key}>
-                          <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{label}</label>
+                          <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>{label}</label>
                           <input type="number" min="0" max="99" value={jerseyPrefs[key]} 
                             onChange={e => setJerseyPrefs({ ...jerseyPrefs, [key]: e.target.value })} placeholder="0-99"
-                            className={`w-full px-3 py-3 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-center text-2xl font-bold`} />
+                            className={`w-full px-3 py-3 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-center text-4xl font-bold`} />
                         </div>
                       ))}
                     </div>
@@ -756,9 +756,9 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                     <div className={`grid ${(bottomLabel ? 'grid-cols-2' : 'grid-cols-1')} gap-4`}>
                       {/* Top piece (Jersey/Singlet/Top/etc) */}
                       <div>
-                        <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{topLabel} Size</label>
+                        <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>{topLabel} Size</label>
                         <select value={jerseyPrefs.size} onChange={e => setJerseyPrefs({ ...jerseyPrefs, size: e.target.value })}
-                          className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+                          className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg`}>
                           <option value="">Select size...</option>
                           {getSizeOptionsForPiece(topLabel).map(group => (
                             <optgroup key={group.group} label={group.group}>
@@ -773,9 +773,9 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                       {/* Bottom piece (Shorts/Pants/Skirt/Breezers) — only if sport has one */}
                       {bottomLabel && (
                         <div>
-                          <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{bottomLabel} Size</label>
+                          <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>{bottomLabel} Size</label>
                           <select value={jerseyPrefs.bottomSize} onChange={e => setJerseyPrefs({ ...jerseyPrefs, bottomSize: e.target.value })}
-                            className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+                            className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg`}>
                             <option value="">Select size...</option>
                             {getSizeOptionsForPiece(bottomLabel).map(group => (
                               <optgroup key={group.group} label={group.group}>
@@ -796,10 +796,10 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                           const key = extra.toLowerCase().replace(/\s+/g, '_')
                           return (
                             <div key={key}>
-                              <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>{extra} Size</label>
+                              <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>{extra} Size</label>
                               <select value={jerseyPrefs.extras?.[key] || ''} 
                                 onChange={e => setJerseyPrefs({ ...jerseyPrefs, extras: { ...jerseyPrefs.extras, [key]: e.target.value } })}
-                                className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm`}>
+                                className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg`}>
                                 <option value="">Select size...</option>
                                 {getSizeOptionsForPiece(extra).map(group => (
                                   <optgroup key={group.group} label={group.group}>
@@ -821,21 +821,21 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                   <div className={`${tc.cardBgAlt} rounded-xl p-5`}>
                     <div className={`grid ${gridCols} gap-4 text-center`}>
                       <div>
-                        <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>1st Choice</p>
-                        <p className={`text-3xl font-black ${tc.text}`}>{player.jersey_pref_1 || '—'}</p>
+                        <p className={`text-base font-semibold ${tc.textMuted} mb-1`}>1st Choice</p>
+                        <p className={`text-5xl font-black ${tc.text}`}>{player.jersey_pref_1 || '—'}</p>
                       </div>
                       <div>
-                        <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>2nd Choice</p>
-                        <p className={`text-3xl font-black ${tc.text}`}>{player.jersey_pref_2 || '—'}</p>
+                        <p className={`text-base font-semibold ${tc.textMuted} mb-1`}>2nd Choice</p>
+                        <p className={`text-5xl font-black ${tc.text}`}>{player.jersey_pref_2 || '—'}</p>
                       </div>
                       <div>
-                        <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>3rd Choice</p>
-                        <p className={`text-3xl font-black ${tc.text}`}>{player.jersey_pref_3 || '—'}</p>
+                        <p className={`text-base font-semibold ${tc.textMuted} mb-1`}>3rd Choice</p>
+                        <p className={`text-5xl font-black ${tc.text}`}>{player.jersey_pref_3 || '—'}</p>
                       </div>
                       {sizePieces.map(piece => (
                         <div key={piece.label}>
-                          <p className={`text-xs font-semibold ${tc.textMuted} mb-1`}>{piece.label}</p>
-                          <p className={`text-xl font-black ${tc.text}`}>{piece.value || '—'}</p>
+                          <p className={`text-base font-semibold ${tc.textMuted} mb-1`}>{piece.label}</p>
+                          <p className={`text-3xl font-black ${tc.text}`}>{piece.value || '—'}</p>
                         </div>
                       ))}
                     </div>
@@ -850,7 +850,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>🚨 Emergency Contact</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>🚨 Emergency Contact</h3>
                   {!editingEmergency && <EditBtn onClick={() => setEditingEmergency(true)} />}
                 </div>
 
@@ -875,30 +875,30 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 {!(player.emergency_contact_name || player.emergency_name) && !editingEmergency && (
                   <div className={`mt-3 flex items-center gap-2 px-4 py-3 rounded-xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
                     <span className="text-amber-500 text-sm">⚠️</span>
-                    <span className={`text-sm ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>No emergency contact on file. Please add one for your child's safety.</span>
+                    <span className={`text-lg ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>No emergency contact on file. Please add one for your child's safety.</span>
                   </div>
                 )}
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>🏥 Medical Information</h3>
+                  <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>🏥 Medical Information</h3>
                   {!editingMedical && <EditBtn onClick={() => setEditingMedical(true)} />}
                 </div>
 
                 {editingMedical ? (
                   <div className={`${tc.cardBgAlt} rounded-xl p-5 space-y-4`}>
                     <div>
-                      <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>Medical Conditions</label>
+                      <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>Medical Conditions</label>
                       <textarea value={medicalForm.conditions} onChange={e => setMedicalForm({ ...medicalForm, conditions: e.target.value })}
                         placeholder="Asthma, diabetes, seizures, etc. (or 'None')"
-                        rows={3} className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm resize-none`} />
+                        rows={3} className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg resize-none`} />
                     </div>
                     <div>
-                      <label className={`block text-xs font-semibold ${tc.textMuted} mb-1.5`}>Allergies</label>
+                      <label className={`block text-base font-semibold ${tc.textMuted} mb-1.5`}>Allergies</label>
                       <textarea value={medicalForm.allergies} onChange={e => setMedicalForm({ ...medicalForm, allergies: e.target.value })}
                         placeholder="Food, medication, or environmental allergies (or 'None')"
-                        rows={3} className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-sm resize-none`} />
+                        rows={3} className={`w-full px-3 py-2.5 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'} text-lg resize-none`} />
                     </div>
                     <SaveCancelBtns onSave={saveMedicalInfo} onCancel={() => setEditingMedical(false)} />
                   </div>
@@ -920,7 +920,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
           {/* ══════ SEASON HISTORY ══════ */}
           {activeTab === 'history' && (
             <div className="space-y-4">
-              <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>📅 Season History</h3>
+              <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>📅 Season History</h3>
               
               {seasonHistory.length > 0 ? (
                 <div className="space-y-3">
@@ -931,13 +931,13 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                       </div>
                       <div className="flex-1">
                         <div className={`font-semibold ${tc.text}`}>{season.seasonName}</div>
-                        <div className={`text-sm ${tc.textMuted}`}>
+                        <div className={`text-lg ${tc.textMuted}`}>
                           {season.teamName}
                           {season.jerseyNumber ? ` • #${season.jerseyNumber}` : ''}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`text-xs ${tc.textMuted}`}>
+                        <div className={`text-base ${tc.textMuted}`}>
                           {season.startDate ? new Date(season.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
                           {season.endDate ? ` – ${new Date(season.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : ' – Present'}
                         </div>
@@ -949,7 +949,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 <div className={`${tc.cardBgAlt} rounded-xl p-8 text-center`}>
                   <span className="text-5xl">📋</span>
                   <p className={`${tc.textSecondary} mt-3 font-medium`}>No season history yet</p>
-                  <p className={`text-sm ${tc.textMuted} mt-1`}>Past seasons will appear here once completed.</p>
+                  <p className={`text-lg ${tc.textMuted} mt-1`}>Past seasons will appear here once completed.</p>
                 </div>
               )}
             </div>
@@ -1069,7 +1069,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
   if (useLegacy) {
     return (
       <div className="space-y-6">
-        <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>📄 Waiver Status</h3>
+        <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>📄 Waiver Status</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { label: 'Liability Waiver', signed: player.waiver_liability, icon: '🛡️' },
@@ -1079,7 +1079,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
             <div key={waiver.label} className={`${tc.cardBgAlt} rounded-xl p-5 text-center`}>
               <span className="text-3xl">{waiver.icon}</span>
               <p className={`font-semibold ${tc.text} mt-2`}>{waiver.label}</p>
-              <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${
+              <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-base font-bold ${
                 waiver.signed 
                   ? (isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600') 
                   : (isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-600')
@@ -1098,7 +1098,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
     <div className="space-y-6">
       {/* Header with progress */}
       <div className="flex items-center justify-between">
-        <h3 className={`text-base font-bold ${tc.text} flex items-center gap-2`}>📄 Waivers</h3>
+        <h3 className={`text-xl font-bold ${tc.text} flex items-center gap-2`}>📄 Waivers</h3>
         {totalRequired > 0 && (
           <div className="flex items-center gap-2">
             <div className="w-24 h-2 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? '#334155' : '#e2e8f0' }}>
@@ -1107,7 +1107,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
                 backgroundColor: allRequiredSigned ? '#10b981' : teamColor
               }} />
             </div>
-            <span className={`text-xs font-medium ${allRequiredSigned ? 'text-emerald-500' : tc.textMuted}`}>
+            <span className={`text-base font-medium ${allRequiredSigned ? 'text-emerald-500' : tc.textMuted}`}>
               {signedRequired}/{totalRequired} required
             </span>
           </div>
@@ -1120,7 +1120,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
           <span className="text-2xl">✅</span>
           <div>
             <p className={`font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>All required waivers signed</p>
-            <p className={`text-sm ${isDark ? 'text-emerald-400/70' : 'text-emerald-600'}`}>You're all set! Thank you for completing the required documents.</p>
+            <p className={`text-lg ${isDark ? 'text-emerald-400/70' : 'text-emerald-600'}`}>You're all set! Thank you for completing the required documents.</p>
           </div>
         </div>
       )}
@@ -1130,7 +1130,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
         <div className={`${tc.cardBgAlt} rounded-xl p-8 text-center`}>
           <span className="text-5xl">📋</span>
           <p className={`${tc.textSecondary} mt-3 font-medium`}>No waivers available</p>
-          <p className={`text-sm ${tc.textMuted} mt-1`}>The league admin hasn't created any waivers yet.</p>
+          <p className={`text-lg ${tc.textMuted} mt-1`}>The league admin hasn't created any waivers yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -1153,15 +1153,15 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
                     <div className="flex items-center gap-2">
                       <p className={`font-semibold ${tc.text}`}>{waiver.name}</p>
                       {waiver.is_required && (
-                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-500">Required</span>
+                        <span className="text-sm font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-500">Required</span>
                       )}
                     </div>
                     {isSigned ? (
-                      <p className={`text-xs ${tc.textMuted} mt-0.5`}>
+                      <p className={`text-base ${tc.textMuted} mt-0.5`}>
                         Signed by {sig.signed_by_name} on {new Date(sig.signed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </p>
                     ) : (
-                      <p className={`text-xs ${isDark ? 'text-amber-400/70' : 'text-amber-600'} mt-0.5`}>
+                      <p className={`text-base ${isDark ? 'text-amber-400/70' : 'text-amber-600'} mt-0.5`}>
                         Pending signature
                       </p>
                     )}
@@ -1170,17 +1170,17 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
                   <div className="flex items-center gap-2 shrink-0">
                     {/* View button */}
                     <button onClick={() => setViewingWaiver(waiver)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${tc.border} ${tc.textSecondary} hover:opacity-80 transition`}>
+                      className={`px-3 py-1.5 rounded-lg text-base font-medium border ${tc.border} ${tc.textSecondary} hover:opacity-80 transition`}>
                       View
                     </button>
                     {/* Sign / Signed button */}
                     {isSigned ? (
-                      <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <span className={`px-3 py-1.5 rounded-lg text-base font-bold ${isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                         ✅ Signed
                       </span>
                     ) : (
                       <button onClick={() => { setSigningWaiver(waiver); setAgreed(false); setSignerName(profile?.full_name || '') }}
-                        className="px-4 py-1.5 rounded-lg text-xs font-bold text-white transition" style={{ backgroundColor: teamColor }}>
+                        className="px-4 py-1.5 rounded-lg text-base font-bold text-white transition" style={{ backgroundColor: teamColor }}>
                         Sign Now
                       </button>
                     )}
@@ -1198,18 +1198,18 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
           <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-lynx-midnight' : 'bg-slate-100'} rounded-t-2xl`}>
-              <span className={`text-sm font-medium ${tc.text}`}>{viewingWaiver.name}</span>
+              <span className={`text-lg font-medium ${tc.text}`}>{viewingWaiver.name}</span>
               <button onClick={() => setViewingWaiver(null)} className={`text-lg ${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-800'}`}>×</button>
             </div>
             {/* Letterhead */}
             <div className="h-1.5" style={{ backgroundColor: teamColor }} />
             <div className="px-6 pt-5 pb-4 flex items-center gap-3" style={{ borderBottom: `2px solid ${teamColor}` }}>
               {organization?.logo_url && <img src={organization.logo_url} alt="" className="h-10 w-10 object-contain" />}
-              <h2 className={`text-lg font-bold ${tc.text}`} style={{ fontFamily: 'Georgia, serif' }}>{organization?.name}</h2>
+              <h2 className={`text-2xl font-bold ${tc.text}`} style={{ fontFamily: 'Georgia, serif' }}>{organization?.name}</h2>
             </div>
             {/* Content */}
             <div className="p-6">
-              <h3 className={`text-base font-bold ${tc.text} text-center mb-4`} style={{ fontFamily: 'Georgia, serif' }}>{viewingWaiver.name}</h3>
+              <h3 className={`text-xl font-bold ${tc.text} text-center mb-4`} style={{ fontFamily: 'Georgia, serif' }}>{viewingWaiver.name}</h3>
               {viewingWaiver.pdf_url?.toLowerCase().endsWith('.pdf') && (
                 <div className={`mb-4 rounded-lg overflow-hidden border ${tc.border}`}>
                   <iframe src={viewingWaiver.pdf_url} className="w-full" style={{ height: '450px' }} title="Waiver" />
@@ -1219,7 +1219,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
                 <img src={viewingWaiver.pdf_url} alt="Waiver" className={`w-full rounded-lg border ${tc.border} mb-4`} />
               )}
               {viewingWaiver.content && (
-                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-sm`} style={{ fontFamily: 'Georgia, serif' }}>
+                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-lg`} style={{ fontFamily: 'Georgia, serif' }}>
                   {viewingWaiver.content}
                 </div>
               )}
@@ -1241,8 +1241,8 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
               <div className="flex items-center gap-3">
                 {organization?.logo_url && <img src={organization.logo_url} alt="" className="h-10 w-10 object-contain" />}
                 <div>
-                  <h2 className={`text-lg font-bold ${tc.text}`}>{signingWaiver.name}</h2>
-                  <p className={`text-xs ${tc.textMuted}`}>{organization?.name} • v{signingWaiver.version || 1}</p>
+                  <h2 className={`text-2xl font-bold ${tc.text}`}>{signingWaiver.name}</h2>
+                  <p className={`text-base ${tc.textMuted}`}>{organization?.name} • v{signingWaiver.version || 1}</p>
                 </div>
               </div>
               <button onClick={() => setSigningWaiver(null)} className={`text-lg ${tc.textMuted} hover:${isDark ? 'text-white' : 'text-slate-800'}`}>×</button>
@@ -1259,7 +1259,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
                 <img src={signingWaiver.pdf_url} alt="Waiver" className={`w-full rounded-lg border ${tc.border} mb-4`} />
               )}
               {signingWaiver.content && (
-                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-sm`}>
+                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-lg`}>
                   {signingWaiver.content}
                 </div>
               )}
@@ -1274,7 +1274,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
               <label className={`flex items-start gap-3 cursor-pointer mb-5 p-4 rounded-xl border ${tc.border} ${isDark ? 'bg-slate-800/50' : 'bg-white'}`}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
                   className="w-5 h-5 mt-0.5 rounded accent-current shrink-0" style={{ accentColor: teamColor }} />
-                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed`}>
+                <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed`}>
                   I, the undersigned parent/guardian of <strong>{player.first_name} {player.last_name}</strong>, have read and agree to the terms outlined above. 
                   By checking this box, I am providing my electronic signature.
                 </p>
@@ -1282,9 +1282,9 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
 
               {/* Name Input */}
               <div className="mb-4">
-                <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-1.5`}>Full Legal Name</label>
+                <label className={`block text-base font-bold uppercase tracking-wider ${tc.textMuted} mb-1.5`}>Full Legal Name</label>
                 <input value={signerName} onChange={e => setSignerName(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border ${tc.border} text-sm ${tc.text} ${isDark ? 'bg-slate-700' : 'bg-white'} focus:ring-2 focus:outline-none`}
+                  className={`w-full px-4 py-3 rounded-xl border ${tc.border} text-lg ${tc.text} ${isDark ? 'bg-slate-700' : 'bg-white'} focus:ring-2 focus:outline-none`}
                   style={{ focusRingColor: teamColor }}
                   placeholder="Enter your full name as your electronic signature" />
               </div>
@@ -1292,7 +1292,7 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
               {/* Preview of what will be recorded */}
               {agreed && signerName.trim() && (
                 <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'} border`}>
-                  <p className={`text-[11px] ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                  <p className={`text-sm ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                     ✅ This will be recorded as: <strong>{signerName.trim()}</strong> electronically signed "{signingWaiver.name}" for {player.first_name} {player.last_name} on{' '}
                     {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at{' '}
                     {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
@@ -1303,11 +1303,11 @@ function WaiversTab({ player, organization, tc, isDark, showToast, teamColor }) 
               {/* Submit */}
               <div className="flex justify-end gap-3">
                 <button onClick={() => setSigningWaiver(null)}
-                  className={`px-5 py-2.5 rounded-xl border ${tc.border} ${tc.text} font-medium text-sm`}>
+                  className={`px-5 py-2.5 rounded-xl border ${tc.border} ${tc.text} font-medium text-lg`}>
                   Cancel
                 </button>
                 <button onClick={handleSign} disabled={!agreed || !signerName.trim() || submitting}
-                  className="px-6 py-2.5 rounded-xl text-white font-bold text-sm disabled:opacity-40 transition"
+                  className="px-6 py-2.5 rounded-xl text-white font-bold text-lg disabled:opacity-40 transition"
                   style={{ backgroundColor: teamColor }}>
                   {submitting ? 'Signing...' : '✍️ Sign Waiver'}
                 </button>
