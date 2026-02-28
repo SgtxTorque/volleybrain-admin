@@ -201,6 +201,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     if (teamId) loadTeamData()
   }, [teamId])
 
+  // Load shoutout digest after roster is available (needs player names)
+  useEffect(() => {
+    if (roster.length > 0 && teamId) {
+      loadShoutoutDigest()
+    }
+  }, [roster, teamId])
+
   async function loadTeamData() {
     setLoading(true)
     try {
@@ -257,7 +264,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       }
 
       await loadPosts(1, true)
-      loadShoutoutDigest()
 
       try {
         const challenges = await fetchActiveChallenges(teamId)
@@ -358,34 +364,44 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     try {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-      const { data: recentShoutouts } = await supabase
+      // Simple query — no joins (the players:receiver_id join causes 400 errors)
+      const { data: recentShoutouts, error } = await supabase
         .from('shoutouts')
-        .select('id, receiver_id, category, message, created_at, giver_id, players:receiver_id(first_name, last_name, photo_url)')
+        .select('id, receiver_id, category, message, created_at, giver_id')
         .eq('team_id', teamId)
         .gte('created_at', sevenDaysAgo)
         .order('created_at', { ascending: false })
+
+      if (error) {
+        console.log('Shoutout digest query error:', error)
+        setShoutoutDigest({ recent: [], total: 0, lastShoutoutDate: null })
+        return
+      }
 
       if (!recentShoutouts || recentShoutouts.length === 0) {
         setShoutoutDigest({ recent: [], total: 0, lastShoutoutDate: null })
         return
       }
 
-      // Group by receiver
+      // Group by receiver — use the already-loaded roster state for names
       const byReceiver = new Map()
       for (const s of recentShoutouts) {
         const rid = s.receiver_id
         if (!byReceiver.has(rid)) {
+          const player = roster.find(p => p.id === rid)
           byReceiver.set(rid, {
             receiverId: rid,
-            name: s.players ? `${s.players.first_name} ${s.players.last_name}` : 'Player',
-            photo: s.players?.photo_url || null,
+            name: player ? `${player.first_name} ${player.last_name}` : 'Player',
+            photo: player?.photo_url || null,
             count: 0,
             categories: [],
           })
         }
         const entry = byReceiver.get(rid)
         entry.count++
-        if (!entry.categories.includes(s.category)) entry.categories.push(s.category)
+        if (s.category && !entry.categories.includes(s.category)) {
+          entry.categories.push(s.category)
+        }
       }
 
       // Sort by count descending
@@ -398,6 +414,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       })
     } catch (err) {
       console.log('Could not load shoutout digest:', err)
+      setShoutoutDigest({ recent: [], total: 0, lastShoutoutDate: null })
     }
   }
 
