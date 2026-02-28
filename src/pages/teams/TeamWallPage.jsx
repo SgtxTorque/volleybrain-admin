@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
@@ -187,11 +187,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const isAdminOrCoach = profile?.role === 'admin' || profile?.role === 'coach'
   const canPost = isAdminOrCoach || profile?.role === 'parent'
 
-  const galleryImages = useMemo(() => {
-    return posts
-      .filter(p => p.media_urls?.length > 0)
-      .flatMap(p => Array.isArray(p.media_urls) ? p.media_urls : [])
-  }, [posts])
+  const [galleryImages, setGalleryImages] = useState([])
 
   // ═══════════════════════════════════════════════════════════
   // DATA LOADING
@@ -266,6 +262,22 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       await loadPosts(1, true)
 
       try {
+        const { data: photoPosts } = await supabase
+          .from('team_posts')
+          .select('media_urls')
+          .eq('team_id', teamId)
+          .eq('is_published', true)
+          .not('media_urls', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(20)
+        const images = (photoPosts || [])
+          .flatMap(p => Array.isArray(p.media_urls) ? p.media_urls : [])
+        setGalleryImages(images)
+      } catch (err) {
+        console.log('Could not load gallery:', err)
+      }
+
+      try {
         const challenges = await fetchActiveChallenges(teamId)
         setActiveChallenges(challenges)
       } catch (err) {
@@ -337,6 +349,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         .select('*, profiles:author_id(id, full_name, avatar_url)')
         .eq('team_id', teamId)
         .eq('is_published', true)
+        .neq('post_type', 'shoutout')
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .range(from, to)
@@ -349,6 +362,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           .select('*')
           .eq('team_id', teamId)
           .eq('is_published', true)
+          .neq('post_type', 'shoutout')
           .order('is_pinned', { ascending: false })
           .order('created_at', { ascending: false })
           .range(from, to)
@@ -557,7 +571,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       </div>
 
       {/* ═══ 3-COLUMN GRID ═══ */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-8" style={{ maxWidth: 1520, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
 
         {/* ═══════════════════════════════════════════════════ */}
         {/* LEFT COLUMN — Team Identity (Static, No Scroll)   */}
@@ -796,7 +810,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
         <main ref={centerRef} onScroll={handleCenterScroll}
           className="overflow-y-auto tw-hide-scrollbar"
           style={{ height: '100%' }}>
-          <div className="px-3 lg:px-4 py-5 flex flex-col gap-5">
+          <div className="px-4 lg:px-6 py-5 flex flex-col gap-5">
 
             {/* ─── Create Post Bar ─── */}
             {canPost && (
@@ -943,10 +957,9 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
 
             {/* ─── Post Feed ─── */}
             {(() => {
-              const feedPosts = posts.filter(p => p.post_type !== 'shoutout')
-              return feedPosts.length > 0 ? (
+              return posts.length > 0 ? (
               <div className="flex flex-col" style={{ gap: '17px' }}>
-                {feedPosts.map((post, i) => (
+                {posts.map((post, i) => (
                   <FeedPost key={post.id} post={post} g={g} gb={gb} i={i} isDark={isDark}
                     isAdminOrCoach={isAdminOrCoach}
                     currentUserId={user?.id}
