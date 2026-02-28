@@ -276,19 +276,20 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       }
 
       try {
-        const { data: games } = await supabase
-          .from('games')
-          .select('team_score, opponent_score, status, date')
+        const { data: completedGames } = await supabase
+          .from('schedule_events')
+          .select('game_result, our_score, opponent_score, event_date')
           .eq('team_id', teamId)
-          .eq('status', 'completed')
-          .order('date', { ascending: false })
-        if (games) {
+          .eq('event_type', 'game')
+          .eq('game_status', 'completed')
+          .order('event_date', { ascending: false })
+        if (completedGames) {
           let wins = 0, losses = 0
           const recentForm = []
-          games.forEach((g, i) => {
-            const won = (g.team_score || 0) > (g.opponent_score || 0)
-            if (won) wins++; else losses++
-            if (i < 5) recentForm.push(won ? 'win' : 'loss')
+          completedGames.forEach((g, i) => {
+            if (g.game_result === 'win') wins++
+            else if (g.game_result === 'loss') losses++
+            if (i < 5) recentForm.push(g.game_result || 'loss')
           })
           setGameRecord({ wins, losses, recentForm })
         }
