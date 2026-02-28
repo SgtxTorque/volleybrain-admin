@@ -26,7 +26,7 @@ export default function CoachLeftSidebar({
   const sportName = selectedTeam?.seasons?.sports?.name || 'Volleyball'
 
   return (
-    <aside className={`w-[240px] shrink-0 ${isDark ? 'bg-lynx-midnight' : 'bg-white'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className={`w-[240px] shrink-0 ${isDark ? 'bg-lynx-midnight border-r border-lynx-border-dark' : 'bg-white border-r border-lynx-silver/50'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {/* Team Header */}
       <div>
         <div className="flex items-center gap-3">
