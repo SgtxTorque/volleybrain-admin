@@ -1,12 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { X, Image as ImageIcon, Smile } from 'lucide-react'
 
 // ═══════════════════════════════════════════════════════════
-// NEW POST MODAL
+// NEW POST MODAL — Facebook-style create post
 // ═══════════════════════════════════════════════════════════
 function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToast, canPin = false }) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   const [postType, setPostType] = useState('announcement')
   const [title, setTitle] = useState('')
@@ -14,15 +15,35 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   const [isPinned, setIsPinned] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [drag, setDrag] = useState(false)
-  const [mediaFiles, setMediaFiles] = useState([]) // actual File objects
-  const [mediaPreviews, setMediaPreviews] = useState([]) // preview URLs
-  const [uploadProgress, setUploadProgress] = useState(null) // 'Uploading 1/3...'
-  const fr = useRef(null)
+  const [mediaFiles, setMediaFiles] = useState([])
+  const [mediaPreviews, setMediaPreviews] = useState([])
+  const [uploadProgress, setUploadProgress] = useState(null)
+  const fileRef = useRef(null)
+  const textareaRef = useRef(null)
 
-  const inp = {
-    background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)',
-    border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)',
-    borderRadius: 16,
+  // Auto-expand textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = Math.max(80, textareaRef.current.scrollHeight) + 'px'
+    }
+  }, [content])
+
+  // Auto-select Photo type when photos attached
+  useEffect(() => {
+    if (mediaPreviews.length > 0 && postType !== 'photo') {
+      setPostType('photo')
+    }
+  }, [mediaPreviews.length])
+
+  const showTitle = postType !== 'photo' && postType !== 'text'
+
+  function handleBackdropClick() {
+    if (content.trim() || mediaPreviews.length > 0) {
+      if (window.confirm('Discard this post?')) onClose()
+    } else {
+      onClose()
+    }
   }
 
   function addFiles(files) {
@@ -75,7 +96,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
   }
 
   async function handleSubmit() {
-    if (!content.trim()) return
+    if (!content.trim() && mediaFiles.length === 0) return
     setSubmitting(true)
     try {
       const mediaUrls = await uploadMedia()
@@ -83,14 +104,14 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       const insertPayload = {
         team_id: teamId,
         author_id: user?.id,
-        title: title.trim() || null,
-        content: content.trim(),
+        title: showTitle && title.trim() ? title.trim() : null,
+        content: content.trim() || null,
         post_type: postType,
         is_pinned: isPinned,
         is_published: true,
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
       }
-      const { data: insertData, error } = await supabase.from('team_posts').insert(insertPayload).select()
+      const { error } = await supabase.from('team_posts').insert(insertPayload).select()
       if (error) throw error
       showToast?.('Post created!', 'success')
       onSuccess()
@@ -101,89 +122,226 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
     setSubmitting(false)
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 tw-ai" style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div className="w-full max-w-lg overflow-hidden tw-as shadow-2xl"
-        style={{ background: isDark ? 'rgba(15,23,42,.95)' : 'rgba(255,255,255,.95)', border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRadius: 28 }}
-        onClick={e => e.stopPropagation()}>
+  const canPublish = content.trim() || mediaFiles.length > 0
 
-        <div className="flex items-center justify-between p-6" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <h2 className="text-lg font-bold uppercase tracking-wider" style={{ color: g }}>CREATE POST</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-xl flex items-center justify-center transition text-lg"
-            style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>✕</button>
+  // Photo preview grid (Facebook-style)
+  function renderPhotoGrid() {
+    const count = mediaPreviews.length
+    if (count === 0) return null
+
+    if (count === 1) {
+      return (
+        <div className="relative rounded-xl overflow-hidden group">
+          <img src={mediaPreviews[0].url} alt="" className="w-full h-auto block" />
+          <button onClick={(e) => { e.stopPropagation(); removeFile(0) }}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center transition opacity-0 group-hover:opacity-100">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )
+    }
+
+    if (count === 2) {
+      return (
+        <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+          {mediaPreviews.map((p, i) => (
+            <div key={i} className="relative aspect-square group">
+              <img src={p.url} alt="" className="w-full h-full object-cover" />
+              <button onClick={(e) => { e.stopPropagation(); removeFile(i) }}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center transition opacity-0 group-hover:opacity-100">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    // 3+ photos: show first 4, +N overlay on last if more
+    const showCount = Math.min(count, 4)
+    const remaining = count - showCount
+
+    return (
+      <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+        {mediaPreviews.slice(0, showCount).map((p, i) => (
+          <div key={i} className="relative aspect-square group">
+            <img src={p.url} alt="" className="w-full h-full object-cover" />
+            <button onClick={(e) => { e.stopPropagation(); removeFile(i) }}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center transition opacity-0 group-hover:opacity-100 z-10">
+              <X className="w-4 h-4" />
+            </button>
+            {i === showCount - 1 && remaining > 0 && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">+{remaining}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 tw-ai"
+      style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }}
+      onClick={handleBackdropClick}
+    >
+      <div
+        className="w-full max-w-lg overflow-hidden tw-as shadow-2xl"
+        style={{
+          background: isDark ? 'rgba(15,23,42,.97)' : 'rgba(255,255,255,.98)',
+          border: isDark ? '1px solid rgba(255,255,255,.1)' : '1px solid rgba(0,0,0,.08)',
+          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: 16,
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)' }}>
+          <h2 className="text-base font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Create Post</h2>
+          <button
+            onClick={handleBackdropClick}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition"
+            style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)' }}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto tw-nos">
-          <div className="flex flex-wrap gap-2">
-            {[['announcement', '📢 ANNOUNCEMENT'], ['game_recap', '🏐 GAME RECAP'], ['shoutout', '⭐ SHOUTOUT'], ['milestone', '🏆 MILESTONE'], ['photo', '📷 PHOTO']].map(([k, l]) => (
-              <button key={k} onClick={() => setPostType(k)} className="px-3.5 py-2 rounded-xl text-[10px] font-bold font-bold uppercase tracking-wider transition" style={{
-                background: postType === k ? `${g}18` : (isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)'),
-                color: postType === k ? g : (isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)'),
-                border: `1px solid ${postType === k ? `${g}30` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)')}`
-              }}>{l}</button>
-            ))}
+        <div className="max-h-[65vh] overflow-y-auto tw-nos">
+          {/* User info */}
+          <div className="px-5 pt-4 pb-2 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden flex-shrink-0"
+              style={{ background: `linear-gradient(135deg, ${g}, ${gb || g})`, color: '#fff' }}>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                profile?.full_name?.charAt(0) || '?'
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                {profile?.full_name || 'You'}
+              </p>
+              <span className="text-[11px] px-1.5 py-0.5 rounded"
+                style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>
+                Team Post
+              </span>
+            </div>
           </div>
 
-          <input type="text" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)}
-            className="w-full px-5 py-3 text-sm focus:outline-none" style={{ ...inp, color: isDark ? 'white' : '#333' }} />
-
-          <textarea placeholder="Share with the team…" value={content} onChange={e => setContent(e.target.value)} rows={4}
-            className="w-full px-5 py-3 text-sm focus:outline-none resize-none" style={{ ...inp, color: isDark ? 'white' : '#333' }} />
-
-          <div
-            onDragEnter={e => { e.preventDefault(); setDrag(true) }}
-            onDragLeave={e => { e.preventDefault(); setDrag(false) }}
-            onDragOver={e => e.preventDefault()}
-            onDrop={e => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer?.files || []) }}
-            onClick={() => fr.current?.click()}
-            className="border-2 border-dashed p-5 text-center cursor-pointer transition"
-            style={{ borderColor: drag ? `${g}40` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'), background: drag ? `${g}05` : 'transparent', borderRadius: 20 }}>
-            <input ref={fr} type="file" accept="image/*,video/*" multiple className="hidden"
-              onChange={e => { addFiles(e.target.files || []); e.target.value = '' }} />
-            <p className="text-2xl mb-1 opacity-20">📸</p>
-            <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.15)' }}>DROP FILES OR CLICK</p>
-          </div>
-
-          {/* Image previews */}
-          {mediaPreviews.length > 0 && (
-            <div className="space-y-2">
-              {mediaPreviews.map((preview, i) => (
-                <div key={i} className="relative rounded-xl overflow-hidden group">
-                  {preview.type.startsWith('image/') ? (
-                    <img src={preview.url} alt="" className="w-full h-auto block" />
-                  ) : (
-                    <div className="w-full py-8 flex items-center justify-center rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.04)' }}>
-                      <span className="text-lg">🎬</span>
-                    </div>
-                  )}
-                  <button onClick={(e) => { e.stopPropagation(); removeFile(i) }}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
-                    ✕
-                  </button>
-                </div>
-              ))}
+          {/* Title field (conditional) */}
+          {showTitle && (
+            <div className="px-5 pt-2">
+              <input
+                type="text"
+                placeholder="Title (optional)"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                className="w-full px-0 py-2 text-sm font-semibold bg-transparent focus:outline-none"
+                style={{
+                  color: isDark ? 'white' : '#1a1a1a',
+                  borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)',
+                }}
+              />
             </div>
           )}
 
+          {/* Auto-expanding textarea */}
+          <div className="px-5 pt-2 pb-1">
+            <textarea
+              ref={textareaRef}
+              placeholder="What's on your mind?"
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              className="w-full bg-transparent focus:outline-none resize-none text-[15px] leading-relaxed"
+              style={{
+                color: isDark ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.85)',
+                minHeight: 80,
+              }}
+            />
+          </div>
+
+          {/* Photo preview grid */}
+          {mediaPreviews.length > 0 && (
+            <div className="px-5 pb-3">
+              {renderPhotoGrid()}
+            </div>
+          )}
+
+          {/* Drag-drop zone (show when no photos yet, or always as add-more area) */}
+          <div className="px-5 pb-3">
+            <div
+              onDragEnter={e => { e.preventDefault(); setDrag(true) }}
+              onDragLeave={e => { e.preventDefault(); setDrag(false) }}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer?.files || []) }}
+              onClick={() => fileRef.current?.click()}
+              className="rounded-xl p-4 text-center cursor-pointer transition flex items-center justify-center gap-3"
+              style={{
+                border: drag ? `2px solid ${g}` : (isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)'),
+                background: drag ? `${g}08` : (isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'),
+                borderRadius: 12,
+              }}
+            >
+              <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
+                onChange={e => { addFiles(e.target.files || []); e.target.value = '' }} />
+              <ImageIcon className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.2)' }} />
+              <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
+                {mediaPreviews.length > 0 ? 'Add more photos' : 'Add photos or drag & drop'}
+              </p>
+            </div>
+          </div>
+
+          {/* Post type selector */}
+          <div className="px-5 pb-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)' }}>
+              Post Type
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[['announcement', '📢 Announcement'], ['game_recap', '🏐 Game Recap'], ['shoutout', '⭐ Shoutout'], ['milestone', '🏆 Milestone'], ['photo', '📷 Photo']].map(([k, l]) => (
+                <button key={k} onClick={() => setPostType(k)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                  style={{
+                    background: postType === k ? `${g}18` : (isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'),
+                    color: postType === k ? g : (isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)'),
+                    border: `1px solid ${postType === k ? `${g}30` : 'transparent'}`,
+                  }}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Pin option */}
           {canPin && (
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)} className="accent-indigo-500 rounded" />
-              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>📌 PIN TO TOP</span>
-            </label>
+            <div className="px-5 pb-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)}
+                  className="rounded" style={{ accentColor: g }} />
+                <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)' }}>
+                  📌 Pin to top of feed
+                </span>
+              </label>
+            </div>
           )}
         </div>
 
-        <div className="p-6 flex gap-3" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)' }}>
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl text-[10px] font-bold font-bold uppercase tracking-wider transition"
-            style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)', color: isDark ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.3)' }}>
-            CANCEL
-          </button>
-          <button onClick={handleSubmit} disabled={!content.trim() || submitting}
-            className="flex-1 py-3 rounded-xl text-[10px] font-bold font-bold uppercase tracking-wider transition hover:brightness-110 disabled:opacity-25"
-            style={{ background: `linear-gradient(135deg,${gb},${g})`, color: '#0f172a', boxShadow: `0 4px 16px ${g}30` }}>
-            {submitting ? (uploadProgress || 'POSTING...') : 'PUBLISH'}
+        {/* Footer — Publish button */}
+        <div className="px-5 py-4" style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)' }}>
+          <button
+            onClick={handleSubmit}
+            disabled={!canPublish || submitting}
+            className="w-full py-3 rounded-xl text-sm font-bold transition hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{
+              background: canPublish ? `linear-gradient(135deg, ${gb || g}, ${g})` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'),
+              color: canPublish ? '#fff' : (isDark ? 'rgba(255,255,255,.2)' : 'rgba(0,0,0,.25)'),
+              boxShadow: canPublish ? `0 4px 16px ${g}30` : 'none',
+            }}
+          >
+            {submitting ? (uploadProgress || 'Publishing...') : 'Publish'}
           </button>
         </div>
       </div>

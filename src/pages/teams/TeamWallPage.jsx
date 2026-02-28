@@ -11,7 +11,7 @@ import {
 } from '../../constants/icons'
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
-import { PhotoGallery, Lightbox } from '../../components/teams/PhotoGallery'
+import { PhotoGallery } from '../../components/teams/PhotoGallery'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import ChallengeCard, { parseChallengeMetadata } from '../../components/engagement/ChallengeCard'
 import CreateChallengeModal from '../../components/engagement/CreateChallengeModal'

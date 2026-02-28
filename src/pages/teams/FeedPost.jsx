@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { MoreVertical, Trash2, Edit, MessageCircle, Share2 } from '../../constants/icons'
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
-import { Lightbox } from '../../components/teams/PhotoGallery'
+import PhotoLightbox from '../../components/common/PhotoLightbox'
 import ShoutoutCard, { parseShoutoutMetadata } from '../../components/engagement/ShoutoutCard'
 
 // ═══════════════════════════════════════════════════════════
-// FEED POST — Social media card with cheer animation
+// FEED POST — Social media card with Facebook-style photo grid
 // ═══════════════════════════════════════════════════════════
 function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCountChange, onDelete, onTogglePin, onEdit, isAdminOrCoach, currentUserId }) {
   const isPinned = post.is_pinned
@@ -64,6 +64,114 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   const typeIcon = {
     announcement: '📢', game_recap: '🏐', shoutout: '⭐', milestone: '🏆', photo: '📷', challenge: '🏆',
   }[postType] || '📝'
+
+  // ═══ FACEBOOK-STYLE PHOTO GRID ═══
+  function renderPhotoGrid() {
+    const count = mediaUrls.length
+    if (count === 0) return null
+
+    // Single image — full width, natural aspect ratio
+    if (count === 1) {
+      return (
+        <div className="px-4 pb-4">
+          <div
+            className="rounded-xl overflow-hidden cursor-pointer hover:brightness-95 transition"
+            onClick={() => setLightboxIdx(0)}
+          >
+            <img src={mediaUrls[0]} alt="" className="w-full h-auto block" />
+          </div>
+        </div>
+      )
+    }
+
+    // Two images — side by side, equal height
+    if (count === 2) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+            {mediaUrls.map((url, idx) => (
+              <div
+                key={idx}
+                className="aspect-square cursor-pointer hover:brightness-95 transition"
+                onClick={() => setLightboxIdx(idx)}
+              >
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // Three images — 1 large left, 2 stacked right
+    if (count === 3) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden" style={{ height: 320 }}>
+            <div
+              className="row-span-2 cursor-pointer hover:brightness-95 transition"
+              onClick={() => setLightboxIdx(0)}
+            >
+              <img src={mediaUrls[0]} alt="" className="w-full h-full object-cover" />
+            </div>
+            <div
+              className="cursor-pointer hover:brightness-95 transition"
+              onClick={() => setLightboxIdx(1)}
+            >
+              <img src={mediaUrls[1]} alt="" className="w-full h-full object-cover" />
+            </div>
+            <div
+              className="cursor-pointer hover:brightness-95 transition"
+              onClick={() => setLightboxIdx(2)}
+            >
+              <img src={mediaUrls[2]} alt="" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Four images — 2x2 grid
+    if (count === 4) {
+      return (
+        <div className="px-4 pb-4">
+          <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+            {mediaUrls.map((url, idx) => (
+              <div
+                key={idx}
+                className="aspect-square cursor-pointer hover:brightness-95 transition"
+                onClick={() => setLightboxIdx(idx)}
+              >
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    // Five+ images — 2x2 grid, last cell has +N overlay
+    return (
+      <div className="px-4 pb-4">
+        <div className="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+          {mediaUrls.slice(0, 4).map((url, idx) => (
+            <div
+              key={idx}
+              className="aspect-square cursor-pointer hover:brightness-95 transition relative"
+              onClick={() => setLightboxIdx(idx)}
+            >
+              <img src={url} alt="" className="w-full h-full object-cover" />
+              {idx === 3 && count > 4 && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white text-2xl font-bold">+{count - 4}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <article className={`tw-glass overflow-hidden tw-ac ${accentClass}`} style={{ animationDelay: `${.1 + i * .05}s` }}>
@@ -149,25 +257,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
       </div>
 
-      {/* Media — Cinematic with Lightbox */}
-      {mediaUrls.length > 0 && (
-        <div className="px-4 pb-4">
-          <div className={`grid ${mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
-            {mediaUrls.map((url, idx) => (
-              <div key={idx} onClick={() => setLightboxIdx(idx)}
-                className="rounded-xl overflow-hidden cursor-pointer">
-                <img src={url} alt="" className="w-full h-auto block" />
-              </div>
-            ))}
-          </div>
-          {lightboxIdx !== null && (
-            <Lightbox images={mediaUrls} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
-          )}
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="px-6 pb-4">
+      {/* Content — before photos like Facebook */}
+      <div className="px-6 pb-3">
         {shoutoutMeta ? (
           <ShoutoutCard
             metadataJson={post.title}
@@ -194,10 +285,24 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             {post.title && !titleIsJson && (
               <h3 className="font-bold text-[16px] font-semibold uppercase tracking-wide mb-1.5" style={{ color: isDark ? 'white' : '#1a1a1a' }}>{post.title}</h3>
             )}
-            <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+            {post.content && (
+              <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+            )}
           </>
         )}
       </div>
+
+      {/* Media — Facebook-style photo grid */}
+      {renderPhotoGrid()}
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <PhotoLightbox
+          photos={mediaUrls}
+          initialIndex={lightboxIdx}
+          onClose={() => setLightboxIdx(null)}
+        />
+      )}
 
       {/* Interaction Bar — Cheers + Comments + Share */}
       <div className="px-6 pb-6">
