@@ -10,7 +10,7 @@ import {
   Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
   ChevronRight, MoreHorizontal, TrendingUp, CreditCard, Play,
   CheckCircle, Clock, AlertCircle, Star, MapPin, LayoutDashboard,
-  Filter, ChevronDown
+  Filter, ChevronDown, MessageSquare, UsersRound
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
@@ -919,6 +919,7 @@ export function DashboardPage({ onNavigate }) {
   const [teamsData, setTeamsData] = useState([])
   const [teamStats, setTeamStats] = useState({})
   const [recentPaymentsNamed, setRecentPaymentsNamed] = useState([])
+  const [topPlayers, setTopPlayers] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Reset team filter when season changes
@@ -1052,16 +1053,15 @@ export function DashboardPage({ onNavigate }) {
       let eventsQuery = supabase
         .from('schedule_events')
         .select('*, teams(name, color)')
+        .eq('season_id', seasonId)
         .gte('event_date', today)
         .order('event_date', { ascending: true })
         .order('event_time', { ascending: true })
         .limit(10)
 
-      // Filter by teams in this season OR org-wide events (team_id is null)
-      if (teamIds.length > 0) {
-        eventsQuery = eventsQuery.or(`team_id.in.(${teamIds.join(',')}),team_id.is.null`)
-      } else {
-        eventsQuery = eventsQuery.is('team_id', null)
+      // Filter by specific team if selected, otherwise show all season events
+      if (filterTeam !== 'all') {
+        eventsQuery = eventsQuery.or(`team_id.eq.${filterTeam},team_id.is.null`)
       }
 
       const { data: events } = await eventsQuery
@@ -1076,6 +1076,16 @@ export function DashboardPage({ onNavigate }) {
           new Date(`2000-01-01T${nextGameEvent.event_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
         nextGame = `${days[gameDate.getDay()]}, ${time}`
       }
+
+      // Fetch top 10 players by total points for leaderboard
+      const { data: leaderboardData } = await supabase
+        .from('player_season_stats')
+        .select('*, player:players(id, first_name, last_name, jersey_number, photo_url, position), team:teams(id, name, color)')
+        .eq('season_id', seasonId)
+        .gt('games_played', 0)
+        .order('total_points', { ascending: false })
+        .limit(10)
+      setTopPlayers(leaderboardData || [])
 
       // Fetch recent activity (real data from multiple sources)
       const recentActivity = []
@@ -1360,7 +1370,7 @@ export function DashboardPage({ onNavigate }) {
         />
       }
       rightSidebar={
-        <LiveActivity activities={activities} />
+        <LiveActivity activities={activities} upcomingEvents={upcomingEvents} topPlayers={topPlayers} onNavigate={onNavigate} />
       }
     >
       {/* Dashboard Heading */}
@@ -1450,27 +1460,30 @@ export function DashboardPage({ onNavigate }) {
         <PaymentSummaryCard stats={stats} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
       </div>
 
-      {/* Upcoming Events */}
-      <div className="w-[calc(50%-12px)]">
-        <UpcomingEventsCard events={upcomingEvents} onNavigate={onNavigate} />
+      {/* Quick Navigation Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          { icon: MessageSquare, label: 'Chat', page: 'chats', color: isDark ? 'text-sky-400' : 'text-sky-600', bg: isDark ? 'bg-sky-500/15' : 'bg-sky-50' },
+          { icon: Users, label: 'Teams & Rosters', page: 'teams', color: isDark ? 'text-teal-400' : 'text-teal-600', bg: isDark ? 'bg-teal-500/15' : 'bg-teal-50' },
+          { icon: Calendar, label: 'Calendar', page: 'schedule', color: isDark ? 'text-amber-400' : 'text-amber-600', bg: isDark ? 'bg-amber-500/15' : 'bg-amber-50' },
+          { icon: UsersRound, label: 'Families', page: 'registrations', color: isDark ? 'text-purple-400' : 'text-purple-600', bg: isDark ? 'bg-purple-500/15' : 'bg-purple-50' },
+        ].map(({ icon: Icon, label, page, color, bg }) => (
+          <button
+            key={page}
+            onClick={() => onNavigate(page)}
+            className={`flex flex-col items-center gap-3 rounded-xl p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${
+              isDark
+                ? 'bg-lynx-charcoal border border-white/[0.06]'
+                : 'bg-white border border-lynx-silver/50'
+            }`}
+          >
+            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bg}`}>
+              <Icon className={`h-6 w-6 ${color}`} />
+            </div>
+            <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{label}</span>
+          </button>
+        ))}
       </div>
-
-      {/* Team Snapshot */}
-      <TeamSnapshot teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
-
-      {/* Journey Progress */}
-      <JourneyTimeline onNavigate={onNavigate} />
-
-      {/* Existing Widgets — preserved below v0 sections */}
-      <FinancialOverview monthlyData={monthlyPayments} totalCollected={stats.totalCollected} />
-
-      <div className="grid grid-cols-2 gap-6">
-        <SeasonCard season={selectedSeason} stats={stats} onNavigate={onNavigate} />
-        <OverduePayments stats={stats} onNavigate={onNavigate} />
-      </div>
-
-      {/* Customizable Widget Grid */}
-      <DashboardGrid role="admin" />
     </DashboardLayout>
   )
 }
