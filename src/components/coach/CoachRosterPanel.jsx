@@ -1,30 +1,6 @@
 import { Calendar, ChevronRight, Users, Star, Trophy } from '../../constants/icons'
 import { useTheme } from '../../contexts/ThemeContext'
-
-function formatTime12(timeStr) {
-  if (!timeStr) return ''
-  try {
-    const [hours, minutes] = timeStr.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const hour12 = hour % 12 || 12
-    return hour12 + ':' + minutes + ' ' + ampm
-  } catch {
-    return timeStr
-  }
-}
-
-function countdownText(dateStr) {
-  if (!dateStr) return ''
-  const now = new Date()
-  const target = new Date(dateStr + 'T00:00:00')
-  const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return 'TODAY'
-  if (diff === 1) return 'TOMORROW'
-  if (diff < 0) return `${Math.abs(diff)}d ago`
-  if (diff <= 7) return `${diff}d`
-  return `${Math.ceil(diff / 7)}w`
-}
+import { formatTime12, countdownText } from '../../lib/date-helpers'
 
 /**
  * CoachRosterPanel — Right sidebar (300px)
