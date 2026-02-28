@@ -21,7 +21,9 @@ const DEFAULTS = {
 }
 
 export function OrgBrandingProvider({ children }) {
-  const { organization } = useAuth()
+  const auth = useAuth()
+  if (!auth) return children
+  const { organization } = auth
 
   const branding = useMemo(() => {
     const settings = organization?.settings || {}
