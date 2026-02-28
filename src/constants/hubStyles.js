@@ -54,14 +54,14 @@ export const HUB_STYLES = `
   /* ── Post Cards (invisible at rest, hover-only) ── */
   .tw-post-card{
     background:transparent;
-    border:none;
+    border:1px solid transparent;
     border-radius:16px;
     transition:all 250ms;
     overflow:hidden
   }
   .tw-post-card:hover{
     background:rgba(255,255,255,.03);
-    border:1px solid rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.08);
     box-shadow:0 8px 24px rgba(0,0,0,.3);
     transform:translateY(-2px)
   }
@@ -86,7 +86,7 @@ export const HUB_STYLES = `
 
   .tw-light .tw-post-card{
     background:transparent;
-    border:none;
+    border-color:transparent;
     box-shadow:none
   }
   .tw-light .tw-post-card:hover{

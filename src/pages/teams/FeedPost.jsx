@@ -6,6 +6,62 @@ import PhotoLightbox from '../../components/common/PhotoLightbox'
 import ShoutoutCard, { parseShoutoutMetadata } from '../../components/engagement/ShoutoutCard'
 
 // ═══════════════════════════════════════════════════════════
+// TEXT FORMATTING — Simple markdown-like rendering
+// ═══════════════════════════════════════════════════════════
+function formatPostText(text) {
+  if (!text) return ''
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/__(.*?)__/g, '<u>$1</u>')
+    .replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:16px">• $1</span>')
+    .replace(/\n/g, '<br/>')
+}
+
+function TextContent({ content, isDark }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!content) return null
+
+  const lines = content.split('\n')
+  const isLong = lines.length > 5 || content.length > 300
+
+  let fontSize = 18
+  if (content.length > 100) fontSize = 16
+  if (content.length > 200) fontSize = 15
+  if (content.length > 400) fontSize = 14
+
+  const displayContent = (!expanded && isLong)
+    ? lines.slice(0, 5).join('\n') + (lines.length > 5 ? '...' : '')
+    : content
+
+  return (
+    <div>
+      <p style={{
+        fontSize,
+        fontWeight: 400,
+        lineHeight: 1.6,
+        color: isDark ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.85)',
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word',
+      }}
+        dangerouslySetInnerHTML={{ __html: formatPostText(displayContent) }}
+      />
+      {isLong && !expanded && (
+        <button
+          onClick={() => setExpanded(true)}
+          style={{ color: '#4BB9EC', fontSize: 14, fontWeight: 600, marginTop: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          ...more
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════
 // FEED POST — Social media card with Facebook-style photo grid
 // ═══════════════════════════════════════════════════════════
 function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCountChange, onDelete, onTogglePin, onEdit, isAdminOrCoach, currentUserId }) {
@@ -34,6 +90,13 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
   const milestoneMeta = (postType === 'milestone' && titleIsJson) ? (() => {
     try { return JSON.parse(post.title) } catch { return null }
   })() : null
+
+  // Layout conditionals
+  const hasMedia = mediaUrls.length > 0
+  const isShoutout = postType === 'shoutout' && !!shoutoutMeta
+  const isMilestone = postType === 'milestone' && !!milestoneMeta
+  const isTextOnly = !hasMedia && !isShoutout && !isMilestone
+
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const [localReactionCount, setLocalReactionCount] = useState(post.reaction_count || 0)
   const [showComments, setShowComments] = useState(false)
@@ -260,16 +323,67 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         </div>
       </div>
 
-      {/* Media — Facebook-style photo grid */}
-      {renderPhotoGrid()}
+      {/* ── Photo posts: Photos → Lightbox → Caption ── */}
+      {hasMedia && renderPhotoGrid()}
 
-      {/* Lightbox */}
       {lightboxIdx !== null && (
         <PhotoLightbox
           photos={mediaUrls}
           initialIndex={lightboxIdx}
           onClose={() => setLightboxIdx(null)}
         />
+      )}
+
+      {/* ── Shoutout card (above interaction) ── */}
+      {isShoutout && (
+        <div className="px-6 pb-3">
+          <ShoutoutCard
+            metadataJson={post.title}
+            giverName={post.profiles?.full_name || 'Someone'}
+            createdAt={post.created_at}
+            isDark={isDark}
+          />
+        </div>
+      )}
+
+      {/* ── Milestone card (above interaction) ── */}
+      {isMilestone && (
+        <div className="px-6 pb-3">
+          <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${milestoneMeta.tierColor || milestoneMeta.achievementColor || g}`, background: `${milestoneMeta.tierColor || g}08` }}>
+            <div className="h-1" style={{ background: milestoneMeta.tierColor || g }} />
+            <div className="p-5 flex flex-col items-center gap-2.5">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-bold uppercase tracking-wider"
+                style={{ background: `${milestoneMeta.tierColor || g}20`, color: milestoneMeta.tierColor || g }}>
+                {milestoneMeta.type === 'level_up' ? '⬆️' : '🏆'} {milestoneMeta.type === 'level_up' ? 'Level Up' : 'Achievement'}
+              </div>
+              <span className="text-5xl my-1">{milestoneMeta.achievementIcon || '🏆'}</span>
+              <p className="text-[17px] font-medium text-center leading-relaxed" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+                {post.content}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Text-only posts: styled card with truncation ── */}
+      {isTextOnly && (
+        <div className="px-6 pb-3">
+          <div style={{
+            background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'}`,
+            borderRadius: 12,
+            padding: '16px 20px',
+          }}>
+            <TextContent content={post.content} isDark={isDark} />
+          </div>
+        </div>
+      )}
+
+      {/* ── Photo caption (below photos, above interaction) ── */}
+      {hasMedia && !isShoutout && !isMilestone && post.content && (
+        <div className="px-6 pb-3">
+          <p className="text-[16px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
+        </div>
       )}
 
       {/* Interaction Bar — Cheers + Comments + Share */}
@@ -303,38 +417,6 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             <Share2 className="w-4 h-4" /> SHARE
           </button>
         </div>
-      </div>
-
-      {/* Content/Caption — below interaction bar (Instagram layout) */}
-      <div className="px-6 pb-3">
-        {shoutoutMeta ? (
-          <ShoutoutCard
-            metadataJson={post.title}
-            giverName={post.profiles?.full_name || 'Someone'}
-            createdAt={post.created_at}
-            isDark={isDark}
-          />
-        ) : milestoneMeta ? (
-          <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${milestoneMeta.tierColor || milestoneMeta.achievementColor || g}`, background: `${milestoneMeta.tierColor || g}08` }}>
-            <div className="h-1" style={{ background: milestoneMeta.tierColor || g }} />
-            <div className="p-5 flex flex-col items-center gap-2.5">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-bold uppercase tracking-wider"
-                style={{ background: `${milestoneMeta.tierColor || g}20`, color: milestoneMeta.tierColor || g }}>
-                {milestoneMeta.type === 'level_up' ? '⬆️' : '🏆'} {milestoneMeta.type === 'level_up' ? 'Level Up' : 'Achievement'}
-              </div>
-              <span className="text-5xl my-1">{milestoneMeta.achievementIcon || '🏆'}</span>
-              <p className="text-[17px] font-medium text-center leading-relaxed" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
-                {post.content}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {post.content && (
-              <p className="text-[16px] leading-relaxed whitespace-pre-wrap" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }}>{post.content}</p>
-            )}
-          </>
-        )}
       </div>
 
       {/* Comments (toggled by MessageCircle button) */}
