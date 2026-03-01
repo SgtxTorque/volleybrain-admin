@@ -14,6 +14,7 @@ import GameCard from './GameCard'
 import GamePrepCompletionModal from './GamePrepCompletionModal'
 import { computeCheckpoints, getCurrentCheckpoint } from '../../lib/gameCheckpoints'
 import GameJourneyPanel from './GameJourneyPanel'
+import QuickAttendanceModal from './QuickAttendanceModal'
 
 // Tactical font loading (shared with GameDayCommandCenter)
 const GP_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
@@ -74,6 +75,7 @@ function GamePrepPage({ showToast }) {
   const [showGameDetail, setShowGameDetail] = useState(false)
   const [showGameDayMode, setShowGameDayMode] = useState(false)
   const [showJourneyPanel, setShowJourneyPanel] = useState(false)
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false)
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
 
@@ -591,6 +593,16 @@ function GamePrepPage({ showToast }) {
         />
       )}
 
+      {showAttendanceModal && selectedGame && selectedTeam && (
+        <QuickAttendanceModal
+          event={selectedGame}
+          roster={roster}
+          onClose={() => { setShowAttendanceModal(false); loadGames() }}
+          onSave={() => loadGames()}
+          showToast={showToast}
+        />
+      )}
+
       {showJourneyPanel && selectedGame && selectedTeam && (() => {
         const cp = getGameCheckpoints(selectedGame)
         const cur = getCurrentCheckpoint(cp)
@@ -607,7 +619,7 @@ function GamePrepPage({ showToast }) {
             onOpenStats={() => setShowStatsModal(true)}
             onOpenGameDay={() => { setShowJourneyPanel(false); setShowGameDayMode(true) }}
             onOpenDetail={() => setShowGameDetail(true)}
-            onOpenAttendance={() => {}}
+            onOpenAttendance={() => setShowAttendanceModal(true)}
             onOpenQuickScore={() => setShowGameCompletion(true)}
             showToast={showToast}
           />
