@@ -580,7 +580,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                           label: sc.skillLabels?.[s] || s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' '),
                           value: skills[s] || 0,
                         }))}
-                        maxValue={5}
+                        maxValue={10}
                         size={240}
                         color="#4BB9EC"
                         isDark={isDark}
@@ -755,7 +755,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                     if (!s) return []
                     return Object.entries(s).filter(([, v]) => v != null).map(([k, v]) => ({
                       label: k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '),
-                      value: typeof v === 'number' ? (v <= 5 ? v : v / 20) : 0,
+                      value: typeof v === 'number' ? (v <= 10 ? v : v / 10) : 0,
                     }))
                   }
                   const latestData = parseSkills(latest)
@@ -765,7 +765,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                       <SpiderChart
                         data={latestData}
                         compareData={earliestData.length === latestData.length ? earliestData : undefined}
-                        maxValue={5}
+                        maxValue={10}
                         size={280}
                         color="#4BB9EC"
                         compareColor="#94A3B8"
@@ -796,10 +796,10 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                       const s = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
                       const chartData = s ? Object.entries(s).filter(([, v]) => v != null).map(([k, v]) => ({
                         label: k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '),
-                        value: typeof v === 'number' ? (v <= 5 ? v : v / 20) : 0,
+                        value: typeof v === 'number' ? (v <= 10 ? v : v / 10) : 0,
                       })) : []
                       return chartData.length >= 3 ? (
-                        <SpiderChart data={chartData} maxValue={5} size={260} color="#4BB9EC" isDark={isDark} />
+                        <SpiderChart data={chartData} maxValue={10} size={260} color="#4BB9EC" isDark={isDark} />
                       ) : null
                     })()}
                     <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
@@ -899,7 +899,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                             {(ev.evaluation_type || 'eval').replace(/_/g, ' ')}
                           </span>
                           {ev.overall_score != null && (
-                            <span className="text-sm font-bold text-lynx-sky">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/5</span>
+                            <span className="text-sm font-bold text-lynx-sky">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/10</span>
                           )}
                         </div>
                       </div>

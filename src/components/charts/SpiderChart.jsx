@@ -41,7 +41,8 @@ export default function SpiderChart({
   }
 
   const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
-  const rings = Array.from({ length: maxValue }, (_, i) => i + 1)
+  const ringLevels = Array.from({ length: 5 }, (_, i) => ((i + 1) / 5) * maxValue)
+  const rings = ringLevels
 
   return (
     <svg width={size} height={size} className="mx-auto">

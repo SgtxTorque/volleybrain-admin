@@ -807,7 +807,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
                       const jerseyNum = p.jersey_number ?? p.player?.jersey_number
                       const position = p.player?.position || p.positions?.primary_position
                       const overallRating = p.skills?.overall_rating
-                      const ratingPct = overallRating ? Math.min((overallRating / 5) * 100, 100) : 0
+                      const ratingPct = overallRating ? Math.min((overallRating / 10) * 100, 100) : 0
                       const isCaptain = p.positions?.is_captain || p.positions?.is_co_captain
 
                       return (
@@ -891,7 +891,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
                                 <div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
                                   <div className="h-full rounded-full bg-lynx-sky transition-all" style={{ width: `${ratingPct}%` }} />
                                 </div>
-                                <span className={`text-xs font-bold ${primaryText}`}>{overallRating}/5</span>
+                                <span className={`text-xs font-bold ${primaryText}`}>{overallRating}/10</span>
                               </div>
                             ) : (
                               <span className={`text-xs ${secondaryText}`}>No eval</span>
@@ -1068,7 +1068,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
             {evalPrevious && (
               <div className={`rounded-xl p-4 mb-5 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver'}`}>
                 <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${secondaryText}`}>
-                  Previous: {evalPrevious.evaluation_type?.replace(/_/g, ' ')} · {evalPrevious.evaluation_date} · Overall: {evalPrevious.overall_score}/5
+                  Previous: {evalPrevious.evaluation_type?.replace(/_/g, ' ')} · {evalPrevious.evaluation_date} · Overall: {evalPrevious.overall_score}/10
                 </p>
                 {evalPrevSkills && (
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -1095,9 +1095,9 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
                   <div key={skillKey} className="flex items-center gap-3">
                     <span className={`w-28 text-sm font-medium ${primaryText}`}>{skillLabel}</span>
                     <div className="flex gap-1.5">
-                      {[1, 2, 3, 4, 5].map(n => (
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                         <button key={n} onClick={() => setEvalRatings(prev => ({ ...prev, [skillKey]: n }))}
-                          className={`w-9 h-9 rounded-full text-sm font-bold transition ${n <= currentVal
+                          className={`w-8 h-8 rounded-full text-xs font-bold transition ${n <= currentVal
                             ? 'bg-lynx-sky text-white'
                             : isDark ? 'bg-white/[0.06] text-slate-500 hover:bg-white/10' : 'bg-lynx-cloud text-lynx-slate hover:bg-slate-200'
                           }`}>
@@ -1121,7 +1121,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
             {/* Overall Score */}
             <div className={`rounded-xl p-3 mb-5 ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
               <p className={`text-sm ${secondaryText}`}>
-                Overall: <span className={`text-lg font-bold ${primaryText}`}>{evalOverall}</span>{evalOverall !== '—' && ' / 5'}
+                Overall: <span className={`text-lg font-bold ${primaryText}`}>{evalOverall}</span>{evalOverall !== '—' && ' / 10'}
               </p>
             </div>
 

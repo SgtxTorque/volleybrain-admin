@@ -278,7 +278,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
             {[
               { label: 'GAMES', value: gamesPlayed },
               { label: 'KILLS', value: topStat },
-              { label: 'RATING', value: skillRating?.overall_rating ? `${skillRating.overall_rating}/5` : '—' },
+              { label: 'RATING', value: skillRating?.overall_rating ? `${skillRating.overall_rating}/10` : '—' },
               { label: 'ATTEND', value: attendance != null ? `${attendance}%` : '—' },
               { label: 'XP', value: `Lv.${xpLevel}` },
             ].map(s => (
@@ -338,7 +338,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                       <h4 className={`text-xs uppercase tracking-wider font-semibold mb-3 ${secondaryText}`}>Skill Ratings</h4>
                       {spiderData.some(d => d.value > 0) ? (
                         <SpiderChart data={spiderData} compareData={compareSpiderData}
-                          maxValue={5} size={240} color="#4BB9EC" isDark={isDark} />
+                          maxValue={10} size={240} color="#4BB9EC" isDark={isDark} />
                       ) : (
                         <div className="flex flex-col items-center py-6">
                           <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
@@ -512,7 +512,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                           const skills = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
                           return CORE_SKILLS.map(k => ({ label: SKILL_LABELS[k], value: skills?.[k] || 0 }))
                         })()}
-                        maxValue={5} size={240} color="#4BB9EC" compareColor="#94A3B8" isDark={isDark}
+                        maxValue={10} size={240} color="#4BB9EC" compareColor="#94A3B8" isDark={isDark}
                       />
                       <p className={`text-[10px] text-center mt-2 ${secondaryText}`}>
                         <span className="text-lynx-sky font-semibold">Solid</span> = Latest · <span style={{ color: '#94A3B8' }} className="font-semibold">Dashed</span> = Earliest
@@ -534,7 +534,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                               </span>
                               <span className={`text-xs ${secondaryText}`}>{ev.evaluation_date}</span>
                             </div>
-                            <span className={`text-sm font-bold ${primaryText}`}>{ev.overall_score}/5</span>
+                            <span className={`text-sm font-bold ${primaryText}`}>{ev.overall_score}/10</span>
                           </div>
                           {skills && (
                             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
