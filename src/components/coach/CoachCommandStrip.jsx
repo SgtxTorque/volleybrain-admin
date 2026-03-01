@@ -52,14 +52,32 @@ export default function CoachCommandStrip({
   }
 
   // === Tile 1: Game Prep ===
-  const gamePrepValue = nextGame
-    ? (nextGame.opponent_name || 'Game')
-    : 'No games'
+  let gamePrepValue = 'No games'
+  let gamePrepDetail = ''
   let gamePrepStatus = STATUS.noData
   if (nextGame) {
     const allGood = lineupSetForNextGame && rsvpPercentNextGame >= 80 && lastGameStatsEntered
     const gameDate = new Date(nextGame.event_date + 'T00:00:00')
-    const hoursUntil = (gameDate - new Date()) / (1000 * 60 * 60)
+    const now = new Date()
+    const hoursUntil = (gameDate - now) / (1000 * 60 * 60)
+    const daysUntil = Math.ceil(hoursUntil / 24)
+
+    gamePrepValue = nextGame.opponent_name || 'Game'
+
+    // Countdown nudge
+    if (gameDate.toDateString() === now.toDateString()) {
+      gamePrepDetail = 'TODAY'
+    } else if (daysUntil === 1) {
+      gamePrepDetail = 'TOMORROW'
+    } else if (daysUntil <= 3) {
+      gamePrepDetail = `in ${daysUntil} days`
+    }
+
+    // Lineup warning
+    if (!lineupSetForNextGame && daysUntil <= 3) {
+      gamePrepDetail += gamePrepDetail ? ' · No lineup' : 'No lineup set'
+    }
+
     if (allGood) {
       gamePrepStatus = STATUS.healthy
     } else if (hoursUntil < 24 && hoursUntil > 0) {
@@ -112,11 +130,11 @@ export default function CoachCommandStrip({
   }
 
   const tiles = [
-    { icon: Swords, label: 'Game Prep', value: gamePrepValue, status: gamePrepStatus, action: () => onNavigate?.('gameprep') },
+    { icon: Swords, label: 'Game Prep', value: gamePrepValue, detail: gamePrepDetail, status: gamePrepStatus, action: () => onNavigate?.('gameprep') },
     { icon: ClipboardCheck, label: 'Attendance', value: attendanceValue, status: attendanceStatus, action: () => onNavigate?.('attendance') },
     { icon: Heart, label: 'Engagement', value: engagementValue, status: engagementStatus, action: () => onNavigate?.('teams') },
     { icon: Users, label: 'Roster', value: rosterValue, status: rosterStatus, action: () => onNavigate?.('teams') },
-    { icon: BarChart3, label: 'Stats', value: statsValue, status: statsStatus, action: () => onNavigate?.('gameprep') },
+    { icon: BarChart3, label: 'Stats', value: statsValue, detail: pendingStats > 0 ? `${pendingStats} need scores` : '', status: statsStatus, action: () => onNavigate?.('gameprep') },
     { icon: ClipboardList, label: 'Lineups', value: lineupsValue, status: lineupsStatus, action: () => onNavigate?.('gameprep') },
   ]
 
@@ -133,6 +151,9 @@ export default function CoachCommandStrip({
             >
               <Icon className="w-5 h-5 mx-auto mb-1 text-lynx-sky" />
               <p className={`text-lg font-bold ${primaryText} truncate`}>{tile.value}</p>
+              {tile.detail && (
+                <p className="text-[10px] font-bold text-amber-500 truncate">{tile.detail}</p>
+              )}
               <p className={`text-[10px] uppercase tracking-wider font-bold ${secondaryText}`}>{tile.label}</p>
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider mt-1.5 ${tile.status.pillClasses}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${tile.status.dotColor}`} />

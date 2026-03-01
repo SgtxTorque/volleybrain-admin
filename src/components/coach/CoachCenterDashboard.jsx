@@ -300,6 +300,24 @@ export default function CoachCenterDashboard({
         </div>
       </div>
 
+      {/* Games Need Scores Banner */}
+      {pendingStats > 0 && (
+        <button
+          onClick={() => onNavigate?.('gameprep')}
+          className={`w-full flex items-center justify-between p-3 rounded-xl border transition ${
+            isDark ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/15' : 'bg-amber-50 border-amber-300 hover:bg-amber-100'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📊</span>
+            <span className={`text-sm font-semibold ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+              {pendingStats} game{pendingStats > 1 ? 's' : ''} need stats entered
+            </span>
+          </div>
+          <span className="text-xs font-semibold text-lynx-sky">Go to Game Prep →</span>
+        </button>
+      )}
+
       {/* Row 2: Coach Command Strip (V2.1 — rolling health tiles) */}
       <CoachCommandStrip
         nextGame={nextGame}

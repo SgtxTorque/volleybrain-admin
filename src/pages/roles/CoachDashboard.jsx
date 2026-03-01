@@ -783,7 +783,15 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         lineupsSet={lineupsSet}
         upcomingGamesCount={upcomingGamesCount}
         // V2.1 Workflow Button badges
-        gameDayBadge={nextGame && checklistState && !checklistState.lineupSet ? 1 : 0}
+        gameDayBadge={(() => {
+          const now = new Date()
+          const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
+          return upcomingEvents.filter(e => {
+            if (e.event_type !== 'game' || e.game_status === 'completed') return false
+            const d = new Date(e.event_date + 'T00:00:00')
+            return d.toDateString() === now.toDateString() || d.toDateString() === tomorrow.toDateString()
+          }).length
+        })()}
         practiceBadge={upcomingEvents.filter(e => {
           if (e.event_type === 'game') return false
           const r = rsvpCounts[e.id]
