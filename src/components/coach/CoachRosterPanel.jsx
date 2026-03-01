@@ -22,7 +22,7 @@ export default function CoachRosterPanel({
 }) {
   const { isDark } = useTheme()
   const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
-  const secondaryText = isDark ? 'text-slate-400' : 'text-slate-500'
+  const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
 
   return (
     <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-l border-lynx-border-dark' : 'bg-white border-l border-lynx-silver/50'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -44,11 +44,11 @@ export default function CoachRosterPanel({
             <div className="text-[10px] uppercase font-bold text-slate-400">Losses</div>
           </div>
         </div>
-        <p className="text-xs text-center text-slate-400">{winRate || 0}% win rate</p>
+        <p className={`text-xs text-center ${secondaryText}`}>{winRate || 0}% win rate</p>
         {/* Recent Form */}
         {teamRecord?.recentForm?.length > 0 && (
           <div className={`mt-3 pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Recent Form</p>
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${secondaryText} mb-2`}>Recent Form</p>
             <div className="flex gap-1.5 justify-center">
               {teamRecord.recentForm.map((g, i) => (
                 <div

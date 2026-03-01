@@ -342,8 +342,8 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       })
       setTeamRecord({ wins, losses, recentForm })
 
-      const { data: needsStats } = await supabase.from('schedule_events').select('id', { count: 'exact', head: true }).eq('team_id', team.id).eq('event_type', 'game').eq('game_status', 'completed').eq('stats_entered', false)
-      setPendingStats(needsStats || 0)
+      const { count: needsStatsCount } = await supabase.from('schedule_events').select('*', { count: 'exact', head: true }).eq('team_id', team.id).eq('event_type', 'game').eq('game_status', 'completed').eq('stats_entered', false)
+      setPendingStats(needsStatsCount || 0)
 
       const playerIds = rosterData.map(p => p.id)
       if (playerIds.length > 0 && selectedSeason?.id) {
