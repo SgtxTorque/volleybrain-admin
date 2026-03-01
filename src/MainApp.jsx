@@ -88,6 +88,9 @@ import { MyProfilePage } from './pages/profile/MyProfilePage'
 // Archives
 import { SeasonArchivePage } from './pages/archives'
 
+// Roster Manager
+import RosterManagerPage from './pages/roster/RosterManagerPage'
+
 // ============================================
 // NAV DROPDOWN COMPONENT
 // ============================================
@@ -549,14 +552,15 @@ function HorizontalNavBar({
   // Coach navigation (slimmed: Dashboard | My Teams | Schedule | Game Day | Communication | My Stuff)
   const coachNavGroups = [
     { id: 'dashboard', label: 'Dashboard', type: 'single' },
-    { id: 'myteams', label: 'My Teams', type: 'dropdown', items:
-      roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
+    { id: 'myteams', label: 'My Teams', type: 'dropdown', items: [
+      { id: 'roster', label: 'Roster Manager', icon: 'users' },
+      ...(roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
         id: `teamwall-${tc_item.team_id}`,
         label: tc_item.teams?.name + (tc_item.role === 'head' ? ' ⭐' : ''),
         icon: 'users',
         teamId: tc_item.team_id,
-      })) || []
-    },
+      })) || [])
+    ]},
     { id: 'schedule', label: 'Schedule', type: 'single' },
     { id: 'gameday', label: 'Game Day', type: 'dropdown', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
@@ -914,6 +918,9 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/messages" element={<ParentMessagesPage roleContext={roleContext} showToast={showToast} />} />
       <Route path="/invite" element={<InviteFriendsPage roleContext={roleContext} showToast={showToast} />} />
       <Route path="/my-stuff" element={<MyStuffPage roleContext={roleContext} showToast={showToast} />} />
+
+      {/* Roster Manager */}
+      <Route path="/roster" element={<RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
 
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />

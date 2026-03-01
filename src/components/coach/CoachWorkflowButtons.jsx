@@ -17,7 +17,7 @@ export default function CoachWorkflowButtons({
   const buttons = [
     { icon: Swords, label: 'Game Day', badge: gameDayBadge || 0, onClick: () => onNavigate?.('gameprep') },
     { icon: ClipboardCheck, label: 'Practice', badge: practiceBadge || 0, onClick: () => onNavigate?.('schedule') },
-    { icon: Users, label: 'Roster', badge: rosterBadge || 0, onClick: () => onNavigate?.('teams') },
+    { icon: Users, label: 'Roster', badge: rosterBadge || 0, onClick: () => onNavigate?.('roster') },
     { icon: Calendar, label: 'Schedule', badge: scheduleBadge || 0, onClick: () => onNavigate?.('schedule') },
   ]
 

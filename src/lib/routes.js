@@ -17,6 +17,9 @@ export const ROUTES = {
   'payments': '/payments',
   'coach-availability': '/schedule/availability',
 
+  // Roster
+  'roster': '/roster',
+
   // Game Day
   'gameprep': '/gameprep',
   'standings': '/standings',
@@ -113,6 +116,7 @@ export const PAGE_TITLES = {
   '/schedule/availability': 'Coach Availability',
   '/attendance': 'Attendance & RSVP',
   '/payments': 'Payments',
+  '/roster': 'Roster Manager',
   '/gameprep': 'Game Prep',
   '/standings': 'Standings',
   '/leaderboards': 'Leaderboards',
