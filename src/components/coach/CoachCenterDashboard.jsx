@@ -273,7 +273,7 @@ export default function CoachCenterDashboard({
               <div className="grid grid-cols-4 gap-2 flex-1">
                 {seasonTotals.slice(0, 4).map(stat => (
                   <div key={stat.label} className={`text-center py-2 px-1 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
-                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
                     <p className={`text-[10px] uppercase tracking-wide font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</p>
                   </div>
                 ))}
@@ -281,7 +281,7 @@ export default function CoachCenterDashboard({
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {seasonTotals.slice(4).map(stat => (
                   <div key={stat.label} className={`text-center py-2 px-1 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
-                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                    <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
                     <p className={`text-[10px] uppercase tracking-wide font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</p>
                   </div>
                 ))}

@@ -250,7 +250,7 @@ function TopPerformerCard({ topPlayers, topPlayerTrend, roster, isDark }) {
           </div>
         )}
         <div className="min-w-0">
-          <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>
+          <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>
             {player.first_name} {player.last_name?.[0]}.
           </p>
           <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
@@ -266,7 +266,7 @@ function TopPerformerCard({ topPlayers, topPlayerTrend, roster, isDark }) {
           { label: 'Points', value: pts, trend: topPlayerTrend?.points },
         ].map(s => (
           <div key={s.label} className={`text-center p-2 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
-            <p className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{s.value}</p>
+            <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{s.value}</p>
             <p className={`text-[10px] uppercase font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{s.label}</p>
             <TrendArrow value={s.trend} />
           </div>
@@ -307,7 +307,7 @@ function StatLeadersCard({ leaders, isDark }) {
           const pct = Math.round((leader.value / maxVal) * 100)
           return (
             <div key={cat} className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase w-12 text-right ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <span className={`text-xs font-semibold uppercase w-12 text-right ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 {cat}
               </span>
               <div className="flex-1 flex items-center gap-2">
@@ -317,7 +317,7 @@ function StatLeadersCard({ leaders, isDark }) {
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <span className={`text-xs font-bold w-8 text-right ${isDark ? 'text-white' : 'text-slate-900'}`}>{leader.value}</span>
+                <span className={`text-sm font-bold w-8 text-right ${isDark ? 'text-white' : 'text-slate-900'}`}>{leader.value}</span>
               </div>
               <span className={`text-[10px] w-16 truncate ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{leader.name}</span>
             </div>

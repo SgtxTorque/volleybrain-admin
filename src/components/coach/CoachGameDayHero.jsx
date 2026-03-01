@@ -65,7 +65,7 @@ export default function CoachGameDayHero({
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(10,27,51,0.92), rgba(16,40,76,0.85), rgba(10,27,51,0.95))' }} />
         <div className="relative z-10 p-5 flex flex-col h-full">
           {/* Label */}
-          <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90 self-start">
+          <span className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-widest bg-white/20 text-white/90 self-start">
             {isToday ? 'GAME DAY' : 'Next Game Day'}
           </span>
 
@@ -80,23 +80,23 @@ export default function CoachGameDayHero({
                   {selectedTeam?.name?.charAt(0)}
                 </div>
               )}
-              <p className="text-white/80 text-xs font-semibold mt-1.5 max-w-[100px] truncate">{selectedTeam?.name}</p>
+              <p className="text-white/80 text-sm font-bold mt-1.5 max-w-[100px] truncate">{selectedTeam?.name}</p>
             </div>
             <div className="text-center">
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-wider">VS</p>
             </div>
             <div className="text-center">
-              <div className="w-14 h-14 rounded-xl mx-auto flex items-center justify-center bg-white/10 border-2 border-white/20 text-xl">
+              <div className="w-14 h-14 rounded-xl mx-auto flex items-center justify-center bg-slate-700/80 border-2 border-white/20 text-xl">
                 🏐
               </div>
-              <p className="text-white/80 text-xs font-semibold mt-1.5 max-w-[100px] truncate">{nextGame.opponent_name || 'TBD'}</p>
+              <p className="text-white/80 text-sm font-bold mt-1.5 max-w-[100px] truncate">{nextGame.opponent_name || 'TBD'}</p>
             </div>
           </div>
 
           {/* Live Countdown */}
           {liveCountdown && (
             <div className="flex justify-center mb-3">
-              <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+              <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold ${
                 isToday ? 'bg-red-500/30 text-red-200 border border-red-400/30'
                   : isTomorrow ? 'bg-amber-500/30 text-amber-200 border border-amber-400/30'
                   : 'bg-white/15 text-white/80'
@@ -156,7 +156,7 @@ export default function CoachGameDayHero({
       >
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(10,27,51,0.90), rgba(16,40,76,0.85))' }} />
         <div className="relative z-10 p-5 flex flex-col h-full">
-          <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90 self-start">
+          <span className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-widest bg-white/20 text-white/90 self-start">
             {countdownText(nextEvent.event_date) === 'TODAY' ? 'Practice Today' : 'Next Practice'}
           </span>
 
