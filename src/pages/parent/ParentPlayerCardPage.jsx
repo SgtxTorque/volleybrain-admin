@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import SpiderChart from '../../components/charts/SpiderChart'
+import { Target, TrendingUp } from 'lucide-react'
 
 // ============================================
 // MULTI-SPORT DISPLAY CONFIG
@@ -237,7 +239,7 @@ function SkillBar({ label, value, maxValue = 100, isDark }) {
     <div className="flex items-center gap-3">
       <span className={`text-base uppercase w-20 font-semibold truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{displayLabel}</span>
       <div className={`flex-1 h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
-        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: '#F59E0B' }} />
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: '#4BB9EC' }} />
       </div>
       <span className={`text-lg font-bold w-8 text-right ${isDark ? 'text-white' : 'text-slate-900'}`}>{value || 0}</span>
     </div>
@@ -321,12 +323,15 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   const [badgesInProgress, setBadgesInProgress] = useState([])
   const [skills, setSkills] = useState(null)
   const [sportName, setSportName] = useState('volleyball')
+  const [evalHistory, setEvalHistory] = useState([])
+  const [coachFeedback, setCoachFeedback] = useState([])
+  const [playerGoals, setPlayerGoals] = useState([])
 
   useEffect(() => { if (playerId) loadAllData() }, [playerId])
 
   async function loadAllData() {
     setLoading(true)
-    try { await Promise.all([loadPlayerData(), loadBadges(), loadRecentGames(), loadSkills()]) }
+    try { await Promise.all([loadPlayerData(), loadBadges(), loadRecentGames(), loadSkills(), loadDevelopmentData()]) }
     catch (err) { console.error('Error loading player card data:', err) }
     setLoading(false)
   }
@@ -369,6 +374,38 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   async function loadSkills() {
     try { const { data } = await supabase.from('player_skills').select('*').eq('player_id', playerId).order('created_at', { ascending: false }).limit(1).single(); setSkills(data || null) }
     catch { setSkills(null) }
+  }
+
+  async function loadDevelopmentData() {
+    try {
+      // Evaluation history
+      const { data: evals } = await supabase
+        .from('player_evaluations')
+        .select('evaluation_date, evaluation_type, overall_score, skills')
+        .eq('player_id', playerId)
+        .order('evaluation_date', { ascending: true })
+      setEvalHistory(evals || [])
+
+      // Coach feedback (only non-private notes)
+      const { data: feedback } = await supabase
+        .from('player_coach_notes')
+        .select('note, note_type, created_at')
+        .eq('player_id', playerId)
+        .eq('is_private', false)
+        .order('created_at', { ascending: false })
+        .limit(10)
+      setCoachFeedback(feedback || [])
+
+      // Player goals
+      const { data: goals } = await supabase
+        .from('player_goals')
+        .select('*')
+        .eq('player_id', playerId)
+        .order('created_at', { ascending: false })
+      setPlayerGoals(goals || [])
+    } catch (err) {
+      console.error('Error loading development data:', err)
+    }
   }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" /></div>
@@ -431,6 +468,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'stats', label: 'Stats' },
+    { id: 'development', label: 'Development' },
     { id: 'badges', label: 'Badges' },
     { id: 'games', label: 'Games' },
   ]
@@ -514,11 +552,31 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-4">
                 <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
-                  <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Skills</h4>
+                  <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Power Levels</h4>
                   {skills && sc.skills.some(s => skills[s] != null) ? (
-                    <div className="space-y-3">{sc.skills.map(s => <SkillBar key={s} label={s} value={getSkillValue(skills[s])} isDark={isDark} />)}</div>
+                    <div className="space-y-4">
+                      <SpiderChart
+                        data={sc.skills.map(s => ({
+                          label: s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' '),
+                          value: getSkillValue(skills[s]) / 20,
+                        }))}
+                        maxValue={5}
+                        size={240}
+                        color="#4BB9EC"
+                        isDark={isDark}
+                      />
+                      <div className="space-y-3">
+                        {sc.skills.map(s => <SkillBar key={s} label={s} value={getSkillValue(skills[s])} isDark={isDark} />)}
+                      </div>
+                    </div>
                   ) : (
-                    <p className={`text-lg text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No skill ratings yet</p>
+                    <div className="flex flex-col items-center py-6 text-center">
+                      <div className={`w-16 h-16 rounded-xl flex items-center justify-center mb-3 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+                        <Target className="w-8 h-8 text-lynx-sky" />
+                      </div>
+                      <p className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>Power Levels</p>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Your coach hasn't rated skills yet</p>
+                    </div>
                   )}
                 </div>
                 <div className={`rounded-xl p-4 ${tc.cardBgAlt}`}>
@@ -660,6 +718,177 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                   {trends.map(t => <MiniBarChart key={t.key} data={t.data} color={t.color} label={t.label} isDark={isDark} />)}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ═══ DEVELOPMENT ═══ */}
+          {activeTab === 'development' && (
+            <div className="space-y-6">
+              {/* Skill Progression — spider chart comparison */}
+              <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
+                <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Skill Progression</h4>
+                {evalHistory.length >= 2 ? (() => {
+                  const earliest = evalHistory[0]
+                  const latest = evalHistory[evalHistory.length - 1]
+                  const parseSkills = (ev) => {
+                    const s = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
+                    if (!s) return []
+                    return Object.entries(s).filter(([, v]) => v != null).map(([k, v]) => ({
+                      label: k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '),
+                      value: typeof v === 'number' ? (v <= 5 ? v : v / 20) : 0,
+                    }))
+                  }
+                  const latestData = parseSkills(latest)
+                  const earliestData = parseSkills(earliest)
+                  return latestData.length >= 3 ? (
+                    <div className="flex flex-col items-center">
+                      <SpiderChart
+                        data={latestData}
+                        compareData={earliestData.length === latestData.length ? earliestData : undefined}
+                        maxValue={5}
+                        size={280}
+                        color="#4BB9EC"
+                        compareColor="#94A3B8"
+                        isDark={isDark}
+                      />
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-4 h-0.5 bg-lynx-sky rounded" />
+                          <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            Latest ({new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-4 h-0.5 bg-slate-400 rounded" style={{ borderBottom: '2px dashed #94A3B8' }} />
+                          <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            First ({new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className={`text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Not enough skill data to chart</p>
+                  )
+                })() : evalHistory.length === 1 ? (
+                  <div className="flex flex-col items-center">
+                    {(() => {
+                      const ev = evalHistory[0]
+                      const s = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
+                      const chartData = s ? Object.entries(s).filter(([, v]) => v != null).map(([k, v]) => ({
+                        label: k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '),
+                        value: typeof v === 'number' ? (v <= 5 ? v : v / 20) : 0,
+                      })) : []
+                      return chartData.length >= 3 ? (
+                        <SpiderChart data={chartData} maxValue={5} size={260} color="#4BB9EC" isDark={isDark} />
+                      ) : null
+                    })()}
+                    <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+                      One evaluation so far. Comparison will show after the next evaluation.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center py-6 text-center">
+                    <div className={`w-16 h-16 rounded-xl flex items-center justify-center mb-3 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+                      <TrendingUp className="w-8 h-8 text-lynx-sky" />
+                    </div>
+                    <p className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>No evaluations yet</p>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Skill progression will appear once your coach evaluates skills.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Coach Feedback — non-private notes only */}
+              <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
+                <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Coach Feedback</h4>
+                {coachFeedback.length > 0 ? (
+                  <div className="space-y-3">
+                    {coachFeedback.map((note, i) => (
+                      <div key={i} className={`p-3 rounded-lg border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase ${
+                            note.note_type === 'skill' ? 'bg-lynx-sky/10 text-lynx-sky'
+                            : note.note_type === 'behavior' ? 'bg-purple-500/10 text-purple-500'
+                            : 'bg-slate-500/10 text-slate-500'
+                          }`}>{note.note_type}</span>
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {note.created_at ? new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                          </span>
+                        </div>
+                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{note.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={`text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No coach feedback shared yet</p>
+                )}
+              </div>
+
+              {/* Goals */}
+              <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
+                <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Goals</h4>
+                {playerGoals.length > 0 ? (
+                  <div className="space-y-3">
+                    {playerGoals.map((goal, i) => {
+                      const progress = goal.current_value && goal.target_value ? Math.min((goal.current_value / goal.target_value) * 100, 100) : 0
+                      return (
+                        <div key={i} className={`p-3 rounded-lg border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{goal.title}</span>
+                            {goal.status === 'completed' && <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-bold">DONE</span>}
+                          </div>
+                          {goal.target_value && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                                <div className="h-full rounded-full bg-lynx-sky transition-all" style={{ width: `${progress}%` }} />
+                              </div>
+                              <span className={`text-xs font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                {goal.current_value || 0}/{goal.target_value}
+                              </span>
+                            </div>
+                          )}
+                          {goal.target_date && (
+                            <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                              Target: {new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className={`text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No goals set yet</p>
+                )}
+              </div>
+
+              {/* Season Journey — evaluation timeline */}
+              <div className={`rounded-xl p-5 ${tc.cardBgAlt}`}>
+                <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Season Journey</h4>
+                {evalHistory.length > 0 ? (
+                  <div className="relative pl-6">
+                    <div className={`absolute left-2 top-1 bottom-1 w-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                    {evalHistory.map((ev, i) => (
+                      <div key={i} className="relative mb-4 last:mb-0">
+                        <div className={`absolute -left-4 top-1 w-3 h-3 rounded-full border-2 ${
+                          i === evalHistory.length - 1 ? 'bg-lynx-sky border-lynx-sky' : isDark ? 'bg-slate-700 border-slate-600' : 'bg-slate-200 border-slate-300'
+                        }`} />
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {new Date(ev.evaluation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                            {(ev.evaluation_type || 'eval').replace(/_/g, ' ')}
+                          </span>
+                          {ev.overall_score != null && (
+                            <span className="text-sm font-bold text-lynx-sky">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/5</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={`text-center py-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No evaluations recorded yet</p>
+                )}
+              </div>
             </div>
           )}
 
