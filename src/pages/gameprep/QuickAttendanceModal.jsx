@@ -95,7 +95,7 @@ export default function QuickAttendanceModal({ event, roster, onClose, onSave, s
   const absentCount = Object.values(attendance).filter(s => s === 'absent').length
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
       <div
         className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col`}
         onClick={e => e.stopPropagation()}
@@ -118,6 +118,12 @@ export default function QuickAttendanceModal({ event, roster, onClose, onSave, s
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin w-8 h-8 border-3 border-lynx-sky border-t-transparent rounded-full" />
+            </div>
+          ) : roster.length === 0 ? (
+            <div className="text-center py-12">
+              <span className="text-5xl">👥</span>
+              <p className={`font-semibold mt-3 ${isDark ? 'text-white' : 'text-lynx-navy'}`}>No Players on Roster</p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Add players to your team first</p>
             </div>
           ) : (
             <div className="space-y-2">

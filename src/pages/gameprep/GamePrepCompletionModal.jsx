@@ -412,7 +412,7 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                       matchResult.result === 'tie' || selectedFormat.noMatchWinner
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
       <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className={`px-6 py-4 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'} text-center`}>

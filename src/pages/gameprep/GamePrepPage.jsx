@@ -253,7 +253,7 @@ function GamePrepPage({ showToast }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 animate-page-in">
       {/* Stats Pending Banner */}
       {statsPendingCount > 0 && (
         <div className={`${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-300'} border rounded-xl p-4 flex items-center justify-between`}>
@@ -304,6 +304,14 @@ function GamePrepPage({ showToast }) {
       </div>
 
       {/* Team Selector */}
+      {teams.length === 0 && !loading && (
+        <div className={`${cardBg} rounded-xl p-12 text-center`}>
+          <span className="text-5xl">🏐</span>
+          <h2 className={`text-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-lynx-navy'}`}>No Teams Yet</h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Create teams in the Teams page to start game prep</p>
+        </div>
+      )}
+      {teams.length > 0 && (
       <div className={`${cardBg} rounded-xl p-2`}>
         <div className="flex items-center gap-2 overflow-x-auto">
           {teams.map(team => (
@@ -329,6 +337,7 @@ function GamePrepPage({ showToast }) {
           ))}
         </div>
       </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2">

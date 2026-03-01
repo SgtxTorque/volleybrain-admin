@@ -139,7 +139,7 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
   const setsToShow = getSetsToShow()
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
       <div
         className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col`}
         onClick={e => e.stopPropagation()}
