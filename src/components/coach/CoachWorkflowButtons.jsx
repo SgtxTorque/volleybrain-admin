@@ -22,7 +22,7 @@ export default function CoachWorkflowButtons({
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="max-w-[640px] mx-auto w-full grid grid-cols-2 md:grid-cols-4 gap-3">
       {buttons.map(btn => (
         <WorkflowButton
           key={btn.label}
@@ -41,14 +41,14 @@ function WorkflowButton({ icon: Icon, label, badge, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className="relative rounded-xl p-4 text-left transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 group overflow-hidden min-h-[80px] bg-gradient-to-br from-lynx-sky to-lynx-deep"
+      className="relative rounded-xl px-4 py-3 text-left transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 group overflow-hidden min-h-[56px] bg-gradient-to-br from-lynx-sky to-lynx-deep"
     >
       {/* Subtle texture overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
 
       <div className="relative z-10 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-          <Icon className="w-5 h-5 text-white" />
+        <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+          <Icon className="w-4 h-4 text-white" />
         </div>
         <span className="text-sm font-bold text-white">{label}</span>
       </div>
