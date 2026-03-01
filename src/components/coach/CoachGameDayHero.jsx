@@ -108,7 +108,7 @@ export default function CoachGameDayHero({
           )}
 
           {/* Date / Time / Venue */}
-          <div className="flex items-center justify-center gap-3 text-white/60 text-xs mb-4 flex-wrap">
+          <div className="flex items-center justify-center gap-3 text-white/70 text-xs mb-4 flex-wrap">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
               {formatDateLong(nextGame.event_date)}
@@ -126,14 +126,14 @@ export default function CoachGameDayHero({
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => onNavigate?.('gameprep')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/15 hover:bg-white/25 text-white text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/20 hover:bg-white/30 text-white text-xs font-semibold border border-white/10"
             >
               <ClipboardList className="w-3.5 h-3.5" />
               Lineup Builder
             </button>
             <button
               onClick={() => onNavigate?.('gameprep')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/15 hover:bg-white/25 text-white text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/20 hover:bg-white/30 text-white text-xs font-semibold border border-white/10"
             >
               <Zap className="w-3.5 h-3.5" />
               Game Day Hub
@@ -175,7 +175,7 @@ export default function CoachGameDayHero({
               </div>
             )}
 
-            <div className="flex items-center gap-3 text-white/60 text-xs mt-2">
+            <div className="flex items-center gap-3 text-white/70 text-xs mt-2">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
                 {formatDateLong(nextEvent.event_date)}
@@ -193,14 +193,14 @@ export default function CoachGameDayHero({
           <div className="flex items-center gap-2">
             <button
               onClick={() => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/15 hover:bg-white/25 text-white text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/20 hover:bg-white/30 text-white text-xs font-semibold border border-white/10"
             >
               <UserCheck className="w-3.5 h-3.5" />
               Take Attendance
             </button>
             <button
               onClick={() => onShowWarmupTimer?.()}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/15 hover:bg-white/25 text-white text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-white/20 hover:bg-white/30 text-white text-xs font-semibold border border-white/10"
             >
               <Timer className="w-3.5 h-3.5" />
               Start Warmup
