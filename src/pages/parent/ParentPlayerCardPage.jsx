@@ -25,7 +25,15 @@ const SPORT_DISPLAY = {
       { key: 'blocks', label: 'Blocks', short: 'B', icon: '🛡️', color: '#6366F1' },
       { key: 'assists', label: 'Assists', short: 'AST', icon: '🤝', color: '#10B981' },
     ],
-    skills: ['serve', 'pass', 'attack', 'block', 'dig', 'set'],
+    skills: ['serving', 'passing', 'hitting', 'blocking', 'defense', 'setting'],
+    skillLabels: {
+      serving: 'Serve',
+      passing: 'Pass',
+      hitting: 'Attack',
+      blocking: 'Block',
+      defense: 'Dig',
+      setting: 'Set',
+    },
     detailSections: [
       { title: 'Attacking', stats: [
         { key: 'hit_percentage', label: 'Hit %', format: 'pct3' },
@@ -372,8 +380,20 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   }
 
   async function loadSkills() {
-    try { const { data } = await supabase.from('player_skills').select('*').eq('player_id', playerId).order('created_at', { ascending: false }).limit(1).single(); setSkills(data || null) }
-    catch { setSkills(null) }
+    try {
+      const { data, error } = await supabase
+        .from('player_skills')
+        .select('*')
+        .eq('player_id', playerId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) console.warn('player_skills query:', error.message)
+      setSkills(data || null)
+    } catch (err) {
+      console.warn('player_skills load error:', err)
+      setSkills(null)
+    }
   }
 
   async function loadDevelopmentData() {
@@ -557,8 +577,8 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                     <div className="space-y-4">
                       <SpiderChart
                         data={sc.skills.map(s => ({
-                          label: s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' '),
-                          value: getSkillValue(skills[s]) / 20,
+                          label: sc.skillLabels?.[s] || s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' '),
+                          value: skills[s] || 0,
                         }))}
                         maxValue={5}
                         size={240}
@@ -566,7 +586,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                         isDark={isDark}
                       />
                       <div className="space-y-3">
-                        {sc.skills.map(s => <SkillBar key={s} label={s} value={getSkillValue(skills[s])} isDark={isDark} />)}
+                        {sc.skills.map(s => <SkillBar key={s} label={sc.skillLabels?.[s] || s} value={getSkillValue(skills[s])} isDark={isDark} />)}
                       </div>
                     </div>
                   ) : (

@@ -413,14 +413,14 @@ export function PlayerCardExpanded({
         .eq('player_id', player.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading skills:', error)
+        .maybeSingle()
+
+      if (error) {
+        console.warn('Error loading skills:', error.message)
       }
       setSkills(data || null)
     } catch (err) {
-      console.error('Error in loadSkills:', err)
+      console.warn('Error in loadSkills:', err)
       setSkills(null)
     }
   }
@@ -455,8 +455,8 @@ export function PlayerCardExpanded({
   const calculateOverallRating = () => {
     if (!skills) return null
     const skillValues = [
-      skills.serve, skills.pass, skills.attack, 
-      skills.block, skills.dig, skills.set
+      skills.serving, skills.passing, skills.hitting,
+      skills.blocking, skills.defense, skills.setting
     ].filter(v => v !== null && v !== undefined)
     
     if (skillValues.length === 0) return null
@@ -743,12 +743,12 @@ export function PlayerCardExpanded({
                       <h4 className="text-xs uppercase tracking-wider mb-4" style={{ color: theme.textMuted }}>Skills</h4>
                       {skills ? (
                         <div className="space-y-3">
-                          <SkillBar label="Serve" value={getSkillValue(skills.serve)} theme={theme} />
-                          <SkillBar label="Pass" value={getSkillValue(skills.pass)} theme={theme} />
-                          <SkillBar label="Attack" value={getSkillValue(skills.attack)} theme={theme} />
-                          <SkillBar label="Block" value={getSkillValue(skills.block)} theme={theme} />
-                          <SkillBar label="Dig" value={getSkillValue(skills.dig)} theme={theme} />
-                          <SkillBar label="Set" value={getSkillValue(skills.set)} theme={theme} />
+                          <SkillBar label="Serve" value={getSkillValue(skills.serving)} theme={theme} />
+                          <SkillBar label="Pass" value={getSkillValue(skills.passing)} theme={theme} />
+                          <SkillBar label="Attack" value={getSkillValue(skills.hitting)} theme={theme} />
+                          <SkillBar label="Block" value={getSkillValue(skills.blocking)} theme={theme} />
+                          <SkillBar label="Dig" value={getSkillValue(skills.defense)} theme={theme} />
+                          <SkillBar label="Set" value={getSkillValue(skills.setting)} theme={theme} />
                         </div>
                       ) : (
                         <p style={{ color: theme.textMuted }} className="text-sm text-center py-4">
