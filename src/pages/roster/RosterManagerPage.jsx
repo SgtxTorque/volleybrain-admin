@@ -338,24 +338,50 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
     { key: 'teamwork', label: 'Teamwork' },
   ]
 
-  function startEvaluation() {
-    let players = []
-    if (evalPlayerScope === 'all') {
-      players = roster.map(p => p)
-    } else if (evalPlayerScope === 'selected' && selectedIds.size > 0) {
-      players = roster.filter(p => selectedIds.has(p.player_id))
-    } else if (evalPlayerScope === 'single' && selectedPlayer) {
-      players = [selectedPlayer]
-    } else {
-      players = roster.map(p => p)
+  function flattenRosterPlayer(tp) {
+    const p = tp.players || tp.player
+    return {
+      id: tp.player_id,
+      player_id: tp.player_id,
+      first_name: p?.first_name,
+      last_name: p?.last_name,
+      photo_url: p?.photo_url,
+      position: p?.position || tp.positions?.primary_position || null,
+      grade: p?.grade,
+      jersey_number: tp.jersey_number ?? p?.jersey_number,
+      skills: tp.skills,
+      evalCount: tp.evalCount,
     }
+  }
+
+  function startEvaluation() {
+    let source = []
+    if (evalPlayerScope === 'all') {
+      source = roster
+    } else if (evalPlayerScope === 'selected' && selectedIds.size > 0) {
+      source = roster.filter(p => selectedIds.has(p.player_id))
+    } else if (evalPlayerScope === 'single' && selectedPlayer) {
+      source = [selectedPlayer]
+    } else {
+      source = roster
+    }
+
+    const players = source
+      .filter(tp => tp.player_id && (tp.players || tp.player))
+      .map(flattenRosterPlayer)
+
+    if (players.length === 0) {
+      showToast?.('No players found to evaluate', 'error')
+      return
+    }
+
     setEvalPlayers(players)
     setEvalCurrentIndex(0)
     setEvalRatings({})
     setEvalNotes('')
     setEvalPrevious(null)
     setEvalStep('rating')
-    if (players.length > 0) loadPreviousEval(players[0].player_id)
+    loadPreviousEval(players[0].player_id)
   }
 
   async function loadPreviousEval(playerId) {
@@ -942,9 +968,8 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         {viewMode === 'evaluate' && selectedTeam && evalStep === 'rating' && evalPlayers.length > 0 && (() => {
           const cp = evalPlayers[evalCurrentIndex]
           if (!cp) return null
-          const p = cp.player
-          const jerseyNum = cp.jersey_number ?? p?.jersey_number
-          const position = p?.position || cp.positions?.primary_position
+          const jerseyNum = cp.jersey_number
+          const position = cp.position
           const prevSkills = evalPrevious?.skills ? (typeof evalPrevious.skills === 'string' ? JSON.parse(evalPrevious.skills) : evalPrevious.skills) : null
           const rated = Object.values(evalRatings).filter(v => v > 0)
           const overall = rated.length > 0 ? (rated.reduce((s, v) => s + v, 0) / rated.length).toFixed(1) : '—'
@@ -968,18 +993,18 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
 
               {/* Player Info */}
               <div className="flex items-center gap-4 mb-5">
-                {p?.photo_url ? (
-                  <img src={p.photo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                {cp.photo_url ? (
+                  <img src={cp.photo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
                 ) : (
                   <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold ${isDark ? 'bg-lynx-sky/20 text-lynx-sky' : 'bg-lynx-ice text-lynx-deep'}`}>
-                    {p?.first_name?.[0]}{p?.last_name?.[0]}
+                    {cp.first_name?.[0]}{cp.last_name?.[0]}
                   </div>
                 )}
                 <div>
-                  <h3 className={`text-lg font-bold ${primaryText}`}>{p?.first_name} {p?.last_name}</h3>
+                  <h3 className={`text-lg font-bold ${primaryText}`}>{cp.first_name} {cp.last_name}</h3>
                   <p className={`text-sm ${secondaryText}`}>
                     {jerseyNum ? `#${jerseyNum}` : ''}{jerseyNum && position ? ' · ' : ''}{position ? POSITION_NAMES[position] || position : ''}
-                    {p?.grade ? ` · ${p.grade}` : ''}
+                    {cp.grade ? ` · ${cp.grade}` : ''}
                   </p>
                 </div>
               </div>

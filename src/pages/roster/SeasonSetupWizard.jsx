@@ -33,10 +33,61 @@ export default function SeasonSetupWizard({
 }) {
   const { user } = useAuth()
   const { isDark } = useTheme()
-  const [step, setStep] = useState(0)
 
-  // Step 1: Review — confirmed players
-  const [confirmedPlayers, setConfirmedPlayers] = useState(new Set())
+  // Persist wizard step to localStorage scoped to team + season
+  const setupStorageKey = teamId && seasonId
+    ? `lynx_setup_${teamId}_${seasonId}`
+    : null
+
+  const [step, setStep] = useState(() => {
+    if (!setupStorageKey) return 0
+    try {
+      const saved = localStorage.getItem(setupStorageKey)
+      return saved ? parseInt(saved, 10) : 0
+    } catch { return 0 }
+  })
+
+  // Step 1: Review — confirmed players (persisted)
+  const confirmStorageKey = setupStorageKey ? `${setupStorageKey}_confirmed` : null
+
+  const [confirmedPlayers, setConfirmedPlayers] = useState(() => {
+    if (!confirmStorageKey) return new Set()
+    try {
+      const saved = localStorage.getItem(confirmStorageKey)
+      return saved ? new Set(JSON.parse(saved)) : new Set()
+    } catch { return new Set() }
+  })
+
+  // Persist step changes
+  useEffect(() => {
+    if (setupStorageKey && step >= 0) {
+      try { localStorage.setItem(setupStorageKey, String(step)) }
+      catch {}
+    }
+  }, [step, setupStorageKey])
+
+  // Persist confirmed players
+  useEffect(() => {
+    if (confirmStorageKey) {
+      try { localStorage.setItem(confirmStorageKey, JSON.stringify([...confirmedPlayers])) }
+      catch {}
+    }
+  }, [confirmedPlayers, confirmStorageKey])
+
+  // When team/season changes, reload saved progress
+  useEffect(() => {
+    if (setupStorageKey) {
+      try {
+        const saved = localStorage.getItem(setupStorageKey)
+        setStep(saved ? parseInt(saved, 10) : 0)
+        const savedConfirmed = localStorage.getItem(`${setupStorageKey}_confirmed`)
+        setConfirmedPlayers(savedConfirmed ? new Set(JSON.parse(savedConfirmed)) : new Set())
+      } catch {
+        setStep(0)
+        setConfirmedPlayers(new Set())
+      }
+    }
+  }, [setupStorageKey])
 
   // Step 2: Positions
   const [positionEdits, setPositionEdits] = useState({}) // player_id -> position
@@ -168,8 +219,14 @@ export default function SeasonSetupWizard({
       return
     }
     if (step === 5) {
-      // Complete
+      // Complete — clean up wizard progress from localStorage
       localStorage.setItem(`seasonSetupComplete_${teamId}_${seasonId}`, 'true')
+      if (setupStorageKey) {
+        try {
+          localStorage.removeItem(setupStorageKey)
+          localStorage.removeItem(`${setupStorageKey}_confirmed`)
+        } catch {}
+      }
       onReloadRoster?.()
       onComplete?.()
       return
