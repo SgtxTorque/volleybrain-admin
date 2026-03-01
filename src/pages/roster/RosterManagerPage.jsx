@@ -464,7 +464,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
 
       // 1. Save to player_evaluations
       const skillsJson = JSON.stringify(ratings)
-      await supabase.from('player_evaluations').insert({
+      const { error: evalInsertErr } = await supabase.from('player_evaluations').insert({
         player_id: playerId,
         season_id: selectedSeason.id,
         evaluated_by: user.id,
@@ -475,6 +475,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         notes: notes || null,
         is_initial: evalTypeVal === 'tryout' || evalTypeVal === 'pre_season',
       })
+      if (evalInsertErr) console.error('[EVAL] player_evaluations INSERT failed:', evalInsertErr.message)
 
       // 2. Save/update player_skill_ratings
       const ratingRow = {
@@ -506,9 +507,11 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         .maybeSingle()
 
       if (existing) {
-        await supabase.from('player_skill_ratings').update(ratingRow).eq('id', existing.id)
+        const { error: ratingUpdateErr } = await supabase.from('player_skill_ratings').update(ratingRow).eq('id', existing.id)
+        if (ratingUpdateErr) console.error('[EVAL] player_skill_ratings UPDATE failed:', ratingUpdateErr.message)
       } else {
-        await supabase.from('player_skill_ratings').insert(ratingRow)
+        const { error: ratingInsertErr } = await supabase.from('player_skill_ratings').insert(ratingRow)
+        if (ratingInsertErr) console.error('[EVAL] player_skill_ratings INSERT failed:', ratingInsertErr.message)
       }
 
       // 3. Update player_skills for parent/player view compatibility
@@ -523,20 +526,43 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         setting: ratings.setting || null,
         defense: ratings.defense || null,
         skills_data: skillsJson,
+        updated_at: new Date().toISOString(),
       }
 
-      const { data: existingSkills } = await supabase
+      // Find ANY existing player_skills row for this player (with or without season_id)
+      const { data: existingSkills, error: findErr } = await supabase
         .from('player_skills')
-        .select('id')
+        .select('id, season_id')
         .eq('player_id', playerId)
-        .eq('season_id', selectedSeason.id)
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
 
+      if (findErr) console.warn('[EVAL] player_skills lookup error:', findErr.message)
+
       if (existingSkills) {
-        await supabase.from('player_skills').update({ ...skillsRow, updated_at: new Date().toISOString() }).eq('id', existingSkills.id)
+        // Update the existing row (also set season_id in case it was null)
+        const { error: updateErr } = await supabase
+          .from('player_skills')
+          .update(skillsRow)
+          .eq('id', existingSkills.id)
+
+        if (updateErr) {
+          console.error('[EVAL] player_skills UPDATE failed:', updateErr.message, updateErr)
+        } else {
+          console.log('[EVAL] player_skills updated successfully for player:', playerId)
+        }
       } else {
-        await supabase.from('player_skills').insert(skillsRow)
+        // No row exists at all — insert new
+        const { error: insertErr } = await supabase
+          .from('player_skills')
+          .insert({ ...skillsRow, created_at: new Date().toISOString() })
+
+        if (insertErr) {
+          console.error('[EVAL] player_skills INSERT failed:', insertErr.message, insertErr)
+        } else {
+          console.log('[EVAL] player_skills inserted successfully for player:', playerId)
+        }
       }
 
       // 4. Save coach note

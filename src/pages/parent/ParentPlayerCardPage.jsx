@@ -385,7 +385,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
         .from('player_skills')
         .select('*')
         .eq('player_id', playerId)
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle()
       if (error) console.warn('player_skills query:', error.message)

@@ -132,7 +132,7 @@ function SkillBar({ label, value, maxValue = 100, theme }) {
           className="h-full rounded-full transition-all"
           style={{ 
             width: `${percentage}%`,
-            backgroundColor: '#F59E0B'
+            backgroundColor: '#4BB9EC'
           }}
         />
       </div>
@@ -326,10 +326,10 @@ export function PlayerCardExpanded({
         .select('*')
         .eq('player_id', player.id)
         .eq('season_id', seasonId)
-        .single()
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading season stats:', error)
+        .maybeSingle()
+
+      if (error) {
+        console.warn('Error loading season stats:', error.message)
       }
       setSeasonStats(data || null)
     } catch (err) {
@@ -411,7 +411,7 @@ export function PlayerCardExpanded({
         .from('player_skills')
         .select('*')
         .eq('player_id', player.id)
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle()
 
