@@ -1,13 +1,11 @@
 import { Swords, ClipboardCheck, Users, Calendar } from '../../constants/icons'
 import { useTheme } from '../../contexts/ThemeContext'
-import { adjustBrightness } from '../../constants/hubStyles'
 
 /**
  * CoachWorkflowButtons — 4 branded gradient buttons for core coach workspaces
  * Game Day, Practice, Roster, Schedule — each with smart notification badges
  */
 export default function CoachWorkflowButtons({
-  teamColor,
   onNavigate,
   gameDayBadge,
   practiceBadge,
@@ -32,7 +30,6 @@ export default function CoachWorkflowButtons({
           label={btn.label}
           badge={btn.badge}
           onClick={btn.onClick}
-          teamColor={teamColor}
           isDark={isDark}
         />
       ))}
@@ -40,19 +37,11 @@ export default function CoachWorkflowButtons({
   )
 }
 
-function WorkflowButton({ icon: Icon, label, badge, onClick, teamColor, isDark }) {
-  const baseColor = teamColor || '#4BB9EC'
-  const darker = adjustBrightness(baseColor, -20)
-
-  const gradientStyle = {
-    background: `linear-gradient(135deg, ${baseColor}dd, ${baseColor}99, ${darker}bb)`
-  }
-
+function WorkflowButton({ icon: Icon, label, badge, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className="relative rounded-xl p-4 text-left transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 group overflow-hidden min-h-[80px]"
-      style={gradientStyle}
+      className="relative rounded-xl p-4 text-left transition-all duration-200 hover:brightness-110 hover:shadow-lg hover:-translate-y-0.5 group overflow-hidden min-h-[80px] bg-gradient-to-br from-lynx-sky to-lynx-deep"
     >
       {/* Subtle texture overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />

@@ -11,7 +11,7 @@ import CoachWorkflowButtons from './CoachWorkflowButtons'
 import CoachPerformanceGrid from './CoachPerformanceGrid'
 import { useTheme } from '../../contexts/ThemeContext'
 import FeedPost from '../../pages/teams/FeedPost'
-import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
+import { HUB_STYLES } from '../../constants/hubStyles'
 /**
  * CoachCenterDashboard — Center column (flex-1) of Coach Dashboard
  * Row 0: Welcome + Season Selector
@@ -72,8 +72,8 @@ export default function CoachCenterDashboard({
   developmentData,
 }) {
   const { isDark } = useTheme()
-  const g = selectedTeam?.color || '#4BB9EC'
-  const gb = adjustBrightness(g, 20)
+  const g = '#4BB9EC'
+  const gb = '#5DC4F0'
   const [latestPost, setLatestPost] = useState(null)
   const [recentMessages, setRecentMessages] = useState([])
   const [chatChannelId, setChatChannelId] = useState(null)
@@ -214,19 +214,19 @@ export default function CoachCenterDashboard({
                 onClick={() => onTeamSelect?.(team)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border whitespace-nowrap flex-shrink-0 ${
                   isSelected
-                    ? 'border-transparent text-white'
+                    ? 'bg-lynx-sky text-white border-transparent shadow-sm'
                     : isDark ? 'border-white/[0.06] bg-lynx-charcoal hover:border-white/[0.12]' : 'border-lynx-silver bg-white hover:border-slate-300'
                 }`}
-                style={isSelected ? { backgroundColor: team.color || '#4BB9EC' } : undefined}
               >
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                    isSelected ? 'bg-white/20 text-white' : 'text-white'
-                  }`}
-                  style={!isSelected ? { backgroundColor: team.color || '#4BB9EC' } : undefined}
-                >
-                  {team.name?.charAt(0)}
-                </div>
+                {team.logo_url ? (
+                  <img src={team.logo_url} alt={team.name} className={`w-10 h-10 rounded-lg object-cover ${isSelected ? 'border border-white/20' : ''}`} />
+                ) : (
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                    isSelected ? 'bg-white/20 text-white' : isDark ? 'bg-lynx-graphite text-lynx-sky border border-lynx-border-dark' : 'bg-lynx-ice text-lynx-sky border border-lynx-sky/20'
+                  }`}>
+                    {team.name?.charAt(0)}
+                  </div>
+                )}
                 <div className="text-left">
                   <p className={`font-semibold text-sm ${isSelected ? 'text-white' : isDark ? 'text-white' : 'text-slate-900'}`}>{team.name}</p>
                   <p className={`text-sm ${isSelected ? 'text-white/70' : isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
@@ -318,7 +318,6 @@ export default function CoachCenterDashboard({
 
       {/* Row 3: Workflow Buttons (V2.1 — branded gradient) */}
       <CoachWorkflowButtons
-        teamColor={selectedTeam?.color}
         onNavigate={onNavigate}
         gameDayBadge={gameDayBadge}
         practiceBadge={practiceBadge}

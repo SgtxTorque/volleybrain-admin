@@ -250,8 +250,7 @@ export default function CoachRosterPanel({
                     />
                   ) : (
                     <div
-                      className="w-12 h-16 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 text-white"
-                      style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
+                      className="w-12 h-16 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 text-white bg-lynx-sky"
                     >
                       {player.first_name?.[0]}{player.last_name?.[0]}
                     </div>

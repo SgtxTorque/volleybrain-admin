@@ -34,12 +34,15 @@ export default function CoachLeftSidebar({
       {/* 1. Team Header / Coach Identity Card */}
       <div>
         <div className="flex items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold"
-            style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
-          >
-            {selectedTeam?.name?.charAt(0)}
-          </div>
+          {selectedTeam?.logo_url ? (
+            <div className={`w-12 h-12 rounded-xl overflow-hidden shadow-sm ${isDark ? 'border border-white/[0.06]' : 'border border-lynx-silver'}`}>
+              <img src={selectedTeam.logo_url} alt={selectedTeam.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold ${isDark ? 'bg-lynx-graphite text-lynx-sky border border-lynx-border-dark' : 'bg-lynx-ice text-lynx-sky border border-lynx-sky/20'}`}>
+              {selectedTeam?.name?.charAt(0)}
+            </div>
+          )}
           <div className="min-w-0">
             <p className={`text-sm font-bold ${primaryText} truncate`}>{selectedTeam?.name}</p>
             <p className={`text-xs ${secondaryText}`}>{selectedSeason?.name} · {sportName}</p>

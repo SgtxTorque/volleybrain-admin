@@ -62,7 +62,7 @@ export default function CoachGameDayHero({
           minHeight: '280px',
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#4BB9EC'}dd, ${selectedTeam?.color || '#4BB9EC'}99, rgba(15,23,42,0.90))` }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(10,27,51,0.92), rgba(16,40,76,0.85), rgba(10,27,51,0.95))' }} />
         <div className="relative z-10 p-5 flex flex-col h-full">
           {/* Label */}
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90 self-start">
@@ -72,12 +72,14 @@ export default function CoachGameDayHero({
           {/* VS Display */}
           <div className="flex items-center justify-center gap-5 my-4 flex-1">
             <div className="text-center">
-              <div
-                className="w-14 h-14 rounded-xl mx-auto flex items-center justify-center text-white text-xl font-black border-2 border-white/20"
-                style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
-              >
-                {selectedTeam?.name?.charAt(0)}
-              </div>
+              {selectedTeam?.logo_url ? (
+                <img src={selectedTeam.logo_url} alt={selectedTeam.name}
+                  className="w-14 h-14 rounded-xl mx-auto object-cover border-2 border-white/20" />
+              ) : (
+                <div className="w-14 h-14 rounded-xl mx-auto flex items-center justify-center bg-lynx-sky/80 text-white text-xl font-black border-2 border-white/20">
+                  {selectedTeam?.name?.charAt(0)}
+                </div>
+              )}
               <p className="text-white/80 text-xs font-semibold mt-1.5 max-w-[100px] truncate">{selectedTeam?.name}</p>
             </div>
             <div className="text-center">
@@ -152,7 +154,7 @@ export default function CoachGameDayHero({
           minHeight: '280px',
         }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${selectedTeam?.color || '#4BB9EC'}cc, rgba(30,41,59,0.90))` }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(10,27,51,0.90), rgba(16,40,76,0.85))' }} />
         <div className="relative z-10 p-5 flex flex-col h-full">
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-white/20 text-white/90 self-start">
             {countdownText(nextEvent.event_date) === 'TODAY' ? 'Practice Today' : 'Next Practice'}
