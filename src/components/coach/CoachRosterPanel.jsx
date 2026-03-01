@@ -3,8 +3,8 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
 /**
- * CoachRosterPanel — Right sidebar (300px)
- * Order: Season Record → Top Players → Squad Roster → Upcoming Events
+ * CoachRosterPanel — Right panel (330px) "Team At A Glance"
+ * Order: Season Record → Upcoming Events (3) → Top Players → Active Challenges → Squad Roster (capped at 6)
  */
 export default function CoachRosterPanel({
   roster,
@@ -14,20 +14,24 @@ export default function CoachRosterPanel({
   topPlayers,
   upcomingEvents,
   rsvpCounts,
+  activeChallenges,
   onNavigate,
   navigateToTeamWall,
   onPlayerSelect,
+  onEventSelect,
 }) {
   const { isDark } = useTheme()
+  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
+  const secondaryText = isDark ? 'text-slate-400' : 'text-slate-500'
 
   return (
     <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-l border-lynx-border-dark' : 'bg-white border-l border-lynx-silver/50'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
       {/* 1. Season Record */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
+      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
         <div className="flex items-center gap-2 mb-3">
           <Trophy className="w-4 h-4 text-amber-500" />
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Season Record</h3>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Season Record</h3>
         </div>
         <div className="flex items-center justify-center gap-4 mb-3">
           <div className="text-center">
@@ -65,12 +69,79 @@ export default function CoachRosterPanel({
         )}
       </div>
 
-      {/* 2. Top Players Leaderboard */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4`}>
+      {/* 2. Upcoming Events (3 max, with RSVP summary) */}
+      <div className={`${cardBg} rounded-xl shadow-sm`}>
+        <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-lynx-sky" />
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Upcoming</h3>
+          </div>
+          <button
+            onClick={() => onNavigate?.('schedule')}
+            className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep"
+          >
+            Schedule →
+          </button>
+        </div>
+        <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-slate-100'}`}>
+          {upcomingEvents.length > 0 ? (
+            upcomingEvents.slice(0, 3).map(event => {
+              const isGame = event.event_type === 'game'
+              const isToday = countdownText(event.event_date) === 'TODAY'
+              const rsvp = rsvpCounts?.[event.id]
+              return (
+                <button
+                  key={event.id}
+                  onClick={() => onEventSelect?.(event)}
+                  className={`w-full px-4 py-3 flex items-center gap-3 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'} cursor-pointer text-left`}
+                >
+                  <div className="text-center min-w-[36px]">
+                    <p className="text-[10px] font-semibold uppercase text-slate-400">
+                      {new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
+                    </p>
+                    <p className={`text-lg font-black ${isToday ? 'text-red-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {new Date(event.event_date + 'T00:00:00').getDate()}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                      isGame ? 'text-red-500 bg-red-500/10' : 'text-lynx-sky bg-lynx-sky/10'
+                    }`}>
+                      {isGame ? 'GAME' : 'PRACTICE'}
+                    </span>
+                    <p className={`text-xs mt-0.5 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {isGame && event.opponent_name ? `vs ${event.opponent_name}` : ''}
+                      {event.event_time ? (isGame && event.opponent_name ? ' · ' : '') + formatTime12(event.event_time) : ''}
+                    </p>
+                  </div>
+                  <div className="text-right flex items-center gap-1.5">
+                    {rsvp && (
+                      <>
+                        <span className="text-[10px] font-bold text-emerald-500">{rsvp.going}✓</span>
+                        {rsvp.declined > 0 && (
+                          <span className="text-[10px] font-bold text-red-400">{rsvp.declined}✗</span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </button>
+              )
+            })
+          ) : (
+            <div className="p-8 text-center">
+              <Calendar className={`w-10 h-10 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-300'} mb-2`} />
+              <p className="text-sm text-slate-400">No upcoming events</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. Top Players Leaderboard */}
+      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-amber-500" />
-            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Top Players</h3>
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Top Players</h3>
           </div>
           <button
             onClick={() => onNavigate?.('leaderboards')}
@@ -135,12 +206,21 @@ export default function CoachRosterPanel({
         )}
       </div>
 
-      {/* 3. Squad Roster */}
+      {/* 4. Active Challenges */}
+      <ActiveChallengesCard
+        challenges={activeChallenges}
+        isDark={isDark}
+        cardBg={cardBg}
+        secondaryText={secondaryText}
+        onNavigate={onNavigate}
+      />
+
+      {/* 5. Squad Roster (capped at 6) */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-lynx-sky" />
-            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Squad Roster</h3>
+            <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Squad Roster</h3>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-400">{roster.length}</span>
@@ -155,41 +235,51 @@ export default function CoachRosterPanel({
 
         <div className="space-y-0.5">
           {roster.length > 0 ? (
-            roster.map(player => (
-              <button
-                key={player.id}
-                onClick={() => onPlayerSelect?.(player)}
-                className={`w-full flex items-center gap-3 p-3 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'} rounded-xl cursor-pointer text-left border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} last:border-0`}
-              >
-                {player.photo_url ? (
-                  <img
-                    src={player.photo_url}
-                    alt=""
-                    className="w-12 h-16 rounded-lg object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div
-                    className="w-12 h-16 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 text-white"
-                    style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
-                  >
-                    {player.first_name?.[0]}{player.last_name?.[0]}
+            <>
+              {roster.slice(0, 6).map(player => (
+                <button
+                  key={player.id}
+                  onClick={() => onPlayerSelect?.(player)}
+                  className={`w-full flex items-center gap-3 p-3 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'} rounded-xl cursor-pointer text-left border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} last:border-0`}
+                >
+                  {player.photo_url ? (
+                    <img
+                      src={player.photo_url}
+                      alt=""
+                      className="w-12 h-16 rounded-lg object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-12 h-16 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0 text-white"
+                      style={{ backgroundColor: selectedTeam?.color || '#4BB9EC' }}
+                    >
+                      {player.first_name?.[0]}{player.last_name?.[0]}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>
+                      {player.first_name} {player.last_name}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{player.position || 'Player'}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[10px] text-slate-400">Active</span>
+                    </div>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>
-                    {player.first_name} {player.last_name}
-                  </p>
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{player.position || 'Player'}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span className="text-[10px] text-slate-400">Active</span>
-                  </div>
-                </div>
-                <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'} flex-shrink-0`}>
-                  #{player.jersey_number || '—'}
-                </span>
-              </button>
-            ))
+                  <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'} flex-shrink-0`}>
+                    #{player.jersey_number || '—'}
+                  </span>
+                </button>
+              ))}
+              {roster.length > 6 && (
+                <button
+                  onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
+                  className={`w-full text-center py-3 text-xs font-semibold text-lynx-sky hover:text-lynx-deep`}
+                >
+                  View All ({roster.length}) →
+                </button>
+              )}
+            </>
           ) : (
             <div className="py-10 text-center">
               <Users className={`w-10 h-10 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-300'} mb-2`} />
@@ -198,63 +288,91 @@ export default function CoachRosterPanel({
           )}
         </div>
       </div>
+    </aside>
+  )
+}
 
-      {/* 4. Upcoming Events */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm`}>
-        <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-lynx-sky" />
-            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
-          </div>
+/**
+ * ActiveChallengesCard — Shows active challenges with progress, or empty prompt
+ */
+function ActiveChallengesCard({ challenges, isDark, cardBg, secondaryText, onNavigate }) {
+  // Compute time remaining for a challenge
+  function timeRemaining(endsAt) {
+    if (!endsAt) return ''
+    const now = new Date()
+    const end = new Date(endsAt)
+    const diffMs = end - now
+    if (diffMs <= 0) return 'Ended'
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    if (days === 0) return 'Ends today'
+    if (days === 1) return 'Ends tomorrow'
+    return `Ends in ${days} days`
+  }
+
+  if (!challenges || challenges.length === 0) {
+    return (
+      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">🏆</span>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Challenges</h3>
+        </div>
+        <div className="text-center py-3">
+          <p className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-1`}>No active challenges</p>
+          <p className={`text-xs ${secondaryText} mb-3`}>Challenges keep players engaged and push performance.</p>
           <button
-            onClick={() => onNavigate?.('schedule')}
-            className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep"
+            onClick={() => onNavigate?.('gameprep')}
+            className="px-4 py-2 rounded-[10px] text-xs font-bold text-white bg-lynx-sky hover:bg-lynx-deep"
           >
-            Schedule →
+            Create Challenge +
           </button>
         </div>
-        <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-slate-100'}`}>
-          {upcomingEvents.length > 0 ? (
-            upcomingEvents.slice(0, 4).map(event => {
-              const isGame = event.event_type === 'game'
-              const isToday = countdownText(event.event_date) === 'TODAY'
-              return (
-                <div key={event.id} className={`px-4 py-3 flex items-center gap-3 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'} cursor-pointer`}>
-                  <div className="text-center min-w-[36px]">
-                    <p className="text-[10px] font-semibold uppercase text-slate-400">
-                      {new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
-                    </p>
-                    <p className={`text-lg font-black ${isToday ? 'text-red-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
-                      {new Date(event.event_date + 'T00:00:00').getDate()}
-                    </p>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                      isGame ? 'text-red-500 bg-red-500/10' : 'text-lynx-sky bg-lynx-sky/10'
-                    }`}>
-                      {isGame ? 'GAME' : 'PRACTICE'}
-                    </span>
-                    <p className={`text-xs mt-0.5 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {isGame && event.opponent_name ? `vs ${event.opponent_name}` : ''}
-                      {event.event_time ? (isGame && event.opponent_name ? ' · ' : '') + formatTime12(event.event_time) : ''}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    {rsvpCounts?.[event.id] && (
-                      <span className="text-[10px] font-bold text-emerald-500">{rsvpCounts[event.id].going}✓</span>
-                    )}
-                  </div>
-                </div>
-              )
-            })
-          ) : (
-            <div className="p-8 text-center">
-              <Calendar className={`w-10 h-10 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-300'} mb-2`} />
-              <p className="text-sm text-slate-400">No upcoming events</p>
-            </div>
-          )}
-        </div>
       </div>
-    </aside>
+    )
+  }
+
+  return (
+    <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-base">🏆</span>
+          <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Challenges</h3>
+        </div>
+        <button
+          onClick={() => onNavigate?.('gameprep')}
+          className="text-xs text-lynx-sky font-semibold hover:text-lynx-deep"
+        >
+          Create + →
+        </button>
+      </div>
+      <div className="space-y-3">
+        {challenges.map(ch => {
+          const progress = ch.totalParticipants > 0
+            ? Math.round((ch.completedCount / ch.totalParticipants) * 100)
+            : 0
+          return (
+            <div key={ch.id}>
+              <div className="flex items-center justify-between mb-1">
+                <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>{ch.title}</p>
+                {ch.xp_reward > 0 && (
+                  <span className="text-[10px] font-bold text-amber-500 ml-2 flex-shrink-0">+{ch.xp_reward} XP</span>
+                )}
+              </div>
+              <div className={`h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
+                <div
+                  className="h-full rounded-full bg-lynx-sky transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[10px] text-slate-400">
+                  {ch.completedCount}/{ch.totalParticipants} completed
+                </span>
+                <span className="text-[10px] text-slate-400">{timeRemaining(ch.ends_at)}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
