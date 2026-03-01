@@ -1,91 +1,123 @@
 import {
-  ClipboardList, UserCheck, Star, BarChart3, MessageCircle, Check
+  Swords, ClipboardCheck, Heart, Users, BarChart3, ClipboardList
 } from '../../constants/icons'
 import { useTheme } from '../../contexts/ThemeContext'
 
 /**
- * CoachCommandStrip — 6 smart status tiles in a row
- * Each tile shows an icon, value, label, and a status dot.
+ * CoachCommandStrip — 6 smart status tiles measuring rolling team health
+ * Tiles: Game Prep, Attendance, Engagement, Roster, Stats, Lineups
+ * Each tile has an icon, value, label, and status pill (Healthy / Needs Work / Behind / No Data)
  */
 export default function CoachCommandStrip({
-  roster,
-  nextEvent,
   nextGame,
-  rsvpCounts,
-  weeklyShoutouts,
+  lineupSetForNextGame,
+  rsvpPercentNextGame,
+  lastGameStatsEntered,
+  avgAttendanceLast3,
+  weeklyEngagement,
+  rosterCount,
+  rosterIssues,
   pendingStats,
-  unreadMessages,
-  lineupCount,
+  lineupsSet,
+  upcomingGamesCount,
   onNavigate,
-  onShowShoutout,
-  openTeamChat,
-  selectedTeam,
 }) {
   const { isDark } = useTheme()
   const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
   const primaryText = isDark ? 'text-white' : 'text-slate-900'
   const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
 
-  // Attendance tile
-  const nextRsvp = nextEvent ? rsvpCounts?.[nextEvent.id] : null
-  const attendanceMarked = nextRsvp?.going || 0
-  const attendanceTotal = roster?.length || 0
-  const attendanceStatus = !nextEvent ? 'bg-slate-400' : attendanceMarked === attendanceTotal && attendanceTotal > 0 ? 'bg-emerald-500' : attendanceMarked > 0 ? 'bg-amber-500' : 'bg-slate-400'
+  // Status pill variants
+  const STATUS = {
+    healthy: {
+      pillClasses: isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600',
+      dotColor: 'bg-emerald-500',
+      text: 'Healthy'
+    },
+    attention: {
+      pillClasses: isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600',
+      dotColor: 'bg-amber-500',
+      text: 'Needs Work'
+    },
+    behind: {
+      pillClasses: isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600',
+      dotColor: 'bg-red-500',
+      text: 'Behind'
+    },
+    noData: {
+      pillClasses: isDark ? 'bg-white/[0.06] text-slate-500' : 'bg-slate-100 text-slate-400',
+      dotColor: isDark ? 'bg-slate-600' : 'bg-slate-300',
+      text: 'No Data'
+    }
+  }
 
-  // Lineups tile
-  const lineupStatus = !nextGame ? 'bg-slate-400' : lineupCount > 0 ? 'bg-emerald-500' : 'bg-amber-500'
+  // === Tile 1: Game Prep ===
+  const gamePrepValue = nextGame
+    ? (nextGame.opponent_name || 'Game')
+    : 'No games'
+  let gamePrepStatus = STATUS.noData
+  if (nextGame) {
+    const allGood = lineupSetForNextGame && rsvpPercentNextGame >= 80 && lastGameStatsEntered
+    const gameDate = new Date(nextGame.event_date + 'T00:00:00')
+    const hoursUntil = (gameDate - new Date()) / (1000 * 60 * 60)
+    if (allGood) {
+      gamePrepStatus = STATUS.healthy
+    } else if (hoursUntil < 24 && hoursUntil > 0) {
+      gamePrepStatus = STATUS.behind
+    } else {
+      gamePrepStatus = STATUS.attention
+    }
+  }
 
-  // RSVPs tile
-  const rsvpResponded = nextRsvp?.total || 0
-  const rsvpPercent = attendanceTotal > 0 ? (rsvpResponded / attendanceTotal) * 100 : 0
-  const rsvpStatus = !nextEvent ? 'bg-slate-400' : rsvpPercent >= 80 ? 'bg-emerald-500' : rsvpPercent >= 50 ? 'bg-amber-500' : 'bg-red-500'
+  // === Tile 2: Attendance ===
+  const attendanceValue = avgAttendanceLast3 != null ? `${avgAttendanceLast3}%` : '—'
+  let attendanceStatus = STATUS.noData
+  if (avgAttendanceLast3 != null) {
+    if (avgAttendanceLast3 >= 85) attendanceStatus = STATUS.healthy
+    else if (avgAttendanceLast3 >= 70) attendanceStatus = STATUS.attention
+    else attendanceStatus = STATUS.behind
+  }
 
-  // Shoutouts tile
-  const shoutoutStatus = weeklyShoutouts >= 3 ? 'bg-emerald-500' : weeklyShoutouts >= 1 ? 'bg-amber-500' : 'bg-slate-400'
+  // === Tile 3: Engagement ===
+  const engagementTotal = (weeklyEngagement?.shoutouts || 0) + (weeklyEngagement?.challenges || 0) + (weeklyEngagement?.posts || 0)
+  const engagementValue = engagementTotal > 0 ? `${engagementTotal} acts` : '—'
+  let engagementStatus = STATUS.noData
+  if (engagementTotal > 0) {
+    if (engagementTotal >= 8) engagementStatus = STATUS.healthy
+    else if (engagementTotal >= 3) engagementStatus = STATUS.attention
+    else engagementStatus = STATUS.behind
+  }
 
-  // Stats tile
-  const statsStatus = pendingStats === 0 ? 'bg-emerald-500' : 'bg-red-500'
+  // === Tile 4: Roster ===
+  const rosterValue = `${rosterCount} players`
+  let rosterStatus = STATUS.healthy
+  if (rosterIssues >= 3) rosterStatus = STATUS.behind
+  else if (rosterIssues >= 1) rosterStatus = STATUS.attention
+  else if (rosterCount === 0) rosterStatus = STATUS.noData
 
-  // Messages tile
-  const msgStatus = unreadMessages > 0 ? 'bg-amber-500' : 'bg-emerald-500'
+  // === Tile 5: Stats ===
+  const statsValue = pendingStats > 0 ? `${pendingStats} need` : 'All done'
+  let statsStatus = STATUS.healthy
+  if (pendingStats >= 2) statsStatus = STATUS.behind
+  else if (pendingStats === 1) statsStatus = STATUS.attention
+
+  // === Tile 6: Lineups ===
+  let lineupsValue = '—'
+  let lineupsStatus = STATUS.noData
+  if (upcomingGamesCount > 0) {
+    lineupsValue = `${lineupsSet}/${upcomingGamesCount} set`
+    if (lineupsSet >= upcomingGamesCount) lineupsStatus = STATUS.healthy
+    else if (lineupsSet > 0) lineupsStatus = STATUS.attention
+    else lineupsStatus = STATUS.behind
+  }
 
   const tiles = [
-    {
-      icon: Check, label: 'Attendance',
-      value: nextEvent ? `${attendanceMarked}/${attendanceTotal}` : '—',
-      status: attendanceStatus,
-      action: () => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') },
-    },
-    {
-      icon: ClipboardList, label: 'Lineups',
-      value: lineupCount > 0 ? `${lineupCount} set` : 'None',
-      status: lineupStatus,
-      action: () => onNavigate?.('gameprep'),
-    },
-    {
-      icon: UserCheck, label: 'RSVPs',
-      value: nextEvent ? `${rsvpResponded}/${attendanceTotal}` : '—',
-      status: rsvpStatus,
-      action: () => onNavigate?.('schedule'),
-    },
-    {
-      icon: Star, label: 'Shoutouts',
-      value: `${weeklyShoutouts} week`,
-      status: shoutoutStatus,
-      action: () => onShowShoutout?.(),
-    },
-    {
-      icon: BarChart3, label: 'Stats',
-      value: pendingStats > 0 ? `${pendingStats} need` : '0',
-      status: statsStatus,
-      action: () => onNavigate?.('gameprep'),
-    },
-    {
-      icon: MessageCircle, label: 'Messages',
-      value: unreadMessages > 0 ? `${unreadMessages} new` : '0',
-      status: msgStatus,
-      action: () => openTeamChat?.(selectedTeam?.id),
-    },
+    { icon: Swords, label: 'Game Prep', value: gamePrepValue, status: gamePrepStatus, action: () => onNavigate?.('gameprep') },
+    { icon: ClipboardCheck, label: 'Attendance', value: attendanceValue, status: attendanceStatus, action: () => onNavigate?.('attendance') },
+    { icon: Heart, label: 'Engagement', value: engagementValue, status: engagementStatus, action: () => onNavigate?.('teams') },
+    { icon: Users, label: 'Roster', value: rosterValue, status: rosterStatus, action: () => onNavigate?.('teams') },
+    { icon: BarChart3, label: 'Stats', value: statsValue, status: statsStatus, action: () => onNavigate?.('gameprep') },
+    { icon: ClipboardList, label: 'Lineups', value: lineupsValue, status: lineupsStatus, action: () => onNavigate?.('gameprep') },
   ]
 
   return (
@@ -98,10 +130,13 @@ export default function CoachCommandStrip({
             onClick={tile.action}
             className={`${cardBg} rounded-xl shadow-sm p-3 text-center hover:shadow-md transition group`}
           >
-            <Icon className="w-5 h-5 mx-auto mb-1 text-lynx-sky" />
-            <p className={`text-lg font-bold ${primaryText}`}>{tile.value}</p>
+            <Icon className="w-6 h-6 mx-auto mb-1 text-lynx-sky" />
+            <p className={`text-xl font-black ${primaryText} truncate`}>{tile.value}</p>
             <p className={`text-[10px] uppercase tracking-wider font-bold ${secondaryText}`}>{tile.label}</p>
-            <span className={`inline-block w-1.5 h-1.5 rounded-full mt-1 ${tile.status}`} />
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider mt-1.5 ${tile.status.pillClasses}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${tile.status.dotColor}`} />
+              {tile.status.text}
+            </span>
           </button>
         )
       })}
