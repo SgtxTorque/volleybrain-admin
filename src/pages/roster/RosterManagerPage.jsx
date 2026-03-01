@@ -57,65 +57,65 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
   const tableBorder = isDark ? 'border-white/[0.06]' : 'border-lynx-silver'
 
-  // Load coach's teams from roleContext (which already has the correct coach_id join)
-  useEffect(() => { loadTeams() }, [selectedSeason?.id, roleContext?.coachInfo?.id])
+  // Load coach's teams — mirrors CoachDashboard pattern (which works)
+  const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
+
+  useEffect(() => { loadTeams() }, [coachTeamAssignments?.length, selectedSeason?.id, user?.id])
 
   // Load roster when team changes
   useEffect(() => { if (selectedTeam) loadRoster(selectedTeam) }, [selectedTeam?.id])
 
   async function loadTeams() {
-    if (!selectedSeason?.id) { setLoading(false); return }
+    if (!user?.id) { setLoading(false); return }
 
-    // Use roleContext.coachInfo which is pre-loaded from MainApp via:
-    //   coaches.select('*, team_coaches(...)').eq('profile_id', user.id)
-    // This correctly uses the coaches table's id as coach_id.
-    const coachInfo = roleContext?.coachInfo
-    const teamCoachAssignments = coachInfo?.team_coaches || []
+    try {
+      let teamIds = coachTeamAssignments.map(tc => tc.team_id).filter(Boolean)
 
-    if (teamCoachAssignments.length === 0) {
-      // Fallback: query using profile_id -> coaches -> team_coaches
-      try {
-        const { data: coachRecord } = await supabase
+      // If roleContext isn't populated yet, query directly
+      if (teamIds.length === 0) {
+        const { data: coachRecord, error: coachErr } = await supabase
           .from('coaches')
-          .select('id, team_coaches(team_id, role, teams(id, name, color, season_id))')
-          .eq('profile_id', user?.id)
+          .select('id, team_coaches(team_id, role)')
+          .eq('profile_id', user.id)
           .maybeSingle()
 
+        if (coachErr) console.error('coaches query error:', coachErr)
         const assignments = coachRecord?.team_coaches || []
-        const seasonTeams = assignments
-          .filter(tc => tc.teams?.season_id === selectedSeason.id)
-          .map(tc => ({ ...tc.teams, coachRole: tc.role }))
+        teamIds = assignments.map(tc => tc.team_id).filter(Boolean)
 
-        setTeams(seasonTeams)
-        if (seasonTeams.length > 0 && !selectedTeam) {
-          setSelectedTeam(seasonTeams[0])
+        if (teamIds.length === 0) {
+          setTeams([])
+          setLoading(false)
+          return
         }
-      } catch (err) {
-        console.error('loadTeams fallback error:', err)
       }
-      setLoading(false)
-      return
-    }
 
-    // Primary path: use pre-loaded roleContext data
-    // team_coaches entries have teams nested, but may not have season_id — fetch full team data
-    const teamIds = teamCoachAssignments.map(tc => tc.team_id).filter(Boolean)
-    try {
-      const { data: fullTeams } = await supabase
+      // Fetch full team data (same as CoachDashboard line 304)
+      const { data: teamData, error: teamErr } = await supabase
         .from('teams')
-        .select('id, name, color, season_id')
+        .select('id, name, color, season_id, seasons(id, name)')
         .in('id', teamIds)
 
-      const seasonTeams = (fullTeams || [])
-        .filter(t => t.season_id === selectedSeason.id)
-        .map(t => {
-          const assignment = teamCoachAssignments.find(tc => tc.team_id === t.id)
-          return { ...t, coachRole: assignment?.role || 'coach' }
-        })
+      if (teamErr) console.error('teams query error:', teamErr)
 
-      setTeams(seasonTeams)
-      if (seasonTeams.length > 0 && !selectedTeam) {
-        setSelectedTeam(seasonTeams[0])
+      // Filter to current season if one is selected, otherwise show all
+      let filteredTeams = teamData || []
+      if (selectedSeason?.id) {
+        filteredTeams = filteredTeams.filter(t => t.season_id === selectedSeason.id)
+      }
+
+      const teamsWithRole = filteredTeams.map(t => {
+        const assignment = coachTeamAssignments.find(tc => tc.team_id === t.id)
+        return { ...t, coachRole: assignment?.role || 'coach' }
+      })
+
+      setTeams(teamsWithRole)
+      if (teamsWithRole.length > 0 && !selectedTeam) {
+        setSelectedTeam(teamsWithRole[0])
+      } else if (teamsWithRole.length > 0 && selectedTeam) {
+        // If selectedTeam no longer in list (season changed), switch to first
+        const stillValid = teamsWithRole.find(t => t.id === selectedTeam.id)
+        if (!stillValid) setSelectedTeam(teamsWithRole[0])
       }
     } catch (err) {
       console.error('loadTeams error:', err)
@@ -126,21 +126,29 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   async function loadRoster(team) {
     setLoading(true)
     try {
-      const { data: teamPlayers } = await supabase
+      // Match the CoachDashboard query pattern exactly (line 329 of CoachDashboard.jsx)
+      const { data: teamPlayers, error: tpError } = await supabase
         .from('team_players')
         .select('*, players(id, first_name, last_name, photo_url, position, grade, birth_date, jersey_number, jersey_pref_1, jersey_pref_2, jersey_pref_3, parent_name, parent_email, status)')
         .eq('team_id', team.id)
-        .order('jersey_number', { ascending: true, nullsFirst: false })
+
+      if (tpError) {
+        console.error('team_players query error:', tpError)
+        showToast?.('Failed to load roster', 'error')
+        setLoading(false)
+        return
+      }
 
       const playerIds = (teamPlayers || []).map(tp => tp.player_id).filter(Boolean)
 
+      // Enrichment queries — each is independent, failures shouldn't block roster display
       let skillRatings = {}
-      if (playerIds.length > 0) {
+      if (playerIds.length > 0 && selectedSeason?.id) {
         const { data: ratings } = await supabase
           .from('player_skill_ratings')
           .select('*')
           .in('player_id', playerIds)
-          .eq('season_id', selectedSeason?.id)
+          .eq('season_id', selectedSeason.id)
           .order('rated_at', { ascending: false })
         for (const r of (ratings || [])) {
           if (!skillRatings[r.player_id]) skillRatings[r.player_id] = r
@@ -148,24 +156,24 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
       }
 
       let evalCounts = {}
-      if (playerIds.length > 0) {
+      if (playerIds.length > 0 && selectedSeason?.id) {
         const { data: evals } = await supabase
           .from('player_evaluations')
           .select('player_id')
           .in('player_id', playerIds)
-          .eq('season_id', selectedSeason?.id)
+          .eq('season_id', selectedSeason.id)
         for (const e of (evals || [])) {
           evalCounts[e.player_id] = (evalCounts[e.player_id] || 0) + 1
         }
       }
 
       let waiverStatus = {}
-      if (playerIds.length > 0) {
+      if (playerIds.length > 0 && selectedSeason?.id) {
         const { data: waivers } = await supabase
           .from('waiver_signatures')
           .select('player_id, status')
           .in('player_id', playerIds)
-          .eq('season_id', selectedSeason?.id)
+          .eq('season_id', selectedSeason.id)
         for (const w of (waivers || [])) {
           if (w.status === 'signed' || w.status === 'active') waiverStatus[w.player_id] = true
         }
