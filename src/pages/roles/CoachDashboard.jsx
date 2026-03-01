@@ -272,6 +272,23 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   })
   const [showShoutoutModal, setShowShoutoutModal] = useState(false)
 
+  // V2.1 Performance grid data
+  const [scoringTrend, setScoringTrend] = useState([])
+  const [statLeaders, setStatLeaders] = useState({})
+  const [topPlayerTrend, setTopPlayerTrend] = useState(null)
+  const [developmentData, setDevelopmentData] = useState(null)
+
+  // V2.1 Command strip data
+  const [avgAttendanceLast3, setAvgAttendanceLast3] = useState(null)
+  const [weeklyEngagement, setWeeklyEngagement] = useState({ shoutouts: 0, challenges: 0, posts: 0 })
+  const [rosterIssues, setRosterIssues] = useState(0)
+  const [lineupSetForNextGame, setLineupSetForNextGame] = useState(false)
+  const [lineupsSet, setLineupsSet] = useState(0)
+  const [upcomingGamesCount, setUpcomingGamesCount] = useState(0)
+
+  // V2.1 Workflow button badges
+  const [newPlayersCount, setNewPlayersCount] = useState(0)
+
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
 
@@ -386,19 +403,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         setActiveChallenges(challengesWithProgress)
       } catch { setActiveChallenges([]) }
 
-      // V2: Lineup count for next game
-      const nextGameEvent = (events || []).find(e => e.event_type === 'game')
-      if (nextGameEvent) {
-        try {
-          const { count: lCount } = await supabase
-            .from('game_lineups')
-            .select('*', { count: 'exact', head: true })
-            .eq('event_id', nextGameEvent.id)
-            .eq('team_id', team.id)
-          setLineupCount(lCount || 0)
-        } catch { setLineupCount(0) }
-      } else { setLineupCount(0) }
-
       // V2: Unread messages count (simplified — count messages in team channel since 24h ago)
       try {
         const { data: channel } = await supabase
@@ -419,6 +423,206 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           setUnreadMessages(msgCount || 0)
         } else { setUnreadMessages(0) }
       } catch { setUnreadMessages(0) }
+
+      // ── V2.1 Queries ──
+
+      // 1. Scoring trend — completed games with scores (Performance Grid cards 1 + 3)
+      try {
+        const { data: scoringGames } = await supabase
+          .from('schedule_events')
+          .select('event_date, our_score, opponent_score, opponent_name, our_sets_won, opponent_sets_won')
+          .eq('team_id', team.id)
+          .eq('game_status', 'completed')
+          .not('our_score', 'is', null)
+          .order('event_date', { ascending: true })
+        setScoringTrend(scoringGames || [])
+      } catch { setScoringTrend([]) }
+
+      // 2. Stat leaders — max per category (Performance Grid card 5)
+      try {
+        if (playerIds.length > 0 && selectedSeason?.id) {
+          const { data: allStats } = await supabase
+            .from('player_season_stats')
+            .select('player_id, total_kills, total_aces, total_digs, total_blocks, total_assists')
+            .in('player_id', playerIds)
+            .eq('season_id', selectedSeason.id)
+
+          const categories = ['kills', 'aces', 'digs', 'blocks', 'assists']
+          const columnMap = { kills: 'total_kills', aces: 'total_aces', digs: 'total_digs', blocks: 'total_blocks', assists: 'total_assists' }
+          const leaders = {}
+          for (const cat of categories) {
+            const col = columnMap[cat]
+            const sorted = (allStats || []).sort((a, b) => (b[col] || 0) - (a[col] || 0))
+            if (sorted.length > 0 && sorted[0][col] > 0) {
+              const player = rosterData.find(r => r.id === sorted[0].player_id)
+              leaders[cat] = {
+                name: player ? `${player.first_name || ''} ${(player.last_name || '')[0]}.` : '—',
+                value: sorted[0][col],
+                max: sorted[0][col]
+              }
+            }
+          }
+          setStatLeaders(leaders)
+        } else { setStatLeaders({}) }
+      } catch { setStatLeaders({}) }
+
+      // 3. Top player trend — early vs late game stats (Performance Grid card 4)
+      try {
+        const seasonStats = topPlayers || []
+        if (seasonStats.length > 0) {
+          const topPlayerId = seasonStats[0].player_id
+          const { data: gameStats } = await supabase
+            .from('player_game_stats')
+            .select('kills, aces, points_scored, created_at')
+            .eq('player_id', topPlayerId)
+            .order('created_at', { ascending: true })
+
+          if (gameStats && gameStats.length >= 4) {
+            const half = Math.floor(gameStats.length / 2)
+            const early = gameStats.slice(0, half)
+            const late = gameStats.slice(half)
+            const avg = (arr, key) => arr.reduce((s, g) => s + (g[key] || 0), 0) / arr.length
+            setTopPlayerTrend({
+              kills: avg(late, 'kills') - avg(early, 'kills'),
+              aces: avg(late, 'aces') - avg(early, 'aces'),
+              points: avg(late, 'points_scored') - avg(early, 'points_scored'),
+            })
+          } else { setTopPlayerTrend(null) }
+        } else { setTopPlayerTrend(null) }
+      } catch { setTopPlayerTrend(null) }
+
+      // 4. Player development — per-game team averages (Performance Grid card 6)
+      try {
+        if (playerIds.length > 0) {
+          const { data: allGameStats } = await supabase
+            .from('player_game_stats')
+            .select('kills, aces, points_scored, game_result_id, created_at')
+            .in('player_id', playerIds)
+            .order('created_at', { ascending: true })
+
+          if (allGameStats && allGameStats.length > 0) {
+            const byGame = {}
+            for (const s of allGameStats) {
+              const key = s.game_result_id || s.created_at
+              if (!byGame[key]) byGame[key] = { kills: 0, aces: 0, points: 0 }
+              byGame[key].kills += s.kills || 0
+              byGame[key].aces += s.aces || 0
+              byGame[key].points += s.points_scored || 0
+            }
+            const gameArr = Object.values(byGame)
+            if (gameArr.length >= 4) {
+              const half = Math.floor(gameArr.length / 2)
+              const earlyGames = gameArr.slice(0, half)
+              const recentGames = gameArr.slice(half)
+              const avg = (arr, key) => arr.reduce((s, g) => s + g[key], 0) / arr.length
+              setDevelopmentData({
+                early: { kills: avg(earlyGames, 'kills'), aces: avg(earlyGames, 'aces'), points: avg(earlyGames, 'points') },
+                recent: { kills: avg(recentGames, 'kills'), aces: avg(recentGames, 'aces'), points: avg(recentGames, 'points') },
+              })
+            } else { setDevelopmentData(null) }
+          } else { setDevelopmentData(null) }
+        } else { setDevelopmentData(null) }
+      } catch { setDevelopmentData(null) }
+
+      // 5. Average attendance over last 3 events (Command Strip)
+      try {
+        const { data: recentEvents } = await supabase
+          .from('schedule_events')
+          .select('id')
+          .eq('team_id', team.id)
+          .lt('event_date', today)
+          .order('event_date', { ascending: false })
+          .limit(3)
+
+        if (recentEvents && recentEvents.length > 0) {
+          const eventIds = recentEvents.map(e => e.id)
+          const { data: attendance } = await supabase
+            .from('event_rsvps')
+            .select('event_id, status')
+            .in('event_id', eventIds)
+
+          const totalPresent = attendance?.filter(a => {
+            const s = a.status?.toLowerCase()
+            return s === 'going' || s === 'yes' || s === 'present'
+          }).length || 0
+          const rosterSize = rosterData.length || 1
+          const expectedTotal = rosterSize * recentEvents.length
+          setAvgAttendanceLast3(expectedTotal > 0 ? Math.round((totalPresent / expectedTotal) * 100) : null)
+        } else { setAvgAttendanceLast3(null) }
+      } catch { setAvgAttendanceLast3(null) }
+
+      // 6. Weekly engagement composite (Command Strip)
+      try {
+        const weekAgo = new Date()
+        weekAgo.setDate(weekAgo.getDate() - 7)
+        const weekStr = weekAgo.toISOString()
+
+        const [shoutRes, postRes] = await Promise.all([
+          supabase.from('shoutouts').select('*', { count: 'exact', head: true })
+            .eq('team_id', team.id).gte('created_at', weekStr),
+          supabase.from('team_posts').select('*', { count: 'exact', head: true })
+            .eq('team_id', team.id).gte('created_at', weekStr),
+        ])
+
+        const { count: challengeCount } = await supabase
+          .from('coach_challenges')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team.id)
+          .eq('status', 'active')
+
+        setWeeklyEngagement({
+          shoutouts: shoutRes.count || 0,
+          challenges: challengeCount || 0,
+          posts: postRes.count || 0,
+        })
+      } catch { setWeeklyEngagement({ shoutouts: 0, challenges: 0, posts: 0 }) }
+
+      // 7. Roster issues — missing jersey or position (Command Strip + Workflow)
+      const missingJersey = rosterData.filter(p => !p.jersey_number).length
+      const missingPosition = rosterData.filter(p => !p.position).length
+      setRosterIssues(missingJersey + missingPosition)
+
+      // 8. New players in last 7 days (Workflow Buttons)
+      try {
+        const weekAgoDate = new Date()
+        weekAgoDate.setDate(weekAgoDate.getDate() - 7)
+        const { data: tpWithDates } = await supabase
+          .from('team_players')
+          .select('joined_at')
+          .eq('team_id', team.id)
+          .gte('joined_at', weekAgoDate.toISOString())
+        setNewPlayersCount(tpWithDates?.length || 0)
+      } catch { setNewPlayersCount(0) }
+
+      // 9. Lineup check for next game (Command Strip)
+      const nextGameEvent = (events || []).find(e => e.event_type === 'game')
+      if (nextGameEvent) {
+        try {
+          const { count: nextLineupCount } = await supabase
+            .from('game_lineups')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', nextGameEvent.id)
+            .eq('team_id', team.id)
+          setLineupSetForNextGame((nextLineupCount || 0) > 0)
+          setLineupCount(nextLineupCount || 0)
+        } catch { setLineupSetForNextGame(false); setLineupCount(0) }
+      } else { setLineupSetForNextGame(false); setLineupCount(0) }
+
+      // 10. Lineups set for upcoming games (Command Strip)
+      const upcomingGameEvents = (events || []).filter(e => e.event_type === 'game')
+      setUpcomingGamesCount(upcomingGameEvents.length)
+      if (upcomingGameEvents.length > 0) {
+        try {
+          const gameEventIds = upcomingGameEvents.map(e => e.id)
+          const { data: allLineups } = await supabase
+            .from('game_lineups')
+            .select('event_id')
+            .in('event_id', gameEventIds)
+            .eq('team_id', team.id)
+          const gamesWithLineups = new Set((allLineups || []).map(l => l.event_id))
+          setLineupsSet(gamesWithLineups.size)
+        } catch { setLineupsSet(0) }
+      } else { setLineupsSet(0) }
 
     } catch (err) { console.error('Error loading team data:', err) }
   }
@@ -570,6 +774,31 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         lineupCount={lineupCount}
         checklistState={checklistState}
         onToggleManualChecklist={handleToggleManualChecklist}
+        // V2.1 Command Strip props
+        lineupSetForNextGame={lineupSetForNextGame}
+        rsvpPercentNextGame={nextEvent ? (rsvpCounts[nextEvent.id]?.total || 0) / Math.max(roster.length, 1) * 100 : 0}
+        avgAttendanceLast3={avgAttendanceLast3}
+        weeklyEngagement={weeklyEngagement}
+        rosterIssues={rosterIssues}
+        lineupsSet={lineupsSet}
+        upcomingGamesCount={upcomingGamesCount}
+        // V2.1 Workflow Button badges
+        gameDayBadge={nextGame && checklistState && !checklistState.lineupSet ? 1 : 0}
+        practiceBadge={upcomingEvents.filter(e => {
+          if (e.event_type === 'game') return false
+          const r = rsvpCounts[e.id]
+          return roster.length > 0 && (!r || (r.going / roster.length) < 0.5)
+        }).length}
+        rosterBadge={newPlayersCount + rosterIssues}
+        scheduleBadge={upcomingEvents.filter(e => {
+          const r = rsvpCounts[e.id]
+          return roster.length > 0 && (!r || (r.going / roster.length) < 0.5)
+        }).length}
+        // V2.1 Performance Grid data
+        scoringTrend={scoringTrend}
+        topPlayerTrend={topPlayerTrend}
+        statLeaders={statLeaders}
+        developmentData={developmentData}
       />
 
       <CoachRosterPanel
