@@ -57,23 +57,61 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
   const tableBorder = isDark ? 'border-white/[0.06]' : 'border-lynx-silver'
 
-  // Load coach's teams
-  useEffect(() => { loadTeams() }, [selectedSeason?.id])
+  // Load coach's teams from roleContext (which already has the correct coach_id join)
+  useEffect(() => { loadTeams() }, [selectedSeason?.id, roleContext?.coachInfo?.id])
 
   // Load roster when team changes
   useEffect(() => { if (selectedTeam) loadRoster(selectedTeam) }, [selectedTeam?.id])
 
   async function loadTeams() {
-    if (!user?.id || !selectedSeason?.id) { setLoading(false); return }
-    try {
-      const { data: coachTeams } = await supabase
-        .from('team_coaches')
-        .select('team_id, role, teams(id, name, color, season_id)')
-        .eq('coach_id', user.id)
+    if (!selectedSeason?.id) { setLoading(false); return }
 
-      const seasonTeams = (coachTeams || [])
-        .filter(tc => tc.teams?.season_id === selectedSeason.id)
-        .map(tc => ({ ...tc.teams, coachRole: tc.role }))
+    // Use roleContext.coachInfo which is pre-loaded from MainApp via:
+    //   coaches.select('*, team_coaches(...)').eq('profile_id', user.id)
+    // This correctly uses the coaches table's id as coach_id.
+    const coachInfo = roleContext?.coachInfo
+    const teamCoachAssignments = coachInfo?.team_coaches || []
+
+    if (teamCoachAssignments.length === 0) {
+      // Fallback: query using profile_id -> coaches -> team_coaches
+      try {
+        const { data: coachRecord } = await supabase
+          .from('coaches')
+          .select('id, team_coaches(team_id, role, teams(id, name, color, season_id))')
+          .eq('profile_id', user?.id)
+          .maybeSingle()
+
+        const assignments = coachRecord?.team_coaches || []
+        const seasonTeams = assignments
+          .filter(tc => tc.teams?.season_id === selectedSeason.id)
+          .map(tc => ({ ...tc.teams, coachRole: tc.role }))
+
+        setTeams(seasonTeams)
+        if (seasonTeams.length > 0 && !selectedTeam) {
+          setSelectedTeam(seasonTeams[0])
+        }
+      } catch (err) {
+        console.error('loadTeams fallback error:', err)
+      }
+      setLoading(false)
+      return
+    }
+
+    // Primary path: use pre-loaded roleContext data
+    // team_coaches entries have teams nested, but may not have season_id — fetch full team data
+    const teamIds = teamCoachAssignments.map(tc => tc.team_id).filter(Boolean)
+    try {
+      const { data: fullTeams } = await supabase
+        .from('teams')
+        .select('id, name, color, season_id')
+        .in('id', teamIds)
+
+      const seasonTeams = (fullTeams || [])
+        .filter(t => t.season_id === selectedSeason.id)
+        .map(t => {
+          const assignment = teamCoachAssignments.find(tc => tc.team_id === t.id)
+          return { ...t, coachRole: assignment?.role || 'coach' }
+        })
 
       setTeams(seasonTeams)
       if (seasonTeams.length > 0 && !selectedTeam) {
