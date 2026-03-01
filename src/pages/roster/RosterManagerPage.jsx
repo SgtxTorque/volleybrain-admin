@@ -144,50 +144,62 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
       // Enrichment queries — each is independent, failures shouldn't block roster display
       let skillRatings = {}
       if (playerIds.length > 0 && selectedSeason?.id) {
-        const { data: ratings } = await supabase
-          .from('player_skill_ratings')
-          .select('*')
-          .in('player_id', playerIds)
-          .eq('season_id', selectedSeason.id)
-          .order('rated_at', { ascending: false })
-        for (const r of (ratings || [])) {
-          if (!skillRatings[r.player_id]) skillRatings[r.player_id] = r
-        }
+        try {
+          const { data: ratings, error: ratErr } = await supabase
+            .from('player_skill_ratings')
+            .select('*')
+            .in('player_id', playerIds)
+            .eq('season_id', selectedSeason.id)
+            .order('rated_at', { ascending: false })
+          if (ratErr) console.warn('skill_ratings query:', ratErr.message)
+          for (const r of (ratings || [])) {
+            if (!skillRatings[r.player_id]) skillRatings[r.player_id] = r
+          }
+        } catch (e) { console.warn('skill_ratings error:', e) }
       }
 
       let evalCounts = {}
       if (playerIds.length > 0 && selectedSeason?.id) {
-        const { data: evals } = await supabase
-          .from('player_evaluations')
-          .select('player_id')
-          .in('player_id', playerIds)
-          .eq('season_id', selectedSeason.id)
-        for (const e of (evals || [])) {
-          evalCounts[e.player_id] = (evalCounts[e.player_id] || 0) + 1
-        }
+        try {
+          const { data: evals, error: evalErr } = await supabase
+            .from('player_evaluations')
+            .select('player_id')
+            .in('player_id', playerIds)
+            .eq('season_id', selectedSeason.id)
+          if (evalErr) console.warn('player_evaluations query:', evalErr.message)
+          for (const e of (evals || [])) {
+            evalCounts[e.player_id] = (evalCounts[e.player_id] || 0) + 1
+          }
+        } catch (e) { console.warn('player_evaluations error:', e) }
       }
 
       let waiverStatus = {}
       if (playerIds.length > 0 && selectedSeason?.id) {
-        const { data: waivers } = await supabase
-          .from('waiver_signatures')
-          .select('player_id, status')
-          .in('player_id', playerIds)
-          .eq('season_id', selectedSeason.id)
-        for (const w of (waivers || [])) {
-          if (w.status === 'signed' || w.status === 'active') waiverStatus[w.player_id] = true
-        }
+        try {
+          const { data: waivers, error: waiverErr } = await supabase
+            .from('waiver_signatures')
+            .select('player_id, status')
+            .in('player_id', playerIds)
+            .eq('season_id', selectedSeason.id)
+          if (waiverErr) console.warn('waiver_signatures query:', waiverErr.message)
+          for (const w of (waivers || [])) {
+            if (w.status === 'signed' || w.status === 'active') waiverStatus[w.player_id] = true
+          }
+        } catch (e) { console.warn('waiver_signatures error:', e) }
       }
 
       let positionData = {}
       if (playerIds.length > 0) {
-        const { data: positions } = await supabase
-          .from('player_positions')
-          .select('player_id, primary_position, secondary_position, is_captain, is_co_captain')
-          .in('player_id', playerIds)
-        for (const pos of (positions || [])) {
-          positionData[pos.player_id] = pos
-        }
+        try {
+          const { data: positions, error: posErr } = await supabase
+            .from('player_positions')
+            .select('player_id, primary_position, secondary_position, is_captain, is_co_captain')
+            .in('player_id', playerIds)
+          if (posErr) console.warn('player_positions query:', posErr.message)
+          for (const pos of (positions || [])) {
+            positionData[pos.player_id] = pos
+          }
+        } catch (e) { console.warn('player_positions error:', e) }
       }
 
       const enriched = (teamPlayers || []).map(tp => ({
@@ -338,64 +350,106 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
     { key: 'teamwork', label: 'Teamwork' },
   ]
 
-  function flattenRosterPlayer(tp) {
-    const p = tp.players || tp.player
-    return {
-      id: tp.player_id,
-      player_id: tp.player_id,
-      first_name: p?.first_name,
-      last_name: p?.last_name,
-      photo_url: p?.photo_url,
-      position: p?.position || tp.positions?.primary_position || null,
-      grade: p?.grade,
-      jersey_number: tp.jersey_number ?? p?.jersey_number,
-      skills: tp.skills,
-      evalCount: tp.evalCount,
-    }
-  }
-
   function startEvaluation() {
-    let source = []
-    if (evalPlayerScope === 'all') {
-      source = roster
-    } else if (evalPlayerScope === 'selected' && selectedIds.size > 0) {
-      source = roster.filter(p => selectedIds.has(p.player_id))
-    } else if (evalPlayerScope === 'single' && selectedPlayer) {
-      source = [selectedPlayer]
-    } else {
-      source = roster
+    try {
+      console.log('[EVAL] Starting evaluation. Roster length:', roster.length)
+      console.log('[EVAL] evalPlayerScope:', evalPlayerScope)
+      console.log('[EVAL] selectedIds size:', selectedIds.size)
+
+      let source = []
+      if (evalPlayerScope === 'all') {
+        source = roster
+      } else if (evalPlayerScope === 'selected' && selectedIds.size > 0) {
+        source = roster.filter(p => selectedIds.has(p.player_id))
+      } else if (evalPlayerScope === 'single' && selectedPlayer) {
+        source = [selectedPlayer]
+      } else {
+        source = roster
+      }
+
+      console.log('[EVAL] Source players:', source.length)
+
+      if (source.length > 0) {
+        const sample = source[0]
+        console.log('[EVAL] First player keys:', Object.keys(sample))
+        console.log('[EVAL] Has .players:', !!sample.players)
+        console.log('[EVAL] Has .player:', !!sample.player)
+        console.log('[EVAL] Has .player_id:', !!sample.player_id)
+      }
+
+      const players = source
+        .filter(tp => {
+          const hasId = !!tp.player_id
+          const hasPlayerData = !!(tp.players || tp.player)
+          if (!hasId || !hasPlayerData) {
+            console.warn('[EVAL] Filtered out player:', { player_id: tp.player_id, hasPlayers: !!tp.players, hasPlayer: !!tp.player })
+          }
+          return hasId && hasPlayerData
+        })
+        .map(tp => {
+          const p = tp.players || tp.player
+          return {
+            id: tp.player_id,
+            player_id: tp.player_id,
+            first_name: p?.first_name || 'Unknown',
+            last_name: p?.last_name || '',
+            photo_url: p?.photo_url || null,
+            position: p?.position || tp.positions?.primary_position || null,
+            grade: p?.grade || null,
+            jersey_number: tp.jersey_number ?? p?.jersey_number ?? null,
+            skills: tp.skills,
+            evalCount: tp.evalCount || 0,
+          }
+        })
+
+      console.log('[EVAL] Flattened players:', players.length)
+      if (players.length > 0) {
+        console.log('[EVAL] First flattened player:', players[0])
+      }
+
+      if (players.length === 0) {
+        showToast?.('No players found to evaluate', 'error')
+        return
+      }
+
+      setEvalPlayers(players)
+      setEvalCurrentIndex(0)
+      setEvalRatings({})
+      setEvalNotes('')
+      setEvalPrevious(null)
+      setEvalStep('rating')
+
+      console.log('[EVAL] State set to rating mode. Loading previous eval for:', players[0].player_id)
+      loadPreviousEval(players[0].player_id)
+    } catch (err) {
+      console.error('[EVAL] startEvaluation crashed:', err)
+      showToast?.('Error starting evaluation: ' + err.message, 'error')
     }
-
-    const players = source
-      .filter(tp => tp.player_id && (tp.players || tp.player))
-      .map(flattenRosterPlayer)
-
-    if (players.length === 0) {
-      showToast?.('No players found to evaluate', 'error')
-      return
-    }
-
-    setEvalPlayers(players)
-    setEvalCurrentIndex(0)
-    setEvalRatings({})
-    setEvalNotes('')
-    setEvalPrevious(null)
-    setEvalStep('rating')
-    loadPreviousEval(players[0].player_id)
   }
 
   async function loadPreviousEval(playerId) {
+    if (!playerId || !selectedSeason?.id) {
+      setEvalPrevious(null)
+      return
+    }
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('player_evaluations')
         .select('*')
         .eq('player_id', playerId)
-        .eq('season_id', selectedSeason?.id)
+        .eq('season_id', selectedSeason.id)
         .order('evaluation_date', { ascending: false })
         .limit(1)
-        .single()
-      setEvalPrevious(data || null)
-    } catch {
+        .maybeSingle()
+
+      if (error) {
+        console.warn('loadPreviousEval query error:', error)
+        setEvalPrevious(null)
+      } else {
+        setEvalPrevious(data)
+      }
+    } catch (err) {
+      console.warn('loadPreviousEval error:', err)
       setEvalPrevious(null)
     }
   }
@@ -449,7 +503,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         .eq('team_id', selectedTeam.id)
         .eq('season_id', selectedSeason.id)
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await supabase.from('player_skill_ratings').update(ratingRow).eq('id', existing.id)
@@ -477,7 +531,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         .eq('player_id', playerId)
         .eq('season_id', selectedSeason.id)
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (existingSkills) {
         await supabase.from('player_skills').update({ ...skillsRow, updated_at: new Date().toISOString() }).eq('id', existingSkills.id)
@@ -544,6 +598,14 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
     if (sortKey !== column) return <ArrowUpDown className="w-3 h-3 opacity-30" />
     return sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
   }
+
+  // Computed values for evaluation rendering (extracted from IIFE for safety)
+  const evalCurrentPlayer = evalStep === 'rating' && evalPlayers.length > 0 ? evalPlayers[evalCurrentIndex] : null
+  const evalPrevSkills = evalPrevious?.skills
+    ? (typeof evalPrevious.skills === 'string' ? (() => { try { return JSON.parse(evalPrevious.skills) } catch { return null } })() : evalPrevious.skills)
+    : null
+  const evalRated = Object.values(evalRatings).filter(v => v > 0)
+  const evalOverall = evalRated.length > 0 ? (evalRated.reduce((s, v) => s + v, 0) / evalRated.length).toFixed(1) : '—'
 
   // Skeleton loading
   if (loading && roster.length === 0) {
@@ -965,136 +1027,128 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         )}
 
         {/* ═══ EVALUATION RATING CARD ═══ */}
-        {viewMode === 'evaluate' && selectedTeam && evalStep === 'rating' && evalPlayers.length > 0 && (() => {
-          const cp = evalPlayers[evalCurrentIndex]
-          if (!cp) return null
-          const jerseyNum = cp.jersey_number
-          const position = cp.position
-          const prevSkills = evalPrevious?.skills ? (typeof evalPrevious.skills === 'string' ? JSON.parse(evalPrevious.skills) : evalPrevious.skills) : null
-          const rated = Object.values(evalRatings).filter(v => v > 0)
-          const overall = rated.length > 0 ? (rated.reduce((s, v) => s + v, 0) / rated.length).toFixed(1) : '—'
-
-          return (
-            <div className={`${cardBg} border rounded-xl p-6`}>
-              {/* Nav bar */}
-              <div className="flex items-center justify-between mb-5">
-                <button onClick={() => { setEvalStep('setup') }}
-                  className={`flex items-center gap-1 text-sm font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-lynx-slate hover:text-lynx-navy'} transition`}>
-                  <ChevronLeft className="w-4 h-4" /> Back to Setup
-                </button>
-                <span className={`text-sm font-semibold ${secondaryText}`}>
-                  Player {evalCurrentIndex + 1} of {evalPlayers.length}
-                </span>
-                <button onClick={handleSkipPlayer}
-                  className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold ${isDark ? 'text-slate-400 hover:bg-white/[0.06]' : 'text-lynx-slate hover:bg-lynx-cloud'} transition`}>
-                  Skip
-                </button>
-              </div>
-
-              {/* Player Info */}
-              <div className="flex items-center gap-4 mb-5">
-                {cp.photo_url ? (
-                  <img src={cp.photo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
-                ) : (
-                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold ${isDark ? 'bg-lynx-sky/20 text-lynx-sky' : 'bg-lynx-ice text-lynx-deep'}`}>
-                    {cp.first_name?.[0]}{cp.last_name?.[0]}
-                  </div>
-                )}
-                <div>
-                  <h3 className={`text-lg font-bold ${primaryText}`}>{cp.first_name} {cp.last_name}</h3>
-                  <p className={`text-sm ${secondaryText}`}>
-                    {jerseyNum ? `#${jerseyNum}` : ''}{jerseyNum && position ? ' · ' : ''}{position ? POSITION_NAMES[position] || position : ''}
-                    {cp.grade ? ` · ${cp.grade}` : ''}
-                  </p>
-                </div>
-              </div>
-
-              {/* Previous Eval */}
-              {evalPrevious && (
-                <div className={`rounded-xl p-4 mb-5 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver'}`}>
-                  <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${secondaryText}`}>
-                    Previous: {evalPrevious.evaluation_type?.replace(/_/g, ' ')} · {evalPrevious.evaluation_date} · Overall: {evalPrevious.overall_score}/5
-                  </p>
-                  {prevSkills && (
-                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                      {Object.entries(prevSkills).map(([k, v]) => (
-                        <span key={k} className={`text-xs ${secondaryText}`}>
-                          {k.charAt(0).toUpperCase() + k.slice(1)}: <strong className={primaryText}>{v}</strong>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {evalPrevious.notes && <p className={`text-xs mt-2 italic ${secondaryText}`}>"{evalPrevious.notes}"</p>}
-                </div>
-              )}
-
-              {/* Skill Ratings */}
-              <div className="space-y-3 mb-5">
-                <p className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Current Evaluation</p>
-                {evalSkills.map(skillKey => {
-                  const skillLabel = ALL_EVAL_SKILLS.find(s => s.key === skillKey)?.label || skillKey
-                  const currentVal = evalRatings[skillKey] || 0
-                  const prevVal = prevSkills?.[skillKey]
-
-                  return (
-                    <div key={skillKey} className="flex items-center gap-3">
-                      <span className={`w-28 text-sm font-medium ${primaryText}`}>{skillLabel}</span>
-                      <div className="flex gap-1.5">
-                        {[1, 2, 3, 4, 5].map(n => (
-                          <button key={n} onClick={() => setEvalRatings(prev => ({ ...prev, [skillKey]: n }))}
-                            className={`w-9 h-9 rounded-full text-sm font-bold transition ${n <= currentVal
-                              ? 'bg-lynx-sky text-white'
-                              : isDark ? 'bg-white/[0.06] text-slate-500 hover:bg-white/10' : 'bg-lynx-cloud text-lynx-slate hover:bg-slate-200'
-                            }`}>
-                            {n}
-                          </button>
-                        ))}
-                      </div>
-                      <span className={`text-sm font-bold w-8 text-center ${currentVal > 0 ? 'text-lynx-sky' : secondaryText}`}>
-                        {currentVal > 0 ? currentVal : '—'}
-                      </span>
-                      {prevVal != null && currentVal > 0 && (
-                        <span className={`text-xs ${currentVal > prevVal ? 'text-emerald-500' : currentVal < prevVal ? 'text-red-400' : secondaryText}`}>
-                          {currentVal > prevVal ? '↑' : currentVal < prevVal ? '↓' : '→'} was {prevVal}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Overall Score */}
-              <div className={`rounded-xl p-3 mb-5 ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
-                <p className={`text-sm ${secondaryText}`}>
-                  Overall: <span className={`text-lg font-bold ${primaryText}`}>{overall}</span>{overall !== '—' && ' / 5'}
-                </p>
-              </div>
-
-              {/* Notes */}
-              <div className="mb-5">
-                <label className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Notes</label>
-                <textarea
-                  value={evalNotes}
-                  onChange={e => setEvalNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Add evaluation notes..."
-                  className={`w-full mt-2 px-3 py-2 rounded-[10px] border text-sm resize-none ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white placeholder:text-slate-500' : 'bg-white border-lynx-silver text-lynx-navy placeholder:text-lynx-slate'}`}
-                />
-              </div>
-
-              {/* Save & Next */}
-              <button onClick={handleSaveAndNext} disabled={evalSaving || rated.length === 0}
-                className="px-6 py-2.5 rounded-[10px] bg-lynx-sky text-white font-semibold hover:bg-lynx-deep transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
-                {evalSaving ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {evalCurrentIndex < evalPlayers.length - 1 ? 'Save & Next' : 'Save & Finish'}
+        {viewMode === 'evaluate' && selectedTeam && evalStep === 'rating' && evalCurrentPlayer && (
+          <div className={`${cardBg} border rounded-xl p-6`}>
+            {/* Nav bar */}
+            <div className="flex items-center justify-between mb-5">
+              <button onClick={() => { setEvalStep('setup') }}
+                className={`flex items-center gap-1 text-sm font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-lynx-slate hover:text-lynx-navy'} transition`}>
+                <ChevronLeft className="w-4 h-4" /> Back to Setup
+              </button>
+              <span className={`text-sm font-semibold ${secondaryText}`}>
+                Player {evalCurrentIndex + 1} of {evalPlayers.length}
+              </span>
+              <button onClick={handleSkipPlayer}
+                className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold ${isDark ? 'text-slate-400 hover:bg-white/[0.06]' : 'text-lynx-slate hover:bg-lynx-cloud'} transition`}>
+                Skip
               </button>
             </div>
-          )
-        })()}
+
+            {/* Player Info */}
+            <div className="flex items-center gap-4 mb-5">
+              {evalCurrentPlayer.photo_url ? (
+                <img src={evalCurrentPlayer.photo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+              ) : (
+                <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold ${isDark ? 'bg-lynx-sky/20 text-lynx-sky' : 'bg-lynx-ice text-lynx-deep'}`}>
+                  {evalCurrentPlayer.first_name?.[0]}{evalCurrentPlayer.last_name?.[0]}
+                </div>
+              )}
+              <div>
+                <h3 className={`text-lg font-bold ${primaryText}`}>{evalCurrentPlayer.first_name} {evalCurrentPlayer.last_name}</h3>
+                <p className={`text-sm ${secondaryText}`}>
+                  {evalCurrentPlayer.jersey_number ? `#${evalCurrentPlayer.jersey_number}` : ''}
+                  {evalCurrentPlayer.jersey_number && evalCurrentPlayer.position ? ' · ' : ''}
+                  {evalCurrentPlayer.position ? POSITION_NAMES[evalCurrentPlayer.position] || evalCurrentPlayer.position : ''}
+                  {evalCurrentPlayer.grade ? ` · Grade ${evalCurrentPlayer.grade}` : ''}
+                </p>
+              </div>
+            </div>
+
+            {/* Previous Eval */}
+            {evalPrevious && (
+              <div className={`rounded-xl p-4 mb-5 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver'}`}>
+                <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${secondaryText}`}>
+                  Previous: {evalPrevious.evaluation_type?.replace(/_/g, ' ')} · {evalPrevious.evaluation_date} · Overall: {evalPrevious.overall_score}/5
+                </p>
+                {evalPrevSkills && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {Object.entries(evalPrevSkills).map(([k, v]) => (
+                      <span key={k} className={`text-xs ${secondaryText}`}>
+                        {k.charAt(0).toUpperCase() + k.slice(1)}: <strong className={primaryText}>{v}</strong>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {evalPrevious.notes && <p className={`text-xs mt-2 italic ${secondaryText}`}>"{evalPrevious.notes}"</p>}
+              </div>
+            )}
+
+            {/* Skill Ratings */}
+            <div className="space-y-3 mb-5">
+              <p className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Current Evaluation</p>
+              {evalSkills.map(skillKey => {
+                const skillLabel = ALL_EVAL_SKILLS.find(s => s.key === skillKey)?.label || skillKey
+                const currentVal = evalRatings[skillKey] || 0
+                const prevVal = evalPrevSkills?.[skillKey]
+
+                return (
+                  <div key={skillKey} className="flex items-center gap-3">
+                    <span className={`w-28 text-sm font-medium ${primaryText}`}>{skillLabel}</span>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <button key={n} onClick={() => setEvalRatings(prev => ({ ...prev, [skillKey]: n }))}
+                          className={`w-9 h-9 rounded-full text-sm font-bold transition ${n <= currentVal
+                            ? 'bg-lynx-sky text-white'
+                            : isDark ? 'bg-white/[0.06] text-slate-500 hover:bg-white/10' : 'bg-lynx-cloud text-lynx-slate hover:bg-slate-200'
+                          }`}>
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                    <span className={`text-sm font-bold w-8 text-center ${currentVal > 0 ? 'text-lynx-sky' : secondaryText}`}>
+                      {currentVal > 0 ? currentVal : '—'}
+                    </span>
+                    {prevVal != null && currentVal > 0 && (
+                      <span className={`text-xs ${currentVal > prevVal ? 'text-emerald-500' : currentVal < prevVal ? 'text-red-400' : secondaryText}`}>
+                        {currentVal > prevVal ? '↑' : currentVal < prevVal ? '↓' : '→'} was {prevVal}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Overall Score */}
+            <div className={`rounded-xl p-3 mb-5 ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
+              <p className={`text-sm ${secondaryText}`}>
+                Overall: <span className={`text-lg font-bold ${primaryText}`}>{evalOverall}</span>{evalOverall !== '—' && ' / 5'}
+              </p>
+            </div>
+
+            {/* Notes */}
+            <div className="mb-5">
+              <label className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Notes</label>
+              <textarea
+                value={evalNotes}
+                onChange={e => setEvalNotes(e.target.value)}
+                rows={3}
+                placeholder="Add evaluation notes..."
+                className={`w-full mt-2 px-3 py-2 rounded-[10px] border text-sm resize-none ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white placeholder:text-slate-500' : 'bg-white border-lynx-silver text-lynx-navy placeholder:text-lynx-slate'}`}
+              />
+            </div>
+
+            {/* Save & Next */}
+            <button onClick={handleSaveAndNext} disabled={evalSaving || evalRated.length === 0}
+              className="px-6 py-2.5 rounded-[10px] bg-lynx-sky text-white font-semibold hover:bg-lynx-deep transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+              {evalSaving ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {evalCurrentIndex < evalPlayers.length - 1 ? 'Save & Next' : 'Save & Finish'}
+            </button>
+          </div>
+        )}
 
         {/* ═══ SEASON SETUP WIZARD ═══ */}
         {viewMode === 'setup' && selectedTeam && (
