@@ -15,6 +15,7 @@ import GamePrepCompletionModal from './GamePrepCompletionModal'
 import { computeCheckpoints, getCurrentCheckpoint } from '../../lib/gameCheckpoints'
 import GameJourneyPanel from './GameJourneyPanel'
 import QuickAttendanceModal from './QuickAttendanceModal'
+import QuickScoreModal from './QuickScoreModal'
 
 // Tactical font loading (shared with GameDayCommandCenter)
 const GP_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
@@ -76,6 +77,7 @@ function GamePrepPage({ showToast }) {
   const [showGameDayMode, setShowGameDayMode] = useState(false)
   const [showJourneyPanel, setShowJourneyPanel] = useState(false)
   const [showAttendanceModal, setShowAttendanceModal] = useState(false)
+  const [showQuickScore, setShowQuickScore] = useState(false)
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
 
@@ -269,7 +271,7 @@ function GamePrepPage({ showToast }) {
         }}
         onCompleteClick={() => {
           setSelectedGame(game)
-          setShowGameCompletion(true)
+          setShowQuickScore(true)
         }}
         onGameDayClick={() => {
           setSelectedGame(game)
@@ -593,6 +595,22 @@ function GamePrepPage({ showToast }) {
         />
       )}
 
+      {showQuickScore && selectedGame && selectedTeam && (
+        <QuickScoreModal
+          event={selectedGame}
+          team={selectedTeam}
+          roster={roster}
+          sport={sport}
+          onClose={() => { setShowQuickScore(false); loadGames() }}
+          onComplete={() => {
+            setShowQuickScore(false)
+            setShowStatsPrompt(true)
+            loadGames()
+          }}
+          showToast={showToast}
+        />
+      )}
+
       {showAttendanceModal && selectedGame && selectedTeam && (
         <QuickAttendanceModal
           event={selectedGame}
@@ -620,7 +638,7 @@ function GamePrepPage({ showToast }) {
             onOpenGameDay={() => { setShowJourneyPanel(false); setShowGameDayMode(true) }}
             onOpenDetail={() => setShowGameDetail(true)}
             onOpenAttendance={() => setShowAttendanceModal(true)}
-            onOpenQuickScore={() => setShowGameCompletion(true)}
+            onOpenQuickScore={() => setShowQuickScore(true)}
             showToast={showToast}
           />
         )
