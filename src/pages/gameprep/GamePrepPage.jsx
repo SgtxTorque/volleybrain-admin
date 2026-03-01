@@ -13,6 +13,7 @@ import { GameDayCommandCenter } from './GameDayCommandCenter'
 import GameCard from './GameCard'
 import GamePrepCompletionModal from './GamePrepCompletionModal'
 import { computeCheckpoints, getCurrentCheckpoint } from '../../lib/gameCheckpoints'
+import GameJourneyPanel from './GameJourneyPanel'
 
 // Tactical font loading (shared with GameDayCommandCenter)
 const GP_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
@@ -72,6 +73,7 @@ function GamePrepPage({ showToast }) {
   const [showStatsPrompt, setShowStatsPrompt] = useState(false)
   const [showGameDetail, setShowGameDetail] = useState(false)
   const [showGameDayMode, setShowGameDayMode] = useState(false)
+  const [showJourneyPanel, setShowJourneyPanel] = useState(false)
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
 
@@ -255,7 +257,10 @@ function GamePrepPage({ showToast }) {
         isSelected={selectedGame?.id === game.id}
         checkpoints={checkpoints}
         currentCheckpoint={current}
-        onClick={() => setSelectedGame(game)}
+        onClick={() => {
+          setSelectedGame(game)
+          setShowJourneyPanel(true)
+        }}
         onPrepClick={() => {
           setSelectedGame(game)
           setShowLineupBuilder(true)
@@ -585,6 +590,29 @@ function GamePrepPage({ showToast }) {
           showToast={showToast}
         />
       )}
+
+      {showJourneyPanel && selectedGame && selectedTeam && (() => {
+        const cp = getGameCheckpoints(selectedGame)
+        const cur = getCurrentCheckpoint(cp)
+        return (
+          <GameJourneyPanel
+            game={selectedGame}
+            team={selectedTeam}
+            roster={roster}
+            checkpoints={cp}
+            currentCheckpoint={cur}
+            onClose={() => { setShowJourneyPanel(false); loadGames() }}
+            onOpenLineup={() => setShowLineupBuilder(true)}
+            onOpenCompletion={() => setShowGameCompletion(true)}
+            onOpenStats={() => setShowStatsModal(true)}
+            onOpenGameDay={() => { setShowJourneyPanel(false); setShowGameDayMode(true) }}
+            onOpenDetail={() => setShowGameDetail(true)}
+            onOpenAttendance={() => {}}
+            onOpenQuickScore={() => setShowGameCompletion(true)}
+            showToast={showToast}
+          />
+        )
+      })()}
     </div>
     </div>
     </>
