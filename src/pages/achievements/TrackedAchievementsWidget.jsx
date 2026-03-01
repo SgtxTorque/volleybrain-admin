@@ -243,7 +243,7 @@ export function RecentAchievementsWidget({
         .from('player_achievements')
         .select('*, achievement:achievements(*)')
         .eq('player_id', playerId)
-        .order('earned_at', { ascending: false })
+        .order('awarded_at', { ascending: false })
         .limit(maxItems)
       
       if (error) throw error

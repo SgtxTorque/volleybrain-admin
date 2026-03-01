@@ -110,8 +110,8 @@ export function AchievementCard({
   const hasImages = !!achievement.icon_url
   
   // Format earned date
-  const earnedDate = earnedData?.earned_at 
-    ? new Date(earnedData.earned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const earnedDate = earnedData?.awarded_at
+    ? new Date(earnedData.awarded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : null
 
   // Size classes

@@ -86,7 +86,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
   async function loadGameStats() {
     try {
       const { data } = await supabase.from('game_player_stats')
-        .select('*, schedule_events(event_date, opponent_name, our_score, their_score)')
+        .select('*, schedule_events!event_id(event_date, opponent_name, our_score, their_score)')
         .eq('player_id', playerId).order('created_at', { ascending: false }).limit(20)
       setGameStats(data || [])
     } catch { setGameStats([]) }

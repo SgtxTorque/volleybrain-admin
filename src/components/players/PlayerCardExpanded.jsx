@@ -344,7 +344,7 @@ export function PlayerCardExpanded({
         .from('player_badges')
         .select('*')
         .eq('player_id', player.id)
-        .order('earned_at', { ascending: false })
+        .order('awarded_at', { ascending: false })
       
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading badges:', error)
@@ -371,7 +371,7 @@ export function PlayerCardExpanded({
     try {
       const { data, error } = await supabase
         .from('game_player_stats')
-        .select('*, schedule_events(event_date, opponent_name, our_score, their_score)')
+        .select('*, schedule_events!event_id(event_date, opponent_name, our_score, their_score)')
         .eq('player_id', player.id)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -1043,7 +1043,7 @@ export function PlayerCardExpanded({
                             badgeId={b.badge_id} 
                             size="lg" 
                             showLabel 
-                            earnedDate={b.earned_at ? new Date(b.earned_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null}
+                            earnedDate={b.awarded_at ? new Date(b.awarded_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null}
                             theme={theme}
                           />
                         ))}

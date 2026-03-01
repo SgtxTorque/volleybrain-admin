@@ -41,7 +41,7 @@ export async function checkAndUnlockAchievements(playerId, teamId, organizationI
         newUnlocks.push({
           player_id: playerId,
           achievement_id: ach.id,
-          earned_at: now,
+          awarded_at: now,
           stat_value_at_unlock: currentValue,
         })
       }
@@ -187,8 +187,8 @@ export async function getUnseenAchievements(playerId) {
       .from('player_achievements')
       .select('*, achievements(*)')
       .eq('player_id', playerId)
-      .gt('earned_at', lastSeen)
-      .order('earned_at', { ascending: false })
+      .gt('awarded_at', lastSeen)
+      .order('awarded_at', { ascending: false })
 
     return (data || []).map(pa => ({
       ...pa,

@@ -24,6 +24,15 @@ const TopPlayerWidget = ({ teamId, onViewLeaderboards }) => {
     { key: 'blocks', label: 'Blocks', icon: '🧱' },
   ];
 
+  const columnMap = {
+    points: 'total_points',
+    kills: 'total_kills',
+    aces: 'total_aces',
+    assists: 'total_assists',
+    digs: 'total_digs',
+    blocks: 'total_blocks',
+  };
+
   useEffect(() => {
     if (teamId && selectedSeason?.id) {
       fetchTopPlayer();
@@ -49,9 +58,9 @@ const TopPlayerWidget = ({ teamId, onViewLeaderboards }) => {
         `)
         .eq('team_id', teamId)
         .eq('season_id', selectedSeason.id)
-        .order(statCategory, { ascending: false })
+        .order(columnMap[statCategory] || statCategory, { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching top player:', error);
@@ -71,7 +80,7 @@ const TopPlayerWidget = ({ teamId, onViewLeaderboards }) => {
 
   const getCurrentStat = () => {
     if (!topPlayer) return { value: 0, perGame: 0 };
-    const value = topPlayer[statCategory] || 0;
+    const value = topPlayer[columnMap[statCategory]] || topPlayer[statCategory] || 0;
     const games = topPlayer.games_played || 1;
     return {
       value,

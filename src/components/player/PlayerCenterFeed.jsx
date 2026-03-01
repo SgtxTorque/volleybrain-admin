@@ -154,7 +154,7 @@ export default function PlayerCenterFeed({
 
     // Badge earned
     badges?.slice(0, 2).forEach(b => {
-      items.push({ type: 'badge', data: b, time: b.earned_at || b.created_at })
+      items.push({ type: 'badge', data: b, time: b.awarded_at || b.created_at })
     })
 
     // Mock shoutouts

@@ -45,13 +45,13 @@ const MyBadgesWidget = ({ playerId, onViewBadges }) => {
         .select(`
           id,
           badge_id,
-          earned_at,
+          awarded_at,
           context,
-          event:schedule_events(id, event_date, opponent_name)
+          event:schedule_events!event_id(id, event_date, opponent_name)
         `)
         .eq('player_id', playerId)
         .eq('season_id', selectedSeason.id)
-        .order('earned_at', { ascending: false });
+        .order('awarded_at', { ascending: false });
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching badges:', error);
@@ -130,7 +130,7 @@ const MyBadgesWidget = ({ playerId, onViewBadges }) => {
                   <div className="text-xs opacity-90">Latest Badge</div>
                   <div className="font-bold">{getBadgeInfo(recentBadge.badge_id).name}</div>
                   <div className="text-xs opacity-90">
-                    {formatDate(recentBadge.earned_at)}
+                    {formatDate(recentBadge.awarded_at)}
                     {recentBadge.event?.opponent_name && ` vs ${recentBadge.event.opponent_name}`}
                   </div>
                 </div>

@@ -365,7 +365,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
 
   async function loadBadges() {
     try {
-      const { data } = await supabase.from('player_badges').select('*').eq('player_id', playerId).order('earned_at', { ascending: false })
+      const { data } = await supabase.from('player_badges').select('*').eq('player_id', playerId).order('awarded_at', { ascending: false })
       setBadges(data || [])
       try { const { data: p } = await supabase.from('player_achievement_progress').select('*').eq('player_id', playerId); setBadgesInProgress(p || []) }
       catch { setBadgesInProgress([]) }
@@ -374,7 +374,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
 
   async function loadRecentGames() {
     try {
-      const { data } = await supabase.from('game_player_stats').select('*, schedule_events(event_date, opponent_name, our_score, their_score)').eq('player_id', playerId).order('created_at', { ascending: false }).limit(10)
+      const { data } = await supabase.from('game_player_stats').select('*, schedule_events!event_id(event_date, opponent_name, our_score, their_score)').eq('player_id', playerId).order('created_at', { ascending: false }).limit(10)
       setRecentGames(data || [])
     } catch { setRecentGames([]) }
   }
@@ -409,7 +409,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
       // Coach feedback (only non-private notes)
       const { data: feedback } = await supabase
         .from('player_coach_notes')
-        .select('note, note_type, created_at')
+        .select('content, note_type, created_at')
         .eq('player_id', playerId)
         .eq('is_private', false)
         .order('created_at', { ascending: false })
@@ -834,7 +834,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                             {note.created_at ? new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
                           </span>
                         </div>
-                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{note.note}</p>
+                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{note.content}</p>
                       </div>
                     ))}
                   </div>
@@ -919,7 +919,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
                 <h4 className={`text-base uppercase tracking-wider font-semibold mb-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Earned ({badges.length})</h4>
                 {badges.length > 0 ? (
                   <div className="grid grid-cols-4 gap-6">
-                    {badges.map((b, i) => <BadgeIcon key={i} badgeId={b.badge_id} size="lg" showLabel isDark={isDark} earnedDate={b.earned_at ? new Date(b.earned_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null} />)}
+                    {badges.map((b, i) => <BadgeIcon key={i} badgeId={b.badge_id} size="lg" showLabel isDark={isDark} earnedDate={b.awarded_at ? new Date(b.awarded_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null} />)}
                   </div>
                 ) : <p className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No badges earned yet</p>}
               </div>

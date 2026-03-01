@@ -232,7 +232,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       }
 
       try {
-        const { data: badgeData } = await supabase.from('player_achievements').select('*, achievement:achievement_id(id, name, icon, rarity, color_primary)').eq('player_id', player.id).order('earned_at', { ascending: false })
+        const { data: badgeData } = await supabase.from('player_achievements').select('*, achievement:achievement_id(id, name, icon, rarity, color_primary)').eq('player_id', player.id).order('awarded_at', { ascending: false })
         setBadges(badgeData || [])
       } catch { setBadges([]) }
 

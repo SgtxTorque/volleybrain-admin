@@ -326,7 +326,7 @@ function GameCompletionModal({ event, team, roster, sport = 'volleyball', onClos
       // Award badges
       for (const badge of badges) {
         await supabase.from('player_badges').insert({
-          player_id: badge.playerId, badge_id: badge.badgeType, earned_at: new Date().toISOString(),
+          player_id: badge.playerId, badge_id: badge.badgeType, awarded_at: new Date().toISOString(),
           awarded_by: user?.id, context: `Game vs ${event.opponent_name || 'opponent'} - ${matchResult.result}`, event_id: event.id
         })
       }

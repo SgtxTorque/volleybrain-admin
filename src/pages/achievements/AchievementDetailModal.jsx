@@ -113,8 +113,8 @@ export function AchievementDetailModal({
   }
   
   // Format dates
-  const earnedDate = earnedData?.earned_at 
-    ? new Date(earnedData.earned_at).toLocaleDateString('en-US', { 
+  const earnedDate = earnedData?.awarded_at
+    ? new Date(earnedData.awarded_at).toLocaleDateString('en-US', {
         month: 'long', 
         day: 'numeric', 
         year: 'numeric' 

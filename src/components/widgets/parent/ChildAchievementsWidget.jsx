@@ -36,7 +36,7 @@ export default function ChildAchievementsWidget({ children, onViewAchievements }
           achievement:achievements(id, name, icon, rarity, color_primary)
         `)
         .in('player_id', playerIds)
-        .order('earned_at', { ascending: false })
+        .order('awarded_at', { ascending: false })
         .limit(10)
       
       if (error) throw error

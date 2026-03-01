@@ -210,7 +210,7 @@ async function checkAndAwardShoutoutBadges(userId, statKey, currentValue) {
       newUnlocks.push({
         player_id: playerId,
         achievement_id: ach.id,
-        earned_at: now,
+        awarded_at: now,
         stat_value_at_unlock: currentValue,
       })
     }
