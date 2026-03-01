@@ -121,25 +121,27 @@ export default function CoachCommandStrip({
   ]
 
   return (
-    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-      {tiles.map(tile => {
-        const Icon = tile.icon
-        return (
-          <button
-            key={tile.label}
-            onClick={tile.action}
-            className={`${cardBg} rounded-xl shadow-sm p-3 text-center hover:shadow-md transition group`}
-          >
-            <Icon className="w-6 h-6 mx-auto mb-1 text-lynx-sky" />
-            <p className={`text-xl font-black ${primaryText} truncate`}>{tile.value}</p>
-            <p className={`text-[10px] uppercase tracking-wider font-bold ${secondaryText}`}>{tile.label}</p>
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider mt-1.5 ${tile.status.pillClasses}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${tile.status.dotColor}`} />
-              {tile.status.text}
-            </span>
-          </button>
-        )
-      })}
+    <div className="max-w-[800px] mx-auto w-full">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+        {tiles.map(tile => {
+          const Icon = tile.icon
+          return (
+            <button
+              key={tile.label}
+              onClick={tile.action}
+              className={`${cardBg} rounded-xl shadow-sm px-3 py-2.5 text-center hover:shadow-md transition group`}
+            >
+              <Icon className="w-5 h-5 mx-auto mb-1 text-lynx-sky" />
+              <p className={`text-lg font-bold ${primaryText} truncate`}>{tile.value}</p>
+              <p className={`text-[10px] uppercase tracking-wider font-bold ${secondaryText}`}>{tile.label}</p>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider mt-1.5 ${tile.status.pillClasses}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${tile.status.dotColor}`} />
+                {tile.status.text}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
