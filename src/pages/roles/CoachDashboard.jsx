@@ -14,6 +14,7 @@ import {
 import CoachLeftSidebar from '../../components/coach/CoachLeftSidebar'
 import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
 import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
+import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
 // ── Event Detail Modal ──
@@ -258,6 +259,19 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const [showCoachBlast, setShowCoachBlast] = useState(false)
   const [showWarmupTimer, setShowWarmupTimer] = useState(false)
 
+  // V2 new state
+  const [weeklyShoutouts, setWeeklyShoutouts] = useState(0)
+  const [activeChallenges, setActiveChallenges] = useState([])
+  const [lineupCount, setLineupCount] = useState(0)
+  const [unreadMessages, setUnreadMessages] = useState(0)
+  const [checklistState, setChecklistState] = useState({
+    lineupSet: false,
+    rsvpsReviewed: false,
+    lastGameStatsEntered: false,
+    parentReminderSent: false, // manual only for now
+  })
+  const [showShoutoutModal, setShowShoutoutModal] = useState(false)
+
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
 
@@ -336,6 +350,76 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         const { data: seasonStats } = await supabase.from('player_season_stats').select('player_id, total_kills, total_aces, total_digs, total_blocks, total_assists, total_points, games_played').in('player_id', playerIds).eq('season_id', selectedSeason.id).order('total_points', { ascending: false }).limit(5)
         setTopPlayers(seasonStats || [])
       } else { setTopPlayers([]) }
+
+      // V2: Weekly shoutout count
+      try {
+        const weekAgo = new Date()
+        weekAgo.setDate(weekAgo.getDate() - 7)
+        const { count: shoutoutCount } = await supabase
+          .from('shoutouts')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team.id)
+          .gte('created_at', weekAgo.toISOString())
+        setWeeklyShoutouts(shoutoutCount || 0)
+      } catch { setWeeklyShoutouts(0) }
+
+      // V2: Active challenges with participant progress
+      try {
+        const { data: challenges } = await supabase
+          .from('coach_challenges')
+          .select('id, title, description, challenge_type, target_value, starts_at, ends_at, status, xp_reward')
+          .eq('team_id', team.id)
+          .eq('status', 'active')
+          .order('ends_at', { ascending: true })
+          .limit(3)
+
+        const challengesWithProgress = []
+        for (const ch of (challenges || [])) {
+          const { data: participants } = await supabase
+            .from('challenge_participants')
+            .select('player_id, current_value, completed')
+            .eq('challenge_id', ch.id)
+          const completedCount = (participants || []).filter(p => p.completed).length
+          const totalParticipants = (participants || []).length
+          challengesWithProgress.push({ ...ch, completedCount, totalParticipants })
+        }
+        setActiveChallenges(challengesWithProgress)
+      } catch { setActiveChallenges([]) }
+
+      // V2: Lineup count for next game
+      const nextGameEvent = (events || []).find(e => e.event_type === 'game')
+      if (nextGameEvent) {
+        try {
+          const { count: lCount } = await supabase
+            .from('game_lineups')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', nextGameEvent.id)
+            .eq('team_id', team.id)
+          setLineupCount(lCount || 0)
+        } catch { setLineupCount(0) }
+      } else { setLineupCount(0) }
+
+      // V2: Unread messages count (simplified — count messages in team channel since 24h ago)
+      try {
+        const { data: channel } = await supabase
+          .from('chat_channels')
+          .select('id')
+          .eq('team_id', team.id)
+          .limit(1)
+          .maybeSingle()
+        if (channel) {
+          const dayAgo = new Date()
+          dayAgo.setDate(dayAgo.getDate() - 1)
+          const { count: msgCount } = await supabase
+            .from('chat_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('channel_id', channel.id)
+            .eq('is_deleted', false)
+            .gte('created_at', dayAgo.toISOString())
+          setUnreadMessages(msgCount || 0)
+        } else { setUnreadMessages(0) }
+      } catch { setUnreadMessages(0) }
+
     } catch (err) { console.error('Error loading team data:', err) }
   }
 
@@ -357,6 +441,57 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const nextEventRsvp = nextEvent && rsvpCounts[nextEvent.id]
   const notResponded = nextEvent ? Math.max(0, roster.length - (nextEventRsvp?.total || 0)) : 0
   if (notResponded > 0) needsAttentionItems.push({ label: `${notResponded} pending RSVPs`, action: () => onNavigate?.('schedule'), color: '#8B5CF6' })
+
+  // V2: Players missing jersey numbers
+  const missingJersey = roster.filter(p => !p.jersey_number).length
+  if (missingJersey > 0) needsAttentionItems.push({
+    label: `${missingJersey} player${missingJersey > 1 ? 's' : ''} need jersey #`,
+    action: () => navigateToTeamWall?.(selectedTeam?.id),
+    color: '#F59E0B'
+  })
+
+  // V2: Checklist auto-computation
+  useEffect(() => {
+    if (!selectedTeam || !nextEvent) return
+    let cancelled = false
+
+    async function computeChecklist() {
+      const nextRsvp = rsvpCounts[nextEvent?.id]
+      const rsvpPercent = roster.length > 0
+        ? ((nextRsvp?.total || 0) / roster.length) * 100
+        : 0
+
+      // Check if lineup is set for next game
+      let lineupSet = false
+      if (nextEvent?.event_type === 'game') {
+        try {
+          const { count } = await supabase
+            .from('game_lineups')
+            .select('*', { count: 'exact', head: true })
+            .eq('event_id', nextEvent.id)
+            .eq('team_id', selectedTeam.id)
+          lineupSet = (count || 0) > 0
+        } catch { lineupSet = false }
+      }
+
+      if (!cancelled) {
+        setChecklistState(prev => ({
+          ...prev,
+          lineupSet,
+          rsvpsReviewed: rsvpPercent >= 80,
+          lastGameStatsEntered: pendingStats === 0,
+          // parentReminderSent: manual only, stays as local state
+        }))
+      }
+    }
+
+    computeChecklist()
+    return () => { cancelled = true }
+  }, [nextEvent?.id, rsvpCounts, roster.length, pendingStats, selectedTeam?.id])
+
+  function handleToggleManualChecklist(key) {
+    setChecklistState(prev => ({ ...prev, [key]: !prev[key] }))
+  }
 
   // ── Loading State ──
   if (loading) {
@@ -401,6 +536,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         openTeamChat={openTeamChat}
         onShowCoachBlast={() => setShowCoachBlast(true)}
         onShowWarmupTimer={() => setShowWarmupTimer(true)}
+        onShowShoutout={() => setShowShoutoutModal(true)}
       />
 
       <CoachCenterDashboard
@@ -425,8 +561,15 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         showToast={showToast}
         onShowCoachBlast={() => setShowCoachBlast(true)}
         onShowWarmupTimer={() => setShowWarmupTimer(true)}
+        onShowShoutout={() => setShowShoutoutModal(true)}
         onPlayerSelect={setSelectedPlayer}
         onEventSelect={setSelectedEventDetail}
+        rsvpCounts={rsvpCounts}
+        weeklyShoutouts={weeklyShoutouts}
+        unreadMessages={unreadMessages}
+        lineupCount={lineupCount}
+        checklistState={checklistState}
+        onToggleManualChecklist={handleToggleManualChecklist}
       />
 
       <CoachRosterPanel
@@ -437,12 +580,14 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         topPlayers={topPlayers}
         upcomingEvents={upcomingEvents}
         rsvpCounts={rsvpCounts}
+        activeChallenges={activeChallenges}
         onNavigate={onNavigate}
         navigateToTeamWall={navigateToTeamWall}
         onPlayerSelect={setSelectedPlayer}
+        onEventSelect={setSelectedEventDetail}
       />
 
-      {/* Modals */}
+      {/* Modals — DO NOT DELETE */}
       {selectedEventDetail && (
         <EventDetailModal event={selectedEventDetail} team={selectedTeam} onClose={() => setSelectedEventDetail(null)} />
       )}
@@ -458,6 +603,14 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       )}
       {showWarmupTimer && (
         <WarmupTimerModal onClose={() => setShowWarmupTimer(false)} />
+      )}
+      {showShoutoutModal && selectedTeam && (
+        <GiveShoutoutModal
+          teamId={selectedTeam.id}
+          teamName={selectedTeam.name}
+          onClose={() => setShowShoutoutModal(false)}
+          showToast={showToast}
+        />
       )}
     </div>
   )
