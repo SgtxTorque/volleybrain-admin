@@ -1,5 +1,5 @@
 import {
-  BarChart3, Trophy, TrendingUp, Star, Users, Target, Activity, Flame
+  BarChart3, Trophy, TrendingUp, Star, Target, Activity, Flame
 } from '../../constants/icons'
 import { useTheme } from '../../contexts/ThemeContext'
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  Users, BarChart3, MessageCircle, ChevronDown, Check, Send, X
+  Users, BarChart3, MessageCircle, ChevronDown, Check, Send
 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 import CoachGameDayHero from './CoachGameDayHero'
