@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, Save
 } from 'lucide-react'
 import PlayerDevelopmentCard from './PlayerDevelopmentCard'
+import SeasonSetupWizard from './SeasonSetupWizard'
 
 // Volleyball positions
 const POSITIONS = ['OH', 'S', 'MB', 'OPP', 'L', 'DS', 'RS']
@@ -1024,15 +1025,20 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
           )
         })()}
 
-        {/* ═══ SEASON SETUP PLACEHOLDER ═══ */}
+        {/* ═══ SEASON SETUP WIZARD ═══ */}
         {viewMode === 'setup' && selectedTeam && (
-          <div className={`${cardBg} border rounded-xl p-8 text-center`}>
-            <div className={`w-16 h-16 rounded-xl mx-auto flex items-center justify-center mb-3 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
-              <Shield className="w-8 h-8 text-lynx-sky" />
-            </div>
-            <p className={`text-sm font-semibold ${primaryText}`}>Season Setup Wizard</p>
-            <p className={`text-xs mt-1 ${secondaryText}`}>Coming in Phase 6</p>
-          </div>
+          <SeasonSetupWizard
+            roster={roster}
+            teamId={selectedTeam.id}
+            seasonId={selectedSeason?.id}
+            onComplete={() => setViewMode('overview')}
+            onStartEvaluation={() => {
+              setViewMode('evaluate')
+              setEvalType('pre_season')
+            }}
+            onReloadRoster={() => loadRoster(selectedTeam)}
+            showToast={showToast}
+          />
         )}
 
         {/* No team selected */}
