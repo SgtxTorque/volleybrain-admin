@@ -1,4 +1,4 @@
-import { Check, Square } from '../../constants/icons'
+import { Check } from '../../constants/icons'
 import { useTheme } from '../../contexts/ThemeContext'
 
 /**
@@ -65,7 +65,7 @@ export default function GameDayChecklist({
               </div>
             ) : (
               <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 ${isDark ? 'border border-white/[0.12] bg-white/[0.04]' : 'border border-slate-200 bg-slate-50'}`}>
-                <Square className="w-3 h-3 text-transparent" />
+                <span className="w-3 h-3" />
               </div>
             )}
             <span className={`text-xs ${item.checked ? 'line-through opacity-50' : ''} ${primaryText}`}>

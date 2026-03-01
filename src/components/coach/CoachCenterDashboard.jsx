@@ -6,6 +6,9 @@ import {
 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 import CoachGameDayHero from './CoachGameDayHero'
+import RotatingPanel from './RotatingPanel'
+import GameDayChecklist from './GameDayChecklist'
+import CoachCommandStrip from './CoachCommandStrip'
 import { useTheme } from '../../contexts/ThemeContext'
 import FeedPost from '../../pages/teams/FeedPost'
 import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
@@ -190,7 +193,12 @@ function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
 
 /**
  * CoachCenterDashboard — Center column (flex-1) of Coach Dashboard
- * Welcome message, hero card, game day tools, attendance
+ * Row 0: Welcome + Season Selector
+ * Row 1: Hero (col-span-3) + Rotating Panel (col-span-2)
+ * Row 2: CoachCommandStrip (6 tiles)
+ * Row 3: Team Hub + Chat (side-by-side, max-height)
+ * Row 4: Quick Attendance
+ * Row 5: Mobile Quick Actions
  */
 export default function CoachCenterDashboard({
   teams,
@@ -212,10 +220,17 @@ export default function CoachCenterDashboard({
   showToast,
   onShowCoachBlast,
   onShowWarmupTimer,
+  onShowShoutout,
   onPlayerSelect,
   onEventSelect,
   topPlayers,
   openTeamChat,
+  rsvpCounts,
+  weeklyShoutouts,
+  unreadMessages,
+  lineupCount,
+  checklistState,
+  onToggleManualChecklist,
 }) {
   const { isDark } = useTheme()
   const g = selectedTeam?.color || '#4BB9EC'
@@ -275,7 +290,6 @@ export default function CoachCenterDashboard({
   }, [selectedTeam?.id])
 
   // Aggregate season totals from available player stats
-  // TODO: Wire to full team season stats query (currently aggregates from top players data)
   const seasonTotals = (() => {
     const t = { points: 0, kills: 0, aces: 0, digs: 0, assists: 0, blocks: 0, games: 0 }
     topPlayers?.forEach(s => {
@@ -323,13 +337,13 @@ export default function CoachCenterDashboard({
   }
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 space-y-5 min-w-0">
+    <main className="flex-1 overflow-y-auto p-6 space-y-4 min-w-0">
 
-      {/* Welcome + Season Selector */}
+      {/* Row 0: Welcome + Season Selector (compact) */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Welcome back, {coachName}</h1>
-          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{selectedTeam?.name} · {selectedSeason?.name}</p>
+          <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Welcome back, {coachName}</h1>
+          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{selectedTeam?.name} · {selectedSeason?.name}</p>
         </div>
         {availableSeasons?.length > 1 && (
           <div className="relative">
@@ -389,139 +403,84 @@ export default function CoachCenterDashboard({
         </div>
       )}
 
-      {/* Row 1: Game Day Hero */}
-      <CoachGameDayHero
-        nextGame={nextGame}
-        nextEvent={nextEvent}
-        selectedTeam={selectedTeam}
-        teamRecord={teamRecord}
-        winRate={winRate}
-        selectedSeason={selectedSeason}
-        onNavigate={onNavigate}
-        onShowWarmupTimer={onShowWarmupTimer}
-      />
-
-      {/* Row 2: Game Day Tools */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm`}>
-        <div className={`flex items-center gap-3 p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
-            <Crosshair className="w-5 h-5 text-lynx-sky" />
-          </div>
-          <div>
-            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Game Day Tools</h2>
-            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Lineups, scoring, and stats</p>
-          </div>
+      {/* Row 1: Hero (col-span-3) + Rotating Panel (col-span-2) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3">
+          <CoachGameDayHero
+            nextGame={nextGame}
+            nextEvent={nextEvent}
+            selectedTeam={selectedTeam}
+            teamRecord={teamRecord}
+            winRate={winRate}
+            selectedSeason={selectedSeason}
+            onNavigate={onNavigate}
+            onShowWarmupTimer={onShowWarmupTimer}
+          />
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5">
-          {/* Lineup Builder */}
-          <button
-            onClick={() => onNavigate?.('gameprep')}
-            className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5 text-left hover:shadow-md`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
-                <ClipboardList className="w-6 h-6 text-lynx-sky" />
-              </div>
-              <div>
-                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Lineup Builder</h3>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Build & manage lineups</p>
-              </div>
-            </div>
-            {nextGame ? (
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
-                <Swords className="w-4 h-4 text-lynx-sky" />
-                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  Next: vs {nextGame.opponent_name || 'TBD'} · {countdownText(nextGame.event_date)}
-                </span>
-              </div>
-            ) : (
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No upcoming games</p>
-            )}
-            <div className="flex items-center gap-1 mt-3 text-lynx-sky text-sm font-semibold">
-              <span>Open Builder</span>
-              <ChevronRight className="w-4 h-4" />
-            </div>
-          </button>
-
-          {/* Game Day Hub */}
-          <button
-            onClick={() => onNavigate?.('gameprep')}
-            className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5 text-left hover:shadow-md`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-100'}`}>
-                <Zap className="w-6 h-6 text-amber-500" />
-              </div>
-              <div>
-                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Game Day Hub</h3>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Live scoring & stats</p>
-              </div>
-            </div>
-            {nextGame && countdownText(nextGame.event_date) === 'TODAY' ? (
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-100'}`}>
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-sm text-red-500 font-semibold">Game Day — vs {nextGame.opponent_name || 'TBD'}</span>
-              </div>
-            ) : (
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-100'}`}>
-                <Clock className="w-4 h-4 text-amber-500/60" />
-                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Score games, track stats, manage rotations</span>
-              </div>
-            )}
-            <div className="flex items-center gap-1 mt-3 text-amber-500 text-sm font-semibold">
-              <span>Enter Hub</span>
-              <ChevronRight className="w-4 h-4" />
-            </div>
-          </button>
-        </div>
-
-        {/* Pending Stats Alert */}
-        {pendingStats > 0 && (
-          <div className={`mx-5 mb-5 flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
-            <Bell className="w-5 h-5 text-amber-500" />
-            <div className="flex-1">
-              <p className={`text-sm font-semibold ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>{pendingStats} game{pendingStats > 1 ? 's' : ''} need stats</p>
-              <p className={`text-sm ${isDark ? 'text-amber-500/70' : 'text-amber-600/70'}`}>Stats power leaderboards, badges, and parent views</p>
-            </div>
+        <div className="lg:col-span-2">
+          <RotatingPanel interval={8000}>
+            {/* Panel A: Season Totals */}
             <button
-              onClick={() => onNavigate?.('gameprep')}
-              className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-amber-500 hover:bg-amber-600"
+              onClick={() => onNavigate?.('leaderboards')}
+              className={`w-full ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4 text-left hover:shadow-md h-full flex flex-col`}
             >
-              Enter Stats
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-lynx-sky" />
+                  <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Season Totals</h3>
+                </div>
+                <span className="text-xs font-semibold text-lynx-sky">View Full Stats →</span>
+              </div>
+              <div className="grid grid-cols-4 gap-2 flex-1">
+                {seasonTotals.slice(0, 4).map(stat => (
+                  <div key={stat.label} className={`text-center py-2 px-1 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
+                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                    <p className={`text-[10px] uppercase tracking-wide font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-4 gap-2 mt-2">
+                {seasonTotals.slice(4).map(stat => (
+                  <div key={stat.label} className={`text-center py-2 px-1 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
+                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+                    <p className={`text-[10px] uppercase tracking-wide font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</p>
+                  </div>
+                ))}
+              </div>
             </button>
-          </div>
-        )}
+
+            {/* Panel B: Game Day Checklist */}
+            <GameDayChecklist
+              nextEvent={nextEvent}
+              checklistState={checklistState}
+              onToggleManual={onToggleManualChecklist}
+              roster={roster}
+              rsvpCounts={rsvpCounts}
+            />
+          </RotatingPanel>
+        </div>
       </div>
 
-      {/* Row 3: Season Totals */}
-      <button
-        onClick={() => onNavigate?.('leaderboards')}
-        className={`w-full ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5 text-left hover:shadow-md group`}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-lynx-sky" />
-            <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Season Totals</h3>
-          </div>
-          <span className="text-xs font-semibold text-lynx-sky group-hover:text-lynx-deep">
-            View Full Stats →
-          </span>
-        </div>
-        <div className="flex gap-2 overflow-x-auto">
-          {seasonTotals.map(stat => (
-            <div key={stat.label} className={`flex-1 min-w-[70px] text-center py-2 px-1 rounded-xl ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'}`}>
-              <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
-              <p className={`text-xs uppercase tracking-wide font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </button>
+      {/* Row 2: Coach Command Strip */}
+      <CoachCommandStrip
+        roster={roster}
+        nextEvent={nextEvent}
+        nextGame={nextGame}
+        rsvpCounts={rsvpCounts}
+        weeklyShoutouts={weeklyShoutouts || 0}
+        pendingStats={pendingStats}
+        unreadMessages={unreadMessages || 0}
+        lineupCount={lineupCount || 0}
+        onNavigate={onNavigate}
+        onShowShoutout={onShowShoutout}
+        openTeamChat={openTeamChat}
+        selectedTeam={selectedTeam}
+      />
 
-      {/* Row 4: Team Hub + Chat Previews */}
+      {/* Row 3: Team Hub + Chat Previews (max height) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Team Hub Preview */}
-        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
+        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden max-h-[300px]`}>
           <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-lynx-sky" />
@@ -531,7 +490,7 @@ export default function CoachCenterDashboard({
               Go To Team Page →
             </button>
           </div>
-          <div className={!isDark ? 'tw-light' : ''}>
+          <div className={`overflow-hidden ${!isDark ? 'tw-light' : ''}`}>
             <style>{HUB_STYLES}</style>
             {latestPost ? (
               <FeedPost
@@ -562,8 +521,8 @@ export default function CoachCenterDashboard({
         </div>
 
         {/* Team Chat Preview */}
-        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden`}>
-          <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden max-h-[300px] flex flex-col`}>
+          <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} flex-shrink-0`}>
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-emerald-500" />
               <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Team Chat</h3>
@@ -572,7 +531,7 @@ export default function CoachCenterDashboard({
               Go to Chat →
             </button>
           </div>
-          <div className="p-4">
+          <div className="p-4 flex-1 overflow-y-auto min-h-0">
             {recentMessages.length > 0 ? (
               <div className="space-y-2.5">
                 {recentMessages.map((msg) => {
@@ -659,7 +618,7 @@ export default function CoachCenterDashboard({
         </div>
       </div>
 
-      {/* Row 5: Quick Attendance */}
+      {/* Row 4: Quick Attendance */}
       {nextEvent && (
         <QuickAttendancePanel
           event={nextEvent}
@@ -670,7 +629,7 @@ export default function CoachCenterDashboard({
         />
       )}
 
-      {/* Row 4: Quick Actions (mobile only — replaces sidebar) */}
+      {/* Row 5: Quick Actions (mobile only — replaces sidebar) */}
       <div className="lg:hidden">
         <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Quick Actions</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
