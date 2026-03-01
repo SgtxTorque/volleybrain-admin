@@ -12,6 +12,7 @@ import { GameDetailModal } from '../../components/games/GameDetailModal'
 import { GameDayCommandCenter } from './GameDayCommandCenter'
 import GameCard from './GameCard'
 import GamePrepCompletionModal from './GamePrepCompletionModal'
+import { computeCheckpoints, getCurrentCheckpoint } from '../../lib/gameCheckpoints'
 
 // Tactical font loading (shared with GameDayCommandCenter)
 const GP_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
@@ -61,6 +62,8 @@ function GamePrepPage({ showToast }) {
   const [games, setGames] = useState([])
   const [pastGames, setPastGames] = useState([])
   const [lineupStatuses, setLineupStatuses] = useState({})
+  const [rsvpData, setRsvpData] = useState({})
+  const [attendanceData, setAttendanceData] = useState({})
   const [loading, setLoading] = useState(true)
   const [selectedGame, setSelectedGame] = useState(null)
   const [showLineupBuilder, setShowLineupBuilder] = useState(false)
@@ -134,14 +137,15 @@ function GamePrepPage({ showToast }) {
 
       setPastGames(pastData || [])
 
-      // Load lineup statuses
+      // Load lineup statuses, RSVPs, and attendance for all games
       const allGames = [...(upcomingData || []), ...(pastData || [])]
-      if (allGames.length > 0) {
-        const eventIds = allGames.map(g => g.id)
+      const allGameIds = allGames.map(g => g.id)
+
+      if (allGameIds.length > 0) {
         const { data: lineups } = await supabase
           .from('game_lineups')
           .select('event_id')
-          .in('event_id', eventIds)
+          .in('event_id', allGameIds)
           .eq('is_starter', true)
 
         const statusMap = {}
@@ -149,6 +153,32 @@ function GamePrepPage({ showToast }) {
           statusMap[l.event_id] = { hasLineup: true }
         })
         setLineupStatuses(statusMap)
+
+        // Load RSVPs
+        const { data: rsvps } = await supabase
+          .from('event_rsvps')
+          .select('event_id, player_id, status')
+          .in('event_id', allGameIds)
+
+        const rMap = {}
+        for (const r of (rsvps || [])) {
+          if (!rMap[r.event_id]) rMap[r.event_id] = []
+          rMap[r.event_id].push(r)
+        }
+        setRsvpData(rMap)
+
+        // Load attendance
+        const { data: attend } = await supabase
+          .from('event_attendance')
+          .select('event_id, player_id, status')
+          .in('event_id', allGameIds)
+
+        const aMap = {}
+        for (const a of (attend || [])) {
+          if (!aMap[a.event_id]) aMap[a.event_id] = []
+          aMap[a.event_id].push(a)
+        }
+        setAttendanceData(aMap)
       }
 
     } catch (err) {
@@ -193,6 +223,15 @@ function GamePrepPage({ showToast }) {
     return { label: 'Ready', text: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: '✓', hasLineup: true }
   }
 
+  function getGameCheckpoints(game) {
+    return computeCheckpoints(game, {
+      rsvpData: rsvpData[game.id] || [],
+      hasLineup: !!lineupStatuses[game.id]?.hasLineup,
+      attendanceData: attendanceData[game.id] || [],
+      rosterCount: roster.length,
+    })
+  }
+
   // Calculate record
   const record = pastGames.reduce((acc, g) => {
     if (g.game_result === 'win') acc.wins++
@@ -202,6 +241,40 @@ function GamePrepPage({ showToast }) {
 
   // Stats pending count
   const statsPendingCount = pastGames.filter(g => g.game_status === 'completed' && !g.stats_entered).length
+
+  function renderGameCard(game) {
+    const checkpoints = getGameCheckpoints(game)
+    const current = getCurrentCheckpoint(checkpoints)
+    return (
+      <GameCard
+        key={game.id}
+        game={game}
+        team={selectedTeam}
+        isDark={isDark}
+        status={getLineupStatus(game)}
+        isSelected={selectedGame?.id === game.id}
+        checkpoints={checkpoints}
+        currentCheckpoint={current}
+        onClick={() => setSelectedGame(game)}
+        onPrepClick={() => {
+          setSelectedGame(game)
+          setShowLineupBuilder(true)
+        }}
+        onCompleteClick={() => {
+          setSelectedGame(game)
+          setShowGameCompletion(true)
+        }}
+        onGameDayClick={() => {
+          setSelectedGame(game)
+          setShowGameDayMode(true)
+        }}
+        onEnterStats={(g) => {
+          setSelectedGame(g)
+          setShowStatsModal(true)
+        }}
+      />
+    )
+  }
 
   return (
     <>
@@ -297,7 +370,7 @@ function GamePrepPage({ showToast }) {
               : `gp-card text-white hover:brightness-110`
           }`}
         >
-          📅 Upcoming ({games.length})
+          Upcoming ({games.length})
         </button>
         <button
           onClick={() => setActiveTab('results')}
@@ -307,46 +380,21 @@ function GamePrepPage({ showToast }) {
               : `gp-card text-white hover:brightness-110`
           }`}
         >
-          📊 Results ({pastGames.length})
+          Results ({pastGames.length})
         </button>
       </div>
 
       {/* Content */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin w-10 h-10 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+          <div className="animate-spin w-10 h-10 border-4 border-lynx-sky border-t-transparent rounded-full" />
         </div>
       ) : (
         <>
           {activeTab === 'upcoming' && (
             games.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {games.map(game => (
-                  <GameCard
-                    key={game.id}
-                    game={game}
-                    team={selectedTeam}
-                    status={getLineupStatus(game)}
-                    isSelected={selectedGame?.id === game.id}
-                    onClick={() => setSelectedGame(game)}
-                    onPrepClick={() => {
-                      setSelectedGame(game)
-                      setShowLineupBuilder(true)
-                    }}
-                    onCompleteClick={() => {
-                      setSelectedGame(game)
-                      setShowGameCompletion(true)
-                    }}
-                    onGameDayClick={() => {
-                      setSelectedGame(game)
-                      setShowGameDayMode(true)
-                    }}
-                    onEnterStats={(g) => {
-                      setSelectedGame(g)
-                      setShowStatsModal(true)
-                    }}
-                  />
-                ))}
+                {games.map(game => renderGameCard(game))}
               </div>
             ) : (
               <div className={`gp-card border border-blue-500/10 rounded-2xl p-12 text-center`}>
@@ -360,43 +408,50 @@ function GamePrepPage({ showToast }) {
           {activeTab === 'results' && (
             pastGames.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pastGames.map(game => (
-                  <GameCard
-                    key={game.id}
-                    game={game}
-                    team={selectedTeam}
-                    status={getLineupStatus(game)}
-                    isSelected={selectedGame?.id === game.id}
-                    onClick={() => {
-                      setSelectedGame(game)
-                      if (game.game_status === 'completed') {
-                        setShowGameDetail(true)
-                      } else {
+                {pastGames.map(game => {
+                  const checkpoints = getGameCheckpoints(game)
+                  const current = getCurrentCheckpoint(checkpoints)
+                  return (
+                    <GameCard
+                      key={game.id}
+                      game={game}
+                      team={selectedTeam}
+                      isDark={isDark}
+                      status={getLineupStatus(game)}
+                      isSelected={selectedGame?.id === game.id}
+                      checkpoints={checkpoints}
+                      currentCheckpoint={current}
+                      onClick={() => {
+                        setSelectedGame(game)
+                        if (game.game_status === 'completed') {
+                          setShowGameDetail(true)
+                        } else {
+                          setShowGameCompletion(true)
+                        }
+                      }}
+                      onPrepClick={() => {
+                        setSelectedGame(game)
+                        if (game.game_status === 'completed') {
+                          setShowGameDetail(true)
+                        } else {
+                          setShowGameCompletion(true)
+                        }
+                      }}
+                      onCompleteClick={() => {
+                        setSelectedGame(game)
                         setShowGameCompletion(true)
-                      }
-                    }}
-                    onPrepClick={() => {
-                      setSelectedGame(game)
-                      if (game.game_status === 'completed') {
-                        setShowGameDetail(true)
-                      } else {
-                        setShowGameCompletion(true)
-                      }
-                    }}
-                    onCompleteClick={() => {
-                      setSelectedGame(game)
-                      setShowGameCompletion(true)
-                    }}
-                    onGameDayClick={() => {
-                      setSelectedGame(game)
-                      setShowGameDayMode(true)
-                    }}
-                    onEnterStats={(g) => {
-                      setSelectedGame(g)
-                      setShowStatsModal(true)
-                    }}
-                  />
-                ))}
+                      }}
+                      onGameDayClick={() => {
+                        setSelectedGame(game)
+                        setShowGameDayMode(true)
+                      }}
+                      onEnterStats={(g) => {
+                        setSelectedGame(g)
+                        setShowStatsModal(true)
+                      }}
+                    />
+                  )
+                })}
               </div>
             ) : (
               <div className={`gp-card border border-blue-500/10 rounded-2xl p-12 text-center`}>
@@ -464,15 +519,15 @@ function GamePrepPage({ showToast }) {
 
       {/* Stats Prompt - shown after game completion */}
       {showStatsPrompt && selectedGame && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={() => { setShowStatsPrompt(false) }}>
-          <div className="bg-white rounded-3xl w-full max-w-md p-8 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => { setShowStatsPrompt(false) }}>
+          <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-md p-8 text-center shadow-2xl`} onClick={e => e.stopPropagation()}>
             <div className="text-6xl mb-4">
               {selectedGame.game_result === 'win' ? '🏆' : selectedGame.game_result === 'loss' ? '📊' : '🤝'}
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-lynx-navy'}`}>
               {selectedGame.game_result === 'win' ? 'Victory!' : selectedGame.game_result === 'loss' ? 'Tough Loss' : 'Game Complete!'}
             </h2>
-            <p className="text-gray-500 mb-6">
+            <p className={`mb-6 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
               Want to enter player stats? Stats power leaderboards, badges, and the parent portal.
             </p>
 
@@ -482,7 +537,7 @@ function GamePrepPage({ showToast }) {
                   setShowStatsPrompt(false)
                   setShowStatsModal(true)
                 }}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent-primary)] to-purple-500 text-white font-bold text-lg hover:shadow-lg transition flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-[10px] bg-lynx-sky hover:bg-lynx-deep text-white font-bold text-lg transition flex items-center justify-center gap-2"
               >
                 <BarChart3 className="w-5 h-5" />
                 Enter Stats Now
@@ -490,14 +545,16 @@ function GamePrepPage({ showToast }) {
 
               <button
                 onClick={() => setShowStatsPrompt(false)}
-                className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-500 font-medium hover:bg-gray-50 transition text-sm"
+                className={`w-full py-2.5 rounded-[10px] border font-medium transition text-sm ${
+                  isDark ? 'border-lynx-border-dark text-slate-400 hover:bg-white/5' : 'border-lynx-silver text-lynx-slate hover:bg-lynx-frost'
+                }`}
               >
                 I'll Do It Later
               </button>
             </div>
 
-            <p className="text-xs text-gray-400 mt-4">
-              💡 Games needing stats will show an amber badge
+            <p className={`text-xs mt-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              Games needing stats will show an amber badge
             </p>
           </div>
         </div>
