@@ -8,6 +8,7 @@ import {
   AlertTriangle, Shield, ClipboardList, ChevronUp, ArrowUpDown,
   ChevronLeft, ChevronRight, Save
 } from 'lucide-react'
+import PlayerDevelopmentCard from './PlayerDevelopmentCard'
 
 // Volleyball positions
 const POSITIONS = ['OH', 'S', 'MB', 'OPP', 'L', 'DS', 'RS']
@@ -1049,6 +1050,17 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
       {/* Click outside to close dropdowns */}
       {(showTeamDropdown || showActionMenu) && (
         <div className="fixed inset-0 z-20" onClick={() => { setShowTeamDropdown(false); setShowActionMenu(null) }} />
+      )}
+
+      {/* Player Development Card slide-out */}
+      {selectedPlayer && (
+        <PlayerDevelopmentCard
+          player={selectedPlayer}
+          teamId={selectedTeam?.id}
+          seasonId={selectedSeason?.id}
+          onClose={() => setSelectedPlayer(null)}
+          showToast={showToast}
+        />
       )}
     </div>
   )
