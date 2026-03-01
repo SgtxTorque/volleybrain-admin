@@ -5,7 +5,8 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
   Users, Search, ChevronDown, MoreVertical, Check, X,
-  AlertTriangle, Shield, ClipboardList, ChevronUp, ArrowUpDown
+  AlertTriangle, Shield, ClipboardList, ChevronUp, ArrowUpDown,
+  ChevronLeft, ChevronRight, Save
 } from 'lucide-react'
 
 // Volleyball positions
@@ -36,6 +37,18 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   const [jerseyDraft, setJerseyDraft] = useState('')
   const [showTeamDropdown, setShowTeamDropdown] = useState(false)
   const [showActionMenu, setShowActionMenu] = useState(null)
+
+  // Evaluation mode state
+  const [evalStep, setEvalStep] = useState('setup') // 'setup' | 'rating'
+  const [evalType, setEvalType] = useState('mid_season')
+  const [evalPlayerScope, setEvalPlayerScope] = useState('all') // 'all' | 'selected' | 'single'
+  const [evalSkills, setEvalSkills] = useState(['serving', 'passing', 'setting', 'attacking', 'blocking', 'defense', 'hustle', 'coachability', 'teamwork'])
+  const [evalPlayers, setEvalPlayers] = useState([])
+  const [evalCurrentIndex, setEvalCurrentIndex] = useState(0)
+  const [evalRatings, setEvalRatings] = useState({})
+  const [evalNotes, setEvalNotes] = useState('')
+  const [evalPrevious, setEvalPrevious] = useState(null)
+  const [evalSaving, setEvalSaving] = useState(false)
 
   const cardBg = isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver'
   const primaryText = isDark ? 'text-white' : 'text-lynx-navy'
@@ -261,6 +274,196 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
     if (value === 0) return { color: isDark ? 'text-emerald-400' : 'text-emerald-600', dot: 'bg-emerald-500', label: 'OK' }
     if (value >= thresholds.bad) return { color: isDark ? 'text-red-400' : 'text-red-600', dot: 'bg-red-500', label: 'Issue' }
     return { color: isDark ? 'text-amber-400' : 'text-amber-600', dot: 'bg-amber-500', label: 'Action' }
+  }
+
+  // ═══ EVALUATION FUNCTIONS ═══
+
+  const ALL_EVAL_SKILLS = [
+    { key: 'serving', label: 'Serving' },
+    { key: 'passing', label: 'Passing' },
+    { key: 'setting', label: 'Setting' },
+    { key: 'attacking', label: 'Attacking' },
+    { key: 'blocking', label: 'Blocking' },
+    { key: 'defense', label: 'Defense' },
+    { key: 'hustle', label: 'Hustle' },
+    { key: 'coachability', label: 'Coachability' },
+    { key: 'teamwork', label: 'Teamwork' },
+  ]
+
+  function startEvaluation() {
+    let players = []
+    if (evalPlayerScope === 'all') {
+      players = roster.map(p => p)
+    } else if (evalPlayerScope === 'selected' && selectedIds.size > 0) {
+      players = roster.filter(p => selectedIds.has(p.player_id))
+    } else if (evalPlayerScope === 'single' && selectedPlayer) {
+      players = [selectedPlayer]
+    } else {
+      players = roster.map(p => p)
+    }
+    setEvalPlayers(players)
+    setEvalCurrentIndex(0)
+    setEvalRatings({})
+    setEvalNotes('')
+    setEvalPrevious(null)
+    setEvalStep('rating')
+    if (players.length > 0) loadPreviousEval(players[0].player_id)
+  }
+
+  async function loadPreviousEval(playerId) {
+    try {
+      const { data } = await supabase
+        .from('player_evaluations')
+        .select('*')
+        .eq('player_id', playerId)
+        .eq('season_id', selectedSeason?.id)
+        .order('evaluation_date', { ascending: false })
+        .limit(1)
+        .single()
+      setEvalPrevious(data || null)
+    } catch {
+      setEvalPrevious(null)
+    }
+  }
+
+  async function saveEvaluation(playerId, ratings, notes, evalTypeVal) {
+    setEvalSaving(true)
+    try {
+      const ratedSkills = Object.values(ratings).filter(v => v > 0)
+      const overallScore = ratedSkills.length > 0
+        ? Math.round(ratedSkills.reduce((s, v) => s + v, 0) / ratedSkills.length * 10) / 10
+        : 0
+
+      // 1. Save to player_evaluations
+      const skillsJson = JSON.stringify(ratings)
+      await supabase.from('player_evaluations').insert({
+        player_id: playerId,
+        season_id: selectedSeason.id,
+        evaluated_by: user.id,
+        evaluation_type: evalTypeVal,
+        evaluation_date: new Date().toISOString().split('T')[0],
+        overall_score: Math.round(overallScore),
+        skills: skillsJson,
+        notes: notes || null,
+        is_initial: evalTypeVal === 'tryout' || evalTypeVal === 'pre_season',
+      })
+
+      // 2. Save/update player_skill_ratings
+      const ratingRow = {
+        player_id: playerId,
+        team_id: selectedTeam.id,
+        season_id: selectedSeason.id,
+        overall_rating: Math.round(overallScore),
+        serving_rating: ratings.serving || null,
+        passing_rating: ratings.passing || null,
+        setting_rating: ratings.setting || null,
+        attacking_rating: ratings.attacking || null,
+        blocking_rating: ratings.blocking || null,
+        defense_rating: ratings.defense || null,
+        hustle_rating: ratings.hustle || null,
+        coachability_rating: ratings.coachability || null,
+        teamwork_rating: ratings.teamwork || null,
+        coach_notes: notes || null,
+        rated_by: user.id,
+        rated_at: new Date().toISOString(),
+      }
+
+      const { data: existing } = await supabase
+        .from('player_skill_ratings')
+        .select('id')
+        .eq('player_id', playerId)
+        .eq('team_id', selectedTeam.id)
+        .eq('season_id', selectedSeason.id)
+        .limit(1)
+        .single()
+
+      if (existing) {
+        await supabase.from('player_skill_ratings').update(ratingRow).eq('id', existing.id)
+      } else {
+        await supabase.from('player_skill_ratings').insert(ratingRow)
+      }
+
+      // 3. Update player_skills for parent/player view compatibility
+      const skillsRow = {
+        player_id: playerId,
+        season_id: selectedSeason.id,
+        sport: 'volleyball',
+        passing: ratings.passing || null,
+        serving: ratings.serving || null,
+        hitting: ratings.attacking || null,
+        blocking: ratings.blocking || null,
+        setting: ratings.setting || null,
+        defense: ratings.defense || null,
+        skills_data: skillsJson,
+      }
+
+      const { data: existingSkills } = await supabase
+        .from('player_skills')
+        .select('id')
+        .eq('player_id', playerId)
+        .eq('season_id', selectedSeason.id)
+        .limit(1)
+        .single()
+
+      if (existingSkills) {
+        await supabase.from('player_skills').update({ ...skillsRow, updated_at: new Date().toISOString() }).eq('id', existingSkills.id)
+      } else {
+        await supabase.from('player_skills').insert(skillsRow)
+      }
+
+      // 4. Save coach note
+      if (notes && notes.trim()) {
+        await supabase.from('player_coach_notes').insert({
+          player_id: playerId,
+          coach_id: user.id,
+          season_id: selectedSeason.id,
+          note_type: 'skill',
+          content: notes.trim(),
+          is_private: true,
+        })
+      }
+
+      const playerName = roster.find(p => p.player_id === playerId)?.player
+      showToast?.(`Evaluation saved for ${playerName?.first_name || 'player'}`, 'success')
+    } catch (err) {
+      console.error('saveEvaluation error:', err)
+      showToast?.('Failed to save evaluation', 'error')
+    }
+    setEvalSaving(false)
+  }
+
+  async function handleSaveAndNext() {
+    const currentPlayer = evalPlayers[evalCurrentIndex]
+    if (!currentPlayer) return
+    await saveEvaluation(currentPlayer.player_id, evalRatings, evalNotes, evalType)
+
+    if (evalCurrentIndex < evalPlayers.length - 1) {
+      const nextIndex = evalCurrentIndex + 1
+      setEvalCurrentIndex(nextIndex)
+      setEvalRatings({})
+      setEvalNotes('')
+      loadPreviousEval(evalPlayers[nextIndex].player_id)
+    } else {
+      // Done with all players
+      setEvalStep('setup')
+      setViewMode('overview')
+      loadRoster(selectedTeam)
+      showToast?.('All evaluations completed!', 'success')
+    }
+  }
+
+  function handleSkipPlayer() {
+    if (evalCurrentIndex < evalPlayers.length - 1) {
+      const nextIndex = evalCurrentIndex + 1
+      setEvalCurrentIndex(nextIndex)
+      setEvalRatings({})
+      setEvalNotes('')
+      loadPreviousEval(evalPlayers[nextIndex].player_id)
+    } else {
+      setEvalStep('setup')
+      setViewMode('overview')
+      loadRoster(selectedTeam)
+    }
   }
 
   const SortIcon = ({ column }) => {
@@ -604,16 +807,221 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
           </div>
         )}
 
-        {/* ═══ EVALUATE MODE PLACEHOLDER ═══ */}
-        {viewMode === 'evaluate' && selectedTeam && (
-          <div className={`${cardBg} border rounded-xl p-8 text-center`}>
-            <div className={`w-16 h-16 rounded-xl mx-auto flex items-center justify-center mb-3 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
-              <ClipboardList className="w-8 h-8 text-lynx-sky" />
+        {/* ═══ EVALUATE MODE ═══ */}
+        {viewMode === 'evaluate' && selectedTeam && evalStep === 'setup' && (
+          <div className={`${cardBg} border rounded-xl p-6`}>
+            <div className="flex items-center gap-3 mb-5">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+                <ClipboardList className="w-5 h-5 text-lynx-sky" />
+              </div>
+              <div>
+                <h2 className={`text-lg font-bold ${primaryText}`}>Start Evaluation</h2>
+                <p className={`text-xs ${secondaryText}`}>Evaluate your players' skills</p>
+              </div>
             </div>
-            <p className={`text-sm font-semibold ${primaryText}`}>Evaluation Mode</p>
-            <p className={`text-xs mt-1 ${secondaryText}`}>Coming in Phase 3</p>
+
+            {/* Eval Type */}
+            <div className="mb-5">
+              <label className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Evaluation Type</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[
+                  { id: 'tryout', label: 'Tryout' },
+                  { id: 'pre_season', label: 'Pre-Season' },
+                  { id: 'mid_season', label: 'Mid-Season' },
+                  { id: 'end_season', label: 'End-Season' },
+                  { id: 'ad_hoc', label: 'Ad Hoc' },
+                ].map(t => (
+                  <button key={t.id} onClick={() => setEvalType(t.id)}
+                    className={`px-3 py-1.5 rounded-[10px] text-sm font-semibold transition ${evalType === t.id
+                      ? 'bg-lynx-sky text-white'
+                      : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/10' : 'bg-lynx-cloud text-lynx-navy hover:bg-slate-200'
+                    }`}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Player Scope */}
+            <div className="mb-5">
+              <label className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Players</label>
+              <div className="flex gap-3 mt-2">
+                {[
+                  { id: 'all', label: `All roster (${roster.length})` },
+                  { id: 'selected', label: `Selected (${selectedIds.size})`, disabled: selectedIds.size === 0 },
+                ].map(s => (
+                  <label key={s.id} className={`flex items-center gap-2 text-sm ${s.disabled ? 'opacity-40' : ''} ${primaryText}`}>
+                    <input type="radio" name="evalScope" value={s.id} checked={evalPlayerScope === s.id}
+                      onChange={() => setEvalPlayerScope(s.id)} disabled={s.disabled}
+                      className="text-lynx-sky focus:ring-lynx-sky" />
+                    {s.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Skills to Rate */}
+            <div className="mb-6">
+              <label className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Skills to Rate</label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {ALL_EVAL_SKILLS.map(skill => (
+                  <label key={skill.key} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-sm cursor-pointer transition ${evalSkills.includes(skill.key)
+                    ? 'bg-lynx-sky/10 text-lynx-sky border border-lynx-sky/30'
+                    : isDark ? 'bg-white/[0.04] text-slate-400 border border-white/[0.06]' : 'bg-lynx-cloud text-lynx-slate border border-lynx-silver'
+                  }`}>
+                    <input type="checkbox" checked={evalSkills.includes(skill.key)}
+                      onChange={e => {
+                        if (e.target.checked) setEvalSkills(prev => [...prev, skill.key])
+                        else setEvalSkills(prev => prev.filter(s => s !== skill.key))
+                      }}
+                      className="hidden" />
+                    {evalSkills.includes(skill.key) ? <Check className="w-3.5 h-3.5" /> : null}
+                    {skill.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={startEvaluation} disabled={evalSkills.length === 0}
+              className="px-6 py-2.5 rounded-[10px] bg-lynx-sky text-white font-semibold hover:bg-lynx-deep transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+              Start Evaluation
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
+
+        {/* ═══ EVALUATION RATING CARD ═══ */}
+        {viewMode === 'evaluate' && selectedTeam && evalStep === 'rating' && evalPlayers.length > 0 && (() => {
+          const cp = evalPlayers[evalCurrentIndex]
+          if (!cp) return null
+          const p = cp.player
+          const jerseyNum = cp.jersey_number ?? p?.jersey_number
+          const position = p?.position || cp.positions?.primary_position
+          const prevSkills = evalPrevious?.skills ? (typeof evalPrevious.skills === 'string' ? JSON.parse(evalPrevious.skills) : evalPrevious.skills) : null
+          const rated = Object.values(evalRatings).filter(v => v > 0)
+          const overall = rated.length > 0 ? (rated.reduce((s, v) => s + v, 0) / rated.length).toFixed(1) : '—'
+
+          return (
+            <div className={`${cardBg} border rounded-xl p-6`}>
+              {/* Nav bar */}
+              <div className="flex items-center justify-between mb-5">
+                <button onClick={() => { setEvalStep('setup') }}
+                  className={`flex items-center gap-1 text-sm font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-lynx-slate hover:text-lynx-navy'} transition`}>
+                  <ChevronLeft className="w-4 h-4" /> Back to Setup
+                </button>
+                <span className={`text-sm font-semibold ${secondaryText}`}>
+                  Player {evalCurrentIndex + 1} of {evalPlayers.length}
+                </span>
+                <button onClick={handleSkipPlayer}
+                  className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold ${isDark ? 'text-slate-400 hover:bg-white/[0.06]' : 'text-lynx-slate hover:bg-lynx-cloud'} transition`}>
+                  Skip
+                </button>
+              </div>
+
+              {/* Player Info */}
+              <div className="flex items-center gap-4 mb-5">
+                {p?.photo_url ? (
+                  <img src={p.photo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                ) : (
+                  <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold ${isDark ? 'bg-lynx-sky/20 text-lynx-sky' : 'bg-lynx-ice text-lynx-deep'}`}>
+                    {p?.first_name?.[0]}{p?.last_name?.[0]}
+                  </div>
+                )}
+                <div>
+                  <h3 className={`text-lg font-bold ${primaryText}`}>{p?.first_name} {p?.last_name}</h3>
+                  <p className={`text-sm ${secondaryText}`}>
+                    {jerseyNum ? `#${jerseyNum}` : ''}{jerseyNum && position ? ' · ' : ''}{position ? POSITION_NAMES[position] || position : ''}
+                    {p?.grade ? ` · ${p.grade}` : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Previous Eval */}
+              {evalPrevious && (
+                <div className={`rounded-xl p-4 mb-5 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver'}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${secondaryText}`}>
+                    Previous: {evalPrevious.evaluation_type?.replace(/_/g, ' ')} · {evalPrevious.evaluation_date} · Overall: {evalPrevious.overall_score}/5
+                  </p>
+                  {prevSkills && (
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {Object.entries(prevSkills).map(([k, v]) => (
+                        <span key={k} className={`text-xs ${secondaryText}`}>
+                          {k.charAt(0).toUpperCase() + k.slice(1)}: <strong className={primaryText}>{v}</strong>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {evalPrevious.notes && <p className={`text-xs mt-2 italic ${secondaryText}`}>"{evalPrevious.notes}"</p>}
+                </div>
+              )}
+
+              {/* Skill Ratings */}
+              <div className="space-y-3 mb-5">
+                <p className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Current Evaluation</p>
+                {evalSkills.map(skillKey => {
+                  const skillLabel = ALL_EVAL_SKILLS.find(s => s.key === skillKey)?.label || skillKey
+                  const currentVal = evalRatings[skillKey] || 0
+                  const prevVal = prevSkills?.[skillKey]
+
+                  return (
+                    <div key={skillKey} className="flex items-center gap-3">
+                      <span className={`w-28 text-sm font-medium ${primaryText}`}>{skillLabel}</span>
+                      <div className="flex gap-1.5">
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <button key={n} onClick={() => setEvalRatings(prev => ({ ...prev, [skillKey]: n }))}
+                            className={`w-9 h-9 rounded-full text-sm font-bold transition ${n <= currentVal
+                              ? 'bg-lynx-sky text-white'
+                              : isDark ? 'bg-white/[0.06] text-slate-500 hover:bg-white/10' : 'bg-lynx-cloud text-lynx-slate hover:bg-slate-200'
+                            }`}>
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                      <span className={`text-sm font-bold w-8 text-center ${currentVal > 0 ? 'text-lynx-sky' : secondaryText}`}>
+                        {currentVal > 0 ? currentVal : '—'}
+                      </span>
+                      {prevVal != null && currentVal > 0 && (
+                        <span className={`text-xs ${currentVal > prevVal ? 'text-emerald-500' : currentVal < prevVal ? 'text-red-400' : secondaryText}`}>
+                          {currentVal > prevVal ? '↑' : currentVal < prevVal ? '↓' : '→'} was {prevVal}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Overall Score */}
+              <div className={`rounded-xl p-3 mb-5 ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
+                <p className={`text-sm ${secondaryText}`}>
+                  Overall: <span className={`text-lg font-bold ${primaryText}`}>{overall}</span>{overall !== '—' && ' / 5'}
+                </p>
+              </div>
+
+              {/* Notes */}
+              <div className="mb-5">
+                <label className={`text-xs font-semibold uppercase tracking-wider ${secondaryText}`}>Notes</label>
+                <textarea
+                  value={evalNotes}
+                  onChange={e => setEvalNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Add evaluation notes..."
+                  className={`w-full mt-2 px-3 py-2 rounded-[10px] border text-sm resize-none ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white placeholder:text-slate-500' : 'bg-white border-lynx-silver text-lynx-navy placeholder:text-lynx-slate'}`}
+                />
+              </div>
+
+              {/* Save & Next */}
+              <button onClick={handleSaveAndNext} disabled={evalSaving || rated.length === 0}
+                className="px-6 py-2.5 rounded-[10px] bg-lynx-sky text-white font-semibold hover:bg-lynx-deep transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+                {evalSaving ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {evalCurrentIndex < evalPlayers.length - 1 ? 'Save & Next' : 'Save & Finish'}
+              </button>
+            </div>
+          )
+        })()}
 
         {/* ═══ SEASON SETUP PLACEHOLDER ═══ */}
         {viewMode === 'setup' && selectedTeam && (
