@@ -8,7 +8,7 @@ function ScoreAnimation({ show, type }) {
 
   return (
     <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-50 animate-bounce`}>
-      <div className={`text-6xl font-black ${type === 'us' ? 'text-amber-400' : 'text-red-400'}`}>
+      <div className={`text-7xl font-black ${type === 'us' ? 'text-amber-400' : 'text-red-400'}`}>
         +1
       </div>
     </div>
@@ -42,30 +42,30 @@ function Scoreboard({
 
   return (
     <div
-      className="backdrop-blur-xl rounded-3xl overflow-hidden"
+      className="rounded-3xl overflow-hidden"
       style={{
         backgroundColor: 'rgba(10, 10, 15, 0.9)',
-        border: '1px solid rgba(59, 130, 246, 0.15)',
-        boxShadow: '0 0 40px rgba(59, 130, 246, 0.08)',
+        border: '1px solid rgba(16, 40, 76, 0.30)',
+        boxShadow: '0 0 40px rgba(16, 40, 76, 0.15)',
       }}
     >
       {/* Live indicator */}
       {isLive && (
-        <div className="bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 flex items-center justify-center gap-2">
+        <div className="bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 flex items-center justify-center gap-3">
           <span className="w-3 h-3 bg-white rounded-full animate-pulse" />
-          <span className="text-white text-sm font-black tracking-widest">LIVE &bull; SET {currentSet}</span>
+          <span className="text-white text-lg font-black tracking-widest">LIVE &bull; SET {currentSet}</span>
         </div>
       )}
 
       {/* Main score — MASSIVE tap targets */}
-      <div className="relative p-4 md:p-8">
+      <div className="relative p-5 md:p-8">
         <ScoreAnimation show={showAnimation === 'us'} type="us" />
         <ScoreAnimation show={showAnimation === 'them'} type="them" />
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-5">
           {/* Our team */}
           <div className="flex-1 text-center">
-            <p className="text-amber-400 text-xs font-bold tracking-widest mb-2" style={{ fontFamily: "'Rajdhani', sans-serif" }}>{teamName || 'US'}</p>
+            <p className="text-amber-400 text-base font-bold tracking-widest mb-2">{teamName || 'US'}</p>
             <button
               onClick={() => handlePoint('us')}
               disabled={!isLive}
@@ -75,8 +75,8 @@ function Scoreboard({
                 fontSize: 'clamp(4rem, 12vw, 8rem)',
                 fontWeight: 900,
                 lineHeight: 1,
-                background: isLive ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
-                border: isLive ? '1px solid rgba(59, 130, 246, 0.15)' : 'none',
+                background: isLive ? 'rgba(16, 40, 76, 0.15)' : 'transparent',
+                border: isLive ? '1px solid rgba(16, 40, 76, 0.30)' : 'none',
               }}
             >
               {ourScore}
@@ -84,12 +84,12 @@ function Scoreboard({
           </div>
 
           {/* Divider */}
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-3xl font-bold text-slate-600">—</span>
+          <div className="flex flex-col items-center gap-3">
+            <span className="text-5xl font-bold text-slate-600">—</span>
             {isLive && (
               <button
                 onClick={onUndoPoint}
-                className="px-4 py-2 rounded-xl text-xs font-semibold transition"
+                className="px-5 py-3 rounded-xl text-base font-semibold transition"
                 style={{
                   backgroundColor: 'rgba(30, 41, 59, 0.8)',
                   color: '#94a3b8',
@@ -103,7 +103,7 @@ function Scoreboard({
 
           {/* Their team */}
           <div className="flex-1 text-center">
-            <p className="text-red-400 text-xs font-bold tracking-widest mb-2" style={{ fontFamily: "'Rajdhani', sans-serif" }}>{opponentName || 'THEM'}</p>
+            <p className="text-red-400 text-base font-bold tracking-widest mb-2">{opponentName || 'THEM'}</p>
             <button
               onClick={() => handlePoint('them')}
               disabled={!isLive}
@@ -126,10 +126,10 @@ function Scoreboard({
       {/* Set scores */}
       {setScores.length > 0 && (
         <div
-          className="px-4 py-3"
+          className="px-5 py-3"
           style={{ borderTop: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}` }}
         >
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-5">
             {setScores.map((set, i) => (
               <div
                 key={i}
@@ -141,12 +141,12 @@ function Scoreboard({
                 }}
               >
                 <p
-                  className="text-[10px] uppercase"
+                  className="text-sm uppercase"
                   style={{ color: theme?.textMuted || '#64748b' }}
                 >
                   Set {i + 1}
                 </p>
-                <p className="text-sm font-bold">
+                <p className="text-lg font-bold">
                   <span className={set.our > set.their ? 'text-emerald-400' : ''} style={{ color: set.our > set.their ? undefined : theme?.textPrimary }}>{set.our}</span>
                   <span className="mx-1" style={{ color: theme?.textMuted || '#64748b' }}>-</span>
                   <span className={set.their > set.our ? 'text-red-400' : ''} style={{ color: set.their > set.our ? undefined : theme?.textPrimary }}>{set.their}</span>

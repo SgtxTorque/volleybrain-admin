@@ -52,7 +52,7 @@ function PostGameSummary({
 
   return (
     <div
-      className="fixed inset-0 backdrop-blur-xl flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{ backgroundColor: theme?.modalOverlay || 'rgba(0, 0, 0, 0.9)' }}
     >
       <div
@@ -63,44 +63,44 @@ function PostGameSummary({
         }}
       >
         {/* Header */}
-        <div className={`p-8 text-center ${isWin ? 'bg-gradient-to-b from-emerald-900/50' : 'bg-gradient-to-b from-red-900/50'}`}>
+        <div className={`p-9 text-center ${isWin ? 'bg-gradient-to-b from-emerald-900/50' : 'bg-gradient-to-b from-red-900/50'}`}>
           <div className="flex items-center justify-center gap-3 mb-4">
             <TrophyIcon className={`w-12 h-12 ${isWin ? 'text-amber-400' : 'text-slate-500'}`} />
           </div>
-          <h2 className={`text-4xl font-black ${isWin ? 'text-emerald-400' : 'text-red-400'}`}>
+          <h2 className={`text-6xl font-black ${isWin ? 'text-emerald-400' : 'text-red-400'}`}>
             {isWin ? 'VICTORY!' : 'DEFEAT'}
           </h2>
           <p style={{ color: theme?.textMuted || '#64748b' }} className="mt-2">{teamName} vs {opponentName}</p>
 
           {/* Final score */}
           <div className="flex items-center justify-center gap-6 mt-6">
-            <span className="text-6xl font-black" style={{ color: theme?.textPrimary || '#ffffff' }}>{ourSetsWon}</span>
-            <span className="text-3xl" style={{ color: theme?.textMuted || '#64748b' }}>—</span>
-            <span className="text-6xl font-black" style={{ color: theme?.textMuted || '#64748b' }}>{theirSetsWon}</span>
+            <span className="text-7xl font-black" style={{ color: theme?.textPrimary || '#ffffff' }}>{ourSetsWon}</span>
+            <span className="text-5xl" style={{ color: theme?.textMuted || '#64748b' }}>—</span>
+            <span className="text-7xl font-black" style={{ color: theme?.textMuted || '#64748b' }}>{theirSetsWon}</span>
           </div>
         </div>
 
         {/* Set breakdown */}
         <div
-          className="px-8 py-6"
+          className="px-8 py-7"
           style={{ borderBottom: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}` }}
         >
           <h3
-            className="text-sm font-bold uppercase mb-4"
+            className="text-lg font-bold uppercase mb-4"
             style={{ color: theme?.textMuted || '#64748b' }}
           >
             Set Scores
           </h3>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-5">
             {setScores.map((set, i) => (
               <div
                 key={i}
-                className={`px-6 py-3 rounded-xl ${
+                className={`px-7 py-4 rounded-xl ${
                   set.our > set.their ? 'bg-emerald-500/20' : 'bg-red-500/20'
                 }`}
               >
-                <p className="text-xs text-center mb-1" style={{ color: theme?.textMuted || '#64748b' }}>Set {i + 1}</p>
-                <p className="text-xl font-bold text-center">
+                <p className="text-base text-center mb-1" style={{ color: theme?.textMuted || '#64748b' }}>Set {i + 1}</p>
+                <p className="text-3xl font-bold text-center">
                   <span className={set.our > set.their ? 'text-emerald-400' : ''} style={{ color: set.our > set.their ? undefined : theme?.textPrimary }}>{set.our}</span>
                   <span className="mx-2" style={{ color: theme?.textMuted || '#64748b' }}>-</span>
                   <span className={set.their > set.our ? 'text-red-400' : ''} style={{ color: set.their > set.our ? undefined : theme?.textPrimary }}>{set.their}</span>
@@ -112,16 +112,16 @@ function PostGameSummary({
 
         {/* Team stats */}
         <div
-          className="px-8 py-6"
+          className="px-8 py-7"
           style={{ borderBottom: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}` }}
         >
           <h3
-            className="text-sm font-bold uppercase mb-4"
+            className="text-lg font-bold uppercase mb-4"
             style={{ color: theme?.textMuted || '#64748b' }}
           >
             Team Stats
           </h3>
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-5 gap-5">
             {[
               { key: 'kills', label: 'Kills', color: 'text-red-400' },
               { key: 'aces', label: 'Aces', color: 'text-emerald-400' },
@@ -130,8 +130,8 @@ function PostGameSummary({
               { key: 'assists', label: 'Assists', color: 'text-purple-400' },
             ].map(stat => (
               <div key={stat.key} className="text-center">
-                <p className={`text-3xl font-black ${stat.color}`}>{teamTotals[stat.key] || 0}</p>
-                <p className="text-xs uppercase mt-1" style={{ color: theme?.textMuted || '#64748b' }}>{stat.label}</p>
+                <p className={`text-5xl font-black ${stat.color}`}>{teamTotals[stat.key] || 0}</p>
+                <p className="text-base uppercase mt-1" style={{ color: theme?.textMuted || '#64748b' }}>{stat.label}</p>
               </div>
             ))}
           </div>
@@ -140,11 +140,11 @@ function PostGameSummary({
         {/* Top performers */}
         {topPerformers.length > 0 && (
           <div
-            className="px-8 py-6"
+            className="px-8 py-7"
             style={{ borderBottom: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}` }}
           >
             <h3
-              className="text-sm font-bold uppercase mb-4"
+              className="text-lg font-bold uppercase mb-4"
               style={{ color: theme?.textMuted || '#64748b' }}
             >
               Top Performers
@@ -153,19 +153,19 @@ function PostGameSummary({
               {topPerformers.map(({ player, stats: pStats, points }, i) => (
                 <div
                   key={player.id}
-                  className="flex items-center gap-4 p-3 rounded-xl"
+                  className="flex items-center gap-5 p-4 rounded-xl"
                   style={{ backgroundColor: theme?.cardBg || 'rgba(30, 41, 59, 0.5)' }}
                 >
-                  <span className={`text-2xl font-black ${
+                  <span className={`text-4xl font-black ${
                     i === 0 ? 'text-amber-400' : i === 1 ? 'text-slate-300' : 'text-amber-700'
                   }`}>
                     #{i + 1}
                   </span>
                   {player.photo_url ? (
-                    <img src={player.photo_url} className="w-12 h-12 rounded-xl object-cover" />
+                    <img src={player.photo_url} className="w-14 h-14 rounded-xl object-cover" />
                   ) : (
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center font-bold"
+                      className="w-14 h-14 rounded-xl flex items-center justify-center font-bold"
                       style={{ backgroundColor: theme?.buttonBg || '#334155', color: theme?.textPrimary || '#ffffff' }}
                     >
                       {player.jersey_number}
@@ -173,13 +173,13 @@ function PostGameSummary({
                   )}
                   <div className="flex-1">
                     <p className="font-bold" style={{ color: theme?.textPrimary || '#ffffff' }}>{player.first_name} {player.last_name}</p>
-                    <p style={{ color: theme?.textMuted || '#64748b' }} className="text-sm">
+                    <p style={{ color: theme?.textMuted || '#64748b' }} className="text-lg">
                       {pStats?.kills || 0}K • {pStats?.aces || 0}A • {pStats?.digs || 0}D • {pStats?.blocks || 0}B
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-black text-amber-400">{points}</p>
-                    <p className="text-xs" style={{ color: theme?.textMuted || '#64748b' }}>points</p>
+                    <p className="text-4xl font-black text-amber-400">{points}</p>
+                    <p className="text-base" style={{ color: theme?.textMuted || '#64748b' }}>points</p>
                   </div>
                 </div>
               ))}
@@ -188,7 +188,7 @@ function PostGameSummary({
         )}
 
         {/* Actions */}
-        <div className="p-6 flex gap-4">
+        <div className="p-7 flex gap-5">
           <button
             onClick={onClose}
             className="flex-1 py-4 font-semibold rounded-xl transition"
@@ -201,8 +201,7 @@ function PostGameSummary({
           </button>
           <button
             onClick={onSaveStats}
-            className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700
-                       text-white font-bold rounded-xl transition shadow-lg shadow-emerald-500/30"
+            className="flex-1 py-4 bg-[#10284C] hover:bg-lynx-sky text-white font-bold rounded-xl transition"
           >
             Save & Finish
           </button>

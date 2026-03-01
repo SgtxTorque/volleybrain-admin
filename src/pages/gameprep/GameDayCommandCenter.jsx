@@ -249,7 +249,7 @@ function BenchPlayerCard({ player, rsvpStatus, onDragStart, onDragEnd, onClick, 
       }}
       onDragEnd={onDragEnd}
       onClick={() => onClick?.(player)}
-      className={`flex items-center gap-3 p-2 rounded-xl border-l-4 
+      className={`flex items-center gap-3 p-3 rounded-xl border-l-4
                   ${rsvpStyles[rsvpStatus] || 'border-l-slate-600'}
                   cursor-grab active:cursor-grabbing transition-all`}
       style={{
@@ -258,35 +258,35 @@ function BenchPlayerCard({ player, rsvpStatus, onDragStart, onDragEnd, onClick, 
     >
       {/* Photo */}
       {player.photo_url ? (
-        <img src={player.photo_url} className="w-10 h-10 rounded-lg object-cover" />
+        <img src={player.photo_url} className="w-12 h-12 rounded-lg object-cover" />
       ) : (
-        <div 
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+        <div
+          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
           style={{ backgroundColor: posColor }}
         >
           {player.jersey_number || '?'}
         </div>
       )}
-      
+
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p 
-          className="font-semibold text-sm truncate"
+        <p
+          className="font-semibold text-lg truncate"
           style={{ color: theme?.textPrimary || '#ffffff' }}
         >
           {player.first_name} {player.last_name?.[0]}.
         </p>
-        <p 
-          className="text-xs"
+        <p
+          className="text-base"
           style={{ color: theme?.textMuted || '#64748b' }}
         >
           #{player.jersey_number} • {player.position || player.team_position || '—'}
         </p>
       </div>
-      
+
       {/* Position badge */}
-      <div 
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold text-white"
         style={{ backgroundColor: `${posColor}80` }}
       >
         {player.position || player.team_position || '?'}
@@ -304,36 +304,35 @@ function StatPickerModal({ player, onSelect, onClose, theme }) {
   const posColor = positionColors[player?.position || player?.team_position] || '#6366F1'
   
   return (
-    <div 
-      className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      style={{ backgroundColor: theme?.modalOverlay || 'rgba(0, 0, 0, 0.8)' }}
+    <div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[70] p-5"
       onClick={onClose}
     >
-      <div 
-        className="rounded-3xl p-6 max-w-sm w-full shadow-2xl"
-        style={{ 
+      <div
+        className="rounded-3xl p-7 max-w-sm w-full shadow-2xl"
+        style={{
           backgroundColor: theme?.modalBg || '#0f172a',
           border: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}`,
-          boxShadow: `0 0 60px ${posColor}30` 
+          boxShadow: `0 0 60px ${posColor}30`
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Player header */}
         <div className="flex items-center gap-4 mb-6">
           {player.photo_url ? (
-            <img src={player.photo_url} className="w-16 h-16 rounded-xl object-cover" />
+            <img src={player.photo_url} className="w-20 h-20 rounded-xl object-cover" />
           ) : (
-            <div 
-              className="w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-xl"
+            <div
+              className="w-20 h-20 rounded-xl flex items-center justify-center text-white font-bold text-3xl"
               style={{ backgroundColor: posColor }}
             >
               #{player.jersey_number}
             </div>
           )}
           <div>
-            <p className="text-amber-400 font-bold">{player.first_name}</p>
-            <p 
-              className="font-black text-xl"
+            <p className="text-amber-400 font-bold text-lg">{player.first_name}</p>
+            <p
+              className="font-black text-3xl"
               style={{ color: theme?.textPrimary || '#ffffff' }}
             >
               {player.last_name?.toUpperCase()}
@@ -349,12 +348,12 @@ function StatPickerModal({ player, onSelect, onClose, theme }) {
         </div>
         
         {/* Stat buttons — large tap targets */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {STAT_ACTIONS.map(stat => (
             <button
               key={stat.key}
               onClick={() => onSelect(player.id, stat.key)}
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl transition-all min-h-[80px]
+              className="flex flex-col items-center gap-2 p-6 rounded-2xl transition-all min-h-[80px]
                          hover:scale-105 active:scale-95"
               style={{
                 backgroundColor: `${stat.color}15`,
@@ -363,9 +362,9 @@ function StatPickerModal({ player, onSelect, onClose, theme }) {
               }}
             >
               <span className="text-4xl">{stat.icon}</span>
-              <span className="text-sm font-bold" style={{ color: stat.color }}>{stat.label}</span>
+              <span className="text-lg font-bold" style={{ color: stat.color }}>{stat.label}</span>
               {stat.points !== 0 && (
-                <span className={`text-xs ${stat.points > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`text-base ${stat.points > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {stat.points > 0 ? '+' : ''}{stat.points} pt
                 </span>
               )}
@@ -374,8 +373,8 @@ function StatPickerModal({ player, onSelect, onClose, theme }) {
         </div>
         
         {/* Quick undo hint */}
-        <p 
-          className="text-center text-xs mt-4"
+        <p
+          className="text-center text-base mt-4"
           style={{ color: theme?.textMuted || '#64748b' }}
         >
           Tap a stat to record • Long press to undo last
@@ -414,15 +413,15 @@ function QuickStatsPanel({ stats, roster, theme }) {
   const digLeader = getLeader('digs')
   
   return (
-    <div 
-      className="rounded-2xl p-4 space-y-4"
+    <div
+      className="rounded-2xl p-5 space-y-4"
       style={{
         backgroundColor: theme?.cardBg || 'rgba(30, 41, 59, 0.5)',
         border: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}`,
       }}
     >
-      <h3 
-        className="text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+      <h3
+        className="text-base font-bold uppercase tracking-wider flex items-center gap-2"
         style={{ color: theme?.textMuted || '#64748b' }}
       >
         <Icons.BarChart className="w-4 h-4" />
@@ -430,34 +429,34 @@ function QuickStatsPanel({ stats, roster, theme }) {
       </h3>
       
       {/* Team totals */}
-      <div className="grid grid-cols-2 gap-3">
-        <div 
-          className="text-center p-3 rounded-xl"
+      <div className="grid grid-cols-2 gap-4">
+        <div
+          className="text-center p-4 rounded-xl"
           style={{ backgroundColor: theme?.statsBg || 'rgba(15, 23, 42, 0.5)' }}
         >
-          <p className="text-2xl font-black text-red-400">{teamTotals.kills || 0}</p>
-          <p className="text-[10px] uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Kills</p>
+          <p className="text-4xl font-black text-red-400">{teamTotals.kills || 0}</p>
+          <p className="text-sm uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Kills</p>
         </div>
-        <div 
-          className="text-center p-3 rounded-xl"
+        <div
+          className="text-center p-4 rounded-xl"
           style={{ backgroundColor: theme?.statsBg || 'rgba(15, 23, 42, 0.5)' }}
         >
-          <p className="text-2xl font-black text-emerald-400">{teamTotals.aces || 0}</p>
-          <p className="text-[10px] uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Aces</p>
+          <p className="text-4xl font-black text-emerald-400">{teamTotals.aces || 0}</p>
+          <p className="text-sm uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Aces</p>
         </div>
-        <div 
-          className="text-center p-3 rounded-xl"
+        <div
+          className="text-center p-4 rounded-xl"
           style={{ backgroundColor: theme?.statsBg || 'rgba(15, 23, 42, 0.5)' }}
         >
-          <p className="text-2xl font-black text-indigo-400">{teamTotals.blocks || 0}</p>
-          <p className="text-[10px] uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Blocks</p>
+          <p className="text-4xl font-black text-indigo-400">{teamTotals.blocks || 0}</p>
+          <p className="text-sm uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Blocks</p>
         </div>
-        <div 
-          className="text-center p-3 rounded-xl"
+        <div
+          className="text-center p-4 rounded-xl"
           style={{ backgroundColor: theme?.statsBg || 'rgba(15, 23, 42, 0.5)' }}
         >
-          <p className="text-2xl font-black text-amber-400">{teamTotals.digs || 0}</p>
-          <p className="text-[10px] uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Digs</p>
+          <p className="text-4xl font-black text-amber-400">{teamTotals.digs || 0}</p>
+          <p className="text-sm uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Digs</p>
         </div>
       </div>
       
@@ -467,12 +466,12 @@ function QuickStatsPanel({ stats, roster, theme }) {
           className="space-y-2 pt-2"
           style={{ borderTop: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}` }}
         >
-          <p className="text-[10px] uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Hot Players</p>
+          <p className="text-sm uppercase" style={{ color: theme?.textMuted || '#64748b' }}>Hot Players</p>
           {killLeader && killLeader.value > 0 && (
-            <div className="flex items-center gap-2 p-2 bg-red-500/10 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-red-500/10 rounded-lg">
               <Icons.Flame className="w-4 h-4 text-red-400" />
-              <span 
-                className="text-sm font-medium"
+              <span
+                className="text-lg font-medium"
                 style={{ color: theme?.textPrimary || '#ffffff' }}
               >
                 {killLeader.player.first_name} {killLeader.player.last_name?.[0]}.
@@ -481,10 +480,10 @@ function QuickStatsPanel({ stats, roster, theme }) {
             </div>
           )}
           {digLeader && digLeader.value > 0 && (
-            <div className="flex items-center gap-2 p-2 bg-amber-500/10 rounded-lg">
+            <div className="flex items-center gap-3 p-3 bg-amber-500/10 rounded-lg">
               <Icons.Zap className="w-4 h-4 text-amber-400" />
-              <span 
-                className="text-sm font-medium"
+              <span
+                className="text-lg font-medium"
                 style={{ color: theme?.textPrimary || '#ffffff' }}
               >
                 {digLeader.player.first_name} {digLeader.player.last_name?.[0]}.
@@ -515,8 +514,8 @@ function ActionBar({
 }) {
   if (mode === GAME_MODES.PRE_GAME) {
     return (
-      <div 
-        className="backdrop-blur-xl p-4"
+      <div
+        className="p-5"
         style={{
           backgroundColor: theme?.headerBg || 'rgba(15, 23, 42, 0.9)',
           borderTop: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}`,
@@ -526,18 +525,16 @@ function ActionBar({
           <button
             onClick={onStartGame}
             disabled={!canStartGame}
-            className="flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600
-                       hover:from-emerald-600 hover:to-emerald-700 text-white font-black rounded-2xl
-                       transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100
-                       shadow-lg shadow-emerald-500/30"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.08em' }}
+            className="flex items-center gap-3 px-10 py-5 bg-[#10284C] hover:bg-lynx-sky text-white font-black rounded-2xl
+                       transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            style={{ letterSpacing: '0.08em' }}
           >
             <Icons.Play className="w-7 h-7" />
-            <span className="text-2xl">START MATCH</span>
+            <span className="text-4xl">START MATCH</span>
           </button>
         </div>
         {!canStartGame && (
-          <p className="text-center text-amber-400 text-sm mt-3">
+          <p className="text-center text-amber-400 text-lg mt-3">
             Complete your lineup to start the match
           </p>
         )}
@@ -547,14 +544,14 @@ function ActionBar({
   
   if (mode === GAME_MODES.LIVE) {
     return (
-      <div 
-        className="backdrop-blur-xl p-4"
+      <div
+        className="p-5"
         style={{
           backgroundColor: theme?.headerBg || 'rgba(15, 23, 42, 0.9)',
           borderTop: `1px solid ${theme?.border || 'rgba(51, 65, 85, 0.5)'}`,
         }}
       >
-        <div className="flex items-center justify-center gap-3 flex-wrap">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           {/* Rotation */}
           <button
             onClick={onRotate}
@@ -566,34 +563,34 @@ function ActionBar({
           >
             <Icons.RotateCw className="w-5 h-5" />
             <span>Rotate</span>
-            <span 
-              className="ml-1 px-2 py-0.5 rounded text-xs"
+            <span
+              className="ml-1 px-3 py-1 rounded text-base"
               style={{ backgroundColor: theme?.isDark ? '#334155' : '#e2e8f0' }}
             >
               R{rotation + 1}
             </span>
           </button>
-          
+
           {/* Timeout */}
           <button
             onClick={onTimeout}
-            className="flex items-center gap-2 px-5 py-3 bg-amber-500/20 hover:bg-amber-500/30 
+            className="flex items-center gap-2 px-5 py-3 bg-amber-500/20 hover:bg-amber-500/30
                        text-amber-400 font-semibold rounded-xl transition-all border border-amber-500/30"
           >
             <Icons.Pause className="w-5 h-5" />
             <span>Timeout</span>
           </button>
-          
+
           {/* Substitution */}
           <button
             onClick={onSubstitute}
-            className="flex items-center gap-2 px-5 py-3 bg-blue-500/20 hover:bg-blue-500/30 
-                       text-blue-400 font-semibold rounded-xl transition-all border border-blue-500/30"
+            className="flex items-center gap-2 px-5 py-3 bg-[#10284C]/30 hover:bg-[#10284C]/50
+                       text-[#4BB9EC] font-semibold rounded-xl transition-all border border-[#10284C]/50"
           >
             <Icons.Users className="w-5 h-5" />
             <span>Sub</span>
           </button>
-          
+
           {/* End Set */}
           <button
             onClick={onEndSet}
@@ -606,11 +603,11 @@ function ActionBar({
             <Icons.Check className="w-5 h-5" />
             <span>End Set</span>
           </button>
-          
+
           {/* End Game */}
           <button
             onClick={onEndGame}
-            className="flex items-center gap-2 px-5 py-3 bg-red-500/20 hover:bg-red-500/30 
+            className="flex items-center gap-2 px-5 py-3 bg-red-500/20 hover:bg-red-500/30
                        text-red-400 font-semibold rounded-xl transition-all border border-red-500/30"
           >
             <Icons.X className="w-5 h-5" />
@@ -919,12 +916,12 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
   if (loading) {
     return (
       <div 
-        className="fixed inset-0 flex items-center justify-center z-50"
+        className="fixed inset-0 flex items-center justify-center z-[60]"
         style={{ backgroundColor: theme.pageBg }}
       >
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="mt-4 font-medium" style={{ color: theme.textPrimary }}>Loading Game Day...</p>
+          <div className="w-20 h-20 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="mt-4 font-medium text-xl" style={{ color: theme.textPrimary }}>Loading Game Day...</p>
         </div>
       </div>
     )
@@ -932,25 +929,25 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
   
   return (
     <div
-      className="fixed inset-0 flex flex-col z-50 overflow-hidden"
+      className="fixed inset-0 flex flex-col z-[60] overflow-hidden"
       style={{
         backgroundColor: theme.pageBg,
-        backgroundImage: 'linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px)',
+        backgroundImage: 'linear-gradient(rgba(16,40,76,0.06) 1px,transparent 1px), linear-gradient(90deg,rgba(16,40,76,0.06) 1px,transparent 1px)',
         backgroundSize: '40px 40px',
       }}
     >
       {/* Header */}
-      <header 
-        className="backdrop-blur-xl px-4 py-3 flex items-center justify-between"
-        style={{ 
+      <header
+        className="px-5 py-4 flex items-center justify-between"
+        style={{
           backgroundColor: theme.headerBg,
           borderBottom: `1px solid ${theme.border}`,
         }}
       >
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={onClose}
-            className="p-2 rounded-xl transition"
+            className="p-3 rounded-xl transition"
             style={{ backgroundColor: theme.buttonBg }}
           >
             <Icons.X className="w-5 h-5" style={{ color: theme.textMuted }} />
@@ -958,8 +955,8 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
           <div className="flex items-center gap-3">
             <span className="text-2xl">🏐</span>
             <div>
-              <h1 className="text-xl font-black tracking-wider text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>MISSION CONTROL</h1>
-              <p className="text-amber-400 text-[10px] font-bold tracking-widest" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+              <h1 className="text-3xl font-black tracking-wider text-white">MISSION CONTROL</h1>
+              <p className="text-amber-400 text-sm font-bold tracking-widest">
                 {mode === GAME_MODES.PRE_GAME ? 'PRE-GAME SETUP' : mode === GAME_MODES.LIVE ? '● LIVE OPERATIONS' : 'POST-GAME DEBRIEF'}
               </p>
             </div>
@@ -971,15 +968,15 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
             <>
               <button
                 onClick={autoFillLineup}
-                className="px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 
-                           rounded-xl text-sm font-semibold transition border border-indigo-500/30"
+                className="px-5 py-3 bg-[#10284C]/30 hover:bg-[#10284C]/50 text-[#4BB9EC]
+                           rounded-xl text-lg font-semibold transition border border-[#10284C]/50"
               >
                 Auto-Fill
               </button>
               <button
                 onClick={clearLineup}
-                className="px-4 py-2 rounded-xl text-sm font-semibold transition"
-                style={{ 
+                className="px-5 py-3 rounded-xl text-lg font-semibold transition"
+                style={{
                   backgroundColor: theme.buttonBg,
                   color: theme.textSecondary,
                 }}
@@ -990,12 +987,12 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
           )}
           
           {/* Starters count */}
-          <div 
-            className="px-4 py-2 rounded-xl text-center"
+          <div
+            className="px-5 py-3 rounded-xl text-center"
             style={{ backgroundColor: theme.buttonBg }}
           >
-            <p className="text-xs" style={{ color: theme.textMuted }}>Starters</p>
-            <p className={`text-lg font-bold ${startersCount >= 6 ? 'text-emerald-400' : 'text-amber-400'}`}>
+            <p className="text-base" style={{ color: theme.textMuted }}>Starters</p>
+            <p className={`text-2xl font-bold ${startersCount >= 6 ? 'text-emerald-400' : 'text-amber-400'}`}>
               {startersCount}/6
             </p>
           </div>
@@ -1005,7 +1002,7 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Court Area */}
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <div className="flex-1 p-5 lg:p-7 overflow-y-auto">
           <div className="max-w-4xl mx-auto space-y-4">
             
             {/* Scoreboard (Live mode only) */}
@@ -1027,25 +1024,25 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
             
             {/* Match info (Pre-game) */}
             {mode === GAME_MODES.PRE_GAME && (
-              <div 
-                className="rounded-2xl p-4"
-                style={{ 
+              <div
+                className="rounded-2xl p-5"
+                style={{
                   backgroundColor: theme.cardBg,
                   border: `1px solid ${theme.border}`,
                 }}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-amber-400 font-bold">{team?.name}</p>
-                    <p className="text-sm" style={{ color: theme.textMuted }}>vs {event?.opponent_name || 'TBD'}</p>
+                    <p className="text-amber-400 font-bold text-lg">{team?.name}</p>
+                    <p className="text-lg" style={{ color: theme.textMuted }}>vs {event?.opponent_name || 'TBD'}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium" style={{ color: theme.textPrimary }}>
-                      {event?.event_date ? new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { 
-                        weekday: 'short', month: 'short', day: 'numeric' 
+                    <p className="font-medium text-lg" style={{ color: theme.textPrimary }}>
+                      {event?.event_date ? new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', {
+                        weekday: 'short', month: 'short', day: 'numeric'
                       }) : '—'}
                     </p>
-                    <p className="text-sm" style={{ color: theme.textMuted }}>{event?.event_time || '—'} • {event?.venue_name || '—'}</p>
+                    <p className="text-lg" style={{ color: theme.textMuted }}>{event?.event_time || '—'} • {event?.venue_name || '—'}</p>
                   </div>
                 </div>
               </div>
@@ -1093,8 +1090,8 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
                   style={{ background: theme.netBg }}
                 >
                   <div className="w-8 h-0.5" style={{ backgroundColor: theme.isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)' }} />
-                  <span 
-                    className="text-xs font-bold tracking-widest"
+                  <span
+                    className="text-base font-bold tracking-widest"
                     style={{ color: theme.isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)' }}
                   >
                     NET
@@ -1131,7 +1128,7 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
               {/* Attack Line */}
               <div className="flex items-center gap-3 my-3">
                 <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: theme.attackLine }} />
-                <span className="text-[10px] text-orange-400 font-bold tracking-wider">ATTACK LINE</span>
+                <span className="text-sm text-orange-400 font-bold tracking-wider">ATTACK LINE</span>
                 <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: theme.attackLine }} />
               </div>
               
@@ -1173,32 +1170,32 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
           }}
         >
           {/* Sidebar header */}
-          <div 
-            className="p-4"
+          <div
+            className="p-5"
             style={{ borderBottom: `1px solid ${theme.border}` }}
           >
-            <h3 className="font-bold flex items-center gap-2" style={{ color: theme.textPrimary }}>
+            <h3 className="font-bold text-lg flex items-center gap-2" style={{ color: theme.textPrimary }}>
               <Icons.Users className="w-4 h-4" style={{ color: theme.textMuted }} />
               {mode === GAME_MODES.LIVE ? 'Bench' : 'Available Players'}
             </h3>
-            <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
+            <p className="text-base mt-1" style={{ color: theme.textMuted }}>
               {mode === GAME_MODES.PRE_GAME ? 'Drag players to court positions' : `${benchPlayers.length} on bench`}
             </p>
           </div>
           
           {/* Stats panel (Live mode) */}
           {mode === GAME_MODES.LIVE && (
-            <div className="p-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
+            <div className="p-5" style={{ borderBottom: `1px solid ${theme.border}` }}>
               <QuickStatsPanel stats={stats} roster={roster} theme={theme} />
             </div>
           )}
           
           {/* Bench players */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          <div className="flex-1 overflow-y-auto p-5 space-y-3">
             {benchPlayers.length === 0 ? (
               <div className="text-center py-8">
-                <Icons.Check className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
-                <p className="font-medium" style={{ color: theme.textMuted }}>All players assigned!</p>
+                <Icons.Check className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
+                <p className="font-medium text-lg" style={{ color: theme.textMuted }}>All players assigned!</p>
               </div>
             ) : (
               benchPlayers.map(player => (
@@ -1217,12 +1214,12 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
           
           {/* Libero selector (Pre-game) */}
           {mode === GAME_MODES.PRE_GAME && roster.some(p => p.position === 'L' || p.team_position === 'L') && (
-            <div className="p-4" style={{ borderTop: `1px solid ${theme.border}` }}>
-              <label className="text-xs font-medium mb-2 block" style={{ color: theme.textMuted }}>Libero</label>
+            <div className="p-5" style={{ borderTop: `1px solid ${theme.border}` }}>
+              <label className="text-base font-medium mb-2 block" style={{ color: theme.textMuted }}>Libero</label>
               <select
                 value={liberoId || ''}
                 onChange={(e) => setLiberoId(e.target.value || null)}
-                className="w-full px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-3 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 style={{
                   backgroundColor: theme.buttonBg,
                   border: `1px solid ${theme.border}`,
