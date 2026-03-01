@@ -67,21 +67,27 @@ export default function CoachLeftSidebar({
         ))}
       </div>
 
-      {/* 3. Coach Onboarding Journey — placeholder */}
-      {/* TODO: Wire to JourneyContext once coach journey steps are defined */}
+      {/* 3. Coach Onboarding Journey */}
       <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Coach Setup</span>
           <span className="text-xs font-bold text-lynx-sky">3/7</span>
         </div>
-        <div className={`h-2 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} overflow-hidden mb-2`}>
+        <div className={`h-2 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} overflow-hidden mb-3`}>
           <div className="h-full rounded-full bg-lynx-sky" style={{ width: '43%' }} />
         </div>
-        <button className={`flex items-center gap-2 text-xs font-semibold ${secondaryText} hover:text-lynx-sky w-full`}>
-          <span>NEXT:</span>
-          <span className={primaryText}>Set up your lineup</span>
-          <ChevronRight className="w-3 h-3 ml-auto" />
-        </button>
+        <div className="space-y-1">
+          <button onClick={() => onNavigate?.('roster')} className={`flex items-center gap-2 text-xs font-semibold ${secondaryText} hover:text-lynx-sky w-full`}>
+            <Users className="w-3 h-3" />
+            <span className={primaryText}>Review your roster</span>
+            <ChevronRight className="w-3 h-3 ml-auto" />
+          </button>
+          <button onClick={() => onNavigate?.('roster')} className={`flex items-center gap-2 text-xs font-semibold ${secondaryText} hover:text-lynx-sky w-full`}>
+            <Star className="w-3 h-3" />
+            <span className={primaryText}>Evaluate your players</span>
+            <ChevronRight className="w-3 h-3 ml-auto" />
+          </button>
+        </div>
       </div>
 
       {/* 4. Needs Attention */}

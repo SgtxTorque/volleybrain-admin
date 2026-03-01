@@ -568,7 +568,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
 
           {/* ═══ MODE TABS + SEARCH ═══ */}
           {selectedTeam && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-3">
               <div className="flex gap-1">
                 {[
                   { id: 'overview', label: 'Overview' },
@@ -584,14 +584,14 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
                   </button>
                 ))}
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${secondaryText}`} />
                 <input
                   type="text"
                   placeholder="Search players..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className={`pl-9 pr-3 py-1.5 rounded-[10px] text-sm border w-48 ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white placeholder:text-slate-500' : 'bg-lynx-cloud border-lynx-silver text-lynx-navy placeholder:text-lynx-slate'}`}
+                  className={`pl-9 pr-3 py-1.5 rounded-[10px] text-sm border w-full sm:w-48 ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white placeholder:text-slate-500' : 'bg-lynx-cloud border-lynx-silver text-lynx-navy placeholder:text-lynx-slate'}`}
                 />
               </div>
             </div>

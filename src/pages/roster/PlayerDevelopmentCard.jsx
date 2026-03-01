@@ -310,8 +310,22 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
         {/* ═══ TAB CONTENT ═══ */}
         <div className="p-5 space-y-4">
           {loading ? (
-            <div className="flex items-center justify-center h-48">
-              <div className="w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin" />
+            <div className="animate-pulse space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`${cardBg} border rounded-xl p-4`}>
+                  <div className={`h-3 w-24 rounded mb-3 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                  <div className={`h-40 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                </div>
+                <div className={`${cardBg} border rounded-xl p-4 space-y-3`}>
+                  <div className={`h-3 w-24 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                      <div className={`h-3 flex-1 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <>
@@ -536,7 +550,11 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                       )
                     }) : (
                       <div className="py-6 text-center">
-                        <p className={`text-xs ${secondaryText}`}>No evaluations yet. Start your first evaluation to track player growth.</p>
+                        <div className={`w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+                          <ClipboardList className="w-6 h-6 text-lynx-sky" />
+                        </div>
+                        <p className={`text-sm font-semibold ${primaryText}`}>No evaluations yet</p>
+                        <p className={`text-xs mt-1 ${secondaryText}`}>Start your first evaluation to track player growth.</p>
                       </div>
                     )}
                   </div>
@@ -600,7 +618,11 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
 
                   {goals.filter(g => g.status === 'active').length === 0 && !showGoalForm && (
                     <div className={`${cardBg} border rounded-xl p-8 text-center`}>
-                      <p className={`text-xs ${secondaryText}`}>Set goals for your players to track their progress.</p>
+                      <div className={`w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+                        <Target className="w-6 h-6 text-lynx-sky" />
+                      </div>
+                      <p className={`text-sm font-semibold ${primaryText}`}>No goals yet</p>
+                      <p className={`text-xs mt-1 ${secondaryText}`}>Set goals for your players to track their progress.</p>
                     </div>
                   )}
 
@@ -661,7 +683,11 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                     </div>
                   )) : (
                     <div className={`${cardBg} border rounded-xl p-8 text-center`}>
-                      <p className={`text-xs ${secondaryText}`}>Add private notes to track player development.</p>
+                      <div className={`w-12 h-12 rounded-xl mx-auto flex items-center justify-center mb-2 ${isDark ? 'bg-lynx-sky/10' : 'bg-lynx-ice'}`}>
+                        <FileText className="w-6 h-6 text-lynx-sky" />
+                      </div>
+                      <p className={`text-sm font-semibold ${primaryText}`}>No notes yet</p>
+                      <p className={`text-xs mt-1 ${secondaryText}`}>Add private notes to track player development.</p>
                     </div>
                   )}
                 </div>
