@@ -390,7 +390,7 @@ function GameCompleteModal({
   // Step 1: Enter Score
   if (step === 'score') {
     return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={onClose}>
         <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md`} onClick={e => e.stopPropagation()}>
           <div className={`p-5 border-b ${tc.border}`}>
             <div className="flex items-center gap-3">
@@ -462,7 +462,7 @@ function GameCompleteModal({
 
   // Step 2: Stats Prompt
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-md overflow-hidden`}>
         {/* Celebration Header */}
         <div className={`p-6 ${gameResult?.won ? 'bg-gradient-to-br from-emerald-500/20 to-green-600/20' : 'bg-gradient-to-br from-blue-500/20 to-indigo-600/20'}`}>
@@ -773,7 +773,7 @@ function StatsEntryModal({
   const gameDate = actualGame?.event_date ? new Date(actualGame.event_date) : null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`p-5 border-b ${tc.border} flex items-center justify-between`}>

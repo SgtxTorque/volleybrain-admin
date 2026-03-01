@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import SetScoreInput from './SetScoreInput'
 import PeriodScoreInput from './PeriodScoreInput'
@@ -189,6 +189,7 @@ const SCORING_CONFIGS = {
 // ============================================
 function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', onClose, onComplete, showToast }) {
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const { user } = useAuth()
 
   const sportConfig = SCORING_CONFIGS[sport] || SCORING_CONFIGS.volleyball
@@ -411,18 +412,13 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                       matchResult.result === 'tie' || selectedFormat.noMatchWinner
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className={`p-6 text-center ${
-          matchResult.result === 'win' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' :
-          matchResult.result === 'loss' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-          matchResult.result === 'tie' ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
-          'bg-gradient-to-r from-indigo-500 to-purple-600'
-        } text-white`}>
+        <div className={`px-6 py-4 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'} text-center`}>
           <span className="text-4xl">{sportConfig.icon}</span>
-          <h2 className="text-xl font-bold mt-2">Complete Game</h2>
-          <p className="text-white/80">{team?.name} vs {event.opponent_name}</p>
+          <h2 className={`text-xl font-bold mt-2 ${isDark ? 'text-white' : 'text-lynx-navy'}`}>Complete Game</h2>
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{team?.name} vs {event.opponent_name}</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -432,12 +428,12 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
               <button
                 key={idx}
                 onClick={() => setStep(idx + 1)}
-                className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${
+                className={`flex-1 py-2 rounded-[10px] text-sm font-medium transition ${
                   step === idx + 1
-                    ? 'bg-indigo-500 text-white'
+                    ? 'bg-lynx-sky text-white'
                     : step > idx + 1
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-slate-100 text-slate-500'
+                    ? isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                    : isDark ? 'bg-lynx-graphite text-slate-400' : 'bg-lynx-frost text-lynx-slate'
                 }`}
               >
                 {step > idx + 1 ? '✓ ' : ''}{label}
@@ -448,7 +444,7 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
           {/* Step 1: Format Selection */}
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="font-semibold text-slate-800">Select Scoring Format for {sportConfig.name}</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>Select Scoring Format for {sportConfig.name}</h3>
               <div className="space-y-2">
                 {sportConfig.formats.map(format => (
                   <button
@@ -456,13 +452,13 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                     onClick={() => setSelectedFormat(format)}
                     className={`w-full p-4 rounded-xl text-left transition border-2 ${
                       selectedFormat.id === format.id
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? isDark ? 'border-lynx-sky bg-lynx-sky/10' : 'border-lynx-sky bg-lynx-ice'
+                        : isDark ? 'border-lynx-border-dark hover:border-slate-500' : 'border-lynx-silver hover:border-slate-300'
                     }`}
                   >
-                    <p className="font-semibold text-slate-800">{format.name}</p>
-                    <p className="text-sm text-slate-500">{format.description}</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{format.name}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{format.description}</p>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                       Sets to {format.setScores.slice(0, -1).join(', ')}, deciding set to {format.setScores[format.setScores.length - 1]}
                     </p>
                   </button>
@@ -475,45 +471,45 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
           {step === 2 && (
             <div className="space-y-4">
               {/* Match status */}
-              <div className={`p-4 rounded-2xl text-center ${
-                matchResult.result === 'win' ? 'bg-emerald-100' :
-                matchResult.result === 'loss' ? 'bg-red-100' :
-                matchResult.result === 'tie' ? 'bg-amber-100' :
-                'bg-slate-100'
+              <div className={`p-4 rounded-xl text-center ${
+                matchResult.result === 'win' ? isDark ? 'bg-emerald-500/10' : 'bg-emerald-50' :
+                matchResult.result === 'loss' ? isDark ? 'bg-red-500/10' : 'bg-red-50' :
+                matchResult.result === 'tie' ? isDark ? 'bg-amber-500/10' : 'bg-amber-50' :
+                isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'
               }`}>
                 <div className="flex items-center justify-center gap-8">
                   <div className="text-center">
-                    <p className="text-xs text-slate-500 mb-1 truncate max-w-[100px]">{team?.name || 'Us'}</p>
-                    <p className="text-4xl font-bold text-indigo-600">
+                    <p className={`text-xs mb-1 truncate max-w-[100px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{team?.name || 'Us'}</p>
+                    <p className="text-4xl font-bold text-lynx-sky">
                       {isSetBased ? matchResult.ourSetsWon : matchResult.ourTotalPoints}
                     </p>
                     {isSetBased && (
-                      <p className="text-xs text-slate-500 mt-1">{matchResult.ourTotalPoints} pts</p>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{matchResult.ourTotalPoints} pts</p>
                     )}
                   </div>
 
                   <div className="text-center">
-                    {matchResult.result === 'win' && <span className="text-emerald-600 font-bold">🏆 VICTORY!</span>}
-                    {matchResult.result === 'loss' && <span className="text-red-600 font-medium">Defeat</span>}
-                    {matchResult.result === 'tie' && <span className="text-amber-600 font-medium">Tie Game</span>}
-                    {matchResult.result === 'in_progress' && <span className="text-slate-500 text-sm">In Progress</span>}
+                    {matchResult.result === 'win' && <span className="text-emerald-500 font-bold">VICTORY!</span>}
+                    {matchResult.result === 'loss' && <span className="text-red-500 font-medium">Defeat</span>}
+                    {matchResult.result === 'tie' && <span className="text-amber-500 font-medium">Tie Game</span>}
+                    {matchResult.result === 'in_progress' && <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>In Progress</span>}
                   </div>
 
                   <div className="text-center">
-                    <p className="text-xs text-slate-500 mb-1 truncate max-w-[100px]">{event.opponent_name || 'Opponent'}</p>
-                    <p className="text-4xl font-bold text-red-600">
+                    <p className={`text-xs mb-1 truncate max-w-[100px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{event.opponent_name || 'Opponent'}</p>
+                    <p className="text-4xl font-bold text-red-500">
                       {isSetBased ? matchResult.theirSetsWon : matchResult.theirTotalPoints}
                     </p>
                     {isSetBased && (
-                      <p className="text-xs text-slate-500 mt-1">{matchResult.theirTotalPoints} pts</p>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{matchResult.theirTotalPoints} pts</p>
                     )}
                   </div>
                 </div>
 
-                <p className="text-sm text-slate-500 mt-2">
+                <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                   Point Differential: <span className={`font-semibold ${
-                    matchResult.pointDifferential > 0 ? 'text-emerald-600' :
-                    matchResult.pointDifferential < 0 ? 'text-red-600' : ''
+                    matchResult.pointDifferential > 0 ? 'text-emerald-500' :
+                    matchResult.pointDifferential < 0 ? 'text-red-500' : ''
                   }`}>
                     {matchResult.pointDifferential > 0 ? '+' : ''}{matchResult.pointDifferential}
                   </span>
@@ -525,15 +521,15 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                 <div className="space-y-4">
                   {/* Set Summary - clean display */}
                   {setScores.some(s => s.our > 0 || s.their > 0) && (
-                    <div className="bg-slate-50 rounded-xl p-3">
+                    <div className={`${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'} rounded-xl p-3`}>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         {setScores.slice(0, getSetsToShow()).map((set, idx) => {
                           if (set.our === 0 && set.their === 0) return null
                           const ourWon = set.our > set.their
                           return (
-                            <div key={idx} className="flex items-center justify-between px-3 py-1.5 bg-white rounded-lg">
-                              <span className="text-slate-600 font-medium">Set {idx + 1}:</span>
-                              <span className={`font-bold ${ourWon ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <div key={idx} className={`flex items-center justify-between px-3 py-1.5 rounded-lg ${isDark ? 'bg-lynx-charcoal' : 'bg-white'}`}>
+                              <span className={`font-medium ${isDark ? 'text-slate-300' : 'text-lynx-slate'}`}>Set {idx + 1}:</span>
+                              <span className={`font-bold ${ourWon ? 'text-emerald-500' : 'text-red-500'}`}>
                                 {set.our} - {set.their}
                               </span>
                             </div>
@@ -570,8 +566,8 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 mb-2 px-2">
                     <div className="w-12" />
-                    <div className="flex-1 text-center text-sm font-medium text-indigo-600">{team?.name || 'Us'}</div>
-                    <div className="flex-1 text-center text-sm font-medium text-red-600">{event.opponent_name || 'Opponent'}</div>
+                    <div className="flex-1 text-center text-sm font-medium text-lynx-sky">{team?.name || 'Us'}</div>
+                    <div className="flex-1 text-center text-sm font-medium text-red-500">{event.opponent_name || 'Opponent'}</div>
                   </div>
 
                   <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
@@ -606,7 +602,7 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
           {/* Step 3: Attendance */}
           {step === 3 && (
             <div className="space-y-4">
-              <h3 className="font-semibold text-slate-800">Mark Attendance ({presentCount} present)</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>Mark Attendance ({presentCount} present)</h3>
 
               <div className="max-h-64 overflow-y-auto space-y-2">
                 {roster.map(player => {
@@ -615,10 +611,10 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                     <div
                       key={player.id}
                       onClick={() => toggleAttendance(player.id)}
-                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${
+                      className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition border-2 ${
                         isPresent
-                          ? 'bg-emerald-50 border-2 border-emerald-300'
-                          : 'bg-red-50 border-2 border-red-300'
+                          ? isDark ? 'bg-emerald-500/10 border-emerald-500/40' : 'bg-emerald-50 border-emerald-300'
+                          : isDark ? 'bg-red-500/10 border-red-500/30' : 'bg-red-50 border-red-300'
                       }`}
                     >
                       <span className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
@@ -626,7 +622,7 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                       }`}>
                         {isPresent ? '✓' : '✗'}
                       </span>
-                      <span className="text-slate-800">
+                      <span className={isDark ? 'text-white' : 'text-lynx-navy'}>
                         #{player.jersey_number} {player.first_name} {player.last_name}
                       </span>
                     </div>
@@ -639,35 +635,35 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
           {/* Step 4: Confirm */}
           {step === 4 && (
             <div className="space-y-4">
-              <h3 className="font-semibold text-slate-800">Confirm & Complete</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>Confirm & Complete</h3>
 
               {/* Summary */}
-              <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+              <div className={`${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'} rounded-xl p-4 space-y-3`}>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Sport</span>
-                  <span className="font-semibold text-slate-800">{sportConfig.icon} {sportConfig.name}</span>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Sport</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{sportConfig.icon} {sportConfig.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Format</span>
-                  <span className="font-semibold text-slate-800">{selectedFormat.name}</span>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Format</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{selectedFormat.name}</span>
                 </div>
                 {isSetBased && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Final Score (sets)</span>
-                      <span className="font-semibold text-slate-800">{matchResult.ourSetsWon} - {matchResult.theirSetsWon}</span>
+                      <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Final Score (sets)</span>
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{matchResult.ourSetsWon} - {matchResult.theirSetsWon}</span>
                     </div>
                     {/* Set-by-set breakdown */}
-                    <div className="pt-2 border-t border-slate-200">
-                      <span className="text-xs text-slate-500 block mb-2">Set Breakdown:</span>
+                    <div className={`pt-2 border-t ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
+                      <span className={`text-xs block mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Set Breakdown:</span>
                       <div className="space-y-1">
                         {setScores.slice(0, getSetsToShow()).map((set, idx) => {
                           if (set.our === 0 && set.their === 0) return null
                           const ourWon = set.our > set.their
                           return (
                             <div key={idx} className="flex justify-between text-sm">
-                              <span className="text-slate-600">Set {idx + 1}</span>
-                              <span className={`font-semibold ${ourWon ? 'text-emerald-600' : 'text-red-600'}`}>
+                              <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Set {idx + 1}</span>
+                              <span className={`font-semibold ${ourWon ? 'text-emerald-500' : 'text-red-500'}`}>
                                 {set.our} - {set.their}
                               </span>
                             </div>
@@ -678,40 +674,40 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
                   </>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-slate-600">{isSetBased ? 'Total Points' : 'Final Score'}</span>
-                  <span className="font-semibold text-slate-800">{matchResult.ourTotalPoints} - {matchResult.theirTotalPoints}</span>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>{isSetBased ? 'Total Points' : 'Final Score'}</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{matchResult.ourTotalPoints} - {matchResult.theirTotalPoints}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Point Differential</span>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Point Differential</span>
                   <span className={`font-semibold ${
-                    matchResult.pointDifferential > 0 ? 'text-emerald-600' :
-                    matchResult.pointDifferential < 0 ? 'text-red-600' : 'text-slate-800'
+                    matchResult.pointDifferential > 0 ? 'text-emerald-500' :
+                    matchResult.pointDifferential < 0 ? 'text-red-500' : isDark ? 'text-white' : 'text-lynx-navy'
                   }`}>
                     {matchResult.pointDifferential > 0 ? '+' : ''}{matchResult.pointDifferential}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Result</span>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Result</span>
                   <span className={`font-bold ${
-                    matchResult.result === 'win' ? 'text-emerald-600' :
-                    matchResult.result === 'loss' ? 'text-red-600' :
-                    matchResult.result === 'tie' ? 'text-amber-600' : 'text-slate-600'
+                    matchResult.result === 'win' ? 'text-emerald-500' :
+                    matchResult.result === 'loss' ? 'text-red-500' :
+                    matchResult.result === 'tie' ? 'text-amber-500' : isDark ? 'text-slate-400' : 'text-lynx-slate'
                   }`}>
-                    {matchResult.result === 'win' ? '🏆 VICTORY' :
+                    {matchResult.result === 'win' ? 'VICTORY' :
                      matchResult.result === 'loss' ? 'DEFEAT' :
                      matchResult.result === 'tie' ? 'TIE' :
                      matchResult.result === 'none' ? 'No Winner' : 'IN PROGRESS'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Attendance</span>
-                  <span className="font-semibold text-slate-800">{presentCount} / {roster.length}</span>
+                  <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}>Attendance</span>
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{presentCount} / {roster.length}</span>
                 </div>
               </div>
 
               {!canComplete && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-700 text-sm">
-                  ⚠️ Game must have a winner (or tie if allowed) before completing. Go back to enter scores.
+                <div className={`${isDark ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-700'} border rounded-xl p-4 text-sm`}>
+                  Game must have a winner (or tie if allowed) before completing. Go back to enter scores.
                 </div>
               )}
             </div>
@@ -719,28 +715,30 @@ function GamePrepCompletionModal({ event, team, roster, sport = 'volleyball', on
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 flex justify-between bg-slate-50">
+        <div className={`px-6 py-4 border-t ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'} flex justify-between`}>
           <button
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-            className="px-6 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium hover:bg-slate-300 transition"
+            className={`px-6 py-2.5 rounded-[10px] font-medium transition ${
+              isDark ? 'bg-lynx-graphite text-slate-300 hover:bg-white/10' : 'bg-lynx-frost text-lynx-slate hover:bg-slate-200'
+            }`}
           >
-            {step > 1 ? '← Back' : 'Cancel'}
+            {step > 1 ? 'Back' : 'Cancel'}
           </button>
 
           {step < 4 ? (
             <button
               onClick={() => setStep(step + 1)}
-              className="px-6 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-semibold transition"
+              className="px-6 py-2.5 rounded-[10px] bg-lynx-sky hover:bg-lynx-deep text-white font-semibold transition"
             >
-              Next →
+              Next
             </button>
           ) : (
             <button
               onClick={completeGame}
               disabled={saving || !canComplete}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold disabled:opacity-50 transition"
+              className="px-6 py-2.5 rounded-[10px] bg-emerald-500 hover:bg-emerald-600 text-white font-semibold disabled:opacity-50 transition"
             >
-              {saving ? 'Saving...' : '✓ Complete Game'}
+              {saving ? 'Saving...' : 'Complete Game'}
             </button>
           )}
         </div>

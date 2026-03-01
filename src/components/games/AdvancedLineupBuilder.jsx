@@ -422,7 +422,7 @@ function PlayerStatsModal({ player, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4" onClick={onClose}>
       <div className="rounded-xl w-full max-w-sm overflow-hidden shadow-2xl" style={{ background: '#0a0a0f', border: '1px solid rgba(59,130,246,0.15)' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 text-white text-center">

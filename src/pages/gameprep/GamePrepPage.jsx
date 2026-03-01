@@ -3,9 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import {
-  BarChart3, Swords, Crosshair
-} from '../../constants/icons'
+import { BarChart3 } from '../../constants/icons'
 import { getSportConfig, GameStatsModal } from '../../components/games/GameComponents'
 import { AdvancedLineupBuilder } from '../../components/games/AdvancedLineupBuilder'
 import { GameDetailModal } from '../../components/games/GameDetailModal'
@@ -16,41 +14,6 @@ import { computeCheckpoints, getCurrentCheckpoint } from '../../lib/gameCheckpoi
 import GameJourneyPanel from './GameJourneyPanel'
 import QuickAttendanceModal from './QuickAttendanceModal'
 import QuickScoreModal from './QuickScoreModal'
-
-// Tactical font loading (shared with GameDayCommandCenter)
-const GP_FONT_LINK = document.querySelector('link[href*="Bebas+Neue"]')
-if (!GP_FONT_LINK) {
-  const link = document.createElement('link')
-  link.rel = 'stylesheet'
-  link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap'
-  document.head.appendChild(link)
-}
-
-// ============================================
-// TACTICAL BLUEPRINT STYLES
-// ============================================
-const gpStyles = `
-.gp-wrap{
-  min-height:100vh;background:#0a0a0f;color:#e2e8f0;position:relative;
-}
-.gp-wrap::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(59,130,246,0.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(59,130,246,0.03) 1px,transparent 1px);
-  background-size:40px 40px;z-index:0;
-}
-.gp-wrap>*{position:relative;z-index:1;}
-.gp-card{
-  background:rgba(15,20,35,0.7);border:1px solid rgba(59,130,246,0.12);
-  border-radius:1rem;backdrop-filter:blur(12px);transition:all .3s ease;
-}
-.gp-card:hover{border-color:rgba(59,130,246,0.25);box-shadow:0 0 30px rgba(59,130,246,0.08);}
-.gp-label{
-  font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.7rem;
-  letter-spacing:0.12em;text-transform:uppercase;color:rgba(100,116,139,0.8);
-}
-`
 
 // ============================================
 // MAIN GAME PREP PAGE
@@ -285,19 +248,20 @@ function GamePrepPage({ showToast }) {
     )
   }
 
+  const cardBg = isDark ? 'bg-lynx-charcoal border border-lynx-border-dark' : 'bg-white border border-lynx-silver'
+  const labelCls = `text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`
+
   return (
-    <>
-    <style>{gpStyles}</style>
-    <div className="gp-wrap">
+    <div className={`min-h-screen ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
     <div className="space-y-6 p-4 md:p-6">
       {/* Stats Pending Banner */}
       {statsPendingCount > 0 && (
-        <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between">
+        <div className={`${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-300'} border rounded-xl p-4 flex items-center justify-between`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-500/30 flex items-center justify-center text-lg">📊</div>
+            <div className={`w-10 h-10 rounded-full ${isDark ? 'bg-amber-500/20' : 'bg-amber-100'} flex items-center justify-center text-lg`}>📊</div>
             <div>
-              <p className="font-bold text-amber-300">{statsPendingCount} Game{statsPendingCount > 1 ? 's' : ''} Need Stats</p>
-              <p className="text-xs text-amber-400/70">Player stats power leaderboards, badges, and parent views</p>
+              <p className={`font-bold ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>{statsPendingCount} Game{statsPendingCount > 1 ? 's' : ''} Need Stats</p>
+              <p className={`text-xs ${isDark ? 'text-amber-400/70' : 'text-amber-600/70'}`}>Player stats power leaderboards, badges, and parent views</p>
             </div>
           </div>
           <button
@@ -309,9 +273,9 @@ function GamePrepPage({ showToast }) {
                 setShowStatsModal(true)
               }
             }}
-            className="px-4 py-2 rounded-xl font-semibold text-sm bg-amber-500 text-black hover:bg-amber-400 transition"
+            className="px-4 py-2 rounded-[10px] font-semibold text-sm bg-amber-500 text-white hover:bg-amber-600 transition"
           >
-            Enter Stats →
+            Enter Stats
           </button>
         </div>
       )}
@@ -319,31 +283,28 @@ function GamePrepPage({ showToast }) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <div className="gp-label text-blue-400/60 mb-1 flex items-center gap-2">
-            <Crosshair className="w-3 h-3" /> TACTICAL BLUEPRINT
-          </div>
-          <h1 className="text-4xl font-bold text-white flex items-center gap-3" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.04em' }}>
-            <Swords className="w-8 h-8 text-blue-400" />
-            GAME PREP
+          <p className={labelCls}>Game Prep</p>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>
+            Game Prep
           </h1>
-          <p className="text-slate-500 text-sm mt-1" style={{ fontFamily: "'Rajdhani', sans-serif" }}>Build lineups &middot; Track results &middot; Dominate</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Build lineups · Track results · Dominate</p>
         </div>
 
         {/* Record */}
         {(record.wins > 0 || record.losses > 0) && (
-          <div className="gp-card border border-blue-500/10 rounded-2xl px-6 py-3">
-            <p className="gp-label text-blue-400/60 mb-1">SEASON RECORD</p>
+          <div className={`${cardBg} rounded-xl px-6 py-3`}>
+            <p className={`${labelCls} mb-1`}>Season Record</p>
             <p className="text-2xl font-bold">
-              <span className="text-emerald-400">{record.wins}</span>
-              <span className="text-slate-400"> - </span>
-              <span className="text-red-400">{record.losses}</span>
+              <span className="text-emerald-500">{record.wins}</span>
+              <span className={isDark ? 'text-slate-400' : 'text-lynx-slate'}> - </span>
+              <span className="text-red-500">{record.losses}</span>
             </p>
           </div>
         )}
       </div>
 
       {/* Team Selector */}
-      <div className={`gp-card border border-blue-500/10 rounded-2xl p-2`}>
+      <div className={`${cardBg} rounded-xl p-2`}>
         <div className="flex items-center gap-2 overflow-x-auto">
           {teams.map(team => (
             <button
@@ -352,7 +313,7 @@ function GamePrepPage({ showToast }) {
               className={`px-5 py-2.5 rounded-xl whitespace-nowrap flex items-center gap-2 transition font-semibold ${
                 selectedTeam?.id === team.id
                   ? 'text-white shadow-lg'
-                  : `text-white hover:bg-slate-700/50`
+                  : isDark ? 'text-slate-300 hover:bg-white/5' : 'text-lynx-slate hover:bg-lynx-frost'
               }`}
               style={selectedTeam?.id === team.id ? {
                 backgroundColor: team.color,
@@ -373,20 +334,20 @@ function GamePrepPage({ showToast }) {
       <div className="flex gap-2">
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`px-5 py-2.5 rounded-xl font-semibold transition ${
+          className={`px-5 py-2.5 rounded-[10px] font-semibold transition ${
             activeTab === 'upcoming'
-              ? 'bg-[var(--accent-primary)] text-white'
-              : `gp-card text-white hover:brightness-110`
+              ? 'bg-lynx-sky text-white'
+              : isDark ? 'bg-lynx-charcoal border border-lynx-border-dark text-slate-300 hover:bg-white/5' : 'bg-white border border-lynx-silver text-lynx-slate hover:bg-lynx-frost'
           }`}
         >
           Upcoming ({games.length})
         </button>
         <button
           onClick={() => setActiveTab('results')}
-          className={`px-5 py-2.5 rounded-xl font-semibold transition ${
+          className={`px-5 py-2.5 rounded-[10px] font-semibold transition ${
             activeTab === 'results'
-              ? 'bg-[var(--accent-primary)] text-white'
-              : `gp-card text-white hover:brightness-110`
+              ? 'bg-lynx-sky text-white'
+              : isDark ? 'bg-lynx-charcoal border border-lynx-border-dark text-slate-300 hover:bg-white/5' : 'bg-white border border-lynx-silver text-lynx-slate hover:bg-lynx-frost'
           }`}
         >
           Results ({pastGames.length})
@@ -406,10 +367,10 @@ function GamePrepPage({ showToast }) {
                 {games.map(game => renderGameCard(game))}
               </div>
             ) : (
-              <div className={`gp-card border border-blue-500/10 rounded-2xl p-12 text-center`}>
+              <div className={`${cardBg} rounded-xl p-12 text-center`}>
                 <span className="text-6xl">{sportConfig.icon}</span>
-                <h2 className={`text-xl font-bold text-white mt-4`}>No Upcoming Games</h2>
-                <p className="text-slate-400">Schedule games from the Schedule page to start prepping!</p>
+                <h2 className={`text-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-lynx-navy'}`}>No Upcoming Games</h2>
+                <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Schedule games from the Schedule page to start prepping!</p>
               </div>
             )
           )}
@@ -463,10 +424,10 @@ function GamePrepPage({ showToast }) {
                 })}
               </div>
             ) : (
-              <div className={`gp-card border border-blue-500/10 rounded-2xl p-12 text-center`}>
+              <div className={`${cardBg} rounded-xl p-12 text-center`}>
                 <span className="text-6xl">📊</span>
-                <h2 className={`text-xl font-bold text-white mt-4`}>No Game Results Yet</h2>
-                <p className="text-slate-400">Complete games to see results here</p>
+                <h2 className={`text-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-lynx-navy'}`}>No Game Results Yet</h2>
+                <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Complete games to see results here</p>
               </div>
             )
           )}
@@ -645,7 +606,6 @@ function GamePrepPage({ showToast }) {
       })()}
     </div>
     </div>
-    </>
   )
 }
 
