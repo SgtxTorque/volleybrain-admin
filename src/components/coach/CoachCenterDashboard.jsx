@@ -1,204 +1,25 @@
 import { useState, useEffect } from 'react'
 import {
-  Users, Crosshair, ClipboardList,
-  Swords, Zap, Clock, ChevronRight, Bell, Check, Send, Timer,
-  UserCheck, X, BarChart3, MessageCircle, ChevronDown
+  Users, BarChart3, MessageCircle, ChevronDown, Check, Send, X
 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 import CoachGameDayHero from './CoachGameDayHero'
 import RotatingPanel from './RotatingPanel'
 import GameDayChecklist from './GameDayChecklist'
 import CoachCommandStrip from './CoachCommandStrip'
+import CoachWorkflowButtons from './CoachWorkflowButtons'
+import CoachPerformanceGrid from './CoachPerformanceGrid'
 import { useTheme } from '../../contexts/ThemeContext'
 import FeedPost from '../../pages/teams/FeedPost'
 import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
-import { formatTime12, countdownText, formatDateShort, timeAgo } from '../../lib/date-helpers'
-
-// ── Quick Attendance Panel ──
-function QuickAttendancePanel({ event, team, roster, userId, showToast }) {
-  const { isDark } = useTheme()
-  const [expanded, setExpanded] = useState(false)
-  const [attendance, setAttendance] = useState({})
-  const [loading, setLoading] = useState(false)
-  const [loaded, setLoaded] = useState(false)
-
-  const isToday = countdownText(event.event_date) === 'TODAY'
-
-  async function loadAttendance() {
-    if (loaded) return
-    setLoading(true)
-    try {
-      const { data } = await supabase
-        .from('event_rsvps')
-        .select('player_id, status')
-        .eq('event_id', event.id)
-      const map = {}
-      for (const r of (data || [])) { map[r.player_id] = r.status }
-      setAttendance(map)
-      setLoaded(true)
-    } catch (err) {
-      console.error('Error loading attendance:', err)
-    }
-    setLoading(false)
-  }
-
-  function handleExpand() {
-    if (!expanded) loadAttendance()
-    setExpanded(!expanded)
-  }
-
-  async function markPlayer(playerId, status) {
-    const prev = attendance[playerId]
-    setAttendance(a => ({ ...a, [playerId]: status }))
-    try {
-      const { data: existing } = await supabase
-        .from('event_rsvps')
-        .select('id')
-        .eq('event_id', event.id)
-        .eq('player_id', playerId)
-        .maybeSingle()
-      if (existing) {
-        await supabase.from('event_rsvps').update({ status, updated_at: new Date().toISOString() }).eq('id', existing.id)
-      } else {
-        await supabase.from('event_rsvps').insert({ event_id: event.id, player_id: playerId, status, responded_by: userId })
-      }
-    } catch {
-      setAttendance(a => ({ ...a, [playerId]: prev }))
-      showToast?.('Error updating attendance', 'error')
-    }
-  }
-
-  const presentCount = Object.values(attendance).filter(s => s === 'yes' || s === 'going').length
-  const absentCount = Object.values(attendance).filter(s => s === 'no' || s === 'not_going').length
-  const unmarkedCount = roster.length - presentCount - absentCount
-
-  return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm ${isToday ? 'ring-1 ring-emerald-500/25' : ''}`}>
-      <button onClick={handleExpand} className="w-full flex items-center gap-4 p-5 text-left">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-100'}`}>
-          <UserCheck className="w-6 h-6 text-emerald-500" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Quick Attendance</span>
-            {isToday && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                TODAY
-              </span>
-            )}
-          </div>
-          <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-            {event.event_type === 'game' ? `Game vs ${event.opponent_name || 'TBD'}` : 'Practice'}
-            {event.event_time ? ` · ${formatTime12(event.event_time)}` : ''}
-            {expanded && loaded ? ` — ${presentCount}✓ ${absentCount}✗ ${unmarkedCount > 0 ? `${unmarkedCount} unmarked` : ''}` : ''}
-          </p>
-        </div>
-        <ChevronRight className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-400'} ${expanded ? 'rotate-90' : ''}`} />
-      </button>
-
-      {expanded && (
-        <div className={`px-5 pb-5 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-          {loading ? (
-            <div className="py-6 text-center">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Loading...</p>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-4 py-3 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-bold text-emerald-500">{presentCount} Present</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-xs font-bold text-red-500">{absentCount} Absent</span>
-                </div>
-                {unmarkedCount > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <span className={`w-3 h-3 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
-                    <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{unmarkedCount} Unmarked</span>
-                  </div>
-                )}
-                <div className="ml-auto">
-                  <button
-                    onClick={() => {
-                      const all = {}
-                      roster.forEach(p => { all[p.id] = 'yes' })
-                      setAttendance(all)
-                      roster.forEach(p => markPlayer(p.id, 'yes'))
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border border-emerald-200 text-emerald-600 hover:bg-emerald-100'}`}
-                  >
-                    ALL PRESENT
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                {roster.map(player => {
-                  const status = attendance[player.id]
-                  const isPresent = status === 'yes' || status === 'going'
-                  const isAbsent = status === 'no' || status === 'not_going'
-                  return (
-                    <div key={player.id} className={`flex items-center gap-3 py-2 px-3 rounded-lg ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}>
-                      {player.photo_url ? (
-                        <img src={player.photo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold bg-lynx-ice text-lynx-sky">
-                          {player.first_name?.[0]}{player.last_name?.[0]}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{player.first_name} {player.last_name}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>#{player.jersey_number || '—'} · {player.position || 'Player'}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => markPlayer(player.id, 'yes')}
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                            isPresent ? 'bg-emerald-500/20 border border-emerald-500/40' : isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver'
-                          }`}
-                        >
-                          <Check className={`w-4 h-4 ${isPresent ? 'text-emerald-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-                        </button>
-                        <button
-                          onClick={() => markPlayer(player.id, 'no')}
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                            isAbsent ? 'bg-red-500/20 border border-red-500/40' : isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-lynx-cloud border border-lynx-silver'
-                          }`}
-                        >
-                          <X className={`w-4 h-4 ${isAbsent ? 'text-red-500' : isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {roster.length === 0 && (
-                <div className="py-6 text-center">
-                  <Users className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No players on roster</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
 /**
  * CoachCenterDashboard — Center column (flex-1) of Coach Dashboard
  * Row 0: Welcome + Season Selector
  * Row 1: Hero (col-span-3) + Rotating Panel (col-span-2)
- * Row 2: CoachCommandStrip (6 tiles)
- * Row 3: Team Hub + Chat (side-by-side, max-height)
- * Row 4: Quick Attendance
- * Row 5: Mobile Quick Actions
+ * Row 2: CoachCommandStrip (6 rolling-health tiles)
+ * Row 3: CoachWorkflowButtons (4 branded gradient buttons)
+ * Row 4: Team Hub + Chat (side-by-side, max-height)
+ * Row 5: CoachPerformanceGrid (3×3 charts + power bars)
  */
 export default function CoachCenterDashboard({
   teams,
@@ -231,6 +52,24 @@ export default function CoachCenterDashboard({
   lineupCount,
   checklistState,
   onToggleManualChecklist,
+  // V2.1 Command Strip props
+  lineupSetForNextGame,
+  rsvpPercentNextGame,
+  avgAttendanceLast3,
+  weeklyEngagement,
+  rosterIssues,
+  lineupsSet,
+  upcomingGamesCount,
+  // V2.1 Workflow Button badges
+  gameDayBadge,
+  practiceBadge,
+  rosterBadge,
+  scheduleBadge,
+  // V2.1 Performance Grid data
+  scoringTrend,
+  topPlayerTrend,
+  statLeaders,
+  developmentData,
 }) {
   const { isDark } = useTheme()
   const g = selectedTeam?.color || '#4BB9EC'
@@ -461,23 +300,33 @@ export default function CoachCenterDashboard({
         </div>
       </div>
 
-      {/* Row 2: Coach Command Strip */}
+      {/* Row 2: Coach Command Strip (V2.1 — rolling health tiles) */}
       <CoachCommandStrip
-        roster={roster}
-        nextEvent={nextEvent}
         nextGame={nextGame}
-        rsvpCounts={rsvpCounts}
-        weeklyShoutouts={weeklyShoutouts || 0}
+        lineupSetForNextGame={lineupSetForNextGame}
+        rsvpPercentNextGame={rsvpPercentNextGame}
+        lastGameStatsEntered={pendingStats === 0}
+        avgAttendanceLast3={avgAttendanceLast3}
+        weeklyEngagement={weeklyEngagement}
+        rosterCount={roster?.length || 0}
+        rosterIssues={rosterIssues}
         pendingStats={pendingStats}
-        unreadMessages={unreadMessages || 0}
-        lineupCount={lineupCount || 0}
+        lineupsSet={lineupsSet}
+        upcomingGamesCount={upcomingGamesCount}
         onNavigate={onNavigate}
-        onShowShoutout={onShowShoutout}
-        openTeamChat={openTeamChat}
-        selectedTeam={selectedTeam}
       />
 
-      {/* Row 3: Team Hub + Chat Previews (max height) */}
+      {/* Row 3: Workflow Buttons (V2.1 — branded gradient) */}
+      <CoachWorkflowButtons
+        teamColor={selectedTeam?.color}
+        onNavigate={onNavigate}
+        gameDayBadge={gameDayBadge}
+        practiceBadge={practiceBadge}
+        rosterBadge={rosterBadge}
+        scheduleBadge={scheduleBadge}
+      />
+
+      {/* Row 4: Team Hub + Chat Previews (max height) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Team Hub Preview */}
         <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden max-h-[300px]`}>
@@ -618,66 +467,17 @@ export default function CoachCenterDashboard({
         </div>
       </div>
 
-      {/* Row 4: Quick Attendance */}
-      {nextEvent && (
-        <QuickAttendancePanel
-          event={nextEvent}
-          team={selectedTeam}
-          roster={roster}
-          userId={userId}
-          showToast={showToast}
-        />
-      )}
-
-      {/* Row 5: Quick Actions (mobile only — replaces sidebar) */}
-      <div className="lg:hidden">
-        <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Quick Actions</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <button
-            onClick={() => { sessionStorage.setItem('attendanceTeamId', selectedTeam?.id); onNavigate?.('attendance') }}
-            className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md`}
-          >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-100'}`}>
-              <Check className="w-6 h-6 text-emerald-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Take Attendance</h3>
-              <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-                {nextEvent ? `${nextEvent.event_type === 'game' ? 'Game' : 'Practice'} · ${formatDateShort(nextEvent.event_date)}` : 'No upcoming events'}
-              </p>
-            </div>
-            <ChevronRight className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-          </button>
-
-          <button
-            onClick={() => onShowCoachBlast?.()}
-            className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md`}
-          >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
-              <Send className="w-6 h-6 text-lynx-sky" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Message Parents</h3>
-              <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Send announcement to {selectedTeam?.name}</p>
-            </div>
-            <ChevronRight className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-          </button>
-
-          <button
-            onClick={() => onShowWarmupTimer?.()}
-            className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm flex items-center gap-4 p-4 text-left hover:shadow-md`}
-          >
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-100'}`}>
-              <Timer className="w-6 h-6 text-amber-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Start Warmup</h3>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Countdown timer for drills</p>
-            </div>
-            <ChevronRight className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-          </button>
-        </div>
-      </div>
+      {/* Row 5: Performance Grid (V2.1 — replaces Quick Attendance) */}
+      <CoachPerformanceGrid
+        scoringTrend={scoringTrend}
+        teamRecord={teamRecord}
+        topPlayers={topPlayers}
+        topPlayerTrend={topPlayerTrend}
+        statLeaders={statLeaders}
+        developmentData={developmentData}
+        roster={roster}
+        onNavigate={onNavigate}
+      />
 
     </main>
   )
