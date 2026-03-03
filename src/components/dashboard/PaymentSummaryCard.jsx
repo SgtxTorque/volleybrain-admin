@@ -15,20 +15,20 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
   const collectionPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
 
   return (
-    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow overflow-hidden ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
+    <div className={`flex flex-col gap-5 rounded-[18px] p-5 shadow-sm overflow-hidden ${
+      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-lg font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <h3 className={`text-[10px] font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
           Payment Summary
         </h3>
         <button
           onClick={() => onNavigate('payments')}
-          className="flex items-center gap-1 text-lg font-medium transition-colors"
-          style={{ color: isDark ? '#5eead4' : '#0d9488' }}
+          className="flex items-center gap-1 text-[11px] font-bold transition-colors"
+          style={{ color: isDark ? '#5eead4' : '#4BB9EC' }}
         >
           View All
-          <ArrowRight className="h-5.5 w-5.5" />
+          <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -36,7 +36,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
         {/* Amounts + pie chart row */}
         <div className="flex items-center gap-5">
           <div className="flex items-baseline gap-1.5">
-            <span className={`text-3xl font-bold ${
+            <span className={`text-[36px] font-bold leading-none ${
               collectionPct <= 25 ? 'text-red-500'
               : collectionPct <= 50 ? 'text-amber-500'
               : collectionPct <= 75 ? 'text-blue-500'
@@ -44,16 +44,16 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
             }`}>
               ${totalCollected.toLocaleString()}
             </span>
-            <span className={`text-3xl font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+            <span className={`text-[14px] font-medium ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
               / ${totalExpected.toLocaleString()}
             </span>
           </div>
 
           <div className="flex items-baseline gap-1.5 ml-auto">
-            <span className="text-3xl font-bold text-red-500">
+            <span className="text-[36px] font-bold leading-none text-red-500">
               ${pastDue.toLocaleString()}
             </span>
-            <span className={`text-3xl font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+            <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
               overdue
             </span>
           </div>

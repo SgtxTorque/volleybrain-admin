@@ -59,20 +59,20 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
     })
 
   return (
-    <div className={`flex flex-col gap-5 rounded-xl p-6 shadow overflow-hidden ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
+    <div className={`flex flex-col gap-5 rounded-[18px] p-5 shadow-sm overflow-hidden ${
+      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-lg font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <h3 className={`text-[10px] font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
           Registration Stats
         </h3>
         <button
           onClick={() => onNavigate('registrations')}
-          className="flex items-center gap-1 text-lg font-medium transition-colors"
-          style={{ color: isDark ? '#5eead4' : '#0d9488' }}
+          className="flex items-center gap-1 text-[11px] font-bold transition-colors"
+          style={{ color: isDark ? '#5eead4' : '#4BB9EC' }}
         >
           View All
-          <ArrowRight className="h-5.5 w-5.5" />
+          <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -100,8 +100,8 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
             ))}
           </svg>
           <div className="absolute flex flex-col items-center">
-            <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{total}</span>
-            <span className={`text-md font-semibold uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+            <span className={`text-[36px] font-bold leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{total}</span>
+            <span className={`text-[11px] font-medium ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>
               Total
             </span>
           </div>
@@ -111,9 +111,9 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
         <div className="flex flex-col gap-3">
           {statItems.map((stat) => (
             <div key={stat.label} className="flex items-center gap-3">
-              <span className="h-5 w-5 rounded-full" style={{ backgroundColor: stat.color }} />
-              <span className={`text-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{stat.label}</span>
-              <span className={`ml-auto text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.count}</span>
+              <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: stat.color }} />
+              <span className={`text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>{stat.label}</span>
+              <span className={`ml-auto text-[13px] font-bold ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{stat.count}</span>
             </div>
           ))}
         </div>

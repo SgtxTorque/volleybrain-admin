@@ -1361,33 +1361,54 @@ export function DashboardPage({ onNavigate }) {
   }
 
   return (
-    <DashboardLayout
-      leftSidebar={
+    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`}>
+      {/* Left Sidebar */}
+      <div className="hidden xl:contents">
         <OrgSidebar
           stats={stats}
           season={selectedSeason}
           onNavigate={onNavigate}
         />
-      }
-      rightSidebar={
-        <LiveActivity activities={activities} upcomingEvents={upcomingEvents} topPlayers={topPlayers} onNavigate={onNavigate} />
-      }
-    >
-      {/* Dashboard Heading */}
-      <div>
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          Dashboard
-        </h1>
-        <p className={`mt-1 text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-          {getGreeting()}, {profile?.first_name || 'there'}. Here's your overview.
-        </p>
       </div>
 
+      {/* Center Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Dark Navy Header Band */}
+        <div className="bg-[#0D1B3E] px-8 pt-5 pb-24 shrink-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4BB9EC]/20 to-[#10284C] border border-[#4BB9EC]/20 flex items-center justify-center text-[12px] font-bold text-[#4BB9EC]">
+                {(profile?.first_name?.[0] || '') + (profile?.last_name?.[0] || '')}
+              </div>
+              <div>
+                <p className="text-[14px] font-bold text-white">
+                  {profile?.first_name} {profile?.last_name}
+                </p>
+                <p className="text-[11px] text-white/30 font-medium">{profile?.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-bold text-white/20 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                {selectedSeason?.name || 'No Season'}
+              </span>
+            </div>
+          </div>
+          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#4BB9EC]/50 mb-1">
+            Admin Command Center
+          </p>
+          <h1 className="text-[32px] leading-none tracking-wide text-white font-bold uppercase">
+            Organization Overview
+          </h1>
+        </div>
+
+        {/* Floating Cards Area */}
+        <div className={`flex-1 px-8 -mt-16 overflow-y-auto pb-8 ${isDark ? '' : ''}`}>
+
       {/* Dashboard Filters */}
-      <div className={`flex w-[calc(50%-12px)] items-center gap-3 rounded-lg px-4 py-1.5 ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver/50'
+      <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mb-5 ${
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-[#E8ECF2]'
       }`}>
-        <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`} />
+        <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
 
         {/* Season selector */}
         <div className="relative">
@@ -1397,10 +1418,10 @@ export function DashboardPage({ onNavigate }) {
               const season = (seasons || allSeasons || []).find(s => s.id === e.target.value)
               if (season) selectSeason(season)
             }}
-            className={`appearance-none rounded-lg px-3 pr-8 py-2 text-sm font-bold text-center cursor-pointer transition-colors ${
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-[11px] font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-lynx-cloud text-slate-800 border border-lynx-silver/50 hover:bg-slate-100'
+                : 'bg-[#F6F8FB] border border-[#E8ECF2] text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
             }`}
           >
             {(seasons || allSeasons || []).map(s => (
@@ -1409,7 +1430,7 @@ export function DashboardPage({ onNavigate }) {
               </option>
             ))}
           </select>
-          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
         </div>
 
         {/* Sport selector */}
@@ -1420,10 +1441,10 @@ export function DashboardPage({ onNavigate }) {
               const sport = sports.find(s => s.id === e.target.value) || null
               selectSport(sport)
             }}
-            className={`appearance-none rounded-lg px-3 pr-8 py-2 text-sm font-bold text-center cursor-pointer transition-colors ${
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-[11px] font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-lynx-cloud text-slate-800 border border-lynx-silver/50 hover:bg-slate-100'
+                : 'bg-[#F6F8FB] border border-[#E8ECF2] text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
             }`}
           >
             <option value="">All Sports</option>
@@ -1431,7 +1452,7 @@ export function DashboardPage({ onNavigate }) {
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
-          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
         </div>
 
         {/* Team selector */}
@@ -1439,10 +1460,10 @@ export function DashboardPage({ onNavigate }) {
           <select
             value={filterTeam}
             onChange={(e) => setFilterTeam(e.target.value)}
-            className={`appearance-none rounded-lg px-3 pr-8 py-2 text-sm font-bold text-center cursor-pointer transition-colors ${
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-[11px] font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-lynx-cloud text-slate-800 border border-lynx-silver/50 hover:bg-slate-100'
+                : 'bg-[#F6F8FB] border border-[#E8ECF2] text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
             }`}
           >
             <option value="all">All Teams</option>
@@ -1450,40 +1471,47 @@ export function DashboardPage({ onNavigate }) {
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
-          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
         </div>
       </div>
 
       {/* Stats Row: Registration Stats + Payment Summary */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-5 mb-5">
         <RegistrationStatsCard stats={stats} season={selectedSeason} onNavigate={onNavigate} />
         <PaymentSummaryCard stats={stats} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
       </div>
 
-      {/* Quick Navigation Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Quick Actions Row */}
+      <div className="flex gap-3">
         {[
-          { icon: MessageSquare, label: 'Chat', page: 'chats', color: isDark ? 'text-sky-400' : 'text-sky-600', bg: isDark ? 'bg-sky-500/15' : 'bg-sky-50' },
-          { icon: Users, label: 'Teams & Rosters', page: 'teams', color: isDark ? 'text-teal-400' : 'text-teal-600', bg: isDark ? 'bg-teal-500/15' : 'bg-teal-50' },
-          { icon: Calendar, label: 'Calendar', page: 'schedule', color: isDark ? 'text-amber-400' : 'text-amber-600', bg: isDark ? 'bg-amber-500/15' : 'bg-amber-50' },
-          { icon: UsersRound, label: 'Families', page: 'registrations', color: isDark ? 'text-purple-400' : 'text-purple-600', bg: isDark ? 'bg-purple-500/15' : 'bg-purple-50' },
-        ].map(({ icon: Icon, label, page, color, bg }) => (
+          { icon: MessageSquare, label: 'Chat', page: 'chats', color: '#4BB9EC' },
+          { icon: Users, label: 'Teams & Rosters', page: 'teams', color: '#22C55E' },
+          { icon: Calendar, label: 'Calendar', page: 'schedule', color: '#F59E0B' },
+          { icon: UsersRound, label: 'Families', page: 'registrations', color: '#8B5CF6' },
+        ].map(({ icon: Icon, label, page, color }) => (
           <button
             key={page}
             onClick={() => onNavigate(page)}
-            className={`flex flex-col items-center gap-3 rounded-xl p-6 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
+            className={`flex-1 flex items-center gap-3 py-3.5 px-4 rounded-[14px] border transition-colors shadow-sm ${
               isDark
-                ? 'bg-lynx-charcoal border border-white/[0.06]'
-                : 'bg-white border border-lynx-silver/50'
+                ? 'bg-lynx-charcoal border-white/[0.06] hover:border-white/[0.12]'
+                : 'bg-white border-[#E8ECF2] hover:border-[#4BB9EC]/30'
             }`}
           >
-            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bg}`}>
-              <Icon className={`h-6 w-6 ${color}`} />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
+              <Icon className="w-4 h-4" style={{ color }} />
             </div>
-            <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{label}</span>
+            <span className={`text-[12px] font-bold ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{label}</span>
           </button>
         ))}
       </div>
-    </DashboardLayout>
+        </div>
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="hidden lg:contents">
+        <LiveActivity activities={activities} upcomingEvents={upcomingEvents} topPlayers={topPlayers} onNavigate={onNavigate} />
+      </div>
+    </div>
   )
 }

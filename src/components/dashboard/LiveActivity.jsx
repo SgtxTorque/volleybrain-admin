@@ -159,7 +159,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
         </div>
       ) : (
         <div className={`rounded-xl px-4 py-6 text-center ${
-          isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
+          isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
         }`}>
           <Calendar className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No upcoming events</p>
@@ -194,7 +194,7 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
       </div>
 
       <div className={`rounded-xl overflow-hidden ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
       }`}>
         {players.slice(0, 10).map((entry, i) => {
           const player = entry.player
@@ -259,7 +259,7 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
 
   return (
     <aside className={`flex w-[330px] shrink-0 flex-col gap-4 overflow-y-auto border-l py-8 pl-6 pr-6 ${
-      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-lynx-silver/50 bg-lynx-cloud'
+      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-[#E8ECF2] bg-[#F6F8FB]'
     }`}>
       {/* Upcoming Events Hero */}
       {upcomingEvents && onNavigate && (

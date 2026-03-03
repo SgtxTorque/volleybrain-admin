@@ -96,11 +96,11 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
   return (
     <aside className={`flex w-[360px] shrink-0 flex-col gap-6 overflow-y-auto py-8 pl-6 pr-4 scrollbar-hide ${
-      isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'
+      isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'
     }`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {/* Org Card */}
-      <div className={`flex flex-col items-center gap-4 rounded-xl p-6 shadow ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
+      <div className={`flex flex-col items-center gap-4 rounded-[18px] p-5 shadow-sm ${
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
       }`}>
         {orgLogo ? (
           <img
