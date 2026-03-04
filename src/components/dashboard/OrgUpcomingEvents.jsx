@@ -22,8 +22,8 @@ function EventTypeChip({ type }) {
   const config = {
     game: { label: 'Game', bg: 'bg-red-500/10', text: 'text-red-500' },
     practice: { label: 'Practice', bg: 'bg-emerald-500/10', text: 'text-emerald-500' },
-    tournament: { label: 'Tournament', bg: 'bg-purple-500/10', text: 'text-purple-500' },
-    meeting: { label: 'Meeting', bg: 'bg-blue-500/10', text: 'text-blue-500' },
+    tournament: { label: 'Tournament', bg: 'bg-lynx-sky/10', text: 'text-lynx-sky' },
+    meeting: { label: 'Meeting', bg: 'bg-lynx-navy/10', text: 'text-lynx-navy' },
   }
   const cfg = config[type] || { label: type || 'Event', bg: 'bg-slate-500/10', text: 'text-slate-500' }
   return (

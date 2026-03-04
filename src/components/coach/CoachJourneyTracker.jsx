@@ -11,7 +11,7 @@ const STEPS = [
   { id: 'roster', label: 'Roster' },
   { id: 'lineup', label: 'Lineup' },
   { id: 'practice', label: 'Practice' },
-  { id: 'gameprep', label: 'Game Prep' },
+  { id: 'gameday', label: 'Game Day' },
   { id: 'stats', label: 'Stats' },
 ]
 

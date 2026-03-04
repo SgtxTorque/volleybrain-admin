@@ -11,9 +11,10 @@ import {
   Target, MessageCircle, Swords, Shield, Send, Timer
 } from '../../constants/icons'
 
-import CoachLeftSidebar from '../../components/coach/CoachLeftSidebar'
-import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
-import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
+// Old layout components archived — replaced by LynxSidebar + card grid
+// import CoachLeftSidebar from '../../components/coach/CoachLeftSidebar'
+// import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
+// import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
 import LynxSidebar from '../../components/layout/LynxSidebar'
 import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
 import CoachJourneyTracker from '../../components/coach/CoachJourneyTracker'

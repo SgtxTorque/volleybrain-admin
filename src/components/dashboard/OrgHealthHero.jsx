@@ -1,6 +1,7 @@
 // =============================================================================
 // OrgHealthHero — Admin dashboard centerpiece card
 // Dark navy hero with health score ring, KPI pills, and urgent action items.
+// DESIGN: Always-dark hero (same pattern as CoachGameDayHeroV2, LynxSidebar).
 // =============================================================================
 
 import { AlertCircle, TrendingUp, TrendingDown, Users, Shield, DollarSign, FileText, Calendar, UserCheck } from 'lucide-react'
