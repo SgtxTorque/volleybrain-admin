@@ -47,7 +47,7 @@ export default function PlayerProfileSidebar({
       <div className="text-center">
         <div className="relative inline-block mx-auto mb-3">
           <div
-            className="w-[140px] h-[140px] rounded-xl overflow-hidden mx-auto"
+            className="w-[140px] h-[140px] rounded-[18px] overflow-hidden mx-auto"
             style={{ boxShadow: '0 0 20px var(--player-accent-glow)', border: '2px solid var(--player-accent)' }}
           >
             {viewingPlayer?.photo_url ? (
@@ -95,7 +95,7 @@ export default function PlayerProfileSidebar({
       </div>
 
       {/* 2. Level / XP Bar */}
-      <div className="rounded-xl p-3" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
+      <div className="rounded-[18px] p-3" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--player-text-secondary)' }}>
             <Sparkles className="w-3 h-3 inline mr-1" style={{ color: 'var(--player-accent)' }} />
@@ -134,7 +134,7 @@ export default function PlayerProfileSidebar({
 
       {/* 3. Streak Counter */}
       <div
-        className="rounded-xl p-3 text-center"
+        className="rounded-[18px] p-3 text-center"
         style={{
           background: streak > 0 ? 'var(--player-bg)' : 'var(--player-card)',
           border: streak > 0 ? '1px solid var(--player-accent)' : '1px solid var(--player-border)',
@@ -211,7 +211,7 @@ export default function PlayerProfileSidebar({
               <button
                 key={link.label}
                 onClick={link.action}
-                className="rounded-xl p-3 text-center group"
+                className="rounded-[18px] p-3 text-center group"
                 style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
               >
                 <Icon className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--player-accent)' }} />

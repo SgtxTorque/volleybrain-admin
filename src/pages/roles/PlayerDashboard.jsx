@@ -15,11 +15,11 @@ import PlayerSocialPanel from '../../components/player/PlayerSocialPanel'
 // ============================================
 const PLAYER_THEMES = {
   default: {
-    '--player-bg': '#0f1117',
-    '--player-card': '#1a1d27',
-    '--player-card-hover': '#1f2331',
-    '--player-accent': '#E8A838',
-    '--player-accent-glow': 'rgba(232, 168, 56, 0.3)',
+    '--player-bg': '#0A1B33',
+    '--player-card': '#10284C',
+    '--player-card-hover': '#162848',
+    '--player-accent': '#FFD700',
+    '--player-accent-glow': 'rgba(255, 215, 0, 0.3)',
     '--player-border': 'rgba(255,255,255,0.06)',
     '--player-text': '#ffffff',
     '--player-text-secondary': 'rgba(255,255,255,0.60)',

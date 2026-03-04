@@ -189,13 +189,39 @@ export default function PlayerCenterFeed({
   }, [viewingPlayer, upcomingEvents, gamesPlayed, level, xpToNext])
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 space-y-5 min-w-0" style={{ background: 'var(--player-bg)' }}>
-
-      {/* Row 1: Motivational Welcome */}
-      <div className="player-fade-up">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--player-text)' }}>{welcomeMessage.main}</h1>
-        <p className="text-sm" style={{ color: 'var(--player-text-muted)' }}>{welcomeMessage.sub}</p>
+    <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      {/* Dark Header Band — blends with dark page, subtle gradient border for differentiation */}
+      <div className="px-8 pt-5 pb-24 shrink-0" style={{ background: 'linear-gradient(180deg, #0D1B3E 0%, var(--player-bg) 100%)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            {viewingPlayer?.photo_url ? (
+              <img src={viewingPlayer.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" style={{ border: '2px solid var(--player-accent)', boxShadow: '0 0 12px var(--player-accent-glow)' }} />
+            ) : (
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[12px] font-bold" style={{ background: 'linear-gradient(135deg, var(--player-accent-glow), var(--player-card))', border: '2px solid var(--player-accent)', color: 'var(--player-accent)' }}>
+                {displayName?.[0] || 'P'}
+              </div>
+            )}
+            <div>
+              <p className="text-[14px] font-bold" style={{ color: 'var(--player-text)' }}>{displayName}</p>
+              <p className="text-[11px] font-medium" style={{ color: 'var(--player-text-muted)' }}>
+                LVL {level} · {xp} XP · {primaryTeam?.name || 'No Team'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-bold px-3 py-1 rounded-full" style={{ color: 'var(--player-text-muted)', background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>Player</span>
+          </div>
+        </div>
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase mb-1" style={{ color: 'rgba(75, 185, 236, 0.5)' }}>Player Dashboard</p>
+        <div className="flex items-baseline gap-4">
+          <h1 className="text-[28px] font-black leading-none tracking-wide" style={{ color: 'var(--player-text)' }}>TEAM</h1>
+          <h1 className="text-[28px] font-black leading-none tracking-wide" style={{ color: '#4BB9EC' }}>PULSE</h1>
+        </div>
       </div>
+
+      {/* Floating Content Area */}
+      <div className="flex-1 px-8 -mt-16 overflow-y-auto pb-8" style={{ background: 'transparent' }}>
+      <div className="space-y-5">
 
       {/* Row 2: Stories/Highlights Bar */}
       <div className="flex gap-4 overflow-x-auto pb-2 player-fade-up" style={{ scrollbarWidth: 'none' }}>
@@ -247,7 +273,7 @@ export default function PlayerCenterFeed({
 
               return (
                 <div
-                  className="rounded-xl overflow-hidden relative"
+                  className="rounded-[18px] overflow-hidden relative"
                   style={{
                     background: isGame
                       ? 'linear-gradient(135deg, rgba(239,68,68,0.08), var(--player-card))'
@@ -258,7 +284,7 @@ export default function PlayerCenterFeed({
                   <div className="p-4">
                     <div className="flex items-center gap-4">
                       <div
-                        className="w-14 h-14 rounded-xl flex flex-col items-center justify-center shrink-0"
+                        className="w-14 h-14 rounded-[18px] flex flex-col items-center justify-center shrink-0"
                         style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
                       >
                         <span className="text-[10px] font-bold uppercase leading-none" style={{ color: 'var(--player-text-muted)' }}>
@@ -341,7 +367,7 @@ export default function PlayerCenterFeed({
 
               return (
                 <div
-                  className="rounded-xl p-4"
+                  className="rounded-[18px] p-4"
                   style={{
                     background: 'var(--player-card)',
                     borderLeft: `3px solid ${resultColor}`,
@@ -390,7 +416,7 @@ export default function PlayerCenterFeed({
               const b = item.data
               return (
                 <div
-                  className="rounded-xl p-4 player-pulse-new"
+                  className="rounded-[18px] p-4 player-pulse-new"
                   style={{
                     background: 'var(--player-card)',
                     border: '1px solid var(--player-border)',
@@ -398,7 +424,7 @@ export default function PlayerCenterFeed({
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                      className="w-12 h-12 rounded-[18px] flex items-center justify-center text-2xl"
                       style={{ boxShadow: '0 0 12px var(--player-accent-glow)' }}
                     >
                       {b.achievement?.icon || '🏆'}
@@ -427,7 +453,7 @@ export default function PlayerCenterFeed({
               const s = item.data
               return (
                 <div
-                  className="rounded-xl p-4"
+                  className="rounded-[18px] p-4"
                   style={{
                     background: 'var(--player-card)',
                     border: '1px solid var(--player-border)',
@@ -460,7 +486,7 @@ export default function PlayerCenterFeed({
         ))}
 
         {feedItems.length === 0 && (
-          <div className="rounded-xl p-10 text-center" style={{ background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>
+          <div className="rounded-[18px] p-10 text-center" style={{ background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>
             <Calendar className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--player-text-muted)' }} />
             <p className="font-bold text-lg" style={{ color: 'var(--player-text-secondary)' }}>Your feed is empty</p>
             <p className="text-sm mt-1" style={{ color: 'var(--player-text-muted)' }}>Play games, earn badges, and get shoutouts to fill your feed</p>
@@ -490,7 +516,7 @@ export default function PlayerCenterFeed({
                 return (
                   <div
                     key={b.id || idx}
-                    className="w-[130px] shrink-0 rounded-xl overflow-hidden relative"
+                    className="w-[130px] shrink-0 rounded-[18px] overflow-hidden relative"
                     style={{
                       height: 180,
                       background: r.bg,
@@ -517,7 +543,7 @@ export default function PlayerCenterFeed({
               {badges.length < 5 && Array.from({ length: 5 - badges.length }).map((_, i) => (
                 <div
                   key={`locked-${i}`}
-                  className="w-[130px] shrink-0 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-2"
+                  className="w-[130px] shrink-0 rounded-[18px] overflow-hidden flex flex-col items-center justify-center gap-2"
                   style={{ height: 180, background: 'var(--player-card)', border: '1px solid var(--player-border)' }}
                 >
                   <Lock className="w-6 h-6" style={{ color: 'var(--player-text-muted)' }} />
@@ -531,7 +557,7 @@ export default function PlayerCenterFeed({
               {Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={`locked-${i}`}
-                  className="w-[130px] shrink-0 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-2"
+                  className="w-[130px] shrink-0 rounded-[18px] overflow-hidden flex flex-col items-center justify-center gap-2"
                   style={{ height: 180, background: 'var(--player-card)', border: '1px solid var(--player-border)' }}
                 >
                   <Lock className="w-6 h-6" style={{ color: 'var(--player-text-muted)' }} />
@@ -546,6 +572,8 @@ export default function PlayerCenterFeed({
           {badges.length}/20 Badges Earned
         </p>
       </div>
-    </main>
+    </div>
+    </div>
+    </div>
   )
 }

@@ -162,7 +162,7 @@ export default function PlayerSocialPanel({
       </div>
 
       {/* 2. Team Chat Preview */}
-      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
+      <div className="rounded-[18px] overflow-hidden" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
         <div className="flex items-center justify-between px-3 py-2.5" style={{ borderBottom: '1px solid var(--player-border)' }}>
           <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--player-text-muted)' }}>Team Chat</h3>
           <button
@@ -229,7 +229,7 @@ export default function PlayerSocialPanel({
           {MOCK_SHOUTOUTS_WALL.map(s => (
             <div
               key={s.id}
-              className="flex items-center gap-2.5 p-2.5 rounded-xl"
+              className="flex items-center gap-2.5 p-2.5 rounded-[18px]"
               style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
             >
               <span className="text-lg">{s.icon}</span>
@@ -266,7 +266,7 @@ export default function PlayerSocialPanel({
         {primaryTeam && (
           <button
             onClick={() => navigateToTeamWall?.(primaryTeam.id)}
-            className="w-full mt-2 py-2.5 rounded-xl text-xs font-bold text-center uppercase tracking-wider"
+            className="w-full mt-2 py-2.5 rounded-[18px] text-xs font-bold text-center uppercase tracking-wider"
             style={{
               background: 'var(--player-accent-glow)',
               color: 'var(--player-accent)',
@@ -288,7 +288,7 @@ export default function PlayerSocialPanel({
             return (
               <div
                 key={event.id}
-                className="rounded-xl p-3 cursor-pointer"
+                className="rounded-[18px] p-3 cursor-pointer"
                 onClick={() => onNavigate?.('schedule')}
                 style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
               >
@@ -325,7 +325,7 @@ export default function PlayerSocialPanel({
             )
           })}
           {(!upcomingEvents || upcomingEvents.length === 0) && (
-            <div className="rounded-xl p-4 text-center" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
+            <div className="rounded-[18px] p-4 text-center" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
               <Calendar className="w-6 h-6 mx-auto mb-1" style={{ color: 'var(--player-text-muted)' }} />
               <p className="text-[10px]" style={{ color: 'var(--player-text-muted)' }}>No upcoming events</p>
             </div>
