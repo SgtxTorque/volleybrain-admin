@@ -1086,7 +1086,7 @@ function MainApp() {
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider>
-      <div className={`flex flex-col min-h-screen transition-colors duration-500 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+      <div className={`flex min-h-screen transition-colors duration-500 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
@@ -1120,40 +1120,24 @@ function MainApp() {
           onPlatformAdmin={() => navigate('/platform/admin')}
         />
 
-        {/* Horizontal Nav Bar — still present in Phase 2 */}
-        <HorizontalNavBar
-          activeView={activeView} profile={profile}
-          showRoleSwitcher={showRoleSwitcher} setShowRoleSwitcher={setShowRoleSwitcher}
-          getAvailableViews={getAvailableViews} setActiveView={setActiveView} signOut={signOut}
-          tc={tc} accent={accent}
-          accentColor={accentColor} changeAccent={changeAccent} accentColors={accentColors}
-          isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
-          organization={organization}
-          isPlatformAdmin={isPlatformAdmin}
-          navGroups={currentNavGroups}
-          handleNavigation={handleNavigation}
-        />
-
-        {/* Main Content Area — React Router */}
-        <div className={`flex-1 relative z-10 ${
-          (activeView === 'admin' && mainLocation.pathname === '/dashboard')
-            || (activeView === 'coach' && mainLocation.pathname === '/dashboard')
-            || (activeView === 'parent' && mainLocation.pathname === '/dashboard')
-            || (activeView === 'player' && mainLocation.pathname === '/dashboard')
-            || mainLocation.pathname.startsWith('/teams/')
-            ? 'overflow-hidden'
-            : 'px-4 sm:px-6 lg:px-8 py-6 overflow-auto max-w-[1440px] mx-auto w-full animate-slide-up'
-        }`}>
-          <Breadcrumb />
-          <ErrorBoundary>
-            <RoutedContent
-              activeView={activeView}
-              roleContext={roleContext}
-              showToast={showToast}
-              selectedPlayerForView={selectedPlayerForView}
-              setSelectedPlayerForView={setSelectedPlayerForView}
-            />
-          </ErrorBoundary>
+        {/* Main Content — offset by sidebar width (64px) */}
+        <div className="flex-1 min-h-screen pl-16 relative z-10">
+          <div className={`w-full h-full ${
+            mainLocation.pathname === '/dashboard' || mainLocation.pathname.startsWith('/teams/')
+              ? 'overflow-hidden'
+              : 'px-6 py-6 overflow-auto animate-slide-up'
+          }`}>
+            <Breadcrumb />
+            <ErrorBoundary>
+              <RoutedContent
+                activeView={activeView}
+                roleContext={roleContext}
+                showToast={showToast}
+                selectedPlayerForView={selectedPlayerForView}
+                setSelectedPlayerForView={setSelectedPlayerForView}
+              />
+            </ErrorBoundary>
+          </div>
         </div>
 
         <ToastContainer toasts={toasts} onRemove={removeToast} />
