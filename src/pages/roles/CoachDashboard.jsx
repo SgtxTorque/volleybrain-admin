@@ -369,7 +369,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       completedGames?.forEach((g, i) => {
         if (g.game_result === 'win') wins++
         else if (g.game_result === 'loss') losses++
-        if (i < 5) recentForm.push({ result: g.game_result })
+        if (i < 5) recentForm.push(g.game_result === 'win' ? 'W' : 'L')
       })
       setTeamRecord({ wins, losses, recentForm })
 

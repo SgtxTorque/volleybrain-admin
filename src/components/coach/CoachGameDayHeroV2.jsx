@@ -186,7 +186,7 @@ export default function CoachGameDayHeroV2({
           {teamRecord.recentForm?.length > 0 && (
             <div className="flex items-center gap-1">
               {teamRecord.recentForm.slice(0, 5).map((r, i) => (
-                <FormBadge key={i} result={r} />
+                <FormBadge key={i} result={typeof r === 'object' ? (r.result === 'win' ? 'W' : 'L') : r} />
               ))}
             </div>
           )}
