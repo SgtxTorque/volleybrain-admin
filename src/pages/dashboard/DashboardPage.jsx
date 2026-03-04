@@ -10,7 +10,7 @@ import {
   Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
   ChevronRight, MoreHorizontal, TrendingUp, CreditCard, Play,
   CheckCircle, Clock, AlertCircle, Star, MapPin, LayoutDashboard,
-  Filter, ChevronDown, MessageSquare, UsersRound
+  Filter, ChevronDown, MessageSquare, UsersRound, Search, Megaphone, BarChart3
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
@@ -920,6 +920,7 @@ export function DashboardPage({ onNavigate }) {
   const [teamStats, setTeamStats] = useState({})
   const [recentPaymentsNamed, setRecentPaymentsNamed] = useState([])
   const [topPlayers, setTopPlayers] = useState([])
+  const [coachesData, setCoachesData] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Reset team filter when season changes
@@ -1133,6 +1134,27 @@ export function DashboardPage({ onNavigate }) {
           .in('team_id', teamIds)
         coachCount = new Set(teamCoaches?.map(tc => tc.coach_id) || []).size
         teamsWithCoachCount = new Set(teamCoaches?.map(tc => tc.team_id) || []).size
+
+        // Load coach profiles for Coach Section
+        const uniqueCoachIds = [...new Set(teamCoaches?.map(tc => tc.coach_id) || [])]
+        if (uniqueCoachIds.length > 0) {
+          try {
+            const { data: coachProfiles } = await supabase
+              .from('coaches')
+              .select('id, profiles(first_name, last_name)')
+              .in('id', uniqueCoachIds)
+            setCoachesData((coachProfiles || []).map(c => ({
+              id: c.id,
+              name: c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}` : 'Unknown',
+              teams: (teamCoaches || []).filter(tc => tc.coach_id === c.id).map(tc => {
+                const team = teams?.find(t => t.id === tc.team_id)
+                return team?.name || ''
+              }).filter(Boolean)
+            })))
+          } catch { setCoachesData([]) }
+        } else {
+          setCoachesData([])
+        }
       }
 
       // Fetch unsigned waivers count
@@ -1371,38 +1393,52 @@ export function DashboardPage({ onNavigate }) {
         />
       </div>
 
-      {/* Center Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Dark Navy Header Band */}
-        <div className="bg-[#0D1B3E] px-8 pt-5 pb-28 shrink-0">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4BB9EC]/20 to-[#10284C] border border-[#4BB9EC]/20 flex items-center justify-center text-[12px] font-bold text-[#4BB9EC]">
-                {(profile?.first_name?.[0] || '') + (profile?.last_name?.[0] || '')}
-              </div>
-              <div>
-                <p className="text-[14px] font-bold text-white">
-                  {profile?.first_name} {profile?.last_name}
-                </p>
-                <p className="text-[11px] text-white/30 font-medium">{profile?.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-bold text-white/20 bg-white/5 px-3 py-1 rounded-full border border-white/5">
-                {selectedSeason?.name || 'No Season'}
-              </span>
-            </div>
-          </div>
-          <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#4BB9EC]/50 mb-1">
-            Admin Command Center
-          </p>
-          <h1 className="text-[32px] leading-none tracking-wide text-white font-bold uppercase">
-            Organization Overview
-          </h1>
-        </div>
+      {/* Center Content — AdminHomeScroll parity */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-6 py-6 space-y-5">
 
-        {/* Floating Cards Area */}
-        <div className={`flex-1 px-8 -mt-20 overflow-y-auto pb-8`}>
+          {/* ─── 1. WELCOME BRIEFING ─────────────────────────── */}
+          <div className="text-center py-2">
+            <p className="text-[48px] mb-3">{(stats.pending || 0) === 0 && (stats.pastDue || 0) === 0 ? '🎉' : '🐱'}</p>
+            <h2 className={`text-[22px] font-bold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+              {getGreeting()}, {profile?.first_name}.
+            </h2>
+            <p className={`text-[14px] mb-4 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
+              You&rsquo;re managing {stats.teams || 0} team{(stats.teams || 0) !== 1 ? 's' : ''} and{' '}
+              {stats.totalRegistrations || 0} player{(stats.totalRegistrations || 0) !== 1 ? 's' : ''}.
+            </p>
+            {(stats.pending || 0) === 0 && (stats.pastDue || 0) === 0 ? (
+              <div className={`inline-flex px-4 py-2 rounded-2xl ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-[#22C55E]/[0.06] border border-[#22C55E]/[0.15]'}`}>
+                <p className="text-[14px] font-semibold text-[#22C55E]">&#x2705; All caught up! Enjoy the moment.</p>
+              </div>
+            ) : (
+              <div className="flex justify-center gap-3">
+                {(stats.pending || 0) > 0 && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] bg-[#EF4444]/[0.06] border border-[#EF4444]/20">
+                    <div className="w-2 h-2 rounded-full bg-[#EF4444]" />
+                    <span className="text-[16px] font-bold text-[#EF4444]">{stats.pending}</span>
+                  </div>
+                )}
+                {(stats.pastDue || 0) > 0 && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] bg-[#F59E0B]/[0.06] border border-[#F59E0B]/20">
+                    <div className="w-2 h-2 rounded-full bg-[#F59E0B]" />
+                    <span className="text-[16px] font-bold text-[#F59E0B]">${(stats.pastDue || 0).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ─── 2. SEARCH BAR ──────────────────────────────── */}
+          <button
+            onClick={() => onNavigate('registrations')}
+            className={`w-full flex items-center gap-2.5 rounded-2xl h-11 px-3.5 transition-colors ${
+              isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'
+            }`}
+          >
+            <Search className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'opacity-40'}`} />
+            <span className={`text-[14px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>Search players, families, teams...</span>
+          </button>
 
       {/* Dashboard Filters */}
       <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mb-5 ${
@@ -1475,179 +1511,223 @@ export function DashboardPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* === ROW 1: Overall League Health + Registration Velocity | Activity Feed === */}
-      <div className="flex gap-5 mb-5">
-        {/* Left: Health + Chart (flex-2) */}
-        <div className="flex-[2] flex flex-col gap-5">
-          {/* Overall League Health */}
-          <div className={`rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-            <p className={`text-[13px] font-bold mb-4 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Overall League Health</p>
-            <div className="flex items-center gap-8">
-              <div className="text-center">
-                <p className={`text-[11px] font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>Total Athletes</p>
-                <p className={`font-serif text-[36px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{(stats.totalRegistrations || 0).toLocaleString()}</p>
-              </div>
-              <div className={`w-px h-12 ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`} />
-              <div className="text-center">
-                <p className={`text-[11px] font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>Teams</p>
-                <p className={`font-serif text-[36px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{stats.teams || 0}</p>
-              </div>
-              <div className={`w-px h-12 ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`} />
-              <div className="text-center">
-                <p className={`text-[11px] font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>Revenue</p>
-                <p className={`font-serif text-[36px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>${(stats.totalCollected || 0).toLocaleString()}</p>
-              </div>
-            </div>
+      {/* ─── 3. SMART QUEUE ─────────────────────────────── */}
+      {(() => {
+        const queueItems = []
+        if ((stats.pending || 0) > 0) queueItems.push({ id: 'pending-reg', icon: '📋', color: '#EF4444', urgency: 'BLOCKING', category: 'Registration', title: `${stats.pending} Pending Registration${stats.pending !== 1 ? 's' : ''}`, subtitle: 'Review and approve to keep your roster moving.', actionLabel: 'Review Now', page: 'registrations' })
+        if ((stats.pastDue || 0) > 0) queueItems.push({ id: 'overdue-pay', icon: '💰', color: '#F59E0B', urgency: 'OVERDUE', category: 'Payment', title: `$${(stats.pastDue || 0).toLocaleString()} Outstanding`, subtitle: 'Send reminders to collect overdue fees.', actionLabel: 'Send Reminders', page: 'payments' })
+        if ((stats.unsignedWaivers || 0) > 0) queueItems.push({ id: 'waivers', icon: '📄', color: '#4BB9EC', urgency: 'THIS WEEK', category: 'Waiver', title: `${stats.unsignedWaivers} Unsigned Waiver${stats.unsignedWaivers !== 1 ? 's' : ''}`, subtitle: 'Follow up to get all waivers signed.', actionLabel: 'View Waivers', page: 'waivers' })
+        if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) { const n = (stats.teams || 0) - (stats.teamsWithCoach || 0); queueItems.push({ id: 'coaches', icon: '👤', color: '#8B5CF6', urgency: 'UPCOMING', category: 'Coach', title: `${n} Team${n !== 1 ? 's' : ''} Need a Coach`, subtitle: 'Assign coaches to keep teams on track.', actionLabel: 'Assign Coach', page: 'coaches' }) }
+        if (queueItems.length === 0) return (
+          <div className="text-center py-6">
+            <p className="text-[32px] mb-2">&#x2705;</p>
+            <p className={`text-[16px] font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>All clear!</p>
+            <p className={`text-[13px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>Nothing needs your attention right now.</p>
           </div>
-
-          {/* Registration Velocity Chart */}
-          <div className={`rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-            <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Registration Velocity</p>
-            <MiniLineChart data={monthlyPayments} width={440} height={140} />
-          </div>
-        </div>
-
-        {/* Right: Activity Feed (flex-1) */}
-        <div className="flex-[1]">
-          <div className={`rounded-[18px] p-5 shadow-sm h-full ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-            <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Recent Activity Feed</p>
-            <div className="flex flex-col gap-3">
-              {activities.slice(0, 5).map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center text-[9px] font-bold text-[#4BB9EC] shrink-0">
-                    {item.initials || (item.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2)}
+        )
+        return (
+          <div className="space-y-2.5">
+            {queueItems.slice(0, 4).map(item => (
+              <button key={item.id} onClick={() => onNavigate(item.page)}
+                className={`w-full flex overflow-hidden rounded-2xl border shadow-sm text-left transition-colors ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-[#E8ECF2] hover:bg-[#FAFBFC]'}`}>
+                <div className="w-1 shrink-0" style={{ backgroundColor: item.color }} />
+                <div className="flex-1 p-4">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <span className="text-[14px]">{item.icon}</span>
+                    <span className="text-[10px] font-bold tracking-[0.08em]" style={{ color: item.color }}>{item.urgency} &middot; {item.category}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-[11px] font-semibold truncate ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{item.name}</p>
-                    <p className={`text-[11px] font-medium truncate ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/40'}`}>{item.action}</p>
-                  </div>
-                  {item.time && <span className={`text-[9px] font-medium shrink-0 whitespace-nowrap ${isDark ? 'text-slate-600' : 'text-[#0D1B3E]/20'}`}>{item.time}</span>}
+                  <p className={`text-[15px] font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{item.title}</p>
+                  <p className={`text-[13px] mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{item.subtitle}</p>
+                  <span className="inline-block px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-[13px] font-semibold">{item.actionLabel}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* === ROW 2: Payment Status Dashboard | Registration Metrics === */}
-      <div className="flex gap-5 mb-5">
-        {/* Payment Status (flex-2) */}
-        <div className={`flex-[2] rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-          <p className={`text-[10px] font-bold tracking-[0.12em] uppercase mb-3 ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>Payment Status Dashboard</p>
-          <div className="flex items-end gap-10">
-            <div>
-              <p className="text-[11px] text-[#22C55E] font-semibold mb-0.5">Paid</p>
-              <p className={`font-serif text-[42px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>${(stats.totalCollected || 0).toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-[11px] text-[#EF4444] font-semibold mb-0.5">Unpaid</p>
-              <p className="font-serif text-[42px] leading-none text-[#EF4444]">${(stats.pastDue || 0).toLocaleString()}</p>
-            </div>
-          </div>
-          {/* Progress bar */}
-          {(() => {
-            const total = (stats.totalCollected || 0) + (stats.pastDue || 0)
-            const pct = total > 0 ? Math.round((stats.totalCollected / total) * 100) : 0
-            return (
-              <>
-                <div className={`h-3 rounded-full overflow-hidden mt-4 ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`}>
-                  <div className="h-full bg-gradient-to-r from-[#22C55E] to-[#4BB9EC] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                </div>
-                <p className="text-[11px] text-[#22C55E] font-semibold mt-2">{pct}% collected</p>
-              </>
-            )
-          })()}
-        </div>
-
-        {/* Registration Metrics (flex-1) */}
-        <div className={`flex-[1] rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-          <p className={`text-[10px] font-bold tracking-[0.12em] uppercase mb-3 ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>Registration Breakdown</p>
-          <div className="space-y-3">
-            <div>
-              <p className={`text-[11px] font-medium mb-0.5 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>Approved</p>
-              <p className={`font-serif text-[28px] leading-none ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>{stats.approved || 0}</p>
-            </div>
-            <div>
-              <p className={`text-[11px] font-medium mb-0.5 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>Pending</p>
-              <p className={`font-serif text-[28px] leading-none ${isDark ? 'text-amber-400' : 'text-[#F59E0B]'}`}>{stats.pending || 0}</p>
-            </div>
-            <div>
-              <p className={`text-[11px] font-medium mb-0.5 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>Waitlisted</p>
-              <p className={`font-serif text-[28px] leading-none ${isDark ? 'text-purple-400' : 'text-[#8B5CF6]'}`}>{stats.waitlisted || 0}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* === ROW 3: Recent Activity | Pending Tasks === */}
-      <div className="flex gap-5 mb-5">
-        {/* Recent Activity Feed */}
-        <div className={`flex-1 rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-          <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Recent Payments</p>
-          <div className="flex flex-col gap-3">
-            {recentPaymentsNamed.slice(0, 4).map((p, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#22C55E]/10 flex items-center justify-center text-[9px] font-bold text-[#22C55E] shrink-0">
-                  {(p.player_name || '??').split(' ').map(n => n[0]).join('').slice(0, 2)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-[11px] font-semibold truncate ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{p.player_name}</p>
-                  <p className={`text-[11px] font-medium truncate ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/40'}`}>${parseFloat(p.amount || 0).toLocaleString()} — {p.status}</p>
-                </div>
-              </div>
-            ))}
-            {recentPaymentsNamed.length === 0 && (
-              <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>No recent payments</p>
-            )}
-          </div>
-        </div>
-
-        {/* Pending Tasks */}
-        <div className={`flex-1 rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
-          <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Pending Tasks</p>
-          <div className="flex flex-col gap-2.5">
-            {tasks.map((task, i) => (
-              <button key={i} onClick={task.action}
-                className={`flex items-center gap-3 py-2 px-3 rounded-xl border transition-colors w-full text-left ${isDark ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]' : 'bg-[#F6F8FB] border-[#E8ECF2] hover:bg-[#F0F3F7]'}`}>
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${task.color}10` }}>
-                  {task.icon}
-                </div>
-                <p className={`text-[12px] font-semibold flex-1 ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{task.title}</p>
-                {task.badge && (
-                  <span className="min-w-[18px] h-[18px] px-1 bg-[#EF4444] rounded-full text-[9px] font-bold text-white flex items-center justify-center">{task.badge}</span>
-                )}
               </button>
             ))}
           </div>
+        )
+      })()}
+
+      {/* ─── 4. SEASON + TEAM HEALTH TILES ─────────────────── */}
+      {teamsData.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>{(selectedSeason?.name || 'SEASON').toUpperCase()}</span>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+              <span className="text-[10px] font-semibold text-[#22C55E]">Active</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+            {teamsData.map(team => {
+              const ts = teamStats[team.id] || { playerCount: 0, record: '0W-0L' }
+              const hasOverdue = (stats.pastDue || 0) > 0
+              const tileStatus = hasOverdue ? 'warning' : 'good'
+              const tileBg = tileStatus === 'good' ? (isDark ? 'bg-emerald-500/[0.06]' : 'bg-[#22C55E]/[0.06]') : (isDark ? 'bg-amber-500/[0.06]' : 'bg-[#F59E0B]/[0.06]')
+              const tileBorder = tileStatus === 'good' ? (isDark ? 'border-emerald-500/30' : 'border-[#22C55E]/30') : (isDark ? 'border-amber-500/30' : 'border-[#F59E0B]/30')
+              return (
+                <button key={team.id} onClick={() => onNavigate('teams')}
+                  className={`${tileBg} border ${tileBorder} rounded-2xl p-2.5 text-left transition-colors hover:brightness-95 h-[94px] flex flex-col justify-between`}>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: team.color || '#4BB9EC' }} />
+                    <p className={`text-[12px] font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[12px] ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
+                    <span className={`text-[10px] font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{ts.record}</span>
+                  </div>
+                  <span className={`text-[10px] font-semibold ${tileStatus === 'good' ? 'text-[#22C55E]' : 'text-[#F59E0B]'}`}>
+                    {tileStatus === 'good' ? '✓ Good' : '⚠ Check'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 5. PAYMENT SNAPSHOT ────────────────────────── */}
+      {(stats.totalExpected || 0) > 0 && (() => {
+        const collected = stats.totalCollected || 0
+        const expected = stats.totalExpected || 0
+        const outstanding = expected - collected
+        const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0
+        const overdueCount = Math.ceil((stats.pastDue || 0) / 100) || 0
+        return (
+          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+            <div className="flex items-center justify-between mb-3.5">
+              <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>PAYMENTS</span>
+              <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{selectedSeason?.name || ''}</span>
+            </div>
+            {pct >= 100 ? (
+              <p className="text-[14px] font-semibold text-[#22C55E] text-center">&#x2705; 100% collected! ${collected.toLocaleString()} total.</p>
+            ) : (
+              <>
+                <div className="flex items-end justify-between mb-3">
+                  <div>
+                    <span className={`text-[20px] font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>${collected.toLocaleString()}</span>
+                    <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>collected</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[20px] font-bold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>${outstanding.toLocaleString()}</span>
+                    <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>outstanding</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-[#F0F2F5]'}`}>
+                    <div className="h-full rounded-full bg-[#22C55E] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
+                  </div>
+                  <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{pct}%</span>
+                </div>
+                {overdueCount > 0 && (
+                  <p className="text-[12px] text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  {overdueCount > 0 && (
+                    <button onClick={() => onNavigate('blasts')} className="px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-[13px] font-semibold">Send All Reminders</button>
+                  )}
+                  <button onClick={() => onNavigate('payments')} className="text-[13px] text-[#4BB9EC] font-medium">View Details ›</button>
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ─── 6. QUICK ACTIONS GRID ──────────────────────── */}
+      <div>
+        <span className={`block mb-3 ${isDark ? 'brand-section-header-dark' : 'brand-section-header'}`}>QUICK ACTIONS</span>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+          {[
+            { icon: '📋', label: 'Create\nEvent', page: 'schedule' },
+            { icon: '📅', label: 'Quick\nSchedule', page: 'schedule' },
+            { icon: '💰', label: 'Send\nReminder', page: 'blasts' },
+            { icon: '📣', label: 'Blast\nAll', page: 'blasts' },
+            { icon: '👤', label: 'Add\nPlayer', page: 'registrations' },
+            { icon: '📊', label: 'Season\nReport', page: 'reports' },
+          ].map(a => (
+            <button key={a.label} onClick={() => onNavigate(a.page)}
+              className={`h-20 rounded-2xl flex flex-col items-center justify-center transition-colors ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'}`}>
+              <span className="text-[22px] mb-1">{a.icon}</span>
+              <span className={`text-[11px] font-semibold text-center leading-[14px] whitespace-pre-line ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{a.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* === ROW 4: Quick Actions === */}
-      <div className="flex gap-3 mb-5">
-        {[
-          { icon: CheckCircle, label: 'Approve Registrations', page: 'registrations', color: '#4BB9EC', badge: stats.pending > 0 ? stats.pending : null },
-          { icon: DollarSign, label: 'Send Payment Reminders', page: 'payments', color: '#FFD700' },
-          { icon: CreditCard, label: 'Process Payments', page: 'payments', color: '#22C55E' },
-          { icon: MessageSquare, label: 'Send Blast', page: 'blasts', color: '#EF4444' },
-        ].map(({ icon: Icon, label, page, color, badge }) => (
-          <button
-            key={label}
-            onClick={() => onNavigate(page)}
-            className={`flex-1 flex items-center gap-3 py-3.5 px-4 rounded-[14px] border transition-colors shadow-sm relative ${
-              isDark
-                ? 'bg-lynx-charcoal border-white/[0.06] hover:border-white/[0.12]'
-                : 'bg-white border-[#E8ECF2] hover:border-[#4BB9EC]/20'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}10` }}>
-              <Icon className="w-4 h-4" style={{ color }} />
-            </div>
-            <span className={`text-[12px] font-bold ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{label}</span>
-            {badge && (
-              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 bg-[#EF4444] rounded-full text-[9px] font-bold text-white flex items-center justify-center">{badge}</span>
-            )}
-          </button>
-        ))}
+      {/* ─── 7. COACHES ────────────────────────────────── */}
+      {coachesData.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>COACHES</span>
+            <span className={`text-[10px] font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>{coachesData.length} Active</span>
+          </div>
+          <div className="space-y-2.5">
+            {coachesData.map(coach => (
+              <div key={coach.id} className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
+                  {coach.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[14px] font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{coach.name}</p>
+                  <p className={`text-[12px] truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 8. UPCOMING EVENTS ────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>UPCOMING</span>
+          <button onClick={() => onNavigate('schedule')} className="text-[12px] text-[#4BB9EC] font-medium">View Calendar ›</button>
+        </div>
+        {upcomingEvents.length === 0 ? (
+          <div className="text-center py-3">
+            <p className={`text-[13px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>No upcoming events.</p>
+            <button onClick={() => onNavigate('schedule')} className="text-[13px] font-semibold text-[#4BB9EC] mt-1">Create Event ›</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {upcomingEvents.slice(0, 6).map(e => {
+              const d = new Date(e.event_date + 'T00:00:00')
+              const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              const dateLabel = `${dayNames[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
+              const time = e.event_time || e.start_time
+              let timeLabel = ''
+              if (time) { const [h, m] = time.split(':').map(Number); timeLabel = `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}` }
+              const typeLabel = e.opponent_name ? `${(e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1)} vs ${e.opponent_name}` : (e.title || (e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1))
+              return (
+                <div key={e.id} className="flex items-start gap-3">
+                  <span className={`w-[72px] text-[13px] font-semibold shrink-0 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{dateLabel}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[13px] truncate mb-0.5 ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>{typeLabel}</p>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[12px] font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
+                      {timeLabel && <><span className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-[12px] ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ─── 9. CLOSING MOTIVATION ────────────────────── */}
+      <div className="text-center py-4">
+        <p className="text-[36px] mb-3">🐱</p>
+        <p className={`text-[13px] leading-5 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
+          You&rsquo;re managing {stats.teams || 0} team{(stats.teams || 0) !== 1 ? 's' : ''},{' '}
+          {stats.totalRegistrations || 0} player{(stats.totalRegistrations || 0) !== 1 ? 's' : ''} this season.
+        </p>
+        {(() => {
+          const queueTotal = (stats.pending || 0) + ((stats.pastDue || 0) > 0 ? 1 : 0) + ((stats.unsignedWaivers || 0) > 0 ? 1 : 0)
+          return queueTotal > 0
+            ? <p className={`text-[13px] mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{queueTotal} item{queueTotal !== 1 ? 's' : ''} left in your queue.</p>
+            : <p className="text-[13px] text-[#22C55E] mb-3">Queue is clear — great work!</p>
+        })()}
+        <p className="text-[14px] font-semibold text-[#4BB9EC]">You&rsquo;ve got this, {profile?.first_name}.</p>
       </div>
         </div>
       </div>
