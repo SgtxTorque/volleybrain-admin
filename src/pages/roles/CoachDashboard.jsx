@@ -18,6 +18,7 @@ import {
 // LynxSidebar now rendered by MainApp — no longer needed here
 import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
 import CoachJourneyTracker from '../../components/coach/CoachJourneyTracker'
+import GameDayJourneyCard from '../../components/coach/GameDayJourneyCard'
 import CoachNotifications from '../../components/coach/CoachNotifications'
 import SquadRosterCard from '../../components/coach/SquadRosterCard'
 import CoachStatMiniCards from '../../components/coach/CoachStatMiniCards'
@@ -767,34 +768,34 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             </div>
           )}
 
-          {/* Hero Card */}
-          <CoachGameDayHeroV2
-            nextGame={nextGame}
-            nextEvent={nextEvent}
-            selectedTeam={selectedTeam}
-            teamRecord={teamRecord}
-            winRate={winRate}
-            onNavigate={onNavigate}
-          />
-
-          {/* Row 1: Hero + Notifications */}
-          {/* (Hero already rendered above) */}
-          <CoachNotifications />
-
-          {/* Row 2: Journey + Squad Roster */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
-            <CoachJourneyTracker
-              rosterSize={roster.length}
-              hasPractice={upcomingEvents.some(e => e.event_type !== 'game')}
-              selectedSeason={selectedSeason}
-              onNavigate={onNavigate}
-            />
-            <SquadRosterCard
-              roster={roster}
-              selectedTeam={selectedTeam}
-              onNavigate={onNavigate}
-              onPlayerSelect={setSelectedPlayer}
-            />
+          {/* Top Section: Hero + Journey (left ~55%) | Notifications + Squad (right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-[55%_1fr] gap-4">
+            {/* Left column */}
+            <div className="space-y-4">
+              <CoachGameDayHeroV2
+                nextGame={nextGame}
+                nextEvent={nextEvent}
+                selectedTeam={selectedTeam}
+                teamRecord={teamRecord}
+                winRate={winRate}
+                onNavigate={onNavigate}
+              />
+              <GameDayJourneyCard
+                activeStep={nextGame ? 0 : 0}
+                onStepClick={() => onNavigate?.('gameprep')}
+                onNavigate={onNavigate}
+              />
+            </div>
+            {/* Right column */}
+            <div className="space-y-4">
+              <CoachNotifications />
+              <SquadRosterCard
+                roster={roster}
+                selectedTeam={selectedTeam}
+                onNavigate={onNavigate}
+                onPlayerSelect={setSelectedPlayer}
+              />
+            </div>
           </div>
 
           {/* Row 3: Tools + Stat Mini Cards */}

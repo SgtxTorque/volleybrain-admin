@@ -29,7 +29,7 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
       {roster.length === 0 ? (
         <p className={`text-sm text-center py-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No players on roster</p>
       ) : (
-        <div className="grid grid-cols-2 gap-1.5 max-h-[280px] overflow-y-auto">
+        <div className="space-y-0.5 max-h-[600px] overflow-y-auto">
           {roster.map(player => (
             <button
               key={player.id}
