@@ -19,6 +19,13 @@ import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 import LynxSidebar from '../../components/layout/LynxSidebar'
 import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
 import SeasonJourneyRow from '../../components/dashboard/SeasonJourneyRow'
+import OrgKpiRow from '../../components/dashboard/OrgKpiRow'
+import AllTeamsTable from '../../components/dashboard/AllTeamsTable'
+import OrgActionItems from '../../components/dashboard/OrgActionItems'
+import OrgUpcomingEvents from '../../components/dashboard/OrgUpcomingEvents'
+import PeopleComplianceRow from '../../components/dashboard/PeopleComplianceRow'
+import OrgFinancials from '../../components/dashboard/OrgFinancials'
+import OrgWallPreview from '../../components/dashboard/OrgWallPreview'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1498,39 +1505,30 @@ export function DashboardPage({ onNavigate }) {
             onNavigate={onNavigate}
           />
 
-          {/* ─── 1. WELCOME BRIEFING ─────────────────────────── */}
-          <div className="text-center py-2">
-            <p className="text-[48px] mb-3">{(stats.pending || 0) === 0 && (stats.pastDue || 0) === 0 ? '🎉' : '🐱'}</p>
-            <h2 className={`text-[22px] font-bold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-              {getGreeting()}, {profile?.first_name}.
-            </h2>
-            <p className={`text-[14px] mb-4 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
-              You&rsquo;re managing {stats.teams || 0} team{(stats.teams || 0) !== 1 ? 's' : ''} and{' '}
-              {stats.totalRegistrations || 0} player{(stats.totalRegistrations || 0) !== 1 ? 's' : ''}.
-            </p>
-            {(stats.pending || 0) === 0 && (stats.pastDue || 0) === 0 ? (
-              <div className={`inline-flex px-4 py-2 rounded-2xl ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-[#22C55E]/[0.06] border border-[#22C55E]/[0.15]'}`}>
-                <p className="text-[14px] font-semibold text-[#22C55E]">&#x2705; All caught up! Enjoy the moment.</p>
-              </div>
-            ) : (
-              <div className="flex justify-center gap-3">
-                {(stats.pending || 0) > 0 && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] bg-[#EF4444]/[0.06] border border-[#EF4444]/20">
-                    <div className="w-2 h-2 rounded-full bg-[#EF4444]" />
-                    <span className="text-[16px] font-bold text-[#EF4444]">{stats.pending}</span>
-                  </div>
-                )}
-                {(stats.pastDue || 0) > 0 && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] bg-[#F59E0B]/[0.06] border border-[#F59E0B]/20">
-                    <div className="w-2 h-2 rounded-full bg-[#F59E0B]" />
-                    <span className="text-[16px] font-bold text-[#F59E0B]">${(stats.pastDue || 0).toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-            )}
+          {/* ─── 1. KPI STAT CARDS ─────────────────────────── */}
+          <OrgKpiRow stats={stats} />
+
+          {/* ─── 2. BODY CARD GRID ────────────────────────────── */}
+
+          {/* Row: Action Items + Upcoming Events */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <OrgActionItems stats={stats} onNavigate={onNavigate} />
+            <OrgUpcomingEvents events={upcomingEvents} onNavigate={onNavigate} />
           </div>
 
-          {/* ─── 2. SEARCH BAR ──────────────────────────────── */}
+          {/* All Teams Table */}
+          <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
+
+          {/* People Compliance */}
+          <PeopleComplianceRow stats={stats} onNavigate={onNavigate} />
+
+          {/* Row: Financials + Team Wall */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <OrgFinancials stats={stats} onNavigate={onNavigate} />
+            <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} />
+          </div>
+
+          {/* Dashboard Filters — keep for team/season filtering */}
           <button
             onClick={() => onNavigate('registrations')}
             className={`w-full flex items-center gap-2.5 rounded-2xl h-11 px-3.5 transition-colors ${
