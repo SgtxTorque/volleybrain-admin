@@ -44,7 +44,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
         </button>
       </div>
 
-      <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'}`}>
+      <div className={`overflow-hidden rounded-[18px] shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'}`}>
         {events && events.length > 0 ? (
           events.slice(0, 5).map((event, i) => {
             const teamColor = event.teams?.color || EVENT_COLORS[i % EVENT_COLORS.length]
@@ -60,7 +60,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
                 onClick={() => onNavigate('schedule')}
               >
                 <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px]"
                   style={{ backgroundColor: teamColor + '18' }}
                 >
                   <Calendar className="h-5 w-5" style={{ color: teamColor }} />

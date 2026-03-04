@@ -33,7 +33,7 @@ function AttentionItem({ icon, label, badge, badgeColor, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+      className={`flex w-full items-center gap-3 rounded-[18px] px-3 py-2.5 text-left transition-colors ${
         isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'
       }`}
     >
@@ -50,7 +50,7 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center gap-2 rounded-xl p-4 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
+      className={`relative flex flex-col items-center gap-2 rounded-[18px] p-4 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
         isDark
           ? 'bg-slate-700/60 border border-white/[0.06]'
           : 'bg-white border border-slate-100'
@@ -106,11 +106,11 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <img
             src={orgLogo}
             alt={orgName}
-            className="h-[200px] w-[200px] rounded-xl object-cover shadow -mt-[30px]"
+            className="h-[200px] w-[200px] rounded-[18px] object-cover shadow -mt-[30px]"
           />
         ) : (
           <div
-            className="flex h-[200px] w-[200px] items-center justify-center rounded-xl text-4xl font-bold text-white shadow -mt-[30px]"
+            className="flex h-[200px] w-[200px] items-center justify-center rounded-[18px] text-4xl font-bold text-white shadow -mt-[30px]"
             style={{ backgroundColor: accent.primary || '#10284C' }}
           >
             {initials}
@@ -140,7 +140,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
               onNavigate(ONBOARDING_NAV_MAP[journey.currentStep.id])
             }
           }}
-          className={`-mt-[19px] rounded-xl p-5 shadow text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+          className={`-mt-[19px] rounded-[18px] p-5 shadow text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
             isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
           }`}
         >
@@ -264,7 +264,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
                 return (
                   <div
                     key={badgeId}
-                    className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
+                    className={`flex items-center gap-3 rounded-[18px] px-4 py-3 ${
                       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
                     }`}
                   >

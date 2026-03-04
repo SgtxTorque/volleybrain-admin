@@ -60,7 +60,7 @@ export function SkeletonRect({ width = '100%', height = '120px', className = '' 
 export function SkeletonCard({ className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`p-5 rounded-xl border ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'} ${className}`}>
+    <div className={`p-5 rounded-[18px] border ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'} ${className}`}>
       <div className="flex items-center gap-3 mb-4">
         <SkeletonCircle size="36px" />
         <div className="flex-1 space-y-2">
@@ -80,7 +80,7 @@ export function SkeletonCard({ className = '' }) {
 export function SkeletonMetricCard({ className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`p-4 rounded-xl border ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'} ${className}`}>
+    <div className={`p-4 rounded-[18px] border ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'} ${className}`}>
       <div className="flex items-center justify-between mb-3">
         <SkeletonLine width="80px" height="12px" />
         <SkeletonCircle size="28px" />
@@ -106,7 +106,7 @@ export function SkeletonTableRow({ cols = 5 }) {
 export function SkeletonTable({ rows = 5, cols = 5, className = '' }) {
   const { isDark } = useTheme()
   return (
-    <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'} ${className}`}>
+    <div className={`rounded-[18px] border overflow-hidden ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'} ${className}`}>
       {/* Header */}
       <div className={`px-4 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
         <div className="flex gap-4">
@@ -152,7 +152,7 @@ export function SkeletonList({ items = 5, className = '' }) {
   return (
     <div className={`space-y-3 ${className}`}>
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'}`}>
+        <div key={i} className={`flex items-center gap-3 p-3 rounded-[18px] border ${isDark ? 'bg-lynx-charcoal/60 border-white/[0.06]' : 'bg-white border-lynx-silver'}`}>
           <SkeletonCircle size="36px" />
           <div className="flex-1 space-y-2">
             <SkeletonLine width={`${55 + Math.random() * 25}%`} height="14px" />
@@ -172,7 +172,7 @@ export function SkeletonTeamsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <SkeletonLine width="140px" height="24px" />
-        <SkeletonRect width="120px" height="36px" className="rounded-xl" />
+        <SkeletonRect width="120px" height="36px" className="rounded-[18px]" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
@@ -189,8 +189,8 @@ export function SkeletonRegistrationsPage() {
       <div className="flex items-center justify-between">
         <SkeletonLine width="180px" height="24px" />
         <div className="flex gap-2">
-          <SkeletonRect width="100px" height="36px" className="rounded-xl" />
-          <SkeletonRect width="100px" height="36px" className="rounded-xl" />
+          <SkeletonRect width="100px" height="36px" className="rounded-[18px]" />
+          <SkeletonRect width="100px" height="36px" className="rounded-[18px]" />
         </div>
       </div>
       {/* Status tabs */}
@@ -212,7 +212,7 @@ export function SkeletonSchedulePage() {
         <div className="flex gap-2">
           <SkeletonRect width="36px" height="36px" className="rounded-lg" />
           <SkeletonRect width="36px" height="36px" className="rounded-lg" />
-          <SkeletonRect width="120px" height="36px" className="rounded-xl" />
+          <SkeletonRect width="120px" height="36px" className="rounded-[18px]" />
         </div>
       </div>
       {/* Calendar grid */}

@@ -105,7 +105,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
               <button
                 key={event.id || i}
                 onClick={() => onNavigate('schedule')}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-all ${
+                className={`flex items-center gap-3 rounded-[18px] px-3 py-3 text-left transition-all ${
                   isDark
                     ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-white/[0.12]'
                     : 'bg-white border border-lynx-silver hover:border-slate-300 hover:shadow'
@@ -158,7 +158,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
           })}
         </div>
       ) : (
-        <div className={`rounded-xl px-4 py-6 text-center ${
+        <div className={`rounded-[18px] px-4 py-6 text-center ${
           isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
         }`}>
           <Calendar className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
@@ -193,7 +193,7 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
         </button>
       </div>
 
-      <div className={`rounded-xl overflow-hidden ${
+      <div className={`rounded-[18px] overflow-hidden ${
         isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
       }`}>
         {players.slice(0, 10).map((entry, i) => {
