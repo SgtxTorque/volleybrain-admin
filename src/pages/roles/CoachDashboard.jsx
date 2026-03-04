@@ -14,6 +14,8 @@ import {
 import CoachLeftSidebar from '../../components/coach/CoachLeftSidebar'
 import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
 import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
+import LynxSidebar from '../../components/layout/LynxSidebar'
+import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
@@ -724,105 +726,97 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     )
   }
 
-  // ── Main Render: 3-Column Layout ──
+  // ── Coach nav items for LynxSidebar ──
+  const coachNavItems = [
+    { type: 'section', label: 'Main' },
+    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+    { id: 'schedule', label: 'Schedule', icon: 'schedule', path: '/schedule', badge: upcomingEvents.filter(e => { const r = rsvpCounts[e.id]; return roster.length > 0 && (!r || (r.going / roster.length) < 0.5) }).length || 0 },
+    { id: 'roster', label: 'Roster', icon: 'roster', path: '/roster' },
+    { id: 'stats', label: 'Stats', icon: 'stats', path: '/standings' },
+    { id: 'teamwall', label: 'Team Wall', icon: 'teamwall', path: `/teams/${selectedTeam?.id || ''}` },
+    { type: 'section', label: 'Tools' },
+    { id: 'gameprep', label: 'Game Day', icon: 'gameprep', path: '/gameprep' },
+    { id: 'blasts', label: 'Send Blast', icon: 'blasts', path: '/blasts' },
+    { id: 'challenges', label: 'Challenges', icon: 'challenges', path: '/achievements' },
+    { id: 'shoutouts', label: 'Shoutouts', icon: 'shoutouts', path: '/achievements' },
+    { type: 'section', label: 'Club' },
+    { id: 'payments', label: 'Payments', icon: 'payments', path: '/payments' },
+    { id: 'settings', label: 'Settings', icon: 'settings', path: '/settings/organization' },
+  ]
+
+  // ── Main Render: LynxSidebar + Scrollable Main ──
   return (
     <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-      <CoachLeftSidebar
-        selectedTeam={selectedTeam}
-        coachName={coachName}
-        totalPlayers={totalPlayersAcrossTeams}
-        teamsCount={teamsCount}
-        winRate={winRate}
-        needsAttentionItems={needsAttentionItems}
-        selectedSeason={selectedSeason}
-        onNavigate={onNavigate}
-        navigateToTeamWall={navigateToTeamWall}
-        openTeamChat={openTeamChat}
-        onShowCoachBlast={() => setShowCoachBlast(true)}
-        onShowWarmupTimer={() => setShowWarmupTimer(true)}
-        onShowShoutout={() => setShowShoutoutModal(true)}
-      />
+      {/* LynxSidebar */}
+      <div className="hidden xl:block">
+        <LynxSidebar
+          role="coach"
+          navItems={coachNavItems}
+          orgName={selectedTeam?.name || 'My Team'}
+          orgInitials={(selectedTeam?.name || '?').charAt(0)}
+          teamName={selectedTeam?.name}
+          teamSub={`${roster.length} players · ${selectedSeason?.name || ''}`}
+          userName={coachName}
+          userRole="Coach"
+          activePath="/dashboard"
+          onNavigate={(path) => {
+            const pageMap = {
+              '/dashboard': 'dashboard', '/schedule': 'schedule', '/roster': 'teams',
+              '/standings': 'standings', '/gameprep': 'gameprep', '/blasts': 'blasts',
+              '/achievements': 'achievements', '/payments': 'payments',
+              '/settings/organization': 'organization',
+            }
+            if (path.startsWith('/teams/')) { navigateToTeamWall?.(selectedTeam?.id); return }
+            onNavigate(pageMap[path] || 'dashboard')
+          }}
+        />
+      </div>
 
-      <CoachCenterDashboard
-        teams={teams}
-        selectedTeam={selectedTeam}
-        onTeamSelect={handleTeamSelect}
-        nextGame={nextGame}
-        nextEvent={nextEvent}
-        teamRecord={teamRecord}
-        winRate={winRate}
-        selectedSeason={selectedSeason}
-        availableSeasons={availableSeasons}
-        selectSeason={selectSeason}
-        coachName={coachName}
-        roster={roster}
-        topPlayers={topPlayers}
-        pendingStats={pendingStats}
-        onNavigate={onNavigate}
-        navigateToTeamWall={navigateToTeamWall}
-        openTeamChat={openTeamChat}
-        userId={user?.id}
-        showToast={showToast}
-        onShowCoachBlast={() => setShowCoachBlast(true)}
-        onShowWarmupTimer={() => setShowWarmupTimer(true)}
-        onShowShoutout={() => setShowShoutoutModal(true)}
-        onPlayerSelect={setSelectedPlayer}
-        onEventSelect={setSelectedEventDetail}
-        rsvpCounts={rsvpCounts}
-        weeklyShoutouts={weeklyShoutouts}
-        unreadMessages={unreadMessages}
-        lineupCount={lineupCount}
-        checklistState={checklistState}
-        onToggleManualChecklist={handleToggleManualChecklist}
-        // V2.1 Command Strip props
-        lineupSetForNextGame={lineupSetForNextGame}
-        rsvpPercentNextGame={nextEvent ? (rsvpCounts[nextEvent.id]?.total || 0) / Math.max(roster.length, 1) * 100 : 0}
-        avgAttendanceLast3={avgAttendanceLast3}
-        weeklyEngagement={weeklyEngagement}
-        rosterIssues={rosterIssues}
-        lineupsSet={lineupsSet}
-        upcomingGamesCount={upcomingGamesCount}
-        // V2.1 Workflow Button badges
-        gameDayBadge={(() => {
-          const now = new Date()
-          const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
-          return upcomingEvents.filter(e => {
-            if (e.event_type !== 'game' || e.game_status === 'completed') return false
-            const d = new Date(e.event_date + 'T00:00:00')
-            return d.toDateString() === now.toDateString() || d.toDateString() === tomorrow.toDateString()
-          }).length
-        })()}
-        practiceBadge={upcomingEvents.filter(e => {
-          if (e.event_type === 'game') return false
-          const r = rsvpCounts[e.id]
-          return roster.length > 0 && (!r || (r.going / roster.length) < 0.5)
-        }).length}
-        rosterBadge={newPlayersCount + rosterIssues}
-        scheduleBadge={upcomingEvents.filter(e => {
-          const r = rsvpCounts[e.id]
-          return roster.length > 0 && (!r || (r.going / roster.length) < 0.5)
-        }).length}
-        // V2.1 Performance Grid data
-        scoringTrend={scoringTrend}
-        topPlayerTrend={topPlayerTrend}
-        statLeaders={statLeaders}
-        developmentData={developmentData}
-      />
+      {/* Scrollable Main Content */}
+      <div className="flex-1 xl:ml-16 overflow-y-auto">
+        <div className="px-6 py-6 space-y-5 max-w-[1200px] mx-auto">
 
-      <CoachRosterPanel
-        roster={roster}
-        selectedTeam={selectedTeam}
-        teamRecord={teamRecord}
-        winRate={winRate}
-        topPlayers={topPlayers}
-        upcomingEvents={upcomingEvents}
-        rsvpCounts={rsvpCounts}
-        activeChallenges={activeChallenges}
-        onNavigate={onNavigate}
-        navigateToTeamWall={navigateToTeamWall}
-        onPlayerSelect={setSelectedPlayer}
-        onEventSelect={setSelectedEventDetail}
-      />
+          {/* Team Selector — when coaching multiple teams */}
+          {teams.length > 1 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {teams.map(team => (
+                <button
+                  key={team.id}
+                  onClick={() => handleTeamSelect(team)}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors ${
+                    selectedTeam?.id === team.id
+                      ? 'bg-lynx-sky text-white'
+                      : isDark
+                        ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ backgroundColor: team.color || '#4BB9EC' }} />
+                  {team.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Hero Card */}
+          <CoachGameDayHeroV2
+            nextGame={nextGame}
+            nextEvent={nextEvent}
+            selectedTeam={selectedTeam}
+            teamRecord={teamRecord}
+            winRate={winRate}
+            onNavigate={onNavigate}
+          />
+
+          {/* Placeholder for Phase 7 body cards */}
+          <div className={`rounded-2xl p-6 text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'}`}>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Coach dashboard body cards coming in Phase 7
+            </p>
+          </div>
+
+        </div>
+      </div>
 
       {/* Modals — DO NOT DELETE */}
       {selectedEventDetail && (
