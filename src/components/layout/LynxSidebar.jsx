@@ -1,77 +1,40 @@
 // =============================================================================
 // LynxSidebar — Full navigation + utility sidebar
 // 64px collapsed, 228px expanded on hover. Always dark navy.
-// Holds all nav groups, role switcher, theme toggle, notifications, sign out.
+// Profile + role switcher at top. Collapsible nav groups. Utilities at bottom.
 // =============================================================================
 
-import React from 'react'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Users, UserCog, Shield, DollarSign,
   ClipboardList, Megaphone, Settings, Calendar, BarChart3,
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
-  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, Check
+  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun
 } from 'lucide-react'
 
 // Icon lookup for nav items
 const ICON_MAP = {
-  dashboard: LayoutDashboard,
-  home: Home,
-  players: Users,
-  parents: Users,
-  coaches: UserCog,
-  teams: Shield,
-  payments: DollarSign,
-  registrations: ClipboardList,
-  waivers: FileText,
-  blasts: Megaphone,
-  settings: Settings,
-  schedule: Calendar,
-  reports: BarChart3,
-  standings: Trophy,
-  leaderboards: Star,
-  gameprep: Zap,
-  evaluations: Target,
-  tryouts: ClipboardList,
-  jerseys: Shirt,
-  chats: MessageCircle,
-  notifications: Bell,
-  achievements: Award,
-  challenges: Flame,
-  shoutouts: Star,
-  attendance: UserCheck,
-  roster: Users,
-  stats: BarChart3,
-  teamwall: MessageCircle,
-  'season-setup': Settings,
-  // Additional icon mappings from spec
-  'user-cog': UserCog,
-  'building': Building2,
-  'file-text': FileText,
-  'credit-card': CreditCard,
-  'pie-chart': PieChart,
-  'trending-up': TrendingUp,
-  'download': Download,
-  'check-square': CheckSquare,
-  'calendar-check': CalendarCheck,
-  'bar-chart': BarChart3,
-  'message': MessageCircle,
-  'user': User,
-  clipboard: ClipboardList,
-  dollar: DollarSign,
-  megaphone: Megaphone,
-  calendar: Calendar,
-  target: Target,
-  star: Star,
-  bell: Bell,
-  shirt: Shirt,
-  shield: Shield,
-  volleyball: Star,
-  users: Users,
+  dashboard: LayoutDashboard, home: Home, players: Users, parents: Users,
+  coaches: UserCog, teams: Shield, payments: DollarSign,
+  registrations: ClipboardList, waivers: FileText, blasts: Megaphone,
+  settings: Settings, schedule: Calendar, reports: BarChart3,
+  standings: Trophy, leaderboards: Star, gameprep: Zap,
+  evaluations: Target, tryouts: ClipboardList, jerseys: Shirt,
+  chats: MessageCircle, notifications: Bell, achievements: Award,
+  challenges: Flame, shoutouts: Star, attendance: UserCheck,
+  roster: Users, stats: BarChart3, teamwall: MessageCircle,
+  'season-setup': Settings, 'user-cog': UserCog, 'building': Building2,
+  'file-text': FileText, 'credit-card': CreditCard, 'pie-chart': PieChart,
+  'trending-up': TrendingUp, 'download': Download, 'check-square': CheckSquare,
+  'calendar-check': CalendarCheck, 'bar-chart': BarChart3, 'message': MessageCircle,
+  'user': User, clipboard: ClipboardList, dollar: DollarSign,
+  megaphone: Megaphone, calendar: Calendar, target: Target, star: Star,
+  bell: Bell, shirt: Shirt, shield: Shield, volleyball: Star, users: Users,
 }
 
-// Paw logo SVG — compact Lynx brand mark
+// Paw logo SVG
 function LynxPaw({ className }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -103,22 +66,15 @@ function NavItem({ item, isActive, onNavigate, indented = false }) {
       `}
       title={item.label}
     >
-      {/* Active indicator bar */}
       {isActive && (
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-lynx-sky" />
       )}
-
-      {/* Icon — always centered in 64px column */}
       <div className={`${indented ? 'w-16 min-w-[64px] pl-2' : 'w-16 min-w-[64px]'} flex items-center justify-center shrink-0`}>
         <Icon className="w-[18px] h-[18px]" />
       </div>
-
-      {/* Label — hidden when collapsed, shown on hover */}
       <span className="text-[13px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate pr-2">
         {item.label}
       </span>
-
-      {/* Badge — only visible when expanded */}
       {item.badge > 0 && (
         <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {item.badge > 99 ? '99+' : item.badge}
@@ -132,20 +88,27 @@ function NavItem({ item, isActive, onNavigate, indented = false }) {
 }
 
 // =============================================================================
-// GroupHeader — section label for nav groups (not clickable)
+// CollapsibleGroupHeader — clickable section with expand/collapse chevron
+// Hidden in collapsed sidebar (64px), visible in expanded sidebar (hover)
 // =============================================================================
-function GroupHeader({ label, icon }) {
+function CollapsibleGroupHeader({ label, icon, isExpanded, onToggle }) {
   const Icon = ICON_MAP[icon] || LayoutDashboard
 
   return (
-    <div className="flex items-center h-8 mt-2">
+    <button
+      onClick={onToggle}
+      className="hidden group-hover:flex w-full items-center h-8 mt-2 text-slate-500 hover:text-slate-300 transition-colors"
+    >
       <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4 text-slate-500" />
+        <Icon className="w-4 h-4" />
       </div>
-      <span className="text-[10px] font-bold uppercase tracking-[1.5px] text-slate-500 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <span className="flex-1 text-[11px] font-bold uppercase tracking-[0.06em] whitespace-nowrap text-left">
         {label}
       </span>
-    </div>
+      <ChevronRight
+        className={`w-3.5 h-3.5 mr-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+      />
+    </button>
   )
 }
 
@@ -153,56 +116,65 @@ function GroupHeader({ label, icon }) {
 // LynxSidebar
 // =============================================================================
 export default function LynxSidebar({
-  // Navigation
-  navGroups = [],
-  activePage = '',
-  activePathname = '',
-  directTeamWallId = null,
-  onNavigate,
-
-  // Identity
-  orgName = '',
-  orgInitials = '',
-  orgLogo = null,
-  teamName = '',
-  teamSub = '',
-
-  // User / utility
-  profile = null,
-  activeView = 'admin',
-  availableViews = [],
-  onSwitchRole,
-  onToggleTheme,
-  onSignOut,
-  onNavigateToProfile,
-  isDark = false,
-  notificationCount = 0,
-  onOpenNotifications,
-
-  // Platform admin
-  isPlatformAdmin = false,
-  onPlatformAnalytics,
-  onPlatformSubscriptions,
-  onPlatformAdmin,
+  navGroups = [], activePage = '', activePathname = '', directTeamWallId = null, onNavigate,
+  orgName = '', orgInitials = '', orgLogo = null, teamName = '', teamSub = '',
+  profile = null, activeView = 'admin', availableViews = [], onSwitchRole,
+  onToggleTheme, onSignOut, onNavigateToProfile, isDark = false,
+  notificationCount = 0, onOpenNotifications,
+  isPlatformAdmin = false, onPlatformAnalytics, onPlatformSubscriptions, onPlatformAdmin,
 }) {
+  const displayName = profile?.full_name || 'User'
+  const avatarInitial = displayName.charAt(0).toUpperCase()
+
   const isItemActive = (item) => {
     if (item.teamId) return directTeamWallId === item.teamId
     if (item.playerId) return activePage === `player-${item.playerId}`
     return activePage === item.id
   }
 
-  const getRoleLabel = (viewId) => {
-    switch (viewId) {
-      case 'admin': return 'Admin'
-      case 'coach': return 'Coach'
-      case 'parent': return 'Parent'
-      case 'player': return 'Player'
-      default: return 'User'
+  // Track which nav groups are expanded (by group.id)
+  const [expandedGroups, setExpandedGroups] = useState(() => {
+    const initialSet = new Set()
+    for (const group of navGroups) {
+      if (group.type !== 'single' && group.items) {
+        if (group.items.some(item => {
+          if (item.teamId) return directTeamWallId === item.teamId
+          if (item.playerId) return activePage === `player-${item.playerId}`
+          return activePage === item.id
+        })) initialSet.add(group.id)
+      }
     }
-  }
+    return initialSet
+  })
 
-  const displayName = profile?.full_name || 'User'
-  const initial = displayName.charAt(0).toUpperCase()
+  // Auto-expand group when active page changes
+  useEffect(() => {
+    for (const group of navGroups) {
+      if (group.type !== 'single' && group.items) {
+        const hasActive = group.items.some(item => {
+          if (item.teamId) return directTeamWallId === item.teamId
+          if (item.playerId) return activePage === `player-${item.playerId}`
+          return activePage === item.id
+        })
+        if (hasActive) {
+          setExpandedGroups(prev => {
+            if (prev.has(group.id)) return prev
+            return new Set([...prev, group.id])
+          })
+          break
+        }
+      }
+    }
+  }, [activePage, directTeamWallId])
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(groupId)) next.delete(groupId)
+      else next.add(groupId)
+      return next
+    })
+  }
 
   return (
     <div
@@ -212,7 +184,7 @@ export default function LynxSidebar({
         border-r border-white/[0.06] overflow-hidden"
     >
       {/* ---- 1. Logo Row ---- */}
-      <div className="flex items-center h-16 shrink-0">
+      <div className="flex items-center h-14 shrink-0">
         <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
           <LynxPaw className="w-7 h-7 text-lynx-sky" />
         </div>
@@ -221,28 +193,55 @@ export default function LynxSidebar({
         </span>
       </div>
 
-      {/* ---- 2. Org/Team Identity ---- */}
-      <div className="flex items-center gap-3 px-3 py-3 mx-2 rounded-lg bg-white/[0.04] mb-1">
-        <div className="w-10 min-w-[40px] h-10 flex items-center justify-center shrink-0">
-          {orgLogo ? (
-            <img src={orgLogo} alt={orgName} className="w-9 h-9 rounded-lg object-cover" />
-          ) : (
-            <div className="w-9 h-9 rounded-lg bg-lynx-sky/20 flex items-center justify-center text-xs font-black text-lynx-sky">
-              {orgInitials || '?'}
+      {/* ---- 2. Profile + Role Switcher (top, below logo) ---- */}
+      <div className="shrink-0 mx-2 mb-1">
+        <button
+          onClick={() => onNavigateToProfile?.()}
+          className="flex items-center gap-3 px-1 py-2 w-full rounded-lg hover:bg-white/[0.04] transition-colors"
+        >
+          <div className="w-10 min-w-[40px] flex items-center justify-center shrink-0">
+            <div
+              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold"
+              style={{ background: profile?.photo_url ? 'transparent' : 'rgba(75,185,236,0.2)', color: '#4BB9EC' }}
+            >
+              {profile?.photo_url ? (
+                <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
+              ) : avatarInitial}
             </div>
-          )}
-        </div>
-        <div className="min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <p className="text-sm font-bold text-white truncate">{orgName || teamName || 'Organization'}</p>
-          <p className="text-[11px] text-slate-400 truncate">{teamSub || 'Season Active'}</p>
-        </div>
+          </div>
+          <div className="min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-left">
+            <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+            <p className="text-[11px] text-slate-500 truncate">{orgName || 'Organization'}</p>
+          </div>
+        </button>
+
+        {/* Role pills — visible on hover */}
+        {availableViews.length > 1 && (
+          <div className="flex flex-wrap gap-1 px-1 pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {availableViews.map(view => (
+              <button
+                key={view.id}
+                onClick={() => onSwitchRole?.(view.id)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                  activeView === view.id
+                    ? 'bg-lynx-sky/15 text-lynx-sky'
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* ---- 3. Nav Items — groups with inline sub-items ---- */}
+      {/* Divider */}
+      <div className="border-b border-white/[0.08] mx-3 shrink-0" />
+
+      {/* ---- 3. Nav Items — collapsible groups ---- */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-1 scrollbar-thin">
         {navGroups.map((group, gIdx) => {
           if (group.type === 'single') {
-            // Single item — render as a standard NavItem
             return (
               <NavItem
                 key={group.id}
@@ -253,19 +252,35 @@ export default function LynxSidebar({
             )
           }
 
-          // Group with children
+          const isExpanded = expandedGroups.has(group.id)
+
           return (
             <div key={group.id || gIdx}>
-              <GroupHeader label={group.label} icon={group.icon || group.id} />
-              {group.items?.map((item) => (
-                <NavItem
-                  key={item.id}
-                  item={item}
-                  isActive={isItemActive(item)}
-                  onNavigate={onNavigate}
-                  indented
-                />
-              ))}
+              <CollapsibleGroupHeader
+                label={group.label}
+                icon={group.icon || group.id}
+                isExpanded={isExpanded}
+                onToggle={() => toggleGroup(group.id)}
+              />
+              {/*
+                In collapsed sidebar (64px): all items visible as icons (max-h-[500px]).
+                In expanded sidebar (hover): collapsed groups hide via group-hover:max-h-0.
+              */}
+              <div className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                isExpanded
+                  ? 'max-h-[500px]'
+                  : 'max-h-[500px] group-hover:max-h-0'
+              }`}>
+                {group.items?.map(item => (
+                  <NavItem
+                    key={item.id + (item.teamId || '') + (item.playerId || '')}
+                    item={item}
+                    isActive={isItemActive(item)}
+                    onNavigate={onNavigate}
+                    indented
+                  />
+                ))}
+              </div>
             </div>
           )
         })}
@@ -273,7 +288,6 @@ export default function LynxSidebar({
 
       {/* ---- 4. Divider + Utilities ---- */}
       <div className="border-t border-white/[0.06] shrink-0">
-        {/* Platform admin links */}
         {isPlatformAdmin && (
           <div className="py-1">
             <NavItem
@@ -319,39 +333,10 @@ export default function LynxSidebar({
         </button>
       </div>
 
-      {/* ---- 5. Bottom User Section ---- */}
+      {/* ---- 5. Bottom Utility Section ---- */}
       <div className="border-t border-white/[0.06] shrink-0">
-        {/* Expanded user details — only visible on hover */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 max-h-0 group-hover:max-h-[400px] overflow-hidden transition-all">
-          {/* My Profile */}
-          <button
-            onClick={() => onNavigateToProfile?.()}
-            className="w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors"
-          >
-            <User className="w-4 h-4" />
-            <span className="text-[13px] font-medium">My Profile</span>
-          </button>
-
-          {/* Switch Role */}
-          {availableViews.length > 1 && (
-            <div className="px-4 pt-2 pb-1">
-              <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-slate-500 mb-1">Switch Role</p>
-              {availableViews.map(view => (
-                <button
-                  key={view.id}
-                  onClick={() => onSwitchRole?.(view.id)}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition ${
-                    activeView === view.id ? 'bg-lynx-sky/15 text-lynx-sky' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <span className="text-[13px] font-medium flex-1">{view.label}</span>
-                  {activeView === view.id && <Check className="w-3.5 h-3.5 text-lynx-sky" />}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Theme toggle */}
+        {/* Expanded: theme + sign out */}
+        <div className="max-h-0 group-hover:max-h-[120px] overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
             onClick={() => onToggleTheme?.()}
             className="w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors"
@@ -359,8 +344,6 @@ export default function LynxSidebar({
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             <span className="text-[13px] font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
-
-          {/* Sign out */}
           <button
             onClick={() => onSignOut?.()}
             className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
@@ -370,20 +353,15 @@ export default function LynxSidebar({
           </button>
         </div>
 
-        {/* Avatar row — always visible */}
-        <div className="flex items-center h-14 shrink-0">
-          <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
-            <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold"
-              style={{ background: profile?.photo_url ? 'transparent' : 'rgba(75,185,236,0.2)', color: '#4BB9EC' }}>
-              {profile?.photo_url ? (
-                <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
-              ) : initial}
-            </div>
-          </div>
-          <div className="min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <p className="text-sm font-semibold text-white truncate">{displayName}</p>
-            <p className="text-[11px] text-slate-500 truncate">{getRoleLabel(activeView)}</p>
-          </div>
+        {/* Collapsed: settings gear icon */}
+        <div className="flex group-hover:hidden items-center h-10 shrink-0">
+          <button
+            onClick={() => onToggleTheme?.()}
+            className="w-16 min-w-[64px] flex items-center justify-center shrink-0 text-slate-500 hover:text-slate-300 transition-colors"
+            title="Toggle Theme"
+          >
+            {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+          </button>
         </div>
       </div>
     </div>
