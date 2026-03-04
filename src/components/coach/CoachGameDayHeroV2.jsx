@@ -92,7 +92,7 @@ export default function CoachGameDayHeroV2({
   // No upcoming events fallback
   if (!event) {
     return (
-      <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '200px' }}>
+      <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '240px' }}>
         <DotGrid />
         <div className="relative z-10 p-6 flex flex-col justify-center h-full">
           <p className="text-[10px] font-bold uppercase tracking-[1.5px] text-slate-500 mb-2">Season Record</p>
@@ -108,7 +108,7 @@ export default function CoachGameDayHeroV2({
   }
 
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #0F2040 60%, #0B1628 100%)', minHeight: '200px' }}>
+    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #0F2040 60%, #0B1628 100%)', minHeight: '240px' }}>
       <DotGrid />
 
       {/* Radial glow */}
@@ -138,7 +138,7 @@ export default function CoachGameDayHeroV2({
           </p>
 
           {/* Matchup title */}
-          <h2 className="text-xl font-black text-white tracking-wide mb-2">
+          <h2 className="text-3xl font-black text-white tracking-wide mb-2">
             {isGame && event.opponent_name
               ? `vs ${event.opponent_name}`
               : event.title || (isGame ? 'Game Day' : 'Practice')}
@@ -176,9 +176,9 @@ export default function CoachGameDayHeroV2({
             Season Record
           </p>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-4xl font-black text-emerald-400 tabular-nums">{teamRecord.wins}</span>
+            <span className="text-6xl font-black text-emerald-400 tabular-nums">{teamRecord.wins}</span>
             <span className="text-xl font-bold text-slate-600">—</span>
-            <span className="text-4xl font-black text-red-400 tabular-nums">{teamRecord.losses}</span>
+            <span className="text-6xl font-black text-red-400 tabular-nums">{teamRecord.losses}</span>
           </div>
           <p className="text-xs text-slate-500 mb-2">{winRate}% win rate</p>
 

@@ -7,7 +7,7 @@ import { Users, UserCheck, Shield } from 'lucide-react'
 
 function KpiCard({ icon: Icon, label, value, sub, iconColor, isDark }) {
   return (
-    <div className={`rounded-2xl p-4 shadow-sm ${
+    <div className={`rounded-2xl p-6 shadow-sm ${
       isDark
         ? 'bg-lynx-charcoal border border-white/[0.06]'
         : 'bg-white border border-brand-border'
@@ -20,7 +20,7 @@ function KpiCard({ icon: Icon, label, value, sub, iconColor, isDark }) {
           <Icon className="w-5 h-5" style={{ color: iconColor }} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`text-2xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-4xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {value}
           </p>
           <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>

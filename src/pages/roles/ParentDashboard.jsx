@@ -876,7 +876,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // Empty state - no registered players
   if (registrationData.length === 0) {
     return (
-      <div className={`max-w-2xl mx-auto space-y-6 py-12 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+      <div className={`w-full space-y-6 py-12 px-6 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
         <div className="text-center">
           <VolleyballIcon className="w-20 h-20 text-[var(--accent-primary)] mx-auto mb-4" />
           <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>

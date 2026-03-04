@@ -56,7 +56,7 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
       {/* Top accent bar */}
       <div className="h-1" style={{ backgroundColor: sportColor }} />
 
-      <div className="p-4">
+      <div className="p-6">
         {/* Header: sport + season */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
               <Circle className="w-3 h-3" style={{ color: sportColor }} />
             </div>
             <div>
-              <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {sportName || 'Sport'}
               </p>
               <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -72,7 +72,7 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
               </p>
             </div>
           </div>
-          <span className="text-lg font-black tabular-nums" style={{ color: sportColor }}>
+          <span className="text-2xl font-black tabular-nums" style={{ color: sportColor }}>
             {progressPct}%
           </span>
         </div>
@@ -96,20 +96,20 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
               <div key={step.id} className="flex flex-col items-center gap-1">
                 {isDone ? (
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center"
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
                     style={{ backgroundColor: sportColor }}
                   >
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 ) : isActive ? (
                   <div
-                    className="w-5 h-5 rounded-full border-2 flex items-center justify-center bg-[#0B1628]"
+                    className="w-8 h-8 rounded-full border-2 flex items-center justify-center bg-[#0B1628]"
                     style={{ borderColor: sportColor, boxShadow: `0 0 8px ${sportColor}40` }}
                   >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sportColor }} />
                   </div>
                 ) : (
-                  <div className={`w-5 h-5 rounded-full border-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`} />
+                  <div className={`w-8 h-8 rounded-full border-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`} />
                 )}
                 <span className={`text-[8px] font-medium ${
                   isDone || isActive

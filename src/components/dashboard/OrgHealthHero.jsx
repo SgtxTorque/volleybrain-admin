@@ -14,7 +14,7 @@ function getHealthStatus(score) {
 }
 
 // Conic-gradient health ring
-function HealthRing({ score, size = 140 }) {
+function HealthRing({ score, size = 160 }) {
   const status = getHealthStatus(score)
   const pct = Math.min(100, Math.max(0, score))
 
@@ -28,7 +28,7 @@ function HealthRing({ score, size = 140 }) {
       }}
     >
       <div className="absolute inset-[6px] rounded-full bg-[#0B1628] flex flex-col items-center justify-center">
-        <span className="text-4xl font-black text-white tabular-nums">{score}</span>
+        <span className="text-6xl font-black text-white tabular-nums">{score}</span>
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Health</span>
       </div>
     </div>
@@ -94,7 +94,7 @@ export default function OrgHealthHero({
   const status = getHealthStatus(healthScore)
 
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)' }}>
+    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '280px' }}>
       {/* Dot grid overlay */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"

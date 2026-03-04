@@ -1410,34 +1410,10 @@ export function DashboardPage({ onNavigate }) {
     .split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
 
   return (
-    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-      {/* LynxSidebar — fixed left icon sidebar */}
-      <div className="hidden xl:block">
-        <LynxSidebar
-          role="admin"
-          navItems={adminNavItems}
-          orgName={orgName || organization?.name || 'My Organization'}
-          orgInitials={orgInitials}
-          orgLogo={orgLogo}
-          userName={profile ? `${profile.first_name} ${(profile.last_name || '').charAt(0)}.` : ''}
-          userRole="Director · Admin"
-          activePath="/dashboard"
-          onNavigate={(path) => {
-            // Convert path to old page ID for onNavigate
-            const pageMap = {
-              '/dashboard': 'dashboard', '/reports': 'reports', '/settings/seasons': 'seasons',
-              '/registrations': 'registrations', '/coaches': 'coaches', '/teams': 'teams',
-              '/schedule': 'schedule', '/blasts': 'blasts', '/payments': 'payments',
-              '/settings/waivers': 'waivers', '/settings/organization': 'organization',
-            }
-            onNavigate(pageMap[path] || 'dashboard')
-          }}
-        />
-      </div>
-
-      {/* Main Content — scrollable, offset for sidebar */}
-      <div className="flex-1 xl:ml-16 overflow-y-auto">
-        <div className="px-6 py-6 space-y-5 max-w-[1200px] mx-auto">
+    <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+      {/* Main Content — full width, sidebar handled by MainApp */}
+      <div className="w-full h-full overflow-y-auto">
+        <div className="px-6 py-6 space-y-5 w-full">
 
           {/* ─── 0. ORG HEALTH HERO ──────────────────────────── */}
           {(() => {

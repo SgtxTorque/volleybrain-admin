@@ -756,37 +756,12 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     { id: 'settings', label: 'Settings', icon: 'settings', path: '/settings/organization' },
   ]
 
-  // ── Main Render: LynxSidebar + Scrollable Main ──
+  // ── Main Render: Full-width scrollable content (sidebar handled by MainApp) ──
   return (
-    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-      {/* LynxSidebar */}
-      <div className="hidden xl:block">
-        <LynxSidebar
-          role="coach"
-          navItems={coachNavItems}
-          orgName={selectedTeam?.name || 'My Team'}
-          orgInitials={(selectedTeam?.name || '?').charAt(0)}
-          teamName={selectedTeam?.name}
-          teamSub={`${roster.length} players · ${selectedSeason?.name || ''}`}
-          userName={coachName}
-          userRole="Coach"
-          activePath="/dashboard"
-          onNavigate={(path) => {
-            const pageMap = {
-              '/dashboard': 'dashboard', '/schedule': 'schedule', '/roster': 'teams',
-              '/standings': 'standings', '/gameprep': 'gameprep', '/blasts': 'blasts',
-              '/achievements': 'achievements', '/payments': 'payments',
-              '/settings/organization': 'organization',
-            }
-            if (path.startsWith('/teams/')) { navigateToTeamWall?.(selectedTeam?.id); return }
-            onNavigate(pageMap[path] || 'dashboard')
-          }}
-        />
-      </div>
-
-      {/* Scrollable Main Content */}
-      <div className="flex-1 xl:ml-16 overflow-y-auto">
-        <div className="px-6 py-6 space-y-5 max-w-[1200px] mx-auto">
+    <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+      {/* Main Content — full width */}
+      <div className="w-full h-full overflow-y-auto">
+        <div className="px-6 py-6 space-y-5 w-full">
 
           {/* Team Selector — when coaching multiple teams */}
           {teams.length > 1 && (
