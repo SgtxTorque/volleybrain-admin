@@ -15,15 +15,18 @@ import PlayerSocialPanel from '../../components/player/PlayerSocialPanel'
 // ============================================
 const PLAYER_THEMES = {
   default: {
-    '--player-bg': '#0A1B33',
+    '--player-bg': '#0D1B3E',
     '--player-card': '#10284C',
     '--player-card-hover': '#162848',
-    '--player-accent': '#FFD700',
-    '--player-accent-glow': 'rgba(255, 215, 0, 0.3)',
+    '--player-accent': '#4BB9EC',
+    '--player-accent-glow': 'rgba(75, 185, 236, 0.3)',
+    '--player-gold': '#FFD700',
+    '--player-gold-glow': 'rgba(255, 215, 0, 0.3)',
     '--player-border': 'rgba(255,255,255,0.06)',
     '--player-text': '#ffffff',
     '--player-text-secondary': 'rgba(255,255,255,0.60)',
     '--player-text-muted': 'rgba(255,255,255,0.30)',
+    '--player-text-faint': 'rgba(255,255,255,0.15)',
   },
   pink: {
     '--player-bg': '#120b10',
@@ -325,7 +328,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       {isAdminPreview && (
         <div
           className="fixed top-16 left-0 right-0 z-40 flex items-center gap-3 px-6 py-2"
-          style={{ background: 'linear-gradient(90deg, rgba(232,168,56,0.12), rgba(232,168,56,0.04))', borderBottom: '1px solid rgba(232,168,56,0.15)' }}
+          style={{ background: 'linear-gradient(90deg, rgba(75,185,236,0.12), rgba(75,185,236,0.04))', borderBottom: '1px solid rgba(75,185,236,0.15)' }}
         >
           <Eye className="w-4 h-4" style={{ color: 'var(--player-accent)' }} />
           <p className="text-xs flex-1" style={{ color: 'var(--player-text-secondary)' }}>

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   Trophy, ChevronRight, Lock, Calendar, Clock, MapPin,
   Heart, MessageCircle, Camera, Award, Megaphone,
-  Plus, Swords, Check
+  Plus, Check
 } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 
@@ -50,26 +50,11 @@ const RARITY_CONFIG = {
   common: { bg: 'linear-gradient(135deg, #6B7280, #4B5563)', label: 'Common' },
 }
 
-// Mock shoutouts for feed (TODO: Wire to real shoutouts table)
-const MOCK_SHOUTOUTS = [
-  { id: 'mock-s1', from: 'Coach Carlos', category: 'Coachable', icon: '💪', time: new Date(Date.now() - 86400000 * 2).toISOString() },
-  { id: 'mock-s2', from: 'Sarah J.', category: 'Team Player', icon: '⭐', time: new Date(Date.now() - 86400000 * 5).toISOString() },
-]
-
-// Mock stories (TODO: Wire to highlights data)
-const STORIES = [
-  { id: 'add', icon: Plus, label: '+Add', isAdd: true },
-  { id: 'game', icon: Swords, label: 'Game', hasNew: true },
-  { id: 'photo', icon: Camera, label: 'Photo', hasNew: true },
-  { id: 'badge', icon: Award, label: 'Badge', hasNew: false },
-  { id: 'shout', icon: Megaphone, label: 'Shout', hasNew: false },
-  { id: 'team', icon: MessageCircle, label: 'Team', hasNew: false },
-]
-
 /**
- * PlayerCenterFeed — Center column (flex-1)
- * Welcome, stories bar, activity feed, trophy case
- * ALL colors via CSS variables (--player-*)
+ * PlayerCenterFeed — Center column (flex-1), mobile scroll parity
+ * Sections: NextUp · LastGameStats · ActiveChallenge · TheDrop ·
+ * ChatPeek · QuickProps · TrophyCase · Events · ClosingMascot
+ * Dark theme: #0D1B3E bg, #10284C cards
  */
 export default function PlayerCenterFeed({
   viewingPlayer,
@@ -138,442 +123,416 @@ export default function PlayerCenterFeed({
     }
   }
 
-  // Build activity feed — merge events, games, badges, mock shoutouts
-  const feedItems = useMemo(() => {
-    const items = []
-
-    // Upcoming events with RSVP
-    upcomingEvents?.slice(0, 3).forEach(event => {
-      items.push({ type: 'event', data: event, time: event.event_date, isFuture: true })
-    })
-
-    // Game recaps
-    gameStats?.slice(0, 3).forEach(gs => {
-      items.push({ type: 'game', data: gs, time: gs.event?.event_date || gs.created_at })
-    })
-
-    // Badge earned
-    badges?.slice(0, 2).forEach(b => {
-      items.push({ type: 'badge', data: b, time: b.awarded_at || b.created_at })
-    })
-
-    // Mock shoutouts
-    MOCK_SHOUTOUTS.forEach(s => {
-      items.push({ type: 'shoutout', data: s, time: s.time })
-    })
-
-    // Sort: future events first, then most recent
-    items.sort((a, b) => {
-      if (a.isFuture && !b.isFuture) return -1
-      if (!a.isFuture && b.isFuture) return 1
-      return new Date(b.time || 0) - new Date(a.time || 0)
-    })
-
-    return items.slice(0, 10)
-  }, [upcomingEvents, gameStats, badges])
-
-  // Motivational welcome message
+  // Motivational welcome
   const welcomeMessage = useMemo(() => {
     const firstName = viewingPlayer?.first_name || 'Player'
     const nextGame = upcomingEvents?.find(e => e.event_type === 'game')
     if (nextGame && countdownText(nextGame.event_date) === 'Tomorrow') {
-      return { main: `Game day tomorrow, ${firstName}!`, sub: `Lock in and get ready` }
+      return { main: `Game day tomorrow, ${firstName}!`, sub: 'Lock in and get ready' }
     }
     if (nextGame && countdownText(nextGame.event_date) === 'Today') {
-      return { main: `It's game day, ${firstName}!`, sub: `Time to show what you've got` }
+      return { main: `It's game day, ${firstName}!`, sub: 'Time to show what you\'ve got' }
     }
     if (gamesPlayed > 5) {
       return { main: `Keep grinding, ${firstName}!`, sub: `Level ${level} — ${xpToNext} XP to Level ${level + 1}` }
     }
-    return { main: `What's up, ${firstName}!`, sub: `Your season dashboard is ready` }
+    return { main: `What's up, ${firstName}!`, sub: 'Your season dashboard is ready' }
   }, [viewingPlayer, upcomingEvents, gamesPlayed, level, xpToNext])
 
+  const nextEvent = upcomingEvents?.[0] || null
+  const lastGame = gameStats?.[0] || null
+  const streak = gamesPlayed > 0 ? Math.min(gamesPlayed * 2 + 3, 30) : 0
+
+  // TheDrop items: recent badges + mock shoutouts/stats
+  const dropItems = useMemo(() => {
+    const items = []
+    badges?.slice(0, 2).forEach(b => {
+      items.push({ type: 'badge', icon: b.achievement?.icon || '🏆', title: `You earned ${b.achievement?.name || 'a badge'}!`, sub: timeAgo(b.awarded_at || b.created_at) })
+    })
+    if (items.length < 3) {
+      items.push({ type: 'shoutout', icon: '💪', title: 'Coach Carlos gave you a shoutout!', sub: 'Coachable · 2d ago' })
+    }
+    if (items.length < 3) {
+      items.push({ type: 'stats', icon: '📊', title: 'Your kill rate is up 12% this week', sub: 'Season stats updated' })
+    }
+    return items
+  }, [badges])
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-      {/* Dark Header Band — blends with dark page, subtle gradient border for differentiation */}
-      <div className="px-8 pt-5 pb-24 shrink-0" style={{ background: 'linear-gradient(180deg, #0D1B3E 0%, var(--player-bg) 100%)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-4">
-            {viewingPlayer?.photo_url ? (
-              <img src={viewingPlayer.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" style={{ border: '2px solid var(--player-accent)', boxShadow: '0 0 12px var(--player-accent-glow)' }} />
-            ) : (
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[12px] font-bold" style={{ background: 'linear-gradient(135deg, var(--player-accent-glow), var(--player-card))', border: '2px solid var(--player-accent)', color: 'var(--player-accent)' }}>
-                {displayName?.[0] || 'P'}
-              </div>
-            )}
-            <div>
-              <p className="text-[14px] font-bold" style={{ color: 'var(--player-text)' }}>{displayName}</p>
-              <p className="text-[11px] font-medium" style={{ color: 'var(--player-text-muted)' }}>
-                LVL {level} · {xp} XP · {primaryTeam?.name || 'No Team'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold px-3 py-1 rounded-full" style={{ color: 'var(--player-text-muted)', background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>Player</span>
-          </div>
-        </div>
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase mb-1" style={{ color: 'rgba(75, 185, 236, 0.5)' }}>Player Dashboard</p>
-        <div className="flex items-baseline gap-4">
-          <h1 className="text-[28px] font-black leading-none tracking-wide" style={{ color: 'var(--player-text)' }}>TEAM</h1>
-          <h1 className="text-[28px] font-black leading-none tracking-wide" style={{ color: '#4BB9EC' }}>PULSE</h1>
-        </div>
-      </div>
-
-      {/* Floating Content Area */}
-      <div className="flex-1 px-8 -mt-16 overflow-y-auto pb-8" style={{ background: 'transparent' }}>
-      <div className="space-y-5">
-
-      {/* Row 2: Stories/Highlights Bar */}
-      <div className="flex gap-4 overflow-x-auto pb-2 player-fade-up" style={{ scrollbarWidth: 'none' }}>
-        {STORIES.map(story => {
-          const Icon = story.icon
-          return (
-            <button key={story.id} className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center relative"
-                style={{
-                  background: story.isAdd ? 'var(--player-bg)' : 'var(--player-card)',
-                  border: story.hasNew
-                    ? '2px solid var(--player-accent)'
-                    : story.isAdd
-                      ? '2px dashed var(--player-text-muted)'
-                      : '2px solid var(--player-border)',
-                }}
-              >
-                <Icon className="w-6 h-6" style={{ color: story.isAdd ? 'var(--player-accent)' : 'var(--player-text-secondary)' }} />
-                {story.hasNew && (
-                  <span
-                    className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full"
-                    style={{ background: 'var(--player-accent)', border: '2px solid var(--player-bg)' }}
-                  />
-                )}
-              </div>
-              <span className="text-[10px] font-bold" style={{ color: 'var(--player-text-muted)' }}>{story.label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Row 3: Activity Feed */}
-      <div className="space-y-3">
-        {feedItems.map((item, idx) => (
-          <div
-            key={`${item.type}-${idx}`}
-            className="player-fade-up"
-            style={{ animationDelay: `${idx * 0.05}s` }}
-          >
-            {/* Event Card with RSVP */}
-            {item.type === 'event' && (() => {
-              const event = item.data
-              const isGame = event.event_type === 'game'
-              const eventDate = new Date(event.event_date + 'T00:00:00')
-              const isToday = eventDate.toDateString() === new Date().toDateString()
-              const rsvp = rsvpStatuses[event.id]
-              const countdown = countdownText(event.event_date)
-
-              return (
-                <div
-                  className="rounded-[18px] overflow-hidden relative"
-                  style={{
-                    background: isGame
-                      ? 'linear-gradient(135deg, rgba(239,68,68,0.08), var(--player-card))'
-                      : 'var(--player-card)',
-                    border: isToday ? '1px solid var(--player-accent)' : '1px solid var(--player-border)',
-                  }}
-                >
-                  <div className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="w-14 h-14 rounded-[18px] flex flex-col items-center justify-center shrink-0"
-                        style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
-                      >
-                        <span className="text-[10px] font-bold uppercase leading-none" style={{ color: 'var(--player-text-muted)' }}>
-                          {eventDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
-                        </span>
-                        <span className="text-xl font-black leading-none" style={{ color: 'var(--player-text)' }}>
-                          {eventDate.getDate()}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
-                            style={{
-                              color: isGame ? '#ef4444' : 'var(--player-accent)',
-                              background: isGame ? 'rgba(239,68,68,0.1)' : 'var(--player-accent-glow)',
-                            }}
-                          >
-                            {isGame ? 'GAME' : 'PRACTICE'}
-                          </span>
-                          {isToday && (
-                            <span className="flex items-center gap-1">
-                              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--player-accent)' }} />
-                              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--player-accent)' }}>Today</span>
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm font-bold truncate" style={{ color: 'var(--player-text)' }}>
-                          {isGame ? `vs ${event.opponent_name || 'TBD'}` : event.title || 'Team Practice'}
-                        </p>
-                        <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: 'var(--player-text-muted)' }}>
-                          {event.event_time && (
-                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {formatTime12(event.event_time)}</span>
-                          )}
-                          {event.venue_name && (
-                            <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" /> {event.venue_name}</span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-wider shrink-0" style={{ color: isToday ? 'var(--player-accent)' : 'var(--player-text-muted)' }}>
-                        {countdown}
-                      </span>
-                    </div>
-
-                    {/* RSVP Buttons */}
-                    <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--player-border)' }}>
-                      {[
-                        { status: 'going', label: 'Going', icon: '✓' },
-                        { status: 'maybe', label: 'Maybe', icon: '?' },
-                        { status: 'not_going', label: "Can't", icon: '✗' },
-                      ].map(opt => {
-                        const isActive = rsvp === opt.status
-                        return (
-                          <button
-                            key={opt.status}
-                            onClick={() => handleRsvp(event.id, opt.status)}
-                            className="flex-1 py-2 rounded-lg text-xs font-bold text-center"
-                            style={{
-                              background: isActive ? 'var(--player-accent-glow)' : 'var(--player-bg)',
-                              color: isActive ? 'var(--player-accent)' : 'var(--player-text-muted)',
-                              border: isActive ? '1px solid var(--player-accent)' : '1px solid var(--player-border)',
-                            }}
-                          >
-                            {opt.icon} {opt.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* Game Recap Card */}
-            {item.type === 'game' && (() => {
-              const gs = item.data
-              const isWin = gs.event?.game_result === 'win'
-              const isLoss = gs.event?.game_result === 'loss'
-              const resultColor = isWin ? '#10B981' : isLoss ? '#EF4444' : 'var(--player-text-muted)'
-
-              return (
-                <div
-                  className="rounded-[18px] p-4"
-                  style={{
-                    background: 'var(--player-card)',
-                    borderLeft: `3px solid ${resultColor}`,
-                    border: '1px solid var(--player-border)',
-                    borderLeftColor: resultColor,
-                    borderLeftWidth: '3px',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm"
-                      style={{ background: `${resultColor}15`, color: resultColor }}
-                    >
-                      {isWin ? 'W' : isLoss ? 'L' : '—'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: 'var(--player-text)' }}>
-                        vs {gs.event?.opponent_name || 'Opponent'}
-                        {gs.event?.our_score != null ? ` — ${gs.event.our_score}-${gs.event.opponent_score}` : ''}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs" style={{ color: 'var(--player-text-muted)' }}>YOUR STATS:</span>
-                        {[
-                          { l: 'K', v: gs.kills || 0 },
-                          { l: 'A', v: gs.aces || 0 },
-                          { l: 'D', v: gs.digs || 0 },
-                          { l: 'B', v: gs.blocks || 0 },
-                        ].map(s => (
-                          <span key={s.l} className="text-xs font-bold" style={{ color: 'var(--player-text-secondary)' }}>
-                            {s.v}{s.l}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <span className="text-[10px]" style={{ color: 'var(--player-text-muted)' }}>{timeAgo(item.time)}</span>
-                  </div>
-                  {isWin && (
-                    <p className="text-xs font-bold mt-2" style={{ color: '#10B981' }}>+85 XP earned</p>
-                  )}
-                </div>
-              )
-            })()}
-
-            {/* Badge Earned Card */}
-            {item.type === 'badge' && (() => {
-              const b = item.data
-              return (
-                <div
-                  className="rounded-[18px] p-4 player-pulse-new"
-                  style={{
-                    background: 'var(--player-card)',
-                    border: '1px solid var(--player-border)',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-[18px] flex items-center justify-center text-2xl"
-                      style={{ boxShadow: '0 0 12px var(--player-accent-glow)' }}
-                    >
-                      {b.achievement?.icon || '🏆'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold" style={{ color: 'var(--player-text)' }}>
-                        Badge Earned!
-                      </p>
-                      <p className="text-xs" style={{ color: 'var(--player-accent)' }}>
-                        {b.achievement?.name || 'Achievement'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 rounded-lg" style={{ background: 'var(--player-bg)' }}>
-                        <Heart className="w-4 h-4" style={{ color: 'var(--player-text-muted)' }} />
-                      </button>
-                      <span className="text-[10px]" style={{ color: 'var(--player-text-muted)' }}>{timeAgo(item.time)}</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* Shoutout Card */}
-            {item.type === 'shoutout' && (() => {
-              const s = item.data
-              return (
-                <div
-                  className="rounded-[18px] p-4"
-                  style={{
-                    background: 'var(--player-card)',
-                    border: '1px solid var(--player-border)',
-                    borderLeftColor: '#ec4899',
-                    borderLeftWidth: '3px',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{s.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold" style={{ color: 'var(--player-text)' }}>
-                        {s.from} gave you a shoutout!
-                      </p>
-                      <p className="text-xs" style={{ color: '#ec4899' }}>{s.category}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="p-1.5 rounded-lg" style={{ background: 'var(--player-bg)' }}>
-                        <Heart className="w-4 h-4" style={{ color: 'var(--player-text-muted)' }} />
-                      </button>
-                      <button className="p-1.5 rounded-lg" style={{ background: 'var(--player-bg)' }}>
-                        <span className="text-sm">🔥</span>
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-[10px] mt-2" style={{ color: 'var(--player-text-muted)' }}>{timeAgo(s.time)}</p>
-                </div>
-              )
-            })()}
-          </div>
-        ))}
-
-        {feedItems.length === 0 && (
-          <div className="rounded-[18px] p-10 text-center" style={{ background: 'var(--player-card)', border: '1px solid var(--player-border)' }}>
-            <Calendar className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--player-text-muted)' }} />
-            <p className="font-bold text-lg" style={{ color: 'var(--player-text-secondary)' }}>Your feed is empty</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--player-text-muted)' }}>Play games, earn badges, and get shoutouts to fill your feed</p>
-          </div>
-        )}
-      </div>
-
-      {/* Row 4: Trophy Case */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--player-text)' }}>
-            <Trophy className="w-5 h-5" style={{ color: 'var(--player-accent)' }} />
-            Trophy Case
-          </h2>
-          {badges.length > 0 && (
-            <button onClick={() => onNavigate?.('achievements')} className="text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:opacity-80" style={{ color: 'var(--player-accent)' }}>
-              View All <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-3 overflow-x-auto pb-3" style={{ scrollbarWidth: 'none' }}>
-          {badges.length > 0 ? (
-            <>
-              {badges.map((b, idx) => {
-                const r = RARITY_CONFIG[b.achievement?.rarity] || RARITY_CONFIG.common
-                return (
-                  <div
-                    key={b.id || idx}
-                    className="w-[130px] shrink-0 rounded-[18px] overflow-hidden relative"
-                    style={{
-                      height: 180,
-                      background: r.bg,
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      boxShadow: '0 0 12px var(--player-accent-glow)',
-                    }}
-                  >
-                    <div
-                      className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider"
-                      style={{ background: 'rgba(0,0,0,0.35)', color: 'rgba(255,255,255,0.8)' }}
-                    >
-                      {r.label}
-                    </div>
-                    <div className="flex items-center justify-center h-[55%]">
-                      <span className="text-4xl drop-shadow-lg">{b.achievement?.icon || '🏆'}</span>
-                    </div>
-                    <div className="absolute bottom-0 inset-x-0 p-2.5" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.6))' }}>
-                      <p className="text-white font-bold text-xs leading-tight">{b.achievement?.name || 'Achievement'}</p>
-                    </div>
-                  </div>
-                )
-              })}
-              {/* Locked placeholders to fill the row */}
-              {badges.length < 5 && Array.from({ length: 5 - badges.length }).map((_, i) => (
-                <div
-                  key={`locked-${i}`}
-                  className="w-[130px] shrink-0 rounded-[18px] overflow-hidden flex flex-col items-center justify-center gap-2"
-                  style={{ height: 180, background: 'var(--player-card)', border: '1px solid var(--player-border)' }}
-                >
-                  <Lock className="w-6 h-6" style={{ color: 'var(--player-text-muted)' }} />
-                  <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--player-text-muted)' }}>Locked</span>
-                </div>
-              ))}
-            </>
-          ) : (
-            <>
-              {/* All locked placeholders */}
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={`locked-${i}`}
-                  className="w-[130px] shrink-0 rounded-[18px] overflow-hidden flex flex-col items-center justify-center gap-2"
-                  style={{ height: 180, background: 'var(--player-card)', border: '1px solid var(--player-border)' }}
-                >
-                  <Lock className="w-6 h-6" style={{ color: 'var(--player-text-muted)' }} />
-                  <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'var(--player-text-muted)' }}>Locked</span>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-
-        <p className="text-xs text-center mt-1" style={{ color: 'var(--player-text-muted)' }}>
-          {badges.length}/20 Badges Earned
+    <div className="flex-1 flex flex-col overflow-hidden min-w-0" style={{ background: '#0D1B3E' }}>
+      {/* ── Dark Header Band ── */}
+      <div className="px-8 pt-6 pb-6 shrink-0">
+        <p className="text-[10px] font-bold tracking-[2px] uppercase mb-1" style={{ color: 'rgba(75,185,236,0.50)' }}>Player Dashboard</p>
+        <h1 className="text-[28px] font-black leading-none tracking-wide" style={{ color: '#fff' }}>
+          {welcomeMessage.main}
+        </h1>
+        <p className="text-[13px] font-semibold mt-1" style={{ color: 'rgba(255,255,255,0.30)' }}>
+          {welcomeMessage.sub}
         </p>
       </div>
-    </div>
-    </div>
+
+      {/* ── Scrollable Content ── */}
+      <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+
+        {/* ── 1. NEXT UP Card (matches mobile NextUpCard — pulsing green dot + RSVP) ── */}
+        {nextEvent ? (() => {
+          const isGame = nextEvent.event_type === 'game'
+          const eventDate = new Date(nextEvent.event_date + 'T00:00:00')
+          const rsvp = rsvpStatuses[nextEvent.id]
+
+          return (
+            <div
+              className="rounded-[18px] p-4 relative"
+              style={{ background: '#10284C', border: '1px solid rgba(75,185,236,0.15)' }}
+            >
+              {/* Header: NEXT UP + RSVP buttons */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#22C55E' }} />
+                  <span className="text-[10px] font-bold uppercase tracking-[1.2px]" style={{ color: '#4BB9EC' }}>Next Up</span>
+                </div>
+                <div className="flex gap-2">
+                  {[
+                    { status: 'going', label: "I'M READY", activeLabel: 'GOING', activeBg: '#22C55E' },
+                    { status: 'not_going', label: "CAN'T MAKE IT", activeLabel: "CAN'T", activeBg: 'transparent' },
+                  ].map(opt => {
+                    const isActive = rsvp === opt.status
+                    return (
+                      <button
+                        key={opt.status}
+                        onClick={() => handleRsvp(nextEvent.id, opt.status)}
+                        className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-[0.5px] transition"
+                        style={{
+                          background: isActive ? opt.activeBg : (opt.status === 'going' ? '#4BB9EC' : 'transparent'),
+                          color: isActive
+                            ? (opt.status === 'not_going' ? 'rgba(255,255,255,0.30)' : '#0D1B3E')
+                            : (opt.status === 'going' ? '#0D1B3E' : 'rgba(255,255,255,0.30)'),
+                          border: opt.status === 'not_going' ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent',
+                        }}
+                      >
+                        {isActive ? opt.activeLabel : opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Event info */}
+              <h3 className="text-xl font-extrabold mb-1" style={{ color: '#fff' }}>
+                {isGame ? `vs ${nextEvent.opponent_name || 'TBD'}` : nextEvent.title || 'Team Practice'}
+              </h3>
+              <p className="text-[13px] font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.30)' }}>
+                {eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                {nextEvent.event_time ? ` · ${formatTime12(nextEvent.event_time)}` : ''}
+              </p>
+              {nextEvent.venue_name && (
+                <p className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.15)' }}>
+                  {nextEvent.venue_name}
+                </p>
+              )}
+              {streak >= 2 && (
+                <p className="text-[11px] font-semibold mt-2" style={{ color: '#FFD700' }}>
+                  🔥 {streak}-game streak — keep it alive!
+                </p>
+              )}
+            </div>
+          )
+        })() : (
+          <div className="text-center py-4">
+            <span className="text-[28px] block mb-1.5" style={{ opacity: 0.4 }}>📅</span>
+            <p className="text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,0.40)' }}>No upcoming events</p>
+          </div>
+        )}
+
+        {/* ── 2. LAST GAME STATS (matches mobile — 4-col stat grid, 22px display numbers) ── */}
+        {lastGame && (
+          <div
+            className="rounded-[18px] p-4"
+            style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-[1.2px] mb-3.5" style={{ color: 'rgba(255,255,255,0.15)' }}>
+              Last Game Highlights
+            </p>
+            <div className="flex gap-2">
+              {[
+                { label: 'Kills', value: lastGame.kills || 0 },
+                { label: 'Aces', value: lastGame.aces || 0 },
+                { label: 'Digs', value: lastGame.digs || 0 },
+                { label: 'Blocks', value: lastGame.blocks || 0 },
+              ].map((stat, i) => (
+                <div
+                  key={stat.label}
+                  className="flex-1 py-3 rounded-xl text-center player-fade-up"
+                  style={{ background: 'rgba(255,255,255,0.03)', animationDelay: `${i * 0.1}s` }}
+                >
+                  <p className="text-[22px] font-black leading-none" style={{ color: '#fff' }}>{stat.value}</p>
+                  <p className="text-[9px] font-semibold uppercase mt-1" style={{ color: 'rgba(255,255,255,0.15)' }}>{stat.label}</p>
+                </div>
+              ))}
+            </div>
+            {/* Personal best callout */}
+            {lastGame.kills > 0 && gamesPlayed > 1 && lastGame.kills > (seasonStats?.total_kills || 0) / Math.max(gamesPlayed, 1) * 1.5 && (
+              <p className="text-xs font-bold text-center mt-3" style={{ color: '#FFD700' }}>
+                New personal best in Kills!
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ── 3. ACTIVE CHALLENGE Card (matches mobile — gold bordered, progress bar) ── */}
+        {gamesPlayed > 0 && (
+          <div
+            className="rounded-[18px] p-4"
+            style={{ background: '#10284C', border: '1px solid rgba(255,215,0,0.20)' }}
+          >
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="text-sm">⚡</span>
+              <span className="text-[10px] font-bold uppercase tracking-[1.2px]" style={{ color: '#FFD700' }}>Active Challenge</span>
+              <span className="flex-1" />
+              <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,255,255,0.30)' }}>3d left</span>
+            </div>
+            <p className="text-sm font-semibold truncate mb-2.5" style={{ color: '#fff' }}>
+              Hit 10 aces this week
+            </p>
+            <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="h-full rounded-full" style={{ width: '40%', background: '#FFD700' }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold" style={{ color: 'rgba(255,255,255,0.30)' }}>4/10 aces</span>
+              <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,215,0,0.40)' }}>+150 XP</span>
+            </div>
+          </div>
+        )}
+
+        {/* ── 4. THE DROP (matches mobile — staggered notification cards) ── */}
+        {dropItems.length > 0 && (
+          <div className="space-y-2">
+            {dropItems.map((item, i) => {
+              const isBadge = item.type === 'badge'
+              const isShoutout = item.type === 'shoutout'
+              return (
+                <div
+                  key={i}
+                  className="rounded-[18px] p-3.5 flex items-start gap-3 player-fade-up"
+                  style={{
+                    background: isBadge ? 'rgba(255,215,0,0.06)' : isShoutout ? 'rgba(168,85,247,0.08)' : '#10284C',
+                    border: `1px solid ${isBadge ? 'rgba(255,215,0,0.20)' : isShoutout ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.06)'}`,
+                    animationDelay: `${i * 0.2}s`,
+                  }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(75,185,236,0.12)' }}
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold leading-tight" style={{ color: 'rgba(255,255,255,0.80)' }}>
+                      {item.title}
+                    </p>
+                    <p className="text-[10px] font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                      {item.sub}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* ── 5. CHAT PEEK (matches mobile — flat horizontal row) ── */}
+        <button
+          onClick={() => primaryTeam && navigateToTeamWall?.(primaryTeam.id)}
+          className="w-full flex items-center gap-2.5 py-3 hover:opacity-80 transition"
+        >
+          <span className="text-lg" style={{ opacity: 0.4 }}>💬</span>
+          <span className="text-xs font-semibold truncate flex-1 text-left" style={{ color: 'rgba(255,255,255,0.60)' }}>
+            Open team chat
+          </span>
+          <span className="text-lg" style={{ color: 'rgba(255,255,255,0.15)' }}>›</span>
+        </button>
+
+        {/* ── 6. QUICK PROPS ROW (matches mobile — gold CTA) ── */}
+        <button
+          onClick={() => onNavigate?.('achievements')}
+          className="w-full flex items-center gap-2.5 rounded-xl px-4 py-3 hover:brightness-110 transition"
+          style={{
+            background: 'rgba(255,215,0,0.08)',
+            border: '1px solid rgba(255,215,0,0.15)',
+          }}
+        >
+          <span className="text-lg">⭐</span>
+          <span className="text-xs font-bold flex-1 text-left" style={{ color: 'rgba(255,255,255,0.60)' }}>
+            Who balled out today? Give props ›
+          </span>
+        </button>
+
+        {/* ── 7. TROPHY CASE (rarity-gradient badge cards) ── */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-bold uppercase tracking-[1.2px]" style={{ color: 'rgba(255,255,255,0.15)' }}>Trophy Case</p>
+            {badges.length > 0 && (
+              <button onClick={() => onNavigate?.('achievements')} className="text-[10px] font-bold hover:opacity-80 flex items-center gap-1" style={{ color: '#4BB9EC' }}>
+                View All <ChevronRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+            {badges.length > 0 ? (
+              <>
+                {badges.slice(0, 5).map((b, idx) => {
+                  const r = RARITY_CONFIG[b.achievement?.rarity] || RARITY_CONFIG.common
+                  return (
+                    <div
+                      key={b.id || idx}
+                      className="w-[120px] shrink-0 rounded-[18px] overflow-hidden relative"
+                      style={{
+                        height: 160,
+                        background: r.bg,
+                        border: '1px solid rgba(255,255,255,0.15)',
+                      }}
+                    >
+                      <div
+                        className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider"
+                        style={{ background: 'rgba(0,0,0,0.35)', color: 'rgba(255,255,255,0.8)' }}
+                      >
+                        {r.label}
+                      </div>
+                      <div className="flex items-center justify-center h-[55%]">
+                        <span className="text-4xl drop-shadow-lg">{b.achievement?.icon || '🏆'}</span>
+                      </div>
+                      <div className="absolute bottom-0 inset-x-0 p-2.5" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.6))' }}>
+                        <p className="text-white font-bold text-xs leading-tight">{b.achievement?.name || 'Achievement'}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+                {badges.length < 5 && Array.from({ length: 5 - badges.length }).map((_, i) => (
+                  <div
+                    key={`locked-${i}`}
+                    className="w-[120px] shrink-0 rounded-[18px] flex flex-col items-center justify-center gap-2"
+                    style={{ height: 160, background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
+                  >
+                    <Lock className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                    <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.15)' }}>Locked</span>
+                  </div>
+                ))}
+              </>
+            ) : (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={`locked-${i}`}
+                  className="w-[120px] shrink-0 rounded-[18px] flex flex-col items-center justify-center gap-2"
+                  style={{ height: 160, background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <Lock className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                  <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.15)' }}>Locked</span>
+                </div>
+              ))
+            )}
+          </div>
+          <p className="text-xs text-center mt-1" style={{ color: 'rgba(255,255,255,0.15)' }}>
+            {badges.length}/20 Badges Earned
+          </p>
+        </div>
+
+        {/* ── 8. Upcoming Events (remaining after NextUp) ── */}
+        {upcomingEvents?.slice(1, 3).map(event => {
+          const isGame = event.event_type === 'game'
+          const eventDate = new Date(event.event_date + 'T00:00:00')
+          const isToday = eventDate.toDateString() === new Date().toDateString()
+          const rsvp = rsvpStatuses[event.id]
+
+          return (
+            <div
+              key={event.id}
+              className="rounded-[18px] p-4"
+              style={{
+                background: isGame ? 'linear-gradient(135deg, rgba(239,68,68,0.08), #10284C)' : '#10284C',
+                border: isToday ? '1px solid #4BB9EC' : '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-14 h-14 rounded-[18px] flex flex-col items-center justify-center shrink-0"
+                  style={{ background: '#0D1B3E', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  <span className="text-[10px] font-bold uppercase leading-none" style={{ color: 'rgba(255,255,255,0.30)' }}>
+                    {eventDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
+                  </span>
+                  <span className="text-xl font-black leading-none" style={{ color: '#fff' }}>
+                    {eventDate.getDate()}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+                      style={{
+                        color: isGame ? '#ef4444' : '#4BB9EC',
+                        background: isGame ? 'rgba(239,68,68,0.1)' : 'rgba(75,185,236,0.10)',
+                      }}
+                    >
+                      {isGame ? 'GAME' : 'PRACTICE'}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold truncate" style={{ color: '#fff' }}>
+                    {isGame ? `vs ${event.opponent_name || 'TBD'}` : event.title || 'Team Practice'}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.30)' }}>
+                    {event.event_time && (
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {formatTime12(event.event_time)}</span>
+                    )}
+                    {event.venue_name && (
+                      <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" /> {event.venue_name}</span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider shrink-0" style={{ color: isToday ? '#4BB9EC' : 'rgba(255,255,255,0.30)' }}>
+                  {countdownText(event.event_date)}
+                </span>
+              </div>
+
+              {/* RSVP Buttons */}
+              <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                {[
+                  { status: 'going', label: 'Going', icon: '✓' },
+                  { status: 'maybe', label: 'Maybe', icon: '?' },
+                  { status: 'not_going', label: "Can't", icon: '✗' },
+                ].map(opt => {
+                  const isActive = rsvp === opt.status
+                  return (
+                    <button
+                      key={opt.status}
+                      onClick={() => handleRsvp(event.id, opt.status)}
+                      className="flex-1 py-2 rounded-lg text-xs font-bold text-center transition"
+                      style={{
+                        background: isActive ? 'rgba(75,185,236,0.15)' : '#0D1B3E',
+                        color: isActive ? '#4BB9EC' : 'rgba(255,255,255,0.30)',
+                        border: isActive ? '1px solid #4BB9EC' : '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      {opt.icon} {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* ── 9. CLOSING MASCOT (matches mobile ClosingMascot — 🐱 + XP motivation) ── */}
+        <div className="text-center pt-2 pb-6">
+          <span className="text-4xl block mb-2.5" style={{ opacity: 0.5 }}>🐱</span>
+          <p className="text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.30)' }}>
+            {xpToNext} XP to Level {level + 1}
+          </p>
+          <p className="text-xs font-medium mt-1" style={{ color: 'rgba(255,255,255,0.15)' }}>
+            {gamesPlayed > 0 ? 'Keep grinding — every play counts' : 'Play your first game to start leveling up'}
+          </p>
+        </div>
+
+      </div>
     </div>
   )
 }

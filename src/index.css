@@ -279,3 +279,11 @@
 .player-pulse-new {
   animation: playerPulse 2s ease-in-out infinite;
 }
+/* Player dashboard — OVR badge gold glow pulse */
+@keyframes playerOvrPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255,215,0,0.25); }
+  50% { box-shadow: 0 0 20px rgba(255,215,0,0.45); }
+}
+.player-ovr-pulse {
+  animation: playerOvrPulse 1.25s ease-in-out infinite;
+}

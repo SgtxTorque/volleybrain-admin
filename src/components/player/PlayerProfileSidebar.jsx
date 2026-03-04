@@ -12,9 +12,11 @@ const STAT_DEFS = [
 ]
 
 /**
- * PlayerProfileSidebar — Left 240px column
- * Profile hero, XP/level, streak, compact stats, quick links
- * ALL colors via CSS variables (--player-*)
+ * PlayerProfileSidebar — Left 260px column
+ * Mobile HeroIdentityCard parity: gradient card with display name,
+ * OVR badge with gold glow pulse, XP bar with cyan fill + shimmer,
+ * streak banner (gold-tinted), counters, season stats, quick links.
+ * Dark theme: #0D1B3E bg, #10284C cards
  */
 export default function PlayerProfileSidebar({
   viewingPlayer,
@@ -37,129 +39,138 @@ export default function PlayerProfileSidebar({
 
   // Mock streak (TODO: Wire to real attendance/login streak data)
   const streak = gamesPlayed > 0 ? Math.min(gamesPlayed * 2 + 3, 30) : 0
+  const firstName = viewingPlayer?.first_name || ''
+  const lastName = viewingPlayer?.last_name || ''
 
   return (
     <aside
-      className="w-[240px] shrink-0 overflow-y-auto h-full p-4 space-y-4"
-      style={{ background: 'var(--player-card)', borderRight: '1px solid var(--player-border)' }}
+      className="w-[260px] shrink-0 overflow-y-auto h-full p-5 space-y-4 scrollbar-hide"
+      style={{ background: '#0D1B3E', borderRight: '1px solid rgba(255,255,255,0.06)', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
-      {/* 1. Player Profile Hero */}
-      <div className="text-center">
-        <div className="relative inline-block mx-auto mb-3">
-          <div
-            className="w-[140px] h-[140px] rounded-[18px] overflow-hidden mx-auto"
-            style={{ boxShadow: '0 0 20px var(--player-accent-glow)', border: '2px solid var(--player-accent)' }}
-          >
-            {viewingPlayer?.photo_url ? (
-              <img src={viewingPlayer.photo_url} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--player-bg)' }}>
-                <span className="text-4xl font-black" style={{ color: 'var(--player-text-muted)' }}>
-                  {viewingPlayer?.first_name?.[0]}{viewingPlayer?.last_name?.[0]}
-                </span>
-              </div>
-            )}
+      {/* ── Hero Identity Card (matches mobile HeroIdentityCard) ── */}
+      <div
+        className="rounded-[22px] p-5 relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #10284C, #162848, #10284C)',
+          border: '1px solid rgba(75,185,236,0.15)',
+        }}
+      >
+        {/* Top row: Name + OVR */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[2px] mb-1" style={{ color: 'rgba(75,185,236,0.60)' }}>
+              {primaryTeam?.name || 'My Team'}
+            </p>
+            <h2 className="text-[32px] font-black leading-[0.95] tracking-wide" style={{ color: '#fff' }}>
+              {firstName}
+            </h2>
+            <h2 className="text-[32px] font-black leading-[0.95] tracking-wide" style={{ color: '#fff' }}>
+              {lastName}
+            </h2>
           </div>
-          {/* Level badge */}
-          <div
-            className="absolute -top-2 -left-2 w-10 h-10 rounded-full flex flex-col items-center justify-center"
-            style={{ background: 'var(--player-bg)', border: '2px solid var(--player-accent)' }}
-          >
-            <span className="text-[8px] font-bold uppercase leading-none" style={{ color: 'var(--player-text-muted)' }}>LVL</span>
-            <span className="text-sm font-black leading-none" style={{ color: 'var(--player-text)' }}>{level}</span>
-          </div>
-          {/* Overall rating */}
+          {/* OVR Badge — gold glow pulse */}
           {overallRating > 0 && (
             <div
-              className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg flex items-center justify-center"
-              style={{ background: 'var(--player-accent)' }}
+              className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center shrink-0 player-ovr-pulse"
+              style={{
+                background: 'rgba(255,215,0,0.10)',
+                border: '2px solid rgba(255,215,0,0.40)',
+                boxShadow: '0 0 12px rgba(255,215,0,0.25)',
+              }}
             >
-              <span className="text-white font-black text-lg">{overallRating}</span>
+              <span className="text-[28px] font-black leading-none" style={{ color: '#FFD700' }}>{overallRating}</span>
+              <span className="text-[8px] font-bold uppercase tracking-[1.5px] leading-none" style={{ color: 'rgba(255,215,0,0.60)' }}>OVR</span>
             </div>
           )}
         </div>
 
-        <h2 className="text-xl font-black truncate" style={{ color: 'var(--player-text)' }}>{displayName}</h2>
-        {primaryTeam && (
-          <span
-            className="inline-block px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider mt-1.5"
-            style={{ background: 'var(--player-accent)', color: '#fff' }}
-          >
-            {primaryTeam.name}
-          </span>
-        )}
-        <p className="text-xs mt-1.5" style={{ color: 'var(--player-text-secondary)' }}>
-          {viewingPlayer?.position || 'Player'}
-          {viewingPlayer?.jersey_number ? ` · #${viewingPlayer.jersey_number}` : ''}
-        </p>
-      </div>
-
-      {/* 2. Level / XP Bar */}
-      <div className="rounded-[18px] p-3" style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--player-text-secondary)' }}>
-            <Sparkles className="w-3 h-3 inline mr-1" style={{ color: 'var(--player-accent)' }} />
-            Level {level}
-          </span>
-          <span className="text-[10px]" style={{ color: 'var(--player-text-muted)' }}>{xpToNext} XP to next</span>
-        </div>
-        <div className="h-3 rounded-full overflow-hidden" style={{ background: 'var(--player-border)' }}>
-          <div
-            className="h-full rounded-full player-shimmer relative"
-            style={{
-              width: xpAnimated ? `${Math.max(xpProgress, 3)}%` : '0%',
-              background: `linear-gradient(90deg, var(--player-accent), var(--player-accent), transparent 200%)`,
-              transition: 'width 1s ease-out',
-            }}
-          />
-        </div>
-        <p className="text-[10px] text-center mt-1.5" style={{ color: 'var(--player-text-muted)' }}>
-          {xp.toLocaleString()} XP Total
+        {/* Info row */}
+        <p className="text-[11px] font-semibold mb-4" style={{ color: 'rgba(255,255,255,0.30)' }}>
+          {primaryTeam?.name || '—'} · {viewingPlayer?.position || 'Player'}{viewingPlayer?.jersey_number ? ` · #${viewingPlayer.jersey_number}` : ''}
         </p>
 
-        {/* Games / Trophies / Points counters */}
-        <div className="grid grid-cols-3 gap-1.5 mt-3">
-          {[
-            { value: gamesPlayed, label: 'Games' },
-            { value: badges.length, label: 'Trophies' },
-            { value: seasonStats?.total_points || 0, label: 'Points' },
-          ].map(s => (
-            <div key={s.label} className="text-center py-1.5 rounded-lg" style={{ background: 'var(--player-card)' }}>
-              <p className="text-sm font-black" style={{ color: 'var(--player-text)' }}>{s.value}</p>
-              <p className="text-[9px] uppercase tracking-wide font-bold" style={{ color: 'var(--player-text-muted)' }}>{s.label}</p>
-            </div>
-          ))}
+        {/* Photo + pills row */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0" style={{ border: '2px solid rgba(75,185,236,0.30)' }}>
+            {viewingPlayer?.photo_url ? (
+              <img src={viewingPlayer.photo_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-sm font-bold" style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.30)' }}>
+                {firstName[0]}{lastName[0]}
+              </div>
+            )}
+          </div>
+          <div className="flex gap-1.5">
+            <span
+              className="px-2.5 py-1 rounded-xl text-[10px] font-bold"
+              style={{ background: 'rgba(255,215,0,0.10)', border: '1px solid rgba(255,215,0,0.15)', color: '#FFD700' }}
+            >
+              LVL {level}
+            </span>
+            <span
+              className="px-2.5 py-1 rounded-xl text-[10px] font-bold"
+              style={{ background: 'rgba(75,185,236,0.10)', border: '1px solid rgba(75,185,236,0.15)', color: '#4BB9EC' }}
+            >
+              {gamesPlayed} GP
+            </span>
+          </div>
+        </div>
+
+        {/* XP Bar (mobile parity: cyan fill + gold shimmer) */}
+        <div className="flex items-center gap-2.5">
+          <span className="text-[10px] font-bold" style={{ color: '#FFD700' }}>LVL {level}</span>
+          <div className="flex-1 h-2 rounded-full overflow-hidden relative" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <div
+              className="h-full rounded-full relative player-shimmer"
+              style={{
+                width: xpAnimated ? `${Math.max(xpProgress, 3)}%` : '0%',
+                background: '#4BB9EC',
+                transition: 'width 1s ease-out',
+              }}
+            />
+          </div>
+          <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,255,255,0.30)' }}>
+            {xp % 1000}/{1000}
+          </span>
         </div>
       </div>
 
-      {/* 3. Streak Counter */}
-      <div
-        className="rounded-[18px] p-3 text-center"
-        style={{
-          background: streak > 0 ? 'var(--player-bg)' : 'var(--player-card)',
-          border: streak > 0 ? '1px solid var(--player-accent)' : '1px solid var(--player-border)',
-          boxShadow: streak > 0 ? '0 0 12px var(--player-accent-glow)' : 'none',
-        }}
-      >
-        {streak > 0 ? (
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-lg">🔥</span>
-            <span className="text-xl font-black" style={{ color: 'var(--player-accent)' }}>{streak}</span>
-            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--player-text-secondary)' }}>Day Streak</span>
+      {/* ── Streak Banner (matches mobile StreakBanner — gold-tinted) ── */}
+      {streak >= 2 && (
+        <div
+          className="rounded-2xl px-4 py-3 flex items-center gap-3"
+          style={{
+            background: 'rgba(255,215,0,0.06)',
+            border: '1px solid rgba(255,215,0,0.15)',
+          }}
+        >
+          <span className="text-xl">🔥</span>
+          <div className="flex-1">
+            <p className="text-[13px] font-bold" style={{ color: '#FFD700' }}>{streak}-day streak!</p>
+            <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.30)' }}>Keep it going</p>
           </div>
-        ) : (
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-lg" style={{ opacity: 0.3 }}>🔥</span>
-            <span className="text-xs font-bold" style={{ color: 'var(--player-text-muted)' }}>Start a streak!</span>
+        </div>
+      )}
+
+      {/* ── Counters Row (Games / Badges / Points) ── */}
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { value: gamesPlayed, label: 'Games' },
+          { value: badges.length, label: 'Badges' },
+          { value: seasonStats?.total_points || 0, label: 'Points' },
+        ].map(s => (
+          <div key={s.label} className="text-center py-2 rounded-xl" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-sm font-black" style={{ color: '#fff' }}>{s.value}</p>
+            <p className="text-[9px] uppercase tracking-wide font-bold" style={{ color: 'rgba(255,255,255,0.30)' }}>{s.label}</p>
           </div>
-        )}
+        ))}
       </div>
 
-      {/* 4. Season Stats Preview (compact) */}
+      {/* ── Season Stats (compact) ── */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--player-text-muted)' }}>Season Stats</h3>
-          <button onClick={() => onNavigate?.('leaderboards')} className="text-[10px] font-bold hover:opacity-80" style={{ color: 'var(--player-accent)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px]" style={{ color: 'rgba(255,255,255,0.15)' }}>Season Stats</p>
+          <button onClick={() => onNavigate?.('leaderboards')} className="text-[10px] font-bold hover:opacity-80" style={{ color: '#4BB9EC' }}>
             View All →
           </button>
         </div>
@@ -171,24 +182,24 @@ export default function PlayerProfileSidebar({
             return (
               <div
                 key={stat.key}
-                className="flex items-center gap-2.5 py-2 px-2.5 rounded-lg"
-                style={{ background: 'var(--player-bg)' }}
+                className="flex items-center gap-2.5 py-2 px-2.5 rounded-xl"
+                style={{ background: 'rgba(255,255,255,0.03)' }}
               >
-                <StatIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--player-accent)' }} />
-                <span className="text-xs font-semibold flex-1" style={{ color: 'var(--player-text-secondary)' }}>{stat.label}</span>
-                <span className="text-sm font-black" style={{ color: 'var(--player-text)' }}>{value}</span>
+                <StatIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#4BB9EC' }} />
+                <span className="text-xs font-semibold flex-1" style={{ color: 'rgba(255,255,255,0.60)' }}>{stat.label}</span>
+                <span className="text-sm font-black" style={{ color: '#fff' }}>{value}</span>
                 {rank && rank <= 10 ? (
                   <span
                     className="text-[9px] font-black px-1.5 py-0.5 rounded"
                     style={{
-                      background: rank <= 3 ? 'var(--player-accent-glow)' : 'var(--player-border)',
-                      color: rank <= 3 ? 'var(--player-accent)' : 'var(--player-text-muted)',
+                      background: rank <= 3 ? 'rgba(255,215,0,0.15)' : 'rgba(255,255,255,0.06)',
+                      color: rank <= 3 ? '#FFD700' : 'rgba(255,255,255,0.30)',
                     }}
                   >
                     #{rank}
                   </span>
                 ) : (
-                  <span className="text-[9px] w-5 text-center" style={{ color: 'var(--player-text-muted)' }}>—</span>
+                  <span className="text-[9px] w-5 text-center" style={{ color: 'rgba(255,255,255,0.15)' }}>—</span>
                 )}
               </div>
             )
@@ -196,13 +207,13 @@ export default function PlayerProfileSidebar({
         </div>
       </div>
 
-      {/* 5. Quick Links (2x2 dark grid) */}
+      {/* ── Quick Links (2x2 dark grid) ── */}
       <div>
-        <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--player-text-muted)' }}>Quick Links</h3>
+        <p className="text-[10px] font-bold uppercase tracking-[1.2px] mb-2" style={{ color: 'rgba(255,255,255,0.15)' }}>Quick Links</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             { icon: Users, label: 'Team Hub', action: () => primaryTeam && navigateToTeamWall?.(primaryTeam.id) },
-            { icon: Trophy, label: 'Leaderboards', action: () => onNavigate?.('leaderboards') },
+            { icon: Trophy, label: 'Leaders', action: () => onNavigate?.('leaderboards') },
             { icon: Award, label: 'Trophies', action: () => onNavigate?.('achievements') },
             { icon: BarChart3, label: 'Standings', action: () => onNavigate?.('standings') },
           ].map(link => {
@@ -211,11 +222,11 @@ export default function PlayerProfileSidebar({
               <button
                 key={link.label}
                 onClick={link.action}
-                className="rounded-[18px] p-3 text-center group"
-                style={{ background: 'var(--player-bg)', border: '1px solid var(--player-border)' }}
+                className="rounded-xl p-3 text-center hover:brightness-110 transition"
+                style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
               >
-                <Icon className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--player-accent)' }} />
-                <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: 'var(--player-text-secondary)' }}>
+                <Icon className="w-5 h-5 mx-auto mb-1" style={{ color: '#4BB9EC' }} />
+                <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: 'rgba(255,255,255,0.60)' }}>
                   {link.label}
                 </span>
               </button>
