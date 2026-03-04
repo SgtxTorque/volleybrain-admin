@@ -21,14 +21,14 @@ export default function CoachRosterPanel({
   onEventSelect,
 }) {
   const { isDark } = useTheme()
-  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
+  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
   const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
 
   return (
-    <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-l border-lynx-border-dark' : 'bg-white border-l border-lynx-silver/50'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-l border-lynx-border-dark' : 'bg-[#F6F8FB] border-l border-[#E8ECF2]'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
       {/* 1. Season Record */}
-      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+      <div className={`${cardBg} rounded-[18px] p-4`}>
         <div className="flex items-center gap-2 mb-3">
           <Trophy className="w-4 h-4 text-amber-500" />
           <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Season Record</h3>
@@ -70,7 +70,7 @@ export default function CoachRosterPanel({
       </div>
 
       {/* 2. Upcoming Events (3 max, with RSVP summary) */}
-      <div className={`${cardBg} rounded-xl shadow-sm`}>
+      <div className={`${cardBg} rounded-[18px]`}>
         <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-lynx-sky" />
@@ -137,7 +137,7 @@ export default function CoachRosterPanel({
       </div>
 
       {/* 3. Top Players Leaderboard */}
-      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+      <div className={`${cardBg} rounded-[18px] p-4`}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 text-amber-500" />
@@ -310,7 +310,7 @@ function ActiveChallengesCard({ challenges, isDark, cardBg, secondaryText, onNav
 
   if (!challenges || challenges.length === 0) {
     return (
-      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+      <div className={`${cardBg} rounded-[18px] p-4`}>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">🏆</span>
           <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Challenges</h3>
@@ -330,7 +330,7 @@ function ActiveChallengesCard({ challenges, isDark, cardBg, secondaryText, onNav
   }
 
   return (
-    <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+    <div className={`${cardBg} rounded-[18px] p-4`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-base">🏆</span>

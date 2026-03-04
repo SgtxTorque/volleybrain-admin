@@ -176,32 +176,44 @@ export default function CoachCenterDashboard({
   }
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 space-y-4 min-w-0">
-
-      {/* Row 0: Welcome + Season Selector (compact) */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Welcome back, {coachName}</h1>
-          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{selectedTeam?.name} · {selectedSeason?.name}</p>
-        </div>
-        {availableSeasons?.length > 1 && (
-          <div className="relative">
-            <select
-              value={selectedSeason?.id || ''}
-              onChange={e => {
-                const season = availableSeasons.find(s => s.id === e.target.value)
-                if (season) selectSeason?.(season)
-              }}
-              className={`appearance-none pl-3 pr-8 py-2 rounded-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'} ${isDark ? 'hover:border-white/[0.12]' : 'hover:border-slate-300'} cursor-pointer`}
-            >
-              {availableSeasons.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-            <ChevronDown className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'} absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none`} />
+    <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      {/* Dark Navy Header Band */}
+      <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-[#0D1B3E]'} px-8 pt-5 pb-24 shrink-0`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4BB9EC]/20 to-[#10284C] border border-[#4BB9EC]/20 flex items-center justify-center text-[12px] font-bold text-[#4BB9EC]">
+              {coachName?.[0] || 'C'}
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-white">{coachName}</p>
+              <p className="text-[11px] text-white/30 font-medium">{selectedTeam?.name} · {selectedSeason?.name}</p>
+            </div>
           </div>
-        )}
+          {availableSeasons?.length > 1 && (
+            <div className="relative">
+              <select
+                value={selectedSeason?.id || ''}
+                onChange={e => {
+                  const season = availableSeasons.find(s => s.id === e.target.value)
+                  if (season) selectSeason?.(season)
+                }}
+                className="appearance-none pl-3 pr-8 py-2 rounded-xl bg-white/[0.06] border border-white/[0.08] text-sm font-semibold text-white/80 hover:border-white/[0.15] cursor-pointer"
+              >
+                {availableSeasons.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-white/30 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
+        </div>
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#4BB9EC]/50 mb-1">Coach Command Center</p>
+        <h1 className="text-[28px] font-black leading-none tracking-wide text-white uppercase">GAME DAY OPERATIONS</h1>
       </div>
+
+      {/* Floating Content Area */}
+      <div className={`flex-1 px-8 -mt-16 overflow-y-auto pb-8`}>
+      <div className="space-y-4">
 
       {/* Team Selector (multi-team) */}
       {teams.length > 1 && (
@@ -215,7 +227,7 @@ export default function CoachCenterDashboard({
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl border whitespace-nowrap flex-shrink-0 ${
                   isSelected
                     ? 'bg-lynx-sky text-white border-transparent shadow-sm'
-                    : isDark ? 'border-white/[0.06] bg-lynx-charcoal hover:border-white/[0.12]' : 'border-lynx-silver bg-white hover:border-slate-300'
+                    : isDark ? 'border-white/[0.06] bg-lynx-charcoal hover:border-white/[0.12]' : 'border-[#E8ECF2] bg-white hover:border-slate-300'
                 }`}
               >
                 {team.logo_url ? (
@@ -261,7 +273,7 @@ export default function CoachCenterDashboard({
             {/* Panel A: Season Totals */}
             <button
               onClick={() => onNavigate?.('leaderboards')}
-              className={`w-full ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-4 text-left hover:shadow-md h-full flex flex-col`}
+              className={`w-full ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[18px] shadow-sm p-4 text-left hover:shadow-md h-full flex flex-col`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -304,7 +316,7 @@ export default function CoachCenterDashboard({
       {pendingStats > 0 && (
         <button
           onClick={() => onNavigate?.('gameprep')}
-          className={`w-full flex items-center justify-between p-3 rounded-xl border transition ${
+          className={`w-full flex items-center justify-between p-3 rounded-[14px] border transition ${
             isDark ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/15' : 'bg-amber-50 border-amber-300 hover:bg-amber-100'
           }`}
         >
@@ -346,7 +358,7 @@ export default function CoachCenterDashboard({
       {/* Row 4: Team Hub + Chat Previews (max height) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Team Hub Preview */}
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden max-h-[300px]`}>
+        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[18px] shadow-sm overflow-hidden max-h-[300px]`}>
           <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-lynx-sky" />
@@ -387,7 +399,7 @@ export default function CoachCenterDashboard({
         </div>
 
         {/* Team Chat Preview */}
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm overflow-hidden max-h-[300px] flex flex-col`}>
+        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[18px] shadow-sm overflow-hidden max-h-[300px] flex flex-col`}>
           <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} flex-shrink-0`}>
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-emerald-500" />
@@ -496,6 +508,8 @@ export default function CoachCenterDashboard({
         onNavigate={onNavigate}
       />
 
-    </main>
+      </div>
+      </div>
+    </div>
   )
 }

@@ -63,13 +63,13 @@ function EventDetailModal({ event, team, onClose }) {
             </div>
           )}
           {event.notes && (
-            <div className={`rounded-xl p-4 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-lynx-cloud border border-slate-100'}`}>
+            <div className={`rounded-xl p-4 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-[#F6F8FB] border border-slate-100'}`}>
               <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
             </div>
           )}
         </div>
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium ${isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-600 hover:bg-lynx-cloud'}`}>Close</button>
+          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium ${isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-600 hover:bg-[#F6F8FB]'}`}>Close</button>
         </div>
       </div>
     </div>
@@ -134,22 +134,22 @@ function CoachBlastModal({ team, onClose, showToast }) {
         <div className="p-6 space-y-4">
           <div>
             <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Subject</label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Practice time change tomorrow" className={`w-full px-4 py-3 rounded-xl ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-lynx-cloud border border-lynx-silver text-slate-900 placeholder-slate-400'}`} />
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Practice time change tomorrow" className={`w-full px-4 py-3 rounded-xl ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-[#F6F8FB] border border-lynx-silver text-slate-900 placeholder-slate-400'}`} />
           </div>
           <div>
             <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Message</label>
-            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message to parents..." rows={4} className={`w-full px-4 py-3 rounded-xl resize-none ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-lynx-cloud border border-lynx-silver text-slate-900 placeholder-slate-400'}`} />
+            <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message to parents..." rows={4} className={`w-full px-4 py-3 rounded-xl resize-none ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-[#F6F8FB] border border-lynx-silver text-slate-900 placeholder-slate-400'}`} />
           </div>
           <div>
             <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Priority</label>
             <div className="flex gap-2">
-              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? (isDark ? 'bg-lynx-sky/10 border border-lynx-sky/30 text-lynx-sky' : 'bg-lynx-ice border border-lynx-sky/30 text-lynx-sky') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-lynx-cloud border border-lynx-silver text-slate-500')}`}>Normal</button>
-              <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'urgent' ? (isDark ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-red-50 border border-red-300 text-red-600') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-lynx-cloud border border-lynx-silver text-slate-500')}`}>Urgent</button>
+              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? (isDark ? 'bg-lynx-sky/10 border border-lynx-sky/30 text-lynx-sky' : 'bg-lynx-ice border border-lynx-sky/30 text-lynx-sky') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-[#F6F8FB] border border-lynx-silver text-slate-500')}`}>Normal</button>
+              <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'urgent' ? (isDark ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-red-50 border border-red-300 text-red-600') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-[#F6F8FB] border border-lynx-silver text-slate-500')}`}>Urgent</button>
             </div>
           </div>
         </div>
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} flex gap-3`}>
-          <button onClick={onClose} className={`flex-1 py-3 rounded-xl font-medium ${isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-600 hover:bg-lynx-cloud'}`}>Cancel</button>
+          <button onClick={onClose} className={`flex-1 py-3 rounded-xl font-medium ${isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-600 hover:bg-[#F6F8FB]'}`}>Cancel</button>
           <button onClick={handleSend} disabled={sending || !title.trim() || !body.trim()} className="flex-1 py-3 rounded-xl font-bold text-white bg-lynx-sky hover:bg-lynx-deep disabled:opacity-50">
             {sending ? 'Sending...' : 'Send Message'}
           </button>
@@ -700,7 +700,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── Loading State ──
   if (loading) {
     return (
-      <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`} style={{ minHeight: '60vh' }}>
+      <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`} style={{ minHeight: '60vh' }}>
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin mx-auto" />
           <p className={`mt-4 text-sm tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Loading dashboard...</p>
@@ -712,7 +712,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── No Teams State ──
   if (teams.length === 0) {
     return (
-      <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`} style={{ minHeight: '60vh' }}>
+      <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`} style={{ minHeight: '60vh' }}>
         <div className="text-center max-w-md mx-auto px-6">
           <div className={`w-20 h-20 rounded-xl mx-auto mb-6 flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
             <Shield className="w-10 h-10 text-lynx-sky" />
@@ -726,7 +726,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // ── Main Render: 3-Column Layout ──
   return (
-    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`}>
       <CoachLeftSidebar
         selectedTeam={selectedTeam}
         coachName={coachName}

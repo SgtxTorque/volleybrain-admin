@@ -25,12 +25,12 @@ export default function CoachLeftSidebar({
 }) {
   const { isDark } = useTheme()
   const sportName = selectedTeam?.seasons?.sports?.name || 'Volleyball'
-  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'
+  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
   const primaryText = isDark ? 'text-white' : 'text-slate-900'
   const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
 
   return (
-    <aside className={`hidden xl:flex w-[240px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-r border-lynx-border-dark' : 'bg-white border-r border-lynx-silver/50'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className={`hidden xl:flex w-[240px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-r border-lynx-border-dark' : 'bg-[#F6F8FB] border-r border-[#E8ECF2]'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {/* 1. Team Header / Coach Identity Card */}
       <div>
         <div className="flex items-center gap-3">
@@ -68,7 +68,7 @@ export default function CoachLeftSidebar({
       </div>
 
       {/* 3. Coach Onboarding Journey */}
-      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+      <div className={`${cardBg} rounded-[18px] p-4`}>
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Coach Setup</span>
           <span className="text-xs font-bold text-lynx-sky">3/7</span>
@@ -91,7 +91,7 @@ export default function CoachLeftSidebar({
       </div>
 
       {/* 4. Needs Attention */}
-      <div className={`${cardBg} rounded-xl shadow-sm p-4`}>
+      <div className={`${cardBg} rounded-[18px] p-4`}>
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-4 h-4 text-amber-500" />
           <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Needs Attention</h3>
