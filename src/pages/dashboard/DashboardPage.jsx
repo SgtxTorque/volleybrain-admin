@@ -17,6 +17,7 @@ import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
 import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 import LynxSidebar from '../../components/layout/LynxSidebar'
+import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1429,6 +1430,55 @@ export function DashboardPage({ onNavigate }) {
       {/* Main Content — scrollable, offset for sidebar */}
       <div className="flex-1 xl:ml-16 overflow-y-auto">
         <div className="px-6 py-6 space-y-5 max-w-[1200px] mx-auto">
+
+          {/* ─── 0. ORG HEALTH HERO ──────────────────────────── */}
+          {(() => {
+            // Calculate health score: (waiverPct * 0.25) + (paymentPct * 0.30) + (rosterPct * 0.25) + (coachPct * 0.20)
+            const waiverTotal = (stats.unsignedWaivers || 0) + (stats.totalRegistrations || 0)
+            const waiverPct = waiverTotal > 0 ? Math.round(((waiverTotal - (stats.unsignedWaivers || 0)) / waiverTotal) * 100) : 100
+            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100) : 100
+            const rosterPct = (stats.totalRegistrations || 0) > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / stats.totalRegistrations) * 100)) : 100
+            const coachPct = (stats.teams || 0) > 0 ? Math.round(((stats.teamsWithCoach || 0) / stats.teams) * 100) : 100
+            const healthScore = Math.round(waiverPct * 0.25 + paymentPct * 0.30 + rosterPct * 0.25 + coachPct * 0.20)
+
+            // Count events this month
+            const now = new Date()
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+            const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+            const eventsThisMonth = upcomingEvents.filter(e => {
+              const d = new Date(e.event_date)
+              return d >= monthStart && d <= monthEnd
+            }).length
+
+            // Overdue payment count
+            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
+
+            // Build urgent items
+            const urgentItems = []
+            if ((stats.pending || 0) > 0) urgentItems.push({ label: 'Pending registrations', count: stats.pending, severity: 'critical', page: 'registrations' })
+            if ((stats.pastDue || 0) > 0) urgentItems.push({ label: 'Overdue payments', count: overdueCount, severity: 'warning', page: 'payments' })
+            if ((stats.unsignedWaivers || 0) > 0) urgentItems.push({ label: 'Unsigned waivers', count: stats.unsignedWaivers, severity: 'info', page: 'waivers' })
+            if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) urgentItems.push({ label: 'Teams need a coach', count: (stats.teams || 0) - (stats.teamsWithCoach || 0), severity: 'info', page: 'coaches' })
+
+            return (
+              <OrgHealthHero
+                orgName={orgName || organization?.name || 'My Organization'}
+                healthScore={healthScore}
+                kpis={{
+                  teams: stats.teams || 0,
+                  players: stats.totalRegistrations || 0,
+                  revenueCollected: stats.totalCollected || 0,
+                  outstanding: (stats.totalExpected || 0) - (stats.totalCollected || 0),
+                  waiverPct,
+                  eventsMonth: eventsThisMonth,
+                  coaches: stats.coachCount || 0,
+                  overduePayments: overdueCount,
+                }}
+                urgentItems={urgentItems}
+                onNavigate={onNavigate}
+              />
+            )
+          })()}
 
           {/* ─── 1. WELCOME BRIEFING ─────────────────────────── */}
           <div className="text-center py-2">
