@@ -36,6 +36,7 @@ import {
   BlastAlertChecker,
   JourneyCelebrations
 } from './components/layout'
+import LynxSidebar from './components/layout/LynxSidebar'
 
 // Parent Onboarding Components
 import { SpotlightOverlay, ParentChecklistWidget, FloatingHelpButton } from './components/parent/ParentOnboarding'
@@ -501,139 +502,18 @@ function HorizontalNavBar({
   activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
   getAvailableViews, setActiveView, signOut,
   tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
-  roleContext, organization, isPlatformAdmin
+  roleContext, organization, isPlatformAdmin,
+  // Phase 2: nav groups + handler passed from MainApp
+  navGroups: navGroupsProp, handleNavigation: handleNavigateProp
 }) {
   const navigate = useNavigate()
   const page = useCurrentPageId()
   const location = useLocation()
   const directTeamWallId = location.pathname.match(/^\/teams\/([^/]+)$/)?.[1] || null
-  // Admin navigation with dropdowns
-  const adminNavGroups = [
-    { id: 'dashboard', label: 'Dashboard', type: 'single' },
-    { id: 'people', label: 'People', type: 'dropdown', items: [
-      { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
-      { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
-    ]},
-    { id: 'operations', label: 'Operations', type: 'dropdown', items: [
-      { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
-      { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
-      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
-      { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
-      { id: 'payments', label: 'Payments', icon: 'dollar' },
-      { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
-    ]},
-    { id: 'game', label: 'Game Day', type: 'dropdown', items: [
-      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
-      { id: 'standings', label: 'Standings', icon: 'star' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-    ]},
-    { id: 'communication', label: 'Communication', type: 'dropdown', items: [
-      { id: 'chats', label: 'Chats', icon: 'message' },
-      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
-      { id: 'notifications', label: 'Push Notifications', icon: 'bell' },
-    ]},
-    { id: 'insights', label: 'Insights', type: 'dropdown', items: [
-      { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
-      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
-      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
-      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
-    ]},
-    { id: 'setup', label: 'Setup', type: 'dropdown', items: [
-  { id: 'seasons', label: 'Seasons', icon: 'calendar' },
-  { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
-  { id: 'waivers', label: 'Waivers', icon: 'file-text' },
-  { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
-  { id: 'organization', label: 'Organization', icon: 'building' },
-  { id: 'data-export', label: 'Data Export', icon: 'download' },
-  { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
-]},
-  ]
 
-  // Coach navigation (slimmed: Dashboard | My Teams | Schedule | Game Day | Communication | My Stuff)
-  const coachNavGroups = [
-    { id: 'dashboard', label: 'Dashboard', type: 'single' },
-    { id: 'myteams', label: 'My Teams', type: 'dropdown', items: [
-      { id: 'roster', label: 'Roster Manager', icon: 'users' },
-      ...(roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
-        id: `teamwall-${tc_item.team_id}`,
-        label: tc_item.teams?.name + (tc_item.role === 'head' ? ' ⭐' : ''),
-        icon: 'users',
-        teamId: tc_item.team_id,
-      })) || [])
-    ]},
-    { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'gameday', label: 'Game Day', type: 'dropdown', items: [
-      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
-      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
-      { id: 'standings', label: 'Standings', icon: 'star' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-    ]},
-    { id: 'communication', label: 'Communication', type: 'dropdown', items: [
-      { id: 'chats', label: 'Team Chat', icon: 'message' },
-      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
-    ]},
-    { id: 'mystuff', label: 'My Stuff', type: 'dropdown', items: [
-      { id: 'coach-availability', label: 'My Availability', icon: 'calendar' },
-      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
-      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
-    ]},
-  ]
-
-  // Parent navigation
-  const parentNavGroups = [
-    { id: 'dashboard', label: 'Home', type: 'single' },
-    { id: 'myplayers', label: 'My Players', type: 'dropdown', items:
-      roleContext?.children?.map(child => ({
-        id: `player-${child.id}`,
-        label: child.first_name,
-        icon: 'user',
-        playerId: child.id,
-        teams: child.team_players,
-      })) || []
-    },
-    { id: 'social', label: 'Social', type: 'dropdown', items: [
-      { id: 'chats', label: 'Chat', icon: 'message' },
-      { id: 'team-hub', label: 'Team Hub', icon: 'users' },
-    ]},
-    { id: 'payments', label: 'Payments', type: 'single' },
-    { id: 'mystuff', label: 'My Stuff', type: 'dropdown', items: [
-      { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
-      { id: 'season-archives', label: 'Archives', icon: 'trophy' },
-      { id: 'org-directory', label: 'Directory', icon: 'building' },
-    ]},
-  ]
-
-  // Player navigation (slimmed: Home | My Team | Schedule | Achievements | My Stuff)
-  const playerNavGroups = [
-    { id: 'dashboard', label: 'Home', type: 'single' },
-    { id: 'myteams', label: 'My Team', type: 'dropdown', items:
-      roleContext?.playerInfo?.team_players?.map(tp => ({
-        id: `teamwall-${tp.team_id}`,
-        label: tp.teams?.name,
-        icon: 'users',
-        teamId: tp.team_id,
-      })) || []
-    },
-    { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'achievements', label: 'Achievements', type: 'single' },
-    { id: 'mystuff', label: 'My Stuff', type: 'dropdown', items: [
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-      { id: 'standings', label: 'Standings', icon: 'star' },
-      { id: 'my-stuff', label: 'Profile & Stats', icon: 'user' },
-    ]},
-  ]
-
-  const getNavItems = () => {
-    switch(activeView) {
-      case 'admin': return adminNavGroups
-      case 'coach': return coachNavGroups
-      case 'parent': return parentNavGroups
-      case 'player': return playerNavGroups
-      default: return []
-    }
-  }
-
-  const navItems = getNavItems()
+  // Use nav groups and handler from props (from MainApp)
+  const navItems = navGroupsProp || []
+  const handleNavigate = handleNavigateProp || ((id) => navigate(getPathForPage(id)))
 
   const isGroupActive = (group) => {
     if (group.type === 'single') return page === group.id && !directTeamWallId
@@ -645,26 +525,6 @@ function HorizontalNavBar({
       })
     }
     return false
-  }
-
-  const handleNavigate = (itemId, item) => {
-    if (item?.teamId) {
-      navigate(`/teams/${item.teamId}`)
-      return
-    }
-    if (item?.playerId) {
-      navigate(`/parent/player/${item.playerId}`)
-      return
-    }
-    // team-hub nav item: go to first child's team wall
-    if (itemId === 'team-hub') {
-      const firstTeamId = roleContext?.children?.[0]?.team_players?.[0]?.team_id
-      if (firstTeamId) {
-        navigate(`/teams/${firstTeamId}`)
-        return
-      }
-    }
-    navigate(getPathForPage(itemId))
   }
 
   return (
@@ -1072,6 +932,155 @@ function MainApp() {
     return views
   }
 
+  // ── Nav groups — role-specific, computed at MainApp scope ──
+  const navigate = useNavigate()
+  const page = useCurrentPageId()
+  const directTeamWallId = mainLocation.pathname.match(/^\/teams\/([^/]+)$/)?.[1] || null
+
+  const adminNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'people', label: 'People', type: 'group', icon: 'users', items: [
+      { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
+      { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
+    ]},
+    { id: 'operations', label: 'Operations', type: 'group', icon: 'settings', items: [
+      { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
+      { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+      { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
+      { id: 'payments', label: 'Payments', icon: 'dollar' },
+      { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
+    ]},
+    { id: 'game', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
+      { id: 'chats', label: 'Chats', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+      { id: 'notifications', label: 'Push Notifications', icon: 'bell' },
+    ]},
+    { id: 'insights', label: 'Insights', type: 'group', icon: 'reports', items: [
+      { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
+      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
+    ]},
+    { id: 'setup', label: 'Setup', type: 'group', icon: 'settings', items: [
+      { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+      { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
+      { id: 'waivers', label: 'Waivers', icon: 'file-text' },
+      { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+      { id: 'organization', label: 'Organization', icon: 'building' },
+      { id: 'data-export', label: 'Data Export', icon: 'download' },
+      { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
+    ]},
+  ]
+
+  const coachNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
+      { id: 'roster', label: 'Roster Manager', icon: 'users' },
+      ...(roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
+        id: `teamwall-${tc_item.team_id}`,
+        label: tc_item.teams?.name + (tc_item.role === 'head' ? ' ⭐' : ''),
+        icon: 'users',
+        teamId: tc_item.team_id,
+      })) || [])
+    ]},
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+      { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
+      { id: 'chats', label: 'Team Chat', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      { id: 'coach-availability', label: 'My Availability', icon: 'calendar' },
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
+    ]},
+  ]
+
+  const parentNavGroups = [
+    { id: 'dashboard', label: 'Home', type: 'single', icon: 'home' },
+    { id: 'myplayers', label: 'My Players', type: 'group', icon: 'users', items:
+      roleContext?.children?.map(child => ({
+        id: `player-${child.id}`,
+        label: child.first_name,
+        icon: 'user',
+        playerId: child.id,
+        teams: child.team_players,
+      })) || []
+    },
+    { id: 'social', label: 'Social', type: 'group', icon: 'chats', items: [
+      { id: 'chats', label: 'Chat', icon: 'message' },
+      { id: 'team-hub', label: 'Team Hub', icon: 'users' },
+    ]},
+    { id: 'payments', label: 'Payments', type: 'single', icon: 'payments' },
+    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
+      { id: 'season-archives', label: 'Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Directory', icon: 'building' },
+    ]},
+  ]
+
+  const playerNavGroups = [
+    { id: 'dashboard', label: 'Home', type: 'single', icon: 'home' },
+    { id: 'myteams', label: 'My Team', type: 'group', icon: 'teams', items:
+      roleContext?.playerInfo?.team_players?.map(tp => ({
+        id: `teamwall-${tp.team_id}`,
+        label: tp.teams?.name,
+        icon: 'users',
+        teamId: tp.team_id,
+      })) || []
+    },
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'achievements', label: 'Achievements', type: 'single' },
+    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'my-stuff', label: 'Profile & Stats', icon: 'user' },
+    ]},
+  ]
+
+  function getNavGroups() {
+    switch (activeView) {
+      case 'admin': return adminNavGroups
+      case 'coach': return coachNavGroups
+      case 'parent': return parentNavGroups
+      case 'player': return playerNavGroups
+      default: return []
+    }
+  }
+
+  const currentNavGroups = getNavGroups()
+
+  // Shared navigation handler — same logic for sidebar and top nav
+  function handleNavigation(itemId, item) {
+    if (item?.teamId) {
+      navigate(`/teams/${item.teamId}`)
+      return
+    }
+    if (item?.playerId) {
+      navigate(`/parent/player/${item.playerId}`)
+      return
+    }
+    if (itemId === 'team-hub') {
+      const firstTeamId = roleContext?.children?.[0]?.team_players?.[0]?.team_id
+      if (firstTeamId) {
+        navigate(`/teams/${firstTeamId}`)
+        return
+      }
+    }
+    navigate(getPathForPage(itemId))
+  }
+
   return (
     <OrgBrandingProvider>
     <SportProvider>
@@ -1085,7 +1094,33 @@ function MainApp() {
         {/* Parent Tutorial Spotlight Overlay */}
         {activeView === 'parent' && <SpotlightOverlay />}
 
-        {/* Horizontal Nav Bar */}
+        {/* Sidebar — full nav + utilities */}
+        <LynxSidebar
+          navGroups={currentNavGroups}
+          activePage={page}
+          activePathname={mainLocation.pathname}
+          directTeamWallId={directTeamWallId}
+          onNavigate={handleNavigation}
+          orgName={organization?.name || 'My Club'}
+          orgInitials={(organization?.name || 'MC').substring(0, 2).toUpperCase()}
+          orgLogo={organization?.logo_url}
+          profile={profile}
+          activeView={activeView}
+          availableViews={getAvailableViews()}
+          onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard'); }}
+          onToggleTheme={toggleTheme}
+          onSignOut={signOut}
+          onNavigateToProfile={() => navigate('/profile')}
+          isDark={isDark}
+          notificationCount={0}
+          onOpenNotifications={() => navigate('/notifications')}
+          isPlatformAdmin={isPlatformAdmin}
+          onPlatformAnalytics={() => navigate('/platform/analytics')}
+          onPlatformSubscriptions={() => navigate('/platform/subscriptions')}
+          onPlatformAdmin={() => navigate('/platform/admin')}
+        />
+
+        {/* Horizontal Nav Bar — still present in Phase 2 */}
         <HorizontalNavBar
           activeView={activeView} profile={profile}
           showRoleSwitcher={showRoleSwitcher} setShowRoleSwitcher={setShowRoleSwitcher}
@@ -1095,6 +1130,8 @@ function MainApp() {
           isDark={isDark} toggleTheme={toggleTheme} roleContext={roleContext}
           organization={organization}
           isPlatformAdmin={isPlatformAdmin}
+          navGroups={currentNavGroups}
+          handleNavigation={handleNavigation}
         />
 
         {/* Main Content Area — React Router */}
