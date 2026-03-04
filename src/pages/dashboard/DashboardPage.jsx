@@ -1374,7 +1374,7 @@ export function DashboardPage({ onNavigate }) {
       {/* Center Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Dark Navy Header Band */}
-        <div className="bg-[#0D1B3E] px-8 pt-5 pb-24 shrink-0">
+        <div className="bg-[#0D1B3E] px-8 pt-5 pb-28 shrink-0">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4BB9EC]/20 to-[#10284C] border border-[#4BB9EC]/20 flex items-center justify-center text-[12px] font-bold text-[#4BB9EC]">
@@ -1402,7 +1402,7 @@ export function DashboardPage({ onNavigate }) {
         </div>
 
         {/* Floating Cards Area */}
-        <div className={`flex-1 px-8 -mt-16 overflow-y-auto pb-8 ${isDark ? '' : ''}`}>
+        <div className={`flex-1 px-8 -mt-20 overflow-y-auto pb-8`}>
 
       {/* Dashboard Filters */}
       <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mb-5 ${
@@ -1475,33 +1475,177 @@ export function DashboardPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* Stats Row: Registration Stats + Payment Summary */}
-      <div className="grid grid-cols-2 gap-5 mb-5">
-        <RegistrationStatsCard stats={stats} season={selectedSeason} onNavigate={onNavigate} />
-        <PaymentSummaryCard stats={stats} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
+      {/* === ROW 1: Overall League Health + Registration Velocity | Activity Feed === */}
+      <div className="flex gap-5 mb-5">
+        {/* Left: Health + Chart (flex-2) */}
+        <div className="flex-[2] flex flex-col gap-5">
+          {/* Overall League Health */}
+          <div className={`rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <p className={`text-[13px] font-bold mb-4 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Overall League Health</p>
+            <div className="flex items-center gap-8">
+              <div className="text-center">
+                <p className={`text-[11px] font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>Total Athletes</p>
+                <p className={`font-serif text-[36px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{(stats.totalRegistrations || 0).toLocaleString()}</p>
+              </div>
+              <div className={`w-px h-12 ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`} />
+              <div className="text-center">
+                <p className={`text-[11px] font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>Teams</p>
+                <p className={`font-serif text-[36px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{stats.teams || 0}</p>
+              </div>
+              <div className={`w-px h-12 ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`} />
+              <div className="text-center">
+                <p className={`text-[11px] font-medium mb-1 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>Revenue</p>
+                <p className={`font-serif text-[36px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>${(stats.totalCollected || 0).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Registration Velocity Chart */}
+          <div className={`rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Registration Velocity</p>
+            <MiniLineChart data={monthlyPayments} width={440} height={140} />
+          </div>
+        </div>
+
+        {/* Right: Activity Feed (flex-1) */}
+        <div className="flex-[1]">
+          <div className={`rounded-[18px] p-5 shadow-sm h-full ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Recent Activity Feed</p>
+            <div className="flex flex-col gap-3">
+              {activities.slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center text-[9px] font-bold text-[#4BB9EC] shrink-0">
+                    {item.initials || (item.name || '?').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[11px] font-semibold truncate ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{item.name}</p>
+                    <p className={`text-[11px] font-medium truncate ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/40'}`}>{item.action}</p>
+                  </div>
+                  {item.time && <span className={`text-[9px] font-medium shrink-0 whitespace-nowrap ${isDark ? 'text-slate-600' : 'text-[#0D1B3E]/20'}`}>{item.time}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Actions Row */}
-      <div className="flex gap-3">
+      {/* === ROW 2: Payment Status Dashboard | Registration Metrics === */}
+      <div className="flex gap-5 mb-5">
+        {/* Payment Status (flex-2) */}
+        <div className={`flex-[2] rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+          <p className={`text-[10px] font-bold tracking-[0.12em] uppercase mb-3 ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>Payment Status Dashboard</p>
+          <div className="flex items-end gap-10">
+            <div>
+              <p className="text-[11px] text-[#22C55E] font-semibold mb-0.5">Paid</p>
+              <p className={`font-serif text-[42px] leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>${(stats.totalCollected || 0).toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-[#EF4444] font-semibold mb-0.5">Unpaid</p>
+              <p className="font-serif text-[42px] leading-none text-[#EF4444]">${(stats.pastDue || 0).toLocaleString()}</p>
+            </div>
+          </div>
+          {/* Progress bar */}
+          {(() => {
+            const total = (stats.totalCollected || 0) + (stats.pastDue || 0)
+            const pct = total > 0 ? Math.round((stats.totalCollected / total) * 100) : 0
+            return (
+              <>
+                <div className={`h-3 rounded-full overflow-hidden mt-4 ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`}>
+                  <div className="h-full bg-gradient-to-r from-[#22C55E] to-[#4BB9EC] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-[11px] text-[#22C55E] font-semibold mt-2">{pct}% collected</p>
+              </>
+            )
+          })()}
+        </div>
+
+        {/* Registration Metrics (flex-1) */}
+        <div className={`flex-[1] rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+          <p className={`text-[10px] font-bold tracking-[0.12em] uppercase mb-3 ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>Registration Breakdown</p>
+          <div className="space-y-3">
+            <div>
+              <p className={`text-[11px] font-medium mb-0.5 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>Approved</p>
+              <p className={`font-serif text-[28px] leading-none ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>{stats.approved || 0}</p>
+            </div>
+            <div>
+              <p className={`text-[11px] font-medium mb-0.5 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>Pending</p>
+              <p className={`font-serif text-[28px] leading-none ${isDark ? 'text-amber-400' : 'text-[#F59E0B]'}`}>{stats.pending || 0}</p>
+            </div>
+            <div>
+              <p className={`text-[11px] font-medium mb-0.5 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>Waitlisted</p>
+              <p className={`font-serif text-[28px] leading-none ${isDark ? 'text-purple-400' : 'text-[#8B5CF6]'}`}>{stats.waitlisted || 0}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* === ROW 3: Recent Activity | Pending Tasks === */}
+      <div className="flex gap-5 mb-5">
+        {/* Recent Activity Feed */}
+        <div className={`flex-1 rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+          <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Recent Payments</p>
+          <div className="flex flex-col gap-3">
+            {recentPaymentsNamed.slice(0, 4).map((p, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#22C55E]/10 flex items-center justify-center text-[9px] font-bold text-[#22C55E] shrink-0">
+                  {(p.player_name || '??').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[11px] font-semibold truncate ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{p.player_name}</p>
+                  <p className={`text-[11px] font-medium truncate ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/40'}`}>${parseFloat(p.amount || 0).toLocaleString()} — {p.status}</p>
+                </div>
+              </div>
+            ))}
+            {recentPaymentsNamed.length === 0 && (
+              <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>No recent payments</p>
+            )}
+          </div>
+        </div>
+
+        {/* Pending Tasks */}
+        <div className={`flex-1 rounded-[18px] p-5 shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+          <p className={`text-[13px] font-bold mb-3 ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>Pending Tasks</p>
+          <div className="flex flex-col gap-2.5">
+            {tasks.map((task, i) => (
+              <button key={i} onClick={task.action}
+                className={`flex items-center gap-3 py-2 px-3 rounded-xl border transition-colors w-full text-left ${isDark ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]' : 'bg-[#F6F8FB] border-[#E8ECF2] hover:bg-[#F0F3F7]'}`}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${task.color}10` }}>
+                  {task.icon}
+                </div>
+                <p className={`text-[12px] font-semibold flex-1 ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{task.title}</p>
+                {task.badge && (
+                  <span className="min-w-[18px] h-[18px] px-1 bg-[#EF4444] rounded-full text-[9px] font-bold text-white flex items-center justify-center">{task.badge}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* === ROW 4: Quick Actions === */}
+      <div className="flex gap-3 mb-5">
         {[
-          { icon: MessageSquare, label: 'Chat', page: 'chats', color: '#4BB9EC' },
-          { icon: Users, label: 'Teams & Rosters', page: 'teams', color: '#22C55E' },
-          { icon: Calendar, label: 'Calendar', page: 'schedule', color: '#F59E0B' },
-          { icon: UsersRound, label: 'Families', page: 'registrations', color: '#8B5CF6' },
-        ].map(({ icon: Icon, label, page, color }) => (
+          { icon: CheckCircle, label: 'Approve Registrations', page: 'registrations', color: '#4BB9EC', badge: stats.pending > 0 ? stats.pending : null },
+          { icon: DollarSign, label: 'Send Payment Reminders', page: 'payments', color: '#FFD700' },
+          { icon: CreditCard, label: 'Process Payments', page: 'payments', color: '#22C55E' },
+          { icon: MessageSquare, label: 'Send Blast', page: 'blasts', color: '#EF4444' },
+        ].map(({ icon: Icon, label, page, color, badge }) => (
           <button
-            key={page}
+            key={label}
             onClick={() => onNavigate(page)}
-            className={`flex-1 flex items-center gap-3 py-3.5 px-4 rounded-[14px] border transition-colors shadow-sm ${
+            className={`flex-1 flex items-center gap-3 py-3.5 px-4 rounded-[14px] border transition-colors shadow-sm relative ${
               isDark
                 ? 'bg-lynx-charcoal border-white/[0.06] hover:border-white/[0.12]'
-                : 'bg-white border-[#E8ECF2] hover:border-[#4BB9EC]/30'
+                : 'bg-white border-[#E8ECF2] hover:border-[#4BB9EC]/20'
             }`}
           >
-            <div className="w-9 h-9 rounded-[18px] flex items-center justify-center" style={{ background: `${color}15` }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${color}10` }}>
               <Icon className="w-4 h-4" style={{ color }} />
             </div>
             <span className={`text-[12px] font-bold ${isDark ? 'text-slate-300' : 'text-[#0D1B3E]/60'}`}>{label}</span>
+            {badge && (
+              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 bg-[#EF4444] rounded-full text-[9px] font-bold text-white flex items-center justify-center">{badge}</span>
+            )}
           </button>
         ))}
       </div>
