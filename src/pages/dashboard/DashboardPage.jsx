@@ -16,7 +16,7 @@ import {
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
 import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
-import LynxSidebar from '../../components/layout/LynxSidebar'
+// LynxSidebar now rendered by MainApp — no longer needed here
 import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
 import SeasonJourneyRow from '../../components/dashboard/SeasonJourneyRow'
 import OrgKpiRow from '../../components/dashboard/OrgKpiRow'
@@ -1385,26 +1385,6 @@ export function DashboardPage({ onNavigate }) {
     if (hour < 18) return 'Good afternoon'
     return 'Good evening'
   }
-
-  // Build admin nav items for LynxSidebar
-  const adminNavItems = [
-    { type: 'section', label: 'Overview' },
-    { id: 'dashboard', label: 'Org Dashboard', icon: 'dashboard', path: '/dashboard' },
-    { id: 'reports', label: 'Reports', icon: 'reports', path: '/reports' },
-    { id: 'seasons', label: 'Season Setup', icon: 'season-setup', path: '/settings/seasons' },
-    { type: 'section', label: 'People' },
-    { id: 'registrations', label: 'All Players', icon: 'registrations', path: '/registrations', badge: stats.pending || 0 },
-    { id: 'coaches', label: 'Coaches', icon: 'coaches', path: '/coaches' },
-    { type: 'section', label: 'Program' },
-    { id: 'teams', label: 'Teams', icon: 'teams', path: '/teams' },
-    { id: 'schedule', label: 'Schedule', icon: 'schedule', path: '/schedule' },
-    { id: 'blasts', label: 'Blasts', icon: 'blasts', path: '/blasts' },
-    { type: 'section', label: 'Finance' },
-    { id: 'payments', label: 'Payments', icon: 'payments', path: '/payments', badge: stats.pastDue > 0 ? Math.ceil(stats.pastDue / 100) : 0 },
-    { id: 'waivers', label: 'Waivers', icon: 'waivers', path: '/settings/waivers', badge: stats.unsignedWaivers || 0 },
-    { type: 'section', label: 'Settings' },
-    { id: 'settings', label: 'Settings', icon: 'settings', path: '/settings/organization' },
-  ]
 
   const orgInitials = (orgName || organization?.name || '')
     .split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')

@@ -15,7 +15,7 @@ import {
 // import CoachLeftSidebar from '../../components/coach/CoachLeftSidebar'
 // import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
 // import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
-import LynxSidebar from '../../components/layout/LynxSidebar'
+// LynxSidebar now rendered by MainApp — no longer needed here
 import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
 import CoachJourneyTracker from '../../components/coach/CoachJourneyTracker'
 import CoachNotifications from '../../components/coach/CoachNotifications'
@@ -737,24 +737,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       </div>
     )
   }
-
-  // ── Coach nav items for LynxSidebar ──
-  const coachNavItems = [
-    { type: 'section', label: 'Main' },
-    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
-    { id: 'schedule', label: 'Schedule', icon: 'schedule', path: '/schedule', badge: upcomingEvents.filter(e => { const r = rsvpCounts[e.id]; return roster.length > 0 && (!r || (r.going / roster.length) < 0.5) }).length || 0 },
-    { id: 'roster', label: 'Roster', icon: 'roster', path: '/roster' },
-    { id: 'stats', label: 'Stats', icon: 'stats', path: '/standings' },
-    { id: 'teamwall', label: 'Team Wall', icon: 'teamwall', path: `/teams/${selectedTeam?.id || ''}` },
-    { type: 'section', label: 'Tools' },
-    { id: 'gameprep', label: 'Game Day', icon: 'gameprep', path: '/gameprep' },
-    { id: 'blasts', label: 'Send Blast', icon: 'blasts', path: '/blasts' },
-    { id: 'challenges', label: 'Challenges', icon: 'challenges', path: '/achievements' },
-    { id: 'shoutouts', label: 'Shoutouts', icon: 'shoutouts', path: '/achievements' },
-    { type: 'section', label: 'Club' },
-    { id: 'payments', label: 'Payments', icon: 'payments', path: '/payments' },
-    { id: 'settings', label: 'Settings', icon: 'settings', path: '/settings/organization' },
-  ]
 
   // ── Main Render: Full-width scrollable content (sidebar handled by MainApp) ──
   return (
