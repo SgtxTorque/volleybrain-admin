@@ -4,6 +4,7 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
+import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { JourneyTimeline, JourneyWidget } from '../../components/journey'
 import { supabase } from '../../lib/supabase'
 import {
@@ -15,14 +16,7 @@ import {
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
 import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
-import DashboardLayout from '../../components/layout/DashboardLayout'
-// v0-style dashboard components
-import OrgSidebar from '../../components/dashboard/OrgSidebar'
-import TeamSnapshot from '../../components/dashboard/TeamSnapshot'
-import RegistrationStatsCard from '../../components/dashboard/RegistrationStatsCard'
-import PaymentSummaryCard from '../../components/dashboard/PaymentSummaryCard'
-import UpcomingEventsCard from '../../components/dashboard/UpcomingEventsCard'
-import LiveActivity from '../../components/dashboard/LiveActivity'
+import LynxSidebar from '../../components/layout/LynxSidebar'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -885,6 +879,7 @@ export function DashboardPage({ onNavigate }) {
   const { seasons, allSeasons, selectedSeason, selectSeason, loading: seasonLoading } = useSeason()
   const { sports, selectedSport, selectSport } = useSport()
   const { isDark, accent } = useTheme()
+  const { orgName, orgLogo } = useOrgBranding()
   const [filterTeam, setFilterTeam] = useState('all')
   const [stats, setStats] = useState({
     // Season stats
@@ -1382,20 +1377,58 @@ export function DashboardPage({ onNavigate }) {
     return 'Good evening'
   }
 
+  // Build admin nav items for LynxSidebar
+  const adminNavItems = [
+    { type: 'section', label: 'Overview' },
+    { id: 'dashboard', label: 'Org Dashboard', icon: 'dashboard', path: '/dashboard' },
+    { id: 'reports', label: 'Reports', icon: 'reports', path: '/reports' },
+    { id: 'seasons', label: 'Season Setup', icon: 'season-setup', path: '/settings/seasons' },
+    { type: 'section', label: 'People' },
+    { id: 'registrations', label: 'All Players', icon: 'registrations', path: '/registrations', badge: stats.pending || 0 },
+    { id: 'coaches', label: 'Coaches', icon: 'coaches', path: '/coaches' },
+    { type: 'section', label: 'Program' },
+    { id: 'teams', label: 'Teams', icon: 'teams', path: '/teams' },
+    { id: 'schedule', label: 'Schedule', icon: 'schedule', path: '/schedule' },
+    { id: 'blasts', label: 'Blasts', icon: 'blasts', path: '/blasts' },
+    { type: 'section', label: 'Finance' },
+    { id: 'payments', label: 'Payments', icon: 'payments', path: '/payments', badge: stats.pastDue > 0 ? Math.ceil(stats.pastDue / 100) : 0 },
+    { id: 'waivers', label: 'Waivers', icon: 'waivers', path: '/settings/waivers', badge: stats.unsignedWaivers || 0 },
+    { type: 'section', label: 'Settings' },
+    { id: 'settings', label: 'Settings', icon: 'settings', path: '/settings/organization' },
+  ]
+
+  const orgInitials = (orgName || organization?.name || '')
+    .split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
+
   return (
     <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-      {/* Left Sidebar */}
-      <div className="hidden xl:contents">
-        <OrgSidebar
-          stats={stats}
-          season={selectedSeason}
-          onNavigate={onNavigate}
+      {/* LynxSidebar — fixed left icon sidebar */}
+      <div className="hidden xl:block">
+        <LynxSidebar
+          role="admin"
+          navItems={adminNavItems}
+          orgName={orgName || organization?.name || 'My Organization'}
+          orgInitials={orgInitials}
+          orgLogo={orgLogo}
+          userName={profile ? `${profile.first_name} ${(profile.last_name || '').charAt(0)}.` : ''}
+          userRole="Director · Admin"
+          activePath="/dashboard"
+          onNavigate={(path) => {
+            // Convert path to old page ID for onNavigate
+            const pageMap = {
+              '/dashboard': 'dashboard', '/reports': 'reports', '/settings/seasons': 'seasons',
+              '/registrations': 'registrations', '/coaches': 'coaches', '/teams': 'teams',
+              '/schedule': 'schedule', '/blasts': 'blasts', '/payments': 'payments',
+              '/settings/waivers': 'waivers', '/settings/organization': 'organization',
+            }
+            onNavigate(pageMap[path] || 'dashboard')
+          }}
         />
       </div>
 
-      {/* Center Content — AdminHomeScroll parity */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-6 py-6 space-y-5">
+      {/* Main Content — scrollable, offset for sidebar */}
+      <div className="flex-1 xl:ml-16 overflow-y-auto">
+        <div className="px-6 py-6 space-y-5 max-w-[1200px] mx-auto">
 
           {/* ─── 1. WELCOME BRIEFING ─────────────────────────── */}
           <div className="text-center py-2">
@@ -1732,10 +1765,6 @@ export function DashboardPage({ onNavigate }) {
         </div>
       </div>
 
-      {/* Right Sidebar */}
-      <div className="hidden lg:contents">
-        <LiveActivity activities={activities} upcomingEvents={upcomingEvents} topPlayers={topPlayers} onNavigate={onNavigate} />
-      </div>
     </div>
   )
 }
