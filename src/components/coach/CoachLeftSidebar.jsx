@@ -25,12 +25,12 @@ export default function CoachLeftSidebar({
 }) {
   const { isDark } = useTheme()
   const sportName = selectedTeam?.seasons?.sports?.name || 'Volleyball'
-  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
+  const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border shadow-sm'
   const primaryText = isDark ? 'text-white' : 'text-slate-900'
   const secondaryText = isDark ? 'text-slate-400' : 'text-lynx-slate'
 
   return (
-    <aside className={`hidden xl:flex w-[240px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-r border-lynx-border-dark' : 'bg-[#F6F8FB] border-r border-[#E8ECF2]'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className={`hidden xl:flex w-[240px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight border-r border-lynx-border-dark' : 'bg-brand-off-white border-r border-brand-border'} overflow-y-auto p-5 space-y-5 h-full scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {/* 1. Team Header / Coach Identity Card */}
       <div>
         <div className="flex items-center gap-3">
@@ -68,9 +68,9 @@ export default function CoachLeftSidebar({
       </div>
 
       {/* 3. Coach Onboarding Journey */}
-      <div className={`${cardBg} rounded-[18px] p-4`}>
+      <div className={`${cardBg} rounded-2xl p-4`}>
         <div className="flex items-center justify-between mb-2">
-          <span className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Coach Setup</span>
+          <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${secondaryText}`}>Coach Setup</span>
           <span className="text-xs font-bold text-lynx-sky">3/7</span>
         </div>
         <div className={`h-2 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} overflow-hidden mb-3`}>
@@ -91,10 +91,10 @@ export default function CoachLeftSidebar({
       </div>
 
       {/* 4. Needs Attention */}
-      <div className={`${cardBg} rounded-[18px] p-4`}>
+      <div className={`${cardBg} rounded-2xl p-4`}>
         <div className="flex items-center gap-2 mb-3">
           <AlertCircle className="w-4 h-4 text-amber-500" />
-          <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText}`}>Needs Attention</h3>
+          <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${secondaryText}`}>Needs Attention</h3>
           {needsAttentionItems?.length > 0 && (
             <span className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-100 text-amber-700'}`}>
               {needsAttentionItems.length} item{needsAttentionItems.length > 1 ? 's' : ''}
@@ -124,7 +124,7 @@ export default function CoachLeftSidebar({
 
       {/* 5. Quick Actions — now includes "Give Shoutout" */}
       <div>
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${secondaryText} mb-3`}>Quick Actions</h3>
+        <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${secondaryText} mb-3`}>Quick Actions</h3>
         <div className="space-y-0.5">
           {[
             {

@@ -148,7 +148,7 @@ export default function PlayerSocialPanel({
       </div>
 
       {/* ── 2. Team Chat Preview ── */}
-      <div className="rounded-[18px] overflow-hidden" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <p className="text-[10px] font-bold uppercase tracking-[1.2px]" style={{ color: 'rgba(255,255,255,0.15)' }}>Team Chat</p>
           <button
@@ -215,7 +215,7 @@ export default function PlayerSocialPanel({
           {MOCK_SHOUTOUTS.map(s => (
             <div
               key={s.id}
-              className="flex items-center gap-2.5 p-2.5 rounded-[18px]"
+              className="flex items-center gap-2.5 p-2.5 rounded-2xl"
               style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
             >
               <span className="text-lg">{s.icon}</span>
@@ -270,7 +270,7 @@ export default function PlayerSocialPanel({
             return (
               <div
                 key={event.id}
-                className="rounded-[18px] p-3 cursor-pointer hover:brightness-110 transition"
+                className="rounded-2xl p-3 cursor-pointer hover:brightness-110 transition"
                 onClick={() => onNavigate?.('schedule')}
                 style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
               >
@@ -307,7 +307,7 @@ export default function PlayerSocialPanel({
             )
           })}
           {(!upcomingEvents || upcomingEvents.length === 0) && (
-            <div className="rounded-[18px] p-4 text-center" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="rounded-2xl p-4 text-center" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
               <Calendar className="w-6 h-6 mx-auto mb-1" style={{ color: 'rgba(255,255,255,0.15)' }} />
               <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.15)' }}>No upcoming events</p>
             </div>

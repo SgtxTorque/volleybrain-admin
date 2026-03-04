@@ -49,7 +49,7 @@ export default function PlayerProfileSidebar({
     >
       {/* ── Hero Identity Card (matches mobile HeroIdentityCard) ── */}
       <div
-        className="rounded-[22px] p-5 relative overflow-hidden"
+        className="rounded-2xl p-5 relative overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #10284C, #162848, #10284C)',
           border: '1px solid rgba(75,185,236,0.15)',

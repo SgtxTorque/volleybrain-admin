@@ -48,7 +48,7 @@ export default function GameDayChecklist({
 
   return (
     <div className={`${cardBg} rounded-xl shadow-sm p-4 h-full flex flex-col ${allDone ? 'ring-1 ring-emerald-500/25' : ''}`}>
-      <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${secondaryText}`}>
+      <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-3 ${secondaryText}`}>
         {isGame ? 'Game Day Checklist' : 'Practice Checklist'}
       </p>
 

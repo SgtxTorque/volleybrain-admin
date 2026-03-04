@@ -212,7 +212,7 @@ export default function AdminLeftSidebar({ stats, season, onNavigate }) {
 
       {/* ---- Quick Actions (2x2 grid) ---- */}
       <div className="px-5 py-4 pb-5">
-        <h4 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h4 className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Quick Actions
         </h4>
         <div className="grid grid-cols-2 gap-2.5">

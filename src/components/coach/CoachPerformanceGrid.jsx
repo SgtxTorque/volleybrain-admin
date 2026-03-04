@@ -86,7 +86,7 @@ function PerfCard({ title, icon: Icon, isDark, children }) {
     <div className={`${cardBg} rounded-xl shadow-sm overflow-hidden min-h-[220px]`}>
       <div className={`flex items-center gap-2 px-4 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
         {Icon && <Icon className="w-4 h-4 text-lynx-sky" />}
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{title}</h3>
+        <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{title}</h3>
       </div>
       <div className="p-4">
         {children}

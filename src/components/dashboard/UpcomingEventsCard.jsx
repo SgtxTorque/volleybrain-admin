@@ -31,7 +31,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Upcoming Events
         </h3>
         <button
@@ -44,7 +44,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
         </button>
       </div>
 
-      <div className={`overflow-hidden rounded-[18px] shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'}`}>
+      <div className={`overflow-hidden rounded-2xl shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'}`}>
         {events && events.length > 0 ? (
           events.slice(0, 5).map((event, i) => {
             const teamColor = event.teams?.color || EVENT_COLORS[i % EVENT_COLORS.length]
@@ -60,7 +60,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
                 onClick={() => onNavigate('schedule')}
               >
                 <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px]"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
                   style={{ backgroundColor: teamColor + '18' }}
                 >
                   <Calendar className="h-5 w-5" style={{ color: teamColor }} />

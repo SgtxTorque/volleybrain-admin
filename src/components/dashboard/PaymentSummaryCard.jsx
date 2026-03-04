@@ -15,8 +15,8 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
   const collectionPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
 
   return (
-    <div className={`flex flex-col gap-5 rounded-[18px] p-5 shadow-sm overflow-hidden ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+    <div className={`flex flex-col gap-5 rounded-2xl p-5 shadow-sm overflow-hidden ${
+      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'
     }`}>
       <div className="flex items-center justify-between">
         <h3 className={`text-[10px] font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
@@ -92,7 +92,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
       <div className="flex items-stretch gap-0">
         {/* Payment Sources */}
         <div className="flex flex-1 flex-col gap-0 pr-8">
-          <span className={`mb-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+          <span className={`mb-2 text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Sources
           </span>
           {[
@@ -123,7 +123,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
 
         {/* Recent Payments */}
         <div className="flex flex-1 flex-col gap-0 pl-8">
-          <span className={`mb-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+          <span className={`mb-2 text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Recent
           </span>
           {recentPayments && recentPayments.length > 0 ? (

@@ -267,7 +267,7 @@ export default function CoachCenterDashboard({
   // ── Render ──
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-      <div className={`flex-1 overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`}>
+      <div className={`flex-1 overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
         <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
 
           {/* ─── 1. WELCOME BRIEFING (Tier 3 ambient) ──────────── */}
@@ -399,7 +399,7 @@ export default function CoachCenterDashboard({
                   <button
                     key={i}
                     onClick={pill.action}
-                    className="px-3 py-1.5 rounded-xl bg-[#F6F8FB] text-[11px] font-semibold text-brand-navy hover:bg-white transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-brand-off-white text-[11px] font-semibold text-brand-navy hover:bg-white transition-colors"
                   >
                     {pill.label}
                   </button>
@@ -470,7 +470,7 @@ export default function CoachCenterDashboard({
           <button
             onClick={() => navigateToTeamWall?.(selectedTeam?.id)}
             className={`w-full text-left rounded-2xl border p-5 shadow-sm transition-shadow hover:shadow-md ${
-              isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-[#F8FAFC] border-brand-border'
+              isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-brand-off-white border-brand-border'
             }`}
           >
             <p className={`${sectionHeader} mb-3.5`}>TEAM HEALTH</p>
@@ -641,7 +641,7 @@ export default function CoachCenterDashboard({
           )}
 
           {/* ─── 10. TEAM HUB PREVIEW (Tier 1.5 — social feed) ── */}
-          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-brand-warm-gray'}`}>
+          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-brand-border'}`}>
             <div className="flex items-center justify-between mb-3">
               <p className={sectionHeader}>TEAM HUB</p>
               <button onClick={() => navigateToTeamWall?.(selectedTeam?.id)} className="text-xs font-semibold text-brand-sky-blue hover:text-lynx-deep">

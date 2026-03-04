@@ -214,7 +214,7 @@ export default function CoachGameDayHero({
   // No upcoming events — Season Record fallback
   return (
     <div className={`${isDark ? 'bg-lynx-charcoal border border-lynx-border-dark' : 'bg-white border border-lynx-silver'} rounded-xl shadow-sm p-5 h-full flex flex-col justify-center`}>
-      <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Season Record</p>
+      <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-3 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Season Record</p>
       <div className="flex items-center gap-4">
         <div className="flex items-baseline gap-3">
           <span className="text-4xl font-black text-emerald-500">{teamRecord.wins}</span>

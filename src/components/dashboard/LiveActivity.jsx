@@ -75,7 +75,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calendar className={`h-4 w-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Upcoming Events
           </span>
         </div>
@@ -105,7 +105,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
               <button
                 key={event.id || i}
                 onClick={() => onNavigate('schedule')}
-                className={`flex items-center gap-3 rounded-[18px] px-3 py-3 text-left transition-all ${
+                className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all ${
                   isDark
                     ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-white/[0.12]'
                     : 'bg-white border border-lynx-silver hover:border-slate-300 hover:shadow'
@@ -158,8 +158,8 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
           })}
         </div>
       ) : (
-        <div className={`rounded-[18px] px-4 py-6 text-center ${
-          isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
+        <div className={`rounded-2xl px-4 py-6 text-center ${
+          isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border shadow-sm'
         }`}>
           <Calendar className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No upcoming events</p>
@@ -179,7 +179,7 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Trophy className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-          <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Leaderboard
           </span>
         </div>
@@ -193,8 +193,8 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
         </button>
       </div>
 
-      <div className={`rounded-[18px] overflow-hidden ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
+      <div className={`rounded-2xl overflow-hidden ${
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border shadow-sm'
       }`}>
         {players.slice(0, 10).map((entry, i) => {
           const player = entry.player
@@ -259,7 +259,7 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
 
   return (
     <aside className={`flex w-[330px] shrink-0 flex-col gap-4 overflow-y-auto border-l py-8 pl-6 pr-6 ${
-      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-[#E8ECF2] bg-[#F6F8FB]'
+      isDark ? 'border-white/[0.06] bg-lynx-midnight' : 'border-brand-border bg-brand-off-white'
     }`}>
       {/* Upcoming Events Hero */}
       {upcomingEvents && onNavigate && (
@@ -271,7 +271,7 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
         <LeaderboardCard players={topPlayers} onNavigate={onNavigate} isDark={isDark} />
       )}
 
-      <h3 className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+      <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
         Live Activity
       </h3>
 

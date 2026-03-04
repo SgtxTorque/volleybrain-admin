@@ -182,7 +182,7 @@ export default function PlayerCenterFeed({
 
           return (
             <div
-              className="rounded-[18px] p-4 relative"
+              className="rounded-2xl p-4 relative"
               style={{ background: '#10284C', border: '1px solid rgba(75,185,236,0.15)' }}
             >
               {/* Header: NEXT UP + RSVP buttons */}
@@ -247,7 +247,7 @@ export default function PlayerCenterFeed({
         {/* ── 2. LAST GAME STATS (matches mobile — 4-col stat grid, 22px display numbers) ── */}
         {lastGame && (
           <div
-            className="rounded-[18px] p-4"
+            className="rounded-2xl p-4"
             style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
           >
             <p className="text-[10px] font-bold uppercase tracking-[1.2px] mb-3.5" style={{ color: 'rgba(255,255,255,0.15)' }}>
@@ -282,7 +282,7 @@ export default function PlayerCenterFeed({
         {/* ── 3. ACTIVE CHALLENGE Card (matches mobile — gold bordered, progress bar) ── */}
         {gamesPlayed > 0 && (
           <div
-            className="rounded-[18px] p-4"
+            className="rounded-2xl p-4"
             style={{ background: '#10284C', border: '1px solid rgba(255,215,0,0.20)' }}
           >
             <div className="flex items-center gap-1.5 mb-2">
@@ -313,7 +313,7 @@ export default function PlayerCenterFeed({
               return (
                 <div
                   key={i}
-                  className="rounded-[18px] p-3.5 flex items-start gap-3 player-fade-up"
+                  className="rounded-2xl p-3.5 flex items-start gap-3 player-fade-up"
                   style={{
                     background: isBadge ? 'rgba(255,215,0,0.06)' : isShoutout ? 'rgba(168,85,247,0.08)' : '#10284C',
                     border: `1px solid ${isBadge ? 'rgba(255,215,0,0.20)' : isShoutout ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.06)'}`,
@@ -385,7 +385,7 @@ export default function PlayerCenterFeed({
                   return (
                     <div
                       key={b.id || idx}
-                      className="w-[120px] shrink-0 rounded-[18px] overflow-hidden relative"
+                      className="w-[120px] shrink-0 rounded-2xl overflow-hidden relative"
                       style={{
                         height: 160,
                         background: r.bg,
@@ -410,7 +410,7 @@ export default function PlayerCenterFeed({
                 {badges.length < 5 && Array.from({ length: 5 - badges.length }).map((_, i) => (
                   <div
                     key={`locked-${i}`}
-                    className="w-[120px] shrink-0 rounded-[18px] flex flex-col items-center justify-center gap-2"
+                    className="w-[120px] shrink-0 rounded-2xl flex flex-col items-center justify-center gap-2"
                     style={{ height: 160, background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
                   >
                     <Lock className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.15)' }} />
@@ -422,7 +422,7 @@ export default function PlayerCenterFeed({
               Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={`locked-${i}`}
-                  className="w-[120px] shrink-0 rounded-[18px] flex flex-col items-center justify-center gap-2"
+                  className="w-[120px] shrink-0 rounded-2xl flex flex-col items-center justify-center gap-2"
                   style={{ height: 160, background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}
                 >
                   <Lock className="w-6 h-6" style={{ color: 'rgba(255,255,255,0.15)' }} />
@@ -446,7 +446,7 @@ export default function PlayerCenterFeed({
           return (
             <div
               key={event.id}
-              className="rounded-[18px] p-4"
+              className="rounded-2xl p-4"
               style={{
                 background: isGame ? 'linear-gradient(135deg, rgba(239,68,68,0.08), #10284C)' : '#10284C',
                 border: isToday ? '1px solid #4BB9EC' : '1px solid rgba(255,255,255,0.06)',
@@ -454,7 +454,7 @@ export default function PlayerCenterFeed({
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="w-14 h-14 rounded-[18px] flex flex-col items-center justify-center shrink-0"
+                  className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0"
                   style={{ background: '#0D1B3E', border: '1px solid rgba(255,255,255,0.06)' }}
                 >
                   <span className="text-[10px] font-bold uppercase leading-none" style={{ color: 'rgba(255,255,255,0.30)' }}>

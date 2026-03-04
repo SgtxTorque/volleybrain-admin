@@ -59,8 +59,8 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
     })
 
   return (
-    <div className={`flex flex-col gap-5 rounded-[18px] p-5 shadow-sm overflow-hidden ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+    <div className={`flex flex-col gap-5 rounded-2xl p-5 shadow-sm overflow-hidden ${
+      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'
     }`}>
       <div className="flex items-center justify-between">
         <h3 className={`text-[10px] font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
@@ -153,7 +153,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
                     return (
                       <>
                         <div className="min-w-0">
-                          <p className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Rostered
                           </p>
                           <p className="text-lg font-black whitespace-nowrap">
@@ -162,7 +162,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
                           </p>
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Coached
                           </p>
                           <p className="text-lg font-black whitespace-nowrap">
@@ -171,7 +171,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
                           </p>
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-xs font-bold uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                          <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Open Spots
                           </p>
                           <p className={`text-lg font-black ${
@@ -185,7 +185,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
                   })()}
                 </div>
               </div>
-              <p className={`-mt-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+              <p className={`-mt-2 text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                 Team Status
               </p>
             </div>
@@ -199,7 +199,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
         return (
           <div className={`grid grid-cols-3 gap-4 pt-5 mt-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="text-center">
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 Reg Open Date
               </p>
               <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -207,7 +207,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
               </p>
             </div>
             <div className="text-center">
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 Reg Close Date
               </p>
               <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -215,7 +215,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
               </p>
             </div>
             <div className="text-center">
-              <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <p className={`text-[10px] font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 {daysLeft != null && daysLeft > 0 ? 'Days Left' : 'Status'}
               </p>
               {daysLeft != null && daysLeft > 0 ? (

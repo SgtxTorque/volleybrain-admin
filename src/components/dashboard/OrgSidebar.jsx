@@ -21,7 +21,7 @@ function StatItem({ value, label, isDark }) {
   return (
     <div className="flex flex-col items-center">
       <span className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
-      <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+      <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
         {label}
       </span>
     </div>
@@ -33,7 +33,7 @@ function AttentionItem({ icon, label, badge, badgeColor, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-3 rounded-[18px] px-3 py-2.5 text-left transition-colors ${
+      className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors ${
         isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'
       }`}
     >
@@ -50,10 +50,10 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center gap-2 rounded-[18px] p-4 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
+      className={`relative flex flex-col items-center gap-2 rounded-2xl p-4 shadow transition-all hover:shadow-md hover:-translate-y-0.5 ${
         isDark
           ? 'bg-slate-700/60 border border-white/[0.06]'
-          : 'bg-white border border-slate-100'
+          : 'bg-white border border-brand-border'
       }`}
     >
       {badge > 0 && (
@@ -96,21 +96,21 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
   return (
     <aside className={`flex w-[360px] shrink-0 flex-col gap-6 overflow-y-auto py-8 pl-6 pr-4 scrollbar-hide ${
-      isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'
+      isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'
     }`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       {/* Org Card */}
-      <div className={`flex flex-col items-center gap-4 rounded-[18px] p-5 shadow-sm ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+      <div className={`flex flex-col items-center gap-4 rounded-2xl p-5 shadow-sm ${
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'
       }`}>
         {orgLogo ? (
           <img
             src={orgLogo}
             alt={orgName}
-            className="h-[200px] w-[200px] rounded-[18px] object-cover shadow -mt-[30px]"
+            className="h-[200px] w-[200px] rounded-2xl object-cover shadow -mt-[30px]"
           />
         ) : (
           <div
-            className="flex h-[200px] w-[200px] items-center justify-center rounded-[18px] text-4xl font-bold text-white shadow -mt-[30px]"
+            className="flex h-[200px] w-[200px] items-center justify-center rounded-2xl text-4xl font-bold text-white shadow -mt-[30px]"
             style={{ backgroundColor: accent.primary || '#10284C' }}
           >
             {initials}
@@ -140,7 +140,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
               onNavigate(ONBOARDING_NAV_MAP[journey.currentStep.id])
             }
           }}
-          className={`-mt-[19px] rounded-[18px] p-5 shadow text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+          className={`-mt-[19px] rounded-2xl p-5 shadow text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
             isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
           }`}
         >
@@ -174,7 +174,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 px-1 pb-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <span className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Needs Attention
           </span>
         </div>
@@ -206,7 +206,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
       {/* Quick Actions */}
       <div className="flex flex-col gap-3">
-        <span className={`px-1 text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <span className={`px-1 text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Quick Actions
         </span>
         <div className="grid grid-cols-2 gap-3">
@@ -245,7 +245,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 px-1">
               <Award className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              <span className={`text-xs font-semibold uppercase tracking-wider flex-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-[1.2px] flex-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 Recent Badges
               </span>
               <button
@@ -264,7 +264,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
                 return (
                   <div
                     key={badgeId}
-                    className={`flex items-center gap-3 rounded-[18px] px-4 py-3 ${
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 ${
                       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
                     }`}
                   >

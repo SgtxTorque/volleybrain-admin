@@ -19,7 +19,7 @@ function WCard({ children, className = '' }) {
   const { isDark } = useTheme()
   return (
     <div className={`
-      h-full rounded-[18px] overflow-hidden transition-all duration-300
+      h-full rounded-2xl overflow-hidden transition-all duration-300
       ${isDark
         ? 'bg-lynx-charcoal/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]'
         : 'bg-white/90 backdrop-blur-xl border border-lynx-silver/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
@@ -64,13 +64,13 @@ function WHeader({ title, icon: Icon, color = 'blue', action, onAction, children
           {action && (
             <button
               onClick={onAction}
-              className={`text-xs px-3 py-1.5 rounded-[18px] font-medium transition flex items-center gap-1 ${gradient} text-white hover:brightness-110`}
+              className={`text-xs px-3 py-1.5 rounded-2xl font-medium transition flex items-center gap-1 ${gradient} text-white hover:brightness-110`}
             >
               {action}
               <ChevronRight className="w-3 h-3" />
             </button>
           )}
-          <button className={`p-1 rounded-[18px] transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+          <button className={`p-1 rounded-2xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
             <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
           </button>
         </div>
@@ -261,11 +261,11 @@ export function RegistrationStatsWidget() {
         <div className="p-5">
           {/* Main Stats Row */}
           <div className="flex items-stretch gap-4 mb-5">
-            <div className={`flex-1 p-4 rounded-[18px] text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
+            <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.total}</p>
               <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Total Registrations</p>
             </div>
-            <div className={`flex-1 p-4 rounded-[18px] text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+            <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                 {data.rostered}
                 <span className={`text-lg ${isDark ? 'text-emerald-500' : 'text-emerald-400'}`}>/{data.total}</span>
@@ -309,7 +309,7 @@ export function RegistrationStatsWidget() {
           {/* Action Button */}
           <button
             onClick={() => navigate(getPathForPage('registrations'))}
-            className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-[18px] hover:brightness-110 transition flex items-center justify-center gap-2"
+            className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-2xl hover:brightness-110 transition flex items-center justify-center gap-2"
           >
             View Registrations
             <ChevronRight className="w-4 h-4" />
@@ -365,7 +365,7 @@ export function PaymentSummaryWidget() {
   return (
     <WCard>
       <WHeader title="Financial Summary" icon={DollarSign} color="green" action="View All" onAction={() => navigate(getPathForPage('payments'))}>
-        <button className={`p-1 rounded-[18px] transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+        <button className={`p-1 rounded-2xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
           <Users className="w-4 h-4 text-slate-400" />
         </button>
       </WHeader>
@@ -419,7 +419,7 @@ export function PaymentSummaryWidget() {
           {/* Action Button */}
           <button
             onClick={() => navigate(getPathForPage('payments'))}
-            className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-[18px] hover:brightness-110 transition flex items-center justify-center gap-2"
+            className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-2xl hover:brightness-110 transition flex items-center justify-center gap-2"
           >
             View Payments
             <ChevronRight className="w-4 h-4" />
@@ -504,11 +504,11 @@ export function UpcomingEventsWidget() {
               {dateEvents.map((event, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-3 p-3 rounded-[18px] cursor-pointer transition mb-2 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
+                  className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition mb-2 ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
                   onClick={() => navigate(getPathForPage('schedule'))}
                 >
                   <div
-                    className="w-10 h-10 rounded-[18px] flex items-center justify-center shrink-0"
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
                     style={{ backgroundColor: event.teams?.color || '#3B82F6' }}
                   >
                     <VolleyballIcon className="w-5 h-5 text-white" />
@@ -682,7 +682,7 @@ export function TeamHealthWidget() {
           ) : teams.map(t => (
             <div
               key={t.id}
-              className={`p-3 rounded-[18px] cursor-pointer transition ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]' : 'bg-lynx-cloud hover:bg-slate-100 border border-slate-100'}`}
+              className={`p-3 rounded-2xl cursor-pointer transition ${isDark ? 'bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06]' : 'bg-lynx-cloud hover:bg-slate-100 border border-slate-100'}`}
               onClick={() => navigate(getPathForPage('teams'))}
             >
               <div className="flex items-center gap-3 mb-2">
@@ -779,7 +779,7 @@ export function NeedsAttentionWidget() {
           ) : (
             <div className="space-y-2">
               {items.map((item, i) => (
-                <div key={i} className={`flex items-center gap-3 p-3 rounded-[18px] cursor-pointer transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
+                <div key={i} className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'}`}
                   onClick={() => navigate(getPathForPage(item.page))}>
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.color + '20' }}>
                     <item.icon className="w-5 h-5" style={{ color: item.color }} />
@@ -1003,7 +1003,7 @@ export function SeasonOverviewWidget() {
             }`}>{selectedSeason?.status || 'draft'}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[18px] bg-white/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
               <VolleyballIcon className="w-6 h-6 text-white" />
             </div>
           </div>
@@ -1014,15 +1014,15 @@ export function SeasonOverviewWidget() {
         <div className="p-5 space-y-4">
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
-            <div className={`p-3 rounded-[18px] text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
+            <div className={`p-3 rounded-2xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.teams}</p>
               <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Teams</p>
             </div>
-            <div className={`p-3 rounded-[18px] text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
+            <div className={`p-3 rounded-2xl text-center ${isDark ? 'bg-white/[0.05]' : 'bg-lynx-cloud'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{data.players}</p>
               <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Players</p>
             </div>
-            <div className={`p-3 rounded-[18px] text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
+            <div className={`p-3 rounded-2xl text-center ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'}`}>
               <p className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{pct}%</p>
               <p className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>Collected</p>
             </div>
@@ -1052,7 +1052,7 @@ export function SeasonOverviewWidget() {
           {/* Action Button */}
           <button
             onClick={() => navigate(getPathForPage('seasons'))}
-            className="w-full px-4 py-2.5 text-white font-semibold rounded-[18px] transition hover:brightness-110 flex items-center justify-center gap-2"
+            className="w-full px-4 py-2.5 text-white font-semibold rounded-2xl transition hover:brightness-110 flex items-center justify-center gap-2"
             style={{ backgroundColor: accent.primary }}
           >
             Manage Season

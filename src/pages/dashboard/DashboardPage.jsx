@@ -32,7 +32,7 @@ function DashCard({ children, className = '', onClick, headerColor, isDark }) {
     <div 
       onClick={onClick}
       className={`
-        rounded-[18px] overflow-hidden transition-all duration-300
+        rounded-2xl overflow-hidden transition-all duration-300
         ${isDark 
           ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]' 
           : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
@@ -75,14 +75,14 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
           {action && (
             <button 
               onClick={onAction}
-              className={`text-sm px-3 py-1.5 rounded-[18px] font-medium transition flex items-center gap-1
+              className={`text-sm px-3 py-1.5 rounded-2xl font-medium transition flex items-center gap-1
                 ${colorClasses[color] || colorClasses.blue} text-white hover:brightness-110`}
             >
               {action}
               <ChevronRight className="w-3 h-3" />
             </button>
           )}
-          <button className={`p-1 rounded-[18px] transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+          <button className={`p-1 rounded-2xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
             <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
           </button>
         </div>
@@ -306,7 +306,7 @@ function SeasonCard({ season, stats, onNavigate }) {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[18px] bg-white/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
               <VolleyballIcon className="w-6 h-6 text-white" />
             </div>
             <div className="text-right">
@@ -342,7 +342,7 @@ function SeasonCard({ season, stats, onNavigate }) {
         
         <button 
           onClick={() => onNavigate('seasons')}
-          className={`mt-3 px-4 py-2 font-medium text-sm rounded-[18px] transition ${isDark ? "bg-white/[0.06] hover:bg-white/[0.1] text-slate-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+          className={`mt-3 px-4 py-2 font-medium text-sm rounded-2xl transition ${isDark ? "bg-white/[0.06] hover:bg-white/[0.1] text-slate-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
         >
           Manage Season
         </button>
@@ -376,7 +376,7 @@ function FinancialSummary({ stats, onNavigate }) {
   return (
     <DashCard isDark={isDark}>
       <CardHeader isDark={isDark} title="Financial Summary" color="green" icon={DollarSign}>
-        <button className={`p-1 rounded-[18px] transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-100"}`}>
+        <button className={`p-1 rounded-2xl transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-100"}`}>
           <Users className="w-4 h-4 text-slate-400" />
         </button>
       </CardHeader>
@@ -434,7 +434,7 @@ function FinancialSummary({ stats, onNavigate }) {
         {/* Action Button */}
         <button 
           onClick={() => onNavigate('payments')}
-          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-[18px] hover:brightness-110 transition flex items-center justify-center gap-2"
+          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-2xl hover:brightness-110 transition flex items-center justify-center gap-2"
         >
           View Payments
           <ChevronRight className="w-4 h-4" />
@@ -511,13 +511,13 @@ function RegistrationStats({ stats, onNavigate }) {
         {/* Main Stats Row */}
         <div className="flex items-stretch gap-4 mb-5">
           {/* Total Registrations */}
-          <div className={`flex-1 p-4 rounded-[18px] text-center ${isDark ? "bg-white/[0.05]" : "bg-lynx-cloud"}`}>
+          <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? "bg-white/[0.05]" : "bg-lynx-cloud"}`}>
             <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
             <p className={`text-sm mt-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total Registrations</p>
           </div>
           
           {/* Rostered */}
-          <div className={`flex-1 p-4 rounded-[18px] text-center ${isDark ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
+          <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
             <p className={`text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               {rostered}
               <span className={`text-lg ${isDark ? "text-emerald-500" : "text-emerald-400"}`}>/{stats.totalRegistrations || 0}</span>
@@ -592,7 +592,7 @@ function RegistrationStats({ stats, onNavigate }) {
         {/* Action Button */}
         <button 
           onClick={() => onNavigate('registrations')}
-          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-[18px] hover:brightness-110 transition flex items-center justify-center gap-2"
+          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-2xl hover:brightness-110 transition flex items-center justify-center gap-2"
         >
           View Registrations
           <ChevronRight className="w-4 h-4" />
@@ -625,7 +625,7 @@ function RecentActivity({ tasks, onNavigate }) {
             <div 
               key={i}
               onClick={task.action}
-              className={`flex items-center gap-3 p-3 rounded-[18px] cursor-pointer transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
+              className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
             >
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -703,11 +703,11 @@ function UpcomingEvents({ events, onNavigate }) {
             {dateEvents.map((event, i) => (
               <div 
                 key={i}
-                className={`flex items-center gap-3 p-3 rounded-[18px] cursor-pointer transition mb-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
+                className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition mb-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
                 onClick={() => onNavigate('schedule')}
               >
                 <div 
-                  className="w-10 h-10 rounded-[18px] flex items-center justify-center"
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center"
                   style={{ backgroundColor: event.teams?.color || '#3B82F6' }}
                 >
                   <VolleyballIcon className="w-5 h-5 text-white" />
@@ -835,7 +835,7 @@ function OverduePayments({ stats, onNavigate }) {
         {/* Action Button */}
         <button 
           onClick={() => onNavigate('payments')}
-          className="mt-5 w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-[18px] transition flex items-center justify-center gap-2"
+          className="mt-5 w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-2xl transition flex items-center justify-center gap-2"
         >
           <CheckCircle className="w-4 h-4" />
           Recover Payments
@@ -868,7 +868,7 @@ export function GettingStartedGuide({ onNavigate }) {
       </p>
       <button 
         onClick={() => onNavigate('seasons')}
-        className="px-6 py-3 text-white font-semibold rounded-[18px] transition hover:brightness-110"
+        className="px-6 py-3 text-white font-semibold rounded-2xl transition hover:brightness-110"
         style={{ backgroundColor: accent.primary }}
       >
         Create Your First Season
@@ -1383,7 +1383,7 @@ export function DashboardPage({ onNavigate }) {
   }
 
   return (
-    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`}>
+    <div className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
       {/* Left Sidebar */}
       <div className="hidden xl:contents">
         <OrgSidebar
@@ -1442,7 +1442,7 @@ export function DashboardPage({ onNavigate }) {
 
       {/* Dashboard Filters */}
       <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mb-5 ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-[#E8ECF2]'
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
       }`}>
         <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
 
@@ -1457,7 +1457,7 @@ export function DashboardPage({ onNavigate }) {
             className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-[11px] font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-[#F6F8FB] border border-[#E8ECF2] text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
             }`}
           >
             {(seasons || allSeasons || []).map(s => (
@@ -1480,7 +1480,7 @@ export function DashboardPage({ onNavigate }) {
             className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-[11px] font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-[#F6F8FB] border border-[#E8ECF2] text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
             }`}
           >
             <option value="">All Sports</option>
@@ -1499,7 +1499,7 @@ export function DashboardPage({ onNavigate }) {
             className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-[11px] font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-[#F6F8FB] border border-[#E8ECF2] text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
             }`}
           >
             <option value="all">All Teams</option>
@@ -1529,7 +1529,7 @@ export function DashboardPage({ onNavigate }) {
           <div className="space-y-2.5">
             {queueItems.slice(0, 4).map(item => (
               <button key={item.id} onClick={() => onNavigate(item.page)}
-                className={`w-full flex overflow-hidden rounded-2xl border shadow-sm text-left transition-colors ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-[#E8ECF2] hover:bg-[#FAFBFC]'}`}>
+                className={`w-full flex overflow-hidden rounded-2xl border shadow-sm text-left transition-colors ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-brand-border hover:bg-[#FAFBFC]'}`}>
                 <div className="w-1 shrink-0" style={{ backgroundColor: item.color }} />
                 <div className="flex-1 p-4">
                   <div className="flex items-center gap-1.5 mb-1.5">
@@ -1592,7 +1592,7 @@ export function DashboardPage({ onNavigate }) {
         const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0
         const overdueCount = Math.ceil((stats.pastDue || 0) / 100) || 0
         return (
-          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-brand-border'}`}>
             <div className="flex items-center justify-between mb-3.5">
               <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>PAYMENTS</span>
               <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{selectedSeason?.name || ''}</span>
