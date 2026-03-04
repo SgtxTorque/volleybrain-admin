@@ -16,6 +16,17 @@ import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
 import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
 import LynxSidebar from '../../components/layout/LynxSidebar'
 import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
+import CoachJourneyTracker from '../../components/coach/CoachJourneyTracker'
+import CoachNotifications from '../../components/coach/CoachNotifications'
+import SquadRosterCard from '../../components/coach/SquadRosterCard'
+import CoachStatMiniCards from '../../components/coach/CoachStatMiniCards'
+import CoachTools from '../../components/coach/CoachTools'
+import CoachActionItems from '../../components/coach/CoachActionItems'
+import CoachScheduleCard from '../../components/coach/CoachScheduleCard'
+import ChallengesCard from '../../components/coach/ChallengesCard'
+import TopPlayersCard from '../../components/coach/TopPlayersCard'
+import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
+import TeamWallPreviewCard from '../../components/coach/TeamWallPreviewCard'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
@@ -808,11 +819,60 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             onNavigate={onNavigate}
           />
 
-          {/* Placeholder for Phase 7 body cards */}
-          <div className={`rounded-2xl p-6 text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'}`}>
-            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Coach dashboard body cards coming in Phase 7
-            </p>
+          {/* Row 1: Hero + Notifications */}
+          {/* (Hero already rendered above) */}
+          <CoachNotifications />
+
+          {/* Row 2: Journey + Squad Roster */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+            <CoachJourneyTracker
+              rosterSize={roster.length}
+              hasPractice={upcomingEvents.some(e => e.event_type !== 'game')}
+              selectedSeason={selectedSeason}
+              onNavigate={onNavigate}
+            />
+            <SquadRosterCard
+              roster={roster}
+              selectedTeam={selectedTeam}
+              onNavigate={onNavigate}
+              onPlayerSelect={setSelectedPlayer}
+            />
+          </div>
+
+          {/* Row 3: Tools + Stat Mini Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} />
+            <CoachStatMiniCards
+              rosterCount={roster.length}
+              rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0}
+              dueEvals={0}
+              pendingStats={pendingStats}
+            />
+          </div>
+
+          {/* Row 4: Action Items + Schedule + Challenges */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <CoachActionItems items={needsAttentionItems} onNavigate={onNavigate} />
+            <CoachScheduleCard
+              events={upcomingEvents}
+              rsvpCounts={rsvpCounts}
+              rosterSize={roster.length}
+              onNavigate={onNavigate}
+              onEventSelect={setSelectedEventDetail}
+            />
+            <ChallengesCard challenges={activeChallenges} onNavigate={onNavigate} />
+          </div>
+
+          {/* Row 5: Top Players + Readiness + Team Wall */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <TopPlayersCard topPlayers={topPlayers} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} />
+            <TeamReadinessCard
+              rosterSize={roster.length}
+              rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0}
+              attendanceRate={avgAttendanceLast3 || 100}
+              waiversSigned={roster.length}
+            />
+            <TeamWallPreviewCard teamId={selectedTeam?.id} navigateToTeamWall={navigateToTeamWall} />
           </div>
 
         </div>
