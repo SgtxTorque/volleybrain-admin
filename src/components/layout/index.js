@@ -12,3 +12,4 @@ export {
 } from './SidebarHelpers'
 export { BlastAlertChecker } from './BlastAlertChecker'
 export { JourneyCelebrations } from './JourneyCelebrations'
+export { default as LynxSidebar } from './LynxSidebar'
