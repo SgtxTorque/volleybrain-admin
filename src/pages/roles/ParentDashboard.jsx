@@ -92,14 +92,14 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
           )}
 
           {event.notes && (
-            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-4`}>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-[#F6F8FB]'} rounded-xl p-4`}>
               <p className={`text-base ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
             </div>
           )}
         </div>
 
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
-          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
+          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-[#F6F8FB]'}`}>
             Close
           </button>
         </div>
@@ -164,7 +164,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
 
         <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
           {fees.length > 0 && (
-            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl overflow-hidden`}>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-[#F6F8FB]'} rounded-xl overflow-hidden`}>
               <button
                 onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
                 className={`w-full p-3 flex items-center justify-between ${isDark ? 'text-white' : 'text-slate-900'} hover:opacity-80`}
@@ -195,7 +195,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
 
           {hasPaymentMethods && (
-            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-3`}>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-[#F6F8FB]'} rounded-xl p-3`}>
               <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Include this note with your payment:</p>
               <div className="flex items-center gap-2">
                 <code className={`flex-1 text-base ${isDark ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-200/60'} px-2 py-1 rounded`}>
@@ -266,14 +266,14 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
           )}
 
           {organization?.payment_instructions && (
-            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-3`}>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-[#F6F8FB]'} rounded-xl p-3`}>
               <p className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-2`}>Additional Instructions</p>
               <p className={`text-base ${isDark ? 'text-slate-300' : 'text-slate-600'} whitespace-pre-wrap`}>{organization.payment_instructions}</p>
             </div>
           )}
 
           {!hasPaymentMethods && !organization?.payment_instructions && (
-            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-6 text-center`}>
+            <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-[#F6F8FB]'} rounded-xl p-6 text-center`}>
               <p className="text-3xl mb-2">💳</p>
               <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Payment methods coming soon!</p>
               <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-1`}>Contact your league administrator for payment options.</p>
@@ -296,7 +296,7 @@ function PaymentOptionsModal({ amount, organization, fees = [], players = [], on
               onClick={() => {
                 showToast?.('Payment plan requests coming soon!', 'info')
               }}
-              className={`w-full py-2 rounded-xl text-base transition ${isDark ? 'border border-white/[0.06] text-slate-400 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-500 hover:bg-lynx-cloud'}`}
+              className={`w-full py-2 rounded-xl text-base transition ${isDark ? 'border border-white/[0.06] text-slate-400 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-500 hover:bg-[#F6F8FB]'}`}
             >
               Need a payment plan? Contact admin
             </button>
@@ -395,7 +395,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
                   href={getSiblingRegistrationUrl(season)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition block`}
+                  className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-[#F6F8FB] hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition block`}
                 >
                   <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                     {season.sports?.icon || '🏐'}
@@ -417,7 +417,7 @@ function AddChildModal({ existingChildren, onClose, showToast }) {
         </div>
 
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
-          <button onClick={onClose} className={`w-full py-2 rounded-xl transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
+          <button onClick={onClose} className={`w-full py-2 rounded-xl transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-[#F6F8FB]'}`}>
             Close
           </button>
         </div>
@@ -476,7 +476,7 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
         </div>
 
         <div className="p-6 space-y-4">
-          <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl p-4`}>
+          <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-[#F6F8FB]'} rounded-xl p-4`}>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                 {season.sports?.icon || '🏅'}
@@ -496,7 +496,7 @@ function ReRegisterModal({ player, season, onClose, showToast }) {
         </div>
 
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'} flex gap-3`}>
-          <button onClick={onClose} className={`flex-1 py-2 rounded-xl transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
+          <button onClick={onClose} className={`flex-1 py-2 rounded-xl transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-[#F6F8FB]'}`}>
             Cancel
           </button>
           <a
@@ -544,7 +544,7 @@ function AlertDetailModal({ alert, onClose }) {
         </div>
 
         <div className={`p-6 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
-          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-lynx-cloud'}`}>
+          <button onClick={onClose} className={`w-full py-3 rounded-xl font-medium transition ${isDark ? 'border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-900 hover:bg-[#F6F8FB]'}`}>
             Close
           </button>
         </div>
@@ -867,7 +867,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // ============================================
   if (loading) {
     return (
-      <div className={`flex items-center justify-center h-64 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+      <div className={`flex items-center justify-center h-64 ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`}>
         <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
       </div>
     )
@@ -894,7 +894,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   href={getRegistrationUrl(season)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}
+                  className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-[#F6F8FB] hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}
                 >
                   <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
                     {season.sports?.icon || '🏐'}
@@ -946,7 +946,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // RENDER — 3-COLUMN LAYOUT
   // ============================================
   return (
-    <div data-tutorial="dashboard-header" className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+    <div data-tutorial="dashboard-header" className={`flex h-[calc(100vh-4rem)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'}`}>
 
       {/* LEFT SIDEBAR (280px) */}
       <ParentLeftSidebar

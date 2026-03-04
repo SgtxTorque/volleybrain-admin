@@ -156,16 +156,44 @@ export default function ParentCenterDashboard({
   const visibleAlerts = alerts?.filter(a => !dismissedAlerts?.includes(a.id)) || []
 
   return (
-    <main className="flex flex-1 flex-col gap-6 overflow-y-auto py-6 px-6 min-w-0 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+      {/* Dark Navy Header Band */}
+      <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-[#0D1B3E]'} px-8 pt-5 pb-24 shrink-0`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-4">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover border border-white/10" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4BB9EC]/20 to-[#10284C] border border-[#4BB9EC]/20 flex items-center justify-center text-[12px] font-bold text-[#4BB9EC]">
+                {profile?.full_name?.[0] || 'P'}
+              </div>
+            )}
+            <div>
+              <p className="text-[14px] font-bold text-white">{profile?.full_name?.split(' ')[0] || 'Parent'}</p>
+              <p className="text-[11px] text-white/30 font-medium">
+                {registrationData?.length || 0} {registrationData?.length === 1 ? 'player' : 'players'} registered
+                {activeTeam ? ` · ${activeTeam.name}` : ''}
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-white/20 bg-white/5 px-3 py-1 rounded-full border border-white/5 uppercase tracking-wider">Parent</span>
+        </div>
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#4BB9EC]/50 mb-1">Parent Hub</p>
+        <h1 className="text-[28px] font-black leading-none tracking-wide text-white uppercase">MY FAMILY DASHBOARD</h1>
+      </div>
+
+      {/* Floating Content Area */}
+      <div className="flex-1 px-8 -mt-16 overflow-y-auto pb-8 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex flex-col gap-6">
 
       {/* Alerts */}
       {visibleAlerts.map(alert => (
         <div
           key={alert.id}
-          className={`rounded-xl px-5 py-4 flex items-center gap-4 transition-all hover:-translate-y-0.5 hover:shadow-xl ${
+          className={`rounded-[14px] px-5 py-4 flex items-center gap-4 transition-all hover:-translate-y-0.5 hover:shadow-xl ${
             alert.priority === 'urgent'
               ? 'bg-gradient-to-r from-red-600 to-red-500 shadow-lg shadow-red-500/20'
-              : `${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'}`
+              : `${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'}`
           }`}
         >
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg ${
@@ -189,17 +217,6 @@ export default function ParentCenterDashboard({
           </button>
         </div>
       ))}
-
-      {/* Welcome Message */}
-      <div>
-        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          Welcome back, {profile?.full_name?.split(' ')[0] || 'Parent'} 👋
-        </h1>
-        <p className={`text-base mt-0.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-          {registrationData?.length || 0} {registrationData?.length === 1 ? 'player' : 'players'} registered
-          {activeTeam ? ` · ${activeTeam.name}` : ''}
-        </p>
-      </div>
 
       {/* Hero Player Card */}
       <ParentHeroCard
@@ -245,7 +262,7 @@ export default function ParentCenterDashboard({
       {/* Team Hub + Chat Preview Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Team Hub Preview Card */}
-        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
           <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
               <Users className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
@@ -293,7 +310,7 @@ export default function ParentCenterDashboard({
         </div>
 
         {/* Chat Preview Card */}
-        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+        <div className={` ${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
           <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="flex items-center gap-2">
               <MessageCircle className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
@@ -395,7 +412,7 @@ export default function ParentCenterDashboard({
       </div>
 
       {/* Schedule Section */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-2">
             <Calendar className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
@@ -417,7 +434,7 @@ export default function ParentCenterDashboard({
                   <button
                     key={event.id}
                     onClick={() => onShowEventDetail?.(event)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-white/[0.12]' : 'bg-white border border-lynx-silver hover:border-slate-300'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all hover:shadow-sm ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-white/[0.12]' : 'bg-white border border-[#E8ECF2] hover:border-slate-300'}`}
                   >
                     <div className="text-center w-12 flex-shrink-0">
                       <div className={`text-[9px] uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{eventDate.toLocaleDateString('en-US', { weekday: 'short' })}</div>
@@ -503,7 +520,7 @@ export default function ParentCenterDashboard({
       {/* Invite */}
       <button
         onClick={() => onNavigate?.('invite')}
-        className={`w-full rounded-xl py-4 text-center text-base font-medium shadow-sm hover:shadow-md transition-all ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-slate-400 hover:border-white/[0.12] hover:text-slate-200' : 'bg-white border border-lynx-silver text-lynx-slate hover:border-slate-300 hover:text-slate-700'}`}
+        className={`w-full rounded-xl py-4 text-center text-base font-medium shadow-sm hover:shadow-md transition-all ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-slate-400 hover:border-white/[0.12] hover:text-slate-200' : 'bg-white border border-[#E8ECF2] text-lynx-slate hover:border-slate-300 hover:text-slate-700'}`}
       >
         Know someone who'd love to play? <strong className="text-[var(--accent-primary)]">Invite them →</strong>
       </button>
@@ -516,6 +533,8 @@ export default function ParentCenterDashboard({
           activeTeam={activeTeam}
         />
       </div>
-    </main>
+      </div>
+      </div>
+    </div>
   )
 }

@@ -131,7 +131,7 @@ export default function ParentRightPanel({
   const leaderboardCats = SPORT_LEADERBOARD[sportName?.toLowerCase()] || SPORT_LEADERBOARD.volleyball
 
   return (
-    <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-white'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
       {/* Upcoming Events */}
       <div>
@@ -146,7 +146,7 @@ export default function ParentRightPanel({
             <ParentEventCard key={event.id} event={event} onClick={onShowEventDetail} />
           ))}
           {(!activeChildEvents || activeChildEvents.length === 0) && (
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-6 text-center transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-6 text-center transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
               <Calendar className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
               <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
             </div>
@@ -155,7 +155,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Season Record */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-3`}>Season Record</h3>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
@@ -181,7 +181,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Achievements Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
@@ -251,7 +251,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Leaderboard Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Leaderboard</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
@@ -270,7 +270,7 @@ export default function ParentRightPanel({
       </div>
 
       {/* Player Stats Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Player Stats</h3>
           <button onClick={() => onNavigate?.('leaderboards')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">

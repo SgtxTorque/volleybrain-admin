@@ -115,10 +115,10 @@ export default function ParentLeftSidebar({
   }, [activeChildId])
 
   return (
-    <aside className={`hidden xl:flex w-[310px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-white'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className={`hidden xl:flex w-[310px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
       {/* Org Header Card */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         {orgLogo ? (
           <div className="flex items-center gap-3 mb-3">
             <div className={`w-10 h-10 rounded-xl overflow-hidden shadow-sm ${isDark ? 'border border-white/[0.06]' : 'border border-slate-100'}`}>
@@ -172,7 +172,7 @@ export default function ParentLeftSidebar({
 
       {/* Payment Summary Card */}
       <div
-        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 cursor-pointer hover:shadow-md transition-shadow`}
+        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 cursor-pointer hover:shadow-md transition-shadow`}
         onClick={() => paymentSummary.totalDue > 0 ? onShowPayment?.() : onNavigate?.('payments')}
       >
         <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-3`}>Payment Status</h3>
@@ -206,7 +206,7 @@ export default function ParentLeftSidebar({
       </div>
 
       {/* Needs Attention Card */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-base font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Needs Attention</h3>
           {priorityEngine.count > 0 && (
@@ -285,7 +285,7 @@ export default function ParentLeftSidebar({
       </div>
 
       {/* Badge Progress Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
         <div className="flex items-center justify-between mb-3">
           <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Badge Progress</h3>
           <button onClick={() => onNavigate?.('achievements')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
