@@ -142,13 +142,59 @@
   .stat-card {
     @apply card flex flex-col;
   }
-  
+
   .stat-value {
     @apply text-3xl font-bold text-white;
   }
-  
+
   .stat-label {
     @apply text-sm text-gray-400 mt-1;
+  }
+
+  /* ── BRAND design tokens (from mobile theme/colors.ts) ── */
+
+  /* Shared card style: 16px radius, #E8ECF2 border, white bg, subtle shadow */
+  .brand-card {
+    @apply bg-white border border-brand-border rounded-2xl p-4 shadow-sm;
+  }
+
+  /* Dark-mode card variant */
+  .brand-card-dark {
+    @apply bg-brand-surface-card border rounded-2xl p-4 shadow-sm;
+    border-color: rgba(75, 185, 236, 0.12);
+  }
+
+  /* Section header: 10px uppercase bold, letter-spacing 1.2px, faint color */
+  .brand-section-header {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(16, 40, 76, 0.25);
+  }
+
+  /* Dark-mode section header */
+  .brand-section-header-dark {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(232, 237, 244, 0.3);
+  }
+
+  /* Search bar style */
+  .brand-search {
+    @apply bg-brand-warm-gray rounded-2xl h-11 px-3.5 flex items-center gap-2.5;
+  }
+
+  /* Page background — light (admin, coach, parent) */
+  .brand-page-bg {
+    background-color: #F6F8FB;
+  }
+
+  /* Page background — dark (player) */
+  .brand-page-bg-dark {
+    background-color: #0A1628;
   }
 }
 
