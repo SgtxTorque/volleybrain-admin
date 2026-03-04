@@ -18,6 +18,7 @@ import { SkeletonDashboard } from '../../components/ui'
 import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 import LynxSidebar from '../../components/layout/LynxSidebar'
 import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
+import SeasonJourneyRow from '../../components/dashboard/SeasonJourneyRow'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1479,6 +1480,23 @@ export function DashboardPage({ onNavigate }) {
               />
             )
           })()}
+
+          {/* ─── 0.5. SEASON JOURNEY TRACKERS ──────────────────── */}
+          <SeasonJourneyRow
+            seasons={allSeasons || seasons || []}
+            sports={sports}
+            teamCounts={(() => {
+              const counts = {}
+              ;(allSeasons || seasons || []).forEach(s => { counts[s.id] = teamsData.filter(t => true).length })
+              return counts
+            })()}
+            playerCounts={(() => {
+              const counts = {}
+              ;(allSeasons || seasons || []).forEach(s => { counts[s.id] = stats.totalRegistrations || 0 })
+              return counts
+            })()}
+            onNavigate={onNavigate}
+          />
 
           {/* ─── 1. WELCOME BRIEFING ─────────────────────────── */}
           <div className="text-center py-2">
