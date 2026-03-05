@@ -1,6 +1,6 @@
 // =============================================================================
 // AdminQuickActions — Grid of task-oriented action buttons with counter badges
-// Badges show live counts of pending items from Supabase data
+// Responsive 3×2 grid that fits within 12×5 card slot
 // =============================================================================
 
 import { useTheme } from '../../contexts/ThemeContext'
@@ -9,36 +9,29 @@ import {
 } from 'lucide-react'
 
 const ACTIONS = [
-  { id: 'approve-reg',  icon: ClipboardCheck, label: 'Approve Registrations', page: 'registrations', countKey: 'pendingRegistrations' },
-  { id: 'record-pay',   icon: DollarSign,     label: 'Record Payments',       page: 'payments',      countKey: 'overduePayments' },
-  { id: 'assign-play',  icon: Users,          label: 'Assign Players',        page: 'teams',         countKey: 'unrosteredPlayers' },
-  { id: 'send-remind',  icon: Send,           label: 'Send Reminders',        page: 'blasts',        countKey: 'overdueFamilies' },
-  { id: 'create-sched', icon: CalendarPlus,   label: 'Create Schedule',       page: 'schedule',      countKey: 'teamsNoSchedule' },
-  { id: 'view-reports', icon: BarChart3,       label: 'View Reports',          page: 'reports',       countKey: null },
+  { id: 'approve-reg',  icon: ClipboardCheck, label: 'Approve Regs', page: 'registrations', countKey: 'pendingRegistrations' },
+  { id: 'record-pay',   icon: DollarSign,     label: 'Payments',     page: 'payments',      countKey: 'overduePayments' },
+  { id: 'assign-play',  icon: Users,          label: 'Assign Players', page: 'teams',       countKey: 'unrosteredPlayers' },
+  { id: 'send-remind',  icon: Send,           label: 'Reminders',    page: 'blasts',        countKey: 'overdueFamilies' },
+  { id: 'create-sched', icon: CalendarPlus,   label: 'Schedule',     page: 'schedule',      countKey: 'teamsNoSchedule' },
+  { id: 'view-reports', icon: BarChart3,       label: 'Reports',      page: 'reports',       countKey: null },
 ]
 
-/**
- * @param {Object} props
- * @param {Object} props.counts - { pendingRegistrations, overduePayments, unrosteredPlayers, overdueFamilies, teamsNoSchedule }
- * @param {Function} props.onNavigate
- */
 export default function AdminQuickActions({ counts = {}, onNavigate }) {
   const { isDark } = useTheme()
 
   return (
-    <div className={`rounded-2xl overflow-hidden ${
+    <div className={`rounded-2xl overflow-hidden h-full ${
       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
     }`}>
-      {/* Header */}
-      <div className={`px-6 py-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-        <h3 className={`text-r-xl font-bold tracking-wide uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      <div className="p-3 h-full flex flex-col">
+        {/* Header */}
+        <h3 className={`text-xs font-bold uppercase tracking-[1.2px] mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Quick Actions
         </h3>
-      </div>
 
-      {/* Grid */}
-      <div className="px-6 py-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* 3×2 Grid */}
+        <div className="grid grid-cols-3 gap-2 flex-1">
           {ACTIONS.map((action) => {
             const Icon = action.icon
             const count = action.countKey ? (counts[action.countKey] || 0) : 0
@@ -47,21 +40,19 @@ export default function AdminQuickActions({ counts = {}, onNavigate }) {
               <button
                 key={action.id}
                 onClick={() => onNavigate?.(action.page)}
-                className={`relative flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-2xl transition-all min-h-[80px] max-h-[100px] ${
+                className={`relative flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl transition-all ${
                   isDark
                     ? 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.04]'
                     : 'bg-slate-50 hover:bg-slate-100 border border-slate-100'
                 }`}
               >
-                {/* Counter badge */}
                 {count > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-r-xs font-bold shadow-sm">
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm">
                     {count > 99 ? '99+' : count}
                   </span>
                 )}
-
-                <Icon className={`w-6 h-6 ${isDark ? 'text-lynx-sky' : 'text-lynx-sky'}`} />
-                <span className={`text-r-base font-medium text-center leading-tight ${
+                <Icon className="w-4 h-4 text-lynx-sky" />
+                <span className={`text-[11px] font-medium text-center leading-tight truncate w-full ${
                   isDark ? 'text-white' : 'text-slate-800'
                 }`}>
                   {action.label}

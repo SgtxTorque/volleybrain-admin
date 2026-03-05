@@ -31,7 +31,7 @@ import OrgWallPreview from '../../components/dashboard/OrgWallPreview'
 import AdminSetupTracker from '../../components/dashboard/AdminSetupTracker'
 import AdminActionChecklist from '../../components/dashboard/AdminActionChecklist'
 import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
-import CoachNotifications from '../../components/coach/CoachNotifications'
+import AdminNotificationsCard from '../../components/dashboard/AdminNotificationsCard'
 import CalendarStripCard from '../../components/coach/CalendarStripCard'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
@@ -1439,7 +1439,7 @@ export function DashboardPage({ onNavigate }) {
   // ── Build widget array — Carlos's exported layout (24-col grid, 20px row height) ──
   const adminWidgets = useMemo(() => [
     { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 8, h: 4 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="admin" userName={profile?.full_name} seasonName={selectedSeason?.name} isDark={isDark} /> },
-    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 12, y: 0, w: 10, h: 5 }, minW: 2, minH: 2, maxH: 12, component: <CoachNotifications items={[]} blasts={[]} /> },
+    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 12, y: 0, w: 10, h: 5 }, minW: 2, minH: 2, maxH: 12, component: <AdminNotificationsCard stats={stats} events={upcomingEvents} onNavigate={onNavigate} /> },
     { id: 'org-health-hero', label: 'Organization Health', defaultLayout: { x: 0, y: 4, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 32, component: <OrgHealthHero orgName={orgName || organization?.name || 'My Organization'} healthScore={healthScore} kpis={{ teams: totalTeams, players: totalPlayers, revenueCollected: stats.totalCollected || 0, outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)), waiverPct, eventsMonth: eventsThisMonth, coaches: stats.coachCount || 0, overduePayments: overdueCount }} urgentItems={urgentItems} onNavigate={onNavigate} /> },
     { id: 'setup-tracker', label: 'Setup Tracker', defaultLayout: { x: 16, y: 5, w: 6, h: 4 }, minW: 2, minH: 2, maxH: 10, component: <AdminSetupTracker hasOrgProfile={!!organization?.name} hasSeason={!!selectedSeason} hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0} hasTeam={(stats.teams || 0) > 0} hasCoach={(stats.coachCount || 0) > 0} hasEvent={upcomingEvents.length > 0} /> },
     { id: 'calendar-strip', label: 'Calendar', defaultLayout: { x: 12, y: 5, w: 4, h: 32 }, minW: 2, minH: 2, maxH: 40, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} /> },
