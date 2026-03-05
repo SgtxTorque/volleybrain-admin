@@ -1632,10 +1632,10 @@ export function DashboardPage({ onNavigate }) {
                   className={`${tileBg} border ${tileBorder} rounded-2xl p-2.5 text-left transition-colors hover:brightness-95 h-[94px] flex flex-col justify-between`}>
                   <div className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: team.color || '#4BB9EC' }} />
-                    <p className={`text-[12px] font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
+                    <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className={`text-[12px] ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
                     <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{ts.record}</span>
                   </div>
                   <span className={`text-sm font-semibold ${tileStatus === 'good' ? 'text-[#22C55E]' : 'text-[#F59E0B]'}`}>
@@ -1682,7 +1682,7 @@ export function DashboardPage({ onNavigate }) {
                   <span className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{pct}%</span>
                 </div>
                 {overdueCount > 0 && (
-                  <p className="text-[12px] text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
+                  <p className="text-sm text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
                 )}
                 <div className="flex items-center justify-between">
                   {overdueCount > 0 && (
@@ -1727,12 +1727,12 @@ export function DashboardPage({ onNavigate }) {
           <div className="space-y-2.5">
             {coachesData.map(coach => (
               <div key={coach.id} className="flex items-center gap-2.5">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
                   {coach.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-[14px] font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{coach.name}</p>
-                  <p className={`text-[12px] truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
+                  <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
                 </div>
               </div>
             ))}
@@ -1744,7 +1744,7 @@ export function DashboardPage({ onNavigate }) {
       <div>
         <div className="flex items-center justify-between mb-3">
           <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>UPCOMING</span>
-          <button onClick={() => onNavigate('schedule')} className="text-[12px] text-[#4BB9EC] font-medium">View Calendar ›</button>
+          <button onClick={() => onNavigate('schedule')} className="text-sm text-[#4BB9EC] font-medium">View Calendar ›</button>
         </div>
         {upcomingEvents.length === 0 ? (
           <div className="text-center py-3">
@@ -1767,8 +1767,8 @@ export function DashboardPage({ onNavigate }) {
                   <div className="flex-1 min-w-0">
                     <p className={`text-lg truncate mb-0.5 ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>{typeLabel}</p>
                     <div className="flex items-center gap-1">
-                      <span className="text-[12px] font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
-                      {timeLabel && <><span className={`text-sm ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-[12px] ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
+                      <span className="text-sm font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
+                      {timeLabel && <><span className={`text-sm ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
                     </div>
                   </div>
                 </div>

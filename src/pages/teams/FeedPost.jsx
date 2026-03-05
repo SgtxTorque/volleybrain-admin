@@ -446,7 +446,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             </button>
           </div>
 
-          <button className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider transition"
+          <button className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider transition"
             style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.35)' }}
             onMouseEnter={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.5)'}
             onMouseLeave={e => e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.35)'}>
@@ -473,7 +473,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       {editing && (
         <div className="px-6 pb-5">
           <div className="rounded-xl p-4" style={{ background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)' }}>
-            <p className="text-[12px] font-bold uppercase tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
+            <p className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: g }}>EDIT POST</p>
             <input
               type="text"
               value={editTitle}

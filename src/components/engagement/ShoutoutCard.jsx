@@ -65,7 +65,7 @@ export default function ShoutoutCard({ metadataJson, giverName, createdAt, isDar
         {/* Header row */}
         <div className="w-full flex items-center justify-between">
           <div
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold uppercase tracking-wider"
             style={{ background: `${borderColor}20`, color: borderColor }}
           >
             <Heart className="w-3 h-3" />

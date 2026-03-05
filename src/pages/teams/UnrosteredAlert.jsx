@@ -40,14 +40,14 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
           {!expanded && (
             <div className="flex -space-x-1.5">
               {players.slice(0, 4).map(p => (
-                <div key={p.id} className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
+                <div key={p.id} className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
                   isDark ? 'border-lynx-charcoal bg-white/[0.06] text-slate-300' : 'border-white bg-slate-100 text-slate-600'
                 }`}>
                   {(p.first_name || '?').charAt(0)}{(p.last_name || '').charAt(0)}
                 </div>
               ))}
               {players.length > 4 && (
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
                   isDark ? 'border-lynx-charcoal bg-amber-500/20 text-amber-400' : 'border-white bg-amber-50 text-amber-600'
                 }`}>
                   +{players.length - 4}

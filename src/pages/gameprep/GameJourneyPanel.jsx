@@ -159,7 +159,7 @@ export default function GameJourneyPanel({
                         state?.status === 'skipped' ? 'bg-slate-400' :
                         isDark ? 'border-2 border-slate-600' : 'border-2 border-slate-300'
                       } ${isCurrent ? 'ring-2 ring-lynx-sky/40 ring-offset-2 ring-offset-transparent' : ''}`} />
-                      <span className={`text-[9px] font-semibold ${
+                      <span className={`text-xs font-semibold ${
                         state?.status === 'done' ? 'text-lynx-sky' :
                         state?.status === 'warning' ? 'text-red-400' :
                         isCurrent ? (isDark ? 'text-white' : 'text-lynx-navy') :
@@ -223,7 +223,7 @@ export default function GameJourneyPanel({
                       <span className="text-lg">{cp.icon}</span>
                       <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{cp.label}</span>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${statusColors[state?.status || 'not_started']}`}>
+                    <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${statusColors[state?.status || 'not_started']}`}>
                       {statusLabels[state?.status || 'not_started']}
                     </span>
                   </div>
@@ -231,7 +231,7 @@ export default function GameJourneyPanel({
                     {state?.detail || ''}
                   </p>
                   {cp.optional && (
-                    <span className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Optional</span>
+                    <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Optional</span>
                   )}
                   {action.action && (
                     <button
@@ -302,7 +302,7 @@ export default function GameJourneyPanel({
                     }
                   </span>
                   {previousMatchup.set_scores && (
-                    <p className={`text-[10px] mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                       {previousMatchup.set_scores
                         .filter(s => s && (s.our > 0 || s.their > 0))
                         .map(s => `${s.our}-${s.their}`)

@@ -75,7 +75,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calendar className={`h-4 w-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Upcoming Events
           </span>
         </div>
@@ -113,9 +113,9 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
               >
                 {/* Date badge */}
                 <div className="text-center w-10 flex-shrink-0">
-                  <div className={`text-[9px] uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.weekday}</div>
+                  <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.weekday}</div>
                   <div className={`text-xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{d.day}</div>
-                  <div className={`text-[9px] uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.month}</div>
+                  <div className={`text-xs uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.month}</div>
                 </div>
 
                 {/* Color bar */}
@@ -127,7 +127,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
                       isGame
                         ? isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'
                         : isTournament
@@ -141,13 +141,13 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
                         vs {event.opponent_name || event.opponent}
                       </span>
                     )}
-                    {daysUntil === 0 && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-500'}`}>TODAY</span>}
-                    {daysUntil === 1 && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>TOMORROW</span>}
+                    {daysUntil === 0 && <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-500'}`}>TODAY</span>}
+                    {daysUntil === 1 && <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>TOMORROW</span>}
                   </div>
                   <div className={`text-xs mt-0.5 truncate ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                     {formatTime12(event.event_time)}{event.location && ` · ${event.location}`}{event.venue_name && !event.location && ` · ${event.venue_name}`}
                   </div>
-                  <div className="text-[11px] font-bold mt-0.5 truncate" style={{ color: teamColor }}>
+                  <div className="text-sm font-bold mt-0.5 truncate" style={{ color: teamColor }}>
                     {event.teams?.name || event.title || ''}
                   </div>
                 </div>
@@ -179,7 +179,7 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Trophy className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-          <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Leaderboard
           </span>
         </div>
@@ -227,13 +227,13 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
                   {player.first_name} {player.last_name}
                 </p>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold truncate" style={{ color: teamColor }}>
+                  <span className="text-sm font-bold truncate" style={{ color: teamColor }}>
                     {entry.team?.name || '—'}
                   </span>
                   {player.position && (
                     <>
-                      <span className={`text-[11px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>·</span>
-                      <span className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{player.position}</span>
+                      <span className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>·</span>
+                      <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{player.position}</span>
                     </>
                   )}
                 </div>
@@ -243,7 +243,7 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
               <span className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {entry.total_points || 0}
               </span>
-              <span className={`text-[10px] font-bold uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+              <span className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                 pts
               </span>
             </div>
@@ -271,7 +271,7 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
         <LeaderboardCard players={topPlayers} onNavigate={onNavigate} isDark={isDark} />
       )}
 
-      <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+      <h3 className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
         Live Activity
       </h3>
 
