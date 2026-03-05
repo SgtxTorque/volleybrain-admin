@@ -1,0 +1,1801 @@
+import { useState, useEffect } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
+import { useSeason } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useJourney } from '../../contexts/JourneyContext'
+import { useOrgBranding } from '../../contexts/OrgBrandingContext'
+import { JourneyTimeline, JourneyWidget } from '../../components/journey'
+import { supabase } from '../../lib/supabase'
+import {
+  Users, ClipboardList, DollarSign, Settings, Bell, Calendar,
+  ChevronRight, MoreHorizontal, TrendingUp, CreditCard, Play,
+  CheckCircle, Clock, AlertCircle, Star, MapPin, LayoutDashboard,
+  Filter, ChevronDown, MessageSquare, UsersRound, Search, Megaphone, BarChart3
+} from 'lucide-react'
+import { VolleyballIcon } from '../../constants/icons'
+import { SkeletonDashboard } from '../../components/ui'
+import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
+// LynxSidebar now rendered by MainApp — no longer needed here
+import WelcomeBanner from '../../components/shared/WelcomeBanner'
+import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
+import SeasonJourneyRow from '../../components/dashboard/SeasonJourneyRow'
+import OrgKpiRow from '../../components/dashboard/OrgKpiRow'
+import AllTeamsTable from '../../components/dashboard/AllTeamsTable'
+import OrgActionItems from '../../components/dashboard/OrgActionItems'
+import OrgUpcomingEvents from '../../components/dashboard/OrgUpcomingEvents'
+import PeopleComplianceRow from '../../components/dashboard/PeopleComplianceRow'
+import OrgFinancials from '../../components/dashboard/OrgFinancials'
+import OrgWallPreview from '../../components/dashboard/OrgWallPreview'
+
+// ============================================
+// SHARED CARD COMPONENT - iOS Style
+// ============================================
+function DashCard({ children, className = '', onClick, headerColor, isDark }) {
+  return (
+    <div 
+      onClick={onClick}
+      className={`
+        rounded-2xl overflow-hidden transition-all duration-300
+        ${isDark 
+          ? 'bg-slate-800/90 backdrop-blur-xl border border-white/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.3)]' 
+          : 'bg-white/90 backdrop-blur-xl border border-slate-200/50 shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
+        }
+        ${onClick ? 'cursor-pointer hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-0.5' : ''}
+        ${className}
+      `}
+    >
+      {children}
+    </div>
+  )
+}
+
+// Card Header with colored accent bar
+function CardHeader({ title, action, onAction, children, color = 'blue', icon: Icon, isDark }) {
+  const colorClasses = {
+    blue: 'bg-gradient-to-r from-blue-500 to-blue-600',
+    green: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+    purple: 'bg-gradient-to-r from-purple-500 to-purple-600',
+    orange: 'bg-gradient-to-r from-lynx-sky to-lynx-deep',
+    red: 'bg-gradient-to-r from-red-500 to-red-600',
+    teal: 'bg-gradient-to-r from-teal-500 to-teal-600',
+    indigo: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+    slate: 'bg-gradient-to-r from-slate-500 to-slate-600',
+  }
+  
+  return (
+    <div className={`border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+      {/* Colored accent bar */}
+      <div className={`h-1 ${colorClasses[color] || colorClasses.blue}`} />
+      
+      {/* Header content */}
+      <div className="flex items-center justify-between px-5 py-3">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`} />}
+          <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          {children}
+          {action && (
+            <button 
+              onClick={onAction}
+              className={`text-base px-3 py-1.5 rounded-2xl font-medium transition flex items-center gap-1
+                ${colorClasses[color] || colorClasses.blue} text-white hover:brightness-110`}
+            >
+              {action}
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          )}
+          <button className={`p-1 rounded-2xl transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}>
+            <MoreHorizontal className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// DONUT CHART COMPONENT
+// ============================================
+function DonutChart({ data, total, centerLabel, size = 160 }) {
+  const { isDark } = useTheme()
+  const radius = (size - 20) / 2
+  const circumference = 2 * Math.PI * radius
+  let currentOffset = 0
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        {data.map((segment, i) => {
+          const segmentLength = (segment.value / total) * circumference
+          const offset = currentOffset
+          currentOffset += segmentLength
+          
+          return (
+            <circle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth="20"
+              strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+              strokeDashoffset={-offset}
+              className="transition-all duration-500"
+            />
+          )
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${centerLabel}</span>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// REGISTRATION DONUT CHART
+// ============================================
+function RegistrationDonut({ data, total, size = 138 }) {
+  const { isDark } = useTheme()
+  const radius = (size - 16) / 2
+  const circumference = 2 * Math.PI * radius
+  let currentOffset = 0
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        {data.map((segment, i) => {
+          const segmentLength = (segment.value / total) * circumference
+          const offset = currentOffset
+          currentOffset += segmentLength
+          
+          return (
+            <circle
+              key={i}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={segment.color}
+              strokeWidth="14"
+              strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+              strokeDashoffset={-offset}
+              className="transition-all duration-500"
+            />
+          )
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
+        <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// MINI LINE CHART
+// ============================================
+function MiniLineChart({ data, width = 300, height = 120 }) {
+  const { isDark } = useTheme()
+  if (!data || data.length === 0) return null
+  
+  const maxValue = Math.max(...data.map(d => d.value || 0), 1) * 1.2 // Ensure min of 1 to avoid division by zero
+  const minValue = 0
+  const range = maxValue - minValue || 1 // Ensure range is at least 1
+  
+  const points = data.map((d, i) => {
+    const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+    const y = height - ((d.value - minValue) / range) * height
+    return `${x},${isNaN(y) ? height : y}`
+  }).join(' ')
+
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      {/* Grid lines */}
+      {[0, 1, 2, 3].map(i => (
+        <line 
+          key={i}
+          x1="0" 
+          y1={height - (i / 3) * height} 
+          x2={width} 
+          y2={height - (i / 3) * height}
+          stroke={isDark ? "#334155" : "#E2E8F0"}
+          strokeWidth="1"
+        />
+      ))}
+      
+      {/* Line */}
+      <polyline
+        points={points}
+        fill="none"
+        stroke="#10B981"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      {/* Data points */}
+      {data.map((d, i) => {
+        const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+        const rawY = height - ((d.value - minValue) / range) * height
+        const y = isNaN(rawY) ? height : rawY
+        return (
+          <g key={i}>
+            <circle cx={x} cy={y} r="4" fill="#10B981" />
+            {i === data.length - 1 && (
+              <g>
+                <rect 
+                  x={x - 30} 
+                  y={y - 30} 
+                  width="60" 
+                  height="22" 
+                  rx="4" 
+                  fill="#10B981"
+                />
+                <text 
+                  x={x} 
+                  y={y - 15} 
+                  textAnchor="middle" 
+                  fill="white" 
+                  fontSize="11" 
+                  fontWeight="600"
+                >
+                  ${(d.value || 0).toLocaleString()}
+                </text>
+              </g>
+            )}
+          </g>
+        )
+      })}
+      
+      {/* X-axis labels */}
+      {data.map((d, i) => {
+        const x = data.length === 1 ? width / 2 : (i / (data.length - 1)) * width
+        return (
+          <text 
+            key={i}
+            x={x} 
+            y={height + 16} 
+            textAnchor="middle" 
+            fill={isDark ? "#64748B" : "#94A3B8"} 
+            fontSize="10"
+          >
+            {d.label}
+          </text>
+        )
+      })}
+    </svg>
+  )
+}
+
+// ============================================
+// SEASON CARD WIDGET
+// ============================================
+function SeasonCard({ season, stats, onNavigate }) {
+  const { isDark, accent } = useTheme()
+  
+  // Get next game
+  const nextGame = stats.nextGame
+  
+  return (
+    <DashCard isDark={isDark} className="overflow-hidden">
+      {/* Header with gradient mountain background */}
+      <div 
+        className="relative px-5 py-4"
+        style={{
+          background: 'linear-gradient(135deg, #1E3A5F 0%, #10284C 50%, #183658 100%)',
+        }}
+      >
+        {/* Mountain silhouette overlay */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100'%3E%3Cpath fill='%23ffffff' d='M0,100 L100,30 L150,60 L200,20 L280,70 L350,25 L400,80 L400,100 Z'/%3E%3C/svg%3E")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'bottom',
+          }}
+        />
+        
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-white">
+              {season?.name || 'Spring 2026'}
+            </h2>
+            <span className="text-white/80 font-medium">
+              {season?.sports?.name || 'Volleyball'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center">
+              <VolleyballIcon className="w-6 h-6 text-white" />
+            </div>
+            <div className="text-right">
+              <span className="text-4xl font-bold text-white">{stats.teams}</span>
+              <p className="text-white/70 text-base">Active Teams</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Stats Row */}
+      <div className={`px-5 py-4 border-b ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
+        <div className={`flex items-center gap-2 ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+          <Users className={`w-4 h-4 ${isDark ? "text-slate-500" : "text-lynx-slate"}`} />
+          <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.rosteredPlayers}</span>
+          <span className={`${isDark ? "text-slate-400" : "text-lynx-slate"}`}>/ {stats.totalCapacity} rostered players</span>
+        </div>
+        
+        <div className="flex items-center gap-2 mt-3">
+          {nextGame ? (
+            <>
+              <Calendar className="w-4 h-4 text-slate-400" />
+              <span className={`${isDark ? "text-slate-300" : "text-slate-600"}`}>Next Game:</span>
+              <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{nextGame}</span>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <span className={`${isDark ? "text-amber-400" : "text-amber-600"}`}>No upcoming games scheduled</span>
+            </>
+          )}
+        </div>
+        
+        <button 
+          onClick={() => onNavigate('seasons')}
+          className={`mt-3 px-4 py-2 font-medium text-base rounded-2xl transition ${isDark ? "bg-white/[0.06] hover:bg-white/[0.1] text-slate-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+        >
+          Manage Season
+        </button>
+      </div>
+      
+      {/* Action Button */}
+      <button 
+        onClick={() => onNavigate('seasons')}
+        className="w-full px-5 py-3 text-white font-semibold flex items-center justify-center gap-2 hover:brightness-110 transition"
+        style={{ backgroundColor: accent.primary }}
+      >
+        Manage Season
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </DashCard>
+  )
+}
+
+// ============================================
+// FINANCIAL SUMMARY WIDGET
+// ============================================
+function FinancialSummary({ stats, onNavigate }) {
+  const { isDark } = useTheme()
+  const chartData = [
+    { value: stats.paidOnline || 0, color: '#3B82F6' },
+    { value: stats.paidManual || 0, color: '#F59E0B' },
+    { value: stats.pastDue || 0, color: '#94A3B8' },
+  ]
+  const total = chartData.reduce((sum, d) => sum + d.value, 0)
+
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Financial Summary" color="green" icon={DollarSign}>
+        <button className={`p-1 rounded-2xl transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-slate-100"}`}>
+          <Users className="w-4 h-4 text-slate-400" />
+        </button>
+      </CardHeader>
+      
+      <div className="p-5">
+        {/* Main Total */}
+        <div className="mb-6">
+          <span className={`text-4xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+            ${stats.totalCollected?.toLocaleString() || '0'}
+          </span>
+          <span className={`text-xl ml-2 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Collected YTD</span>
+        </div>
+        
+        {/* Chart and Breakdown */}
+        <div className="flex items-center gap-6">
+          <DonutChart 
+            data={chartData}
+            total={total}
+            centerLabel={(stats.paidManual || 0).toLocaleString()}
+          />
+          
+          <div className="flex-1 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? "bg-white/[0.06]" : "bg-slate-100"}`}>
+                <Clock className="w-4 h-4 text-slate-500" />
+              </div>
+              <div>
+                <span className={`font-bold ${isDark ? "text-orange-400" : "text-orange-500"}`}>${stats.pastDue?.toLocaleString() || '0'}</span>
+                <span className="text-slate-500 ml-2">Past Due</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? "bg-white/[0.06]" : "bg-slate-100"}`}>
+                <CreditCard className="w-4 h-4 text-slate-500" />
+              </div>
+              <div>
+                <span className={`font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.paidOnline?.toLocaleString() || '0'}</span>
+                <span className="text-slate-500 ml-2">via Stripe</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? "bg-amber-500/20" : "bg-amber-100"}`}>
+                <DollarSign className="w-4 h-4 text-amber-600" />
+              </div>
+              <div>
+                <span className={`font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.paidManual?.toLocaleString() || '0'}</span>
+                <span className="text-slate-500 ml-2">Manual Payments</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Action Button */}
+        <button 
+          onClick={() => onNavigate('payments')}
+          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium rounded-2xl hover:brightness-110 transition flex items-center justify-center gap-2"
+        >
+          View Payments
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// FINANCIAL OVERVIEW (LINE CHART)
+// ============================================
+function FinancialOverview({ monthlyData, totalCollected }) {
+  const { isDark } = useTheme()
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Financial Overview" color="teal" icon={TrendingUp}>
+        <span className={`text-sm px-2 py-1 rounded-full ${isDark ? "text-slate-400 bg-white/[0.06]" : "text-lynx-slate bg-slate-100"}`}>All Seasons</span>
+      </CardHeader>
+      
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Registration Payments</span>
+          <span className={`text-4xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
+        </div>
+        
+        <div className="h-32">
+          <MiniLineChart data={monthlyData} width={320} height={100} />
+        </div>
+        
+        {/* Legend */}
+        <div className={`flex items-center gap-4 mt-6 pt-4 border-t ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500" />
+            <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Online</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500" />
+            <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Manual</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Refunds</span>
+          </div>
+        </div>
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// REGISTRATION STATS WIDGET
+// ============================================
+function RegistrationStats({ stats, onNavigate }) {
+  const { isDark } = useTheme()
+  // Calculate unrostered first for chart
+  const rostered = stats.rostered || 0
+  const unrostered = stats.unrostered || Math.max(0, (stats.totalRegistrations || 0) - rostered - (stats.pending || 0) - (stats.waitlisted || 0) - (stats.denied || 0))
+  
+  const chartData = [
+    { value: stats.pending || 0, color: '#F59E0B', label: 'Pending' },
+    { value: unrostered, color: '#3B82F6', label: 'Unrostered' },
+    { value: rostered, color: '#10B981', label: 'Rostered' },
+    { value: stats.waitlisted || 0, color: '#8B5CF6', label: 'Waitlisted' },
+    { value: stats.denied || 0, color: '#EF4444', label: 'Denied' },
+  ]
+  const total = chartData.reduce((sum, d) => sum + d.value, 0)
+  
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Registration Stats" color="blue" icon={ClipboardList} />
+      
+      <div className="p-5">
+        {/* Main Stats Row */}
+        <div className="flex items-stretch gap-4 mb-5">
+          {/* Total Registrations */}
+          <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? "bg-white/[0.05]" : "bg-lynx-cloud"}`}>
+            <p className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
+            <p className={`text-base mt-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total Registrations</p>
+          </div>
+          
+          {/* Rostered */}
+          <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
+            <p className={`text-4xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+              {rostered}
+              <span className={`text-xl ${isDark ? "text-emerald-500" : "text-emerald-400"}`}>/{stats.totalRegistrations || 0}</span>
+            </p>
+            <p className={`text-base mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Rostered</p>
+          </div>
+        </div>
+        
+        {/* Capacity Bar */}
+        {stats.capacity > 0 && (
+          <div className="mb-5">
+            <div className="flex justify-between text-sm text-slate-500 mb-1">
+              <span>Capacity</span>
+              <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
+            </div>
+            <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? "bg-white/10" : "bg-slate-100"}`}>
+              <div 
+                className="h-full bg-blue-500 rounded-full transition-all"
+                style={{ width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Chart and Breakdown */}
+        <div className="flex items-start gap-6">
+          <RegistrationDonut data={chartData} total={total} />
+          
+          <div className="flex-1 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Pending Review</span>
+              </div>
+              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.pending || 0}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Approved (Unrostered)</span>
+              </div>
+              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{unrostered}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>On Roster</span>
+              </div>
+              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{rostered}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-500" />
+                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Waitlisted</span>
+              </div>
+              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.waitlisted || 0}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Denied/Withdrawn</span>
+              </div>
+              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.denied || 0}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Action Button */}
+        <button 
+          onClick={() => onNavigate('registrations')}
+          className="mt-5 w-full px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-2xl hover:brightness-110 transition flex items-center justify-center gap-2"
+        >
+          View Registrations
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// RECENT ACTIVITY / TASKS WIDGET
+// ============================================
+function RecentActivity({ tasks, onNavigate }) {
+  const { isDark } = useTheme()
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Recent Activity" color="purple" icon={Clock} action="View All" onAction={() => onNavigate('registrations')} />
+      
+      <div className="p-5">
+        {/* Filter Dropdown */}
+        <div className="flex items-center gap-2 mb-4">
+          <ClipboardList className="w-4 h-4 text-slate-400" />
+          <span className={`text-base font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}>Recent Tasks</span>
+          <ChevronRight className="w-4 h-4 text-slate-400 rotate-90" />
+        </div>
+        
+        {/* Task List */}
+        <div className="space-y-3">
+          {tasks.map((task, i) => (
+            <div 
+              key={i}
+              onClick={task.action}
+              className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
+            >
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: task.color + '20' }}
+              >
+                {task.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-base ${isDark ? "text-slate-200" : "text-slate-700"}`}>{task.title}</p>
+              </div>
+              {task.badge && (
+                <span 
+                  className="px-2 py-0.5 rounded-full text-sm font-medium text-white"
+                  style={{ backgroundColor: task.color }}
+                >
+                  {task.badge}
+                </span>
+              )}
+              <ChevronRight className="w-4 h-4 text-slate-300" />
+            </div>
+          ))}
+        </div>
+        
+        {/* Manage Link */}
+        <button 
+          onClick={() => onNavigate('registrations')}
+          className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-base font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+        >
+          Manage All Tasks
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// UPCOMING EVENTS WIDGET
+// ============================================
+function UpcomingEvents({ events, onNavigate }) {
+  const { isDark } = useTheme()
+  // Group events by date
+  const groupedEvents = events.reduce((groups, event) => {
+    const date = event.event_date
+    if (!groups[date]) groups[date] = []
+    groups[date].push(event)
+    return groups
+  }, {})
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr)
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`
+  }
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return ''
+    const [hours, minutes] = timeStr.split(':')
+    const h = parseInt(hours)
+    const ampm = h >= 12 ? 'PM' : 'AM'
+    const hour12 = h % 12 || 12
+    return `${hour12}:${minutes}${ampm}`
+  }
+
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Upcoming Events" color="orange" icon={Calendar} action="View All" onAction={() => onNavigate('schedule')} />
+      
+      <div className="p-5 space-y-4">
+        {Object.entries(groupedEvents).slice(0, 2).map(([date, dateEvents]) => (
+          <div key={date}>
+            <p className={`text-base font-semibold mb-3 ${isDark ? "text-white" : "text-slate-800"}`}>{formatDate(date)}</p>
+            
+            {dateEvents.map((event, i) => (
+              <div 
+                key={i}
+                className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition mb-2 ${isDark ? "hover:bg-white/[0.06]" : "hover:bg-lynx-cloud"}`}
+                onClick={() => onNavigate('schedule')}
+              >
+                <div 
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center"
+                  style={{ backgroundColor: event.teams?.color || '#3B82F6' }}
+                >
+                  <VolleyballIcon className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{event.teams?.name || event.title}</p>
+                  <p className={`text-base flex items-center gap-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
+                    <span>{formatTime(event.event_time)}</span>
+                    {event.location && (
+                      <>
+                        <span>·</span>
+                        <MapPin className="w-3 h-3" />
+                        <span>{event.location}</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+                <span className={`text-base font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{formatTime(event.event_time)}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+        
+        {Object.keys(groupedEvents).length === 0 && (
+          <div className="text-center py-8">
+            <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <p className={`${isDark ? "text-slate-400" : "text-lynx-slate"}`}>No upcoming events</p>
+          </div>
+        )}
+        
+        {/* View All Link */}
+        <button 
+          onClick={() => onNavigate('schedule')}
+          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-base font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+        >
+          View All Events
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// QUICK ACTIONS / ACTIVITY FEED
+// ============================================
+function QuickActionsWidget({ activities }) {
+  const { isDark } = useTheme()
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Quick Actions" color="slate" icon={Star} />
+      
+      <div className="p-5 space-y-3">
+        {activities.map((activity, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0 ${isDark ? "bg-white/[0.08] text-slate-300" : "bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600"}`}>
+              {activity.initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-base ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{activity.name}</span>
+                {' '}{activity.action}
+                {activity.highlight && (
+                  <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}> {activity.highlight}</span>
+                )}
+                {activity.target && (
+                  <span className={`${isDark ? "text-slate-300" : "text-slate-600"}`}> {activity.target}</span>
+                )}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// OVERDUE PAYMENTS WIDGET
+// ============================================
+function OverduePayments({ stats, onNavigate }) {
+  const { isDark } = useTheme()
+  const total = (stats.overdueFees || 0) + (stats.overdueStripe || 0)
+  
+  return (
+    <DashCard isDark={isDark}>
+      <CardHeader isDark={isDark} title="Payment Recovery" color="red" icon={AlertCircle} />
+      
+      <div className="p-5">
+        <div className="flex items-start gap-4">
+          <div className="flex-1 space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
+              <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Fees</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500" />
+              <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
+              <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Stripe</span>
+            </div>
+          </div>
+          
+          {/* Mini Donut */}
+          <div className="relative w-32 h-32">
+            <svg width="128" height="128" className="transform -rotate-90">
+              <circle
+                cx="64" cy="64" r="48"
+                fill="none" stroke="#FEE2E2" strokeWidth="12"
+              />
+              <circle
+                cx="64" cy="64" r="48"
+                fill="none" stroke="#EF4444" strokeWidth="12"
+                strokeDasharray={`${((stats.overdueFees || 0) / (total || 1)) * 301} 301`}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-base font-bold text-red-600">${total.toLocaleString()}</span>
+              <span className={`text-sm uppercase ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Action Button */}
+        <button 
+          onClick={() => onNavigate('payments')}
+          className="mt-5 w-full px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-2xl transition flex items-center justify-center gap-2"
+        >
+          <CheckCircle className="w-4 h-4" />
+          Recover Payments
+        </button>
+      </div>
+    </DashCard>
+  )
+}
+
+// ============================================
+// GETTING STARTED GUIDE (No Season)
+// ============================================
+export function GettingStartedGuide({ onNavigate }) {
+  const { organization } = useAuth()
+  const { isDark, accent } = useTheme()
+  
+  return (
+    <div className="max-w-2xl mx-auto py-12 text-center">
+      <div 
+        className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
+        style={{ backgroundColor: accent.primary + '20' }}
+      >
+        <span className="text-4xl">🎉</span>
+      </div>
+      <h1 className={`text-4xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
+        Welcome to {organization?.name || 'Lynx'}!
+      </h1>
+      <p className={`mb-8 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
+        Let's get your organization set up. Start by creating your first season.
+      </p>
+      <button 
+        onClick={() => onNavigate('seasons')}
+        className="px-6 py-3 text-white font-semibold rounded-2xl transition hover:brightness-110"
+        style={{ backgroundColor: accent.primary }}
+      >
+        Create Your First Season
+      </button>
+    </div>
+  )
+}
+
+// ============================================
+// MAIN DASHBOARD PAGE
+// ============================================
+export function DashboardPage({ onNavigate }) {
+  const { organization, profile } = useAuth()
+  const { seasons, allSeasons, selectedSeason, selectSeason, loading: seasonLoading } = useSeason()
+  const { sports, selectedSport, selectSport } = useSport()
+  const { isDark, accent } = useTheme()
+  const { orgName, orgLogo } = useOrgBranding()
+  const [filterTeam, setFilterTeam] = useState('all')
+  const [stats, setStats] = useState({
+    // Season stats
+    teams: 0,
+    rosteredPlayers: 0,
+    totalCapacity: 0,
+    nextGame: null,
+    
+    // Financial stats
+    totalCollected: 0,
+    pastDue: 0,
+    paidOnline: 0,
+    paidManual: 0,
+    overdueFees: 0,
+    overdueStripe: 0,
+    
+    // Registration stats
+    totalRegistrations: 0,
+    approved: 0,
+    pending: 0,
+    waitlisted: 0,
+    denied: 0,
+    capacity: 0,
+    passTypeName: 'Season Pass',
+    coachCount: 0,
+    unsignedWaivers: 0,
+    totalExpected: 0,
+  })
+  const [upcomingEvents, setUpcomingEvents] = useState([])
+  const [monthlyPayments, setMonthlyPayments] = useState([])
+  const [recentActivity, setRecentActivity] = useState([])
+  const [teamsData, setTeamsData] = useState([])
+  const [teamStats, setTeamStats] = useState({})
+  const [recentPaymentsNamed, setRecentPaymentsNamed] = useState([])
+  const [topPlayers, setTopPlayers] = useState([])
+  const [coachesData, setCoachesData] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Reset team filter when season changes
+  useEffect(() => {
+    setFilterTeam('all')
+  }, [selectedSeason?.id])
+
+  useEffect(() => {
+    if (selectedSeason?.id) {
+      loadDashboardData()
+    } else if (!seasonLoading) {
+      setLoading(false)
+    }
+  }, [selectedSeason?.id, seasonLoading, filterTeam])
+
+  async function loadDashboardData() {
+    setLoading(true)
+    try {
+      const seasonId = selectedSeason.id
+      const orgId = selectedSeason.organization_id
+
+      // Fetch teams for this season (include color + max_players for roster health)
+      const { data: teams, count: teamCount } = await supabase
+        .from('teams')
+        .select('id, name, color, max_players', { count: 'exact' })
+        .eq('season_id', seasonId)
+
+      // Apply team filter — use all teams for teamsData display, but filter stats
+      const allTeamIds = teams?.map(t => t.id) || []
+      const teamIds = filterTeam !== 'all' ? [filterTeam] : allTeamIds
+      let actualRosteredCount = 0
+      if (teamIds.length > 0) {
+        const { data: teamPlayers } = await supabase
+          .from('team_players')
+          .select('player_id')
+          .in('team_id', teamIds)
+        actualRosteredCount = new Set(teamPlayers?.map(tp => tp.player_id) || []).size
+      }
+
+      // Fetch ALL players with registrations for this season (matching RegistrationsPage query)
+      const { data: players } = await supabase
+        .from('players')
+        .select('*, registrations(*)')
+        .eq('season_id', seasonId)
+
+      // If filtering by team, get that team's player IDs to scope stats
+      let teamPlayerIds = null
+      if (filterTeam !== 'all' && teamIds.length > 0) {
+        const { data: filteredTp } = await supabase
+          .from('team_players')
+          .select('player_id')
+          .in('team_id', teamIds)
+        teamPlayerIds = new Set(filteredTp?.map(tp => tp.player_id) || [])
+      }
+
+      // Filter players if team is selected
+      const scopedPlayers = teamPlayerIds
+        ? (players || []).filter(p => teamPlayerIds.has(p.id))
+        : players || []
+
+      // Get registration status from the joined registrations
+      const registrations = scopedPlayers.map(p => ({
+        id: p.registrations?.[0]?.id,
+        status: p.registrations?.[0]?.status,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        created_at: p.registrations?.[0]?.created_at || p.created_at,
+        player_id: p.id
+      })) || []
+
+      // Calculate registration stats correctly (include 'active' as rostered)
+      const regStats = {
+        total: registrations.length,
+        pending: registrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length,
+        approved: registrations.filter(r => r.status === 'approved').length,
+        rostered: actualRosteredCount, // Use actual team_players count
+        registrationRostered: registrations.filter(r => ['rostered', 'active'].includes(r.status)).length,
+        waitlisted: registrations.filter(r => r.status === 'waitlisted').length,
+        denied: registrations.filter(r => r.status === 'withdrawn').length,
+        withdrawn: registrations.filter(r => r.status === 'withdrawn').length,
+      }
+
+      // Unrostered = approved/active but not on a team
+      regStats.unrostered = regStats.total - regStats.rostered - regStats.pending - regStats.waitlisted - regStats.denied
+
+      // Calculate capacity from season settings or default per team
+      const seasonCapacity = selectedSeason.capacity || selectedSeason.registration_capacity || 0
+      const totalCapacity = seasonCapacity || (teamCount || 0) * 12
+
+      // Fetch payments for this season
+      const { data: allPayments } = await supabase
+        .from('payments')
+        .select('amount, paid, payment_method, fee_type, created_at, due_date, player_id')
+        .eq('season_id', seasonId)
+
+      // Scope payments to team's players if filtered
+      const payments = teamPlayerIds
+        ? (allPayments || []).filter(p => teamPlayerIds.has(p.player_id))
+        : allPayments || []
+
+      const paidPayments = payments.filter(p => p.paid)
+      const unpaidPayments = payments.filter(p => !p.paid)
+      
+      const totalCollected = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const totalExpected = payments?.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0) || 0
+      const pastDue = unpaidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const paidOnline = paidPayments.filter(p => p.payment_method === 'stripe').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const paidManual = paidPayments.filter(p => p.payment_method !== 'stripe').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+
+      // Per-source breakdowns
+      const paidBySource = {
+        stripe: paidOnline,
+        zelle: paidPayments.filter(p => p.payment_method === 'zelle').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        cashapp: paidPayments.filter(p => p.payment_method === 'cashapp').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        venmo: paidPayments.filter(p => p.payment_method === 'venmo').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        cash_check: paidPayments.filter(p => ['cash', 'check', 'cash_check'].includes(p.payment_method)).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+      }
+
+      // Group payments by fee type for breakdown
+      const paymentsByType = {
+        registration: payments?.filter(p => p.fee_type === 'registration') || [],
+        uniform: payments?.filter(p => p.fee_type === 'uniform') || [],
+        monthly: payments?.filter(p => p.fee_type === 'monthly') || [],
+        other: payments?.filter(p => !['registration', 'uniform', 'monthly'].includes(p.fee_type)) || [],
+      }
+
+      // Fetch upcoming events - include org-wide (null team_id) AND season-specific teams
+      const today = new Date().toISOString().split('T')[0]
+      // teamIds already declared above when fetching rostered count
+      
+      let eventsQuery = supabase
+        .from('schedule_events')
+        .select('*, teams(name, color)')
+        .eq('season_id', seasonId)
+        .gte('event_date', today)
+        .order('event_date', { ascending: true })
+        .order('event_time', { ascending: true })
+        .limit(10)
+
+      // Filter by specific team if selected, otherwise show all season events
+      if (filterTeam !== 'all') {
+        eventsQuery = eventsQuery.or(`team_id.eq.${filterTeam},team_id.is.null`)
+      }
+
+      const { data: events } = await eventsQuery
+
+      // Get next game from schedule_events (not games table which doesn't exist)
+      const nextGameEvent = events?.find(e => e.event_type === 'game')
+      let nextGame = null
+      if (nextGameEvent) {
+        const gameDate = new Date(nextGameEvent.event_date)
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        const time = nextGameEvent.event_time ? 
+          new Date(`2000-01-01T${nextGameEvent.event_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
+        nextGame = `${days[gameDate.getDay()]}, ${time}`
+      }
+
+      // Fetch top 10 players by total points for leaderboard
+      const { data: leaderboardData } = await supabase
+        .from('player_season_stats')
+        .select('*, player:players(id, first_name, last_name, jersey_number, photo_url, position), team:teams(id, name, color)')
+        .eq('season_id', seasonId)
+        .gt('games_played', 0)
+        .order('total_points', { ascending: false })
+        .limit(10)
+      setTopPlayers(leaderboardData || [])
+
+      // Fetch recent activity (real data from multiple sources)
+      const recentActivity = []
+      
+      // Recent registrations
+      const recentRegs = registrations
+        ?.filter(r => r.created_at)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 3) || []
+      
+      recentRegs.forEach(r => {
+        recentActivity.push({
+          type: 'registration',
+          name: `${r.first_name} ${r.last_name}`,
+          initials: `${r.first_name?.[0] || ''}${r.last_name?.[0] || ''}`,
+          action: r.status === 'pending' ? 'Registration submitted' : `Registration ${r.status}`,
+          timestamp: r.created_at,
+        })
+      })
+
+      // Recent payments
+      const recentPays = paidPayments
+        .filter(p => p.created_at)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 2)
+      
+      recentPays.forEach(p => {
+        recentActivity.push({
+          type: 'payment',
+          name: '',
+          initials: '$',
+          action: 'Payment received',
+          highlight: `$${parseFloat(p.amount).toFixed(0)}`,
+          timestamp: p.created_at,
+        })
+      })
+
+      // Fetch coach count for this season's teams + track which teams have a coach
+      let coachCount = 0
+      let teamsWithCoachCount = 0
+      if (teamIds.length > 0) {
+        const { data: teamCoaches } = await supabase
+          .from('team_coaches')
+          .select('coach_id, team_id')
+          .in('team_id', teamIds)
+        coachCount = new Set(teamCoaches?.map(tc => tc.coach_id) || []).size
+        teamsWithCoachCount = new Set(teamCoaches?.map(tc => tc.team_id) || []).size
+
+        // Load coach profiles for Coach Section
+        const uniqueCoachIds = [...new Set(teamCoaches?.map(tc => tc.coach_id) || [])]
+        if (uniqueCoachIds.length > 0) {
+          try {
+            const { data: coachProfiles } = await supabase
+              .from('coaches')
+              .select('id, profiles(first_name, last_name)')
+              .in('id', uniqueCoachIds)
+            setCoachesData((coachProfiles || []).map(c => ({
+              id: c.id,
+              name: c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}` : 'Unknown',
+              teams: (teamCoaches || []).filter(tc => tc.coach_id === c.id).map(tc => {
+                const team = teams?.find(t => t.id === tc.team_id)
+                return team?.name || ''
+              }).filter(Boolean)
+            })))
+          } catch { setCoachesData([]) }
+        } else {
+          setCoachesData([])
+        }
+      }
+
+      // Fetch unsigned waivers count
+      let unsignedWaivers = 0
+      try {
+        const { count: activeWaivers } = await supabase
+          .from('waivers')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+          .eq('is_active', true)
+
+        const { count: signedCount } = await supabase
+          .from('waiver_signatures')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+
+        // Approximate: unsigned = (active waivers * total players) - signed
+        // Simplified: just show waivers that need attention
+        const expectedSigs = (activeWaivers || 0) * (regStats.total || 0)
+        unsignedWaivers = Math.max(0, expectedSigs - (signedCount || 0))
+      } catch {
+        // Waivers table may not have org_id column — gracefully degrade
+      }
+
+      // Build per-team stats for TeamSnapshot
+      const perTeamStats = {}
+      if (teamIds.length > 0) {
+        const { data: allTeamPlayers } = await supabase
+          .from('team_players')
+          .select('team_id, player_id')
+          .in('team_id', teamIds)
+
+        teamIds.forEach(tid => {
+          const count = allTeamPlayers?.filter(tp => tp.team_id === tid).length || 0
+          perTeamStats[tid] = { playerCount: count, record: '0W-0L' }
+        })
+
+        // Try to get game records per team
+        try {
+          const { data: gameResults } = await supabase
+            .from('games')
+            .select('home_team_id, away_team_id, home_score, away_score, status')
+            .or(`home_team_id.in.(${teamIds.join(',')}),away_team_id.in.(${teamIds.join(',')})`)
+            .eq('status', 'completed')
+
+          if (gameResults) {
+            teamIds.forEach(tid => {
+              let wins = 0, losses = 0
+              gameResults.forEach(g => {
+                if (g.home_team_id === tid && g.home_score > g.away_score) wins++
+                else if (g.home_team_id === tid && g.home_score < g.away_score) losses++
+                else if (g.away_team_id === tid && g.away_score > g.home_score) wins++
+                else if (g.away_team_id === tid && g.away_score < g.home_score) losses++
+              })
+              perTeamStats[tid].record = `${wins}W-${losses}L`
+            })
+          }
+        } catch {
+          // games table may not exist — gracefully degrade
+        }
+      }
+      // Count open spots (max_players - current players) across filtered teams
+      let openSpots = 0
+      if (teams?.length > 0) {
+        teams.forEach(t => {
+          if (!teamIds.includes(t.id)) return
+          const maxP = t.max_players || 12
+          const current = perTeamStats[t.id]?.playerCount || 0
+          openSpots += Math.max(0, maxP - current)
+        })
+      }
+
+      setTeamsData(teams || [])
+      setTeamStats(perTeamStats)
+
+      // Build recent payments with player names for PaymentSummaryCard
+      try {
+        let recentQuery = supabase
+          .from('payments')
+          .select('amount, created_at, fee_type, player_id, players(first_name, last_name)')
+          .eq('season_id', seasonId)
+          .eq('paid', true)
+          .order('created_at', { ascending: false })
+          .limit(teamPlayerIds ? 50 : 5)
+
+        const { data: namedPayments } = await recentQuery
+
+        // Filter by team players if needed, then take 5
+        const scopedRecent = teamPlayerIds
+          ? (namedPayments || []).filter(p => teamPlayerIds.has(p.player_id)).slice(0, 5)
+          : (namedPayments || []).slice(0, 5)
+
+        setRecentPaymentsNamed(
+          scopedRecent.map(p => {
+            const d = new Date(p.created_at)
+            const mm = String(d.getMonth() + 1).padStart(2, '0')
+            const dd = String(d.getDate()).padStart(2, '0')
+            const yy = String(d.getFullYear()).slice(-2)
+            return {
+              name: p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown',
+              date: `${mm}/${dd}/${yy}`,
+              lineItem: p.fee_type ? p.fee_type.charAt(0).toUpperCase() + p.fee_type.slice(1) : '—',
+              amount: `$${parseFloat(p.amount).toLocaleString()}`,
+            }
+          })
+        )
+      } catch {
+        setRecentPaymentsNamed([])
+      }
+
+      setUpcomingEvents(events || [])
+      setRecentActivity(recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5))
+
+      setStats({
+        teams: teamIds.length,
+        rosteredPlayers: regStats.rostered,
+        approvedPlayers: regStats.approved,
+        pendingPlayers: regStats.pending,
+        totalCapacity,
+        nextGame,
+        totalCollected,
+        totalExpected,
+        pastDue,
+        paidOnline,
+        paidManual,
+        overdueFees: pastDue,
+        overdueStripe: 0,
+        totalRegistrations: regStats.total,
+        ...regStats,
+        capacity: totalCapacity,
+        passTypeName: selectedSeason?.name || 'Season Pass',
+        paymentsByType,
+        paidBySource,
+        coachCount,
+        unsignedWaivers,
+        teamsWithCoach: teamsWithCoachCount,
+        openSpots,
+      })
+
+      // Generate monthly payment data for chart (real data based on payments)
+      const now = new Date()
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      const monthlyData = []
+      
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+        
+        const monthPayments = paidPayments.filter(p => {
+          const payDate = new Date(p.created_at)
+          return payDate >= monthDate && payDate <= monthEnd
+        })
+        
+        monthlyData.push({
+          label: monthNames[monthDate.getMonth()],
+          value: monthPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+        })
+      }
+      
+      setMonthlyPayments(monthlyData)
+
+    } catch (err) {
+      console.error('Dashboard load error:', err)
+    }
+    setLoading(false)
+  }
+
+  // Task list for Recent Activity
+  const tasks = [
+    {
+      title: `Review ${stats.pending} new registrants`,
+      icon: <ClipboardList className="w-4 h-4 text-lynx-sky" />,
+      color: '#4BB9EC',
+      badge: stats.pending > 0 ? stats.pending : null,
+      action: () => onNavigate('registrations'),
+    },
+    {
+      title: 'Past Due Payment',
+      icon: <DollarSign className="w-4 h-4 text-lynx-sky" />,
+      color: '#4BB9EC',
+      badge: stats.pastDue > 0 ? Math.ceil(stats.pastDue / 100) : null,
+      action: () => onNavigate('payments'),
+    },
+    {
+      title: 'Complete coach onboarding',
+      icon: <Users className="w-4 h-4 text-slate-500" />,
+      color: '#64748B',
+      action: () => onNavigate('coaches'),
+    },
+  ]
+
+  // Activity feed - use real data from recentActivity state
+  const activities = recentActivity.length > 0 ? recentActivity : [
+    { name: 'No recent activity', initials: '—', action: 'Start approving registrations to see activity here' },
+  ]
+
+  if (!seasonLoading && !selectedSeason) {
+    return <GettingStartedGuide onNavigate={onNavigate} />
+  }
+
+  if (seasonLoading) {
+    return <SkeletonDashboard />
+  }
+
+  // Calculate season week
+  const getSeasonWeek = () => {
+    if (!selectedSeason?.start_date) return null
+    const start = new Date(selectedSeason.start_date)
+    const now = new Date()
+    const diffMs = now - start
+    const weekNum = Math.max(1, Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)))
+    if (selectedSeason.end_date) {
+      const end = new Date(selectedSeason.end_date)
+      const totalWeeks = Math.ceil((end - start) / (7 * 24 * 60 * 60 * 1000))
+      return { current: Math.min(weekNum, totalWeeks), total: totalWeeks }
+    }
+    return { current: weekNum, total: null }
+  }
+  const seasonWeek = getSeasonWeek()
+
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 18) return 'Good afternoon'
+    return 'Good evening'
+  }
+
+  const orgInitials = (orgName || organization?.name || '')
+    .split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
+
+  return (
+    <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+      {/* Main Content — full width, sidebar handled by MainApp */}
+      <div className="w-full h-full overflow-y-auto">
+        <div className="px-6 py-6 space-y-5 w-full">
+
+          {/* ─── 0. WELCOME BANNER ──────────────────────────── */}
+          <WelcomeBanner
+            role="admin"
+            userName={profile?.full_name}
+            seasonName={selectedSeason?.name}
+            isDark={isDark}
+          />
+
+          {/* ─── 1. ORG HEALTH HERO ──────────────────────────── */}
+          {(() => {
+            // Calculate health score: (waiverPct * 0.25) + (paymentPct * 0.30) + (rosterPct * 0.25) + (coachPct * 0.20)
+            const waiverTotal = (stats.unsignedWaivers || 0) + (stats.totalRegistrations || 0)
+            const waiverPct = waiverTotal > 0 ? Math.round(((waiverTotal - (stats.unsignedWaivers || 0)) / waiverTotal) * 100) : 100
+            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100) : 100
+            const rosterPct = (stats.totalRegistrations || 0) > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / stats.totalRegistrations) * 100)) : 100
+            const coachPct = (stats.teams || 0) > 0 ? Math.round(((stats.teamsWithCoach || 0) / stats.teams) * 100) : 100
+            const healthScore = Math.round(waiverPct * 0.25 + paymentPct * 0.30 + rosterPct * 0.25 + coachPct * 0.20)
+
+            // Count events this month
+            const now = new Date()
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+            const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+            const eventsThisMonth = upcomingEvents.filter(e => {
+              const d = new Date(e.event_date)
+              return d >= monthStart && d <= monthEnd
+            }).length
+
+            // Overdue payment count
+            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
+
+            // Build urgent items
+            const urgentItems = []
+            if ((stats.pending || 0) > 0) urgentItems.push({ label: 'Pending registrations', count: stats.pending, severity: 'critical', page: 'registrations' })
+            if ((stats.pastDue || 0) > 0) urgentItems.push({ label: 'Overdue payments', count: overdueCount, severity: 'warning', page: 'payments' })
+            if ((stats.unsignedWaivers || 0) > 0) urgentItems.push({ label: 'Unsigned waivers', count: stats.unsignedWaivers, severity: 'info', page: 'waivers' })
+            if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) urgentItems.push({ label: 'Teams need a coach', count: (stats.teams || 0) - (stats.teamsWithCoach || 0), severity: 'info', page: 'coaches' })
+
+            return (
+              <OrgHealthHero
+                orgName={orgName || organization?.name || 'My Organization'}
+                healthScore={healthScore}
+                kpis={{
+                  teams: stats.teams || 0,
+                  players: stats.totalRegistrations || 0,
+                  revenueCollected: stats.totalCollected || 0,
+                  outstanding: (stats.totalExpected || 0) - (stats.totalCollected || 0),
+                  waiverPct,
+                  eventsMonth: eventsThisMonth,
+                  coaches: stats.coachCount || 0,
+                  overduePayments: overdueCount,
+                }}
+                urgentItems={urgentItems}
+                onNavigate={onNavigate}
+              />
+            )
+          })()}
+
+          {/* ─── 0.5. SEASON JOURNEY TRACKERS ──────────────────── */}
+          <SeasonJourneyRow
+            seasons={allSeasons || seasons || []}
+            sports={sports}
+            teamCounts={(() => {
+              const counts = {}
+              ;(allSeasons || seasons || []).forEach(s => { counts[s.id] = teamsData.filter(t => true).length })
+              return counts
+            })()}
+            playerCounts={(() => {
+              const counts = {}
+              ;(allSeasons || seasons || []).forEach(s => { counts[s.id] = stats.totalRegistrations || 0 })
+              return counts
+            })()}
+            onNavigate={onNavigate}
+          />
+
+          {/* ─── 1. KPI STAT CARDS ─────────────────────────── */}
+          <OrgKpiRow stats={stats} />
+
+          {/* ─── 2. BODY CARD GRID ────────────────────────────── */}
+
+          {/* Row: Action Items + Upcoming Events */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <OrgActionItems stats={stats} onNavigate={onNavigate} />
+            <OrgUpcomingEvents events={upcomingEvents} onNavigate={onNavigate} />
+          </div>
+
+          {/* All Teams Table */}
+          <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
+
+          {/* People Compliance */}
+          <PeopleComplianceRow stats={stats} onNavigate={onNavigate} />
+
+          {/* Row: Financials + Team Wall */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <OrgFinancials stats={stats} onNavigate={onNavigate} />
+            <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} />
+          </div>
+
+          {/* Dashboard Filters — keep for team/season filtering */}
+          <button
+            onClick={() => onNavigate('registrations')}
+            className={`w-full flex items-center gap-2.5 rounded-2xl h-11 px-3.5 transition-colors ${
+              isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'
+            }`}
+          >
+            <Search className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'opacity-40'}`} />
+            <span className={`text-[14px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>Search players, families, teams...</span>
+          </button>
+
+      {/* Dashboard Filters */}
+      <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mb-5 ${
+        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
+      }`}>
+        <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+
+        {/* Season selector */}
+        <div className="relative">
+          <select
+            value={selectedSeason?.id || ''}
+            onChange={(e) => {
+              const season = (seasons || allSeasons || []).find(s => s.id === e.target.value)
+              if (season) selectSeason(season)
+            }}
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+              isDark
+                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
+                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+            }`}
+          >
+            {(seasons || allSeasons || []).map(s => (
+              <option key={s.id} value={s.id}>
+                {s.name} · {s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : 'Unknown'}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+        </div>
+
+        {/* Sport selector */}
+        <div className="relative">
+          <select
+            value={selectedSport?.id || ''}
+            onChange={(e) => {
+              const sport = sports.find(s => s.id === e.target.value) || null
+              selectSport(sport)
+            }}
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+              isDark
+                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
+                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+            }`}
+          >
+            <option value="">All Sports</option>
+            {sports.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+        </div>
+
+        {/* Team selector */}
+        <div className="relative">
+          <select
+            value={filterTeam}
+            onChange={(e) => setFilterTeam(e.target.value)}
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+              isDark
+                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
+                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+            }`}
+          >
+            <option value="all">All Teams</option>
+            {teamsData.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+        </div>
+      </div>
+
+      {/* ─── 3. SMART QUEUE ─────────────────────────────── */}
+      {(() => {
+        const queueItems = []
+        if ((stats.pending || 0) > 0) queueItems.push({ id: 'pending-reg', icon: '📋', color: '#EF4444', urgency: 'BLOCKING', category: 'Registration', title: `${stats.pending} Pending Registration${stats.pending !== 1 ? 's' : ''}`, subtitle: 'Review and approve to keep your roster moving.', actionLabel: 'Review Now', page: 'registrations' })
+        if ((stats.pastDue || 0) > 0) queueItems.push({ id: 'overdue-pay', icon: '💰', color: '#F59E0B', urgency: 'OVERDUE', category: 'Payment', title: `$${(stats.pastDue || 0).toLocaleString()} Outstanding`, subtitle: 'Send reminders to collect overdue fees.', actionLabel: 'Send Reminders', page: 'payments' })
+        if ((stats.unsignedWaivers || 0) > 0) queueItems.push({ id: 'waivers', icon: '📄', color: '#4BB9EC', urgency: 'THIS WEEK', category: 'Waiver', title: `${stats.unsignedWaivers} Unsigned Waiver${stats.unsignedWaivers !== 1 ? 's' : ''}`, subtitle: 'Follow up to get all waivers signed.', actionLabel: 'View Waivers', page: 'waivers' })
+        if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) { const n = (stats.teams || 0) - (stats.teamsWithCoach || 0); queueItems.push({ id: 'coaches', icon: '👤', color: '#8B5CF6', urgency: 'UPCOMING', category: 'Coach', title: `${n} Team${n !== 1 ? 's' : ''} Need a Coach`, subtitle: 'Assign coaches to keep teams on track.', actionLabel: 'Assign Coach', page: 'coaches' }) }
+        if (queueItems.length === 0) return (
+          <div className="text-center py-6">
+            <p className="text-4xl mb-2">&#x2705;</p>
+            <p className={`text-[16px] font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>All clear!</p>
+            <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>Nothing needs your attention right now.</p>
+          </div>
+        )
+        return (
+          <div className="space-y-2.5">
+            {queueItems.slice(0, 4).map(item => (
+              <button key={item.id} onClick={() => onNavigate(item.page)}
+                className={`w-full flex overflow-hidden rounded-2xl border shadow-sm text-left transition-colors ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-brand-border hover:bg-[#FAFBFC]'}`}>
+                <div className="w-1 shrink-0" style={{ backgroundColor: item.color }} />
+                <div className="flex-1 p-4">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <span className="text-[14px]">{item.icon}</span>
+                    <span className="text-sm font-bold tracking-[0.08em]" style={{ color: item.color }}>{item.urgency} &middot; {item.category}</span>
+                  </div>
+                  <p className={`text-[15px] font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{item.title}</p>
+                  <p className={`text-lg mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{item.subtitle}</p>
+                  <span className="inline-block px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-lg font-semibold">{item.actionLabel}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )
+      })()}
+
+      {/* ─── 4. SEASON + TEAM HEALTH TILES ─────────────────── */}
+      {teamsData.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>{(selectedSeason?.name || 'SEASON').toUpperCase()}</span>
+            <div className="flex items-center gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+              <span className="text-sm font-semibold text-[#22C55E]">Active</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
+            {teamsData.map(team => {
+              const ts = teamStats[team.id] || { playerCount: 0, record: '0W-0L' }
+              const hasOverdue = (stats.pastDue || 0) > 0
+              const tileStatus = hasOverdue ? 'warning' : 'good'
+              const tileBg = tileStatus === 'good' ? (isDark ? 'bg-emerald-500/[0.06]' : 'bg-[#22C55E]/[0.06]') : (isDark ? 'bg-amber-500/[0.06]' : 'bg-[#F59E0B]/[0.06]')
+              const tileBorder = tileStatus === 'good' ? (isDark ? 'border-emerald-500/30' : 'border-[#22C55E]/30') : (isDark ? 'border-amber-500/30' : 'border-[#F59E0B]/30')
+              return (
+                <button key={team.id} onClick={() => onNavigate('teams')}
+                  className={`${tileBg} border ${tileBorder} rounded-2xl p-2.5 text-left transition-colors hover:brightness-95 h-[94px] flex flex-col justify-between`}>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: team.color || '#4BB9EC' }} />
+                    <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
+                    <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{ts.record}</span>
+                  </div>
+                  <span className={`text-sm font-semibold ${tileStatus === 'good' ? 'text-[#22C55E]' : 'text-[#F59E0B]'}`}>
+                    {tileStatus === 'good' ? '✓ Good' : '⚠ Check'}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 5. PAYMENT SNAPSHOT ────────────────────────── */}
+      {(stats.totalExpected || 0) > 0 && (() => {
+        const collected = stats.totalCollected || 0
+        const expected = stats.totalExpected || 0
+        const outstanding = expected - collected
+        const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0
+        const overdueCount = Math.ceil((stats.pastDue || 0) / 100) || 0
+        return (
+          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-brand-border'}`}>
+            <div className="flex items-center justify-between mb-3.5">
+              <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>PAYMENTS</span>
+              <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{selectedSeason?.name || ''}</span>
+            </div>
+            {pct >= 100 ? (
+              <p className="text-[14px] font-semibold text-[#22C55E] text-center">&#x2705; 100% collected! ${collected.toLocaleString()} total.</p>
+            ) : (
+              <>
+                <div className="flex items-end justify-between mb-3">
+                  <div>
+                    <span className={`text-[20px] font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>${collected.toLocaleString()}</span>
+                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>collected</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[20px] font-bold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>${outstanding.toLocaleString()}</span>
+                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>outstanding</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-[#F0F2F5]'}`}>
+                    <div className="h-full rounded-full bg-[#22C55E] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
+                  </div>
+                  <span className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{pct}%</span>
+                </div>
+                {overdueCount > 0 && (
+                  <p className="text-sm text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  {overdueCount > 0 && (
+                    <button onClick={() => onNavigate('blasts')} className="px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-lg font-semibold">Send All Reminders</button>
+                  )}
+                  <button onClick={() => onNavigate('payments')} className="text-lg text-[#4BB9EC] font-medium">View Details ›</button>
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
+
+      {/* ─── 6. QUICK ACTIONS GRID ──────────────────────── */}
+      <div>
+        <span className={`block mb-3 ${isDark ? 'brand-section-header-dark' : 'brand-section-header'}`}>QUICK ACTIONS</span>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+          {[
+            { icon: '📋', label: 'Create\nEvent', page: 'schedule' },
+            { icon: '📅', label: 'Quick\nSchedule', page: 'schedule' },
+            { icon: '💰', label: 'Send\nReminder', page: 'blasts' },
+            { icon: '📣', label: 'Blast\nAll', page: 'blasts' },
+            { icon: '👤', label: 'Add\nPlayer', page: 'registrations' },
+            { icon: '📊', label: 'Season\nReport', page: 'reports' },
+          ].map(a => (
+            <button key={a.label} onClick={() => onNavigate(a.page)}
+              className={`h-20 rounded-2xl flex flex-col items-center justify-center transition-colors ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'}`}>
+              <span className="text-4xl mb-1">{a.icon}</span>
+              <span className={`text-sm font-semibold text-center leading-[14px] whitespace-pre-line ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{a.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── 7. COACHES ────────────────────────────────── */}
+      {coachesData.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>COACHES</span>
+            <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>{coachesData.length} Active</span>
+          </div>
+          <div className="space-y-2.5">
+            {coachesData.map(coach => (
+              <div key={coach.id} className="flex items-center gap-2.5">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
+                  {coach.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[14px] font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{coach.name}</p>
+                  <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 8. UPCOMING EVENTS ────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>UPCOMING</span>
+          <button onClick={() => onNavigate('schedule')} className="text-sm text-[#4BB9EC] font-medium">View Calendar ›</button>
+        </div>
+        {upcomingEvents.length === 0 ? (
+          <div className="text-center py-3">
+            <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>No upcoming events.</p>
+            <button onClick={() => onNavigate('schedule')} className="text-lg font-semibold text-[#4BB9EC] mt-1">Create Event ›</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {upcomingEvents.slice(0, 6).map(e => {
+              const d = new Date(e.event_date + 'T00:00:00')
+              const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              const dateLabel = `${dayNames[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
+              const time = e.event_time || e.start_time
+              let timeLabel = ''
+              if (time) { const [h, m] = time.split(':').map(Number); timeLabel = `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}` }
+              const typeLabel = e.opponent_name ? `${(e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1)} vs ${e.opponent_name}` : (e.title || (e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1))
+              return (
+                <div key={e.id} className="flex items-start gap-3">
+                  <span className={`w-[72px] text-lg font-semibold shrink-0 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{dateLabel}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-lg truncate mb-0.5 ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>{typeLabel}</p>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
+                      {timeLabel && <><span className={`text-sm ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ─── 9. CLOSING MOTIVATION ────────────────────── */}
+      <div className="text-center py-4">
+        <p className="text-[36px] mb-3">🐱</p>
+        <p className={`text-lg leading-5 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
+          You&rsquo;re managing {stats.teams || 0} team{(stats.teams || 0) !== 1 ? 's' : ''},{' '}
+          {stats.totalRegistrations || 0} player{(stats.totalRegistrations || 0) !== 1 ? 's' : ''} this season.
+        </p>
+        {(() => {
+          const queueTotal = (stats.pending || 0) + ((stats.pastDue || 0) > 0 ? 1 : 0) + ((stats.unsignedWaivers || 0) > 0 ? 1 : 0)
+          return queueTotal > 0
+            ? <p className={`text-lg mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{queueTotal} item{queueTotal !== 1 ? 's' : ''} left in your queue.</p>
+            : <p className="text-lg text-[#22C55E] mb-3">Queue is clear — great work!</p>
+        })()}
+        <p className="text-[14px] font-semibold text-[#4BB9EC]">You&rsquo;ve got this, {profile?.first_name}.</p>
+      </div>
+        </div>
+      </div>
+
+    </div>
+  )
+}
