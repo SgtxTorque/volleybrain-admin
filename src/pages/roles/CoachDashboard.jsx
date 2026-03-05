@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
@@ -739,8 +739,8 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     )
   }
 
-  // ── Build widget array ──
-  const coachWidgets = [
+  // ── Build widget array (memoized to prevent layout snap-back on re-render) ──
+  const coachWidgets = useMemo(() => [
     { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
     { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 0, y: 3, w: 7, h: 9 }, minW: 5, minH: 5, maxH: 14, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
     { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 0, y: 12, w: 7, h: 4 }, minW: 3, minH: 2, maxH: 6, component: <AlsoThisWeekCard events={upcomingEvents} /> },
@@ -751,7 +751,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     { id: 'team-health', label: 'Team Health', defaultLayout: { x: 0, y: 23, w: 12, h: 5 }, minW: 6, minH: 3, maxH: 8, component: <TeamHealthCard attendanceRate={avgAttendanceLast3 || 0} gameAttendance={avgAttendanceLast3 || 0} practiceAttendance={avgAttendanceLast3 || 0} avgRating={0} record={{ wins: teamRecord.wins, losses: teamRecord.losses }} winRate={winRate} /> },
     { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 0, y: 28, w: 6, h: 6 }, minW: 3, minH: 3, maxH: 10, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
     { id: 'team-readiness', label: 'Team Readiness', defaultLayout: { x: 6, y: 28, w: 6, h: 6 }, minW: 3, minH: 3, maxH: 10, component: <TeamReadinessCard rosterSize={roster.length} rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0} attendanceRate={avgAttendanceLast3 || 100} waiversSigned={roster.length} /> },
-  ]
+  ], [profile?.full_name, selectedTeam, selectedSeason, isDark, nextGame, nextEvent, teamRecord, winRate, upcomingEvents, roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, onNavigate])
 
   // ── Main Render: Full-width scrollable content (sidebar handled by MainApp) ──
   return (

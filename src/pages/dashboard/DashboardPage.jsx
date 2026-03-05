@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
@@ -1442,8 +1442,8 @@ export function DashboardPage({ onNavigate }) {
   const playerCountsMap = {}
   ;(allSeasons || seasons || []).forEach(s => { playerCountsMap[s.id] = stats.totalRegistrations || 0 })
 
-  // ── Build widget array ──
-  const adminWidgets = [
+  // ── Build widget array (memoized to prevent layout snap-back on re-render) ──
+  const adminWidgets = useMemo(() => [
     { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="admin" userName={profile?.full_name} seasonName={selectedSeason?.name} isDark={isDark} /> },
     { id: 'setup-tracker', label: 'Setup Tracker', defaultLayout: { x: 0, y: 3, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 5, component: <AdminSetupTracker hasOrgProfile={!!organization?.name} hasSeason={!!selectedSeason} hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0} hasTeam={(stats.teams || 0) > 0} hasCoach={(stats.coachCount || 0) > 0} hasEvent={upcomingEvents.length > 0} /> },
     { id: 'org-health-hero', label: 'Organization Health', defaultLayout: { x: 0, y: 6, w: 7, h: 10 }, minW: 5, minH: 6, maxH: 16, component: <OrgHealthHero orgName={orgName || organization?.name || 'My Organization'} healthScore={healthScore} kpis={{ teams: totalTeams, players: totalPlayers, revenueCollected: stats.totalCollected || 0, outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)), waiverPct, eventsMonth: eventsThisMonth, coaches: stats.coachCount || 0, overduePayments: overdueCount }} urgentItems={urgentItems} onNavigate={onNavigate} /> },
@@ -1457,7 +1457,7 @@ export function DashboardPage({ onNavigate }) {
     { id: 'people-compliance', label: 'People & Compliance', defaultLayout: { x: 0, y: 45, w: 12, h: 4 }, minW: 6, minH: 3, maxH: 8, component: <PeopleComplianceRow stats={stats} onNavigate={onNavigate} /> },
     { id: 'org-financials', label: 'Financials', defaultLayout: { x: 0, y: 49, w: 6, h: 8 }, minW: 4, minH: 4, maxH: 14, component: <OrgFinancials stats={stats} onNavigate={onNavigate} /> },
     { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 6, y: 49, w: 6, h: 8 }, minW: 4, minH: 4, maxH: 14, component: <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} /> },
-  ]
+  ], [profile?.full_name, selectedSeason, isDark, organization, stats, healthScore, totalTeams, totalPlayers, waiverPct, eventsThisMonth, overdueCount, urgentItems, actionItems, quickActionCounts, upcomingEvents, teamsData, teamStats, allSeasons, seasons, sports, teamCountsMap, playerCountsMap, orgName, onNavigate])
 
   return (
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
