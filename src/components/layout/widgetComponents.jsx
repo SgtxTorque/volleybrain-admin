@@ -18,6 +18,9 @@ import PeopleComplianceRow from '../dashboard/PeopleComplianceRow'
 import OrgFinancials from '../dashboard/OrgFinancials'
 import OrgWallPreview from '../dashboard/OrgWallPreview'
 import SeasonJourneyList from '../dashboard/SeasonJourneyList'
+import AdminNotificationsCard from '../dashboard/AdminNotificationsCard'
+import DashboardFilterCard from '../dashboard/DashboardFilterCard'
+import PlaceholderWidget from '../dashboard/PlaceholderWidget'
 
 // ── Coach widgets ──
 import CoachGameDayHeroV2 from '../coach/CoachGameDayHeroV2'
@@ -61,6 +64,9 @@ const componentMap = {
   OrgFinancials,
   OrgWallPreview,
   SeasonJourneyList,
+  AdminNotificationsCard,
+  DashboardFilterCard,
+  PlaceholderWidget,
 
   // Coach
   CoachGameDayHeroV2,

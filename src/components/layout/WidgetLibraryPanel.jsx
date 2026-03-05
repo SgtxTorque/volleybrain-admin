@@ -91,7 +91,17 @@ export default function WidgetLibraryPanel({
                       <p className="text-white/30 text-r-xs mt-0.5 line-clamp-2">{widget.description}</p>
                     </div>
                     <div className="flex-shrink-0 mt-1">
-                      {isActive ? (
+                      {widget.allowMultiple ? (
+                        <button
+                          onClick={() => {
+                            const suffix = Date.now().toString(36)
+                            onAddWidget({ ...widget, id: `${widget.id}-${suffix}` })
+                          }}
+                          className="text-[11px] font-bold text-[#4BB9EC] hover:text-white px-2 py-1 rounded border border-[#4BB9EC]/30 hover:border-[#4BB9EC]/60 hover:bg-[#4BB9EC]/10 transition-colors"
+                        >
+                          + Add
+                        </button>
+                      ) : isActive ? (
                         <button
                           onClick={() => onRemoveWidget(widget.id)}
                           className="text-[11px] font-bold text-red-400 hover:text-red-300 px-2 py-1 rounded border border-red-400/30 hover:border-red-400/60 transition-colors"

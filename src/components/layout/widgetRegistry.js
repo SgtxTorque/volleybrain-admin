@@ -94,6 +94,29 @@ export const widgetRegistry = [
     componentKey: 'PeopleComplianceRow',
     icon: '🛡️',
   },
+  {
+    id: 'dashboard-filters',
+    label: 'Dashboard Filters',
+    description: 'Season, sport, and team filters that control all dashboard data',
+    category: WIDGET_CATEGORIES.OVERVIEW,
+    roles: ['admin'],
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 2, h: 2 },
+    componentKey: 'DashboardFilterCard',
+    icon: '🔍',
+  },
+  {
+    id: 'placeholder',
+    label: 'Placeholder',
+    description: 'Empty card to reserve space — add as many as you want',
+    category: WIDGET_CATEGORIES.OVERVIEW,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 6, h: 4 },
+    minSize: { w: 2, h: 2 },
+    componentKey: 'PlaceholderWidget',
+    icon: '⬜',
+    allowMultiple: true,
+  },
 
   // ══════════════════════════════════════
   // SCHEDULE & EVENTS
@@ -212,12 +235,12 @@ export const widgetRegistry = [
   {
     id: 'notifications',
     label: 'Notifications',
-    description: 'Recent activity feed — achievements, stats, kudos, blasts',
+    description: 'Auto-cycling org-wide notifications for admin, tabbed feed for coach',
     category: WIDGET_CATEGORIES.COMMUNICATION,
     roles: ['coach', 'admin'],
-    defaultSize: { w: 10, h: 10 },
+    defaultSize: { w: 10, h: 5 },
     minSize: { w: 2, h: 2 },
-    componentKey: 'CoachNotifications',
+    componentKey: 'AdminNotificationsCard',
     icon: '🔔',
   },
   {
