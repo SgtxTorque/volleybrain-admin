@@ -20,6 +20,7 @@ import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
 import SeasonJourneyRow from '../../components/dashboard/SeasonJourneyRow'
+import SeasonJourneyList from '../../components/dashboard/SeasonJourneyList'
 import OrgKpiRow from '../../components/dashboard/OrgKpiRow'
 import AllTeamsTable from '../../components/dashboard/AllTeamsTable'
 import OrgActionItems from '../../components/dashboard/OrgActionItems'
@@ -1404,7 +1405,8 @@ export function DashboardPage({ onNavigate }) {
             isDark={isDark}
           />
 
-          {/* ─── 1. ORG HEALTH HERO ──────────────────────────── */}
+          {/* ─── 1. ORG HEALTH HERO + SEASON JOURNEY LIST (side by side) ──── */}
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-5 items-stretch">
           {(() => {
             // ── Transparent 9-component health score calculation ──
             // Each component scores 0-100, weighted average produces final score
@@ -1491,8 +1493,8 @@ export function DashboardPage({ onNavigate }) {
             )
           })()}
 
-          {/* ─── 0.5. SEASON JOURNEY TRACKERS ──────────────────── */}
-          <SeasonJourneyRow
+          {/* Season Journey List — vertical, compact, right of hero */}
+          <SeasonJourneyList
             seasons={allSeasons || seasons || []}
             sports={sports}
             teamCounts={(() => {
@@ -1507,6 +1509,7 @@ export function DashboardPage({ onNavigate }) {
             })()}
             onNavigate={onNavigate}
           />
+          </div>
 
           {/* ─── 1. KPI STAT CARDS ─────────────────────────── */}
           <OrgKpiRow stats={stats} />
