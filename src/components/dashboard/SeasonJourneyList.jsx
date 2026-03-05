@@ -151,7 +151,7 @@ export default function SeasonJourneyList({ seasons = [], sports = [], teamCount
   const hasMore = sorted.length > MAX_VISIBLE
 
   return (
-    <div className="flex flex-col gap-2 h-full">
+    <div className="flex flex-col gap-2 h-full max-h-hero overflow-y-auto">
       {visible.map(season => {
         const sport = sports.find(s => s.id === season.sport_id)
         const sportName = sport?.name || 'Volleyball'

@@ -15,7 +15,7 @@ function getHealthStatus(score) {
 }
 
 // Conic-gradient health ring — larger for game-day treatment
-function HealthRing({ score, size = 200 }) {
+function HealthRing({ score, size = 160 }) {
   const status = getHealthStatus(score)
   const pct = Math.min(100, Math.max(0, score))
 
@@ -88,7 +88,7 @@ export default function OrgHealthHero({
   const status = getHealthStatus(healthScore)
 
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '420px' }}>
+    <div className="relative rounded-2xl overflow-hidden max-h-hero" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)' }}>
       {/* Dot grid overlay */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -106,14 +106,14 @@ export default function OrgHealthHero({
         }}
       />
 
-      <div className="relative z-10 p-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 h-full">
+      <div className="relative z-10 p-r-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-r-4 h-full">
         {/* ─── LEFT SIDE (~60%) ─── */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {/* Org name label */}
           <p className="text-lg text-white/40 uppercase tracking-wider font-semibold">{orgName}</p>
 
           {/* Title + Ring row */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6">
             <HealthRing score={healthScore} />
             <div>
               <h2 className="text-3xl font-extrabold text-white mb-1">Organization Health</h2>

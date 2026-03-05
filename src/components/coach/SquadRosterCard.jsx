@@ -14,7 +14,7 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
     : 'bg-white border border-brand-border'
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-4`}>
+    <div className={`${cardBg} rounded-2xl shadow-sm p-4 max-h-card-tall overflow-y-auto`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <Users className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />

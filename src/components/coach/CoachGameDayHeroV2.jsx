@@ -144,9 +144,9 @@ export default function CoachGameDayHeroV2({
   // No upcoming events fallback — still shows record
   if (!event) {
     return (
-      <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '360px' }}>
+      <div className="relative rounded-2xl overflow-hidden max-h-hero" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)' }}>
         <DotGrid />
-        <div className="relative z-10 p-8 flex flex-col justify-center h-full">
+        <div className="relative z-10 p-r-6 flex flex-col justify-center h-full">
           <p className="text-base font-bold uppercase tracking-[1.5px] text-slate-500 mb-3">Season Record</p>
           <div className="flex items-baseline gap-3 mb-3">
             <span className="text-6xl font-black text-emerald-400">{teamRecord.wins}</span>
@@ -167,7 +167,7 @@ export default function CoachGameDayHeroV2({
   }
 
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ minHeight: '360px' }}>
+    <div className="relative rounded-2xl overflow-hidden max-h-hero" style={{}}>
       {/* Background: game image or gradient */}
       {gameImage ? (
         <>
@@ -180,7 +180,7 @@ export default function CoachGameDayHeroV2({
       <DotGrid />
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 70% 40%, rgba(75,185,236,0.08) 0%, transparent 60%)' }} />
 
-      <div className="relative z-10 p-6 flex gap-6 h-full" style={{ minHeight: '360px' }}>
+      <div className="relative z-10 p-r-6 flex gap-r-4 h-full">
         {/* Left — Event Info */}
         <div className="flex-1 flex flex-col justify-between">
           <div>

@@ -7,7 +7,7 @@ import { Users, UserCheck, Shield } from 'lucide-react'
 
 function KpiCard({ icon: Icon, label, value, sub, iconColor, isDark }) {
   return (
-    <div className={`rounded-2xl p-6 shadow-sm ${
+    <div className={`rounded-2xl p-4 shadow-sm min-h-[100px] max-h-[140px] ${
       isDark
         ? 'bg-lynx-charcoal border border-white/[0.06]'
         : 'bg-white border border-brand-border'

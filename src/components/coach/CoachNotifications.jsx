@@ -38,7 +38,7 @@ export default function CoachNotifications({ items = [], blasts = [] }) {
   const isEmpty = activeItems.length === 0
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-4`}>
+    <div className={`${cardBg} rounded-2xl shadow-sm p-4 max-h-card-sm overflow-y-auto`}>
       {/* Header with tabs */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">

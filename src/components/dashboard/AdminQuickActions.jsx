@@ -47,7 +47,7 @@ export default function AdminQuickActions({ counts = {}, onNavigate }) {
               <button
                 key={action.id}
                 onClick={() => onNavigate?.(action.page)}
-                className={`relative flex flex-col items-center justify-center gap-2 py-5 px-3 rounded-2xl transition-all ${
+                className={`relative flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-2xl transition-all min-h-[80px] max-h-[100px] ${
                   isDark
                     ? 'bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.04]'
                     : 'bg-slate-50 hover:bg-slate-100 border border-slate-100'
