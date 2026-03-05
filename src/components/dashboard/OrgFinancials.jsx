@@ -1,19 +1,9 @@
 // =============================================================================
-// OrgFinancials — 4 financial stat tiles + Send reminders CTA
+// OrgFinancials — Horizontal bar graph, category breakdown, dual action buttons
 // =============================================================================
 
 import { useTheme } from '../../contexts/ThemeContext'
-import { DollarSign, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react'
-
-function FinTile({ label, value, sub, color, isDark }) {
-  return (
-    <div className={`rounded-xl p-3 ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
-      <p className="text-r-2xl font-black tabular-nums" style={{ color }}>{value}</p>
-      <p className={`text-r-lg font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
-      {sub && <p className={`text-r-lg mt-0.5 ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>{sub}</p>}
-    </div>
-  )
-}
+import { DollarSign, AlertCircle, ChevronRight } from 'lucide-react'
 
 export default function OrgFinancials({ stats = {}, onNavigate }) {
   const { isDark } = useTheme()
@@ -21,67 +11,94 @@ export default function OrgFinancials({ stats = {}, onNavigate }) {
   const collected = stats.totalCollected || 0
   const expected = stats.totalExpected || 0
   const outstanding = Math.max(0, expected - collected)
-  const paidOnline = stats.paidOnline || 0
-  const paidManual = stats.paidManual || 0
+  const total = collected + outstanding
+  const collectedPct = total > 0 ? (collected / total) * 100 : 50
   const overdueCount = stats.pastDue > 0 ? Math.ceil(stats.pastDue / 100) : 0
+
+  // Category breakdown from stats
+  const categories = [
+    { label: 'Registration', collected: stats.regCollected || 0, total: stats.regTotal || 0 },
+    { label: 'Uniforms', collected: stats.uniformCollected || 0, total: stats.uniformTotal || 0 },
+    { label: 'Monthly', collected: stats.monthlyCollected || 0, total: stats.monthlyTotal || 0 },
+    { label: 'Other', collected: stats.otherCollected || 0, total: stats.otherTotal || 0 },
+  ].filter(c => c.total > 0)
 
   const cardBg = isDark
     ? 'bg-lynx-charcoal border border-white/[0.06]'
     : 'bg-white border border-brand-border'
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-4`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5">
-          <DollarSign className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Financials
-          </h3>
+    <div className={`${cardBg} rounded-2xl shadow-sm p-4 h-full flex flex-col`}>
+      {/* Header */}
+      <div className="flex items-center gap-1.5 mb-3">
+        <DollarSign className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+        <h3 className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          Financials
+        </h3>
+      </div>
+
+      {/* Dollar amounts above the bar */}
+      <div className="flex items-end justify-between mb-1">
+        <div>
+          <p className="text-xl font-extrabold text-green-500 tabular-nums">${collected.toLocaleString()}</p>
+          <p className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Collected</p>
         </div>
+        <div className="text-right">
+          <p className="text-xl font-extrabold text-red-500 tabular-nums">${outstanding.toLocaleString()}</p>
+          <p className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Outstanding</p>
+        </div>
+      </div>
+
+      {/* Horizontal stacked bar */}
+      <div className="w-full h-7 rounded-lg overflow-hidden flex mb-3">
+        <div
+          className="bg-green-500 transition-all duration-500"
+          style={{ width: `${collectedPct}%` }}
+        />
+        <div
+          className="bg-red-500 transition-all duration-500"
+          style={{ width: `${100 - collectedPct}%` }}
+        />
+      </div>
+
+      {/* Category breakdown */}
+      {categories.length > 0 && (
+        <div className="flex gap-3 mb-3 overflow-x-auto">
+          {categories.map(cat => (
+            <div key={cat.label} className={`min-w-0 flex-1 rounded-lg px-2 py-1.5 ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+              <p className={`text-sm font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                ${cat.collected.toLocaleString()}
+              </p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`}>
+                {cat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Dual action buttons */}
+      <div className="grid grid-cols-2 gap-2 mt-auto">
+        {overdueCount > 0 ? (
+          <button
+            onClick={() => onNavigate?.('blasts')}
+            className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-lynx-sky text-white text-xs font-semibold hover:brightness-110 transition"
+          >
+            <AlertCircle className="w-3.5 h-3.5" />
+            Reminders ({overdueCount})
+          </button>
+        ) : (
+          <div className="py-2 rounded-xl bg-green-500/10 text-green-500 text-xs font-semibold text-center">
+            All Paid
+          </div>
+        )}
         <button
           onClick={() => onNavigate?.('payments')}
-          className="text-r-base text-lynx-sky font-medium flex items-center gap-1"
+          className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#0B1628] text-white text-xs font-semibold hover:bg-[#162a4a] transition"
         >
-          Details <ChevronRight className="w-3 h-3" />
+          Payments <ChevronRight className="w-3 h-3" />
         </button>
       </div>
-
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        <FinTile
-          label="Collected"
-          value={`$${collected.toLocaleString()}`}
-          color="#22C55E"
-          isDark={isDark}
-        />
-        <FinTile
-          label="Outstanding"
-          value={`$${outstanding.toLocaleString()}`}
-          color={outstanding > 0 ? '#F59E0B' : '#22C55E'}
-          isDark={isDark}
-        />
-        <FinTile
-          label="Online"
-          value={`$${paidOnline.toLocaleString()}`}
-          color="#4BB9EC"
-          isDark={isDark}
-        />
-        <FinTile
-          label="Manual"
-          value={`$${paidManual.toLocaleString()}`}
-          color="#8B5CF6"
-          isDark={isDark}
-        />
-      </div>
-
-      {overdueCount > 0 && (
-        <button
-          onClick={() => onNavigate?.('blasts')}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-lynx-sky text-white text-r-lg font-semibold hover:brightness-110 transition"
-        >
-          <AlertCircle className="w-3.5 h-3.5" />
-          Send Reminders ({overdueCount})
-        </button>
-      )}
     </div>
   )
 }
