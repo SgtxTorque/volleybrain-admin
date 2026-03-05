@@ -123,7 +123,7 @@ export default function DashboardGrid({
           margin={[16, 16]}
         >
           {widgets.map(widget => (
-            <div key={widget.id} className="relative group">
+            <div key={widget.id} className="relative group overflow-hidden rounded-2xl">
               {/* Drag handle — only visible in edit mode */}
               {editMode && (
                 <div className="widget-drag-handle absolute top-0 left-0 right-0 h-8 bg-lynx-sky/10 border-b border-lynx-sky/20 rounded-t-xl flex items-center justify-between px-3 cursor-grab active:cursor-grabbing z-10">
@@ -132,8 +132,8 @@ export default function DashboardGrid({
                   </span>
                 </div>
               )}
-              {/* The actual card component */}
-              <div className={`h-full overflow-auto ${editMode ? 'pt-8' : ''}`}>
+              {/* The actual card component — scrolls internally when resized small */}
+              <div className={`h-full overflow-auto scrollbar-hide ${editMode ? 'pt-8' : ''}`}>
                 {widget.component}
               </div>
             </div>

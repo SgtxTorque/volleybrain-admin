@@ -311,3 +311,26 @@
 .react-resizable-handle::after {
   border-color: rgba(75, 185, 236, 0.4) !important;
 }
+
+/* ================================================================
+   Widget card overflow handling — graceful small-resize behavior
+   ================================================================ */
+/* Tables inside grid items get horizontal scroll */
+.react-grid-item table {
+  display: block;
+  overflow-x: auto;
+}
+/* Stat numbers stay on one line */
+.react-grid-item .stat-value,
+.react-grid-item .stat-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Card headers stay compact when resized */
+.react-grid-item h2,
+.react-grid-item h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
