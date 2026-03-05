@@ -384,7 +384,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
               style={{
                 border: drag ? `2px solid ${g}` : (isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)'),
                 background: drag ? `${g}08` : (isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.02)'),
-                borderRadius: 12,
+                borderRadius: 14,
               }}
             >
               <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"

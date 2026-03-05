@@ -37,7 +37,7 @@ const OD_STYLES = `
   .od-light .od-skeleton{background:linear-gradient(90deg,rgba(0,0,0,.04) 25%,rgba(0,0,0,.08) 50%,rgba(0,0,0,.04) 75%);background-size:200% 100%}
 `
 
-const ACCENT = '#EAB308' // VolleyBrain yellow
+const ACCENT = '#EAB308' // Lynx yellow
 
 const SPORT_ICONS = {
   volleyball: '🏐',
@@ -664,7 +664,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <VolleyballIcon className="w-8 h-8" />
-              <span className={`od-display text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>VolleyBrain</span>
+              <span className={`od-display text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>Lynx</span>
             </div>
             <div className="flex items-center gap-3">
               <a

@@ -56,12 +56,12 @@ export function exportEventsToICal(filteredEvents, seasonName, showToast) {
     return `BEGIN:VEVENT\nDTSTART:${fmt(start)}\nDTEND:${fmt(end)}\nSUMMARY:${event.title || event.event_type}\nDESCRIPTION:${event.description || ''}\nLOCATION:${event.venue_name || ''} ${event.venue_address || ''}\nEND:VEVENT`
   }).join('\n')
 
-  const ical = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//VolleyBrain//Schedule//EN\n${icsEvents}\nEND:VCALENDAR`
+  const ical = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Lynx//Schedule//EN\n${icsEvents}\nEND:VCALENDAR`
   const blob = new Blob([ical], { type: 'text/calendar' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `volleybrain-schedule-${seasonName || 'calendar'}.ics`
+  a.download = `lynx-schedule-${seasonName || 'calendar'}.ics`
   a.click()
   URL.revokeObjectURL(url)
   showToast('Calendar exported!', 'success')

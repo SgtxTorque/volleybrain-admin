@@ -1099,7 +1099,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
         {/* Footer */}
         <p className="text-center text-sm mt-6" style={{ color: colors.textMuted }}>
-          Powered by VolleyBrain
+          Powered by Lynx
         </p>
       </div>
     </div>

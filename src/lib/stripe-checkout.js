@@ -1,5 +1,5 @@
 /**
- * Stripe Checkout Service for VolleyBrain
+ * Stripe Checkout Service for Lynx
  * 
  * Calls deployed Supabase Edge Functions to handle Stripe payments.
  * Uses the existing supabase client for consistent auth/config.

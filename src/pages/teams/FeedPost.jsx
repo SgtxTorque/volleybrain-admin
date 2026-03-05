@@ -382,7 +382,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           {bgColorMeta ? (
             <div style={{
               background: bgColorMeta,
-              borderRadius: 12,
+              borderRadius: 14,
               padding: '32px 24px',
               minHeight: 180,
               display: 'flex',
@@ -406,7 +406,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             <div style={{
               background: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)',
               border: `1px solid ${isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'}`,
-              borderRadius: 12,
+              borderRadius: 14,
               padding: '16px 20px',
             }}>
               <TextContent content={post.content} isDark={isDark} />

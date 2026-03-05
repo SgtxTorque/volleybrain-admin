@@ -307,7 +307,7 @@ function SetupWizard({ onComplete }) {
         <h1 className={`text-2xl font-bold ${tc.text} mb-2`}>
           Welcome{profile?.first_name ? `, ${profile.first_name}` : ''}!
         </h1>
-        <p className={`${tc.textMuted} mb-8`}>What brings you to VolleyBrain?</p>
+        <p className={`${tc.textMuted} mb-8`}>What brings you to Lynx?</p>
 
         <div className="space-y-3 mb-8">
           {roles.map(role => (
@@ -521,7 +521,7 @@ function SetupWizard({ onComplete }) {
   return (
     <WizardContainer {...containerProps} showBack={false}>
       <div className="text-center">
-        <h1 className={`text-2xl font-bold ${tc.text} mb-4`}>Welcome to VolleyBrain!</h1>
+        <h1 className={`text-2xl font-bold ${tc.text} mb-4`}>Welcome to Lynx!</h1>
         <WizardPrimaryButton onClick={skipOnboarding} saving={saving} accent={accent}>
           Continue →
         </WizardPrimaryButton>

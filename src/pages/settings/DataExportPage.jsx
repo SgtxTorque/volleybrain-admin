@@ -593,10 +593,10 @@ function DataExportPage({ showToast }) {
 
       if (exportFormat === 'csv') {
         const csv = buildCSV(headers, rows)
-        triggerDownload(csv, `volleybrain_${orgSlug}_${categoryId}${seasonSuffix}_${dateStr}.csv`, 'csv')
+        triggerDownload(csv, `lynx_${orgSlug}_${categoryId}${seasonSuffix}_${dateStr}.csv`, 'csv')
       } else {
         const json = buildJSON(data, categoryId)
-        triggerDownload(json, `volleybrain_${orgSlug}_${categoryId}${seasonSuffix}_${dateStr}.json`, 'json')
+        triggerDownload(json, `lynx_${orgSlug}_${categoryId}${seasonSuffix}_${dateStr}.json`, 'json')
       }
 
       setLastExports(prev => ({ ...prev, [categoryId]: new Date().toISOString() }))
@@ -628,7 +628,7 @@ function DataExportPage({ showToast }) {
         }
         setProgress({ active: true, category: 'full-backup', step: 'Building file...', percent: 95 })
         const json = JSON.stringify(backup, null, 2)
-        triggerDownload(json, `volleybrain_${orgSlug}_full-backup${seasonSuffix}_${dateStr}.json`, 'json')
+        triggerDownload(json, `lynx_${orgSlug}_full-backup${seasonSuffix}_${dateStr}.json`, 'json')
       } else {
         // CSV: export each table as separate download
         for (let i = 0; i < categories.length; i++) {
@@ -638,7 +638,7 @@ function DataExportPage({ showToast }) {
           const { headers, rows } = await exportFunctions[cat]('csv')
           if (rows && rows.length > 0) {
             const csv = buildCSV(headers, rows)
-            triggerDownload(csv, `volleybrain_${orgSlug}_${cat}${seasonSuffix}_${dateStr}.csv`, 'csv')
+            triggerDownload(csv, `lynx_${orgSlug}_${cat}${seasonSuffix}_${dateStr}.csv`, 'csv')
             // Small delay between downloads so browser doesn't block them
             await new Promise(r => setTimeout(r, 500))
           }

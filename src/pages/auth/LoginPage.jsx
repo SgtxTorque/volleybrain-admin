@@ -83,7 +83,7 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-5xl mb-4"><VolleyballIcon className="w-16 h-16" /></div>
-          <h1 className="text-3xl font-bold text-white">VolleyBrain</h1>
+          <h1 className="text-3xl font-bold text-white">Lynx</h1>
           <p className="text-slate-400 mt-2">
             {mode === 'login' ? 'Sign in to continue' : 'Create your account'}
           </p>
