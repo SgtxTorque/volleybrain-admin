@@ -732,7 +732,7 @@ function TeamWallRoute({ showToast, activeView }) {
       teamId={teamId}
       showToast={showToast}
       onBack={() => navigate(-1)}
-      onNavigate={(pageId) => navigate(getPathForPage(pageId))}
+      onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))}
       activeView={activeView}
     />
   )
@@ -749,7 +749,7 @@ function ParentPlayerCardRoute({ roleContext, showToast }) {
 function PlayerProfileRoute({ roleContext, showToast }) {
   const { playerId } = useParams()
   const navigate = useNavigate()
-  return <PlayerProfilePage playerId={playerId} roleContext={roleContext} showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
+  return <PlayerProfilePage playerId={playerId} roleContext={roleContext} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
 }
 
 // ============================================
@@ -765,11 +765,11 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
     <Routes>
       {/* Dashboard — role-dependent */}
       <Route path="/dashboard" element={
-        activeView === 'admin' ? <DashboardPage onNavigate={(pageId) => navigate(getPathForPage(pageId))} /> :
-        activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} /> :
-        activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} /> :
-        activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId) => navigate(getPathForPage(pageId))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} /> :
-        <DashboardPage onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
+        activeView === 'admin' ? <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
+        activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
+        activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
+        activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} /> :
+        <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
       } />
 
       {/* Team Wall — /teams/:teamId */}
@@ -783,15 +783,15 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/my-stuff" element={<MyStuffPage roleContext={roleContext} showToast={showToast} />} />
 
       {/* Roster Manager */}
-      <Route path="/roster" element={<RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
+      <Route path="/roster" element={<RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
 
       {/* Core pages */}
-      <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
+      <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
       <Route path="/coaches" element={<CoachesPage showToast={showToast} />} />
       <Route path="/registrations" element={<RegistrationsPage showToast={showToast} />} />
       <Route path="/jerseys" element={<JerseysPage showToast={showToast} />} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/schedule/availability" element={<CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
+      <Route path="/schedule/availability" element={<CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
       <Route path="/attendance" element={<AttendancePage showToast={showToast} />} />
       <Route path="/payments" element={
         activeView === 'parent'
@@ -818,7 +818,8 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       } />
 
       {/* Admin — Season Management */}
-      <Route path="/admin/seasons" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
+      <Route path="/admin/seasons/:seasonId" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
+      <Route path="/admin/seasons" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
 
       {/* Settings */}
       <Route path="/settings/seasons" element={<SeasonsPage showToast={showToast} />} />

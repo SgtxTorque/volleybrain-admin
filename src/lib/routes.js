@@ -71,7 +71,8 @@ export const PATH_TO_PAGE_ID = Object.fromEntries(
 )
 
 // Get URL path for a page ID. Handles dynamic pages like player-{id} and teamwall-{id}
-export function getPathForPage(pageId) {
+// Optional params object for passing dynamic route data (e.g., { seasonId })
+export function getPathForPage(pageId, params) {
   if (!pageId) return '/dashboard'
 
   // Dynamic: player profile (parent viewing child)
@@ -86,7 +87,8 @@ export function getPathForPage(pageId) {
 
   // Dynamic: season management with season ID
   if (pageId === 'season-management') {
-    return '/admin/seasons'
+    const seasonId = params?.seasonId
+    return seasonId ? `/admin/seasons/${seasonId}` : '/admin/seasons'
   }
 
   // Dynamic: team wall
@@ -109,6 +111,10 @@ export function getPageIdFromPath(pathname) {
 
   const teamWallMatch = pathname.match(/^\/teams\/([^/]+)$/)
   if (teamWallMatch) return `teamwall-${teamWallMatch[1]}`
+
+  // Season management with optional seasonId
+  const seasonMatch = pathname.match(/^\/admin\/seasons\/([^/]+)$/)
+  if (seasonMatch) return 'season-management'
 
   return PATH_TO_PAGE_ID[pathname] || 'dashboard'
 }

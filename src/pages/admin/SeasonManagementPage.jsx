@@ -5,6 +5,7 @@
 // =============================================================================
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
@@ -199,12 +200,24 @@ export default function SeasonManagementPage({ onNavigate, showToast }) {
   const { seasons, allSeasons, selectedSeason, selectSeason } = useSeason()
   const { sports } = useSport()
   const { isDark } = useTheme()
+  const { seasonId: routeSeasonId } = useParams()
   const [activeStep, setActiveStep] = useState(null)
   const [stepStats, setStepStats] = useState({})
   const [loading, setLoading] = useState(true)
 
   const availableSeasons = allSeasons || seasons || []
   const season = selectedSeason
+
+  // Auto-select season from route param on mount
+  useEffect(() => {
+    if (routeSeasonId && availableSeasons.length > 0) {
+      const match = availableSeasons.find(s => s.id === routeSeasonId)
+      if (match && match.id !== selectedSeason?.id) {
+        selectSeason(match)
+        setActiveStep(null)
+      }
+    }
+  }, [routeSeasonId, availableSeasons.length])
 
   // Load step completion data when season changes
   useEffect(() => {
