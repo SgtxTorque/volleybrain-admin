@@ -22,6 +22,7 @@ import {
   ReRegisterModal, AlertDetailModal,
 } from './ParentModals'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
+import { Award } from '../../constants/icons'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -51,6 +52,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [paymentSummary, setPaymentSummary] = useState({ totalDue: 0, totalPaid: 0, unpaidItems: [] })
   const [openSeasons, setOpenSeasons] = useState([])
   const [alerts, setAlerts] = useState([])
+  const [childAchievements, setChildAchievements] = useState([])
   const [activeChildIdx, setActiveChildIdx] = useState(0)
 
   // Modal state
@@ -91,6 +93,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   }, [roleContext?.children, profile?.id])
 
   useEffect(() => { loadOpenSeasons() }, [])
+
+  // Load achievements when active child changes
+  useEffect(() => {
+    const child = registrationData[activeChildIdx] || registrationData[0]
+    if (child?.id) loadChildAchievements(child.id)
+  }, [activeChildIdx, registrationData.length])
 
   async function loadParentDataFromProfile() {
     if (!profile?.id) { setLoading(false); return }
@@ -194,14 +202,25 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     } catch (err) { console.warn('Error loading alerts:', err) }
   }
 
+  async function loadChildAchievements(playerId) {
+    if (!playerId) return
+    try {
+      const { data } = await supabase.from('player_achievements')
+        .select('*, achievements(name, icon, description, rarity)')
+        .eq('player_id', playerId)
+        .order('earned_at', { ascending: false })
+        .limit(8)
+      setChildAchievements(data || [])
+    } catch (err) { console.warn('Error loading achievements:', err) }
+  }
+
   async function loadOpenSeasons() {
     try {
-      const now = new Date().toISOString()
+      // Match mobile app: use registration_open boolean instead of date-based checks
       const { data } = await supabase.from('seasons')
         .select('*, sports(name, icon), organizations(id, name, slug, settings)')
-        .lte('registration_opens', now)
-        .or(`registration_closes.is.null,registration_closes.gte.${now}`)
-        .in('status', ['upcoming', 'active'])
+        .eq('registration_open', true)
+        .order('created_at', { ascending: false })
       setOpenSeasons(data || [])
     } catch (err) { console.warn('Error loading open seasons:', err) }
   }
@@ -447,7 +466,46 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </button>
       )}
 
-      {/* 6. Balance Card — conditional */}
+      {/* 6. Player Achievements — conditional (progressive disclosure) */}
+      {childAchievements.length > 0 && (
+        <div className={`rounded-[14px] border overflow-hidden ${
+          isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
+        }`}>
+          <div className="px-5 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Award className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+              <h3 className={`text-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Achievements
+              </h3>
+            </div>
+            <button onClick={() => onNavigate?.('achievements')}
+              className="text-sm font-bold uppercase tracking-wider text-lynx-sky hover:underline">
+              View All
+            </button>
+          </div>
+          <div className={`px-5 pb-4 flex flex-wrap gap-3 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`}>
+            {childAchievements.slice(0, 6).map(ach => {
+              const badge = ach.achievements
+              const rarityColors = {
+                common: isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600',
+                uncommon: isDark ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-50 text-emerald-600',
+                rare: isDark ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600',
+                epic: isDark ? 'bg-purple-900/40 text-purple-400' : 'bg-purple-50 text-purple-600',
+                legendary: isDark ? 'bg-amber-900/40 text-amber-400' : 'bg-amber-50 text-amber-600',
+              }
+              const color = rarityColors[badge?.rarity] || rarityColors.common
+              return (
+                <div key={ach.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${color}`}>
+                  <span className="text-lg">{badge?.icon || '🏅'}</span>
+                  <span className="text-sm font-bold">{badge?.name || 'Badge'}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 7. Balance Card — conditional */}
       {totalChildDue > 0 && (
         <div className={`rounded-[14px] border overflow-hidden ${
           isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'

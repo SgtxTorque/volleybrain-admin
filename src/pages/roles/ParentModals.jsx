@@ -278,13 +278,12 @@ export function AddChildModal({ existingChildren, onClose, showToast }) {
 
   async function loadOpenSeasons() {
     try {
+      // Match mobile app: use registration_open boolean instead of date-based checks
       const orgIds = [...new Set((existingChildren || []).map(c => c.season?.organizations?.id).filter(Boolean))]
-      const now = new Date().toISOString()
       let query = supabase.from('seasons')
         .select('*, sports(name, icon), organizations(id, name, slug, settings)')
-        .lte('registration_opens', now)
-        .or(`registration_closes.is.null,registration_closes.gte.${now}`)
-        .in('status', ['upcoming', 'active'])
+        .eq('registration_open', true)
+        .order('created_at', { ascending: false })
       if (orgIds.length > 0) query = query.in('organization_id', orgIds)
       const { data } = await query
       setOpenSeasons(data || [])
