@@ -459,6 +459,13 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         widgets={parentWidgets}
         editMode={editMode}
         onLayoutChange={(layouts) => console.log('Parent layout changed:', layouts)}
+        role="parent"
+        sharedProps={{
+          role: 'parent', isDark, onNavigate, profile, registrationData, activeChildIdx,
+          actionItems, activeChildEvents, events: activeChildEvents, activeTeam,
+          childAchievements, totalChildDue, paymentSummary, teams,
+          userName: profile?.full_name, seasonName: registrationData[0]?.season?.name,
+        }}
       />
 
       {/* Edit Layout FAB */}

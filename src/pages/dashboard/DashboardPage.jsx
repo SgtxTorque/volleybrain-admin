@@ -1500,6 +1500,14 @@ export function DashboardPage({ onNavigate }) {
             widgets={adminWidgets}
             editMode={editMode}
             onLayoutChange={(layouts) => console.log('Admin layout changed:', layouts)}
+            role="admin"
+            sharedProps={{
+              role: 'admin', isDark, onNavigate, profile, selectedSeason, organization, orgName,
+              stats, healthScore, totalTeams, totalPlayers, waiverPct, eventsThisMonth, overdueCount,
+              urgentItems, actionItems, quickActionCounts, upcomingEvents, events: upcomingEvents,
+              teamsData, teams: teamsData, teamStats, allSeasons, seasons, sports,
+              teamCountsMap, playerCountsMap,
+            }}
           />
 
           {/* ─── Edit Layout FAB ──── */}

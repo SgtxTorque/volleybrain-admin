@@ -788,6 +788,13 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             widgets={coachWidgets}
             editMode={editMode}
             onLayoutChange={(layouts) => console.log('Coach layout changed:', layouts)}
+            role="coach"
+            sharedProps={{
+              role: 'coach', isDark, onNavigate, profile, selectedSeason, selectedTeam,
+              nextGame, nextEvent, teamRecord, winRate, upcomingEvents, events: upcomingEvents,
+              roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, teams,
+              userName: profile?.full_name, teamName: selectedTeam?.name, seasonName: selectedSeason?.name,
+            }}
           />
 
           {/* Edit Layout FAB */}
