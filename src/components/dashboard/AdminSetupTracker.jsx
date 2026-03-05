@@ -1,9 +1,9 @@
 // =============================================================================
-// AdminSetupTracker — Conditional setup wizard banner below welcome header
-// Shows progress bar + next step hint. Disappears when all steps complete.
+// AdminSetupTracker — Conditional setup wizard. Returns null when all done.
 // =============================================================================
 
 import { useTheme } from '../../contexts/ThemeContext'
+import { Settings } from 'lucide-react'
 
 const SETUP_STEPS = [
   { id: 'org-profile',   label: 'Create organization profile', time: '5 min' },
@@ -14,15 +14,6 @@ const SETUP_STEPS = [
   { id: 'first-event',   label: 'Create first schedule event', time: '5 min' },
 ]
 
-/**
- * @param {Object} props
- * @param {boolean} props.hasOrgProfile   - organization record exists with name
- * @param {boolean} props.hasSeason       - at least one season exists
- * @param {boolean} props.hasRegistration - registration template/form exists or season is 'open'
- * @param {boolean} props.hasTeam         - at least one team exists
- * @param {boolean} props.hasCoach        - at least one coach assigned to a team
- * @param {boolean} props.hasEvent        - at least one schedule event exists
- */
 export default function AdminSetupTracker({
   hasOrgProfile = false,
   hasSeason = false,
@@ -45,38 +36,41 @@ export default function AdminSetupTracker({
   const completedCount = SETUP_STEPS.filter(s => completion[s.id]).length
   const totalSteps = SETUP_STEPS.length
 
-  // Progressive disclosure: all done → don't render
+  // All done → don't render at all
   if (completedCount >= totalSteps) return null
 
   const pct = Math.round((completedCount / totalSteps) * 100)
   const nextStep = SETUP_STEPS.find(s => !completion[s.id])
 
   return (
-    <div className={`rounded-2xl px-6 py-4 ${
+    <div className={`rounded-2xl p-3 h-full ${
       isDark
-        ? 'bg-lynx-charcoal/60 border border-white/[0.06]'
+        ? 'bg-lynx-charcoal border border-white/[0.06]'
         : 'bg-white border border-slate-200'
     }`}>
-      <div className="flex items-center gap-5">
-        {/* Progress bar */}
-        <div className={`flex-1 h-3 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <div
-            className="h-full rounded-full bg-lynx-sky transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-
-        {/* Step count */}
-        <span className={`text-r-lg font-bold tabular-nums shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      {/* Header */}
+      <div className="flex items-center gap-1.5 mb-2">
+        <Settings className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+        <h3 className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          Setup Tracker
+        </h3>
+        <span className={`ml-auto text-xs font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
           {completedCount}/{totalSteps}
         </span>
       </div>
 
-      {/* Next step hint */}
+      {/* Progress bar */}
+      <div className={`h-2 rounded-full overflow-hidden mb-2 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+        <div
+          className="h-full rounded-full bg-lynx-sky transition-all duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      {/* Next step */}
       {nextStep && (
-        <p className={`text-r-lg mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Next: <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{nextStep.label}</span>
-          <span className={`ml-2 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>&middot; ~{nextStep.time}</span>
         </p>
       )}
     </div>
