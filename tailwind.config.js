@@ -95,6 +95,43 @@ export default {
       backdropBlur: {
         xs: '2px',
       },
+      // Responsive font sizes: clamp(min, preferred, max)
+      // min = readable on 1024px laptop, max = capped on ultrawide
+      fontSize: {
+        'r-xs':   ['clamp(0.6875rem, 0.6rem + 0.25vw, 0.8125rem)', { lineHeight: '1.4' }],
+        'r-sm':   ['clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem)', { lineHeight: '1.4' }],
+        'r-base': ['clamp(0.875rem, 0.75rem + 0.35vw, 1.0625rem)', { lineHeight: '1.5' }],
+        'r-lg':   ['clamp(1rem, 0.85rem + 0.4vw, 1.25rem)', { lineHeight: '1.4' }],
+        'r-xl':   ['clamp(1.125rem, 0.95rem + 0.5vw, 1.5rem)', { lineHeight: '1.3' }],
+        'r-2xl':  ['clamp(1.375rem, 1.1rem + 0.7vw, 1.875rem)', { lineHeight: '1.2' }],
+        'r-3xl':  ['clamp(1.75rem, 1.4rem + 0.9vw, 2.5rem)', { lineHeight: '1.1' }],
+        'r-4xl':  ['clamp(2.25rem, 1.8rem + 1.2vw, 3.25rem)', { lineHeight: '1' }],
+        'r-5xl':  ['clamp(3rem, 2.4rem + 1.5vw, 4.5rem)', { lineHeight: '1' }],
+      },
+      // Responsive spacing: scales smoothly between viewport sizes
+      spacing: {
+        'r-1': 'clamp(0.25rem, 0.2rem + 0.15vw, 0.375rem)',
+        'r-2': 'clamp(0.5rem, 0.4rem + 0.25vw, 0.75rem)',
+        'r-3': 'clamp(0.75rem, 0.6rem + 0.35vw, 1rem)',
+        'r-4': 'clamp(1rem, 0.8rem + 0.5vw, 1.5rem)',
+        'r-6': 'clamp(1.5rem, 1.2rem + 0.75vw, 2.25rem)',
+        'r-8': 'clamp(2rem, 1.6rem + 1vw, 3rem)',
+      },
+      // Max-width/max-height design tokens for cards and containers
+      maxWidth: {
+        'card-sm': '320px',
+        'card-md': '480px',
+        'card-lg': '640px',
+        'card-xl': '800px',
+        'dashboard': '1600px',
+      },
+      maxHeight: {
+        'hero': '380px',
+        'hero-sm': '280px',
+        'card': '500px',
+        'card-sm': '320px',
+        'card-tall': '700px',
+      },
       borderRadius: {
         '3xl': '1.5rem',
         '4xl': '2rem',
