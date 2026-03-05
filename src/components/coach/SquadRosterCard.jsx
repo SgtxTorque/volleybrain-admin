@@ -1,5 +1,6 @@
 // =============================================================================
-// SquadRosterCard — Player photos + jersey + position in 2-column grid
+// SquadRosterCard — Overhauled: larger player cards, rounded portrait photos,
+// jersey number, position badge, overall rating, top per-game stats
 // =============================================================================
 
 import { useTheme } from '../../contexts/ThemeContext'
@@ -16,47 +17,86 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
     <div className={`${cardBg} rounded-2xl shadow-sm p-4`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
-          <Users className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-sm font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <Users className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Squad ({roster.length})
           </h3>
         </div>
-        <button onClick={() => onNavigate?.('teams')} className="text-sm text-lynx-sky font-medium flex items-center gap-1">
+        <button onClick={() => onNavigate?.('teams')} className="text-sm text-lynx-sky font-semibold flex items-center gap-1 hover:brightness-110">
           Full Roster <ChevronRight className="w-3 h-3" />
         </button>
       </div>
 
       {roster.length === 0 ? (
-        <p className={`text-base text-center py-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No players on roster</p>
+        <p className={`text-base text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          No players on roster yet. Time to build the squad! 🏐
+        </p>
       ) : (
-        <div className="space-y-0.5 max-h-[600px] overflow-y-auto">
-          {roster.map(player => (
-            <button
-              key={player.id}
-              onClick={() => onPlayerSelect?.(player)}
-              className={`flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${
-                isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
-              }`}
-            >
-              {player.photo_url ? (
-                <img src={player.photo_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                  isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
+        <div className="space-y-1 max-h-[600px] overflow-y-auto">
+          {roster.map(player => {
+            const initials = `${(player.first_name || '?').charAt(0)}${(player.last_name || '').charAt(0)}`
+            const rating = player.overall_rating || player.rating
+            const stats = player.top_stats || []
+
+            return (
+              <button
+                key={player.id}
+                onClick={() => onPlayerSelect?.(player)}
+                className={`flex items-center gap-3 p-2.5 rounded-xl w-full text-left transition-colors ${
+                  isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
+                }`}
+              >
+                {/* Portrait photo — rounded, NOT circle */}
+                {player.photo_url ? (
+                  <img
+                    src={player.photo_url}
+                    alt=""
+                    className="w-12 h-12 rounded-xl object-cover shrink-0"
+                  />
+                ) : (
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold shrink-0 ${
+                    isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    {initials}
+                  </div>
+                )}
+
+                {/* Info */}
+                <div className="min-w-0 flex-1">
+                  <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    {player.jersey_number ? <span className="text-lynx-sky font-bold">#{player.jersey_number}</span> : null}
+                    {player.jersey_number ? ' ' : ''}{player.first_name} {(player.last_name || '').charAt(0)}.
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {player.position && (
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+                        isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {player.position}
+                      </span>
+                    )}
+                    {stats.length > 0 && stats.slice(0, 3).map((s, i) => (
+                      <span key={i} className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {s.label}: {s.value}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {player.jersey_number ? `#${player.jersey_number} ` : ''}{player.first_name} {(player.last_name || '').charAt(0)}.
-                </p>
-                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {player.position || 'Player'}
-                </p>
-              </div>
-            </button>
-          ))}
+
+                {/* Overall rating */}
+                {rating != null && rating > 0 && (
+                  <div className={`flex flex-col items-center shrink-0 min-w-[36px]`}>
+                    <span className={`text-lg font-black tabular-nums ${
+                      rating >= 8 ? 'text-emerald-400' : rating >= 5 ? 'text-amber-400' : 'text-red-400'
+                    }`}>
+                      {typeof rating === 'number' ? rating.toFixed(1) : rating}
+                    </span>
+                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>OVR</span>
+                  </div>
+                )}
+              </button>
+            )
+          })}
         </div>
       )}
     </div>

@@ -17,18 +17,14 @@ import {
 // import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
 // LynxSidebar now rendered by MainApp — no longer needed here
 import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
-import CoachJourneyTracker from '../../components/coach/CoachJourneyTracker'
-import GameDayJourneyCard from '../../components/coach/GameDayJourneyCard'
 import CoachNotifications from '../../components/coach/CoachNotifications'
 import SquadRosterCard from '../../components/coach/SquadRosterCard'
-import CoachStatMiniCards from '../../components/coach/CoachStatMiniCards'
 import CoachTools from '../../components/coach/CoachTools'
-import CoachActionItems from '../../components/coach/CoachActionItems'
-import CoachScheduleCard from '../../components/coach/CoachScheduleCard'
-import ChallengesCard from '../../components/coach/ChallengesCard'
-import TopPlayersCard from '../../components/coach/TopPlayersCard'
+import AlsoThisWeekCard from '../../components/coach/AlsoThisWeekCard'
+import CalendarStripCard from '../../components/coach/CalendarStripCard'
+import CoachActionItemsCard from '../../components/coach/CoachActionItemsCard'
+import TeamHealthCard from '../../components/coach/TeamHealthCard'
 import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
-import TeamWallPreviewCard from '../../components/coach/TeamWallPreviewCard'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
@@ -655,19 +651,17 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const totalPlayersAcrossTeams = teams.reduce((sum, t) => sum + (t.playerCount || 0), 0)
   const teamsCount = teams.length
 
-  // Needs Attention items
+  // Needs Attention items — typed for CoachActionItemsCard mobile-tone copy
   const needsAttentionItems = []
-  if (pendingStats > 0) needsAttentionItems.push({ label: `${pendingStats} game${pendingStats > 1 ? 's' : ''} need stats`, action: () => onNavigate?.('gameprep'), color: '#F59E0B' })
+  if (pendingStats > 0) needsAttentionItems.push({ type: 'pending_stats', count: pendingStats, page: 'gameprep' })
   const nextEventRsvp = nextEvent && rsvpCounts[nextEvent.id]
   const notResponded = nextEvent ? Math.max(0, roster.length - (nextEventRsvp?.total || 0)) : 0
-  if (notResponded > 0) needsAttentionItems.push({ label: `${notResponded} pending RSVPs`, action: () => onNavigate?.('schedule'), color: '#8B5CF6' })
+  if (notResponded > 0) needsAttentionItems.push({ type: 'pending_rsvps', count: notResponded, page: 'schedule' })
 
-  // V2: Players missing jersey numbers
+  // Players missing jersey numbers
   const missingJersey = roster.filter(p => !p.jersey_number).length
   if (missingJersey > 0) needsAttentionItems.push({
-    label: `${missingJersey} player${missingJersey > 1 ? 's' : ''} need jersey #`,
-    action: () => navigateToTeamWall?.(selectedTeam?.id),
-    color: '#F59E0B'
+    type: 'missing_jerseys', count: missingJersey, text: `${missingJersey} player${missingJersey > 1 ? 's' : ''} need jersey numbers assigned`, page: 'teams'
   })
 
   // V2: Checklist auto-computation
@@ -778,10 +772,10 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             </div>
           )}
 
-          {/* Top Section: Hero + Journey (left ~55%) | Notifications + Squad (right) */}
+          {/* Row 1: Hero (~55%) | Notifications + Squad (right) */}
           <div className="grid grid-cols-1 lg:grid-cols-[55%_1fr] gap-4">
             {/* Left column */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <CoachGameDayHeroV2
                 nextGame={nextGame}
                 nextEvent={nextEvent}
@@ -790,11 +784,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 winRate={winRate}
                 onNavigate={onNavigate}
               />
-              <GameDayJourneyCard
-                activeStep={nextGame ? 0 : 0}
-                onStepClick={() => onNavigate?.('gameprep')}
-                onNavigate={onNavigate}
-              />
+              <AlsoThisWeekCard events={upcomingEvents} />
             </div>
             {/* Right column */}
             <div className="space-y-4">
@@ -808,40 +798,38 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             </div>
           </div>
 
-          {/* Row 3: Tools + Stat Mini Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} />
-            <CoachStatMiniCards
-              rosterCount={roster.length}
-              rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0}
-              dueEvals={0}
-              pendingStats={pendingStats}
-            />
-          </div>
-
-          {/* Row 4: Action Items + Schedule + Challenges */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <CoachActionItems items={needsAttentionItems} onNavigate={onNavigate} />
-            <CoachScheduleCard
+          {/* Row 2: Calendar Strip + Action Items (left ~55%) */}
+          <div className="grid grid-cols-1 lg:grid-cols-[55%_1fr] gap-4">
+            <CalendarStripCard
               events={upcomingEvents}
-              rsvpCounts={rsvpCounts}
-              rosterSize={roster.length}
               onNavigate={onNavigate}
               onEventSelect={setSelectedEventDetail}
             />
-            <ChallengesCard challenges={activeChallenges} onNavigate={onNavigate} />
+            <CoachActionItemsCard
+              items={needsAttentionItems}
+              onNavigate={onNavigate}
+            />
           </div>
 
-          {/* Row 5: Top Players + Readiness + Team Wall */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <TopPlayersCard topPlayers={topPlayers} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} />
+          {/* Row 3: Team Health (full width) */}
+          <TeamHealthCard
+            attendanceRate={avgAttendanceLast3 || 0}
+            gameAttendance={avgAttendanceLast3 || 0}
+            practiceAttendance={avgAttendanceLast3 || 0}
+            avgRating={0}
+            record={{ wins: teamRecord.wins, losses: teamRecord.losses }}
+            winRate={winRate}
+          />
+
+          {/* Row 4: Quick Actions (half width) + Team Readiness */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} />
             <TeamReadinessCard
               rosterSize={roster.length}
               rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0}
               attendanceRate={avgAttendanceLast3 || 100}
               waiversSigned={roster.length}
             />
-            <TeamWallPreviewCard teamId={selectedTeam?.id} navigateToTeamWall={navigateToTeamWall} />
           </div>
 
         </div>
