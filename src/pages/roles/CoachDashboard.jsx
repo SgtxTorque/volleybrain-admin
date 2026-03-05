@@ -304,6 +304,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // V2.1 Workflow button badges
   const [newPlayersCount, setNewPlayersCount] = useState(0)
+  const [editMode, setEditMode] = useState(false)
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
@@ -739,7 +740,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   }
 
   // ── Build widget array ──
-  const [editMode, setEditMode] = useState(false)
   const coachWidgets = [
     { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
     { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 0, y: 3, w: 7, h: 9 }, minW: 5, minH: 5, maxH: 14, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },

@@ -935,6 +935,7 @@ export function DashboardPage({ onNavigate }) {
   const [topPlayers, setTopPlayers] = useState([])
   const [coachesData, setCoachesData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [editMode, setEditMode] = useState(false)
 
   // Reset team filter when season changes
   useEffect(() => {
@@ -1442,7 +1443,6 @@ export function DashboardPage({ onNavigate }) {
   ;(allSeasons || seasons || []).forEach(s => { playerCountsMap[s.id] = stats.totalRegistrations || 0 })
 
   // ── Build widget array ──
-  const [editMode, setEditMode] = useState(false)
   const adminWidgets = [
     { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="admin" userName={profile?.full_name} seasonName={selectedSeason?.name} isDark={isDark} /> },
     { id: 'setup-tracker', label: 'Setup Tracker', defaultLayout: { x: 0, y: 3, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 5, component: <AdminSetupTracker hasOrgProfile={!!organization?.name} hasSeason={!!selectedSeason} hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0} hasTeam={(stats.teams || 0) > 0} hasCoach={(stats.coachCount || 0) > 0} hasEvent={upcomingEvents.length > 0} /> },

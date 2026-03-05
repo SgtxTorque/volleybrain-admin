@@ -67,6 +67,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [showReRegisterModal, setShowReRegisterModal] = useState(null)
   const [showActionSidebar, setShowActionSidebar] = useState(false)
   const [quickRsvpEvent, setQuickRsvpEvent] = useState(null)
+  const [editMode, setEditMode] = useState(false)
 
   const initialLoadDone = useRef(false)
 
@@ -307,7 +308,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const visibleAlerts = alerts.filter(a => a.priority === 'urgent' || a.priority === 'high')
 
   // ═══ BUILD WIDGET ARRAY (dynamic — conditional cards) ═══
-  const [editMode, setEditMode] = useState(false)
   const parentWidgets = useMemo(() => {
     let yPos = 0
     const widgets = []
