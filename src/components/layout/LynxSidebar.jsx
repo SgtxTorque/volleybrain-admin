@@ -72,11 +72,11 @@ function NavItem({ item, isActive, onNavigate, indented = false }) {
       <div className={`${indented ? 'w-16 min-w-[64px] pl-2' : 'w-16 min-w-[64px]'} flex items-center justify-center shrink-0`}>
         <Icon className="w-[18px] h-[18px]" />
       </div>
-      <span className="text-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate pr-2">
+      <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate pr-2">
         {item.label}
       </span>
       {item.badge > 0 && (
-        <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-r-xs font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {item.badge > 99 ? '99+' : item.badge}
         </span>
       )}
@@ -102,7 +102,7 @@ function CollapsibleGroupHeader({ label, icon, isExpanded, onToggle }) {
       <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" />
       </div>
-      <span className="flex-1 text-sm font-bold uppercase tracking-wider whitespace-nowrap text-left">
+      <span className="flex-1 text-r-xs font-bold uppercase tracking-wider whitespace-nowrap text-left">
         {label}
       </span>
       <ChevronRight
@@ -179,7 +179,7 @@ export default function LynxSidebar({
   return (
     <div
       className="group fixed left-0 top-0 z-40 h-screen flex flex-col
-        w-16 hover:w-[228px] bg-[#0B1628]
+        w-16 hover:w-56 xl:hover:w-60 bg-[#0B1628]
         transition-[width] duration-[280ms] ease-[cubic-bezier(0.4,0,0.2,1)]
         border-r border-white/[0.06] overflow-hidden"
     >
@@ -188,7 +188,7 @@ export default function LynxSidebar({
         <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
           <LynxPaw className="w-7 h-7 text-lynx-sky" />
         </div>
-        <span className="text-lg font-extrabold text-white tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <span className="text-r-lg font-extrabold text-white tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           Lynx
         </span>
       </div>
@@ -210,8 +210,8 @@ export default function LynxSidebar({
             </div>
           </div>
           <div className="min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-left">
-            <p className="text-base font-bold text-white truncate">{displayName}</p>
-            <p className="text-xs text-slate-500 truncate">{orgName || 'Organization'}</p>
+            <p className="text-r-base font-bold text-white truncate">{displayName}</p>
+            <p className="text-r-xs text-slate-500 truncate">{orgName || 'Organization'}</p>
           </div>
         </button>
 
@@ -222,7 +222,7 @@ export default function LynxSidebar({
               <button
                 key={view.id}
                 onClick={() => onSwitchRole?.(view.id)}
-                className={`px-3 py-1 rounded-full text-sm font-bold transition-colors ${
+                className={`px-3 py-1 rounded-full text-r-xs font-bold transition-colors ${
                   activeView === view.id
                     ? 'bg-lynx-sky/15 text-lynx-sky'
                     : 'text-slate-500 hover:text-slate-300'
@@ -322,11 +322,11 @@ export default function LynxSidebar({
               </span>
             )}
           </div>
-          <span className="text-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             Notifications
           </span>
           {notificationCount > 0 && (
-            <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-r-xs font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               {notificationCount}
             </span>
           )}
@@ -342,14 +342,14 @@ export default function LynxSidebar({
             className="w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors"
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span className="text-sm font-semibold">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+            <span className="text-r-sm font-semibold">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
           <button
             onClick={() => onSignOut?.()}
             className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-sm font-semibold">Sign Out</span>
+            <span className="text-r-sm font-semibold">Sign Out</span>
           </button>
         </div>
 
