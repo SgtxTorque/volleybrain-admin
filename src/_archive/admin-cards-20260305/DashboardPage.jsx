@@ -31,8 +31,6 @@ import OrgWallPreview from '../../components/dashboard/OrgWallPreview'
 import AdminSetupTracker from '../../components/dashboard/AdminSetupTracker'
 import AdminActionChecklist from '../../components/dashboard/AdminActionChecklist'
 import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
-import CoachNotifications from '../../components/coach/CoachNotifications'
-import CalendarStripCard from '../../components/coach/CalendarStripCard'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
 import EditLayoutButton from '../../components/layout/EditLayoutButton'
@@ -1436,22 +1434,23 @@ export function DashboardPage({ onNavigate }) {
   const playerCountsMap = {}
   ;(allSeasons || seasons || []).forEach(s => { playerCountsMap[s.id] = stats.totalRegistrations || 0 })
 
-  // ── Build widget array — Carlos's exported layout (24-col grid, 20px row height) ──
+  // ── Build widget array (memoized to prevent layout snap-back on re-render) ──
+  // 24-col grid, 20px row height — all x/y/w/h doubled from 12-col/40px originals
   const adminWidgets = useMemo(() => [
-    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 8, h: 4 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="admin" userName={profile?.full_name} seasonName={selectedSeason?.name} isDark={isDark} /> },
-    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 12, y: 0, w: 10, h: 5 }, minW: 2, minH: 2, maxH: 12, component: <CoachNotifications items={[]} blasts={[]} /> },
-    { id: 'org-health-hero', label: 'Organization Health', defaultLayout: { x: 0, y: 4, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 32, component: <OrgHealthHero orgName={orgName || organization?.name || 'My Organization'} healthScore={healthScore} kpis={{ teams: totalTeams, players: totalPlayers, revenueCollected: stats.totalCollected || 0, outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)), waiverPct, eventsMonth: eventsThisMonth, coaches: stats.coachCount || 0, overduePayments: overdueCount }} urgentItems={urgentItems} onNavigate={onNavigate} /> },
-    { id: 'setup-tracker', label: 'Setup Tracker', defaultLayout: { x: 16, y: 5, w: 6, h: 4 }, minW: 2, minH: 2, maxH: 10, component: <AdminSetupTracker hasOrgProfile={!!organization?.name} hasSeason={!!selectedSeason} hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0} hasTeam={(stats.teams || 0) > 0} hasCoach={(stats.coachCount || 0) > 0} hasEvent={upcomingEvents.length > 0} /> },
-    { id: 'calendar-strip', label: 'Calendar', defaultLayout: { x: 12, y: 5, w: 4, h: 32 }, minW: 2, minH: 2, maxH: 40, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} /> },
-    { id: 'season-journey', label: 'Season Journey', defaultLayout: { x: 16, y: 9, w: 6, h: 20 }, minW: 2, minH: 2, maxH: 36, component: <SeasonJourneyList seasons={allSeasons || seasons || []} sports={sports} teamCounts={teamCountsMap} playerCounts={playerCountsMap} onNavigate={onNavigate} /> },
-    { id: 'org-financials', label: 'Financials', defaultLayout: { x: 0, y: 16, w: 12, h: 10 }, minW: 2, minH: 2, maxH: 28, component: <OrgFinancials stats={stats} onNavigate={onNavigate} /> },
-    { id: 'quick-actions-top', label: 'Quick Actions', defaultLayout: { x: 0, y: 26, w: 12, h: 5 }, minW: 2, minH: 2, maxH: 12, component: <AdminQuickActions counts={quickActionCounts} onNavigate={onNavigate} /> },
-    { id: 'people-compliance', label: 'People & Compliance', defaultLayout: { x: 0, y: 31, w: 12, h: 6 }, minW: 2, minH: 2, maxH: 16, component: <PeopleComplianceRow stats={stats} onNavigate={onNavigate} /> },
-    { id: 'kpi-row', label: 'KPI Stats', defaultLayout: { x: 16, y: 29, w: 6, h: 6 }, minW: 2, minH: 2, maxH: 12, component: <OrgKpiRow stats={stats} /> },
-    { id: 'all-teams-table', label: 'All Teams', defaultLayout: { x: 16, y: 35, w: 6, h: 10 }, minW: 2, minH: 2, maxH: 32, component: <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} /> },
-    { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 8, y: 0, w: 4, h: 1 }, minW: 2, minH: 2, maxH: 28, component: <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} /> },
-    { id: 'org-action-items', label: 'Action Items', defaultLayout: { x: 0, y: 37, w: 1, h: 1 }, minW: 2, minH: 2, maxH: 28, component: <OrgActionItems stats={stats} onNavigate={onNavigate} /> },
-  ], [profile?.full_name, selectedSeason, isDark, organization, stats, healthScore, totalTeams, totalPlayers, waiverPct, eventsThisMonth, overdueCount, urgentItems, quickActionCounts, upcomingEvents, teamsData, teamStats, allSeasons, seasons, sports, teamCountsMap, playerCountsMap, orgName, onNavigate])
+    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="admin" userName={profile?.full_name} seasonName={selectedSeason?.name} isDark={isDark} /> },
+    { id: 'setup-tracker', label: 'Setup Tracker', defaultLayout: { x: 0, y: 6, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 10, component: <AdminSetupTracker hasOrgProfile={!!organization?.name} hasSeason={!!selectedSeason} hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0} hasTeam={(stats.teams || 0) > 0} hasCoach={(stats.coachCount || 0) > 0} hasEvent={upcomingEvents.length > 0} /> },
+    { id: 'org-health-hero', label: 'Organization Health', defaultLayout: { x: 0, y: 12, w: 14, h: 20 }, minW: 2, minH: 2, maxH: 32, component: <OrgHealthHero orgName={orgName || organization?.name || 'My Organization'} healthScore={healthScore} kpis={{ teams: totalTeams, players: totalPlayers, revenueCollected: stats.totalCollected || 0, outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)), waiverPct, eventsMonth: eventsThisMonth, coaches: stats.coachCount || 0, overduePayments: overdueCount }} urgentItems={urgentItems} onNavigate={onNavigate} /> },
+    { id: 'season-journey', label: 'Season Journey', defaultLayout: { x: 14, y: 12, w: 10, h: 20 }, minW: 2, minH: 2, maxH: 36, component: <SeasonJourneyList seasons={allSeasons || seasons || []} sports={sports} teamCounts={teamCountsMap} playerCounts={playerCountsMap} onNavigate={onNavigate} /> },
+    { id: 'action-checklist', label: 'Action Checklist', defaultLayout: { x: 0, y: 32, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 20, component: <AdminActionChecklist items={actionItems} onNavigate={onNavigate} /> },
+    { id: 'quick-actions-top', label: 'Quick Actions', defaultLayout: { x: 0, y: 42, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 12, component: <AdminQuickActions counts={quickActionCounts} onNavigate={onNavigate} /> },
+    { id: 'kpi-row', label: 'KPI Stats', defaultLayout: { x: 0, y: 50, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 12, component: <OrgKpiRow stats={stats} /> },
+    { id: 'org-action-items', label: 'Action Items', defaultLayout: { x: 0, y: 58, w: 12, h: 16 }, minW: 2, minH: 2, maxH: 28, component: <OrgActionItems stats={stats} onNavigate={onNavigate} /> },
+    { id: 'org-upcoming-events', label: 'Upcoming Events', defaultLayout: { x: 12, y: 58, w: 12, h: 16 }, minW: 2, minH: 2, maxH: 28, component: <OrgUpcomingEvents events={upcomingEvents} onNavigate={onNavigate} /> },
+    { id: 'all-teams-table', label: 'All Teams', defaultLayout: { x: 0, y: 74, w: 24, h: 16 }, minW: 2, minH: 2, maxH: 32, component: <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} /> },
+    { id: 'people-compliance', label: 'People & Compliance', defaultLayout: { x: 0, y: 90, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 16, component: <PeopleComplianceRow stats={stats} onNavigate={onNavigate} /> },
+    { id: 'org-financials', label: 'Financials', defaultLayout: { x: 0, y: 98, w: 12, h: 16 }, minW: 2, minH: 2, maxH: 28, component: <OrgFinancials stats={stats} onNavigate={onNavigate} /> },
+    { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 12, y: 98, w: 12, h: 16 }, minW: 2, minH: 2, maxH: 28, component: <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} /> },
+  ], [profile?.full_name, selectedSeason, isDark, organization, stats, healthScore, totalTeams, totalPlayers, waiverPct, eventsThisMonth, overdueCount, urgentItems, actionItems, quickActionCounts, upcomingEvents, teamsData, teamStats, allSeasons, seasons, sports, teamCountsMap, playerCountsMap, orgName, onNavigate])
 
   if (!seasonLoading && !selectedSeason) {
     return <GettingStartedGuide onNavigate={onNavigate} />
