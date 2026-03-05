@@ -1,13 +1,16 @@
 // =============================================================================
 // DashboardGrid — react-grid-layout v2 powered drag-and-drop dashboard wrapper
 // 24-column grid, 20px row height, free placement in edit mode with overlap.
+// Supports widget library: add/remove widgets from a slide-out panel.
 // =============================================================================
 
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { ResponsiveGridLayout, useContainerWidth, verticalCompactor, getCompactor } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-import { Copy, RotateCcw, Check } from 'lucide-react'
+import { Copy, RotateCcw, Check, LayoutGrid, X } from 'lucide-react'
+import WidgetLibraryPanel from './WidgetLibraryPanel'
+import { resolveWidget } from './widgetComponents'
 
 // Edit mode compactor: no compaction, allow overlap, no collision prevention
 const editCompactor = getCompactor(null, true, false)
@@ -18,12 +21,31 @@ export default function DashboardGrid({
   onLayoutChange,
   columns = 24,
   rowHeight = 20,
+  role = 'admin',
+  sharedProps = {},
 }) {
   const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1200 })
 
+  // ── Widget add/remove state ──
+  const [addedWidgets, setAddedWidgets] = useState([])
+  const [removedWidgetIds, setRemovedWidgetIds] = useState(new Set())
+  const [libraryOpen, setLibraryOpen] = useState(false)
+
+  // Merge: effective widgets = (original - removed) + added
+  const effectiveWidgets = useMemo(() => {
+    const kept = widgets.filter(w => !removedWidgetIds.has(w.id))
+    return [...kept, ...addedWidgets]
+  }, [widgets, removedWidgetIds, addedWidgets])
+
+  // Set of active widget IDs (for the library panel)
+  const activeWidgetIds = useMemo(
+    () => new Set(effectiveWidgets.map(w => w.id)),
+    [effectiveWidgets]
+  )
+
   // Build initial layouts from widget defaults — stable reference via widget IDs
-  const widgetIds = widgets.map(w => w.id).join(',')
-  const defaultLg = useMemo(() => widgets.map(w => ({
+  const widgetIds = effectiveWidgets.map(w => w.id).join(',')
+  const defaultLg = useMemo(() => effectiveWidgets.map(w => ({
     i: w.id,
     x: w.defaultLayout.x,
     y: w.defaultLayout.y,
@@ -38,6 +60,37 @@ export default function DashboardGrid({
   const [layouts, setLayouts] = useState({ lg: defaultLg })
   const layoutRef = useRef(layouts)
   const [overlappingItems, setOverlappingItems] = useState(new Set())
+
+  // Sync layouts when widgets are added or removed
+  const prevWidgetIds = useRef(widgetIds)
+  if (prevWidgetIds.current !== widgetIds) {
+    prevWidgetIds.current = widgetIds
+    // Preserve existing positions, add new widget positions
+    const currentLg = layoutRef.current.lg || []
+    const existingIds = new Set(currentLg.map(l => l.i))
+    const activeIds = new Set(effectiveWidgets.map(w => w.id))
+
+    // Keep layout items that are still active, add defaults for new ones
+    const merged = currentLg.filter(l => activeIds.has(l.i))
+    for (const w of effectiveWidgets) {
+      if (!existingIds.has(w.id)) {
+        merged.push({
+          i: w.id,
+          x: w.defaultLayout.x,
+          y: w.defaultLayout.y,
+          w: w.defaultLayout.w,
+          h: w.defaultLayout.h,
+          minW: w.minW || 2,
+          minH: w.minH || 2,
+          maxW: w.maxW || 24,
+          maxH: w.maxH || 40,
+        })
+      }
+    }
+    const updated = { lg: merged }
+    layoutRef.current = updated
+    setLayouts(updated)
+  }
 
   // Detect overlapping cards
   const detectOverlaps = useCallback((layout) => {
@@ -64,6 +117,9 @@ export default function DashboardGrid({
   }, [onLayoutChange, editMode, detectOverlaps])
 
   const handleReset = useCallback(() => {
+    // Reset layout AND restore all original widgets
+    setAddedWidgets([])
+    setRemovedWidgetIds(new Set())
     const reset = { lg: defaultLg }
     layoutRef.current = reset
     setLayouts(reset)
@@ -95,6 +151,55 @@ export default function DashboardGrid({
     return { w: item?.w || fallbackW, h: item?.h || fallbackH }
   }, [defaultLg])
 
+  // ── Add/Remove handlers ──
+  const handleAddWidget = useCallback((widgetDef) => {
+    // Find the bottom-most Y to place new widget below everything
+    const currentLg = layoutRef.current.lg || []
+    const maxY = currentLg.reduce((max, item) => Math.max(max, item.y + item.h), 0)
+
+    const newWidget = {
+      id: widgetDef.id,
+      label: widgetDef.label,
+      componentKey: widgetDef.componentKey,
+      defaultLayout: {
+        x: 0,
+        y: maxY + 1,
+        w: widgetDef.defaultSize.w,
+        h: widgetDef.defaultSize.h,
+      },
+      minW: widgetDef.minSize.w,
+      minH: widgetDef.minSize.h,
+    }
+
+    // If this widget was previously removed, un-remove it instead
+    setRemovedWidgetIds(prev => {
+      if (prev.has(widgetDef.id)) {
+        const next = new Set(prev)
+        next.delete(widgetDef.id)
+        return next
+      }
+      return prev
+    })
+
+    // Only add if it's genuinely new (not an original widget being restored)
+    const isOriginal = widgets.some(w => w.id === widgetDef.id)
+    if (!isOriginal) {
+      setAddedWidgets(prev => {
+        if (prev.some(w => w.id === widgetDef.id)) return prev
+        return [...prev, newWidget]
+      })
+    }
+  }, [widgets])
+
+  const handleRemoveWidget = useCallback((widgetId) => {
+    // If it's an added widget, remove from added list
+    setAddedWidgets(prev => prev.filter(w => w.id !== widgetId))
+    // If it's an original widget, add to removed set
+    if (widgets.some(w => w.id === widgetId)) {
+      setRemovedWidgetIds(prev => new Set([...prev, widgetId]))
+    }
+  }, [widgets])
+
   const overlapCount = overlappingItems.size > 0 ? Math.floor(overlappingItems.size / 2) : 0
 
   return (
@@ -112,6 +217,12 @@ export default function DashboardGrid({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLibraryOpen(true)}
+              className="flex items-center gap-1.5 bg-[#4BB9EC] text-white px-3 py-1.5 rounded-lg text-r-sm font-bold hover:bg-[#3BA8DB] transition-colors"
+            >
+              <LayoutGrid size={14} /> Widgets
+            </button>
             <button
               onClick={handleReset}
               className="flex items-center gap-1.5 bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-r-sm font-bold hover:bg-slate-300 transition-colors"
@@ -155,7 +266,7 @@ export default function DashboardGrid({
           compactor={editMode ? editCompactor : verticalCompactor}
           margin={[12, 12]}
         >
-          {widgets.map(widget => {
+          {effectiveWidgets.map(widget => {
             const dims = editMode ? getCurrentDims(widget.id, widget.defaultLayout.w, widget.defaultLayout.h) : null
             const isOverlapping = editMode && overlappingItems.has(widget.id)
             return (
@@ -172,20 +283,40 @@ export default function DashboardGrid({
                     <span className="text-r-xs font-bold text-lynx-sky uppercase tracking-wider">
                       {widget.label || widget.id}
                     </span>
-                    <span className="text-r-xs text-lynx-sky/50 font-mono">
-                      {dims.w}x{dims.h}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-r-xs text-lynx-sky/50 font-mono">
+                        {dims.w}x{dims.h}
+                      </span>
+                      {/* Remove button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleRemoveWidget(widget.id) }}
+                        className="w-5 h-5 rounded-full bg-red-500/80 text-white text-[10px] flex items-center justify-center hover:bg-red-500 transition-colors"
+                        title="Remove widget"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
                   </div>
                 )}
                 {/* The actual card component — scrolls internally when resized small */}
                 <div className={`h-full overflow-auto scrollbar-hide ${editMode ? 'pt-8' : ''}`}>
-                  {widget.component}
+                  {widget.component || resolveWidget(widget.componentKey, sharedProps)}
                 </div>
               </div>
             )
           })}
         </ResponsiveGridLayout>
       )}
+
+      {/* Widget Library Panel */}
+      <WidgetLibraryPanel
+        isOpen={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        role={role}
+        activeWidgetIds={activeWidgetIds}
+        onAddWidget={handleAddWidget}
+        onRemoveWidget={handleRemoveWidget}
+      />
     </div>
   )
 }
