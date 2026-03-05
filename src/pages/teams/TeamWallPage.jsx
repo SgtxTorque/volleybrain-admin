@@ -19,40 +19,26 @@ import { HUB_STYLES, adjustBrightness } from '../../constants/hubStyles'
 import NewPostModal from './NewPostModal'
 
 // ═══════════════════════════════════════════════════════════
-// @font-face — Tele-Grotesk (LOCAL FILES)
+// @font-face — Inter Variable (replaces Tele-Grotesk)
 // ═══════════════════════════════════════════════════════════
 const FONT_STYLES = `
 @font-face {
-  font-family: 'Tele-Grotesk';
-  src: url('/fonts/Tele-GroteskNor-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Variable.ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Tele-Grotesk';
-  src: url('/fonts/Tele-GroteskHal-Regular.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Tele-Grotesk';
-  src: url('/fonts/Tele-GroteskFet-Regular.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Tele-Grotesk';
-  src: url('/fonts/Tele-GroteskUlt-Regular.ttf') format('truetype');
-  font-weight: 900;
-  font-style: normal;
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Variable-Italic.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
   font-display: swap;
 }
 `
 
-const FONT_STACK = "'Tele-Grotesk', -apple-system, system-ui, sans-serif"
+const FONT_STACK = "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
 
 // ═══════════════════════════════════════════════════════════
 // BRAND CONSTANTS (from lynx-brandbook-v2.html)
