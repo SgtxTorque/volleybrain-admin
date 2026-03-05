@@ -28,6 +28,9 @@ import OrgUpcomingEvents from '../../components/dashboard/OrgUpcomingEvents'
 import PeopleComplianceRow from '../../components/dashboard/PeopleComplianceRow'
 import OrgFinancials from '../../components/dashboard/OrgFinancials'
 import OrgWallPreview from '../../components/dashboard/OrgWallPreview'
+import AdminSetupTracker from '../../components/dashboard/AdminSetupTracker'
+import AdminActionChecklist from '../../components/dashboard/AdminActionChecklist'
+import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1405,6 +1408,16 @@ export function DashboardPage({ onNavigate }) {
             isDark={isDark}
           />
 
+          {/* ─── 0.5 SETUP WIZARD TRACKER (conditional — only if setup incomplete) ──── */}
+          <AdminSetupTracker
+            hasOrgProfile={!!organization?.name}
+            hasSeason={!!selectedSeason}
+            hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0}
+            hasTeam={(stats.teams || 0) > 0}
+            hasCoach={(stats.coachCount || 0) > 0}
+            hasEvent={upcomingEvents.length > 0}
+          />
+
           {/* ─── 1. ORG HEALTH HERO + SEASON JOURNEY LIST (side by side) ──── */}
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-5 items-stretch">
           {(() => {
@@ -1511,7 +1524,74 @@ export function DashboardPage({ onNavigate }) {
           />
           </div>
 
-          {/* ─── 1. KPI STAT CARDS ─────────────────────────── */}
+          {/* ─── 1.5 ACTION ITEMS CHECKLIST (full width, detailed) ──── */}
+          {(() => {
+            const totalPlayers = stats.totalRegistrations || 0
+            const totalTeams = stats.teams || 0
+            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
+            const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
+            const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
+            const teamsNoSchedule = Math.max(0, totalTeams - teamsWithSchedule)
+            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100) : 100
+            const waiverPct = totalPlayers > 0 ? Math.round((totalPlayers - (stats.unsignedWaivers || 0)) / totalPlayers * 100) : 100
+            const rosterPct = totalPlayers > 0 ? Math.round((stats.rosteredPlayers || 0) / totalPlayers * 100) : 100
+            const schedulePct = totalTeams > 0 ? Math.round(teamsWithSchedule / totalTeams * 100) : 100
+
+            const actionItems = []
+            if ((stats.pending || 0) > 0) actionItems.push({
+              id: 'pending-reg', label: `${stats.pending} pending registration${stats.pending !== 1 ? 's' : ''} awaiting approval`,
+              detail: 'Review and approve to keep your roster moving', severity: 'critical', page: 'registrations',
+            })
+            if ((stats.pastDue || 0) > 0) actionItems.push({
+              id: 'overdue-pay', label: `${overdueCount} famil${overdueCount !== 1 ? 'ies' : 'y'} overdue on payments ($${(stats.pastDue || 0).toLocaleString()} total)`,
+              detail: 'Send reminders to collect overdue fees', severity: paymentPct < 50 ? 'critical' : 'warning', page: 'payments',
+            })
+            if ((stats.unsignedWaivers || 0) > 0) actionItems.push({
+              id: 'unsigned-waiver', label: `${stats.unsignedWaivers} unsigned waiver${stats.unsignedWaivers !== 1 ? 's' : ''}`,
+              detail: 'Follow up to get all waivers signed before play begins', severity: waiverPct < 50 ? 'critical' : 'warning', page: 'waivers',
+            })
+            if (unrosteredCount > 0) actionItems.push({
+              id: 'unrostered', label: `${unrosteredCount} player${unrosteredCount !== 1 ? 's' : ''} not assigned to a team`,
+              detail: 'Assign players to teams to complete your rosters', severity: rosterPct < 50 ? 'critical' : 'warning', page: 'teams',
+            })
+            if (teamsNoSchedule > 0 && totalTeams > 0) actionItems.push({
+              id: 'no-schedule', label: `${teamsNoSchedule} team${teamsNoSchedule !== 1 ? 's' : ''} without a schedule`,
+              detail: 'Create events so families know when to show up', severity: schedulePct < 50 ? 'critical' : 'warning', page: 'schedule',
+            })
+            if (totalTeams > (stats.teamsWithCoach || 0)) {
+              const n = totalTeams - (stats.teamsWithCoach || 0)
+              actionItems.push({
+                id: 'no-coach', label: `${n} team${n !== 1 ? 's' : ''} need a coach assigned`,
+                detail: 'Assign coaches to keep teams on track', severity: 'info', page: 'coaches',
+              })
+            }
+
+            return <AdminActionChecklist items={actionItems} onNavigate={onNavigate} />
+          })()}
+
+          {/* ─── 1.6 QUICK ACTIONS (grid with counter badges) ──── */}
+          {(() => {
+            const totalPlayers = stats.totalRegistrations || 0
+            const totalTeams = stats.teams || 0
+            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
+            const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
+            const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
+
+            return (
+              <AdminQuickActions
+                counts={{
+                  pendingRegistrations: stats.pending || 0,
+                  overduePayments: overdueCount,
+                  unrosteredPlayers: unrosteredCount,
+                  overdueFamilies: overdueCount,
+                  teamsNoSchedule: Math.max(0, totalTeams - teamsWithSchedule),
+                }}
+                onNavigate={onNavigate}
+              />
+            )
+          })()}
+
+          {/* ─── 2. KPI STAT CARDS ─────────────────────────── */}
           <OrgKpiRow stats={stats} />
 
           {/* ─── 2. BODY CARD GRID ────────────────────────────── */}
