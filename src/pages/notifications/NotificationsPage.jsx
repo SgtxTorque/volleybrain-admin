@@ -8,6 +8,8 @@ import {
   Smartphone, Mail, Filter, Search, BarChart3, Zap, MessageSquare
 } from 'lucide-react';
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext';
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { StatGrid } from '../../components/layout/DashboardGrids'
 
 // =====================================================
 // NOTIFICATIONS ADMIN PAGE
@@ -133,7 +135,7 @@ export function NotificationsPage({ showToast }) {
   ];
 
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -214,7 +216,7 @@ export function NotificationsPage({ showToast }) {
           selectedSeason={selectedSeason}
         />
       )}
-    </div>
+    </DashboardContainer>
   );
 }
 
@@ -240,7 +242,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
   return (
     <div className="space-y-6">
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <StatGrid>
         {statCards.map((card, i) => {
           const Icon = card.icon;
           return (
@@ -262,7 +264,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
             </div>
           );
         })}
-      </div>
+      </StatGrid>
 
       {/* Type Breakdown */}
       <div
@@ -271,7 +273,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
         <h3 className="text-lg font-bold mb-4 tracking-wide">
           Notifications by Type
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatGrid>
           {Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).map(([type, count]) => {
             const config = typeConfig[type] || typeConfig.general;
             return (
@@ -284,7 +286,7 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
               </div>
             );
           })}
-        </div>
+        </StatGrid>
         {Object.keys(typeCounts).length === 0 && (
           <p className={`text-sm text-center py-8 ${tc.textMuted}`}>No notifications sent yet. Use the "Send Notification" button to get started.</p>
         )}

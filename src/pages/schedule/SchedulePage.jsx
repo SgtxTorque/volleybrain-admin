@@ -21,6 +21,7 @@ import BulkGamesModal from './BulkGamesModal'
 import VenueManagerModal from './VenueManagerModal'
 import AvailabilitySurveyModal from './AvailabilitySurveyModal'
 import EventDetailModal from './EventDetailModal'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
@@ -205,7 +206,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const dropdownItemCls = isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-800 hover:bg-slate-50'
 
   return (
-    <div className="w-full px-6 py-6 space-y-5">
+    <DashboardContainer className="space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -369,7 +370,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       {(showQuickActions || showShareMenu) && (
         <div className="fixed inset-0 z-10" onClick={() => { setShowQuickActions(false); setShowShareMenu(false) }} />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

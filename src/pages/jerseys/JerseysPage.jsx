@@ -7,6 +7,8 @@ import {
   Users, User, Edit, Shirt, Clock, Package, CheckCircle2, 
   AlertTriangle, Sparkles, UserPlus, HelpCircle, BarChart3, Check
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { StatGrid } from '../../components/layout/DashboardGrids'
 
 // Standard jersey sizes
 const JERSEY_SIZES = [
@@ -404,7 +406,7 @@ export function JerseysPage({ showToast }) {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -502,12 +504,12 @@ export function JerseysPage({ showToast }) {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <StatGrid>
         <StatCard icon="users" value={stats.total} label="Total Rostered" onClick={() => {}} tc={tc} isDark={isDark} />
         <StatCard icon="help-circle" value={stats.needsJersey} label="Needs Jersey" color={stats.needsJersey > 0 ? 'red' : null} onClick={() => setActiveTab('needs')} tc={tc} isDark={isDark} />
         <StatCard icon="package" value={stats.needsOrder} label="Ready to Order" color={stats.needsOrder > 0 ? 'amber' : null} onClick={() => setActiveTab('assigned')} tc={tc} isDark={isDark} />
         <StatCard icon="check" value={stats.ordered} label="Ordered" color="emerald" onClick={() => setActiveTab('ordered')} tc={tc} isDark={isDark} />
-      </div>
+      </StatGrid>
 
       {/* Tabs */}
       <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
@@ -650,7 +652,7 @@ export function JerseysPage({ showToast }) {
           isDark={isDark}
         />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

@@ -8,6 +8,7 @@ import {
   DollarSign, Check, Clock, AlertTriangle, ChevronRight,
   CreditCard, Loader2, ExternalLink, XCircle, CheckCircle2, X
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function ParentPaymentsPage({ roleContext, showToast }) {
   const { user } = useAuth()
@@ -176,7 +177,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" /></div>
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <DashboardContainer className="space-y-6">
       <div>
         <h1 className={`text-3xl font-bold ${tc.text}`}>Payments</h1>
         <p className={tc.textSecondary}>Manage your family's payments</p>
@@ -532,7 +533,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
           </div>
         )}
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 

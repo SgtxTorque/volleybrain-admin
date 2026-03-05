@@ -7,6 +7,7 @@ import {
   Camera, Save, Mail, Phone, Check, X, RefreshCw, Bell,
   Shield, Edit, ExternalLink, AlertTriangle
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ============================================
 // MY STUFF PAGE — Consolidated Parent Self-Service
@@ -250,7 +251,7 @@ function PaymentsTab({ roleContext, showToast }) {
   const paid = payments.filter(p => p.paid)
 
   return (
-    <div className="space-y-4">
+    <DashboardContainer className="space-y-4">
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryCard label="Total Due" value={`$${totalDue.toFixed(2)}`} color={totalDue > 0 ? '#EF4444' : '#10B981'} />
@@ -307,7 +308,7 @@ function PaymentsTab({ roleContext, showToast }) {
           <p className={`text-sm text-center py-6 ${tc.textMuted}`}>No payment history yet</p>
         )}
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 

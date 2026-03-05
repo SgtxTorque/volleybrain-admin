@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ═════════════════════════════════════════════
 // CONSTANTS
@@ -245,7 +246,7 @@ function WaiversPage({ showToast }) {
   // RENDER
   // ═══════════════════════════════════════════
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* DB Warning */}
       {!dbReady && (
         <div className={`flex items-center gap-3 px-5 py-3 rounded-xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
@@ -573,7 +574,7 @@ function WaiversPage({ showToast }) {
       {showCreateModal && <CreateWaiverModal tc={tc} isDark={isDark} onClose={() => setShowCreateModal(false)} onCreate={createTemplate} enabledSports={enabledSports} />}
       {showSendModal && <SendAdhocModal tc={tc} isDark={isDark} organization={organization} templates={templates.filter(t => t.is_active && !t._legacy)} showToast={showToast} onClose={() => setShowSendModal(false)} />}
       {showPreview && selectedTemplate && <WaiverPreviewModal tc={tc} isDark={isDark} template={selectedTemplate} organization={organization} onClose={() => setShowPreview(false)} />}
-    </div>
+    </DashboardContainer>
   )
 }
 

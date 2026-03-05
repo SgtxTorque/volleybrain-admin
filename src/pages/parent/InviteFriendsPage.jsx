@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { VolleyballIcon } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function InviteFriendsPage({ roleContext, showToast }) {
   const { organization } = useAuth()
@@ -40,7 +41,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <DashboardContainer className="space-y-6">
       <div><h1 className={`text-3xl font-bold ${tc.text}`}>Invite Friends 🎉</h1><p className={tc.textSecondary}>Share the fun! Invite friends to join the league.</p></div>
 
       <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
@@ -77,7 +78,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
           <div className={`${tc.cardBgAlt} rounded-xl p-4`}><p className="text-2xl">🥇</p><p className={`font-bold ${tc.text} mt-1`}>5+ Friends</p><p className={`text-xs ${tc.textMuted}`}>Gold Badge + Swag!</p></div>
         </div>
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 

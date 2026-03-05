@@ -9,6 +9,7 @@ import {
   Camera, Shield, FileText, Calendar, ChevronDown, ChevronRight,
   Award, AlertTriangle, Search, Filter, Upload, Eye
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 const roleLabels = { head: 'Head Coach', assistant: 'Assistant', manager: 'Manager', volunteer: 'Volunteer' }
 const bgCheckLabels = {
@@ -143,7 +144,7 @@ export function CoachesPage({ showToast }) {
   }
 
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -212,7 +213,7 @@ export function CoachesPage({ showToast }) {
       {showAddModal && <CoachFormModal coach={editingCoach} onSave={saveCoach} onClose={() => { setShowAddModal(false); setEditingCoach(null) }} showToast={showToast} tc={tc} />}
       {assigningCoach && <AssignTeamsModal coach={assigningCoach} teams={teams} onSave={(a) => saveAssignments(assigningCoach.id, a)} onClose={() => setAssigningCoach(null)} tc={tc} />}
       {selectedCoachForDetail && <CoachDetailModal coach={selectedCoachForDetail} onClose={() => setSelectedCoachForDetail(null)} onEdit={() => { setSelectedCoachForDetail(null); setEditingCoach(selectedCoachForDetail); setShowAddModal(true) }} tc={tc} />}
-    </div>
+    </DashboardContainer>
   )
 }
 

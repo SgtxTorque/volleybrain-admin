@@ -4,6 +4,7 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ============================================
 // TEAM STANDINGS PAGE
@@ -191,8 +192,8 @@ export default function TeamStandingsPage() {
   }
   
   return (
-    <div className={`min-h-screen ${tc.pageBg} p-6`}>
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className={`min-h-screen ${tc.pageBg}`}>
+      <DashboardContainer className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -453,7 +454,7 @@ export default function TeamStandingsPage() {
             </div>
           </div>
         )}
-      </div>
+      </DashboardContainer>
     </div>
   )
 }

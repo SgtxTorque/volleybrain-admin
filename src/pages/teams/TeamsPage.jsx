@@ -19,6 +19,7 @@ import TeamsStatRow from './TeamsStatRow'
 import TeamsTableView from './TeamsTableView'
 import UnrosteredAlert from './UnrosteredAlert'
 import NewTeamModal from './NewTeamModal'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ============================================
 // TEAMS PAGE
@@ -272,7 +273,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     if (seasonLoading) return <SkeletonTeamsPage />
     if (!seasons || seasons.length === 0) {
       return (
-        <div className="w-full px-6 py-6 flex items-center justify-center min-h-[60vh]">
+        <DashboardContainer className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center max-w-md">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
               <Calendar className="w-10 h-10 text-slate-400" />
@@ -283,7 +284,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
               Create First Season
             </button>
           </div>
-        </div>
+        </DashboardContainer>
       )
     }
     if (seasons.length > 0) {
@@ -304,7 +305,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
 
   // ------ Main render ------
   return (
-    <div className="w-full px-6 py-6 space-y-5">
+    <DashboardContainer className="space-y-5">
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
@@ -395,6 +396,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           isOwnChild={false}
         />
       )}
-    </div>
+    </DashboardContainer>
   )
 }

@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { MessageCircle } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function ParentMessagesPage({ roleContext, showToast }) {
   const { user } = useAuth()
@@ -48,7 +49,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
   if (teams.length === 0) return <div className="text-center py-12"><MessageCircle className="w-16 h-16" /><h2 className={`text-xl font-bold ${tc.text} mt-4`}>No Teams</h2><p className={tc.textMuted}>Join a team to see messages</p></div>
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <DashboardContainer className="space-y-6">
       <div><h1 className={`text-3xl font-bold ${tc.text}`}>Messages</h1><p className={tc.textSecondary}>Stay connected with your team</p></div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -73,7 +74,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
           </div>
         )) : <div className="text-center py-8"><span className="text-4xl">📭</span><p className={tc.textSecondary}>No announcements yet</p></div>}
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 

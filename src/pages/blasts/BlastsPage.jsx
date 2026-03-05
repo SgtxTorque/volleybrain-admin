@@ -7,6 +7,8 @@ import { sanitizeText } from '../../lib/validation'
 import { 
   Megaphone, DollarSign, Calendar, Clock, Users, Check, X
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { StatGrid } from '../../components/layout/DashboardGrids'
 
 function BlastsPage({ showToast, activeView, roleContext }) {
   const { organization, profile, user } = useAuth()
@@ -110,7 +112,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
   }
 
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -126,7 +128,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       </div>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <StatGrid>
         <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
           <p className={`text-sm ${tc.textMuted}`}>Total Sent</p>
           <p className={`text-3xl font-bold ${tc.text}`}>{blasts.length}</p>
@@ -151,8 +153,8 @@ function BlastsPage({ showToast, activeView, roleContext }) {
             {blasts.filter(b => b.priority === 'urgent').length}
           </p>
         </div>
-      </div>
-      
+      </StatGrid>
+
       {/* Filter Tabs */}
       <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
         <div className="flex flex-wrap gap-2">
@@ -273,7 +275,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           showToast={showToast}
         />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

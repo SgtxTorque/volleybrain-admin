@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Plus, Edit, Trash2, Copy, ChevronDown, ChevronUp, Eye, EyeOff, X, GripVertical } from 'lucide-react'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // Sport-specific position options
 const SPORT_POSITIONS = {
@@ -369,7 +370,7 @@ function RegistrationTemplatesPage({ showToast }) {
   }
 
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -789,7 +790,7 @@ function RegistrationTemplatesPage({ showToast }) {
           </div>
         </div>
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

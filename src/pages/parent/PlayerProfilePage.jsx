@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Edit, Save, X } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 import { SPORT_POSITIONS, getSizeOptionsForPiece, getUniformConfig } from './PlayerProfileConstants'
 import WaiversTab from './PlayerProfileWaivers'
 
@@ -289,7 +290,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
   // ═══ RENDER ═══
   return (
-    <div className={`w-full px-6 py-6 space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+    <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
 
       {/* Trading Card Hero */}
       <div className="relative overflow-hidden rounded-[14px]" style={{ background: `linear-gradient(135deg, #0B1628 0%, ${teamColor}30 100%)` }}>
@@ -649,7 +650,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
           )}
         </div>
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 

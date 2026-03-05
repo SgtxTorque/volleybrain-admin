@@ -7,6 +7,7 @@ import {
   RefreshCw, Shield, Zap, DollarSign,
   Loader2, HelpCircle, AlertTriangle
 } from 'lucide-react'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function PaymentSetupPage({ showToast }) {
   const { organization, setOrganization } = useAuth()
@@ -145,7 +146,7 @@ async function testStripeConnection() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -543,7 +544,7 @@ async function testStripeConnection() {
           )}
         </div>
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

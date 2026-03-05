@@ -1132,7 +1132,7 @@ function MainApp() {
           <div className={`w-full h-full ${
             mainLocation.pathname === '/dashboard' || mainLocation.pathname.startsWith('/teams/')
               ? 'overflow-hidden'
-              : 'px-6 py-6 overflow-auto animate-slide-up'
+              : 'overflow-auto animate-slide-up'
           }`}>
             <Breadcrumb />
             <ErrorBoundary>

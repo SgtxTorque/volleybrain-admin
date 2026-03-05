@@ -13,6 +13,7 @@ import GamePrepCompletionModal from './GamePrepCompletionModal'
 import { computeCheckpoints, getCurrentCheckpoint } from '../../lib/gameCheckpoints'
 import GameJourneyPanel from './GameJourneyPanel'
 import QuickAttendanceModal from './QuickAttendanceModal'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 import QuickScoreModal from './QuickScoreModal'
 
 // ============================================
@@ -253,7 +254,7 @@ function GamePrepPage({ showToast }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
-    <div className="space-y-6 p-4 md:p-6 animate-page-in">
+    <DashboardContainer className="space-y-6 animate-page-in">
       {/* Stats Pending Banner */}
       {statsPendingCount > 0 && (
         <div className={`${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-300'} border rounded-xl p-4 flex items-center justify-between`}>
@@ -613,7 +614,7 @@ function GamePrepPage({ showToast }) {
           />
         )
       })()}
-    </div>
+    </DashboardContainer>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import {
   Plus, Edit, Trash2, Calendar, DollarSign, Users, Settings,
   Share2, Copy, Check, ExternalLink, X
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function SeasonsPage({ showToast }) {
   const journey = useJourney()
@@ -212,7 +213,7 @@ function SeasonsPage({ showToast }) {
   const totalFee = (parseFloat(form.fee_registration) || 0) + (parseFloat(form.fee_uniform) || 0) + ((parseFloat(form.fee_monthly) || 0) * (parseInt(form.months_in_season) || 0))
 
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className={`text-3xl font-bold ${tc.text}`}>Seasons</h1>
@@ -1008,7 +1009,7 @@ ${shareSeason.early_bird_deadline ? `⏰ Early bird pricing ends ${new Date(shar
           </div>
         </div>
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

@@ -11,6 +11,7 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 import SeasonWorkflowTracker, { WORKFLOW_STEPS } from './SeasonWorkflowTracker'
 import {
   ChevronDown, ChevronRight, CheckCircle2, AlertCircle,
@@ -355,7 +356,7 @@ export default function SeasonManagementPage({ onNavigate, showToast }) {
   return (
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
       <div className="w-full h-full overflow-y-auto">
-        <div className="px-6 py-6 space-y-5 max-w-[1200px] mx-auto">
+        <DashboardContainer className="space-y-5">
 
           {/* Header: Season name + sport + date range + season selector */}
           <div className="flex items-center justify-between">
@@ -422,7 +423,7 @@ export default function SeasonManagementPage({ onNavigate, showToast }) {
               &larr; Back to Dashboard
             </button>
           </div>
-        </div>
+        </DashboardContainer>
       </div>
     </div>
   )

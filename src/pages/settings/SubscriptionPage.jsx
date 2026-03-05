@@ -7,6 +7,7 @@ import {
   Users, Building2, ChevronDown, AlertTriangle, Receipt, Sparkles,
   TrendingUp, Calendar, RefreshCw
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ═══════════════════════════════════════════════════════════
 // SUBSCRIPTION PAGE — Org Admin Billing & Plan Management
@@ -247,14 +248,14 @@ function SubscriptionPage({ showToast }) {
     return (
       <>
         <style>{SUB_STYLES}</style>
-        <div className="space-y-6 max-w-6xl mx-auto">
+        <DashboardContainer className="space-y-6">
           <div className="sb-au"><div className={`h-10 w-64 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-200'} sb-shimmer`} /></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1,2,3,4].map(i => (
               <div key={i} className={`h-72 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'} sb-shimmer`} style={{ animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
-        </div>
+        </DashboardContainer>
       </>
     )
   }

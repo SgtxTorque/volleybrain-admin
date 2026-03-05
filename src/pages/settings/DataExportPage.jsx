@@ -7,6 +7,7 @@ import {
   CheckSquare, Trophy, ChevronDown, RefreshCw, AlertTriangle, FileText,
   Star, UserCog, X, Check
 } from '../../constants/icons'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ═══════════════════════════════════════════════════════════
 // DATA EXPORT PAGE — Org Backup & CSV/JSON Export
@@ -682,7 +683,7 @@ function DataExportPage({ showToast }) {
   return (
     <>
       <style>{DE_STYLES}</style>
-      <div className="space-y-6 max-w-6xl mx-auto">
+      <DashboardContainer className="space-y-6">
 
         {/* HEADER */}
         <div className="de-au" style={{ animationDelay: '.05s' }}>
@@ -935,7 +936,7 @@ function DataExportPage({ showToast }) {
           </div>
         </div>
 
-      </div>
+      </DashboardContainer>
     </>
   )
 }

@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { Search, Filter, Trophy, Star, Target, Shield, Zap, Heart, ChevronDown } from '../../constants/icons'
 import { AchievementCard, CallingCardPreview } from './AchievementCard'
 import { AchievementDetailModal } from './AchievementDetailModal'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // Category configuration
 const CATEGORIES = [
@@ -296,7 +297,7 @@ export function AchievementsCatalogPage({
   }
 
   return (
-    <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -478,7 +479,7 @@ export function AchievementsCatalogPage({
           onUntrack={() => handleUntrack(selectedAchievement.id)}
         />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

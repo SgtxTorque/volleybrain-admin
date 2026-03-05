@@ -19,6 +19,7 @@ import RegistrationsTable from './RegistrationsTable'
 import RegistrationAnalytics from './RegistrationAnalytics'
 import PlayerDetailModal from './PlayerDetailModal'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // Re-export for any legacy imports
 export { calculateAge, ClickablePlayerName } from './PlayerDetailModal'
@@ -344,7 +345,7 @@ export function RegistrationsPage({ showToast }) {
   // ========== RENDER ==========
 
   return (
-    <div className="w-full px-6 py-6 space-y-5">
+    <DashboardContainer className="space-y-5">
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -469,6 +470,6 @@ export function RegistrationsPage({ showToast }) {
           processing={bulkProcessing}
         />
       )}
-    </div>
+    </DashboardContainer>
   )
 }

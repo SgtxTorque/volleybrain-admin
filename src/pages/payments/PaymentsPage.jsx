@@ -16,6 +16,7 @@ import { SkeletonPaymentsPage } from '../../components/ui'
 import PaymentsStatRow from './PaymentsStatRow'
 import { PlayerPaymentCard, FamilyPaymentCard } from './PaymentCards'
 import { MarkPaidModal, DeletePaymentModal, SendReminderModal, BlastReminderModal, AddFeeModal } from './PaymentsModals'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ============================================
 // GENERATE FEES FOR EXISTING PLAYERS (backfill) — exported utility
@@ -312,7 +313,7 @@ export function PaymentsPage({ showToast }) {
 
   // ------ Main render ------
   return (
-    <div className="w-full px-6 py-6 space-y-5">
+    <DashboardContainer className="space-y-5">
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
@@ -445,6 +446,6 @@ export function PaymentsPage({ showToast }) {
       {showReminderModal && <SendReminderModal target={showReminderModal} onSend={handleSendReminder} onClose={() => setShowReminderModal(null)} />}
       {showBlastModal && <BlastReminderModal families={familyList} onSend={handleSendBlast} onClose={() => setShowBlastModal(false)} />}
       {showAddModal && <AddFeeModal players={players} onAdd={handleAddPayment} onClose={() => setShowAddModal(false)} />}
-    </div>
+    </DashboardContainer>
   )
 }

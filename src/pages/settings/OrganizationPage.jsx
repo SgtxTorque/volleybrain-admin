@@ -10,6 +10,7 @@ import {
   CreditCard, Calendar, Clock, Shield, Shirt, Bell, Heart, Palette, Image, Upload, Eye, Camera
 } from '../../constants/icons'
 import { SetupSectionCard } from './SetupSectionCard'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function OrganizationPage({ showToast }) {
   const navigate = useNavigate()
@@ -679,7 +680,7 @@ function OrganizationPage({ showToast }) {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <DashboardContainer className="space-y-6">
       {/* Header */}
       <div>
         <h1 className={`text-3xl font-bold ${tc.text}`}>Organization Setup</h1>
@@ -802,7 +803,7 @@ function OrganizationPage({ showToast }) {
           />
         ))}
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 

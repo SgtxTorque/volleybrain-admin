@@ -7,6 +7,8 @@ import {
   Users, Calendar, Clock, Check, X, AlertTriangle, ChevronDown, ChevronUp
 } from '../../constants/icons'
 import { PlayerCard, PlayerCardExpanded } from '../../components/players'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { StatGrid } from '../../components/layout/DashboardGrids'
 
 // Helper - format time to 12hr
 function formatTime12(timeStr) {
@@ -316,7 +318,7 @@ function AttendancePage({ showToast }) {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <DashboardContainer>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -326,7 +328,7 @@ function AttendancePage({ showToast }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <StatGrid className="mb-6">
         <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 text-center`}>
           <div className={`text-2xl font-bold ${tc.text}`}>{stats.totalEvents}</div>
           <div className={`text-xs ${tc.textMuted}`}>Total Events</div>
@@ -343,7 +345,7 @@ function AttendancePage({ showToast }) {
           <div className="text-2xl font-bold text-[var(--accent-primary)]">{stats.needsVolunteers}</div>
           <div className={`text-xs ${tc.textMuted}`}>Need Volunteers</div>
         </div>
-      </div>
+      </StatGrid>
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
@@ -692,7 +694,7 @@ function AttendancePage({ showToast }) {
           context="attendance"
         />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

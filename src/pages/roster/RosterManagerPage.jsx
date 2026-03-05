@@ -15,6 +15,7 @@ import RosterTable from './RosterTable'
 import RosterEvalMode from './RosterEvalMode'
 import PlayerDevelopmentCard from './PlayerDevelopmentCard'
 import SeasonSetupWizard from './SeasonSetupWizard'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 export default function RosterManagerPage({ showToast, roleContext, onNavigate }) {
   const { user, organization } = useAuth()
@@ -302,19 +303,19 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
 
   if (loading && roster.length === 0) {
     return (
-      <div className="w-full px-6 py-6 space-y-4">
+      <DashboardContainer className="space-y-4">
         <div className={`${cardBg} rounded-[14px] p-6 animate-pulse`}>
           <div className={`h-6 w-48 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
           <div className={`h-4 w-32 rounded mt-2 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
         </div>
-      </div>
+      </DashboardContainer>
     )
   }
 
   // ========== RENDER ==========
 
   return (
-    <div className="w-full px-6 py-6 space-y-5">
+    <DashboardContainer className="space-y-5">
       {/* Click-outside overlay */}
       {showTeamDropdown && <div className="fixed inset-0 z-20" onClick={() => setShowTeamDropdown(false)} />}
 
@@ -437,6 +438,6 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         <PlayerDevelopmentCard player={selectedPlayer} teamId={selectedTeam?.id} seasonId={selectedSeason?.id}
           onClose={() => setSelectedPlayer(null)} showToast={showToast} />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
