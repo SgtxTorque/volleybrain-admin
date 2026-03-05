@@ -30,6 +30,7 @@ import TopPlayersCard from '../../components/coach/TopPlayersCard'
 import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
 import TeamWallPreviewCard from '../../components/coach/TeamWallPreviewCard'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
+import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
 // ── Event Detail Modal ──
@@ -745,6 +746,15 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       {/* Main Content — full width */}
       <div className="w-full h-full overflow-y-auto">
         <div className="px-6 py-6 space-y-5 w-full">
+
+          {/* Welcome Banner */}
+          <WelcomeBanner
+            role="coach"
+            userName={profile?.full_name}
+            teamName={selectedTeam?.name}
+            seasonName={selectedSeason?.name}
+            isDark={isDark}
+          />
 
           {/* Team Selector — when coaching multiple teams */}
           {teams.length > 1 && (

@@ -21,6 +21,7 @@ import {
   EventDetailModal, PaymentOptionsModal, AddChildModal,
   ReRegisterModal, AlertDetailModal,
 } from './ParentModals'
+import WelcomeBanner from '../../components/shared/WelcomeBanner'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -286,15 +287,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   return (
     <div className={`w-full px-6 py-6 space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
 
-      {/* 1. Welcome header */}
-      <div>
-        <h1 className={`text-[28px] font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          Welcome back, {profile?.first_name || 'Parent'}
-        </h1>
-        <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          {orgName || 'Your Club'} {registrationData[0]?.season?.name ? `• ${registrationData[0].season.name}` : ''}
-        </p>
-      </div>
+      {/* 1. Welcome Banner */}
+      <WelcomeBanner
+        role="parent"
+        userName={profile?.full_name}
+        seasonName={registrationData[0]?.season?.name}
+        childName={(registrationData[activeChildIdx] || registrationData[0])?.first_name}
+        isDark={isDark}
+      />
 
       {/* 2. Child Hero Card(s) */}
       <ParentChildHero

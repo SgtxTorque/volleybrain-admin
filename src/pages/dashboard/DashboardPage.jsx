@@ -17,6 +17,7 @@ import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
 import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 // LynxSidebar now rendered by MainApp — no longer needed here
+import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
 import SeasonJourneyRow from '../../components/dashboard/SeasonJourneyRow'
 import OrgKpiRow from '../../components/dashboard/OrgKpiRow'
@@ -1395,7 +1396,15 @@ export function DashboardPage({ onNavigate }) {
       <div className="w-full h-full overflow-y-auto">
         <div className="px-6 py-6 space-y-5 w-full">
 
-          {/* ─── 0. ORG HEALTH HERO ──────────────────────────── */}
+          {/* ─── 0. WELCOME BANNER ──────────────────────────── */}
+          <WelcomeBanner
+            role="admin"
+            userName={profile?.full_name}
+            seasonName={selectedSeason?.name}
+            isDark={isDark}
+          />
+
+          {/* ─── 1. ORG HEALTH HERO ──────────────────────────── */}
           {(() => {
             // Calculate health score: (waiverPct * 0.25) + (paymentPct * 0.30) + (rosterPct * 0.25) + (coachPct * 0.20)
             const waiverTotal = (stats.unsignedWaivers || 0) + (stats.totalRegistrations || 0)
