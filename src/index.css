@@ -366,6 +366,52 @@
   border-top: 2px solid rgba(75, 185, 236, 0.5);
 }
 
+/* Edge resize handles (n, s, e, w) — thin strips along edges */
+.react-grid-item > .react-resizable-handle-n {
+  top: 0;
+  left: 20px;
+  right: 20px;
+  width: auto;
+  height: 8px;
+  cursor: n-resize;
+}
+.react-grid-item > .react-resizable-handle-n::after {
+  display: none;
+}
+.react-grid-item > .react-resizable-handle-s {
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  width: auto;
+  height: 8px;
+  cursor: s-resize;
+}
+.react-grid-item > .react-resizable-handle-s::after {
+  display: none;
+}
+.react-grid-item > .react-resizable-handle-e {
+  right: 0;
+  top: 20px;
+  bottom: 20px;
+  height: auto;
+  width: 8px;
+  cursor: e-resize;
+}
+.react-grid-item > .react-resizable-handle-e::after {
+  display: none;
+}
+.react-grid-item > .react-resizable-handle-w {
+  left: 0;
+  top: 20px;
+  bottom: 20px;
+  height: auto;
+  width: 8px;
+  cursor: w-resize;
+}
+.react-grid-item > .react-resizable-handle-w::after {
+  display: none;
+}
+
 /* Grid overlay — visible only in edit mode */
 .dashboard-grid-overlay {
   position: absolute;
@@ -373,16 +419,16 @@
   pointer-events: none;
   z-index: 0;
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 12px;
 }
 .dashboard-grid-overlay .grid-col {
   background: repeating-linear-gradient(
     to bottom,
     rgba(75, 185, 236, 0.04) 0px,
-    rgba(75, 185, 236, 0.04) 40px,
-    rgba(75, 185, 236, 0.08) 40px,
-    rgba(75, 185, 236, 0.08) 41px
+    rgba(75, 185, 236, 0.04) 20px,
+    rgba(75, 185, 236, 0.08) 20px,
+    rgba(75, 185, 236, 0.08) 21px
   );
   border-left: 1px dashed rgba(75, 185, 236, 0.12);
   border-right: 1px dashed rgba(75, 185, 236, 0.12);
@@ -391,10 +437,14 @@
   content: attr(data-col);
   display: block;
   text-align: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  color: rgba(75, 185, 236, 0.3);
-  padding-top: 4px;
+  color: rgba(75, 185, 236, 0.25);
+  padding-top: 2px;
+}
+/* Only show labels on every 4th column to avoid crowding */
+.dashboard-grid-overlay .grid-col:not(:nth-child(4n))::before {
+  visibility: hidden;
 }
 
 /* ================================================================

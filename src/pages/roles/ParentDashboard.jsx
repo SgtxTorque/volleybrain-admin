@@ -308,21 +308,22 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const visibleAlerts = alerts.filter(a => a.priority === 'urgent' || a.priority === 'high')
 
   // ═══ BUILD WIDGET ARRAY (dynamic — conditional cards) ═══
+  // 24-col grid, 20px row height — all x/y/w/h doubled from 12-col/40px originals
   const parentWidgets = useMemo(() => {
     let yPos = 0
     const widgets = []
 
     // 1. Welcome Banner — always
-    widgets.push({ id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: yPos, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={(registrationData[activeChildIdx] || registrationData[0])?.first_name} isDark={isDark} /> })
-    yPos += 3
+    widgets.push({ id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: yPos, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={(registrationData[activeChildIdx] || registrationData[0])?.first_name} isDark={isDark} /> })
+    yPos += 6
 
     // 2. Child Hero Cards — always
-    widgets.push({ id: 'child-hero', label: 'My Players', defaultLayout: { x: 0, y: yPos, w: 12, h: 5 }, minW: 6, minH: 3, maxH: 8, component: <ParentChildHero children={registrationData} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> })
-    yPos += 5
+    widgets.push({ id: 'child-hero', label: 'My Players', defaultLayout: { x: 0, y: yPos, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 16, component: <ParentChildHero children={registrationData} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> })
+    yPos += 10
 
     // 3. Action Items — conditional
     if (actionItems.length > 0) {
-      widgets.push({ id: 'action-required', label: 'Action Required', defaultLayout: { x: 0, y: yPos, w: 12, h: 5 }, minW: 4, minH: 3, maxH: 10, component: (
+      widgets.push({ id: 'action-required', label: 'Action Required', defaultLayout: { x: 0, y: yPos, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 20, component: (
         <div className={`rounded-[14px] border overflow-hidden h-full ${isDark ? 'bg-amber-500/[0.06] border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
           <div className="px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -345,12 +346,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           </div>
         </div>
       ) })
-      yPos += 5
+      yPos += 10
     }
 
     // 4. Upcoming Events — conditional
     if (activeChildEvents.length > 0) {
-      widgets.push({ id: 'upcoming-events', label: 'Upcoming Events', defaultLayout: { x: 0, y: yPos, w: 12, h: 6 }, minW: 4, minH: 3, maxH: 12, component: (
+      widgets.push({ id: 'upcoming-events', label: 'Upcoming Events', defaultLayout: { x: 0, y: yPos, w: 24, h: 12 }, minW: 2, minH: 2, maxH: 24, component: (
         <div className={`rounded-[14px] border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           <div className="px-5 py-3 flex items-center justify-between">
             <h3 className={`text-r-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming Events</h3>
@@ -382,12 +383,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           })}
         </div>
       ) })
-      yPos += 6
+      yPos += 12
     }
 
     // 5. Team Hub Preview — conditional
     if (activeTeam) {
-      widgets.push({ id: 'team-hub', label: 'Team Hub', defaultLayout: { x: 0, y: yPos, w: 12, h: 3 }, minW: 4, minH: 2, maxH: 5, component: (
+      widgets.push({ id: 'team-hub', label: 'Team Hub', defaultLayout: { x: 0, y: yPos, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 10, component: (
         <button onClick={() => navigateToTeamWall?.(activeTeam.id)} className={`w-full rounded-[14px] border p-5 flex items-center gap-4 text-left transition h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: activeTeam.color || '#6366F1' }}>{activeTeam.name?.[0] || 'T'}</div>
           <div className="flex-1 min-w-0">
@@ -397,12 +398,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           <span className="text-lynx-sky text-r-sm font-bold uppercase tracking-wider">View Hub</span>
         </button>
       ) })
-      yPos += 3
+      yPos += 6
     }
 
     // 6. Achievements — conditional
     if (childAchievements.length > 0) {
-      widgets.push({ id: 'achievements', label: 'Achievements', defaultLayout: { x: 0, y: yPos, w: 6, h: 5 }, minW: 3, minH: 3, maxH: 8, component: (
+      widgets.push({ id: 'achievements', label: 'Achievements', defaultLayout: { x: 0, y: yPos, w: 12, h: 10 }, minW: 2, minH: 2, maxH: 16, component: (
         <div className={`rounded-[14px] border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           <div className="px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -425,7 +426,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
     // 7. Balance — conditional
     if (totalChildDue > 0) {
-      widgets.push({ id: 'balance-due', label: 'Balance Due', defaultLayout: { x: childAchievements.length > 0 ? 6 : 0, y: yPos, w: 6, h: 5 }, minW: 3, minH: 3, maxH: 8, component: (
+      widgets.push({ id: 'balance-due', label: 'Balance Due', defaultLayout: { x: childAchievements.length > 0 ? 12 : 0, y: yPos, w: 12, h: 10 }, minW: 2, minH: 2, maxH: 16, component: (
         <div className={`rounded-[14px] border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           <div className="px-5 py-3 flex items-center justify-between">
             <h3 className={`text-r-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Balance Due</h3>
