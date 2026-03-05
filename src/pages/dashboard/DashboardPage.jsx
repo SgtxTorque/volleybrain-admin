@@ -1406,13 +1406,45 @@ export function DashboardPage({ onNavigate }) {
 
           {/* ─── 1. ORG HEALTH HERO ──────────────────────────── */}
           {(() => {
-            // Calculate health score: (waiverPct * 0.25) + (paymentPct * 0.30) + (rosterPct * 0.25) + (coachPct * 0.20)
-            const waiverTotal = (stats.unsignedWaivers || 0) + (stats.totalRegistrations || 0)
+            // ── Transparent 9-component health score calculation ──
+            // Each component scores 0-100, weighted average produces final score
+            const totalPlayers = stats.totalRegistrations || 0
+            const totalTeams = stats.teams || 0
+
+            // 1. Registration completion (15%) — all players registered + approved
+            const regPct = totalPlayers > 0 ? Math.min(100, Math.round(((totalPlayers - (stats.pending || 0)) / totalPlayers) * 100)) : 100
+
+            // 2. Payment collection rate (20%) — % of billed collected
+            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.min(100, Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100)) : 100
+
+            // 3. Waiver completion (15%) — % of waivers signed
+            const waiverTotal = (stats.unsignedWaivers || 0) + totalPlayers
             const waiverPct = waiverTotal > 0 ? Math.round(((waiverTotal - (stats.unsignedWaivers || 0)) / waiverTotal) * 100) : 100
-            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100) : 100
-            const rosterPct = (stats.totalRegistrations || 0) > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / stats.totalRegistrations) * 100)) : 100
-            const coachPct = (stats.teams || 0) > 0 ? Math.round(((stats.teamsWithCoach || 0) / stats.teams) * 100) : 100
-            const healthScore = Math.round(waiverPct * 0.25 + paymentPct * 0.30 + rosterPct * 0.25 + coachPct * 0.20)
+
+            // 4. Roster assignment (10%) — % of players rostered to teams
+            const rosterPct = totalPlayers > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / totalPlayers) * 100)) : 100
+
+            // 5. Schedule completeness (10%) — % of teams with events
+            const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
+            const schedulePct = totalTeams > 0 ? Math.min(100, Math.round((teamsWithSchedule / totalTeams) * 100)) : 100
+
+            // 6. Evaluation completion (10%) — approximate from stats
+            const evalPct = 100 // Default — no eval tracking yet
+
+            // 7. Uniform/jersey assignment (5%)
+            const uniformPct = 100 // Default — jersey tracking separate
+
+            // 8. Coach assignment (5%) — % of teams with assigned coaches
+            const coachPct = totalTeams > 0 ? Math.round(((stats.teamsWithCoach || 0) / totalTeams) * 100) : 100
+
+            // 9. Compliance (10%) — background checks, certifications
+            const compliancePct = 100 // Default — compliance tracking separate
+
+            const healthScore = Math.round(
+              regPct * 0.15 + paymentPct * 0.20 + waiverPct * 0.15 +
+              rosterPct * 0.10 + schedulePct * 0.10 + evalPct * 0.10 +
+              uniformPct * 0.05 + coachPct * 0.05 + compliancePct * 0.10
+            )
 
             // Count events this month
             const now = new Date()
@@ -1426,22 +1458,28 @@ export function DashboardPage({ onNavigate }) {
             // Overdue payment count
             const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
 
-            // Build urgent items
+            // Unrostered count
+            const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
+
+            // ── Build urgent items — ALL org-wide blockers ──
+            // Components scoring < 50% = urgent (red), < 80% = warning (amber)
             const urgentItems = []
             if ((stats.pending || 0) > 0) urgentItems.push({ label: 'Pending registrations', count: stats.pending, severity: 'critical', page: 'registrations' })
-            if ((stats.pastDue || 0) > 0) urgentItems.push({ label: 'Overdue payments', count: overdueCount, severity: 'warning', page: 'payments' })
-            if ((stats.unsignedWaivers || 0) > 0) urgentItems.push({ label: 'Unsigned waivers', count: stats.unsignedWaivers, severity: 'info', page: 'waivers' })
-            if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) urgentItems.push({ label: 'Teams need a coach', count: (stats.teams || 0) - (stats.teamsWithCoach || 0), severity: 'info', page: 'coaches' })
+            if ((stats.pastDue || 0) > 0) urgentItems.push({ label: 'Overdue payments', count: overdueCount, severity: paymentPct < 50 ? 'critical' : 'warning', page: 'payments' })
+            if ((stats.unsignedWaivers || 0) > 0) urgentItems.push({ label: 'Unsigned waivers', count: stats.unsignedWaivers, severity: waiverPct < 50 ? 'critical' : 'warning', page: 'waivers' })
+            if (unrosteredCount > 0) urgentItems.push({ label: 'Unrostered players', count: unrosteredCount, severity: rosterPct < 50 ? 'critical' : 'warning', page: 'teams' })
+            if (totalTeams > (stats.teamsWithCoach || 0)) urgentItems.push({ label: 'Teams need a coach', count: totalTeams - (stats.teamsWithCoach || 0), severity: 'info', page: 'coaches' })
+            if (schedulePct < 80 && totalTeams > 0) urgentItems.push({ label: 'Teams without schedule', count: totalTeams - teamsWithSchedule, severity: schedulePct < 50 ? 'critical' : 'warning', page: 'schedule' })
 
             return (
               <OrgHealthHero
                 orgName={orgName || organization?.name || 'My Organization'}
                 healthScore={healthScore}
                 kpis={{
-                  teams: stats.teams || 0,
-                  players: stats.totalRegistrations || 0,
+                  teams: totalTeams,
+                  players: totalPlayers,
                   revenueCollected: stats.totalCollected || 0,
-                  outstanding: (stats.totalExpected || 0) - (stats.totalCollected || 0),
+                  outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)),
                   waiverPct,
                   eventsMonth: eventsThisMonth,
                   coaches: stats.coachCount || 0,

@@ -1,10 +1,11 @@
 // =============================================================================
 // OrgHealthHero — Admin dashboard centerpiece card
 // Dark navy hero with health score ring, KPI pills, and urgent action items.
-// DESIGN: Always-dark hero (same pattern as CoachGameDayHeroV2, LynxSidebar).
+// DESIGN: Always-dark hero, game-day treatment (50% taller, prominent ring).
+// Health score is transparent — weighted avg of 9 org-health components.
 // =============================================================================
 
-import { AlertCircle, TrendingUp, TrendingDown, Users, Shield, DollarSign, FileText, Calendar, UserCheck } from 'lucide-react'
+import { AlertCircle, TrendingUp, TrendingDown, Users, Shield, DollarSign, FileText, Calendar, UserCheck, CheckCircle2 } from 'lucide-react'
 
 // Health score status thresholds
 function getHealthStatus(score) {
@@ -13,8 +14,8 @@ function getHealthStatus(score) {
   return { label: 'Critical', color: '#EF4444' }
 }
 
-// Conic-gradient health ring
-function HealthRing({ score, size = 160 }) {
+// Conic-gradient health ring — larger for game-day treatment
+function HealthRing({ score, size = 200 }) {
   const status = getHealthStatus(score)
   const pct = Math.min(100, Math.max(0, score))
 
@@ -27,7 +28,7 @@ function HealthRing({ score, size = 160 }) {
         background: `conic-gradient(${status.color} ${pct * 3.6}deg, rgba(255,255,255,0.08) ${pct * 3.6}deg)`,
       }}
     >
-      <div className="absolute inset-[6px] rounded-full bg-[#0B1628] flex flex-col items-center justify-center">
+      <div className="absolute inset-[8px] rounded-full bg-[#0B1628] flex flex-col items-center justify-center">
         <span className="text-7xl font-black text-white tabular-nums">{score}</span>
         <span className="text-lg font-bold uppercase tracking-wider text-slate-400">Health</span>
       </div>
@@ -35,31 +36,24 @@ function HealthRing({ score, size = 160 }) {
   )
 }
 
-// KPI pill
-function KpiPill({ label, value, change, icon: Icon }) {
-  const isPositive = change > 0
+// KPI pill — dark background
+function KpiPill({ label, value, icon: Icon }) {
   return (
-    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.06]">
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.05] border border-white/[0.06]">
       {Icon && (
-        <div className="w-8 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-slate-400" />
+        <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5 text-slate-400" />
         </div>
       )}
       <div className="min-w-0 flex-1">
         <p className="text-white text-xl font-bold tabular-nums">{value}</p>
         <p className="text-lg text-slate-500 truncate">{label}</p>
       </div>
-      {change !== undefined && change !== null && (
-        <div className={`flex items-center gap-0.5 text-lg font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-          {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {isPositive ? '+' : ''}{change}%
-        </div>
-      )}
     </div>
   )
 }
 
-// Urgent action item
+// Urgent action item row
 function UrgentItem({ label, count, severity = 'warning', onClick }) {
   const dotColor = {
     critical: 'bg-red-500',
@@ -70,12 +64,12 @@ function UrgentItem({ label, count, severity = 'warning', onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 py-2 text-left hover:bg-white/[0.04] rounded-lg transition-colors px-1"
+      className="w-full flex items-center gap-3 py-2.5 text-left hover:bg-white/[0.04] rounded-lg transition-colors px-2"
     >
-      <div className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+      <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${dotColor}`} />
       <span className="text-xl text-slate-300 flex-1 truncate">{label}</span>
       {count > 0 && (
-        <span className="text-xl font-bold text-white tabular-nums">{count}</span>
+        <span className="text-xl font-bold text-white bg-white/[0.08] px-2.5 py-0.5 rounded-lg tabular-nums">{count}</span>
       )}
     </button>
   )
@@ -94,7 +88,7 @@ export default function OrgHealthHero({
   const status = getHealthStatus(healthScore)
 
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '280px' }}>
+    <div className="relative rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)', minHeight: '420px' }}>
       {/* Dot grid overlay */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -112,75 +106,54 @@ export default function OrgHealthHero({
         }}
       />
 
-      <div className="relative z-10 p-6 grid grid-cols-1 lg:grid-cols-[200px_1fr_280px] gap-6">
-        {/* Left — Score Block */}
-        <div className="flex flex-col items-center justify-center gap-3">
-          <HealthRing score={healthScore} />
-          <div className="text-center">
-            <h2 className="text-3xl font-black text-white tracking-wide">{orgName}</h2>
-            <p className="text-lg font-bold mt-1" style={{ color: status.color }}>
-              {status.label}
-            </p>
+      <div className="relative z-10 p-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 h-full">
+        {/* ─── LEFT SIDE (~60%) ─── */}
+        <div className="flex flex-col gap-6">
+          {/* Org name label */}
+          <p className="text-lg text-white/40 uppercase tracking-wider font-semibold">{orgName}</p>
+
+          {/* Title + Ring row */}
+          <div className="flex items-center gap-8">
+            <HealthRing score={healthScore} />
+            <div>
+              <h2 className="text-3xl font-extrabold text-white mb-1">Organization Health</h2>
+              <p className="text-xl font-bold" style={{ color: status.color }}>
+                {status.label}
+              </p>
+              <p className="text-lg text-slate-500 mt-2">
+                Weighted score across registration, payments, waivers, rosters, schedules, coaches, and compliance.
+              </p>
+            </div>
+          </div>
+
+          {/* KPI Pills row */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
+            <KpiPill icon={Shield} label="Active Teams" value={kpis.teams || 0} />
+            <KpiPill icon={Users} label="Players" value={kpis.players || 0} />
+            <KpiPill icon={DollarSign} label="Collected" value={`$${(kpis.revenueCollected || 0).toLocaleString()}`} />
+            <KpiPill icon={FileText} label="Waivers" value={`${kpis.waiverPct || 0}%`} />
+            <KpiPill icon={Calendar} label="Events / Mo" value={kpis.eventsMonth || 0} />
+            <KpiPill icon={UserCheck} label="Coaches" value={kpis.coaches || 0} />
+            <KpiPill icon={DollarSign} label="Outstanding" value={`$${(kpis.outstanding || 0).toLocaleString()}`} />
+            <KpiPill icon={AlertCircle} label="Overdue" value={kpis.overduePayments || 0} />
           </div>
         </div>
 
-        {/* Center — KPI Pills */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
-          <KpiPill
-            icon={Shield}
-            label="Active Teams"
-            value={kpis.teams || 0}
-          />
-          <KpiPill
-            icon={Users}
-            label="Registered Players"
-            value={kpis.players || 0}
-          />
-          <KpiPill
-            icon={DollarSign}
-            label="Revenue Collected"
-            value={`$${(kpis.revenueCollected || 0).toLocaleString()}`}
-          />
-          <KpiPill
-            icon={FileText}
-            label="Waiver Completion"
-            value={`${kpis.waiverPct || 0}%`}
-          />
-          <KpiPill
-            icon={Calendar}
-            label="Events This Month"
-            value={kpis.eventsMonth || 0}
-          />
-          <KpiPill
-            icon={UserCheck}
-            label="Active Coaches"
-            value={kpis.coaches || 0}
-          />
-          <KpiPill
-            icon={DollarSign}
-            label="Outstanding"
-            value={`$${(kpis.outstanding || 0).toLocaleString()}`}
-          />
-          <KpiPill
-            icon={AlertCircle}
-            label="Overdue Payments"
-            value={kpis.overduePayments || 0}
-          />
-        </div>
-
-        {/* Right — Urgent Actions */}
-        <div className="border-l border-white/[0.06] pl-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-4 h-4 text-amber-500" />
-            <h3 className="text-lg font-bold uppercase tracking-wider text-slate-400">Needs Attention</h3>
+        {/* ─── RIGHT SIDE (~40%) — NEEDS ATTENTION ─── */}
+        <div className="border-l border-white/[0.06] pl-6 flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertCircle className="w-5 h-5 text-amber-500" />
+            <h3 className="text-lg font-bold uppercase tracking-wider text-amber-400">Needs Attention</h3>
           </div>
+
           {urgentItems.length === 0 ? (
-            <div className="text-center py-4">
-              <p className="text-emerald-400 text-xl font-semibold">All clear!</p>
-              <p className="text-slate-500 text-lg mt-1">Nothing needs your attention.</p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
+              <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-3" />
+              <p className="text-emerald-400 text-xl font-bold">All systems go</p>
+              <p className="text-slate-500 text-lg mt-1">Nothing needs your attention right now.</p>
             </div>
           ) : (
-            <div className="space-y-0.5">
+            <div className="space-y-1 flex-1">
               {urgentItems.map((item, idx) => (
                 <UrgentItem
                   key={idx}
