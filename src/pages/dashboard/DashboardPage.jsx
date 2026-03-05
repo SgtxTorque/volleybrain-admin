@@ -32,6 +32,7 @@ import AdminSetupTracker from '../../components/dashboard/AdminSetupTracker'
 import AdminActionChecklist from '../../components/dashboard/AdminActionChecklist'
 import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
 import DashboardContainer from '../../components/layout/DashboardContainer'
+import DashboardGridLayout from '../../components/layout/DashboardGrid'
 import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 
 // ============================================
@@ -1396,529 +1397,119 @@ export function DashboardPage({ onNavigate }) {
   const orgInitials = (orgName || organization?.name || '')
     .split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
 
+  // ── Pre-compute derived data for widgets ──
+  const totalPlayers = stats.totalRegistrations || 0
+  const totalTeams = stats.teams || 0
+  const regPct = totalPlayers > 0 ? Math.min(100, Math.round(((totalPlayers - (stats.pending || 0)) / totalPlayers) * 100)) : 100
+  const paymentPct = (stats.totalExpected || 0) > 0 ? Math.min(100, Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100)) : 100
+  const waiverTotal = (stats.unsignedWaivers || 0) + totalPlayers
+  const waiverPct = waiverTotal > 0 ? Math.round(((waiverTotal - (stats.unsignedWaivers || 0)) / waiverTotal) * 100) : 100
+  const rosterPct = totalPlayers > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / totalPlayers) * 100)) : 100
+  const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
+  const schedulePct = totalTeams > 0 ? Math.min(100, Math.round((teamsWithSchedule / totalTeams) * 100)) : 100
+  const coachPct = totalTeams > 0 ? Math.round(((stats.teamsWithCoach || 0) / totalTeams) * 100) : 100
+  const healthScore = Math.round(regPct * 0.15 + paymentPct * 0.20 + waiverPct * 0.15 + rosterPct * 0.10 + schedulePct * 0.10 + 100 * 0.10 + 100 * 0.05 + coachPct * 0.05 + 100 * 0.10)
+  const nowDate = new Date()
+  const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1)
+  const monthEnd = new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 0)
+  const eventsThisMonth = upcomingEvents.filter(e => { const d = new Date(e.event_date); return d >= monthStart && d <= monthEnd }).length
+  const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
+  const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
+  const teamsNoSchedule = Math.max(0, totalTeams - teamsWithSchedule)
+
+  const urgentItems = []
+  if ((stats.pending || 0) > 0) urgentItems.push({ label: 'Pending registrations', count: stats.pending, severity: 'critical', page: 'registrations' })
+  if ((stats.pastDue || 0) > 0) urgentItems.push({ label: 'Overdue payments', count: overdueCount, severity: paymentPct < 50 ? 'critical' : 'warning', page: 'payments' })
+  if ((stats.unsignedWaivers || 0) > 0) urgentItems.push({ label: 'Unsigned waivers', count: stats.unsignedWaivers, severity: waiverPct < 50 ? 'critical' : 'warning', page: 'waivers' })
+  if (unrosteredCount > 0) urgentItems.push({ label: 'Unrostered players', count: unrosteredCount, severity: rosterPct < 50 ? 'critical' : 'warning', page: 'teams' })
+  if (totalTeams > (stats.teamsWithCoach || 0)) urgentItems.push({ label: 'Teams need a coach', count: totalTeams - (stats.teamsWithCoach || 0), severity: 'info', page: 'coaches' })
+  if (schedulePct < 80 && totalTeams > 0) urgentItems.push({ label: 'Teams without schedule', count: teamsNoSchedule, severity: schedulePct < 50 ? 'critical' : 'warning', page: 'schedule' })
+
+  const actionItems = []
+  if ((stats.pending || 0) > 0) actionItems.push({ id: 'pending-reg', label: `${stats.pending} pending registration${stats.pending !== 1 ? 's' : ''} awaiting approval`, detail: 'Review and approve to keep your roster moving', severity: 'critical', page: 'registrations' })
+  if ((stats.pastDue || 0) > 0) actionItems.push({ id: 'overdue-pay', label: `${overdueCount} famil${overdueCount !== 1 ? 'ies' : 'y'} overdue on payments ($${(stats.pastDue || 0).toLocaleString()} total)`, detail: 'Send reminders to collect overdue fees', severity: paymentPct < 50 ? 'critical' : 'warning', page: 'payments' })
+  if ((stats.unsignedWaivers || 0) > 0) actionItems.push({ id: 'unsigned-waiver', label: `${stats.unsignedWaivers} unsigned waiver${stats.unsignedWaivers !== 1 ? 's' : ''}`, detail: 'Follow up to get all waivers signed before play begins', severity: waiverPct < 50 ? 'critical' : 'warning', page: 'waivers' })
+  if (unrosteredCount > 0) actionItems.push({ id: 'unrostered', label: `${unrosteredCount} player${unrosteredCount !== 1 ? 's' : ''} not assigned to a team`, detail: 'Assign players to teams to complete your rosters', severity: rosterPct < 50 ? 'critical' : 'warning', page: 'teams' })
+  if (teamsNoSchedule > 0 && totalTeams > 0) actionItems.push({ id: 'no-schedule', label: `${teamsNoSchedule} team${teamsNoSchedule !== 1 ? 's' : ''} without a schedule`, detail: 'Create events so families know when to show up', severity: schedulePct < 50 ? 'critical' : 'warning', page: 'schedule' })
+  if (totalTeams > (stats.teamsWithCoach || 0)) { const n = totalTeams - (stats.teamsWithCoach || 0); actionItems.push({ id: 'no-coach', label: `${n} team${n !== 1 ? 's' : ''} need a coach assigned`, detail: 'Assign coaches to keep teams on track', severity: 'info', page: 'coaches' }) }
+
+  const quickActionCounts = { pendingRegistrations: stats.pending || 0, overduePayments: overdueCount, unrosteredPlayers: unrosteredCount, overdueFamilies: overdueCount, teamsNoSchedule }
+
+  const teamCountsMap = {}
+  ;(allSeasons || seasons || []).forEach(s => { teamCountsMap[s.id] = teamsData.filter(() => true).length })
+  const playerCountsMap = {}
+  ;(allSeasons || seasons || []).forEach(s => { playerCountsMap[s.id] = stats.totalRegistrations || 0 })
+
+  // ── Build widget array ──
+  const [editMode, setEditMode] = useState(false)
+  const adminWidgets = [
+    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="admin" userName={profile?.full_name} seasonName={selectedSeason?.name} isDark={isDark} /> },
+    { id: 'setup-tracker', label: 'Setup Tracker', defaultLayout: { x: 0, y: 3, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 5, component: <AdminSetupTracker hasOrgProfile={!!organization?.name} hasSeason={!!selectedSeason} hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0} hasTeam={(stats.teams || 0) > 0} hasCoach={(stats.coachCount || 0) > 0} hasEvent={upcomingEvents.length > 0} /> },
+    { id: 'org-health-hero', label: 'Organization Health', defaultLayout: { x: 0, y: 6, w: 7, h: 10 }, minW: 5, minH: 6, maxH: 16, component: <OrgHealthHero orgName={orgName || organization?.name || 'My Organization'} healthScore={healthScore} kpis={{ teams: totalTeams, players: totalPlayers, revenueCollected: stats.totalCollected || 0, outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)), waiverPct, eventsMonth: eventsThisMonth, coaches: stats.coachCount || 0, overduePayments: overdueCount }} urgentItems={urgentItems} onNavigate={onNavigate} /> },
+    { id: 'season-journey', label: 'Season Journey', defaultLayout: { x: 7, y: 6, w: 5, h: 10 }, minW: 3, minH: 4, maxH: 18, component: <SeasonJourneyList seasons={allSeasons || seasons || []} sports={sports} teamCounts={teamCountsMap} playerCounts={playerCountsMap} onNavigate={onNavigate} /> },
+    { id: 'action-checklist', label: 'Action Checklist', defaultLayout: { x: 0, y: 16, w: 12, h: 5 }, minW: 4, minH: 3, maxH: 10, component: <AdminActionChecklist items={actionItems} onNavigate={onNavigate} /> },
+    { id: 'quick-actions-top', label: 'Quick Actions', defaultLayout: { x: 0, y: 21, w: 12, h: 4 }, minW: 4, minH: 3, maxH: 6, component: <AdminQuickActions counts={quickActionCounts} onNavigate={onNavigate} /> },
+    { id: 'kpi-row', label: 'KPI Stats', defaultLayout: { x: 0, y: 25, w: 12, h: 4 }, minW: 6, minH: 3, maxH: 6, component: <OrgKpiRow stats={stats} /> },
+    { id: 'org-action-items', label: 'Action Items', defaultLayout: { x: 0, y: 29, w: 6, h: 8 }, minW: 4, minH: 4, maxH: 14, component: <OrgActionItems stats={stats} onNavigate={onNavigate} /> },
+    { id: 'org-upcoming-events', label: 'Upcoming Events', defaultLayout: { x: 6, y: 29, w: 6, h: 8 }, minW: 4, minH: 4, maxH: 14, component: <OrgUpcomingEvents events={upcomingEvents} onNavigate={onNavigate} /> },
+    { id: 'all-teams-table', label: 'All Teams', defaultLayout: { x: 0, y: 37, w: 12, h: 8 }, minW: 6, minH: 4, maxH: 16, component: <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} /> },
+    { id: 'people-compliance', label: 'People & Compliance', defaultLayout: { x: 0, y: 45, w: 12, h: 4 }, minW: 6, minH: 3, maxH: 8, component: <PeopleComplianceRow stats={stats} onNavigate={onNavigate} /> },
+    { id: 'org-financials', label: 'Financials', defaultLayout: { x: 0, y: 49, w: 6, h: 8 }, minW: 4, minH: 4, maxH: 14, component: <OrgFinancials stats={stats} onNavigate={onNavigate} /> },
+    { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 6, y: 49, w: 6, h: 8 }, minW: 4, minH: 4, maxH: 14, component: <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} /> },
+  ]
+
   return (
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-      {/* Main Content — full width, sidebar handled by MainApp */}
       <div className="w-full h-full overflow-y-auto">
         <DashboardContainer className="space-y-5">
 
-          {/* ─── 0. WELCOME BANNER ──────────────────────────── */}
-          <WelcomeBanner
-            role="admin"
-            userName={profile?.full_name}
-            seasonName={selectedSeason?.name}
-            isDark={isDark}
+          {/* ─── Filters — not in grid, always at top ──── */}
+          <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm ${
+            isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
+          }`}>
+            <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+            <div className="relative">
+              <select value={selectedSeason?.id || ''} onChange={(e) => { const season = (seasons || allSeasons || []).find(s => s.id === e.target.value); if (season) selectSeason(season) }}
+                className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'}`}>
+                {(seasons || allSeasons || []).map(s => (<option key={s.id} value={s.id}>{s.name} · {s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : 'Unknown'}</option>))}
+              </select>
+              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+            </div>
+            <div className="relative">
+              <select value={selectedSport?.id || ''} onChange={(e) => { const sport = sports.find(s => s.id === e.target.value) || null; selectSport(sport) }}
+                className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'}`}>
+                <option value="">All Sports</option>
+                {sports.map(s => (<option key={s.id} value={s.id}>{s.name}</option>))}
+              </select>
+              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+            </div>
+            <div className="relative">
+              <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)}
+                className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'}`}>
+                <option value="all">All Teams</option>
+                {teamsData.map(t => (<option key={t.id} value={t.id}>{t.name}</option>))}
+              </select>
+              <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+            </div>
+          </div>
+
+          {/* ─── Widget Grid ──── */}
+          <DashboardGridLayout
+            widgets={adminWidgets}
+            editMode={editMode}
+            onLayoutChange={(layouts) => console.log('Admin layout changed:', layouts)}
           />
 
-          {/* ─── 0.5 SETUP WIZARD TRACKER (conditional — only if setup incomplete) ──── */}
-          <AdminSetupTracker
-            hasOrgProfile={!!organization?.name}
-            hasSeason={!!selectedSeason}
-            hasRegistration={selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0}
-            hasTeam={(stats.teams || 0) > 0}
-            hasCoach={(stats.coachCount || 0) > 0}
-            hasEvent={upcomingEvents.length > 0}
-          />
-
-          {/* ─── 1. ORG HEALTH HERO + SEASON JOURNEY LIST (side by side) ──── */}
-          <HeroGrid>
-          {(() => {
-            // ── Transparent 9-component health score calculation ──
-            // Each component scores 0-100, weighted average produces final score
-            const totalPlayers = stats.totalRegistrations || 0
-            const totalTeams = stats.teams || 0
-
-            // 1. Registration completion (15%) — all players registered + approved
-            const regPct = totalPlayers > 0 ? Math.min(100, Math.round(((totalPlayers - (stats.pending || 0)) / totalPlayers) * 100)) : 100
-
-            // 2. Payment collection rate (20%) — % of billed collected
-            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.min(100, Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100)) : 100
-
-            // 3. Waiver completion (15%) — % of waivers signed
-            const waiverTotal = (stats.unsignedWaivers || 0) + totalPlayers
-            const waiverPct = waiverTotal > 0 ? Math.round(((waiverTotal - (stats.unsignedWaivers || 0)) / waiverTotal) * 100) : 100
-
-            // 4. Roster assignment (10%) — % of players rostered to teams
-            const rosterPct = totalPlayers > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / totalPlayers) * 100)) : 100
-
-            // 5. Schedule completeness (10%) — % of teams with events
-            const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
-            const schedulePct = totalTeams > 0 ? Math.min(100, Math.round((teamsWithSchedule / totalTeams) * 100)) : 100
-
-            // 6. Evaluation completion (10%) — approximate from stats
-            const evalPct = 100 // Default — no eval tracking yet
-
-            // 7. Uniform/jersey assignment (5%)
-            const uniformPct = 100 // Default — jersey tracking separate
-
-            // 8. Coach assignment (5%) — % of teams with assigned coaches
-            const coachPct = totalTeams > 0 ? Math.round(((stats.teamsWithCoach || 0) / totalTeams) * 100) : 100
-
-            // 9. Compliance (10%) — background checks, certifications
-            const compliancePct = 100 // Default — compliance tracking separate
-
-            const healthScore = Math.round(
-              regPct * 0.15 + paymentPct * 0.20 + waiverPct * 0.15 +
-              rosterPct * 0.10 + schedulePct * 0.10 + evalPct * 0.10 +
-              uniformPct * 0.05 + coachPct * 0.05 + compliancePct * 0.10
-            )
-
-            // Count events this month
-            const now = new Date()
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-            const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-            const eventsThisMonth = upcomingEvents.filter(e => {
-              const d = new Date(e.event_date)
-              return d >= monthStart && d <= monthEnd
-            }).length
-
-            // Overdue payment count
-            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
-
-            // Unrostered count
-            const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
-
-            // ── Build urgent items — ALL org-wide blockers ──
-            // Components scoring < 50% = urgent (red), < 80% = warning (amber)
-            const urgentItems = []
-            if ((stats.pending || 0) > 0) urgentItems.push({ label: 'Pending registrations', count: stats.pending, severity: 'critical', page: 'registrations' })
-            if ((stats.pastDue || 0) > 0) urgentItems.push({ label: 'Overdue payments', count: overdueCount, severity: paymentPct < 50 ? 'critical' : 'warning', page: 'payments' })
-            if ((stats.unsignedWaivers || 0) > 0) urgentItems.push({ label: 'Unsigned waivers', count: stats.unsignedWaivers, severity: waiverPct < 50 ? 'critical' : 'warning', page: 'waivers' })
-            if (unrosteredCount > 0) urgentItems.push({ label: 'Unrostered players', count: unrosteredCount, severity: rosterPct < 50 ? 'critical' : 'warning', page: 'teams' })
-            if (totalTeams > (stats.teamsWithCoach || 0)) urgentItems.push({ label: 'Teams need a coach', count: totalTeams - (stats.teamsWithCoach || 0), severity: 'info', page: 'coaches' })
-            if (schedulePct < 80 && totalTeams > 0) urgentItems.push({ label: 'Teams without schedule', count: totalTeams - teamsWithSchedule, severity: schedulePct < 50 ? 'critical' : 'warning', page: 'schedule' })
-
-            return (
-              <OrgHealthHero
-                orgName={orgName || organization?.name || 'My Organization'}
-                healthScore={healthScore}
-                kpis={{
-                  teams: totalTeams,
-                  players: totalPlayers,
-                  revenueCollected: stats.totalCollected || 0,
-                  outstanding: Math.max(0, (stats.totalExpected || 0) - (stats.totalCollected || 0)),
-                  waiverPct,
-                  eventsMonth: eventsThisMonth,
-                  coaches: stats.coachCount || 0,
-                  overduePayments: overdueCount,
-                }}
-                urgentItems={urgentItems}
-                onNavigate={onNavigate}
-              />
-            )
-          })()}
-
-          {/* Season Journey List — vertical, compact, right of hero */}
-          <SeasonJourneyList
-            seasons={allSeasons || seasons || []}
-            sports={sports}
-            teamCounts={(() => {
-              const counts = {}
-              ;(allSeasons || seasons || []).forEach(s => { counts[s.id] = teamsData.filter(t => true).length })
-              return counts
-            })()}
-            playerCounts={(() => {
-              const counts = {}
-              ;(allSeasons || seasons || []).forEach(s => { counts[s.id] = stats.totalRegistrations || 0 })
-              return counts
-            })()}
-            onNavigate={onNavigate}
-          />
-          </HeroGrid>
-
-          {/* ─── 1.5 ACTION ITEMS CHECKLIST (full width, detailed) ──── */}
-          {(() => {
-            const totalPlayers = stats.totalRegistrations || 0
-            const totalTeams = stats.teams || 0
-            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
-            const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
-            const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
-            const teamsNoSchedule = Math.max(0, totalTeams - teamsWithSchedule)
-            const paymentPct = (stats.totalExpected || 0) > 0 ? Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100) : 100
-            const waiverPct = totalPlayers > 0 ? Math.round((totalPlayers - (stats.unsignedWaivers || 0)) / totalPlayers * 100) : 100
-            const rosterPct = totalPlayers > 0 ? Math.round((stats.rosteredPlayers || 0) / totalPlayers * 100) : 100
-            const schedulePct = totalTeams > 0 ? Math.round(teamsWithSchedule / totalTeams * 100) : 100
-
-            const actionItems = []
-            if ((stats.pending || 0) > 0) actionItems.push({
-              id: 'pending-reg', label: `${stats.pending} pending registration${stats.pending !== 1 ? 's' : ''} awaiting approval`,
-              detail: 'Review and approve to keep your roster moving', severity: 'critical', page: 'registrations',
-            })
-            if ((stats.pastDue || 0) > 0) actionItems.push({
-              id: 'overdue-pay', label: `${overdueCount} famil${overdueCount !== 1 ? 'ies' : 'y'} overdue on payments ($${(stats.pastDue || 0).toLocaleString()} total)`,
-              detail: 'Send reminders to collect overdue fees', severity: paymentPct < 50 ? 'critical' : 'warning', page: 'payments',
-            })
-            if ((stats.unsignedWaivers || 0) > 0) actionItems.push({
-              id: 'unsigned-waiver', label: `${stats.unsignedWaivers} unsigned waiver${stats.unsignedWaivers !== 1 ? 's' : ''}`,
-              detail: 'Follow up to get all waivers signed before play begins', severity: waiverPct < 50 ? 'critical' : 'warning', page: 'waivers',
-            })
-            if (unrosteredCount > 0) actionItems.push({
-              id: 'unrostered', label: `${unrosteredCount} player${unrosteredCount !== 1 ? 's' : ''} not assigned to a team`,
-              detail: 'Assign players to teams to complete your rosters', severity: rosterPct < 50 ? 'critical' : 'warning', page: 'teams',
-            })
-            if (teamsNoSchedule > 0 && totalTeams > 0) actionItems.push({
-              id: 'no-schedule', label: `${teamsNoSchedule} team${teamsNoSchedule !== 1 ? 's' : ''} without a schedule`,
-              detail: 'Create events so families know when to show up', severity: schedulePct < 50 ? 'critical' : 'warning', page: 'schedule',
-            })
-            if (totalTeams > (stats.teamsWithCoach || 0)) {
-              const n = totalTeams - (stats.teamsWithCoach || 0)
-              actionItems.push({
-                id: 'no-coach', label: `${n} team${n !== 1 ? 's' : ''} need a coach assigned`,
-                detail: 'Assign coaches to keep teams on track', severity: 'info', page: 'coaches',
-              })
-            }
-
-            return <AdminActionChecklist items={actionItems} onNavigate={onNavigate} />
-          })()}
-
-          {/* ─── 1.6 QUICK ACTIONS (grid with counter badges) ──── */}
-          {(() => {
-            const totalPlayers = stats.totalRegistrations || 0
-            const totalTeams = stats.teams || 0
-            const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
-            const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
-            const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
-
-            return (
-              <AdminQuickActions
-                counts={{
-                  pendingRegistrations: stats.pending || 0,
-                  overduePayments: overdueCount,
-                  unrosteredPlayers: unrosteredCount,
-                  overdueFamilies: overdueCount,
-                  teamsNoSchedule: Math.max(0, totalTeams - teamsWithSchedule),
-                }}
-                onNavigate={onNavigate}
-              />
-            )
-          })()}
-
-          {/* ─── 2. KPI STAT CARDS ─────────────────────────── */}
-          <OrgKpiRow stats={stats} />
-
-          {/* ─── 2. BODY CARD GRID ────────────────────────────── */}
-
-          {/* Row: Action Items + Upcoming Events */}
-          <TwoColGrid>
-            <OrgActionItems stats={stats} onNavigate={onNavigate} />
-            <OrgUpcomingEvents events={upcomingEvents} onNavigate={onNavigate} />
-          </TwoColGrid>
-
-          {/* All Teams Table */}
-          <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
-
-          {/* People Compliance */}
-          <PeopleComplianceRow stats={stats} onNavigate={onNavigate} />
-
-          {/* Row: Financials + Team Wall */}
-          <TwoColGrid>
-            <OrgFinancials stats={stats} onNavigate={onNavigate} />
-            <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} />
-          </TwoColGrid>
-
-          {/* Dashboard Filters — keep for team/season filtering */}
+          {/* ─── Edit Layout FAB ──── */}
           <button
-            onClick={() => onNavigate('registrations')}
-            className={`w-full flex items-center gap-2.5 rounded-2xl h-11 px-3.5 transition-colors ${
-              isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'
-            }`}
+            onClick={() => setEditMode(!editMode)}
+            className="fixed bottom-6 right-6 z-40 bg-lynx-sky text-white rounded-full px-5 py-2.5 shadow-lg font-bold text-r-sm hover:bg-lynx-sky/90 transition-all hover:scale-105"
           >
-            <Search className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'opacity-40'}`} />
-            <span className={`text-r-3xl ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>Search players, families, teams...</span>
+            {editMode ? '✓ Done Editing' : 'Edit Layout'}
           </button>
 
-      {/* Dashboard Filters */}
-      <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mb-r-4 ${
-        isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
-      }`}>
-        <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-
-        {/* Season selector */}
-        <div className="relative">
-          <select
-            value={selectedSeason?.id || ''}
-            onChange={(e) => {
-              const season = (seasons || allSeasons || []).find(s => s.id === e.target.value)
-              if (season) selectSeason(season)
-            }}
-            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
-              isDark
-                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
-            }`}
-          >
-            {(seasons || allSeasons || []).map(s => (
-              <option key={s.id} value={s.id}>
-                {s.name} · {s.status ? s.status.charAt(0).toUpperCase() + s.status.slice(1) : 'Unknown'}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-        </div>
-
-        {/* Sport selector */}
-        <div className="relative">
-          <select
-            value={selectedSport?.id || ''}
-            onChange={(e) => {
-              const sport = sports.find(s => s.id === e.target.value) || null
-              selectSport(sport)
-            }}
-            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
-              isDark
-                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
-            }`}
-          >
-            <option value="">All Sports</option>
-            {sports.map(s => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-        </div>
-
-        {/* Team selector */}
-        <div className="relative">
-          <select
-            value={filterTeam}
-            onChange={(e) => setFilterTeam(e.target.value)}
-            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
-              isDark
-                ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
-                : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
-            }`}
-          >
-            <option value="all">All Teams</option>
-            {teamsData.map(t => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-          <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-        </div>
-      </div>
-
-      {/* ─── 3. SMART QUEUE ─────────────────────────────── */}
-      {(() => {
-        const queueItems = []
-        if ((stats.pending || 0) > 0) queueItems.push({ id: 'pending-reg', icon: '📋', color: '#EF4444', urgency: 'BLOCKING', category: 'Registration', title: `${stats.pending} Pending Registration${stats.pending !== 1 ? 's' : ''}`, subtitle: 'Review and approve to keep your roster moving.', actionLabel: 'Review Now', page: 'registrations' })
-        if ((stats.pastDue || 0) > 0) queueItems.push({ id: 'overdue-pay', icon: '💰', color: '#F59E0B', urgency: 'OVERDUE', category: 'Payment', title: `$${(stats.pastDue || 0).toLocaleString()} Outstanding`, subtitle: 'Send reminders to collect overdue fees.', actionLabel: 'Send Reminders', page: 'payments' })
-        if ((stats.unsignedWaivers || 0) > 0) queueItems.push({ id: 'waivers', icon: '📄', color: '#4BB9EC', urgency: 'THIS WEEK', category: 'Waiver', title: `${stats.unsignedWaivers} Unsigned Waiver${stats.unsignedWaivers !== 1 ? 's' : ''}`, subtitle: 'Follow up to get all waivers signed.', actionLabel: 'View Waivers', page: 'waivers' })
-        if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) { const n = (stats.teams || 0) - (stats.teamsWithCoach || 0); queueItems.push({ id: 'coaches', icon: '👤', color: '#8B5CF6', urgency: 'UPCOMING', category: 'Coach', title: `${n} Team${n !== 1 ? 's' : ''} Need a Coach`, subtitle: 'Assign coaches to keep teams on track.', actionLabel: 'Assign Coach', page: 'coaches' }) }
-        if (queueItems.length === 0) return (
-          <div className="text-center py-6">
-            <p className="text-r-4xl mb-2">&#x2705;</p>
-            <p className={`text-r-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>All clear!</p>
-            <p className={`text-r-2xl ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>Nothing needs your attention right now.</p>
-          </div>
-        )
-        return (
-          <div className="space-y-2.5">
-            {queueItems.slice(0, 4).map(item => (
-              <button key={item.id} onClick={() => onNavigate(item.page)}
-                className={`w-full flex overflow-hidden rounded-2xl border shadow-sm text-left transition-colors ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-brand-border hover:bg-[#FAFBFC]'}`}>
-                <div className="w-1 shrink-0" style={{ backgroundColor: item.color }} />
-                <div className="flex-1 p-4">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="text-r-3xl">{item.icon}</span>
-                    <span className="text-r-lg font-bold tracking-[0.08em]" style={{ color: item.color }}>{item.urgency} &middot; {item.category}</span>
-                  </div>
-                  <p className={`text-r-3xl font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{item.title}</p>
-                  <p className={`text-r-2xl mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{item.subtitle}</p>
-                  <span className="inline-block px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-r-2xl font-semibold">{item.actionLabel}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        )
-      })()}
-
-      {/* ─── 4. SEASON + TEAM HEALTH TILES ─────────────────── */}
-      {teamsData.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>{(selectedSeason?.name || 'SEASON').toUpperCase()}</span>
-            <div className="flex items-center gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-              <span className="text-r-lg font-semibold text-[#22C55E]">Active</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
-            {teamsData.map(team => {
-              const ts = teamStats[team.id] || { playerCount: 0, record: '0W-0L' }
-              const hasOverdue = (stats.pastDue || 0) > 0
-              const tileStatus = hasOverdue ? 'warning' : 'good'
-              const tileBg = tileStatus === 'good' ? (isDark ? 'bg-emerald-500/[0.06]' : 'bg-[#22C55E]/[0.06]') : (isDark ? 'bg-amber-500/[0.06]' : 'bg-[#F59E0B]/[0.06]')
-              const tileBorder = tileStatus === 'good' ? (isDark ? 'border-emerald-500/30' : 'border-[#22C55E]/30') : (isDark ? 'border-amber-500/30' : 'border-[#F59E0B]/30')
-              return (
-                <button key={team.id} onClick={() => onNavigate('teams')}
-                  className={`${tileBg} border ${tileBorder} rounded-2xl p-2.5 text-left transition-colors hover:brightness-95 h-[94px] flex flex-col justify-between`}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: team.color || '#4BB9EC' }} />
-                    <p className={`text-r-lg font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-r-lg ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
-                    <span className={`text-r-lg font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{ts.record}</span>
-                  </div>
-                  <span className={`text-r-lg font-semibold ${tileStatus === 'good' ? 'text-[#22C55E]' : 'text-[#F59E0B]'}`}>
-                    {tileStatus === 'good' ? '✓ Good' : '⚠ Check'}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ─── 5. PAYMENT SNAPSHOT ────────────────────────── */}
-      {(stats.totalExpected || 0) > 0 && (() => {
-        const collected = stats.totalCollected || 0
-        const expected = stats.totalExpected || 0
-        const outstanding = expected - collected
-        const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0
-        const overdueCount = Math.ceil((stats.pastDue || 0) / 100) || 0
-        return (
-          <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-brand-border'}`}>
-            <div className="flex items-center justify-between mb-3.5">
-              <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>PAYMENTS</span>
-              <span className={`text-r-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{selectedSeason?.name || ''}</span>
-            </div>
-            {pct >= 100 ? (
-              <p className="text-r-3xl font-semibold text-[#22C55E] text-center">&#x2705; 100% collected! ${collected.toLocaleString()} total.</p>
-            ) : (
-              <>
-                <div className="flex items-end justify-between mb-3">
-                  <div>
-                    <span className={`text-r-4xl font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>${collected.toLocaleString()}</span>
-                    <p className={`text-r-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>collected</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-r-4xl font-bold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>${outstanding.toLocaleString()}</span>
-                    <p className={`text-r-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>outstanding</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-[#F0F2F5]'}`}>
-                    <div className="h-full rounded-full bg-[#22C55E] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
-                  </div>
-                  <span className={`text-r-lg font-semibold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{pct}%</span>
-                </div>
-                {overdueCount > 0 && (
-                  <p className="text-r-lg text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
-                )}
-                <div className="flex items-center justify-between">
-                  {overdueCount > 0 && (
-                    <button onClick={() => onNavigate('blasts')} className="px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-r-2xl font-semibold">Send All Reminders</button>
-                  )}
-                  <button onClick={() => onNavigate('payments')} className="text-r-2xl text-[#4BB9EC] font-medium">View Details ›</button>
-                </div>
-              </>
-            )}
-          </div>
-        )
-      })()}
-
-      {/* ─── 6. QUICK ACTIONS GRID ──────────────────────── */}
-      <div>
-        <span className={`block mb-3 ${isDark ? 'brand-section-header-dark' : 'brand-section-header'}`}>QUICK ACTIONS</span>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-          {[
-            { icon: '📋', label: 'Create\nEvent', page: 'schedule' },
-            { icon: '📅', label: 'Quick\nSchedule', page: 'schedule' },
-            { icon: '💰', label: 'Send\nReminder', page: 'blasts' },
-            { icon: '📣', label: 'Blast\nAll', page: 'blasts' },
-            { icon: '👤', label: 'Add\nPlayer', page: 'registrations' },
-            { icon: '📊', label: 'Season\nReport', page: 'reports' },
-          ].map(a => (
-            <button key={a.label} onClick={() => onNavigate(a.page)}
-              className={`h-20 rounded-2xl flex flex-col items-center justify-center transition-colors ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'}`}>
-              <span className="text-r-4xl mb-1">{a.icon}</span>
-              <span className={`text-r-lg font-semibold text-center leading-[14px] whitespace-pre-line ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{a.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ─── 7. COACHES ────────────────────────────────── */}
-      {coachesData.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>COACHES</span>
-            <span className={`text-r-lg font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>{coachesData.length} Active</span>
-          </div>
-          <div className="space-y-2.5">
-            {coachesData.map(coach => (
-              <div key={coach.id} className="flex items-center gap-2.5">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-r-lg font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
-                  {coach.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-r-3xl font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{coach.name}</p>
-                  <p className={`text-r-lg truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ─── 8. UPCOMING EVENTS ────────────────────────── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>UPCOMING</span>
-          <button onClick={() => onNavigate('schedule')} className="text-r-lg text-[#4BB9EC] font-medium">View Calendar ›</button>
-        </div>
-        {upcomingEvents.length === 0 ? (
-          <div className="text-center py-3">
-            <p className={`text-r-2xl ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>No upcoming events.</p>
-            <button onClick={() => onNavigate('schedule')} className="text-r-2xl font-semibold text-[#4BB9EC] mt-1">Create Event ›</button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {upcomingEvents.slice(0, 6).map(e => {
-              const d = new Date(e.event_date + 'T00:00:00')
-              const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-              const dateLabel = `${dayNames[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`
-              const time = e.event_time || e.start_time
-              let timeLabel = ''
-              if (time) { const [h, m] = time.split(':').map(Number); timeLabel = `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}` }
-              const typeLabel = e.opponent_name ? `${(e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1)} vs ${e.opponent_name}` : (e.title || (e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1))
-              return (
-                <div key={e.id} className="flex items-start gap-3">
-                  <span className={`w-[72px] text-r-2xl font-semibold shrink-0 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{dateLabel}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-r-2xl truncate mb-0.5 ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>{typeLabel}</p>
-                    <div className="flex items-center gap-1">
-                      <span className="text-r-lg font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
-                      {timeLabel && <><span className={`text-r-lg ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-r-lg ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* ─── 9. CLOSING MOTIVATION ────────────────────── */}
-      <div className="text-center py-4">
-        <p className="text-r-4xl mb-3">🐱</p>
-        <p className={`text-r-2xl leading-5 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
-          You&rsquo;re managing {stats.teams || 0} team{(stats.teams || 0) !== 1 ? 's' : ''},{' '}
-          {stats.totalRegistrations || 0} player{(stats.totalRegistrations || 0) !== 1 ? 's' : ''} this season.
-        </p>
-        {(() => {
-          const queueTotal = (stats.pending || 0) + ((stats.pastDue || 0) > 0 ? 1 : 0) + ((stats.unsignedWaivers || 0) > 0 ? 1 : 0)
-          return queueTotal > 0
-            ? <p className={`text-r-2xl mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{queueTotal} item{queueTotal !== 1 ? 's' : ''} left in your queue.</p>
-            : <p className="text-r-2xl text-[#22C55E] mb-3">Queue is clear — great work!</p>
-        })()}
-        <p className="text-r-3xl font-semibold text-[#4BB9EC]">You&rsquo;ve got this, {profile?.first_name}.</p>
-      </div>
         </DashboardContainer>
       </div>
-
     </div>
   )
 }

@@ -1,15 +1,13 @@
 // =============================================================================
-// DashboardGrid — react-grid-layout powered drag-and-drop dashboard wrapper
+// DashboardGrid — react-grid-layout v2 powered drag-and-drop dashboard wrapper
 // Wraps existing card components as draggable/resizable widgets.
 // Edit mode: drag handles + export layout + reset to defaults.
 // =============================================================================
 
-import { useState, useCallback, useMemo } from 'react'
-import { Responsive, WidthProvider } from 'react-grid-layout'
+import { useState, useCallback, useMemo, useRef } from 'react'
+import { ResponsiveGridLayout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-
-const ResponsiveGridLayout = WidthProvider(Responsive)
 
 /**
  * DashboardGrid — wraps dashboard cards in a draggable/resizable grid.
@@ -28,6 +26,8 @@ export default function DashboardGrid({
   columns = 12,
   rowHeight = 40,
 }) {
+  const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1200 })
+
   // Build initial layouts from widget defaults
   const defaultLg = useMemo(() => widgets.map(w => ({
     i: w.id,
@@ -42,18 +42,23 @@ export default function DashboardGrid({
   })), [widgets])
 
   const [layouts, setLayouts] = useState({ lg: defaultLg })
+  const layoutRef = useRef(layouts)
 
-  const handleLayoutChange = useCallback((_currentLayout, allLayouts) => {
-    setLayouts(allLayouts)
-    onLayoutChange?.(allLayouts)
+  const handleLayoutChange = useCallback((layout) => {
+    const updated = { ...layoutRef.current, lg: layout }
+    layoutRef.current = updated
+    setLayouts(updated)
+    onLayoutChange?.(updated)
   }, [onLayoutChange])
 
   const handleReset = useCallback(() => {
-    setLayouts({ lg: defaultLg })
+    const reset = { lg: defaultLg }
+    layoutRef.current = reset
+    setLayouts(reset)
   }, [defaultLg])
 
   const handleExport = useCallback(() => {
-    const exportData = (layouts.lg || defaultLg).map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
+    const exportData = (layoutRef.current.lg || defaultLg).map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
     const json = JSON.stringify(exportData, null, 2)
     console.log('=== CURRENT LAYOUT ===')
     console.log(json)
@@ -62,10 +67,10 @@ export default function DashboardGrid({
       navigator.clipboard.writeText(json)
     } catch { /* clipboard may not be available */ }
     alert('Layout exported to console (F12 → Console) and copied to clipboard.')
-  }, [layouts, defaultLg])
+  }, [defaultLg])
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       {/* Edit mode banner */}
       {editMode && (
         <div className="sticky top-0 z-50 bg-amber-50 border-b-2 border-amber-400 px-4 py-2 flex items-center justify-between mb-4 rounded-lg">
@@ -90,38 +95,38 @@ export default function DashboardGrid({
         </div>
       )}
 
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={layouts}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-        cols={{ lg: columns, md: columns, sm: 6, xs: 4 }}
-        rowHeight={rowHeight}
-        isDraggable={editMode}
-        isResizable={editMode}
-        onLayoutChange={handleLayoutChange}
-        draggableHandle=".widget-drag-handle"
-        compactType="vertical"
-        margin={[16, 16]}
-        containerPadding={[0, 0]}
-        useCSSTransforms={true}
-      >
-        {widgets.map(widget => (
-          <div key={widget.id} className="relative group">
-            {/* Drag handle — only visible in edit mode */}
-            {editMode && (
-              <div className="widget-drag-handle absolute top-0 left-0 right-0 h-8 bg-lynx-sky/10 border-b border-lynx-sky/20 rounded-t-xl flex items-center justify-between px-3 cursor-grab active:cursor-grabbing z-10">
-                <span className="text-r-xs font-bold text-lynx-sky uppercase tracking-wider">
-                  {widget.label || widget.id}
-                </span>
+      {mounted && (
+        <ResponsiveGridLayout
+          className="layout"
+          width={width}
+          layouts={layouts}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
+          cols={{ lg: columns, md: columns, sm: 6, xs: 4 }}
+          rowHeight={rowHeight}
+          dragConfig={{ enabled: editMode, handle: '.widget-drag-handle' }}
+          resizeConfig={{ enabled: editMode }}
+          onLayoutChange={handleLayoutChange}
+          compactor={verticalCompactor}
+          margin={[16, 16]}
+        >
+          {widgets.map(widget => (
+            <div key={widget.id} className="relative group">
+              {/* Drag handle — only visible in edit mode */}
+              {editMode && (
+                <div className="widget-drag-handle absolute top-0 left-0 right-0 h-8 bg-lynx-sky/10 border-b border-lynx-sky/20 rounded-t-xl flex items-center justify-between px-3 cursor-grab active:cursor-grabbing z-10">
+                  <span className="text-r-xs font-bold text-lynx-sky uppercase tracking-wider">
+                    {widget.label || widget.id}
+                  </span>
+                </div>
+              )}
+              {/* The actual card component */}
+              <div className={`h-full overflow-auto ${editMode ? 'pt-8' : ''}`}>
+                {widget.component}
               </div>
-            )}
-            {/* The actual card component */}
-            <div className={`h-full overflow-auto ${editMode ? 'pt-8' : ''}`}>
-              {widget.component}
             </div>
-          </div>
-        ))}
-      </ResponsiveGridLayout>
+          ))}
+        </ResponsiveGridLayout>
+      )}
     </div>
   )
 }
