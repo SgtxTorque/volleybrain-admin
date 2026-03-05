@@ -61,15 +61,18 @@ export default function OrgFinancials({ stats = {}, onNavigate }) {
         />
       </div>
 
-      {/* Category breakdown */}
+      {/* Category breakdown — $collected/$total per category */}
       {categories.length > 0 && (
-        <div className="flex gap-3 mb-3 overflow-x-auto">
+        <div className="flex gap-2 mb-3 overflow-x-auto">
           {categories.map(cat => (
             <div key={cat.label} className={`min-w-0 flex-1 rounded-lg px-2 py-1.5 ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
-              <p className={`text-sm font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <p className={`text-r-base font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 ${cat.collected.toLocaleString()}
               </p>
-              <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`}>
+              <p className={`text-[10px] tabular-nums ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                /${cat.total.toLocaleString()}
+              </p>
+              <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'} truncate`}>
                 {cat.label}
               </p>
             </div>
@@ -94,7 +97,7 @@ export default function OrgFinancials({ stats = {}, onNavigate }) {
         )}
         <button
           onClick={() => onNavigate?.('payments')}
-          className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#0B1628] text-white text-xs font-semibold hover:bg-[#162a4a] transition"
+          className="flex items-center justify-center gap-1.5 py-2 rounded-xl bg-lynx-navy text-white text-xs font-semibold hover:brightness-125 transition"
         >
           Payments <ChevronRight className="w-3 h-3" />
         </button>
