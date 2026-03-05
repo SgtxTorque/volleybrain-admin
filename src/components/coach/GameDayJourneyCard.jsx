@@ -28,16 +28,16 @@ export default function GameDayJourneyCard({ activeStep = 0, onStepClick, onNavi
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Game Day Journey
           </h3>
-          <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             Pre-game to post-game workflow
           </p>
         </div>
         <button
           onClick={() => onNavigate?.('gameprep')}
-          className="flex items-center gap-1 text-xs font-semibold text-lynx-sky hover:brightness-110 transition"
+          className="flex items-center gap-1 text-sm font-semibold text-lynx-sky hover:brightness-110 transition"
         >
           Open Game Day <ChevronRight className="w-3 h-3" />
         </button>
@@ -59,7 +59,7 @@ export default function GameDayJourneyCard({ activeStep = 0, onStepClick, onNavi
                 title={step.label}
               >
                 <div className={`
-                  w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold
+                  w-9 h-9 rounded-full border-2 flex items-center justify-center text-base font-bold
                   transition-colors cursor-pointer
                   ${isCompleted
                     ? 'bg-lynx-sky/15 border-lynx-sky text-lynx-sky'
@@ -71,7 +71,7 @@ export default function GameDayJourneyCard({ activeStep = 0, onStepClick, onNavi
                 `}>
                   {step.num}
                 </div>
-                <span className={`text-[10px] font-medium whitespace-nowrap ${
+                <span className={`text-sm font-medium whitespace-nowrap ${
                   isCompleted || isCurrent
                     ? (isDark ? 'text-slate-300' : 'text-slate-600')
                     : (isDark ? 'text-slate-600' : 'text-slate-400')

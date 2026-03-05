@@ -32,7 +32,7 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
       >
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-          <span className={`text-sm font-bold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+          <span className={`text-base font-bold ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
             {players.length} Player{players.length > 1 ? 's' : ''} Unrostered
           </span>
         </div>
@@ -70,7 +70,7 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search players..."
-              className={`w-full pl-9 pr-3 py-2 rounded-lg text-sm ${
+              className={`w-full pl-9 pr-3 py-2 rounded-lg text-base ${
                 isDark
                   ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500'
                   : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400'
@@ -88,7 +88,7 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
                 {player.photo_url ? (
                   <img src={player.photo_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                 ) : (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                     isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
                   }`}>
                     {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
@@ -97,10 +97,10 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {player.first_name} {player.last_name}
                   </p>
-                  <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                     {player.position || 'No position'}{player.grade ? ` · ${player.grade}` : ''}
                   </p>
                 </div>
@@ -109,7 +109,7 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
                 <select
                   onChange={e => { if (e.target.value) onAssign?.(e.target.value, player.id); e.target.value = '' }}
                   defaultValue=""
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer ${
+                  className={`text-sm font-semibold px-3 py-1.5 rounded-lg cursor-pointer ${
                     isDark
                       ? 'bg-lynx-sky/10 border border-lynx-sky/20 text-lynx-sky'
                       : 'bg-lynx-sky/10 border border-lynx-sky/20 text-lynx-sky'
@@ -123,7 +123,7 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
               </div>
             ))}
             {filtered.length === 0 && (
-              <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-base text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 No players match search
               </p>
             )}

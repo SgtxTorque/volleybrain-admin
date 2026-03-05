@@ -35,11 +35,11 @@ export function EventDetailModal({ event, teams, venues, onClose, activeView }) 
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white" style={{ backgroundColor: team?.color || '#6366F1' }}>
-              {event.event_type === 'practice' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> :
-               event.event_type === 'game' ? <span className="text-2xl">{primarySport?.icon || '🏐'}</span> : '📅'}
+              {event.event_type === 'practice' ? <span className="text-3xl">{primarySport?.icon || '🏐'}</span> :
+               event.event_type === 'game' ? <span className="text-3xl">{primarySport?.icon || '🏐'}</span> : '📅'}
             </div>
             <div>
-              <h2 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title || event.event_type}</h2>
+              <h2 className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title || event.event_type}</h2>
               <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{team?.name}</p>
             </div>
           </div>
@@ -59,7 +59,7 @@ export function EventDetailModal({ event, teams, venues, onClose, activeView }) 
               <MapPin className={`w-5 h-5 text-slate-400`} />
               <div>
                 <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{event.venue_name || event.location || venue?.name}</p>
-                {(venue?.address || event.venue_address) && <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.venue_address || venue?.address}</p>}
+                {(venue?.address || event.venue_address) && <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.venue_address || venue?.address}</p>}
               </div>
             </div>
           )}
@@ -73,7 +73,7 @@ export function EventDetailModal({ event, teams, venues, onClose, activeView }) 
 
           {event.notes && (
             <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-brand-off-white'} rounded-xl p-4`}>
-              <p className={`text-base ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
+              <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
             </div>
           )}
         </div>
@@ -132,10 +132,10 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl w-full max-w-lg shadow-2xl`}>
         <div className={`p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Make a Payment</h2>
+          <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Make a Payment</h2>
           <div className="flex items-center justify-between mt-2">
-            <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-base`}>Total Due</p>
-            <p className="text-3xl font-bold text-[var(--accent-primary)]">${amount?.toFixed(2) || '0.00'}</p>
+            <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-lg`}>Total Due</p>
+            <p className="text-4xl font-bold text-[var(--accent-primary)]">${amount?.toFixed(2) || '0.00'}</p>
           </div>
         </div>
 
@@ -144,16 +144,16 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
             <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-brand-off-white'} rounded-xl overflow-hidden`}>
               <button onClick={() => setShowFeeBreakdown(!showFeeBreakdown)}
                 className={`w-full p-3 flex items-center justify-between ${isDark ? 'text-white' : 'text-slate-900'} hover:opacity-80`}>
-                <span className="font-medium text-base">Fee Breakdown</span>
+                <span className="font-medium text-lg">Fee Breakdown</span>
                 <span className={`transition-transform ${showFeeBreakdown ? 'rotate-180' : ''}`}>▼</span>
               </button>
               {showFeeBreakdown && (
                 <div className={`px-3 pb-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
                   {Object.entries(feesByPlayer).map(([playerName, playerFees]) => (
                     <div key={playerName} className="mt-3">
-                      <p className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-1`}>{playerName}</p>
+                      <p className={`text-base font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-1`}>{playerName}</p>
                       {playerFees.map((fee, idx) => (
-                        <div key={idx} className="flex justify-between text-base py-1">
+                        <div key={idx} className="flex justify-between text-lg py-1">
                           <span className={`${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{fee.fee_name}</span>
                           <span className={`${isDark ? 'text-white' : 'text-slate-900'}`}>${fee.amount?.toFixed(2)}</span>
                         </div>
@@ -171,13 +171,13 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
 
           {hasPaymentMethods && (
             <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-brand-off-white'} rounded-xl p-3`}>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Include this note with your payment:</p>
+              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Include this note with your payment:</p>
               <div className="flex items-center gap-2">
-                <code className={`flex-1 text-base ${isDark ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-200/60'} px-2 py-1 rounded`}>
+                <code className={`flex-1 text-lg ${isDark ? 'text-white bg-white/10' : 'text-slate-900 bg-slate-200/60'} px-2 py-1 rounded`}>
                   {paymentNote}
                 </code>
                 <button onClick={() => copyToClipboard(paymentNote, 'Note')}
-                  className={`text-sm px-2 py-1 rounded ${copied === 'Note' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'}`}>
+                  className={`text-base px-2 py-1 rounded ${copied === 'Note' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]'}`}>
                   {copied === 'Note' ? '✓' : 'Copy'}
                 </button>
               </div>
@@ -186,28 +186,28 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
 
           {hasPaymentMethods && (
             <div className="space-y-2">
-              <p className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide`}>Payment Methods</p>
+              <p className={`text-base font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide`}>Payment Methods</p>
               {organization?.payment_venmo && (
                 <a href={`https://venmo.com/${organization.payment_venmo.replace('@', '')}?txn=pay&amount=${amount?.toFixed(2) || '0'}&note=${encodeURIComponent(paymentNote)}`}
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 bg-[#008CFF]/10 hover:bg-[#008CFF]/20 rounded-xl transition group">
-                  <div className="w-10 h-10 rounded-full bg-[#008CFF] flex items-center justify-center text-white font-bold text-lg">V</div>
+                  <div className="w-10 h-10 rounded-full bg-[#008CFF] flex items-center justify-center text-white font-bold text-xl">V</div>
                   <div className="flex-1">
                     <p className="font-semibold text-[#008CFF]">Venmo</p>
-                    <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>@{organization.payment_venmo.replace('@', '')}</p>
+                    <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>@{organization.payment_venmo.replace('@', '')}</p>
                   </div>
                   <span className="text-[#008CFF] group-hover:translate-x-1 transition-transform">→</span>
                 </a>
               )}
               {organization?.payment_zelle && (
                 <div className="flex items-center gap-3 p-3 bg-[#6D1ED4]/10 rounded-xl">
-                  <div className="w-10 h-10 rounded-full bg-[#6D1ED4] flex items-center justify-center text-white font-bold text-lg">Z</div>
+                  <div className="w-10 h-10 rounded-full bg-[#6D1ED4] flex items-center justify-center text-white font-bold text-xl">Z</div>
                   <div className="flex-1">
                     <p className="font-semibold text-[#6D1ED4]">Zelle</p>
-                    <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization.payment_zelle}</p>
+                    <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization.payment_zelle}</p>
                   </div>
                   <button onClick={() => copyToClipboard(organization.payment_zelle, 'Zelle')}
-                    className={`text-base px-3 py-1 rounded-lg transition ${copied === 'Zelle' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-[#6D1ED4]/20 text-[#6D1ED4] hover:bg-[#6D1ED4]/30'}`}>
+                    className={`text-lg px-3 py-1 rounded-lg transition ${copied === 'Zelle' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-[#6D1ED4]/20 text-[#6D1ED4] hover:bg-[#6D1ED4]/30'}`}>
                     {copied === 'Zelle' ? '✓ Copied' : 'Copy'}
                   </button>
                 </div>
@@ -216,10 +216,10 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
                 <a href={`https://cash.app/${organization.payment_cashapp.replace('$', '')}/${amount?.toFixed(2) || '0'}`}
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 bg-[#00D632]/10 hover:bg-[#00D632]/20 rounded-xl transition group">
-                  <div className="w-10 h-10 rounded-full bg-[#00D632] flex items-center justify-center text-white font-bold text-lg">$</div>
+                  <div className="w-10 h-10 rounded-full bg-[#00D632] flex items-center justify-center text-white font-bold text-xl">$</div>
                   <div className="flex-1">
                     <p className="font-semibold text-[#00D632]">Cash App</p>
-                    <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization.payment_cashapp}</p>
+                    <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization.payment_cashapp}</p>
                   </div>
                   <span className="text-[#00D632] group-hover:translate-x-1 transition-transform">→</span>
                 </a>
@@ -229,23 +229,23 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
 
           {organization?.payment_instructions && (
             <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-brand-off-white'} rounded-xl p-3`}>
-              <p className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-2`}>Additional Instructions</p>
-              <p className={`text-base ${isDark ? 'text-slate-300' : 'text-slate-600'} whitespace-pre-wrap`}>{organization.payment_instructions}</p>
+              <p className={`text-base font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'} uppercase tracking-wide mb-2`}>Additional Instructions</p>
+              <p className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-600'} whitespace-pre-wrap`}>{organization.payment_instructions}</p>
             </div>
           )}
 
           {!hasPaymentMethods && !organization?.payment_instructions && (
             <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-brand-off-white'} rounded-xl p-6 text-center`}>
-              <p className="text-3xl mb-2">💳</p>
+              <p className="text-4xl mb-2">💳</p>
               <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Payment methods coming soon!</p>
-              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-1`}>Contact your league administrator for payment options.</p>
+              <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-1`}>Contact your league administrator for payment options.</p>
             </div>
           )}
 
           {hasPaymentMethods && (
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2">
               <span className="text-amber-500">💡</span>
-              <p className={`${isDark ? 'text-amber-400' : 'text-amber-700'} text-base`}>
+              <p className={`${isDark ? 'text-amber-400' : 'text-amber-700'} text-lg`}>
                 After sending payment, your admin will mark it as paid within 1-2 business days.
               </p>
             </div>
@@ -255,7 +255,7 @@ export function PaymentOptionsModal({ amount, organization, fees = [], players =
         <div className={`p-5 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'} space-y-2`}>
           {amount > 100 && (
             <button onClick={() => showToast?.('Payment plan requests coming soon!', 'info')}
-              className={`w-full py-2 rounded-xl text-base transition ${isDark ? 'border border-white/[0.06] text-slate-400 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-500 hover:bg-brand-off-white'}`}>
+              className={`w-full py-2 rounded-xl text-lg transition ${isDark ? 'border border-white/[0.06] text-slate-400 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-500 hover:bg-brand-off-white'}`}>
               Need a payment plan? Contact admin
             </button>
           )}
@@ -312,8 +312,8 @@ export function AddChildModal({ existingChildren, onClose, showToast }) {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto shadow-xl`}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
-          <h2 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Add Another Child</h2>
-          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-base mt-1`}>Select a season to register a sibling</p>
+          <h2 className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Add Another Child</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-lg mt-1`}>Select a season to register a sibling</p>
         </div>
 
         <div className="p-6 space-y-4">
@@ -325,7 +325,7 @@ export function AddChildModal({ existingChildren, onClose, showToast }) {
             <>
               {templateChild && (
                 <div className={`${isDark ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'} rounded-xl p-4 mb-4`}>
-                  <p className={`${isDark ? 'text-emerald-400' : 'text-emerald-700'} text-base`}>
+                  <p className={`${isDark ? 'text-emerald-400' : 'text-emerald-700'} text-lg`}>
                     Parent info will be pre-filled from {templateChild.first_name}'s registration
                   </p>
                 </div>
@@ -333,12 +333,12 @@ export function AddChildModal({ existingChildren, onClose, showToast }) {
               {openSeasons.map(season => (
                 <a key={season.id} href={getSiblingRegistrationUrl(season)} target="_blank" rel="noopener noreferrer"
                   className={`${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-brand-off-white hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition block`}>
-                  <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
+                  <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-3xl">
                     {season.sports?.icon || '🏐'}
                   </div>
                   <div className="flex-1">
                     <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
-                    <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
+                    <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
                   </div>
                   <span className="text-[var(--accent-primary)] font-semibold">Register →</span>
                 </a>
@@ -390,25 +390,25 @@ export function ReRegisterModal({ player, season, onClose, showToast }) {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-lynx-silver shadow-sm'} rounded-xl w-full max-w-md shadow-xl`}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}>
-          <h2 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Re-Register {player.first_name}</h2>
-          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-base mt-1`}>for {season.name}</p>
+          <h2 className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Re-Register {player.first_name}</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} text-lg mt-1`}>for {season.name}</p>
         </div>
 
         <div className="p-6 space-y-4">
           <div className={`${isDark ? 'bg-white/[0.06]' : 'bg-brand-off-white'} rounded-xl p-4`}>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-2xl">
+              <div className="w-14 h-14 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center text-3xl">
                 {season.sports?.icon || '🏅'}
               </div>
               <div>
                 <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
-                <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
+                <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
               </div>
             </div>
           </div>
 
           <div className={`${isDark ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'} rounded-xl p-4`}>
-            <p className={`${isDark ? 'text-emerald-400' : 'text-emerald-700'} text-base`}>
+            <p className={`${isDark ? 'text-emerald-400' : 'text-emerald-700'} text-lg`}>
               {player.first_name}'s information will be pre-filled to save time!
             </p>
           </div>
@@ -446,7 +446,7 @@ export function AlertDetailModal({ alert, onClose }) {
               {alert.priority === 'urgent' ? <AlertTriangle className="w-6 h-6" /> : <Megaphone className="w-6 h-6" />}
             </div>
             <div>
-              <h2 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{alert.title}</h2>
+              <h2 className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{alert.title}</h2>
               <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{createdDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
             </div>
           </div>

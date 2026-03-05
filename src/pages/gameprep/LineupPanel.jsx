@@ -20,15 +20,15 @@ function BenchPlayerCard({ player, rsvpStatus, onDragStart, onDragEnd, onClick, 
       {player.photo_url ? (
         <img src={player.photo_url} className="w-12 h-12 rounded-lg object-cover" />
       ) : (
-        <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: posColor }}>
+        <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl" style={{ backgroundColor: posColor }}>
           {player.jersey_number || '?'}
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-lg truncate" style={{ color: theme?.textPrimary }}>{player.first_name} {player.last_name?.[0]}.</p>
-        <p className="text-base" style={{ color: theme?.textMuted }}>#{player.jersey_number} • {player.position || player.team_position || '—'}</p>
+        <p className="font-semibold text-xl truncate" style={{ color: theme?.textPrimary }}>{player.first_name} {player.last_name?.[0]}.</p>
+        <p className="text-lg" style={{ color: theme?.textMuted }}>#{player.jersey_number} • {player.position || player.team_position || '—'}</p>
       </div>
-      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold text-white" style={{ backgroundColor: `${posColor}80` }}>
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold text-white" style={{ backgroundColor: `${posColor}80` }}>
         {player.position || player.team_position || '?'}
       </div>
     </div>
@@ -87,7 +87,7 @@ export default function LineupPanel({
             <div className="text-center mb-4">
               <div className="inline-flex items-center gap-2 px-6 py-2 rounded-lg" style={{ background: theme.netBg }}>
                 <div className="w-8 h-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.3)' }} />
-                <span className="text-base font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.5)' }}>NET</span>
+                <span className="text-lg font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.5)' }}>NET</span>
                 <div className="w-8 h-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.3)' }} />
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function LineupPanel({
             {/* Attack Line */}
             <div className="flex items-center gap-3 my-3">
               <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: theme.attackLine }} />
-              <span className="text-sm text-orange-400 font-bold tracking-wider">ATTACK LINE</span>
+              <span className="text-base text-orange-400 font-bold tracking-wider">ATTACK LINE</span>
               <div className="flex-1 border-t-2 border-dashed" style={{ borderColor: theme.attackLine }} />
             </div>
             {/* Back Row */}
@@ -108,11 +108,11 @@ export default function LineupPanel({
       {/* Sidebar — bench + libero */}
       <div className="w-full border-t" style={{ borderColor: theme.border, backgroundColor: theme.sidebarBg }}>
         <div className="p-5" style={{ borderBottom: `1px solid ${theme.border}` }}>
-          <h3 className="font-bold text-lg flex items-center gap-2" style={{ color: theme.textPrimary }}>
+          <h3 className="font-bold text-xl flex items-center gap-2" style={{ color: theme.textPrimary }}>
             <Icons.Users className="w-4 h-4" style={{ color: theme.textMuted }} />
             {mode === GAME_MODES.LIVE ? 'Bench' : 'Available Players'}
           </h3>
-          <p className="text-base mt-1" style={{ color: theme.textMuted }}>
+          <p className="text-lg mt-1" style={{ color: theme.textMuted }}>
             {mode === GAME_MODES.PRE_GAME ? 'Drag players to court positions' : `${benchPlayers.length} on bench`}
           </p>
         </div>
@@ -133,9 +133,9 @@ export default function LineupPanel({
         {/* Libero selector */}
         {mode === GAME_MODES.PRE_GAME && roster.some(p => p.position === 'L' || p.team_position === 'L') && (
           <div className="p-5" style={{ borderTop: `1px solid ${theme.border}` }}>
-            <label className="text-base font-medium mb-2 block" style={{ color: theme.textMuted }}>Libero</label>
+            <label className="text-lg font-medium mb-2 block" style={{ color: theme.textMuted }}>Libero</label>
             <select value={liberoId || ''} onChange={(e) => setLiberoId(e.target.value || null)}
-              className="w-full px-4 py-3 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-3 rounded-xl text-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
               style={{ backgroundColor: theme.buttonBg, border: `1px solid ${theme.border}`, color: theme.textPrimary }}>
               <option value="">Select Libero</option>
               {roster.filter(p => p.position === 'L' || p.team_position === 'L').map(p => (

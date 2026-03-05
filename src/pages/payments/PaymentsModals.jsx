@@ -24,18 +24,18 @@ export function MarkPaidModal({ payment, onConfirm, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className={`rounded-[14px] w-full max-w-md p-6 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Mark Payment as Paid</h3>
+        <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Mark Payment as Paid</h3>
         <div className="space-y-4">
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fee</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fee</label>
             <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.fee_name} - ${parseFloat(payment.amount).toFixed(2)}</p>
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment Date</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment Date</label>
             <input type="date" value={details.paid_date} onChange={e => setDetails(d => ({ ...d, paid_date: e.target.value }))} className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment Method</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment Method</label>
             <select value={details.payment_method} onChange={e => setDetails(d => ({ ...d, payment_method: e.target.value }))} className={`w-full px-3 py-2 rounded-lg ${inputCls}`}>
               <option value="cash">Cash</option>
               <option value="venmo">Venmo</option>
@@ -47,11 +47,11 @@ export function MarkPaidModal({ payment, onConfirm, onClose }) {
             </select>
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Reference # (optional)</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Reference # (optional)</label>
             <input type="text" value={details.reference_number} onChange={e => setDetails(d => ({ ...d, reference_number: e.target.value }))} placeholder="Transaction ID, check #, etc." className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Notes (optional)</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Notes (optional)</label>
             <textarea value={details.notes} onChange={e => setDetails(d => ({ ...d, notes: e.target.value }))} placeholder="Any additional notes..." rows={2} className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
           </div>
         </div>
@@ -76,12 +76,12 @@ export function DeletePaymentModal({ payment, onConfirm, onClose }) {
           <div className="w-10 h-10 rounded-full bg-red-500/15 flex items-center justify-center">
             <AlertCircle className="w-5 h-5 text-red-500" />
           </div>
-          <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Remove Fee</h3>
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Remove Fee</h3>
         </div>
         <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>Are you sure you want to remove this fee? This action cannot be undone.</p>
         <div className={`mt-4 p-3 rounded-lg ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`}>
           <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.fee_name || payment.fee_type}</p>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>${parseFloat(payment.amount).toFixed(2)}</p>
+          <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>${parseFloat(payment.amount).toFixed(2)}</p>
         </div>
         <div className="flex gap-3 mt-6">
           <button onClick={onClose} className={`flex-1 px-4 py-2 rounded-lg font-medium ${isDark ? 'bg-white/[0.06] text-white' : 'bg-slate-100 text-slate-900'}`}>Cancel</button>
@@ -116,13 +116,13 @@ export function SendReminderModal({ target, onSend, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className={`rounded-[14px] w-full max-w-lg p-6 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Send Payment Reminder</h3>
+        <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Send Payment Reminder</h3>
         <div className={`p-3 rounded-lg mb-4 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`}>
           <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>To: {recipientName}</p>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{recipientEmail}</p>
+          <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{recipientEmail}</p>
         </div>
         <div className="mb-4">
-          <label className={`block text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Send via</label>
+          <label className={`block text-base mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Send via</label>
           <div className="flex gap-2">
             {['email', 'text', 'app'].map(m => (
               <button key={m} onClick={() => setMethod(m)}
@@ -138,7 +138,7 @@ export function SendReminderModal({ target, onSend, onClose }) {
           </div>
         </div>
         <div className="mb-4">
-          <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Message</label>
+          <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Message</label>
           <textarea value={message} onChange={e => setMessage(e.target.value)} rows={6} className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
         </div>
         <div className="flex gap-3">
@@ -170,9 +170,9 @@ export function BlastReminderModal({ families, onSend, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className={`rounded-[14px] w-full max-w-lg p-6 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Send Blast Reminder</h3>
+        <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Send Blast Reminder</h3>
         <div className="mb-4">
-          <label className={`block text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Send to</label>
+          <label className={`block text-base mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Send to</label>
           <div className="flex gap-2">
             <button onClick={() => setTargetGroup('unpaid')}
               className={`flex-1 px-4 py-2 rounded-lg ${targetGroup === 'unpaid' ? 'bg-lynx-sky text-white' : isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-slate-50 border border-slate-200 text-slate-500'}`}>
@@ -185,7 +185,7 @@ export function BlastReminderModal({ families, onSend, onClose }) {
           </div>
         </div>
         <div className="mb-4">
-          <label className={`block text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Send via</label>
+          <label className={`block text-base mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Send via</label>
           <div className="flex gap-2">
             {['email', 'text', 'app'].map(m => (
               <button key={m} onClick={() => setMethod(m)}
@@ -201,7 +201,7 @@ export function BlastReminderModal({ families, onSend, onClose }) {
           </div>
         </div>
         <div className="mb-4">
-          <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Message</label>
+          <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Message</label>
           <textarea value={message} onChange={e => setMessage(e.target.value)} rows={6} className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
         </div>
         <div className="flex gap-3">
@@ -234,17 +234,17 @@ export function AddFeeModal({ players, onAdd, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div className={`rounded-[14px] w-full max-w-md p-6 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Add New Fee</h3>
+        <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Add New Fee</h3>
         <div className="space-y-4">
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Player</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Player</label>
             <select value={formData.player_id} onChange={e => setFormData(d => ({ ...d, player_id: e.target.value }))} className={`w-full px-3 py-2 rounded-lg ${inputCls}`}>
               <option value="">Select player...</option>
               {players.map(p => <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>)}
             </select>
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fee Type</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fee Type</label>
             <select value={formData.fee_type} onChange={e => setFormData(d => ({ ...d, fee_type: e.target.value }))} className={`w-full px-3 py-2 rounded-lg ${inputCls}`}>
               <option value="registration">Registration</option>
               <option value="uniform">Uniform</option>
@@ -255,15 +255,15 @@ export function AddFeeModal({ players, onAdd, onClose }) {
             </select>
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fee Name</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fee Name</label>
             <input type="text" value={formData.fee_name} onChange={e => setFormData(d => ({ ...d, fee_name: e.target.value }))} placeholder="e.g., Tournament Entry Fee" className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Amount ($)</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Amount ($)</label>
             <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData(d => ({ ...d, amount: e.target.value }))} placeholder="0.00" className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
           </div>
           <div>
-            <label className={`block text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Due Date (optional)</label>
+            <label className={`block text-base mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Due Date (optional)</label>
             <input type="date" value={formData.due_date} onChange={e => setFormData(d => ({ ...d, due_date: e.target.value }))} className={`w-full px-3 py-2 rounded-lg ${inputCls}`} />
           </div>
         </div>

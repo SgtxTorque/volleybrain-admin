@@ -228,7 +228,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
     return (
       <div className={`text-center py-12 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
         <span className="text-6xl">😕</span>
-        <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mt-4`}>Player Not Found</h2>
+        <h2 className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mt-4`}>Player Not Found</h2>
       </div>
     )
   }
@@ -245,29 +245,29 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const textCls = isDark ? 'text-white' : 'text-slate-900'
   const mutedCls = isDark ? 'text-slate-400' : 'text-slate-500'
   const borderCls = isDark ? 'border-white/[0.06]' : 'border-slate-200'
-  const inputCls = `w-full px-3 py-2.5 rounded-xl border ${borderCls} ${isDark ? 'bg-white/[0.04] text-white' : 'bg-white text-slate-900'} text-sm`
+  const inputCls = `w-full px-3 py-2.5 rounded-xl border ${borderCls} ${isDark ? 'bg-white/[0.04] text-white' : 'bg-white text-slate-900'} text-base`
 
   const InfoRow = ({ label, value, icon }) => (
     <div className={`flex items-center gap-3 py-3 border-b last:border-b-0 ${borderCls}`}>
-      {icon && <span className={`text-lg ${mutedCls}`}>{icon}</span>}
-      <span className={`text-sm ${mutedCls} w-32 flex-shrink-0`}>{label}</span>
-      <span className={`text-sm font-medium ${textCls}`}>{value || '—'}</span>
+      {icon && <span className={`text-xl ${mutedCls}`}>{icon}</span>}
+      <span className={`text-base ${mutedCls} w-32 flex-shrink-0`}>{label}</span>
+      <span className={`text-base font-medium ${textCls}`}>{value || '—'}</span>
     </div>
   )
   const EditBtn = ({ onClick }) => (
-    <button onClick={onClick} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-lynx-sky/10 text-lynx-sky hover:bg-lynx-sky/20 transition">
+    <button onClick={onClick} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-lynx-sky/10 text-lynx-sky hover:bg-lynx-sky/20 transition">
       <Edit className="w-3.5 h-3.5" /> Edit
     </button>
   )
   const SaveCancelBtns = ({ onSave, onCancel }) => (
     <div className="flex gap-2 mt-4">
-      <button onClick={onCancel} className={`flex-1 py-2.5 rounded-xl border ${borderCls} ${textCls} font-medium text-sm hover:opacity-80 transition`}>Cancel</button>
-      <button onClick={onSave} className="flex-1 py-2.5 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-sm hover:brightness-110 transition">Save Changes</button>
+      <button onClick={onCancel} className={`flex-1 py-2.5 rounded-xl border ${borderCls} ${textCls} font-medium text-base hover:opacity-80 transition`}>Cancel</button>
+      <button onClick={onSave} className="flex-1 py-2.5 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-base hover:brightness-110 transition">Save Changes</button>
     </div>
   )
   const FormField = ({ label, value, onChange, type = 'text', placeholder, options }) => (
     <div>
-      <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{label}</label>
+      <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{label}</label>
       {options ? (
         <select value={value} onChange={e => onChange(e.target.value)} className={inputCls}>
           <option value="">Select...</option>
@@ -302,12 +302,12 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               style={{ backgroundColor: teamColor }}>{player.first_name?.[0]}{player.last_name?.[0]}</div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-lynx-sky">{primaryTeam?.name || 'No Team'}</p>
+            <p className="text-sm font-bold uppercase tracking-wider text-lynx-sky">{primaryTeam?.name || 'No Team'}</p>
             <h1 className="text-[28px] font-extrabold text-white truncate">{player.first_name} {player.last_name}</h1>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              {assignedJersey && <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
-              {player.position && <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">{player.position}</span>}
-              <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+              {assignedJersey && <span className="text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
+              {player.position && <span className="text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">{player.position}</span>}
+              <span className={`text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                 player.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
               }`}>{player.status === 'active' ? 'Active' : player.status || 'Pending'}</span>
             </div>
@@ -320,7 +320,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
         <div className={`flex border-b ${borderCls} overflow-x-auto`}>
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-5 py-3 text-base font-semibold whitespace-nowrap transition-all border-b-2 ${
                 activeTab === tab.id ? 'border-lynx-sky text-lynx-sky' : `border-transparent ${mutedCls} hover:${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`
               }`}>
               <span>{tab.icon}</span><span>{tab.label}</span>
@@ -334,7 +334,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-lg font-bold ${textCls}`}>Player Information</h3>
+                  <h3 className={`text-xl font-bold ${textCls}`}>Player Information</h3>
                   {!editingInfo && <EditBtn onClick={() => setEditingInfo(true)} />}
                 </div>
                 {editingInfo ? (
@@ -374,7 +374,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {/* Address */}
               {(infoForm.address || infoForm.city) && !editingInfo && (
                 <div>
-                  <h3 className={`text-lg font-bold ${textCls} mb-4`}>Address</h3>
+                  <h3 className={`text-xl font-bold ${textCls} mb-4`}>Address</h3>
                   <div className={`${altBg} rounded-xl px-5`}>
                     {infoForm.address && <InfoRow label="Street" value={infoForm.address} icon="📍" />}
                     <InfoRow label="City/State/Zip" value={[infoForm.city, infoForm.state, infoForm.zip].filter(Boolean).join(', ') || null} icon="🌐" />
@@ -383,7 +383,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               )}
               {editingInfo && (
                 <div>
-                  <h3 className={`text-lg font-bold ${textCls} mb-4`}>Address</h3>
+                  <h3 className={`text-xl font-bold ${textCls} mb-4`}>Address</h3>
                   <div className={`${altBg} rounded-xl p-5 space-y-4`}>
                     <FormField label="Street Address" value={infoForm.address} onChange={v => setInfoForm({ ...infoForm, address: v })} placeholder="123 Main St" />
                     <div className="grid grid-cols-3 gap-4">
@@ -397,7 +397,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               {/* Parent/Guardian */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-lg font-bold ${textCls}`}>Parent / Guardian</h3>
+                  <h3 className={`text-xl font-bold ${textCls}`}>Parent / Guardian</h3>
                   {!editingInfo && <EditBtn onClick={() => setEditingInfo(true)} />}
                 </div>
                 {editingInfo ? (
@@ -418,7 +418,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               </div>
               {(infoForm.parent2_name || infoForm.parent2_email || editingInfo) && (
                 <div>
-                  <h3 className={`text-lg font-bold ${textCls} mb-4`}>Parent / Guardian 2</h3>
+                  <h3 className={`text-xl font-bold ${textCls} mb-4`}>Parent / Guardian 2</h3>
                   {editingInfo ? (
                     <div className={`${altBg} rounded-xl p-5 space-y-4`}>
                       <FormField label="Parent 2 Name" value={infoForm.parent2_name} onChange={v => setInfoForm({ ...infoForm, parent2_name: v })} placeholder="Optional" />
@@ -453,43 +453,43 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             return (
               <div className="space-y-6">
                 <div>
-                  <h3 className={`text-lg font-bold ${textCls} mb-4`}>Current {topLabel}</h3>
+                  <h3 className={`text-xl font-bold ${textCls} mb-4`}>Current {topLabel}</h3>
                   <div className="flex items-center gap-6">
                     <div className="w-28 h-32 rounded-xl flex flex-col items-center justify-center text-white relative overflow-hidden shadow-lg" style={{ backgroundColor: teamColor }}>
                       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-3 rounded-b-full" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} />
                       <span className="text-5xl font-black mt-2">{assignedJersey || '?'}</span>
-                      <span className="text-xs opacity-80 mt-1 font-medium">{primaryTeam?.name}</span>
+                      <span className="text-sm opacity-80 mt-1 font-medium">{primaryTeam?.name}</span>
                     </div>
                     <div className="space-y-1">
-                      <div className={`text-sm ${textCls}`}><span className="font-semibold">Number:</span> {assignedJersey ? `#${assignedJersey}` : 'Not assigned yet'}</div>
+                      <div className={`text-base ${textCls}`}><span className="font-semibold">Number:</span> {assignedJersey ? `#${assignedJersey}` : 'Not assigned yet'}</div>
                       {sizePieces.map(piece => (
-                        <div key={piece.label} className={`text-sm ${textCls}`}><span className="font-semibold">{piece.label} Size:</span> {piece.value || 'Not set'}</div>
+                        <div key={piece.label} className={`text-base ${textCls}`}><span className="font-semibold">{piece.label} Size:</span> {piece.value || 'Not set'}</div>
                       ))}
-                      <div className={`text-xs ${mutedCls}`}>{assignedJersey ? 'Assigned by admin' : 'Waiting for admin to assign'}</div>
+                      <div className={`text-sm ${mutedCls}`}>{assignedJersey ? 'Assigned by admin' : 'Waiting for admin to assign'}</div>
                     </div>
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className={`text-lg font-bold ${textCls}`}>Your Preferences</h3>
+                    <h3 className={`text-xl font-bold ${textCls}`}>Your Preferences</h3>
                     {!editingJersey && <EditBtn onClick={() => setEditingJersey(true)} />}
                   </div>
                   {editingJersey ? (
                     <div className={`${altBg} rounded-xl p-5 space-y-4`}>
-                      <p className={`text-sm ${mutedCls}`}>Set your preferred numbers and uniform sizes.</p>
+                      <p className={`text-base ${mutedCls}`}>Set your preferred numbers and uniform sizes.</p>
                       <div className="grid grid-cols-3 gap-4">
                         {[{ key: 'pref1', label: '1st Choice' }, { key: 'pref2', label: '2nd Choice' }, { key: 'pref3', label: '3rd Choice' }].map(({ key, label }) => (
                           <div key={key}>
-                            <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{label}</label>
+                            <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{label}</label>
                             <input type="number" min="0" max="99" value={jerseyPrefs[key]}
                               onChange={e => setJerseyPrefs({ ...jerseyPrefs, [key]: e.target.value })} placeholder="0-99"
-                              className={`${inputCls} text-center text-3xl font-bold`} />
+                              className={`${inputCls} text-center text-4xl font-bold`} />
                           </div>
                         ))}
                       </div>
                       <div className={`grid ${bottomLabel ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
                         <div>
-                          <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{topLabel} Size</label>
+                          <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{topLabel} Size</label>
                           <select value={jerseyPrefs.size} onChange={e => setJerseyPrefs({ ...jerseyPrefs, size: e.target.value })} className={inputCls}>
                             <option value="">Select size...</option>
                             {getSizeOptionsForPiece(topLabel).map(group => (
@@ -499,7 +499,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                         </div>
                         {bottomLabel && (
                           <div>
-                            <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{bottomLabel} Size</label>
+                            <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{bottomLabel} Size</label>
                             <select value={jerseyPrefs.bottomSize} onChange={e => setJerseyPrefs({ ...jerseyPrefs, bottomSize: e.target.value })} className={inputCls}>
                               <option value="">Select size...</option>
                               {getSizeOptionsForPiece(bottomLabel).map(group => (
@@ -513,7 +513,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                         <div className={`grid ${extras.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
                           {extras.map(extra => { const key = extra.toLowerCase().replace(/\s+/g, '_'); return (
                             <div key={key}>
-                              <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{extra} Size</label>
+                              <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>{extra} Size</label>
                               <select value={jerseyPrefs.extras?.[key] || ''} onChange={e => setJerseyPrefs({ ...jerseyPrefs, extras: { ...jerseyPrefs.extras, [key]: e.target.value } })} className={inputCls}>
                                 <option value="">Select size...</option>
                                 {getSizeOptionsForPiece(extra).map(group => (
@@ -531,14 +531,14 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                       <div className={`grid ${gridCols} gap-4 text-center`}>
                         {['1st Choice', '2nd Choice', '3rd Choice'].map((label, i) => (
                           <div key={label}>
-                            <p className={`text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1`}>{label}</p>
+                            <p className={`text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1`}>{label}</p>
                             <p className={`text-4xl font-black ${textCls}`}>{[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3][i] || '—'}</p>
                           </div>
                         ))}
                         {sizePieces.map(piece => (
                           <div key={piece.label}>
-                            <p className={`text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1`}>{piece.label}</p>
-                            <p className={`text-2xl font-black ${textCls}`}>{piece.value || '—'}</p>
+                            <p className={`text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1`}>{piece.label}</p>
+                            <p className={`text-3xl font-black ${textCls}`}>{piece.value || '—'}</p>
                           </div>
                         ))}
                       </div>
@@ -554,7 +554,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-lg font-bold ${textCls}`}>Emergency Contact</h3>
+                  <h3 className={`text-xl font-bold ${textCls}`}>Emergency Contact</h3>
                   {!editingEmergency && <EditBtn onClick={() => setEditingEmergency(true)} />}
                 </div>
                 {editingEmergency ? (
@@ -576,26 +576,26 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 )}
                 {!(player.emergency_contact_name || player.emergency_name) && !editingEmergency && (
                   <div className={`mt-3 flex items-center gap-2 px-4 py-3 rounded-xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
-                    <span className="text-amber-500 text-sm">⚠️</span>
-                    <span className={`text-sm ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>No emergency contact on file. Please add one.</span>
+                    <span className="text-amber-500 text-base">⚠️</span>
+                    <span className={`text-base ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>No emergency contact on file. Please add one.</span>
                   </div>
                 )}
               </div>
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-lg font-bold ${textCls}`}>Medical Information</h3>
+                  <h3 className={`text-xl font-bold ${textCls}`}>Medical Information</h3>
                   {!editingMedical && <EditBtn onClick={() => setEditingMedical(true)} />}
                 </div>
                 {editingMedical ? (
                   <div className={`${altBg} rounded-xl p-5 space-y-4`}>
                     <div>
-                      <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>Medical Conditions</label>
+                      <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>Medical Conditions</label>
                       <textarea value={medicalForm.conditions} onChange={e => setMedicalForm({ ...medicalForm, conditions: e.target.value })}
                         placeholder="Asthma, diabetes, seizures, etc. (or 'None')"
                         rows={3} className={`${inputCls} resize-none`} />
                     </div>
                     <div>
-                      <label className={`block text-[11px] font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>Allergies</label>
+                      <label className={`block text-sm font-bold uppercase tracking-wider ${mutedCls} mb-1.5`}>Allergies</label>
                       <textarea value={medicalForm.allergies} onChange={e => setMedicalForm({ ...medicalForm, allergies: e.target.value })}
                         placeholder="Food, medication, or environmental allergies (or 'None')"
                         rows={3} className={`${inputCls} resize-none`} />
@@ -620,19 +620,19 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
           {/* ══════ SEASON HISTORY ══════ */}
           {activeTab === 'history' && (
             <div className="space-y-4">
-              <h3 className={`text-lg font-bold ${textCls}`}>Season History</h3>
+              <h3 className={`text-xl font-bold ${textCls}`}>Season History</h3>
               {seasonHistory.length > 0 ? (
                 <div className="space-y-3">
                   {seasonHistory.map((season, i) => (
                     <div key={i} className={`${altBg} rounded-xl p-5 flex items-center gap-4`}>
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-lg text-white font-bold shadow-md" style={{ backgroundColor: season.teamColor }}>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl text-white font-bold shadow-md" style={{ backgroundColor: season.teamColor }}>
                         {season.sportIcon}
                       </div>
                       <div className="flex-1">
                         <div className={`font-semibold ${textCls}`}>{season.seasonName}</div>
-                        <div className={`text-sm ${mutedCls}`}>{season.teamName}{season.jerseyNumber ? ` • #${season.jerseyNumber}` : ''}</div>
+                        <div className={`text-base ${mutedCls}`}>{season.teamName}{season.jerseyNumber ? ` • #${season.jerseyNumber}` : ''}</div>
                       </div>
-                      <div className={`text-xs ${mutedCls} text-right`}>
+                      <div className={`text-sm ${mutedCls} text-right`}>
                         {season.startDate ? new Date(season.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
                         {season.endDate ? ` – ${new Date(season.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : ' – Present'}
                       </div>

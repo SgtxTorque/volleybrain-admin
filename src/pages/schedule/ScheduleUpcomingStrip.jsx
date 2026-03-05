@@ -21,13 +21,13 @@ export default function ScheduleUpcomingStrip({
     <div className={`rounded-[14px] border overflow-hidden ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
       <div className={`px-5 py-3 flex items-center justify-between border-b ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-slate-100 bg-slate-50'}`}>
         <div className="flex items-center gap-2">
-          <span className="text-sm">🔥</span>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Upcoming Games</span>
+          <span className="text-base">🔥</span>
+          <span className="text-sm font-bold uppercase tracking-wider text-slate-400">Upcoming Games</span>
         </div>
         {upcomingGames?.length > 0 && (
           <button
             onClick={() => onShareGame(allUpcomingGames[0])}
-            className="flex items-center gap-1.5 text-xs font-semibold text-lynx-sky hover:underline"
+            className="flex items-center gap-1.5 text-sm font-semibold text-lynx-sky hover:underline"
           >
             <Share2 className="w-3.5 h-3.5" /> Share Next Game
           </button>
@@ -59,7 +59,7 @@ export default function ScheduleUpcomingStrip({
             >
               {/* Day badge */}
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                <span className={`text-sm font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                   isToday ? 'bg-amber-400 text-amber-900' : isTomorrow ? 'bg-blue-100 text-blue-700' : isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {formatGameDay(game.event_date)}
@@ -76,20 +76,20 @@ export default function ScheduleUpcomingStrip({
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="w-2 h-8 rounded-full" style={{ backgroundColor: teamCol }} />
                 <div>
-                  <div className={`text-sm font-extrabold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <div className={`text-base font-extrabold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     vs. {game.opponent_name || game.opponent || 'TBD'}
                   </div>
                   {gameTeam?.name && (
-                    <div className="text-xs font-bold text-slate-400">{gameTeam.name}</div>
+                    <div className="text-sm font-bold text-slate-400">{gameTeam.name}</div>
                   )}
                 </div>
               </div>
               {/* Date + Time */}
-              <div className="text-[11px] font-semibold text-slate-400">
+              <div className="text-sm font-semibold text-slate-400">
                 {formatGameDate(game.event_date)} • {formatGameTime(game.event_time)}
               </div>
               {game.venue_name && (
-                <div className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[160px]">📍 {game.venue_name}{game.court_number ? ` · ${game.court_number}` : ''}</div>
+                <div className="text-sm text-slate-400 mt-0.5 truncate max-w-[160px]">📍 {game.venue_name}{game.court_number ? ` · ${game.court_number}` : ''}</div>
               )}
             </button>
           )

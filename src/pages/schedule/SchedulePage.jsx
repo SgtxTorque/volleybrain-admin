@@ -209,39 +209,39 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Schedule</h1>
-          <p className="text-slate-400 text-sm mt-0.5">{selectedSeason.name} · {filteredEvents.length} events</p>
+          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Schedule</h1>
+          <p className="text-slate-400 text-base mt-0.5">{selectedSeason.name} · {filteredEvents.length} events</p>
         </div>
         <div className="flex gap-2">
           {/* Share & Export */}
           <div className="relative">
             <button onClick={() => setShowShareMenu(!showShareMenu)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-semibold border transition ${
                 isDark ? 'bg-lynx-charcoal border-white/[0.06] text-slate-300 hover:bg-white/[0.04]' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
               }`}>
               <Share2 className="w-4 h-4" /> Share & Export ▾
             </button>
             {showShareMenu && (
               <div className={`absolute right-0 mt-2 w-64 rounded-[14px] shadow-2xl z-30 border overflow-hidden ${dropdownCls}`}>
-                <div className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-white/[0.02]' : 'text-slate-400 bg-slate-50'}`}>Generate</div>
+                <div className={`px-4 py-2 text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-500 bg-white/[0.02]' : 'text-slate-400 bg-slate-50'}`}>Generate</div>
                 <button onClick={() => { setShowPosterModal(true); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
-                  <span className="text-lg">📋</span>
-                  <div><div className="font-semibold text-sm">Season Poster</div><div className="text-xs text-slate-400">Branded schedule graphic</div></div>
+                  <span className="text-xl">📋</span>
+                  <div><div className="font-semibold text-base">Season Poster</div><div className="text-sm text-slate-400">Branded schedule graphic</div></div>
                 </button>
                 {upcomingGames.length > 0 && (
                   <button onClick={() => { setShowGameDayCard(upcomingGames[0]); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
-                    <span className="text-lg">🏟️</span>
-                    <div><div className="font-semibold text-sm">Game Day Card</div><div className="text-xs text-slate-400">Share next game on social</div></div>
+                    <span className="text-xl">🏟️</span>
+                    <div><div className="font-semibold text-base">Game Day Card</div><div className="text-sm text-slate-400">Share next game on social</div></div>
                   </button>
                 )}
-                <div className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-white/[0.02] border-white/[0.06]' : 'text-slate-400 bg-slate-50 border-slate-200'}`}>Export</div>
+                <div className={`px-4 py-2 text-sm font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-white/[0.02] border-white/[0.06]' : 'text-slate-400 bg-slate-50 border-slate-200'}`}>Export</div>
                 <button onClick={() => { exportEventsToICal(filteredEvents, selectedSeason?.name, showToast); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
-                  <span className="text-lg">📅</span>
-                  <div><div className="font-semibold text-sm">Export to Calendar</div><div className="text-xs text-slate-400">iCal (.ics) for Google/Apple</div></div>
+                  <span className="text-xl">📅</span>
+                  <div><div className="font-semibold text-base">Export to Calendar</div><div className="text-sm text-slate-400">iCal (.ics) for Google/Apple</div></div>
                 </button>
                 <button onClick={() => { window.print(); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
-                  <span className="text-lg">🖨️</span>
-                  <div><div className="font-semibold text-sm">Print Schedule</div><div className="text-xs text-slate-400">Print or save as PDF</div></div>
+                  <span className="text-xl">🖨️</span>
+                  <div><div className="font-semibold text-base">Print Schedule</div><div className="text-sm text-slate-400">Print or save as PDF</div></div>
                 </button>
               </div>
             )}
@@ -250,7 +250,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
           {!isParentView && !isPlayerView && (
             <div className="relative">
               <button onClick={() => setShowQuickActions(!showQuickActions)}
-                className="bg-lynx-sky text-lynx-navy font-bold px-4 py-2.5 rounded-xl hover:bg-lynx-sky/80 flex items-center gap-2 text-sm transition">
+                className="bg-lynx-sky text-lynx-navy font-bold px-4 py-2.5 rounded-xl hover:bg-lynx-sky/80 flex items-center gap-2 text-base transition">
                 ➕ Add Events ▾
               </button>
               {showQuickActions && (
@@ -281,12 +281,12 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex gap-3 items-center">
           <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
-            className={`rounded-xl px-4 py-2.5 text-sm font-medium border ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+            className={`rounded-xl px-4 py-2.5 text-base font-medium border ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
             <option value="all">All Teams</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
           <select value={selectedEventType} onChange={e => setSelectedEventType(e.target.value)}
-            className={`rounded-xl px-4 py-2.5 text-sm font-medium border ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
+            className={`rounded-xl px-4 py-2.5 text-base font-medium border ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
             <option value="all">All Types</option>
             <option value="practice">Practices</option>
             <option value="game">Games</option>
@@ -298,7 +298,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
             {[{ type: 'practice', label: 'Practice', color: '#10B981' }, { type: 'game', label: 'Game', color: '#F59E0B' }, { type: 'tournament', label: 'Tourney', color: '#8B5CF6' }].map(t => (
               <div key={t.type} className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                <span className="text-xs font-medium text-slate-400">{t.label}</span>
+                <span className="text-sm font-medium text-slate-400">{t.label}</span>
               </div>
             ))}
           </div>
@@ -306,7 +306,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           {['list', 'month', 'week', 'day'].map(v => (
             <button key={v} onClick={() => setView(v)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all capitalize ${
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${
                 view === v ? 'bg-lynx-sky text-lynx-navy' : isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-800'
               }`}>{v}</button>
           ))}
@@ -319,10 +319,10 @@ function SchedulePage({ showToast, activeView, roleContext }) {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-3">
-          <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
-          <button onClick={goToToday} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+          <button onClick={goToToday} className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
             Today
           </button>
         </div>
@@ -342,7 +342,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         <ListView events={filteredEvents} onSelectEvent={setSelectedEvent} teams={teams} />
       )}
 
-      <div className="text-center text-sm text-slate-400">
+      <div className="text-center text-base text-slate-400">
         {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} this month
       </div>
 

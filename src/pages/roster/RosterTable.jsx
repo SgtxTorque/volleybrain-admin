@@ -19,17 +19,17 @@ const POSITION_COLORS = {
 }
 
 function PositionBadge({ position }) {
-  if (!position) return <span className="text-xs text-slate-400">—</span>
+  if (!position) return <span className="text-sm text-slate-400">—</span>
   const colors = POSITION_COLORS[position] || { bg: 'bg-slate-500/15', text: 'text-slate-400' }
   return (
-    <span className={`w-7 h-7 rounded-md text-[11px] font-extrabold inline-flex items-center justify-center ${colors.bg} ${colors.text}`}>
+    <span className={`w-7 h-7 rounded-md text-sm font-extrabold inline-flex items-center justify-center ${colors.bg} ${colors.text}`}>
       {position}
     </span>
   )
 }
 
 function EvalBar({ rating }) {
-  if (!rating) return <span className="text-xs text-slate-400">—</span>
+  if (!rating) return <span className="text-sm text-slate-400">—</span>
   const pct = Math.min((rating / 10) * 100, 100)
   const barColor = rating >= 8 ? 'bg-emerald-500' : rating >= 5 ? 'bg-lynx-sky' : 'bg-amber-500'
   return (
@@ -37,7 +37,7 @@ function EvalBar({ rating }) {
       <div className="flex-1 h-[5px] rounded-full bg-slate-700/30">
         <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs font-bold tabular-nums w-6 text-right">{rating}</span>
+      <span className="text-sm font-bold tabular-nums w-6 text-right">{rating}</span>
     </div>
   )
 }
@@ -55,10 +55,10 @@ function OverflowMenu({ onView, onEvaluate }) {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className={`absolute right-0 top-8 z-20 w-40 rounded-xl shadow-lg border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-            <button onClick={() => { onView(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-sm ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-t-xl`}>
+            <button onClick={() => { onView(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-base ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-t-xl`}>
               View Profile
             </button>
-            <button onClick={() => { onEvaluate(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-sm ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-b-xl`}>
+            <button onClick={() => { onEvaluate(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-base ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-b-xl`}>
               Evaluate
             </button>
           </div>
@@ -118,7 +118,7 @@ export default function RosterTable({
             placeholder="Search players..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className={`w-full pl-9 pr-4 py-2 rounded-lg text-sm border ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`}
+            className={`w-full pl-9 pr-4 py-2 rounded-lg text-base border ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`}
           />
         </div>
         <div className="flex gap-1.5">
@@ -126,7 +126,7 @@ export default function RosterTable({
             <button
               key={pos}
               onClick={() => setPosFilter(pos)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-sm font-bold transition ${
                 posFilter === pos
                   ? 'bg-lynx-sky text-lynx-navy'
                   : isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'
@@ -142,10 +142,10 @@ export default function RosterTable({
       {displayRoster.length === 0 && !loading ? (
         <div className="p-12 text-center">
           <Users className={`w-12 h-12 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-          <h3 className={`text-lg font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h3 className={`text-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {searchQuery || posFilter !== 'All' ? 'No players match' : 'No players assigned'}
           </h3>
-          <p className="text-slate-400 mt-1 text-sm">
+          <p className="text-slate-400 mt-1 text-base">
             {searchQuery ? 'Try a different search' : posFilter !== 'All' ? 'Try a different position' : 'Ask your admin to assign players'}
           </p>
         </div>
@@ -159,24 +159,24 @@ export default function RosterTable({
                     onChange={toggleSelectAll} className="w-4 h-4 rounded cursor-pointer" />
                 </th>
                 <th className="text-center px-2 py-3 w-14">
-                  <button onClick={() => toggleSort('jersey_number')} className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <button onClick={() => toggleSort('jersey_number')} className="flex items-center gap-1 text-sm font-bold uppercase tracking-wider text-slate-400">
                     # <SortIcon column="jersey_number" />
                   </button>
                 </th>
                 <th className="text-left px-3 py-3">
-                  <button onClick={() => toggleSort('name')} className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <button onClick={() => toggleSort('name')} className="flex items-center gap-1 text-sm font-bold uppercase tracking-wider text-slate-400">
                     Player <SortIcon column="name" />
                   </button>
                 </th>
                 <th className="text-center px-3 py-3 w-16">
-                  <button onClick={() => toggleSort('position')} className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <button onClick={() => toggleSort('position')} className="flex items-center gap-1 text-sm font-bold uppercase tracking-wider text-slate-400">
                     Pos <SortIcon column="position" />
                   </button>
                 </th>
-                <th className="text-center px-3 py-3 w-14 text-[11px] font-bold uppercase tracking-wider text-slate-400">Gr</th>
-                <th className="text-center px-3 py-3 w-16 text-[11px] font-bold uppercase tracking-wider text-slate-400">Waiver</th>
+                <th className="text-center px-3 py-3 w-14 text-sm font-bold uppercase tracking-wider text-slate-400">Gr</th>
+                <th className="text-center px-3 py-3 w-16 text-sm font-bold uppercase tracking-wider text-slate-400">Waiver</th>
                 <th className="text-left px-3 py-3 w-32">
-                  <button onClick={() => toggleSort('rating')} className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <button onClick={() => toggleSort('rating')} className="flex items-center gap-1 text-sm font-bold uppercase tracking-wider text-slate-400">
                     Eval <SortIcon column="rating" />
                   </button>
                 </th>
@@ -201,13 +201,13 @@ export default function RosterTable({
                       {editingJersey === p.id ? (
                         <input
                           type="text" autoFocus defaultValue={jerseyNum || ''}
-                          className={`w-12 text-center text-sm rounded border px-1 py-0.5 ${isDark ? 'bg-white/[0.06] border-lynx-sky text-white' : 'bg-white border-lynx-sky text-slate-900'}`}
+                          className={`w-12 text-center text-base rounded border px-1 py-0.5 ${isDark ? 'bg-white/[0.06] border-lynx-sky text-white' : 'bg-white border-lynx-sky text-slate-900'}`}
                           onBlur={e => saveJersey(p.id, p.player_id, e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') saveJersey(p.id, p.player_id, e.target.value); if (e.key === 'Escape') setEditingJersey(null) }}
                         />
                       ) : (
                         <button onClick={() => setEditingJersey(p.id)}
-                          className={`text-[22px] font-extrabold hover:text-lynx-sky transition tabular-nums ${jerseyNum ? 'text-slate-400' : 'text-amber-500'}`}>
+                          className={`text-4xl font-extrabold hover:text-lynx-sky transition tabular-nums ${jerseyNum ? 'text-slate-400' : 'text-amber-500'}`}>
                           {jerseyNum || '—'}
                         </button>
                       )}
@@ -219,16 +219,16 @@ export default function RosterTable({
                         {p.player?.photo_url ? (
                           <img src={p.player.photo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                         ) : (
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                             {p.player?.first_name?.[0]}{p.player?.last_name?.[0]}
                           </div>
                         )}
                         <div>
-                          <button onClick={() => onPlayerSelect(p)} className={`text-sm font-semibold text-left hover:text-lynx-sky transition ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          <button onClick={() => onPlayerSelect(p)} className={`text-base font-semibold text-left hover:text-lynx-sky transition ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {p.player?.first_name} {p.player?.last_name}
                             {isCaptain && <span className="ml-1 text-amber-500">C</span>}
                           </button>
-                          <p className="text-xs text-slate-400">{p.player?.parent_email || ''}</p>
+                          <p className="text-sm text-slate-400">{p.player?.parent_email || ''}</p>
                         </div>
                       </div>
                     </td>
@@ -239,7 +239,7 @@ export default function RosterTable({
                         <select autoFocus defaultValue={position || ''}
                           onChange={e => savePosition(p.player_id, e.target.value)}
                           onBlur={() => setEditingPosition(null)}
-                          className={`text-xs rounded border px-1 py-0.5 ${isDark ? 'bg-lynx-charcoal border-lynx-sky text-white' : 'bg-white border-lynx-sky text-slate-900'}`}>
+                          className={`text-sm rounded border px-1 py-0.5 ${isDark ? 'bg-lynx-charcoal border-lynx-sky text-white' : 'bg-white border-lynx-sky text-slate-900'}`}>
                           <option value="">—</option>
                           {POSITIONS.map(pos => <option key={pos} value={pos}>{pos}</option>)}
                         </select>
@@ -251,14 +251,14 @@ export default function RosterTable({
                     </td>
 
                     {/* Grade */}
-                    <td className="px-3 py-3 text-center text-xs text-slate-400">{p.player?.grade || '—'}</td>
+                    <td className="px-3 py-3 text-center text-sm text-slate-400">{p.player?.grade || '—'}</td>
 
                     {/* Waiver */}
                     <td className="px-3 py-3 text-center">
                       {p.waiverSigned ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Signed</span>
+                        <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Signed</span>
                       ) : (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">Missing</span>
+                        <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">Missing</span>
                       )}
                     </td>
 

@@ -23,11 +23,11 @@ function KpiCard({ icon: Icon, label, value, sub, iconColor, isDark }) {
           <p className={`text-4xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {value}
           </p>
-          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
         </div>
       </div>
       {sub && (
-        <p className={`text-[10px] mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</p>
+        <p className={`text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</p>
       )}
     </div>
   )

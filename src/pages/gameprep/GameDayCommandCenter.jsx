@@ -200,7 +200,7 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
       <div className="fixed inset-0 flex items-center justify-center z-[60]" style={{ backgroundColor: theme.pageBg }}>
         <div className="text-center">
           <div className="w-20 h-20 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="mt-4 font-medium text-xl text-white">Loading Game Day...</p>
+          <p className="mt-4 font-medium text-2xl text-white">Loading Game Day...</p>
         </div>
       </div>
     )
@@ -218,10 +218,10 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
             <Icons.X className="w-5 h-5" style={{ color: theme.textMuted }} />
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🏐</span>
+            <span className="text-3xl">🏐</span>
             <div>
-              <h1 className="text-3xl font-black tracking-wider text-white">MISSION CONTROL</h1>
-              <p className="text-amber-400 text-sm font-bold tracking-widest">
+              <h1 className="text-4xl font-black tracking-wider text-white">MISSION CONTROL</h1>
+              <p className="text-amber-400 text-base font-bold tracking-widest">
                 {mode === GAME_MODES.PRE_GAME ? 'PRE-GAME SETUP' : mode === GAME_MODES.LIVE ? '● LIVE OPERATIONS' : 'POST-GAME DEBRIEF'}
               </p>
             </div>
@@ -230,13 +230,13 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
         <div className="flex items-center gap-3">
           {mode === GAME_MODES.PRE_GAME && (
             <>
-              <button onClick={autoFillLineup} className="px-5 py-3 bg-[#10284C]/30 hover:bg-[#10284C]/50 text-[#4BB9EC] rounded-xl text-lg font-semibold transition border border-[#10284C]/50">Auto-Fill</button>
-              <button onClick={clearLineup} className="px-5 py-3 rounded-xl text-lg font-semibold transition" style={{ backgroundColor: theme.buttonBg, color: theme.textSecondary }}>Clear</button>
+              <button onClick={autoFillLineup} className="px-5 py-3 bg-[#10284C]/30 hover:bg-[#10284C]/50 text-[#4BB9EC] rounded-xl text-xl font-semibold transition border border-[#10284C]/50">Auto-Fill</button>
+              <button onClick={clearLineup} className="px-5 py-3 rounded-xl text-xl font-semibold transition" style={{ backgroundColor: theme.buttonBg, color: theme.textSecondary }}>Clear</button>
             </>
           )}
           <div className="px-5 py-3 rounded-xl text-center" style={{ backgroundColor: theme.buttonBg }}>
-            <p className="text-base" style={{ color: theme.textMuted }}>Starters</p>
-            <p className={`text-2xl font-bold ${startersCount >= 6 ? 'text-emerald-400' : 'text-amber-400'}`}>{startersCount}/6</p>
+            <p className="text-lg" style={{ color: theme.textMuted }}>Starters</p>
+            <p className={`text-3xl font-bold ${startersCount >= 6 ? 'text-emerald-400' : 'text-amber-400'}`}>{startersCount}/6</p>
           </div>
         </div>
       </header>

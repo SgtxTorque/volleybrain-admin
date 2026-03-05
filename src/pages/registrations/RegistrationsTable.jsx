@@ -24,7 +24,7 @@ function StatusChip({ status }) {
     status === 'withdrawn' ? 'bg-red-500/12 text-red-500' : 'bg-slate-500/12 text-slate-400'
 
   return (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors}`}>{display}</span>
+    <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${colors}`}>{display}</span>
   )
 }
 
@@ -35,9 +35,9 @@ function WaiverChip({ player }) {
   const allSigned = player.waiver_liability && player.waiver_conduct
   const someSigned = player.waiver_liability || player.waiver_photo || player.waiver_conduct
 
-  if (allSigned) return <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Signed</span>
-  if (someSigned) return <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/12 text-amber-500">Partial</span>
-  return <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">Unsigned</span>
+  if (allSigned) return <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Signed</span>
+  if (someSigned) return <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-amber-500/12 text-amber-500">Partial</span>
+  return <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">Unsigned</span>
 }
 
 // ============================================
@@ -59,10 +59,10 @@ function OverflowMenu({ onView, onEdit }) {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className={`absolute right-0 top-8 z-20 w-36 rounded-xl shadow-lg border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-            <button onClick={() => { onView(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-sm ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-t-xl`}>
+            <button onClick={() => { onView(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-base ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-t-xl`}>
               View Details
             </button>
-            <button onClick={() => { onEdit(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-sm ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-b-xl`}>
+            <button onClick={() => { onEdit(); setOpen(false) }} className={`w-full text-left px-4 py-2.5 text-base ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'} rounded-b-xl`}>
               Edit Player
             </button>
           </div>
@@ -122,7 +122,7 @@ export default function RegistrationsTable({
             <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
               {selectedIds.size} selected
             </span>
-            <button onClick={() => toggleSelectAll(true)} className="text-sm text-slate-400 hover:underline">
+            <button onClick={() => toggleSelectAll(true)} className="text-base text-slate-400 hover:underline">
               Clear
             </button>
           </div>
@@ -131,7 +131,7 @@ export default function RegistrationsTable({
               <button
                 onClick={bulkApprove}
                 disabled={bulkProcessing}
-                className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-600 disabled:opacity-50 flex items-center gap-2"
+                className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-emerald-600 disabled:opacity-50 flex items-center gap-2"
               >
                 <Check className="w-4 h-4" /> Approve ({selectedPendingCount})
               </button>
@@ -139,20 +139,20 @@ export default function RegistrationsTable({
             <button
               onClick={bulkMoveToWaitlist}
               disabled={bulkProcessing}
-              className="bg-amber-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-50 flex items-center gap-2"
+              className="bg-amber-500 text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-amber-600 disabled:opacity-50 flex items-center gap-2"
             >
               <List className="w-4 h-4" /> Waitlist
             </button>
             <button
               onClick={() => setShowBulkDenyModal(true)}
               disabled={bulkProcessing}
-              className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-500/20 disabled:opacity-50"
+              className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl text-base font-bold hover:bg-red-500/20 disabled:opacity-50"
             >
               Deny
             </button>
             <button
               onClick={bulkExport}
-              className={`px-4 py-2 rounded-xl text-sm font-bold ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} flex items-center gap-2`}
+              className={`px-4 py-2 rounded-xl text-base font-bold ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} flex items-center gap-2`}
             >
               <FileDown className="w-4 h-4" /> Export
             </button>
@@ -170,7 +170,7 @@ export default function RegistrationsTable({
               placeholder="Search players or parents..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 rounded-lg text-sm ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'} border`}
+              className={`w-full pl-9 pr-4 py-2 rounded-lg text-base ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'} border`}
             />
           </div>
           <div className="flex gap-1.5">
@@ -178,7 +178,7 @@ export default function RegistrationsTable({
               <button
                 key={f.key}
                 onClick={() => setStatusFilter(f.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition relative ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition relative ${
                   statusFilter === f.key
                     ? 'bg-lynx-sky text-lynx-navy'
                     : isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'
@@ -197,13 +197,13 @@ export default function RegistrationsTable({
         {loading ? (
           <div className="p-12 text-center">
             <div className="w-8 h-8 border-2 border-lynx-sky/30 border-t-lynx-sky rounded-full animate-spin mx-auto" />
-            <p className="text-slate-400 text-sm mt-3">Loading registrations...</p>
+            <p className="text-slate-400 text-base mt-3">Loading registrations...</p>
           </div>
         ) : filteredRegs.length === 0 ? (
           <div className="p-12 text-center">
             <ClipboardList className={`w-12 h-12 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-            <h3 className={`text-lg font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No registrations found</h3>
-            <p className="text-slate-400 mt-1 text-sm">
+            <h3 className={`text-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No registrations found</h3>
+            <p className="text-slate-400 mt-1 text-base">
               {statusFilter !== 'all' ? 'Try changing the filter' : 'Registrations will appear here'}
             </p>
           </div>
@@ -219,12 +219,12 @@ export default function RegistrationsTable({
                     className="w-4 h-4 rounded cursor-pointer"
                   />
                 </th>
-                <th className="text-left px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Player</th>
-                <th className="text-left px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Parent</th>
-                <th className="text-left px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Contact</th>
-                <th className="text-left px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Waiver</th>
-                <th className="text-left px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Status</th>
-                <th className="text-left px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">Actions</th>
+                <th className="text-left px-5 py-3 text-sm font-bold uppercase tracking-wider text-slate-400">Player</th>
+                <th className="text-left px-5 py-3 text-sm font-bold uppercase tracking-wider text-slate-400">Parent</th>
+                <th className="text-left px-5 py-3 text-sm font-bold uppercase tracking-wider text-slate-400">Contact</th>
+                <th className="text-left px-5 py-3 text-sm font-bold uppercase tracking-wider text-slate-400">Waiver</th>
+                <th className="text-left px-5 py-3 text-sm font-bold uppercase tracking-wider text-slate-400">Status</th>
+                <th className="text-left px-5 py-3 text-sm font-bold uppercase tracking-wider text-slate-400">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -252,16 +252,16 @@ export default function RegistrationsTable({
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                           {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
                         </div>
                         <div>
                           <ClickablePlayerName
                             player={player}
                             onPlayerSelect={onPlayerSelect}
-                            className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}
+                            className={`font-semibold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}
                           />
-                          <p className="text-xs text-slate-400">
+                          <p className="text-sm text-slate-400">
                             {player.birth_date || player.dob ? `Age ${calculateAge(player.birth_date || player.dob)}` : ''}
                             {player.grade ? ` · Gr ${player.grade}` : ''}
                           </p>
@@ -269,11 +269,11 @@ export default function RegistrationsTable({
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{player.parent_name || '—'}</p>
+                      <p className={`text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{player.parent_name || '—'}</p>
                     </td>
                     <td className="px-5 py-3">
-                      <p className="text-xs text-slate-400">{player.parent_email}</p>
-                      <p className="text-xs text-slate-500">{player.parent_phone}</p>
+                      <p className="text-sm text-slate-400">{player.parent_email}</p>
+                      <p className="text-sm text-slate-500">{player.parent_phone}</p>
                     </td>
                     <td className="px-5 py-3">
                       <WaiverChip player={player} />
@@ -286,13 +286,13 @@ export default function RegistrationsTable({
                         <div className="flex gap-2">
                           <button
                             onClick={() => onApprove(player.id, reg.id)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-lynx-sky text-lynx-navy hover:bg-lynx-sky/80"
+                            className="px-3 py-1.5 rounded-lg text-sm font-bold bg-lynx-sky text-lynx-navy hover:bg-lynx-sky/80"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => onDeny(player, reg)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20"
+                            className="px-3 py-1.5 rounded-lg text-sm font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20"
                           >
                             Deny
                           </button>
@@ -300,7 +300,7 @@ export default function RegistrationsTable({
                       ) : reg?.status === 'waitlist' ? (
                         <button
                           onClick={() => onPromote(player.id, reg.id)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/12 text-amber-500 hover:bg-amber-500/20"
+                          className="px-3 py-1.5 rounded-lg text-sm font-bold bg-amber-500/12 text-amber-500 hover:bg-amber-500/20"
                         >
                           Promote
                         </button>

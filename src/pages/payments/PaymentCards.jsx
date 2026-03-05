@@ -35,21 +35,21 @@ export function PlayerPaymentCard({
           {player.photo_url ? (
             <img src={player.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
           ) : (
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
               {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
             </div>
           )}
           <div>
             <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{player.first_name} {player.last_name}</p>
-            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{player.parent_name} · {player.parent_email}</p>
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{player.parent_name} · {player.parent_email}</p>
           </div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <p className={`text-lg font-bold tabular-nums ${allPaid ? 'text-emerald-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
+            <p className={`text-xl font-bold tabular-nums ${allPaid ? 'text-emerald-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
               ${totalPaid.toFixed(2)} <span className="text-slate-400">/ ${total.toFixed(2)}</span>
             </p>
-            <p className={`text-xs ${allPaid ? 'text-emerald-500' : 'text-red-500'}`}>
+            <p className={`text-sm ${allPaid ? 'text-emerald-500' : 'text-red-500'}`}>
               {allPaid ? 'Paid in full' : `$${totalOwed.toFixed(2)} outstanding`}
             </p>
           </div>
@@ -69,23 +69,23 @@ export function PlayerPaymentCard({
                 <div className="flex items-center gap-4 flex-1">
                   <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   <div className="flex-1">
-                    <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.fee_name || payment.fee_type}</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`font-medium text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.fee_name || payment.fee_type}</p>
+                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                       {payment.description || ''}{payment.due_date && ` · Due: ${new Date(payment.due_date).toLocaleDateString()}`}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <p className={`font-semibold text-sm w-20 text-right tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`font-semibold text-base w-20 text-right tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     ${parseFloat(payment.amount || 0).toFixed(2)}
                   </p>
                   <div className="w-20">
                     {payment.paid ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">
+                      <span className="inline-flex items-center gap-1 text-sm font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">
                         <Check className="w-3 h-3" /> Paid
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">
+                      <span className="inline-flex items-center gap-1 text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">
                         <Clock className="w-3 h-3" /> Unpaid
                       </span>
                     )}
@@ -93,12 +93,12 @@ export function PlayerPaymentCard({
                   <div className="flex gap-2">
                     {payment.paid ? (
                       <button onClick={() => onMarkUnpaid(payment.id)}
-                        className={`text-xs px-3 py-1.5 rounded-lg font-medium ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        className={`text-sm px-3 py-1.5 rounded-lg font-medium ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                         Mark Unpaid
                       </button>
                     ) : (
                       <button onClick={() => onMarkPaid(payment)}
-                        className="text-xs px-3 py-1.5 rounded-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600">
+                        className="text-sm px-3 py-1.5 rounded-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600">
                         Mark Paid
                       </button>
                     )}
@@ -114,10 +114,10 @@ export function PlayerPaymentCard({
 
           {payments.some(p => p.paid) && (
             <div className={`px-5 py-3 border-t ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-slate-100 bg-slate-50'}`}>
-              <p className={`text-[11px] font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment History</p>
+              <p className={`text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment History</p>
               <div className="space-y-1">
                 {payments.filter(p => p.paid).map(p => (
-                  <div key={p.id} className="flex items-center justify-between text-xs">
+                  <div key={p.id} className="flex items-center justify-between text-sm">
                     <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>{p.fee_name} - ${parseFloat(p.amount).toFixed(2)}</span>
                     <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>
                       {p.paid_date ? new Date(p.paid_date).toLocaleDateString() : 'N/A'}{p.payment_method && ` via ${p.payment_method}`}
@@ -159,23 +159,23 @@ export function FamilyPaymentCard({
       <div onClick={onToggle} className={`px-5 py-4 cursor-pointer transition flex items-center justify-between ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'}`}>
         <div className="flex items-center gap-4">
           {expanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-lynx-sky/15 text-lynx-sky' : 'bg-lynx-sky/10 text-lynx-sky'}`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold ${isDark ? 'bg-lynx-sky/15 text-lynx-sky' : 'bg-lynx-sky/10 text-lynx-sky'}`}>
             {(family.parentName || '?').charAt(0)}
           </div>
           <div>
             <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{family.parentName}</p>
-            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{playerNames} · {family.email}</p>
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{playerNames} · {family.email}</p>
           </div>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <p className={`text-lg font-bold tabular-nums ${allPaid ? 'text-emerald-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
+            <p className={`text-xl font-bold tabular-nums ${allPaid ? 'text-emerald-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
               ${totalPaid.toFixed(2)} <span className="text-slate-400">/ ${total.toFixed(2)}</span>
             </p>
             {allPaid ? (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Paid in full</span>
+              <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Paid in full</span>
             ) : (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">${totalOwed.toFixed(2)} outstanding</span>
+              <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">${totalOwed.toFixed(2)} outstanding</span>
             )}
           </div>
           <div className="flex gap-2" onClick={e => e.stopPropagation()}>
@@ -194,25 +194,25 @@ export function FamilyPaymentCard({
                 <div className="flex items-center gap-4 flex-1">
                   <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   <div className="flex-1">
-                    <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <p className={`font-medium text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {payment.players?.first_name} {payment.players?.last_name} — {payment.fee_name || payment.fee_type}
                     </p>
-                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                       {payment.description || ''}{payment.due_date && ` · Due: ${new Date(payment.due_date).toLocaleDateString()}`}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <p className={`font-semibold text-sm w-20 text-right tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`font-semibold text-base w-20 text-right tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     ${parseFloat(payment.amount || 0).toFixed(2)}
                   </p>
                   <div className="w-20">
                     {payment.paid ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">
+                      <span className="inline-flex items-center gap-1 text-sm font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">
                         <Check className="w-3 h-3" /> Paid
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">
+                      <span className="inline-flex items-center gap-1 text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">
                         <Clock className="w-3 h-3" /> Unpaid
                       </span>
                     )}
@@ -220,12 +220,12 @@ export function FamilyPaymentCard({
                   <div className="flex gap-2">
                     {payment.paid ? (
                       <button onClick={() => onMarkUnpaid(payment.id)}
-                        className={`text-xs px-3 py-1.5 rounded-lg font-medium ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        className={`text-sm px-3 py-1.5 rounded-lg font-medium ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                         Mark Unpaid
                       </button>
                     ) : (
                       <button onClick={() => onMarkPaid(payment)}
-                        className="text-xs px-3 py-1.5 rounded-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600">
+                        className="text-sm px-3 py-1.5 rounded-lg font-bold bg-emerald-500 text-white hover:bg-emerald-600">
                         Mark Paid
                       </button>
                     )}

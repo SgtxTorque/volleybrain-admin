@@ -32,7 +32,7 @@ export function QuickStatsPanel({ stats, roster, theme }) {
 
   return (
     <div className="rounded-2xl p-5 space-y-4" style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}` }}>
-      <h3 className="text-base font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: theme.textMuted }}>
+      <h3 className="text-lg font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: theme.textMuted }}>
         <Icons.BarChart className="w-4 h-4" /> Live Stats
       </h3>
 
@@ -40,25 +40,25 @@ export function QuickStatsPanel({ stats, roster, theme }) {
         {statBoxes.map(s => (
           <div key={s.key} className="text-center p-4 rounded-xl" style={{ backgroundColor: theme.statsBg }}>
             <p className={`text-4xl font-black ${s.color}`}>{teamTotals[s.key] || 0}</p>
-            <p className="text-sm uppercase" style={{ color: theme.textMuted }}>{s.label}</p>
+            <p className="text-base uppercase" style={{ color: theme.textMuted }}>{s.label}</p>
           </div>
         ))}
       </div>
 
       {(killLeader || digLeader) && (
         <div className="space-y-2 pt-2" style={{ borderTop: `1px solid ${theme.border}` }}>
-          <p className="text-sm uppercase" style={{ color: theme.textMuted }}>Hot Players</p>
+          <p className="text-base uppercase" style={{ color: theme.textMuted }}>Hot Players</p>
           {killLeader && killLeader.value > 0 && (
             <div className="flex items-center gap-3 p-3 bg-red-500/10 rounded-lg">
               <Icons.Flame className="w-4 h-4 text-red-400" />
-              <span className="text-lg font-medium" style={{ color: theme.textPrimary }}>{killLeader.player.first_name} {killLeader.player.last_name?.[0]}.</span>
+              <span className="text-xl font-medium" style={{ color: theme.textPrimary }}>{killLeader.player.first_name} {killLeader.player.last_name?.[0]}.</span>
               <span className="text-red-400 font-bold ml-auto">{killLeader.value} K</span>
             </div>
           )}
           {digLeader && digLeader.value > 0 && (
             <div className="flex items-center gap-3 p-3 bg-amber-500/10 rounded-lg">
               <Icons.Zap className="w-4 h-4 text-amber-400" />
-              <span className="text-lg font-medium" style={{ color: theme.textPrimary }}>{digLeader.player.first_name} {digLeader.player.last_name?.[0]}.</span>
+              <span className="text-xl font-medium" style={{ color: theme.textPrimary }}>{digLeader.player.first_name} {digLeader.player.last_name?.[0]}.</span>
               <span className="text-amber-400 font-bold ml-auto">{digLeader.value} D</span>
             </div>
           )}
@@ -83,13 +83,13 @@ export function StatPickerModal({ player, onSelect, onClose, theme }) {
           {player.photo_url ? (
             <img src={player.photo_url} className="w-20 h-20 rounded-xl object-cover" />
           ) : (
-            <div className="w-20 h-20 rounded-xl flex items-center justify-center text-white font-bold text-3xl" style={{ backgroundColor: posColor }}>
+            <div className="w-20 h-20 rounded-xl flex items-center justify-center text-white font-bold text-4xl" style={{ backgroundColor: posColor }}>
               #{player.jersey_number}
             </div>
           )}
           <div>
-            <p className="text-amber-400 font-bold text-lg">{player.first_name}</p>
-            <p className="font-black text-3xl" style={{ color: theme.textPrimary }}>{player.last_name?.toUpperCase()}</p>
+            <p className="text-amber-400 font-bold text-xl">{player.first_name}</p>
+            <p className="font-black text-4xl" style={{ color: theme.textPrimary }}>{player.last_name?.toUpperCase()}</p>
           </div>
           <button onClick={onClose} className="ml-auto p-2 rounded-xl transition" style={{ backgroundColor: theme.buttonBg }}>
             <Icons.X className="w-5 h-5" style={{ color: theme.textMuted }} />
@@ -103,16 +103,16 @@ export function StatPickerModal({ player, onSelect, onClose, theme }) {
               className="flex flex-col items-center gap-2 p-6 rounded-2xl transition-all min-h-[80px] hover:scale-105 active:scale-95"
               style={{ backgroundColor: `${stat.color}15`, border: `2px solid ${stat.color}30`, boxShadow: `0 0 20px ${stat.color}10` }}>
               <span className="text-4xl">{stat.icon}</span>
-              <span className="text-lg font-bold" style={{ color: stat.color }}>{stat.label}</span>
+              <span className="text-xl font-bold" style={{ color: stat.color }}>{stat.label}</span>
               {stat.points !== 0 && (
-                <span className={`text-base ${stat.points > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`text-lg ${stat.points > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {stat.points > 0 ? '+' : ''}{stat.points} pt
                 </span>
               )}
             </button>
           ))}
         </div>
-        <p className="text-center text-base mt-4" style={{ color: theme.textMuted }}>Tap a stat to record • Long press to undo last</p>
+        <p className="text-center text-lg mt-4" style={{ color: theme.textMuted }}>Tap a stat to record • Long press to undo last</p>
       </div>
     </div>
   )

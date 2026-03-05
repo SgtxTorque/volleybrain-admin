@@ -42,12 +42,12 @@ function EventDetailModal({ event, team, onClose }) {
       <div className={`w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl shadow-xl ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'}`} onClick={e => e.stopPropagation()}>
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold ${isDark ? 'bg-lynx-graphite text-lynx-sky border border-lynx-border-dark' : 'bg-lynx-ice text-lynx-sky border border-lynx-sky/20'}`}>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold ${isDark ? 'bg-lynx-graphite text-lynx-sky border border-lynx-border-dark' : 'bg-lynx-ice text-lynx-sky border border-lynx-sky/20'}`}>
               {event.event_type === 'game' ? '🏐' : '⚡'}
             </div>
             <div>
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title || event.event_type}</h2>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{team?.name}</p>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title || event.event_type}</h2>
+              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{team?.name}</p>
             </div>
             <button onClick={onClose} className={`ml-auto p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
               <X className="w-5 h-5 text-slate-400" />
@@ -59,7 +59,7 @@ function EventDetailModal({ event, team, onClose }) {
             <Calendar className="w-5 h-5 text-lynx-sky" />
             <div>
               <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{eventDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
-              {event.event_time && <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{formatTime12(event.event_time)}</p>}
+              {event.event_time && <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{formatTime12(event.event_time)}</p>}
             </div>
           </div>
           {(event.location || event.venue_name) && (
@@ -67,7 +67,7 @@ function EventDetailModal({ event, team, onClose }) {
               <MapPin className="w-5 h-5 text-lynx-sky" />
               <div>
                 <p className={`${isDark ? 'text-white' : 'text-slate-900'}`}>{event.venue_name || event.location}</p>
-                {event.venue_address && <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.venue_address}</p>}
+                {event.venue_address && <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.venue_address}</p>}
               </div>
             </div>
           )}
@@ -79,7 +79,7 @@ function EventDetailModal({ event, team, onClose }) {
           )}
           {event.notes && (
             <div className={`rounded-xl p-4 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-brand-off-white border border-slate-100'}`}>
-              <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
+              <p className={`text-base ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{event.notes}</p>
             </div>
           )}
         </div>
@@ -138,8 +138,8 @@ function CoachBlastModal({ team, onClose, showToast }) {
               <Send className="w-6 h-6 text-lynx-sky" />
             </div>
             <div>
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Message Parents</h2>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Send to {team?.name} parents</p>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Message Parents</h2>
+              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Send to {team?.name} parents</p>
             </div>
             <button onClick={onClose} className={`ml-auto p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
               <X className="w-5 h-5 text-slate-400" />
@@ -148,18 +148,18 @@ function CoachBlastModal({ team, onClose, showToast }) {
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Subject</label>
+            <label className={`text-sm font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Subject</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g., Practice time change tomorrow" className={`w-full px-4 py-3 rounded-xl ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-brand-off-white border border-lynx-silver text-slate-900 placeholder-slate-400'}`} />
           </div>
           <div>
-            <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Message</label>
+            <label className={`text-sm font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Message</label>
             <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your message to parents..." rows={4} className={`w-full px-4 py-3 rounded-xl resize-none ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-brand-off-white border border-lynx-silver text-slate-900 placeholder-slate-400'}`} />
           </div>
           <div>
-            <label className={`text-xs font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Priority</label>
+            <label className={`text-sm font-semibold uppercase tracking-wider block mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Priority</label>
             <div className="flex gap-2">
-              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'normal' ? (isDark ? 'bg-lynx-sky/10 border border-lynx-sky/30 text-lynx-sky' : 'bg-lynx-ice border border-lynx-sky/30 text-lynx-sky') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-brand-off-white border border-lynx-silver text-slate-500')}`}>Normal</button>
-              <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${priority === 'urgent' ? (isDark ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-red-50 border border-red-300 text-red-600') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-brand-off-white border border-lynx-silver text-slate-500')}`}>Urgent</button>
+              <button onClick={() => setPriority('normal')} className={`px-4 py-2 rounded-lg text-base font-semibold ${priority === 'normal' ? (isDark ? 'bg-lynx-sky/10 border border-lynx-sky/30 text-lynx-sky' : 'bg-lynx-ice border border-lynx-sky/30 text-lynx-sky') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-brand-off-white border border-lynx-silver text-slate-500')}`}>Normal</button>
+              <button onClick={() => setPriority('urgent')} className={`px-4 py-2 rounded-lg text-base font-semibold ${priority === 'urgent' ? (isDark ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-red-50 border border-red-300 text-red-600') : (isDark ? 'bg-white/[0.06] border border-white/[0.06] text-slate-400' : 'bg-brand-off-white border border-lynx-silver text-slate-500')}`}>Urgent</button>
             </div>
           </div>
         </div>
@@ -204,17 +204,17 @@ function WarmupTimerModal({ onClose }) {
         <div className={`p-6 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className="flex items-center justify-center gap-3">
             <Timer className={`w-6 h-6 ${isFinished ? 'text-emerald-500' : 'text-amber-500'}`} />
-            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{isFinished ? 'Time!' : 'Warmup Timer'}</h2>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{isFinished ? 'Time!' : 'Warmup Timer'}</h2>
           </div>
         </div>
         <div className="p-8">
           {totalSeconds === 0 ? (
             <div className="space-y-4">
-              <p className={`text-xs font-semibold uppercase tracking-wider mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Select Duration</p>
+              <p className={`text-sm font-semibold uppercase tracking-wider mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Select Duration</p>
               <div className="grid grid-cols-2 gap-3">
                 {[5, 10, 15, 20].map(mins => (
-                  <button key={mins} onClick={() => startTimer(mins)} className={`py-5 rounded-xl font-black text-2xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-white hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-slate-900 hover:bg-amber-100'}`}>
-                    {mins}<span className={`text-sm ml-1 ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>MIN</span>
+                  <button key={mins} onClick={() => startTimer(mins)} className={`py-5 rounded-xl font-black text-3xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-white hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-slate-900 hover:bg-amber-100'}`}>
+                    {mins}<span className={`text-base ml-1 ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>MIN</span>
                   </button>
                 ))}
               </div>
@@ -244,7 +244,7 @@ function WarmupTimerModal({ onClose }) {
           )}
         </div>
         <div className={`p-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-          <button onClick={onClose} className={`w-full py-2.5 rounded-xl text-sm font-medium ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>Close</button>
+          <button onClick={onClose} className={`w-full py-2.5 rounded-xl text-base font-medium ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>Close</button>
         </div>
       </div>
     </div>
@@ -718,7 +718,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`} style={{ minHeight: '60vh' }}>
         <div className="text-center">
           <div className="w-12 h-12 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className={`mt-4 text-sm tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Loading dashboard...</p>
+          <p className={`mt-4 text-base tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Loading dashboard...</p>
         </div>
       </div>
     )
@@ -732,7 +732,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           <div className={`w-20 h-20 rounded-xl mx-auto mb-6 flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
             <Shield className="w-10 h-10 text-lynx-sky" />
           </div>
-          <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No Teams Assigned</h2>
+          <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No Teams Assigned</h2>
           <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Contact your league administrator to get started.</p>
         </div>
       </div>
@@ -753,7 +753,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 <button
                   key={team.id}
                   onClick={() => handleTeamSelect(team)}
-                  className={`px-3 py-1.5 rounded-xl text-sm font-semibold transition-colors ${
+                  className={`px-3 py-1.5 rounded-xl text-base font-semibold transition-colors ${
                     selectedTeam?.id === team.id
                       ? 'bg-lynx-sky text-white'
                       : isDark

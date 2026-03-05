@@ -49,8 +49,8 @@ function InfoRow({ label, value }) {
   const { isDark } = useTheme()
   return (
     <div className={`${isDark ? 'bg-lynx-midnight' : 'bg-slate-100'} rounded-lg px-3 py-2`}>
-      <p className="text-xs uppercase tracking-wider font-bold text-slate-400">{label}</p>
-      <p className={`${isDark ? 'text-white' : 'text-slate-900'} font-semibold text-sm mt-0.5`}>{value || '—'}</p>
+      <p className="text-sm uppercase tracking-wider font-bold text-slate-400">{label}</p>
+      <p className={`${isDark ? 'text-white' : 'text-slate-900'} font-semibold text-base mt-0.5`}>{value || '—'}</p>
     </div>
   )
 }
@@ -60,7 +60,7 @@ function InfoRow({ label, value }) {
 // ============================================
 function WaiverBadge({ label, signed }) {
   return (
-    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
+    <span className={`px-3 py-1.5 rounded-full text-sm font-bold ${
       signed ? 'bg-emerald-500/12 text-emerald-500' : 'bg-red-500/12 text-red-500'
     }`}>
       {signed ? '✓' : '✗'} {label}
@@ -73,12 +73,12 @@ function WaiverBadge({ label, signed }) {
 // ============================================
 function EditField({ label, value, onChange, type = 'text', options, multiline }) {
   const { isDark } = useTheme()
-  const inputCls = `w-full ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white' : 'bg-slate-100 border-slate-200 text-slate-900'} border rounded-lg px-3 py-2 text-sm`
+  const inputCls = `w-full ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white' : 'bg-slate-100 border-slate-200 text-slate-900'} border rounded-lg px-3 py-2 text-base`
 
   if (options) {
     return (
       <div>
-        <label className="block text-sm font-medium text-slate-400 mb-1">{label}</label>
+        <label className="block text-base font-medium text-slate-400 mb-1">{label}</label>
         <select value={value} onChange={e => onChange(e.target.value)} className={inputCls}>
           <option value="">Select...</option>
           {(Array.isArray(options) ? options : []).map(o => {
@@ -93,14 +93,14 @@ function EditField({ label, value, onChange, type = 'text', options, multiline }
   if (multiline) {
     return (
       <div>
-        <label className="block text-sm font-medium text-slate-400 mb-1">{label}</label>
+        <label className="block text-base font-medium text-slate-400 mb-1">{label}</label>
         <textarea value={value} onChange={e => onChange(e.target.value)} className={`${inputCls} min-h-[60px]`} />
       </div>
     )
   }
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-400 mb-1">{label}</label>
+      <label className="block text-base font-medium text-slate-400 mb-1">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} className={inputCls} />
     </div>
   )
@@ -222,7 +222,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
   const borderColor = isDark ? 'border-white/[0.06]' : 'border-slate-200'
 
   const SectionTitle = ({ children }) => (
-    <h3 className={`text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3 pb-1.5 border-b ${borderColor}`}>{children}</h3>
+    <h3 className={`text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 pb-1.5 border-b ${borderColor}`}>{children}</h3>
   )
 
   return (
@@ -232,24 +232,24 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
         {/* Header */}
         <div className={`px-6 py-4 border-b ${borderColor} flex items-center justify-between`}>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-lynx-sky/15 flex items-center justify-center text-lynx-sky font-bold text-lg">
+            <div className="w-12 h-12 rounded-full bg-lynx-sky/15 flex items-center justify-center text-lynx-sky font-bold text-xl">
               {player.first_name?.[0]}{player.last_name?.[0]}
             </div>
             <div>
-              <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <h2 className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {player.first_name} {player.last_name}
               </h2>
               <div className="flex items-center gap-3 mt-0.5">
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${statusColor}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-sm font-bold ${statusColor}`}>
                   {isPending ? 'pending' : reg?.status || 'unknown'}
                 </span>
                 {reg?.submitted_at && (
-                  <span className="text-xs text-slate-400">
+                  <span className="text-sm text-slate-400">
                     Registered {new Date(reg.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 )}
                 {siblings.length > 0 && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/12 text-purple-500 font-medium">
+                  <span className="text-sm px-2 py-0.5 rounded-full bg-purple-500/12 text-purple-500 font-medium">
                     {siblings.length} sibling{siblings.length > 1 ? 's' : ''}: {siblings.map(s => s.first_name).join(', ')}
                   </span>
                 )}
@@ -258,11 +258,11 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
           </div>
           <div className="flex items-center gap-2">
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-xl bg-lynx-sky/15 text-lynx-sky font-bold text-sm hover:bg-lynx-sky/25 flex items-center gap-2 transition">
+              <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-xl bg-lynx-sky/15 text-lynx-sky font-bold text-base hover:bg-lynx-sky/25 flex items-center gap-2 transition">
                 <Edit className="w-4 h-4" /> Edit
               </button>
             )}
-            <button onClick={onClose} className="text-slate-400 hover:text-white text-2xl leading-none px-2">&times;</button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white text-3xl leading-none px-2">&times;</button>
           </div>
         </div>
 
@@ -369,7 +369,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                   </div>
                   {merged.parent2_name && (
                     <div className="mt-2.5">
-                      <p className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">Parent / Guardian 2</p>
+                      <p className="text-sm uppercase tracking-wider font-bold text-slate-400 mb-2">Parent / Guardian 2</p>
                       <div className="grid grid-cols-2 gap-2.5">
                         <InfoRow label="Name" value={merged.parent2_name} />
                         <InfoRow label="Email" value={merged.parent2_email} />
@@ -416,7 +416,7 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                     )}
                   </div>
                   {(reg?.signature_name || player.waiver_signed_by) && (
-                    <p className="text-sm text-slate-400 mt-3">
+                    <p className="text-base text-slate-400 mt-3">
                       Signed by <span className="font-semibold">{reg?.signature_name || player.waiver_signed_by}</span>
                       {(reg?.signature_date || player.waiver_signed_date) && (
                         <> on {new Date(reg?.signature_date || player.waiver_signed_date).toLocaleDateString()}</>
@@ -428,24 +428,24 @@ export default function PlayerDetailModal({ player, editMode, onClose, onUpdate,
                 <div>
                   <SectionTitle>Registration Status</SectionTitle>
                   <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${statusColor}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${statusColor}`}>
                       {isPending ? 'pending' : reg?.status || 'unknown'}
                     </span>
                     {reg?.submitted_at && (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-sm text-slate-400">
                         {new Date(reg.submitted_at).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                   {reg?.deny_reason && (
-                    <p className="text-sm text-red-500 mt-2">Reason: {reg.deny_reason}</p>
+                    <p className="text-base text-red-500 mt-2">Reason: {reg.deny_reason}</p>
                   )}
                   {reg?.custom_answers && Object.keys(reg.custom_answers).length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">Custom Answers</p>
+                      <p className="text-sm uppercase tracking-wider font-bold text-slate-400 mb-2">Custom Answers</p>
                       <div className="space-y-1.5">
                         {Object.entries(reg.custom_answers).map(([q, a]) => (
-                          <div key={q} className="text-sm text-slate-400">
+                          <div key={q} className="text-base text-slate-400">
                             <span className="font-medium">{q}:</span> {a || '—'}
                           </div>
                         ))}

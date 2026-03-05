@@ -34,7 +34,7 @@ export default function TeamWallRightSidebar({
         ) : (
           <div className="text-center p-6" style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow }}>
             <ImageIcon className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-            <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No photos yet</p>
+            <p style={{ fontSize: 16, fontWeight: 500, color: textMuted, marginTop: 8 }}>No photos yet</p>
           </div>
         )}
       </div>
@@ -52,9 +52,9 @@ export default function TeamWallRightSidebar({
             onMouseEnter={e => e.currentTarget.style.background = innerBg}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <item.icon className="w-5 h-5" style={{ color: BRAND.sky }} />
-            <span style={{ fontSize: 16, fontWeight: 500, flex: 1 }}>{item.label}</span>
+            <span style={{ fontSize: 18, fontWeight: 500, flex: 1 }}>{item.label}</span>
             {item.count > 0 && (
-              <span style={{ fontSize: 13, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
+              <span style={{ fontSize: 16, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
                 background: isDark ? `${BRAND.sky}20` : BRAND.ice, color: BRAND.sky }}>{item.count}</span>
             )}
             <ChevronRight className="w-4 h-4" style={{ color: textMuted }} />
@@ -66,8 +66,8 @@ export default function TeamWallRightSidebar({
       <div onClick={() => onShoutout(null)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: 'pointer', borderRadius: 10 }}
         onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-        <span style={{ fontSize: 18 }}>⭐</span>
-        <span style={{ fontSize: 15, fontWeight: 600, color: '#4BB9EC' }}>Give Shoutout</span>
+        <span style={{ fontSize: 20 }}>⭐</span>
+        <span style={{ fontSize: 18, fontWeight: 600, color: '#4BB9EC' }}>Give Shoutout</span>
       </div>
 
       {/* Head Coach Profile Card */}
@@ -77,16 +77,16 @@ export default function TeamWallRightSidebar({
           onMouseEnter={e => e.currentTarget.style.boxShadow = shadowElevated}
           onMouseLeave={e => e.currentTarget.style.boxShadow = shadow}>
           <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center shrink-0"
-            style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 20, fontWeight: 700 }}>
+            style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 24, fontWeight: 700 }}>
             {headCoach.avatar_url ? (
               <img src={headCoach.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (headCoach.full_name?.charAt(0) || '?')}
           </div>
           <div>
             <span style={labelStyle}>Head Coach</span>
-            <p style={{ fontSize: 17, fontWeight: 700, color: textPrimary, marginTop: 2 }}>{headCoach.full_name}</p>
+            <p style={{ fontSize: 20, fontWeight: 700, color: textPrimary, marginTop: 2 }}>{headCoach.full_name}</p>
             {headCoach.email && (
-              <p style={{ fontSize: 14, fontWeight: 500, color: textMuted }} className="truncate">{headCoach.email}</p>
+              <p style={{ fontSize: 16, fontWeight: 500, color: textMuted }} className="truncate">{headCoach.email}</p>
             )}
           </div>
         </div>
@@ -108,24 +108,24 @@ export default function TeamWallRightSidebar({
                 <div className="shrink-0 overflow-hidden" style={{
                   width: 36, height: 36, borderRadius: '50%', background: BRAND.ice,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: BRAND.deepSky, fontSize: 11, fontWeight: 700,
+                  color: BRAND.deepSky, fontSize: 14, fontWeight: 700,
                 }}>
                   {player.photo_url ? (
                     <img src={player.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : ((player.first_name?.[0] || '') + (player.last_name?.[0] || ''))}
                 </div>
                 <div className="min-w-0">
-                  <p style={{ fontSize: 14, fontWeight: 600, color: textPrimary }} className="truncate">
+                  <p style={{ fontSize: 16, fontWeight: 600, color: textPrimary }} className="truncate">
                     {player.first_name} {player.last_name}
                   </p>
-                  <p style={{ fontSize: 12, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.45)' }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.45)' }}>
                     {player.jersey_number ? `#${player.jersey_number}` : ''}{player.jersey_number && player.position ? ' · ' : ''}{player.position || ''}
                   </p>
                 </div>
               </div>
               <button onClick={(e) => { e.stopPropagation(); onShoutout({ id: player.id, full_name: `${player.first_name} ${player.last_name}`, avatar_url: player.photo_url || null, role: 'player' }) }}
                 title="Give Shoutout" style={{ width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 16 }}
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 18 }}
                 onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(75,185,236,.15)' : 'rgba(75,185,236,.1)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 ⭐
@@ -135,7 +135,7 @@ export default function TeamWallRightSidebar({
           {roster.length === 0 && (
             <div className="p-6 text-center">
               <Users className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-              <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No players yet</p>
+              <p style={{ fontSize: 16, fontWeight: 500, color: textMuted, marginTop: 8 }}>No players yet</p>
             </div>
           )}
         </div>
@@ -153,7 +153,7 @@ export default function TeamWallRightSidebar({
                 onMouseEnter={e => e.currentTarget.style.background = innerBg}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                 <FileText className="h-4 w-4 shrink-0" style={{ color: textMuted }} />
-                <span style={{ fontSize: 14, fontWeight: 500, color: textSecondary }} className="truncate">{doc.name}</span>
+                <span style={{ fontSize: 16, fontWeight: 500, color: textSecondary }} className="truncate">{doc.name}</span>
               </a>
             ))}
           </div>

@@ -277,7 +277,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
             <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
               <Calendar className="w-10 h-10 text-slate-400" />
             </div>
-            <h2 className={`text-2xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Create Your First Season</h2>
+            <h2 className={`text-3xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Create Your First Season</h2>
             <p className="text-slate-400 mb-6">Before you can create teams, you need to set up a season.</p>
             <button onClick={() => onNavigate?.('seasons')} className="bg-lynx-sky text-lynx-navy font-bold px-6 py-3 rounded-lg hover:brightness-110 transition">
               Create First Season
@@ -308,17 +308,17 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Teams & Roster
           </h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className={`text-base mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {selectedSeason.name} · {teams.length} team{teams.length !== 1 ? 's' : ''} · {totalRegistered} player{totalRegistered !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => exportToCSV(teams, 'teams', csvColumns)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${
               isDark
                 ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky'
                 : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
@@ -328,7 +328,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           </button>
           <button
             onClick={() => setShowNewTeamModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-lynx-sky text-lynx-navy font-bold hover:brightness-110 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-base bg-lynx-sky text-lynx-navy font-bold hover:brightness-110 transition"
           >
             <Plus className="w-4 h-4" /> New Team
           </button>
@@ -357,8 +357,8 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
             <Shield className="w-8 h-8 text-slate-400" />
           </div>
-          <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No teams yet</h3>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create your first team to start building rosters</p>
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No teams yet</h3>
+          <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create your first team to start building rosters</p>
           <button onClick={() => setShowNewTeamModal(true)} className="mt-4 bg-lynx-sky text-lynx-navy font-bold px-6 py-2 rounded-lg hover:brightness-110 transition">
             Create Team
           </button>

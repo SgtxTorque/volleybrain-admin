@@ -20,16 +20,16 @@ function StatCard({ icon: Icon, label, value, sub, pill, iconColor, valueColor }
           <Icon className="w-5 h-5" style={{ color: iconColor }} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`text-[32px] font-extrabold tabular-nums leading-none ${valueColor || (isDark ? 'text-white' : 'text-slate-900')}`}>
+          <p className={`text-4xl font-extrabold tabular-nums leading-none ${valueColor || (isDark ? 'text-white' : 'text-slate-900')}`}>
             {value}
           </p>
-          <p className="text-[11px] font-bold uppercase tracking-wider mt-1 text-slate-400">
+          <p className="text-sm font-bold uppercase tracking-wider mt-1 text-slate-400">
             {label}
           </p>
           {(sub || pill) && (
             <div className="flex items-center gap-2 mt-1.5">
-              {sub && <span className="text-xs text-slate-500">{sub}</span>}
-              {pill && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pill.className}`}>{pill.label}</span>}
+              {sub && <span className="text-sm text-slate-500">{sub}</span>}
+              {pill && <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${pill.className}`}>{pill.label}</span>}
             </div>
           )}
         </div>

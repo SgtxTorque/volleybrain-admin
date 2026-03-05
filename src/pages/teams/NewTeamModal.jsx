@@ -106,7 +106,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
       <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
         <div className={`px-5 py-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} flex items-center justify-between`}>
-          <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Create New Team</h2>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Create New Team</h2>
           <button onClick={onClose} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/[0.04] text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
             <X className="w-4 h-4" />
           </button>
@@ -118,7 +118,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition ${
+              className={`flex-1 px-4 py-3 text-base font-medium transition ${
                 activeTab === tab.id
                   ? `${isDark ? 'text-white' : 'text-slate-900'} border-b-2 border-lynx-sky`
                   : `${isDark ? 'text-slate-500' : 'text-slate-400'} hover:text-slate-300`
@@ -135,7 +135,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
           {activeTab === 'basic' && (
             <div className="space-y-5">
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Name *</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Name *</label>
                 <input
                   type="text"
                   value={form.name}
@@ -146,7 +146,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Abbreviation</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Abbreviation</label>
                 <input
                   type="text"
                   value={form.abbreviation}
@@ -155,11 +155,11 @@ export default function NewTeamModal({ onClose, onCreate }) {
                   maxLength={5}
                   className={`w-full rounded-lg px-4 py-3 uppercase ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'}`}
                 />
-                <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Short code for scoreboards & schedules (max 5 chars)</p>
+                <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Short code for scoreboards & schedules (max 5 chars)</p>
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Color</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Color</label>
                 <div className="flex gap-3">
                   <div
                     className="w-14 h-14 rounded-xl border-2 border-white/20 cursor-pointer overflow-hidden"
@@ -182,21 +182,21 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Logo</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Logo</label>
                 <div className="flex items-center gap-4">
                   {form.logo_url ? (
                     <div className="relative">
                       <img src={form.logo_url} alt="Logo" className="w-20 h-20 rounded-xl object-cover" />
-                      <button onClick={() => setForm({...form, logo_url: ''})} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-sm">×</button>
+                      <button onClick={() => setForm({...form, logo_url: ''})} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-base">×</button>
                     </div>
                   ) : (
                     <label className={`w-20 h-20 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition ${isDark ? 'bg-white/[0.06] border-white/[0.06] hover:border-lynx-sky' : 'bg-slate-50 border-slate-200 hover:border-lynx-sky'}`}>
-                      <span className="text-2xl">📷</span>
-                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Upload</span>
+                      <span className="text-3xl">📷</span>
+                      <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Upload</span>
                       <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                     </label>
                   )}
-                  <div className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <div className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                     <p>Recommended: 200x200px</p>
                     <p>PNG or JPG</p>
                     {uploading && <p className="text-lynx-sky">Uploading...</p>}
@@ -205,7 +205,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Description</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Description</label>
                 <textarea
                   value={form.description} onChange={e => setForm({...form, description: e.target.value})}
                   placeholder="Team bio, goals, or info for parents..."
@@ -220,7 +220,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
           {activeTab === 'classification' && (
             <div className="space-y-5">
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Division Type *</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Division Type *</label>
                 <div className="flex gap-2">
                   {[{ v: 'age', l: 'By Age (8U, 10U, etc.)' }, { v: 'grade', l: 'By Grade Level' }].map(d => (
                     <button key={d.v}
@@ -234,7 +234,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
                   {form.age_group_type === 'age' ? 'Age Group *' : 'Grade Level *'}
                 </label>
                 {form.age_group_type === 'age' ? (
@@ -250,7 +250,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
                   <div className="grid grid-cols-3 gap-2">
                     {gradeOptions.map(grade => (
                       <button key={grade.value} onClick={() => setForm({...form, age_group: grade.value})}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                        className={`px-3 py-2 rounded-lg text-base font-medium transition ${
                           form.age_group === grade.value ? 'bg-lynx-sky text-white' : isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.08]' : 'bg-slate-50 text-slate-900 hover:bg-slate-100'
                         }`}>{grade.label}</button>
                     ))}
@@ -259,23 +259,23 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Type *</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Team Type *</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[{ v: 'recreational', e: '🎉', l: 'Recreational', d: 'Fun, learning & development' }, { v: 'competitive', e: '🏆', l: 'Competitive', d: 'Travel, tournaments & leagues' }].map(t => (
                     <button key={t.v} onClick={() => setForm({...form, team_type: t.v})}
                       className={`p-4 rounded-lg border-2 transition text-left ${
                         form.team_type === t.v ? 'border-lynx-sky bg-lynx-sky/10' : `border-transparent ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`
                       }`}>
-                      <span className="text-3xl">{t.e}</span>
+                      <span className="text-4xl">{t.e}</span>
                       <p className={`font-semibold mt-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{t.l}</p>
-                      <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t.d}</p>
+                      <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t.d}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Gender</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Gender</label>
                 <div className="flex gap-2">
                   {[{ value: 'girls', label: '♀ Girls' }, { value: 'boys', label: '♂ Boys' }, { value: 'coed', label: '👫 Coed' }].map(g => (
                     <button key={g.value} onClick={() => setForm({...form, gender: g.value})}
@@ -287,11 +287,11 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Skill Level</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Skill Level</label>
                 <div className="flex gap-2">
                   {[{ value: 'beginner', label: 'Beginner' }, { value: 'intermediate', label: 'Intermediate' }, { value: 'advanced', label: 'Advanced' }, { value: 'all', label: 'All Levels' }].map(s => (
                     <button key={s.value} onClick={() => setForm({...form, skill_level: s.value})}
-                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                      className={`flex-1 px-3 py-2 rounded-lg text-base font-medium transition ${
                         form.skill_level === s.value ? 'bg-lynx-sky text-white' : isDark ? 'bg-white/[0.06] text-white' : 'bg-slate-50 text-slate-900'
                       }`}>{s.label}</button>
                   ))}
@@ -304,58 +304,58 @@ export default function NewTeamModal({ onClose, onCreate }) {
           {activeTab === 'roster' && (
             <div className="space-y-5">
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
-                  Maximum Roster Size: <span className="text-lynx-sky font-bold text-lg">{form.max_roster_size}</span>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+                  Maximum Roster Size: <span className="text-lynx-sky font-bold text-xl">{form.max_roster_size}</span>
                 </label>
                 <input type="range" min="6" max="16" value={form.max_roster_size}
                   onChange={e => setForm({...form, max_roster_size: parseInt(e.target.value)})}
                   className="w-full h-3 rounded-full appearance-none cursor-pointer accent-lynx-sky"
                   style={{ background: `linear-gradient(to right, #4BB9EC 0%, #4BB9EC ${((form.max_roster_size - 6) / 10) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} ${((form.max_roster_size - 6) / 10) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} 100%)` }}
                 />
-                <div className={`flex justify-between text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div className={`flex justify-between text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   <span>6</span><span>10</span><span className="font-medium">12 (default)</span><span>14</span><span>16</span>
                 </div>
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
-                  Minimum Roster Size: <span className="text-lynx-sky font-bold text-lg">{form.min_roster_size}</span>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>
+                  Minimum Roster Size: <span className="text-lynx-sky font-bold text-xl">{form.min_roster_size}</span>
                 </label>
                 <input type="range" min="4" max={form.max_roster_size} value={form.min_roster_size}
                   onChange={e => setForm({...form, min_roster_size: parseInt(e.target.value)})}
                   className="w-full h-3 rounded-full appearance-none cursor-pointer accent-lynx-sky"
                   style={{ background: `linear-gradient(to right, #4BB9EC 0%, #4BB9EC ${((form.min_roster_size - 4) / (form.max_roster_size - 4)) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} ${((form.min_roster_size - 4) / (form.max_roster_size - 4)) * 100}%, ${isDark ? '#334155' : '#E2E8F0'} 100%)` }}
                 />
-                <p className={`text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Minimum players needed to field a team</p>
+                <p className={`text-base mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Minimum players needed to field a team</p>
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Roster Status</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Roster Status</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => setForm({...form, roster_open: true})}
                     className={`p-4 rounded-lg border-2 transition text-left ${form.roster_open ? 'border-emerald-500 bg-emerald-500/10' : `border-transparent ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`}`}>
-                    <span className="text-2xl">🟢</span>
+                    <span className="text-3xl">🟢</span>
                     <p className={`font-semibold mt-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Open</p>
-                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Accepting new players</p>
+                    <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Accepting new players</p>
                   </button>
                   <button onClick={() => setForm({...form, roster_open: false})}
                     className={`p-4 rounded-lg border-2 transition text-left ${!form.roster_open ? 'border-red-500 bg-red-500/10' : `border-transparent ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`}`}>
-                    <span className="text-2xl">🔴</span>
+                    <span className="text-3xl">🔴</span>
                     <p className={`font-semibold mt-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Closed</p>
-                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Roster is full/locked</p>
+                    <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Roster is full/locked</p>
                   </button>
                 </div>
               </div>
 
               <div className={`rounded-lg p-4 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`}>
-                <p className={`text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Roster Preview</p>
+                <p className={`text-base mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Roster Preview</p>
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-2">
                     {Array.from({ length: Math.min(form.max_roster_size, 8) }).map((_, i) => (
-                      <div key={i} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-slate-500' : 'bg-white border-slate-200 text-slate-400'}`}>{i + 1}</div>
+                      <div key={i} className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-slate-500' : 'bg-white border-slate-200 text-slate-400'}`}>{i + 1}</div>
                     ))}
                     {form.max_roster_size > 8 && (
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-slate-500' : 'bg-white border-slate-200 text-slate-400'}`}>+{form.max_roster_size - 8}</div>
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-slate-500' : 'bg-white border-slate-200 text-slate-400'}`}>+{form.max_roster_size - 8}</div>
                     )}
                   </div>
                   <span className={isDark ? 'text-white' : 'text-slate-900'}>{form.min_roster_size} - {form.max_roster_size} players</span>
@@ -368,11 +368,11 @@ export default function NewTeamModal({ onClose, onCreate }) {
           {activeTab === 'settings' && (
             <div className="space-y-5">
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-3`}>Auto-Create on Team Creation</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-3`}>Auto-Create on Team Creation</label>
                 <div className="space-y-3">
                   {[
                     { key: 'create_team_chat', icon: <MessageCircle className="w-7 h-7" />, label: 'Team Chat', desc: 'Parents & coaches can message' },
-                    { key: 'create_player_chat', icon: <span className="text-2xl">🧒</span>, label: 'Player Chat', desc: 'Players & coaches (parents view-only)' },
+                    { key: 'create_player_chat', icon: <span className="text-3xl">🧒</span>, label: 'Player Chat', desc: 'Players & coaches (parents view-only)' },
                     { key: 'create_team_wall', icon: <ClipboardList className="w-7 h-7" />, label: 'Team Wall/Page', desc: 'Team announcements, events & posts' },
                   ].map(opt => (
                     <label key={opt.key} className={`flex items-center justify-between p-4 rounded-lg cursor-pointer ${isDark ? 'bg-white/[0.06]' : 'bg-slate-50'}`}>
@@ -380,7 +380,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
                         {opt.icon}
                         <div>
                           <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{opt.label}</p>
-                          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{opt.desc}</p>
+                          <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{opt.desc}</p>
                         </div>
                       </div>
                       <input type="checkbox" checked={form[opt.key]}
@@ -392,7 +392,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Internal Notes (Admin Only)</label>
+                <label className={`block text-base font-medium ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Internal Notes (Admin Only)</label>
                 <textarea value={form.internal_notes} onChange={e => setForm({...form, internal_notes: e.target.value})}
                   placeholder="Notes for coaches/admins only (not visible to parents)..."
                   rows={3}
@@ -405,7 +405,7 @@ export default function NewTeamModal({ onClose, onCreate }) {
 
         {/* Footer */}
         <div className={`px-5 py-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} flex items-center justify-between`}>
-          <div className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <div className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             {!form.name && <span className="text-amber-500">⚠ Team name required</span>}
             {form.name && !form.age_group && <span className="text-amber-500">⚠ Age group required</span>}
             {form.name && form.age_group && !creating && <span className="text-emerald-500">✓ Ready to create</span>}

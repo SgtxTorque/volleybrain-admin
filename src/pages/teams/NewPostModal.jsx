@@ -211,7 +211,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
             </button>
             {i === showCount - 1 && remaining > 0 && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">+{remaining}</span>
+                <span className="text-white text-3xl font-bold">+{remaining}</span>
               </div>
             )}
           </div>
@@ -238,7 +238,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.08)' }}>
-          <h2 className="text-base font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Create Post</h2>
+          <h2 className="text-lg font-bold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>Create Post</h2>
           <button
             onClick={handleBackdropClick}
             className="w-9 h-9 rounded-full flex items-center justify-center transition"
@@ -251,7 +251,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
         <div className="max-h-[65vh] overflow-y-auto tw-nos">
           {/* User info */}
           <div className="px-5 pt-4 pb-2 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold overflow-hidden flex-shrink-0"
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold overflow-hidden flex-shrink-0"
               style={{ background: `linear-gradient(135deg, ${g}, ${gb || g})`, color: '#fff' }}>
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -260,10 +260,10 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
               )}
             </div>
             <div>
-              <p className="text-sm font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+              <p className="text-base font-semibold" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                 {profile?.full_name || 'You'}
               </p>
-              <span className="text-[11px] px-1.5 py-0.5 rounded"
+              <span className="text-sm px-1.5 py-0.5 rounded"
                 style={{ background: isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.05)', color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>
                 Team Post
               </span>
@@ -278,7 +278,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
                 placeholder="Title (optional)"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full px-0 py-2 text-sm font-semibold bg-transparent focus:outline-none"
+                className="w-full px-0 py-2 text-base font-semibold bg-transparent focus:outline-none"
                 style={{
                   color: isDark ? 'white' : '#1a1a1a',
                   borderBottom: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)',
@@ -390,7 +390,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
               <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden"
                 onChange={e => { addFiles(e.target.files || []); e.target.value = '' }} />
               <ImageIcon className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }} />
-              <p className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.55)' }}>
+              <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.55)' }}>
                 {mediaPreviews.length > 0 ? 'Add more photos' : 'Add photos or drag & drop'}
               </p>
             </div>
@@ -398,7 +398,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
 
           {/* Post type selector */}
           <div className="px-5 pb-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.5)' }}>
+            <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.5)' }}>
               Post Type
             </p>
             <div className="flex flex-wrap gap-1.5">
@@ -427,7 +427,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={isPinned} onChange={e => setIsPinned(e.target.checked)}
                   className="rounded" style={{ accentColor: g }} />
-                <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,.55)' : 'rgba(0,0,0,.6)' }}>
+                <span className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,.55)' : 'rgba(0,0,0,.6)' }}>
                   📌 Pin to top of feed
                 </span>
               </label>
@@ -440,7 +440,7 @@ function NewPostModal({ teamId, g, gb, dim, isDark, onClose, onSuccess, showToas
           <button
             onClick={handleSubmit}
             disabled={!canPublish || submitting}
-            className="w-full py-3 rounded-xl text-sm font-bold transition hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-xl text-base font-bold transition hover:brightness-110 disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               background: canPublish ? `linear-gradient(135deg, ${gb || g}, ${g})` : (isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'),
               color: canPublish ? '#fff' : (isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.5)'),

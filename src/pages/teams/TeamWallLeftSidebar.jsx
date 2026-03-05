@@ -38,7 +38,7 @@ export default function TeamWallLeftSidebar({
     <aside className="hidden lg:flex flex-col gap-4 p-4 xl:p-5 overflow-y-auto tw-hide-scrollbar" style={{ height: '100%' }}>
       {/* Back button */}
       <button onClick={onBack} className="flex items-center gap-2 self-start transition-all"
-        style={{ fontSize: 15, fontWeight: 500, color: BRAND.sky, borderRadius: 10, padding: '4px 8px', marginBottom: -4 }}
+        style={{ fontSize: 18, fontWeight: 500, color: BRAND.sky, borderRadius: 10, padding: '4px 8px', marginBottom: -4 }}
         onMouseEnter={e => e.currentTarget.style.background = isDark ? `${BRAND.sky}15` : BRAND.ice}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
         <ArrowLeft className="w-4 h-4" /> Back
@@ -52,11 +52,11 @@ export default function TeamWallLeftSidebar({
               <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center" style={{ background: BRAND.ice }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: BRAND.navy }}>{teamInitials}</span>
+                <span style={{ fontSize: 30, fontWeight: 700, color: BRAND.navy }}>{teamInitials}</span>
               </div>
             )}
           </div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>{team.name}</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>{team.name}</h1>
           {seasonLabel && <span style={labelStyle}>{sportIcon} {seasonLabel}</span>}
 
           {/* Season Record */}
@@ -67,13 +67,13 @@ export default function TeamWallLeftSidebar({
                 <span style={{ fontSize: 36, fontWeight: 900, color: successColor, lineHeight: 1 }}>{gameRecord.wins}</span>
                 <p style={labelStyle}>W</p>
               </div>
-              <span style={{ fontSize: 20, color: textMuted }}>—</span>
+              <span style={{ fontSize: 24, color: textMuted }}>—</span>
               <div className="text-center">
                 <span style={{ fontSize: 36, fontWeight: 900, color: errorColor, lineHeight: 1 }}>{gameRecord.losses}</span>
                 <p style={labelStyle}>L</p>
               </div>
             </div>
-            <p style={{ fontSize: 16, fontWeight: 400, color: textPrimary, textAlign: 'center', marginTop: 4 }}>
+            <p style={{ fontSize: 18, fontWeight: 400, color: textPrimary, textAlign: 'center', marginTop: 4 }}>
               {totalGames > 0 ? `${winRate}%` : 'No games played'}
             </p>
             {totalGames > 0 && (
@@ -108,14 +108,14 @@ export default function TeamWallLeftSidebar({
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.15) 100%)' }} />
             <div style={{ position: 'relative', zIndex: 1, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 200 }}>
               <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#4BB9EC', color: '#fff' }}>
+                <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 14, fontWeight: 600, background: '#4BB9EC', color: '#fff' }}>
                   {(nextGame.event_type || 'GAME').toUpperCase()}
                 </span>
-                {dayLabel && <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#F59E0B', color: '#fff' }}>{dayLabel}</span>}
+                {dayLabel && <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 14, fontWeight: 600, background: '#F59E0B', color: '#fff' }}>{dayLabel}</span>}
               </div>
-              <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.8)' }}>{nextGame.event_type === 'practice' ? 'Practice' : 'Game Day'}</p>
-              <p style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>{nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title || 'Practice'}</p>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <p style={{ fontSize: 16, fontWeight: 500, color: 'rgba(255,255,255,.8)' }}>{nextGame.event_type === 'practice' ? 'Practice' : 'Game Day'}</p>
+              <p style={{ fontSize: 24, fontWeight: 700, color: '#fff' }}>{nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title || 'Practice'}</p>
+              <div style={{ fontSize: 16, color: 'rgba(255,255,255,.7)', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {nextGame.event_date && <span>📅 {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>}
                 {nextGame.event_time && <span>🕐 {formatTime12(nextGame.event_time)}</span>}
                 {nextGame.location && <span>📍 {nextGame.location}</span>}
@@ -123,7 +123,7 @@ export default function TeamWallLeftSidebar({
               {nextGame.location && (
                 <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nextGame.location || '')}`, '_blank')}
                   style={{ marginTop: 12, padding: '8px 16px', borderRadius: 10, background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)',
-                    color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, width: 'fit-content' }}
+                    color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, width: 'fit-content' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.25)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.15)' }}>
                   📍 Get Directions
@@ -139,7 +139,7 @@ export default function TeamWallLeftSidebar({
         <div className="flex items-center justify-between mb-3">
           <span style={labelStyle}>Upcoming</span>
           <button onClick={() => onNavigate?.('schedule')} className="flex items-center gap-1 transition-all"
-            style={{ fontSize: 14, fontWeight: 500, color: BRAND.sky }}
+            style={{ fontSize: 16, fontWeight: 500, color: BRAND.sky }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
             Full Calendar <ChevronRight className="w-3 h-3" />
           </button>
@@ -151,14 +151,14 @@ export default function TeamWallLeftSidebar({
               <div key={event.id} className="flex items-center gap-3 p-3.5"
                 style={{ borderBottom: i < Math.min(upcomingEvents.length, 3) - 1 ? `1px solid ${borderColor}` : 'none' }}>
                 <div className="text-center min-w-[36px]">
-                  <p style={{ ...labelStyle, color: BRAND.sky, fontSize: 10 }}>{ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</p>
+                  <p style={{ ...labelStyle, color: BRAND.sky, fontSize: 14 }}>{ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</p>
                   <p style={{ fontSize: 28, fontWeight: 900, color: textPrimary, lineHeight: 1 }}>{ed.getDate()}</p>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p style={{ fontSize: 16, fontWeight: 500, color: textPrimary }} className="truncate">
+                  <p style={{ fontSize: 18, fontWeight: 500, color: textPrimary }} className="truncate">
                     {event.title || event.event_type}{event.opponent ? ` vs ${event.opponent}` : ''}
                   </p>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted }}>
+                  <p style={{ fontSize: 16, fontWeight: 500, color: textMuted }}>
                     {event.event_time && formatTime12(event.event_time)}{event.location ? ` · ${event.location}` : ''}
                   </p>
                 </div>
@@ -168,7 +168,7 @@ export default function TeamWallLeftSidebar({
           {upcomingEvents.length === 0 && (
             <div className="p-6 text-center">
               <Calendar className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-              <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No upcoming events</p>
+              <p style={{ fontSize: 16, fontWeight: 500, color: textMuted, marginTop: 8 }}>No upcoming events</p>
             </div>
           )}
         </div>
@@ -186,7 +186,7 @@ export default function TeamWallLeftSidebar({
           ].map(item => (
             <button key={item.label} onClick={item.action}
               className="flex items-center gap-3 w-full p-2.5 transition-all"
-              style={{ borderRadius: 10, fontSize: 16, fontWeight: 500, color: textPrimary }}
+              style={{ borderRadius: 10, fontSize: 18, fontWeight: 500, color: textPrimary }}
               onMouseEnter={e => e.currentTarget.style.background = innerBg}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
               <item.icon className="w-[18px] h-[18px]" style={{ color: BRAND.slate }} />

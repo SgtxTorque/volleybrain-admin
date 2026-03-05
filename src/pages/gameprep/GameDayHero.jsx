@@ -39,25 +39,25 @@ export default function GameDayHero({ event, team, mode, seasonRecord }) {
           {isLive && (
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/20 border border-red-500/40 mb-3">
               <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-red-300">Live</span>
+              <span className="text-sm font-extrabold uppercase tracking-wider text-red-300">Live</span>
             </div>
           )}
           {!isLive && (
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 mb-3">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">Pre-Game</span>
+              <span className="text-sm font-extrabold uppercase tracking-wider text-amber-400">Pre-Game</span>
             </div>
           )}
 
-          <p className="text-xs text-white/40 uppercase tracking-wider font-bold mb-1">{team?.name || 'Your Team'}</p>
-          <h2 className="text-[32px] font-extrabold text-white leading-tight">
+          <p className="text-sm text-white/40 uppercase tracking-wider font-bold mb-1">{team?.name || 'Your Team'}</p>
+          <h2 className="text-4xl font-extrabold text-white leading-tight">
             vs. {event?.opponent_name || event?.opponent || 'TBD'}
           </h2>
 
           <div className="flex items-center gap-3 mt-3 flex-wrap">
-            <span className="text-sm text-white/50">📅 {eventDate}</span>
-            <span className="text-sm text-white/50">🕐 {eventTime}</span>
-            {event?.venue_name && <span className="text-sm text-white/50">📍 {event.venue_name}</span>}
-            <span className={`text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-md ${
+            <span className="text-base text-white/50">📅 {eventDate}</span>
+            <span className="text-base text-white/50">🕐 {eventTime}</span>
+            {event?.venue_name && <span className="text-base text-white/50">📍 {event.venue_name}</span>}
+            <span className={`text-sm font-extrabold uppercase px-2.5 py-1 rounded-md ${
               isHome ? 'bg-lynx-sky/15 text-lynx-sky' : 'bg-amber-500/15 text-amber-400'
             }`}>
               {isHome ? 'Home' : 'Away'}
@@ -67,19 +67,19 @@ export default function GameDayHero({ event, team, mode, seasonRecord }) {
 
         {/* Right — season record */}
         <div className="text-right ml-8 shrink-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-white/30 mb-1">Season Record</p>
-          <div className="text-[56px] font-extrabold leading-none tabular-nums">
+          <p className="text-sm font-bold uppercase tracking-wider text-white/30 mb-1">Season Record</p>
+          <div className="text-6xl font-extrabold leading-none tabular-nums">
             <span className="text-emerald-400">{wins}</span>
             <span className="text-white/20">-</span>
             <span className="text-red-400">{losses}</span>
           </div>
           {totalGames > 0 && (
-            <p className="text-sm text-white/40 mt-1">{winRate}% win rate</p>
+            <p className="text-base text-white/40 mt-1">{winRate}% win rate</p>
           )}
           {recentForm.length > 0 && (
             <div className="flex justify-end gap-1 mt-2">
               {recentForm.slice(-5).map((r, i) => (
-                <span key={i} className={`w-[26px] h-[26px] rounded-md text-[11px] font-extrabold inline-flex items-center justify-center ${
+                <span key={i} className={`w-[26px] h-[26px] rounded-md text-sm font-extrabold inline-flex items-center justify-center ${
                   r === 'W' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
                 }`}>{r}</span>
               ))}

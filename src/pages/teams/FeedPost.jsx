@@ -239,7 +239,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               <img src={url} alt="" className="w-full h-full object-cover" />
               {idx === 3 && count > 4 && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">+{count - 4}</span>
+                  <span className="text-white text-3xl font-bold">+{count - 4}</span>
                 </div>
               )}
             </div>
@@ -256,7 +256,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
         <div className="flex items-center gap-4">
           {/* Avatar with gradient ring */}
           <div className="p-[2px] rounded-xl" style={{ background: `linear-gradient(135deg, ${g}, ${gb})` }}>
-            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center text-base font-bold overflow-hidden"
+            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center text-lg font-bold overflow-hidden"
               style={{ background: isDark ? 'rgb(15,23,42)' : '#fff', color: isDark ? 'white' : '#1a1a1a' }}>
               {post.profiles?.avatar_url ? (
                 <img src={post.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -270,12 +270,12 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               <p className="font-bold text-[17px]" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
                 {post.profiles?.full_name || 'Team Admin'}
               </p>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
+              <span className="text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg"
                 style={{ background: `${g}10`, color: `${g}99` }}>
                 {typeIcon} {postType.replace('_', ' ').toUpperCase()}
               </span>
             </div>
-            <p className="text-[13px] mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.55)' }}>
+            <p className="text-lg mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.55)' }}>
               {new Date(post.created_at).toLocaleDateString('en-US', {
                 month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
               })}
@@ -283,7 +283,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {isPinned && <span className="text-sm" style={{ color: `${g}60` }}>📌</span>}
+          {isPinned && <span className="text-base" style={{ color: `${g}60` }}>📌</span>}
           {canModify && (
             <div className="relative" ref={menuRef}>
               <button onClick={() => setShowMenu(!showMenu)}
@@ -303,7 +303,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
                   }}>
                   {(post.author_id === currentUserId || isAdminOrCoach) && (
                     <button onClick={() => { setEditing(true); setShowMenu(false) }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs transition-colors text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors text-left"
                       style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.75)' }}
                       onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -312,7 +312,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
                   )}
                   {isAdminOrCoach && (
                     <button onClick={() => { onTogglePin?.(post.id, post.is_pinned); setShowMenu(false) }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs transition-colors text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors text-left"
                       style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.75)' }}
                       onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -321,7 +321,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
                   )}
                   <div style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.06)' : '1px solid rgba(0,0,0,.06)', margin: '4px 0' }} />
                   <button onClick={() => { setConfirmDelete(true); setShowMenu(false) }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs transition-colors text-left text-red-400"
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm transition-colors text-left text-red-400"
                     onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <Trash2 className="w-3.5 h-3.5" /> Delete Post
@@ -363,7 +363,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
           <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${milestoneMeta.tierColor || milestoneMeta.achievementColor || g}`, background: `${milestoneMeta.tierColor || g}08` }}>
             <div className="h-1" style={{ background: milestoneMeta.tierColor || g }} />
             <div className="p-5 flex flex-col items-center gap-2.5">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] font-bold uppercase tracking-wider"
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-lg font-bold uppercase tracking-wider"
                 style={{ background: `${milestoneMeta.tierColor || g}20`, color: milestoneMeta.tierColor || g }}>
                 {milestoneMeta.type === 'level_up' ? '⬆️' : '🏆'} {milestoneMeta.type === 'level_up' ? 'Level Up' : 'Achievement'}
               </div>
@@ -440,8 +440,8 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
             <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-2.5" style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
               <MessageCircle className="w-6 h-6" style={{ color: isDark ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.55)' }} />
               <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.5)' }}>{localCommentCount}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>COMMENTS</p>
+                <p className="text-base font-bold" style={{ color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.5)' }}>{localCommentCount}</p>
+                <p className="text-sm font-bold uppercase tracking-wider leading-none" style={{ color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)' }}>COMMENTS</p>
               </div>
             </button>
           </div>
@@ -479,19 +479,19 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
               value={editTitle}
               onChange={e => setEditTitle(e.target.value)}
               placeholder="Title (optional)"
-              className="w-full px-3 py-2 rounded-lg text-sm mb-2 bg-transparent outline-none"
+              className="w-full px-3 py-2 rounded-lg text-base mb-2 bg-transparent outline-none"
               style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'white' : '#333' }}
             />
             <textarea
               value={editContent}
               onChange={e => setEditContent(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 rounded-lg text-sm bg-transparent outline-none resize-none"
+              className="w-full px-3 py-2 rounded-lg text-base bg-transparent outline-none resize-none"
               style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'white' : '#333' }}
             />
             <div className="flex gap-2 mt-3">
               <button onClick={() => setEditing(false)}
-                className="px-4 py-1.5 rounded-lg text-xs" style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>
+                className="px-4 py-1.5 rounded-lg text-sm" style={{ border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>
                 Cancel
               </button>
               <button onClick={() => {
@@ -499,7 +499,7 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
                 setEditing(false)
               }}
                 disabled={!editContent.trim()}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold transition hover:brightness-110 disabled:opacity-30"
+                className="px-4 py-1.5 rounded-lg text-sm font-bold transition hover:brightness-110 disabled:opacity-30"
                 style={{ background: g, color: '#0f172a' }}>
                 Save
               </button>
@@ -512,12 +512,12 @@ function FeedPost({ post, g, gb, i, isDark, onCommentCountChange, onReactionCoun
       {confirmDelete && (
         <div className="px-6 pb-5">
           <div className="rounded-xl p-4 flex items-center justify-between" style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)' }}>
-            <p className="text-xs text-red-400">Delete this post permanently?</p>
+            <p className="text-sm text-red-400">Delete this post permanently?</p>
             <div className="flex gap-2">
-              <button onClick={() => setConfirmDelete(false)} className="px-3 py-1 rounded-lg text-xs" style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>
+              <button onClick={() => setConfirmDelete(false)} className="px-3 py-1 rounded-lg text-sm" style={{ color: isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.6)' }}>
                 Cancel
               </button>
-              <button onClick={() => onDelete?.(post.id)} className="px-3 py-1 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition">
+              <button onClick={() => onDelete?.(post.id)} className="px-3 py-1 rounded-lg text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition">
                 Delete
               </button>
             </div>

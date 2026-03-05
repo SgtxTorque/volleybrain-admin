@@ -316,26 +316,26 @@ export function PaymentsPage({ showToast }) {
       {/* Page header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Payments</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Payments</h1>
+          <p className={`text-base mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Track and manage payment status · {selectedSeason.name}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowBlastModal(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/15' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/15' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
             <Bell className="w-4 h-4" /> Blast Overdue
           </button>
           <button onClick={handleBackfillFees} disabled={backfillLoading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'} ${backfillLoading ? 'opacity-50' : ''}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'} ${backfillLoading ? 'opacity-50' : ''}`}>
             {backfillLoading ? 'Generating...' : 'Backfill Fees'}
           </button>
           <button onClick={() => exportToCSV(payments, 'payments', csvColumns)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'}`}>
             <Download className="w-4 h-4" /> Export
           </button>
           <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-lynx-sky text-lynx-navy font-bold hover:brightness-110 transition">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-base bg-lynx-sky text-lynx-navy font-bold hover:brightness-110 transition">
             <Plus className="w-4 h-4" /> Add Fee
           </button>
         </div>
@@ -357,7 +357,7 @@ export function PaymentsPage({ showToast }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" placeholder="Search by player or parent..." value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className={`w-full pl-9 pr-8 py-2 rounded-lg text-sm ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400'}`}
+            className={`w-full pl-9 pr-8 py-2 rounded-lg text-base ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400'}`}
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300">
@@ -369,7 +369,7 @@ export function PaymentsPage({ showToast }) {
         <div className="flex gap-1">
           {['all', 'unpaid', 'paid'].map(f => (
             <button key={f} onClick={() => setStatusFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold capitalize transition ${
                 statusFilter === f
                   ? (f === 'unpaid' ? 'bg-red-500/12 text-red-500' : f === 'paid' ? 'bg-emerald-500/12 text-emerald-500' : 'bg-lynx-sky/15 text-lynx-sky')
                   : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
@@ -381,13 +381,13 @@ export function PaymentsPage({ showToast }) {
 
         <div className={`ml-auto flex gap-1 p-1 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
           <button onClick={() => setViewMode('individual')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${
+            className={`px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1.5 transition ${
               viewMode === 'individual' ? 'bg-lynx-sky text-white' : isDark ? 'text-slate-400' : 'text-slate-500'
             }`}>
             <User className="w-3.5 h-3.5" /> Individual
           </button>
           <button onClick={() => setViewMode('family')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition ${
+            className={`px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1.5 transition ${
               viewMode === 'family' ? 'bg-lynx-sky text-white' : isDark ? 'text-slate-400' : 'text-slate-500'
             }`}>
             <Users className="w-3.5 h-3.5" /> Family
@@ -403,8 +403,8 @@ export function PaymentsPage({ showToast }) {
           <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
             <DollarSign className="w-8 h-8 text-slate-400" />
           </div>
-          <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No payments found</h3>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fees are automatically generated when registrations are approved.</p>
+          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No payments found</h3>
+          <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fees are automatically generated when registrations are approved.</p>
           <button onClick={handleBackfillFees} className="mt-4 bg-lynx-sky text-lynx-navy font-bold px-6 py-2 rounded-lg hover:brightness-110 transition">
             Generate Fees for Existing Players
           </button>

@@ -493,8 +493,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     return (
       <div className="text-center py-12" style={{ fontFamily: FONT_STACK }}>
         <VolleyballIcon className="w-16 h-16 mx-auto" style={{ color: textMuted }} />
-        <p className="mt-4" style={{ color: textPrimary, fontSize: 14, fontWeight: 500 }}>Team not found</p>
-        <button onClick={onBack} className="mt-4" style={{ color: BRAND.sky, fontSize: 14, fontWeight: 500 }}>
+        <p className="mt-4" style={{ color: textPrimary, fontSize: 16, fontWeight: 500 }}>Team not found</p>
+        <button onClick={onBack} className="mt-4" style={{ color: BRAND.sky, fontSize: 16, fontWeight: 500 }}>
           ← Go Back
         </button>
       </div>
@@ -514,7 +514,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const headCoach = coaches.find(c => c.role === 'head') || coaches[0] || null
 
   // Label style helper (11px/Hal 500/0.1em/uppercase/Slate)
-  const labelStyle = { fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND.slate }
+  const labelStyle = { fontSize: 16, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND.slate }
 
   // Theme object for sidebar components
   const th = { cardBg, innerBg, borderColor, textPrimary, textSecondary, textMuted, successColor, errorColor, warningColor, shadow, shadowElevated, labelStyle, isDark, BRAND }
@@ -548,11 +548,11 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           <img src={team.logo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
         ) : (
           <div className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 12, fontWeight: 700 }}>
+            style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 14, fontWeight: 700 }}>
             {teamInitials}
           </div>
         )}
-        <h1 style={{ fontSize: 15, fontWeight: 700, color: textPrimary }}>{team.name}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 700, color: textPrimary }}>{team.name}</h1>
       </div>
 
       {/* ═══ 3-COLUMN GRID ═══ */}
@@ -579,7 +579,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow }}>
                 <div className="flex items-center gap-3 p-4">
                   <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center overflow-hidden"
-                    style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 14, fontWeight: 700 }}>
+                    style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 16, fontWeight: 700 }}>
                     {profile?.avatar_url ? (
                       <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -590,7 +590,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     className="flex flex-1 items-center px-4 py-2.5 text-left transition-all"
                     style={{
                       borderRadius: 999, border: `1px solid ${borderColor}`,
-                      color: textMuted, fontSize: 16, fontWeight: 500,
+                      color: textMuted, fontSize: 18, fontWeight: 500,
                       background: innerBg, transition: 'all 250ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = isDark ? BRAND.graphite : '#E8ECF0'}
@@ -634,15 +634,15 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                       {/* Header row */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: 16 }}>⭐</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: '#4BB9EC', letterSpacing: '0.05em' }}>
+                          <span style={{ fontSize: 18 }}>⭐</span>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: '#4BB9EC', letterSpacing: '0.05em' }}>
                             {shoutoutDigest.total} SHOUTOUT{shoutoutDigest.total !== 1 ? 'S' : ''} THIS WEEK
                           </span>
                         </div>
                         <button
                           onClick={() => { setShoutoutPreselect(null); setShowShoutoutModal(true) }}
                           style={{
-                            padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                            padding: '5px 12px', borderRadius: 999, fontSize: 14, fontWeight: 600,
                             background: '#4BB9EC', color: '#fff', border: 'none', cursor: 'pointer',
                             transition: 'all 200ms',
                           }}
@@ -660,13 +660,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                             display: 'flex', alignItems: 'center', gap: 6,
                             padding: '4px 10px 4px 4px', borderRadius: 999,
                             background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.04)',
-                            fontSize: 12, fontWeight: 600,
+                            fontSize: 14, fontWeight: 600,
                             color: isDark ? 'rgba(255,255,255,.75)' : 'rgba(0,0,0,.7)',
                           }}>
                             <div style={{
                               width: 22, height: 22, borderRadius: '50%', overflow: 'hidden',
                               background: '#4BB9EC', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: '#fff', fontSize: 9, fontWeight: 700, flexShrink: 0,
+                              color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0,
                             }}>
                               {r.photo ? (
                                 <img src={r.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -679,7 +679,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                           </div>
                         ))}
                         {shoutoutDigest.recent.length > 4 && (
-                          <span style={{ fontSize: 12, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)' }}>
+                          <span style={{ fontSize: 14, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)' }}>
                             +{shoutoutDigest.recent.length - 4} more
                           </span>
                         )}
@@ -689,12 +689,12 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     /* Nudge state — no shoutouts in 7 days */
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 20 }}>⭐</span>
+                        <span style={{ fontSize: 24 }}>⭐</span>
                         <div>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)' }}>
+                          <p style={{ fontSize: 16, fontWeight: 600, color: isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.6)' }}>
                             No shoutouts this week
                           </p>
-                          <p style={{ fontSize: 12, fontWeight: 400, color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)', marginTop: 2 }}>
+                          <p style={{ fontSize: 14, fontWeight: 400, color: isDark ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.35)', marginTop: 2 }}>
                             {nudge}
                           </p>
                         </div>
@@ -702,7 +702,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                       <button
                         onClick={() => { setShoutoutPreselect(null); setShowShoutoutModal(true) }}
                         style={{
-                          padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                          padding: '6px 14px', borderRadius: 999, fontSize: 14, fontWeight: 600,
                           background: '#4BB9EC', color: '#fff', border: 'none', cursor: 'pointer',
                           transition: 'all 200ms', whiteSpace: 'nowrap',
                         }}
@@ -741,7 +741,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                     className="w-full py-3 text-center transition-all"
                     style={{
                       borderRadius: 14, background: cardBg, border: `1px solid ${borderColor}`,
-                      color: textSecondary, fontSize: 16, fontWeight: 500, transition: 'all 250ms',
+                      color: textSecondary, fontSize: 18, fontWeight: 500, transition: 'all 250ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
@@ -750,7 +750,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 )}
 
                 {!hasMorePosts && posts.length > POSTS_PER_PAGE && (
-                  <p className="text-center py-4" style={{ fontSize: 14, fontWeight: 500, color: textMuted }}>
+                  <p className="text-center py-4" style={{ fontSize: 16, fontWeight: 500, color: textMuted }}>
                     End of feed
                   </p>
                 )}
@@ -759,8 +759,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               <div className="text-center p-12"
                 style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow }}>
                 <Megaphone className="w-12 h-12 mx-auto" style={{ color: textMuted }} />
-                <p style={{ fontSize: 16, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
-                <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 4 }}>
+                <p style={{ fontSize: 18, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
+                <p style={{ fontSize: 16, fontWeight: 500, color: textMuted, marginTop: 4 }}>
                   Be the first to share with the team!
                 </p>
               </div>

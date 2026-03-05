@@ -82,7 +82,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
   if (useLegacy) {
     return (
       <div className="space-y-6">
-        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} flex items-center gap-2`}>Waiver Status</h3>
+        <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} flex items-center gap-2`}>Waiver Status</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { label: 'Liability Waiver', signed: player.waiver_liability, icon: '🛡️' },
@@ -90,9 +90,9 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
             { label: 'Code of Conduct', signed: player.waiver_conduct, icon: '🤝' },
           ].map(waiver => (
             <div key={waiver.label} className={`${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'} rounded-xl p-5 text-center`}>
-              <span className="text-3xl">{waiver.icon}</span>
+              <span className="text-4xl">{waiver.icon}</span>
               <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mt-2`}>{waiver.label}</p>
-              <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-base font-bold ${
+              <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-lg font-bold ${
                 waiver.signed
                   ? (isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
                   : (isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-600')
@@ -110,7 +110,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} flex items-center gap-2`}>Waivers</h3>
+        <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} flex items-center gap-2`}>Waivers</h3>
         {totalRequired > 0 && (
           <div className="flex items-center gap-2">
             <div className="w-24 h-2 rounded-full overflow-hidden" style={{ backgroundColor: isDark ? '#334155' : '#e2e8f0' }}>
@@ -119,7 +119,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
                 backgroundColor: allRequiredSigned ? '#10b981' : teamColor,
               }} />
             </div>
-            <span className={`text-base font-medium ${allRequiredSigned ? 'text-emerald-500' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
+            <span className={`text-lg font-medium ${allRequiredSigned ? 'text-emerald-500' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
               {signedRequired}/{totalRequired} required
             </span>
           </div>
@@ -128,10 +128,10 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
 
       {allRequiredSigned && (
         <div className={`flex items-center gap-3 px-5 py-4 rounded-xl ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-200'}`}>
-          <span className="text-2xl">✅</span>
+          <span className="text-3xl">✅</span>
           <div>
             <p className={`font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>All required waivers signed</p>
-            <p className={`text-sm ${isDark ? 'text-emerald-400/70' : 'text-emerald-600'}`}>You're all set!</p>
+            <p className={`text-base ${isDark ? 'text-emerald-400/70' : 'text-emerald-600'}`}>You're all set!</p>
           </div>
         </div>
       )}
@@ -149,7 +149,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
             return (
               <div key={waiver.id} className={`${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'} border rounded-[14px] overflow-hidden`}>
                 <div className="flex items-center gap-4 p-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${
                     isSigned ? (isDark ? 'bg-emerald-500/15' : 'bg-emerald-50') : (isDark ? 'bg-amber-500/15' : 'bg-amber-50')
                   }`}>
                     {isSigned ? '✅' : '📄'}
@@ -158,29 +158,29 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
                     <div className="flex items-center gap-2">
                       <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{waiver.name}</p>
                       {waiver.is_required && (
-                        <span className="text-[11px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/12 text-red-500">Required</span>
+                        <span className="text-sm font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/12 text-red-500">Required</span>
                       )}
                     </div>
                     {isSigned ? (
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-0.5`}>
+                      <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-0.5`}>
                         Signed by {sig.signed_by_name} on {new Date(sig.signed_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                       </p>
                     ) : (
-                      <p className={`text-sm ${isDark ? 'text-amber-400/70' : 'text-amber-600'} mt-0.5`}>Pending signature</p>
+                      <p className={`text-base ${isDark ? 'text-amber-400/70' : 'text-amber-600'} mt-0.5`}>Pending signature</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button onClick={() => setViewingWaiver(waiver)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${isDark ? 'border-white/[0.06] text-slate-300' : 'border-slate-200 text-slate-600'} hover:opacity-80 transition`}>
+                      className={`px-3 py-1.5 rounded-lg text-base font-medium border ${isDark ? 'border-white/[0.06] text-slate-300' : 'border-slate-200 text-slate-600'} hover:opacity-80 transition`}>
                       View
                     </button>
                     {isSigned ? (
-                      <span className={`px-3 py-1.5 rounded-lg text-sm font-bold ${isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <span className={`px-3 py-1.5 rounded-lg text-base font-bold ${isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
                         Signed
                       </span>
                     ) : (
                       <button onClick={() => { setSigningWaiver(waiver); setAgreed(false); setSignerName(profile?.full_name || '') }}
-                        className="px-4 py-1.5 rounded-lg text-sm font-bold text-white transition" style={{ backgroundColor: teamColor }}>
+                        className="px-4 py-1.5 rounded-lg text-base font-bold text-white transition" style={{ backgroundColor: teamColor }}>
                         Sign Now
                       </button>
                     )}
@@ -197,16 +197,16 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
           <div className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
             <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-lynx-midnight' : 'bg-slate-100'} rounded-t-xl`}>
-              <span className={`text-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{viewingWaiver.name}</span>
-              <button onClick={() => setViewingWaiver(null)} className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>×</button>
+              <span className={`text-xl font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{viewingWaiver.name}</span>
+              <button onClick={() => setViewingWaiver(null)} className={`text-xl ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>×</button>
             </div>
             <div className="h-1.5" style={{ backgroundColor: teamColor }} />
             <div className="px-6 pt-5 pb-4 flex items-center gap-3" style={{ borderBottom: `2px solid ${teamColor}` }}>
               {organization?.logo_url && <img src={organization.logo_url} alt="" className="h-10 w-10 object-contain" />}
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: 'Georgia, serif' }}>{organization?.name}</h2>
+              <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: 'Georgia, serif' }}>{organization?.name}</h2>
             </div>
             <div className="p-6">
-              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-center mb-4`} style={{ fontFamily: 'Georgia, serif' }}>{viewingWaiver.name}</h3>
+              <h3 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-center mb-4`} style={{ fontFamily: 'Georgia, serif' }}>{viewingWaiver.name}</h3>
               {viewingWaiver.pdf_url?.toLowerCase().endsWith('.pdf') && (
                 <div className={`mb-4 rounded-lg overflow-hidden border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
                   <iframe src={viewingWaiver.pdf_url} className="w-full" style={{ height: '450px' }} title="Waiver" />
@@ -216,7 +216,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
                 <img src={viewingWaiver.pdf_url} alt="Waiver" className={`w-full rounded-lg border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} mb-4`} />
               )}
               {viewingWaiver.content && (
-                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-base`} style={{ fontFamily: 'Georgia, serif' }}>
+                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-lg`} style={{ fontFamily: 'Georgia, serif' }}>
                   {viewingWaiver.content}
                 </div>
               )}
@@ -235,11 +235,11 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
               <div className="flex items-center gap-3">
                 {organization?.logo_url && <img src={organization.logo_url} alt="" className="h-10 w-10 object-contain" />}
                 <div>
-                  <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{signingWaiver.name}</h2>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization?.name} • v{signingWaiver.version || 1}</p>
+                  <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{signingWaiver.name}</h2>
+                  <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{organization?.name} • v{signingWaiver.version || 1}</p>
                 </div>
               </div>
-              <button onClick={() => setSigningWaiver(null)} className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>×</button>
+              <button onClick={() => setSigningWaiver(null)} className={`text-xl ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>×</button>
             </div>
 
             <div className="px-6 py-5 max-h-[40vh] overflow-y-auto" style={{ fontFamily: 'Georgia, serif' }}>
@@ -252,7 +252,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
                 <img src={signingWaiver.pdf_url} alt="Waiver" className={`w-full rounded-lg border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} mb-4`} />
               )}
               {signingWaiver.content && (
-                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-base`}>
+                <div className={`${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed whitespace-pre-wrap text-lg`}>
                   {signingWaiver.content}
                 </div>
               )}
@@ -265,22 +265,22 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
               <label className={`flex items-start gap-3 cursor-pointer mb-5 p-4 rounded-xl border ${isDark ? 'border-white/[0.06] bg-white/[0.04]' : 'border-slate-200 bg-white'}`}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
                   className="w-5 h-5 mt-0.5 rounded accent-current shrink-0" style={{ accentColor: teamColor }} />
-                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed`}>
+                <p className={`text-base ${isDark ? 'text-slate-300' : 'text-slate-700'} leading-relaxed`}>
                   I, the undersigned parent/guardian of <strong>{player.first_name} {player.last_name}</strong>, have read and agree to the terms outlined above.
                   By checking this box, I am providing my electronic signature.
                 </p>
               </label>
 
               <div className="mb-4">
-                <label className={`block text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1.5`}>Full Legal Name</label>
+                <label className={`block text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1.5`}>Full Legal Name</label>
                 <input value={signerName} onChange={e => setSignerName(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-xl border text-base ${isDark ? 'border-white/[0.06] bg-white/[0.04] text-white' : 'border-slate-200 bg-white text-slate-900'} focus:ring-2 focus:outline-none`}
+                  className={`w-full px-4 py-3 rounded-xl border text-lg ${isDark ? 'border-white/[0.06] bg-white/[0.04] text-white' : 'border-slate-200 bg-white text-slate-900'} focus:ring-2 focus:outline-none`}
                   placeholder="Enter your full name as your electronic signature" />
               </div>
 
               {agreed && signerName.trim() && (
                 <div className={`mb-4 p-3 rounded-lg ${isDark ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'} border`}>
-                  <p className={`text-xs ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                  <p className={`text-sm ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                     This will be recorded as: <strong>{signerName.trim()}</strong> electronically signed "{signingWaiver.name}" for {player.first_name} {player.last_name} on{' '}
                     {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} at{' '}
                     {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
@@ -290,11 +290,11 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
 
               <div className="flex justify-end gap-3">
                 <button onClick={() => setSigningWaiver(null)}
-                  className={`px-5 py-2.5 rounded-xl border ${isDark ? 'border-white/[0.06] text-white' : 'border-slate-200 text-slate-900'} font-medium text-sm`}>
+                  className={`px-5 py-2.5 rounded-xl border ${isDark ? 'border-white/[0.06] text-white' : 'border-slate-200 text-slate-900'} font-medium text-base`}>
                   Cancel
                 </button>
                 <button onClick={handleSign} disabled={!agreed || !signerName.trim() || submitting}
-                  className="px-6 py-2.5 rounded-xl text-white font-bold text-sm disabled:opacity-40 transition"
+                  className="px-6 py-2.5 rounded-xl text-white font-bold text-base disabled:opacity-40 transition"
                   style={{ backgroundColor: teamColor }}>
                   {submitting ? 'Signing...' : 'Sign Waiver'}
                 </button>

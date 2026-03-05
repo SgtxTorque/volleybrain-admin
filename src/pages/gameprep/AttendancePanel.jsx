@@ -28,8 +28,8 @@ export default function AttendancePanel({ roster, rsvps, attendance, onToggle, t
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}` }}>
       {/* Header */}
       <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${theme.border}` }}>
-        <h3 className="font-bold text-lg" style={{ color: theme.textPrimary }}>Attendance</h3>
-        <span className="text-emerald-400 font-bold text-sm">{hereCount} / {roster.length}</span>
+        <h3 className="font-bold text-xl" style={{ color: theme.textPrimary }}>Attendance</h3>
+        <span className="text-emerald-400 font-bold text-base">{hereCount} / {roster.length}</span>
       </div>
 
       {/* Player list */}
@@ -47,7 +47,7 @@ export default function AttendancePanel({ roster, rsvps, attendance, onToggle, t
               {player.photo_url ? (
                 <img src={player.photo_url} className="w-9 h-9 rounded-lg object-cover" />
               ) : (
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold"
                   style={{ backgroundColor: posColor }}>
                   {player.jersey_number || '?'}
                 </div>
@@ -55,7 +55,7 @@ export default function AttendancePanel({ roster, rsvps, attendance, onToggle, t
 
               {/* Name */}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate" style={{ color: theme.textPrimary }}>
+                <p className="font-semibold text-base truncate" style={{ color: theme.textPrimary }}>
                   #{player.jersey_number} {player.first_name} {player.last_name?.[0]}.
                 </p>
               </div>
@@ -66,7 +66,7 @@ export default function AttendancePanel({ roster, rsvps, attendance, onToggle, t
                   const nextIdx = (STATUS_CYCLE.indexOf(status) + 1) % STATUS_CYCLE.length
                   onToggle?.(player.id, STATUS_CYCLE[nextIdx])
                 }}
-                className={`px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider ring-1 transition ${colors.bg} ${colors.text} ${colors.ring}`}>
+                className={`px-3 py-1 rounded-full text-sm font-extrabold uppercase tracking-wider ring-1 transition ${colors.bg} ${colors.text} ${colors.ring}`}>
                 {STATUS_LABELS[status]}
               </button>
             </div>

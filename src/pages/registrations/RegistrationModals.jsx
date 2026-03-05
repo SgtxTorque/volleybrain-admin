@@ -20,11 +20,11 @@ export function DenyRegistrationModal({ player, onClose, onDeny }) {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
       <div className={`${cardBg} border ${borderColor} rounded-[14px] w-full max-w-md`}>
         <div className={`p-6 border-b ${borderColor}`}>
-          <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Deny Registration</h2>
-          <p className="text-slate-400 text-sm mt-1">{player.first_name} {player.last_name}</p>
+          <h2 className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Deny Registration</h2>
+          <p className="text-slate-400 text-base mt-1">{player.first_name} {player.last_name}</p>
         </div>
         <div className="p-6">
-          <label className="block text-sm text-slate-400 mb-2">Reason for denial (optional)</label>
+          <label className="block text-base text-slate-400 mb-2">Reason for denial (optional)</label>
           <textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
@@ -59,12 +59,12 @@ export function BulkDenyModal({ count, onClose, onDeny, processing }) {
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${cardBg} border ${borderColor} rounded-[14px] w-full max-w-md`}>
         <div className={`p-6 border-b ${borderColor}`}>
-          <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Deny {count} Registrations</h2>
-          <p className="text-slate-400 text-sm mt-1">This action cannot be undone.</p>
+          <h2 className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Deny {count} Registrations</h2>
+          <p className="text-slate-400 text-base mt-1">This action cannot be undone.</p>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm text-slate-400 mb-2">Reason for denial (optional)</label>
+            <label className="block text-base text-slate-400 mb-2">Reason for denial (optional)</label>
             <textarea
               value={reason}
               onChange={e => setReason(e.target.value)}
