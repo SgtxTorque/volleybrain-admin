@@ -284,7 +284,7 @@ function RegistrationFunnelPage({ showToast }) {
 
   // ═══════ HELPERS ═══════
   const gc = { background: isDark ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.7)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', borderRadius: 16 }
-  const gi = { background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', borderRadius: 12, color: isDark ? 'white' : '#1a1a1a' }
+  const gi = { background: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)', border: isDark ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,0,0,.06)', borderRadius: 14, color: isDark ? 'white' : '#1a1a1a' }
 
   const formatTime = (ms) => {
     if (!ms) return '-'

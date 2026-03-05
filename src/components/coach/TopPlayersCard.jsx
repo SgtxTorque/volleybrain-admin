@@ -43,9 +43,9 @@ export default function TopPlayersCard({ topPlayers = [], onNavigate, onPlayerSe
                   {idx + 1}
                 </span>
                 {player?.photo_url ? (
-                  <img src={player.photo_url} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  <img src={player.photo_url} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
                 ) : (
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                     {(player?.first_name || '?').charAt(0)}
                   </div>
                 )}

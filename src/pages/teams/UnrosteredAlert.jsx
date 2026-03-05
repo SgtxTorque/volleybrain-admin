@@ -86,9 +86,9 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
               }`}>
                 {/* Avatar */}
                 {player.photo_url ? (
-                  <img src={player.photo_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                  <img src={player.photo_url} alt="" className="w-8 h-8 rounded-xl object-cover shrink-0" />
                 ) : (
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${
                     isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
                   }`}>
                     {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}

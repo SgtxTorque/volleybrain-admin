@@ -17,10 +17,10 @@ function AvatarGroup({ players = [], teamColor, max = 5 }) {
       <div className="flex -space-x-2">
         {shown.map((p, i) => (
           p.photo_url ? (
-            <img key={p.id || i} src={p.photo_url} alt="" className="w-7 h-7 rounded-full object-cover border-2 border-white dark:border-lynx-charcoal" />
+            <img key={p.id || i} src={p.photo_url} alt="" className="w-7 h-7 rounded-lg object-cover border-2 border-white dark:border-lynx-charcoal" />
           ) : (
             <div key={p.id || i}
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
+              className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border-2 ${
                 isDark ? 'border-lynx-charcoal bg-white/[0.06] text-slate-300' : 'border-white bg-slate-100 text-slate-600'
               }`}
             >

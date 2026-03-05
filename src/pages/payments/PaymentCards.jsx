@@ -33,9 +33,9 @@ export function PlayerPaymentCard({
         <div className="flex items-center gap-4">
           {expanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
           {player.photo_url ? (
-            <img src={player.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+            <img src={player.photo_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
           ) : (
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
               {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
             </div>
           )}
