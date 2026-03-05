@@ -254,46 +254,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     return `${baseUrl}/register/${orgSlug}/${season.id}`
   }
 
-  // ═══ CONDITIONAL RETURNS ═══
-  if (loading) {
-    return (
-      <div className={`flex items-center justify-center h-64 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
-      </div>
-    )
-  }
-
-  if (registrationData.length === 0) {
-    return (
-      <DashboardContainer className={`space-y-6 py-12 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-        <div className="text-center">
-          <span className="text-r-5xl block mb-4">🏐</span>
-          <h2 className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
-          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You haven't registered any players yet.</p>
-          <p className={`${isDark ? 'text-slate-500' : 'text-slate-400'} mb-r-4`}>Get started by registering for an open season below.</p>
-        </div>
-        {openSeasons.length > 0 && (
-          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6`}>
-            <h2 className={`text-r-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Open Registrations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {openSeasons.map(season => (
-                <a key={season.id} href={getRegistrationUrl(season)} target="_blank" rel="noopener noreferrer"
-                  className={`${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-slate-50 hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}>
-                  <div className="w-14 h-14 rounded-xl bg-lynx-sky/20 flex items-center justify-center text-r-3xl">{season.sports?.icon || '🏐'}</div>
-                  <div className="flex-1">
-                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
-                    <p className={`text-r-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
-                  </div>
-                  <span className="text-lynx-sky font-semibold">Register →</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </DashboardContainer>
-    )
-  }
-
   // ═══ DERIVED STATE ═══
   const activeChild = registrationData[activeChildIdx] || registrationData[0]
   const activeTeam = activeChild?.team
@@ -304,7 +264,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const activeChildUnpaid = paymentSummary.unpaidItems.filter(p => p.player_id === activeChild?.id)
   const totalChildDue = activeChildUnpaid.reduce((sum, p) => sum + (p.amount || 0), 0)
 
-  const actionItems = priorityEngine.items.filter(i => !i.playerId || i.playerId === activeChild?.id)
+  const actionItems = (priorityEngine?.items || []).filter(i => !i.playerId || i.playerId === activeChild?.id)
   const visibleAlerts = alerts.filter(a => a.priority === 'urgent' || a.priority === 'high')
 
   // ═══ BUILD WIDGET ARRAY (dynamic — conditional cards) ═══
@@ -449,6 +409,46 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
     return widgets
   }, [registrationData, activeChildIdx, actionItems, activeChildEvents, activeTeam, childAchievements, totalChildDue, isDark, profile?.full_name, paymentSummary])
+
+  // ═══ CONDITIONAL RETURNS ═══
+  if (loading) {
+    return (
+      <div className={`flex items-center justify-center h-64 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
+  if (registrationData.length === 0) {
+    return (
+      <DashboardContainer className={`space-y-6 py-12 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+        <div className="text-center">
+          <span className="text-r-5xl block mb-4">🏐</span>
+          <h2 className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You haven't registered any players yet.</p>
+          <p className={`${isDark ? 'text-slate-500' : 'text-slate-400'} mb-r-4`}>Get started by registering for an open season below.</p>
+        </div>
+        {openSeasons.length > 0 && (
+          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6`}>
+            <h2 className={`text-r-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Open Registrations</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {openSeasons.map(season => (
+                <a key={season.id} href={getRegistrationUrl(season)} target="_blank" rel="noopener noreferrer"
+                  className={`${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-slate-50 hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}>
+                  <div className="w-14 h-14 rounded-xl bg-lynx-sky/20 flex items-center justify-center text-r-3xl">{season.sports?.icon || '🏐'}</div>
+                  <div className="flex-1">
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
+                    <p className={`text-r-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
+                  </div>
+                  <span className="text-lynx-sky font-semibold">Register →</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </DashboardContainer>
+    )
+  }
 
   // ═══ RENDER — WIDGET GRID ═══
   return (

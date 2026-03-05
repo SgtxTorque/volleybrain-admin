@@ -712,6 +712,21 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     setChecklistState(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
+  // ── Build widget array (memoized to prevent layout snap-back on re-render) ──
+  // 24-col grid, 20px row height — all x/y/w/h doubled from 12-col/40px originals
+  const coachWidgets = useMemo(() => [
+    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
+    { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 0, y: 6, w: 14, h: 18 }, minW: 2, minH: 2, maxH: 28, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
+    { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 0, y: 24, w: 14, h: 8 }, minW: 2, minH: 2, maxH: 12, component: <AlsoThisWeekCard events={upcomingEvents} /> },
+    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 14, y: 6, w: 10, h: 10 }, minW: 2, minH: 2, maxH: 20, component: <CoachNotifications /> },
+    { id: 'squad-roster', label: 'Squad Roster', defaultLayout: { x: 14, y: 16, w: 10, h: 16 }, minW: 2, minH: 2, maxH: 36, component: <SquadRosterCard roster={roster} selectedTeam={selectedTeam} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} /> },
+    { id: 'calendar-strip', label: 'Calendar Strip', defaultLayout: { x: 0, y: 32, w: 12, h: 14 }, minW: 2, minH: 2, maxH: 20, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} onEventSelect={setSelectedEventDetail} /> },
+    { id: 'action-items', label: 'Action Items', defaultLayout: { x: 12, y: 32, w: 12, h: 14 }, minW: 2, minH: 2, maxH: 20, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
+    { id: 'team-health', label: 'Team Health', defaultLayout: { x: 0, y: 46, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 16, component: <TeamHealthCard attendanceRate={avgAttendanceLast3 || 0} gameAttendance={avgAttendanceLast3 || 0} practiceAttendance={avgAttendanceLast3 || 0} avgRating={0} record={{ wins: teamRecord.wins, losses: teamRecord.losses }} winRate={winRate} /> },
+    { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 0, y: 56, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 20, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
+    { id: 'team-readiness', label: 'Team Readiness', defaultLayout: { x: 12, y: 56, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 20, component: <TeamReadinessCard rosterSize={roster.length} rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0} attendanceRate={avgAttendanceLast3 || 100} waiversSigned={roster.length} /> },
+  ], [profile?.full_name, selectedTeam, selectedSeason, isDark, nextGame, nextEvent, teamRecord, winRate, upcomingEvents, roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, onNavigate])
+
   // ── Loading State ──
   if (loading) {
     return (
@@ -738,21 +753,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       </div>
     )
   }
-
-  // ── Build widget array (memoized to prevent layout snap-back on re-render) ──
-  // 24-col grid, 20px row height — all x/y/w/h doubled from 12-col/40px originals
-  const coachWidgets = useMemo(() => [
-    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
-    { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 0, y: 6, w: 14, h: 18 }, minW: 2, minH: 2, maxH: 28, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
-    { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 0, y: 24, w: 14, h: 8 }, minW: 2, minH: 2, maxH: 12, component: <AlsoThisWeekCard events={upcomingEvents} /> },
-    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 14, y: 6, w: 10, h: 10 }, minW: 2, minH: 2, maxH: 20, component: <CoachNotifications /> },
-    { id: 'squad-roster', label: 'Squad Roster', defaultLayout: { x: 14, y: 16, w: 10, h: 16 }, minW: 2, minH: 2, maxH: 36, component: <SquadRosterCard roster={roster} selectedTeam={selectedTeam} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} /> },
-    { id: 'calendar-strip', label: 'Calendar Strip', defaultLayout: { x: 0, y: 32, w: 12, h: 14 }, minW: 2, minH: 2, maxH: 20, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} onEventSelect={setSelectedEventDetail} /> },
-    { id: 'action-items', label: 'Action Items', defaultLayout: { x: 12, y: 32, w: 12, h: 14 }, minW: 2, minH: 2, maxH: 20, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
-    { id: 'team-health', label: 'Team Health', defaultLayout: { x: 0, y: 46, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 16, component: <TeamHealthCard attendanceRate={avgAttendanceLast3 || 0} gameAttendance={avgAttendanceLast3 || 0} practiceAttendance={avgAttendanceLast3 || 0} avgRating={0} record={{ wins: teamRecord.wins, losses: teamRecord.losses }} winRate={winRate} /> },
-    { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 0, y: 56, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 20, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
-    { id: 'team-readiness', label: 'Team Readiness', defaultLayout: { x: 12, y: 56, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 20, component: <TeamReadinessCard rosterSize={roster.length} rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0} attendanceRate={avgAttendanceLast3 || 100} waiversSigned={roster.length} /> },
-  ], [profile?.full_name, selectedTeam, selectedSeason, isDark, nextGame, nextEvent, teamRecord, winRate, upcomingEvents, roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, onNavigate])
 
   // ── Main Render: Full-width scrollable content (sidebar handled by MainApp) ──
   return (

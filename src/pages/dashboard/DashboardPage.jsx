@@ -1365,14 +1365,6 @@ export function DashboardPage({ onNavigate }) {
     { name: 'No recent activity', initials: '—', action: 'Start approving registrations to see activity here' },
   ]
 
-  if (!seasonLoading && !selectedSeason) {
-    return <GettingStartedGuide onNavigate={onNavigate} />
-  }
-
-  if (seasonLoading) {
-    return <SkeletonDashboard />
-  }
-
   // Calculate season week
   const getSeasonWeek = () => {
     if (!selectedSeason?.start_date) return null
@@ -1459,6 +1451,14 @@ export function DashboardPage({ onNavigate }) {
     { id: 'org-financials', label: 'Financials', defaultLayout: { x: 0, y: 98, w: 12, h: 16 }, minW: 2, minH: 2, maxH: 28, component: <OrgFinancials stats={stats} onNavigate={onNavigate} /> },
     { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 12, y: 98, w: 12, h: 16 }, minW: 2, minH: 2, maxH: 28, component: <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} /> },
   ], [profile?.full_name, selectedSeason, isDark, organization, stats, healthScore, totalTeams, totalPlayers, waiverPct, eventsThisMonth, overdueCount, urgentItems, actionItems, quickActionCounts, upcomingEvents, teamsData, teamStats, allSeasons, seasons, sports, teamCountsMap, playerCountsMap, orgName, onNavigate])
+
+  if (!seasonLoading && !selectedSeason) {
+    return <GettingStartedGuide onNavigate={onNavigate} />
+  }
+
+  if (seasonLoading) {
+    return <SkeletonDashboard />
+  }
 
   return (
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
