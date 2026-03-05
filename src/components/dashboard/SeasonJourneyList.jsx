@@ -90,16 +90,16 @@ function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCou
       {/* Row 1: Sport icon + Season name */}
       <div className="flex items-center gap-2 mb-2">
         <span
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-lg shrink-0"
           style={{ backgroundColor: `${sportColor}15` }}
         >
           {sportIcon}
         </span>
         <div className="min-w-0 flex-1">
-          <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-r-lg font-extrabold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {season?.name || 'Season'}
           </p>
-          <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-r-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             {teamCount} teams · {playerCount} players
           </p>
         </div>
@@ -110,7 +110,7 @@ function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCou
         {JOURNEY_STEPS.map((step, idx) => (
           <div
             key={step.id}
-            className={`w-2.5 h-2.5 rounded-full flex items-center justify-center text-[6px] font-bold ${
+            className={`w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold ${
               completedSteps[idx]
                 ? 'bg-emerald-500 text-white'
                 : idx === nextStepIdx
@@ -120,7 +120,7 @@ function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCou
             title={step.label}
           />
         ))}
-        <span className={`ml-1.5 text-[10px] font-bold tabular-nums ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <span className={`ml-1.5 text-r-base font-bold tabular-nums ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           {completedCount}/{totalSteps}
         </span>
       </div>
@@ -128,17 +128,17 @@ function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCou
       {/* Next step + Continue */}
       <div className="flex items-center justify-between">
         {nextStep ? (
-          <span className={`text-[10px] truncate ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+          <span className={`text-r-sm font-semibold truncate ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
             {nextStep.label}
           </span>
         ) : (
-          <span className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+          <span className={`text-r-sm font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
             All steps complete
           </span>
         )}
         <button
           onClick={() => onNavigate?.('season-management', { seasonId: season?.id })}
-          className="flex items-center gap-0.5 text-[11px] font-bold shrink-0 ml-1 transition-colors"
+          className="flex items-center gap-0.5 text-r-sm font-bold shrink-0 ml-1 transition-colors"
           style={{ color: sportColor }}
         >
           Continue
@@ -184,7 +184,7 @@ export default function SeasonJourneyList({ seasons = [], sports = [], teamCount
         {hasMore && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-[10px] font-bold text-lynx-sky flex items-center gap-0.5"
+            className="text-r-sm font-bold text-lynx-sky flex items-center gap-0.5"
           >
             {showAll ? 'Less' : `+${sorted.length - MAX_VISIBLE} more`}
             {showAll ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}

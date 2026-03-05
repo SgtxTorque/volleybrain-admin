@@ -938,6 +938,36 @@ export function DashboardPage({ onNavigate }) {
   const [coachesData, setCoachesData] = useState([])
   const [loading, setLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
+  const [perSeasonTeamCounts, setPerSeasonTeamCounts] = useState({})
+  const [perSeasonPlayerCounts, setPerSeasonPlayerCounts] = useState({})
+
+  // Fetch per-season team & player counts for Season Journey (runs once per org)
+  useEffect(() => {
+    const seasonList = allSeasons || seasons || []
+    if (seasonList.length === 0) return
+    const seasonIds = seasonList.map(s => s.id)
+    ;(async () => {
+      try {
+        const { data: allTeams } = await supabase
+          .from('teams')
+          .select('id, season_id')
+          .in('season_id', seasonIds)
+        const tMap = {}
+        ;(allTeams || []).forEach(t => { tMap[t.season_id] = (tMap[t.season_id] || 0) + 1 })
+        setPerSeasonTeamCounts(tMap)
+
+        const { data: allPlayers } = await supabase
+          .from('players')
+          .select('id, season_id')
+          .in('season_id', seasonIds)
+        const pMap = {}
+        ;(allPlayers || []).forEach(p => { pMap[p.season_id] = (pMap[p.season_id] || 0) + 1 })
+        setPerSeasonPlayerCounts(pMap)
+      } catch (err) {
+        console.error('Per-season counts error:', err)
+      }
+    })()
+  }, [allSeasons, seasons])
 
   // Reset team filter when season changes
   useEffect(() => {
@@ -1431,10 +1461,8 @@ export function DashboardPage({ onNavigate }) {
 
   const quickActionCounts = { pendingRegistrations: stats.pending || 0, overduePayments: overdueCount, unrosteredPlayers: unrosteredCount, overdueFamilies: overdueCount, teamsNoSchedule }
 
-  const teamCountsMap = {}
-  ;(allSeasons || seasons || []).forEach(s => { teamCountsMap[s.id] = teamsData.filter(() => true).length })
-  const playerCountsMap = {}
-  ;(allSeasons || seasons || []).forEach(s => { playerCountsMap[s.id] = stats.totalRegistrations || 0 })
+  const teamCountsMap = perSeasonTeamCounts
+  const playerCountsMap = perSeasonPlayerCounts
 
   // ── Build widget array — Carlos's exported layout (24-col grid, 20px row height) ──
   const adminWidgets = useMemo(() => [
