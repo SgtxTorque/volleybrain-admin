@@ -28,6 +28,7 @@ import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
+import DashboardGridLayout from '../../components/layout/DashboardGrid'
 import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
@@ -736,6 +737,21 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     )
   }
 
+  // ── Build widget array ──
+  const [editMode, setEditMode] = useState(false)
+  const coachWidgets = [
+    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 12, h: 3 }, minW: 6, minH: 2, maxH: 4, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
+    { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 0, y: 3, w: 7, h: 9 }, minW: 5, minH: 5, maxH: 14, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
+    { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 0, y: 12, w: 7, h: 4 }, minW: 3, minH: 2, maxH: 6, component: <AlsoThisWeekCard events={upcomingEvents} /> },
+    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 7, y: 3, w: 5, h: 5 }, minW: 3, minH: 3, maxH: 10, component: <CoachNotifications /> },
+    { id: 'squad-roster', label: 'Squad Roster', defaultLayout: { x: 7, y: 8, w: 5, h: 8 }, minW: 3, minH: 4, maxH: 18, component: <SquadRosterCard roster={roster} selectedTeam={selectedTeam} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} /> },
+    { id: 'calendar-strip', label: 'Calendar Strip', defaultLayout: { x: 0, y: 16, w: 6, h: 7 }, minW: 4, minH: 4, maxH: 10, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} onEventSelect={setSelectedEventDetail} /> },
+    { id: 'action-items', label: 'Action Items', defaultLayout: { x: 6, y: 16, w: 6, h: 7 }, minW: 3, minH: 3, maxH: 10, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
+    { id: 'team-health', label: 'Team Health', defaultLayout: { x: 0, y: 23, w: 12, h: 5 }, minW: 6, minH: 3, maxH: 8, component: <TeamHealthCard attendanceRate={avgAttendanceLast3 || 0} gameAttendance={avgAttendanceLast3 || 0} practiceAttendance={avgAttendanceLast3 || 0} avgRating={0} record={{ wins: teamRecord.wins, losses: teamRecord.losses }} winRate={winRate} /> },
+    { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 0, y: 28, w: 6, h: 6 }, minW: 3, minH: 3, maxH: 10, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
+    { id: 'team-readiness', label: 'Team Readiness', defaultLayout: { x: 6, y: 28, w: 6, h: 6 }, minW: 3, minH: 3, maxH: 10, component: <TeamReadinessCard rosterSize={roster.length} rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0} attendanceRate={avgAttendanceLast3 || 100} waiversSigned={roster.length} /> },
+  ]
+
   // ── Main Render: Full-width scrollable content (sidebar handled by MainApp) ──
   return (
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
@@ -743,16 +759,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       <div className="w-full h-full overflow-y-auto">
         <DashboardContainer className="space-y-5">
 
-          {/* Welcome Banner */}
-          <WelcomeBanner
-            role="coach"
-            userName={profile?.full_name}
-            teamName={selectedTeam?.name}
-            seasonName={selectedSeason?.name}
-            isDark={isDark}
-          />
-
-          {/* Team Selector — when coaching multiple teams */}
+          {/* Team Selector — not in grid, always at top */}
           {teams.length > 1 && (
             <div className="flex items-center gap-2 flex-wrap">
               {teams.map(team => (
@@ -774,65 +781,20 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             </div>
           )}
 
-          {/* Row 1: Hero (~55%) | Notifications + Squad (right) */}
-          <HeroGrid>
-            {/* Left column */}
-            <div className="space-y-2">
-              <CoachGameDayHeroV2
-                nextGame={nextGame}
-                nextEvent={nextEvent}
-                selectedTeam={selectedTeam}
-                teamRecord={teamRecord}
-                winRate={winRate}
-                onNavigate={onNavigate}
-              />
-              <AlsoThisWeekCard events={upcomingEvents} />
-            </div>
-            {/* Right column */}
-            <div className="space-y-4">
-              <CoachNotifications />
-              <SquadRosterCard
-                roster={roster}
-                selectedTeam={selectedTeam}
-                onNavigate={onNavigate}
-                onPlayerSelect={setSelectedPlayer}
-              />
-            </div>
-          </HeroGrid>
-
-          {/* Row 2: Calendar Strip + Action Items (left ~55%) */}
-          <TwoColGrid>
-            <CalendarStripCard
-              events={upcomingEvents}
-              onNavigate={onNavigate}
-              onEventSelect={setSelectedEventDetail}
-            />
-            <CoachActionItemsCard
-              items={needsAttentionItems}
-              onNavigate={onNavigate}
-            />
-          </TwoColGrid>
-
-          {/* Row 3: Team Health (full width) */}
-          <TeamHealthCard
-            attendanceRate={avgAttendanceLast3 || 0}
-            gameAttendance={avgAttendanceLast3 || 0}
-            practiceAttendance={avgAttendanceLast3 || 0}
-            avgRating={0}
-            record={{ wins: teamRecord.wins, losses: teamRecord.losses }}
-            winRate={winRate}
+          {/* Widget Grid */}
+          <DashboardGridLayout
+            widgets={coachWidgets}
+            editMode={editMode}
+            onLayoutChange={(layouts) => console.log('Coach layout changed:', layouts)}
           />
 
-          {/* Row 4: Quick Actions (half width) + Team Readiness */}
-          <TwoColGrid>
-            <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} />
-            <TeamReadinessCard
-              rosterSize={roster.length}
-              rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0}
-              attendanceRate={avgAttendanceLast3 || 100}
-              waiversSigned={roster.length}
-            />
-          </TwoColGrid>
+          {/* Edit Layout FAB */}
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className="fixed bottom-6 right-6 z-40 bg-lynx-sky text-white rounded-full px-5 py-2.5 shadow-lg font-bold text-r-sm hover:bg-lynx-sky/90 transition-all hover:scale-105"
+          >
+            {editMode ? '✓ Done Editing' : 'Edit Layout'}
+          </button>
 
         </DashboardContainer>
       </div>
