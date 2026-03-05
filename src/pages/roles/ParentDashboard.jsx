@@ -24,6 +24,7 @@ import {
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
+import EditLayoutButton from '../../components/layout/EditLayoutButton'
 import { TwoColGrid } from '../../components/layout/DashboardGrids'
 import { Award } from '../../constants/icons'
 
@@ -460,12 +461,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       />
 
       {/* Edit Layout FAB */}
-      <button
-        onClick={() => setEditMode(!editMode)}
-        className="fixed bottom-6 right-6 z-40 bg-lynx-sky text-white rounded-full px-5 py-2.5 shadow-lg font-bold text-r-sm hover:bg-lynx-sky/90 transition-all hover:scale-105"
-      >
-        {editMode ? '✓ Done Editing' : 'Edit Layout'}
-      </button>
+      <EditLayoutButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
 
       {/* ═══ MODALS ═══ */}
       {selectedEventDetail && (

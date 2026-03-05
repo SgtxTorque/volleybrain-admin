@@ -8,6 +8,7 @@ import { useState, useCallback, useMemo, useRef } from 'react'
 import { ResponsiveGridLayout, useContainerWidth, verticalCompactor } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
+import { Copy, RotateCcw, Check } from 'lucide-react'
 
 /**
  * DashboardGrid — wraps dashboard cards in a draggable/resizable grid.
@@ -57,16 +58,24 @@ export default function DashboardGrid({
     setLayouts(reset)
   }, [defaultLg])
 
+  const [exported, setExported] = useState(false)
+
   const handleExport = useCallback(() => {
-    const exportData = (layoutRef.current.lg || defaultLg).map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
+    const currentLg = layoutRef.current.lg || defaultLg
+    const exportData = currentLg.map(({ i, x, y, w, h }) => ({ i, x, y, w, h }))
     const json = JSON.stringify(exportData, null, 2)
     console.log('=== CURRENT LAYOUT ===')
     console.log(json)
+    // Readable summary
+    currentLg.forEach(item => {
+      console.log(`  ${item.i}: ${item.w}col × ${item.h}row at (${item.x},${item.y})`)
+    })
     console.log('=== END LAYOUT ===')
     try {
       navigator.clipboard.writeText(json)
     } catch { /* clipboard may not be available */ }
-    alert('Layout exported to console (F12 → Console) and copied to clipboard.')
+    setExported(true)
+    setTimeout(() => setExported(false), 2000)
   }, [defaultLg])
 
   return (
@@ -81,15 +90,19 @@ export default function DashboardGrid({
           <div className="flex items-center gap-2">
             <button
               onClick={handleReset}
-              className="bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-r-sm font-bold hover:bg-slate-300 transition-colors"
+              className="flex items-center gap-1.5 bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-r-sm font-bold hover:bg-slate-300 transition-colors"
             >
-              Reset
+              <RotateCcw size={14} /> Reset
             </button>
             <button
               onClick={handleExport}
-              className="bg-amber-500 text-white px-4 py-1.5 rounded-lg text-r-sm font-bold hover:bg-amber-600 transition-colors"
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-r-sm font-bold transition-colors ${
+                exported
+                  ? 'bg-green-500 text-white'
+                  : 'bg-amber-500 text-white hover:bg-amber-600'
+              }`}
             >
-              Export Layout
+              {exported ? <><Check size={14} /> Copied!</> : <><Copy size={14} /> Export Layout</>}
             </button>
           </div>
         </div>

@@ -29,6 +29,7 @@ import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
+import EditLayoutButton from '../../components/layout/EditLayoutButton'
 import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
@@ -789,12 +790,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           />
 
           {/* Edit Layout FAB */}
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className="fixed bottom-6 right-6 z-40 bg-lynx-sky text-white rounded-full px-5 py-2.5 shadow-lg font-bold text-r-sm hover:bg-lynx-sky/90 transition-all hover:scale-105"
-          >
-            {editMode ? '✓ Done Editing' : 'Edit Layout'}
-          </button>
+          <EditLayoutButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
 
         </DashboardContainer>
       </div>

@@ -33,6 +33,7 @@ import AdminActionChecklist from '../../components/dashboard/AdminActionChecklis
 import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
+import EditLayoutButton from '../../components/layout/EditLayoutButton'
 import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 
 // ============================================
@@ -1501,12 +1502,7 @@ export function DashboardPage({ onNavigate }) {
           />
 
           {/* ─── Edit Layout FAB ──── */}
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className="fixed bottom-6 right-6 z-40 bg-lynx-sky text-white rounded-full px-5 py-2.5 shadow-lg font-bold text-r-sm hover:bg-lynx-sky/90 transition-all hover:scale-105"
-          >
-            {editMode ? '✓ Done Editing' : 'Edit Layout'}
-          </button>
+          <EditLayoutButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
 
         </DashboardContainer>
       </div>
