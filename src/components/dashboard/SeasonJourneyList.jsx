@@ -1,14 +1,34 @@
 // =============================================================================
-// SeasonJourneyList — Vertical compact season cards (right of hero)
-// Each card shows season name, sport badge, completion %, power bar, blocker.
-// Sorted by urgency (lowest completion first).
+// SeasonJourneyList — Vertical compact season cards with step trackers
+// Sport emoji icons, step dots, next-step labels, per-season data
 // =============================================================================
 
 import { useTheme } from '../../contexts/ThemeContext'
 import { ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 
-// Sport accent colors
+// Sport emoji mapping
+const SPORT_ICONS = {
+  volleyball: '🏐',
+  basketball: '🏀',
+  soccer: '⚽',
+  football: '🏈',
+  baseball: '⚾',
+  softball: '🥎',
+  tennis: '🎾',
+  swimming: '🏊',
+  track: '🏃',
+}
+
+function getSportIcon(sportName) {
+  if (!sportName) return '🏐'
+  const key = sportName.toLowerCase()
+  for (const [sport, icon] of Object.entries(SPORT_ICONS)) {
+    if (key.includes(sport)) return icon
+  }
+  return sportName.slice(0, 2).toUpperCase()
+}
+
 const SPORT_COLORS = {
   volleyball: '#4BB9EC',
   basketball: '#F59E0B',
@@ -19,181 +39,180 @@ const SPORT_COLORS = {
   default: '#4BB9EC',
 }
 
-// Journey step definitions
+// Journey steps
 const JOURNEY_STEPS = [
-  { id: 'setup', label: 'Setup' },
-  { id: 'tryouts', label: 'Tryouts' },
-  { id: 'rosters', label: 'Rosters' },
-  { id: 'season', label: 'Season' },
-  { id: 'playoffs', label: 'Playoffs' },
-  { id: 'wrapup', label: 'Wrap-up' },
+  { id: 'org-profile', label: 'Org Profile' },
+  { id: 'create-season', label: 'Create Season' },
+  { id: 'registration', label: 'Registration' },
+  { id: 'create-teams', label: 'Create Teams' },
+  { id: 'assign-coaches', label: 'Assign Coaches' },
+  { id: 'roster-players', label: 'Roster Players' },
+  { id: 'order-jerseys', label: 'Order Jerseys' },
+  { id: 'build-schedule', label: 'Build Schedule' },
+  { id: 'setup-payments', label: 'Setup Payments' },
+  { id: 'go-live', label: 'Go Live' },
 ]
 
-// Map season status to journey step index
-function getActiveStepIndex(season) {
-  if (!season) return 0
+function getCompletedSteps(season, teamCount, playerCount) {
+  const steps = []
+  steps.push(true) // org-profile — always done if season exists
+  steps.push(true) // create-season — this season exists
   const status = season.status?.toLowerCase() || ''
-  if (status === 'completed' || status === 'archived') return 5
-  if (status === 'playoffs') return 4
-  if (status === 'active' || status === 'in_progress') return 3
-  if (status === 'rostering') return 2
-  if (status === 'tryouts') return 1
-  return 0
+  steps.push(status === 'open' || status === 'active' || status === 'in_progress' || playerCount > 0) // registration
+  steps.push(teamCount > 0) // create-teams
+  steps.push((season.coach_count || 0) > 0 || teamCount > 0) // assign-coaches (approximate)
+  steps.push(playerCount > 0) // roster-players
+  steps.push(false) // order-jerseys — can't determine from data
+  steps.push((season.event_count || 0) > 0) // build-schedule
+  steps.push(false) // setup-payments — can't determine
+  steps.push(status === 'active' || status === 'in_progress') // go-live
+  return steps
 }
 
-// Determine the main blocker for a season
-function getBlocker(season, teamCount, playerCount) {
-  if (playerCount === 0) return 'No players registered'
-  if (teamCount === 0) return 'No teams created'
-  const status = season.status?.toLowerCase() || ''
-  if (status === 'draft' || status === 'planning') return 'Season not started'
-  return null
-}
-
-// =============================================================================
-// Single compact season card
-// =============================================================================
 function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCount, onNavigate }) {
   const { isDark } = useTheme()
-  const activeIdx = getActiveStepIndex(season)
-  const progressPct = Math.round(((activeIdx + 1) / JOURNEY_STEPS.length) * 100)
-  const blocker = getBlocker(season, teamCount, playerCount)
+  const completedSteps = getCompletedSteps(season, teamCount, playerCount)
+  const completedCount = completedSteps.filter(Boolean).length
+  const totalSteps = JOURNEY_STEPS.length
 
-  // Color by threshold
-  const pctColor = progressPct >= 75 ? 'text-emerald-500' : progressPct >= 40 ? 'text-amber-500' : 'text-red-500'
-  const barColor = progressPct >= 75 ? 'bg-emerald-500' : progressPct >= 40 ? 'bg-amber-500' : 'bg-red-500'
+  // Find next incomplete step
+  const nextStepIdx = completedSteps.findIndex(done => !done)
+  const nextStep = nextStepIdx >= 0 ? JOURNEY_STEPS[nextStepIdx] : null
 
-  // Sport badge abbreviation
-  const sportAbbr = (sportName || 'SP').slice(0, 2).toUpperCase()
+  const sportIcon = getSportIcon(sportName)
 
   const cardBg = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
-    : 'bg-white border border-slate-200'
+    ? 'bg-white/[0.03] border border-white/[0.06]'
+    : 'bg-slate-50 border border-slate-100'
 
   return (
-    <div className={`${cardBg} rounded-xl p-4`}>
-      {/* Row 1: Season name + sport badge — left. Completion % — right */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span
-            className="text-r-xs font-bold px-2 py-0.5 rounded-md shrink-0"
-            style={{ backgroundColor: `${sportColor}20`, color: sportColor }}
-          >
-            {sportAbbr}
-          </span>
-          <span className={`text-r-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+    <div className={`${cardBg} rounded-xl p-3`}>
+      {/* Row 1: Sport icon + Season name */}
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0"
+          style={{ backgroundColor: `${sportColor}15` }}
+        >
+          {sportIcon}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {season?.name || 'Season'}
-          </span>
+          </p>
+          <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            {teamCount} teams · {playerCount} players
+          </p>
         </div>
-        <span className={`text-r-2xl font-extrabold tabular-nums shrink-0 ml-2 ${pctColor}`}>
-          {progressPct}%
+      </div>
+
+      {/* Step tracker dots */}
+      <div className="flex items-center gap-1 mb-2">
+        {JOURNEY_STEPS.map((step, idx) => (
+          <div
+            key={step.id}
+            className={`w-2.5 h-2.5 rounded-full flex items-center justify-center text-[6px] font-bold ${
+              completedSteps[idx]
+                ? 'bg-emerald-500 text-white'
+                : idx === nextStepIdx
+                  ? 'bg-amber-500 text-white'
+                  : isDark ? 'bg-white/[0.08] text-slate-500' : 'bg-slate-200 text-slate-400'
+            }`}
+            title={step.label}
+          />
+        ))}
+        <span className={`ml-1.5 text-[10px] font-bold tabular-nums ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          {completedCount}/{totalSteps}
         </span>
       </div>
 
-      {/* Row 2: Power bar */}
-      <div className={`h-2 rounded-full overflow-hidden mb-2 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
-
-      {/* Row 3: Blocker + counts + Continue */}
+      {/* Next step + Continue */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {blocker ? (
-            <span className={`text-r-sm truncate ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-              Blocker: {blocker}
-            </span>
-          ) : (
-            <span className={`text-r-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-              {teamCount} teams · {playerCount} players
-            </span>
-          )}
-        </div>
+        {nextStep ? (
+          <span className={`text-[10px] truncate ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+            {nextStep.label}
+          </span>
+        ) : (
+          <span className={`text-[10px] ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+            All steps complete
+          </span>
+        )}
         <button
           onClick={() => onNavigate?.('season-management', { seasonId: season?.id })}
-          className="flex items-center gap-1 text-r-sm font-bold shrink-0 ml-2 transition-colors"
+          className="flex items-center gap-0.5 text-[11px] font-bold shrink-0 ml-1 transition-colors"
           style={{ color: sportColor }}
         >
           Continue
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-3 h-3" />
         </button>
       </div>
     </div>
   )
 }
 
-// =============================================================================
-// Main List Component
-// =============================================================================
 export default function SeasonJourneyList({ seasons = [], sports = [], teamCounts = {}, playerCounts = {}, onNavigate }) {
   const { isDark } = useTheme()
   const [showAll, setShowAll] = useState(false)
 
-  // Only show seasons that are active (not completed/archived)
   const activeSeasons = seasons.filter(s => {
     const status = s.status?.toLowerCase() || ''
     return !['completed', 'archived'].includes(status)
   })
 
-  // Sort by urgency — lowest completion first
   const sorted = [...activeSeasons].sort((a, b) => {
-    const aIdx = getActiveStepIndex(a)
-    const bIdx = getActiveStepIndex(b)
-    return aIdx - bIdx
+    const aSteps = getCompletedSteps(a, teamCounts[a.id] || 0, playerCounts[a.id] || 0).filter(Boolean).length
+    const bSteps = getCompletedSteps(b, teamCounts[b.id] || 0, playerCounts[b.id] || 0).filter(Boolean).length
+    return aSteps - bSteps
   })
 
   if (sorted.length === 0) return null
 
-  const MAX_VISIBLE = 6
+  const MAX_VISIBLE = 4
   const visible = showAll ? sorted : sorted.slice(0, MAX_VISIBLE)
   const hasMore = sorted.length > MAX_VISIBLE
 
+  const cardBg = isDark
+    ? 'bg-lynx-charcoal border border-white/[0.06]'
+    : 'bg-white border border-slate-200'
+
   return (
-    <div className="flex flex-col gap-2 h-full max-h-hero overflow-y-auto">
-      {visible.map(season => {
-        const sport = sports.find(s => s.id === season.sport_id)
-        const sportName = sport?.name || 'Volleyball'
-        const sportKey = sportName.toLowerCase()
-        const sportColor = SPORT_COLORS[sportKey] || SPORT_COLORS.default
+    <div className={`${cardBg} rounded-2xl shadow-sm p-3 h-full flex flex-col`}>
+      {/* Header with View More top-right */}
+      <div className="flex items-center justify-between mb-2">
+        <h3 className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          Season Journey
+        </h3>
+        {hasMore && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="text-[10px] font-bold text-lynx-sky flex items-center gap-0.5"
+          >
+            {showAll ? 'Less' : `+${sorted.length - MAX_VISIBLE} more`}
+            {showAll ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        )}
+      </div>
 
-        return (
-          <CompactSeasonCard
-            key={season.id}
-            season={season}
-            sportName={sportName}
-            sportColor={sportColor}
-            teamCount={teamCounts[season.id] || 0}
-            playerCount={playerCounts[season.id] || 0}
-            onNavigate={onNavigate}
-          />
-        )
-      })}
+      {/* Season cards */}
+      <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
+        {visible.map(season => {
+          const sport = sports.find(s => s.id === season.sport_id)
+          const sportName = sport?.name || 'Volleyball'
+          const sportKey = sportName.toLowerCase()
+          const sportColor = SPORT_COLORS[sportKey] || SPORT_COLORS.default
 
-      {hasMore && !showAll && (
-        <button
-          onClick={() => setShowAll(true)}
-          className={`text-center py-2 text-r-sm font-semibold rounded-xl transition-colors ${
-            isDark ? 'text-lynx-sky hover:bg-white/[0.04]' : 'text-lynx-sky hover:bg-slate-50'
-          }`}
-        >
-          + {sorted.length - MAX_VISIBLE} more season{sorted.length - MAX_VISIBLE !== 1 ? 's' : ''}
-          <ChevronDown className="w-3.5 h-3.5 inline ml-1" />
-        </button>
-      )}
-
-      {hasMore && showAll && (
-        <button
-          onClick={() => setShowAll(false)}
-          className={`text-center py-2 text-r-sm font-semibold rounded-xl transition-colors ${
-            isDark ? 'text-lynx-sky hover:bg-white/[0.04]' : 'text-lynx-sky hover:bg-slate-50'
-          }`}
-        >
-          Show less
-          <ChevronUp className="w-3.5 h-3.5 inline ml-1" />
-        </button>
-      )}
+          return (
+            <CompactSeasonCard
+              key={season.id}
+              season={season}
+              sportName={sportName}
+              sportColor={sportColor}
+              teamCount={teamCounts[season.id] || 0}
+              playerCount={playerCounts[season.id] || 0}
+              onNavigate={onNavigate}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }
