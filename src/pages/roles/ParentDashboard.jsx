@@ -22,6 +22,8 @@ import {
   ReRegisterModal, AlertDetailModal,
 } from './ParentModals'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { TwoColGrid } from '../../components/layout/DashboardGrids'
 import { Award } from '../../constants/icons'
 
 function formatTime12(timeStr) {
@@ -304,7 +306,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
   // ═══ RENDER — SINGLE COLUMN VERTICAL SCROLL ═══
   return (
-    <div className={`w-full px-6 py-6 space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+    <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
 
       {/* 1. Welcome Banner */}
       <WelcomeBanner
@@ -570,7 +572,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           onRsvp={() => { priorityEngine.refresh(); setQuickRsvpEvent(null) }}
           showToast={showToast} />
       )}
-    </div>
+    </DashboardContainer>
   )
 }
 

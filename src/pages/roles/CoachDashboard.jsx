@@ -27,6 +27,8 @@ import TeamHealthCard from '../../components/coach/TeamHealthCard'
 import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 
 // ── Event Detail Modal ──
@@ -739,7 +741,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
       {/* Main Content — full width */}
       <div className="w-full h-full overflow-y-auto">
-        <div className="px-6 py-6 space-y-5 w-full">
+        <DashboardContainer className="space-y-5">
 
           {/* Welcome Banner */}
           <WelcomeBanner
@@ -773,7 +775,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           )}
 
           {/* Row 1: Hero (~55%) | Notifications + Squad (right) */}
-          <div className="grid grid-cols-1 lg:grid-cols-[55%_1fr] gap-4">
+          <HeroGrid>
             {/* Left column */}
             <div className="space-y-2">
               <CoachGameDayHeroV2
@@ -796,10 +798,10 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 onPlayerSelect={setSelectedPlayer}
               />
             </div>
-          </div>
+          </HeroGrid>
 
           {/* Row 2: Calendar Strip + Action Items (left ~55%) */}
-          <div className="grid grid-cols-1 lg:grid-cols-[55%_1fr] gap-4">
+          <TwoColGrid>
             <CalendarStripCard
               events={upcomingEvents}
               onNavigate={onNavigate}
@@ -809,7 +811,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               items={needsAttentionItems}
               onNavigate={onNavigate}
             />
-          </div>
+          </TwoColGrid>
 
           {/* Row 3: Team Health (full width) */}
           <TeamHealthCard
@@ -822,7 +824,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           />
 
           {/* Row 4: Quick Actions (half width) + Team Readiness */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TwoColGrid>
             <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} />
             <TeamReadinessCard
               rosterSize={roster.length}
@@ -830,9 +832,9 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               attendanceRate={avgAttendanceLast3 || 100}
               waiversSigned={roster.length}
             />
-          </div>
+          </TwoColGrid>
 
-        </div>
+        </DashboardContainer>
       </div>
 
       {/* Modals — DO NOT DELETE */}

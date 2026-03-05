@@ -31,6 +31,8 @@ import OrgWallPreview from '../../components/dashboard/OrgWallPreview'
 import AdminSetupTracker from '../../components/dashboard/AdminSetupTracker'
 import AdminActionChecklist from '../../components/dashboard/AdminActionChecklist'
 import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 
 // ============================================
 // SHARED CARD COMPONENT - iOS Style
@@ -1398,7 +1400,7 @@ export function DashboardPage({ onNavigate }) {
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
       {/* Main Content — full width, sidebar handled by MainApp */}
       <div className="w-full h-full overflow-y-auto">
-        <div className="px-6 py-6 space-y-5 w-full">
+        <DashboardContainer className="space-y-5">
 
           {/* ─── 0. WELCOME BANNER ──────────────────────────── */}
           <WelcomeBanner
@@ -1419,7 +1421,7 @@ export function DashboardPage({ onNavigate }) {
           />
 
           {/* ─── 1. ORG HEALTH HERO + SEASON JOURNEY LIST (side by side) ──── */}
-          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-5 items-stretch">
+          <HeroGrid>
           {(() => {
             // ── Transparent 9-component health score calculation ──
             // Each component scores 0-100, weighted average produces final score
@@ -1522,7 +1524,7 @@ export function DashboardPage({ onNavigate }) {
             })()}
             onNavigate={onNavigate}
           />
-          </div>
+          </HeroGrid>
 
           {/* ─── 1.5 ACTION ITEMS CHECKLIST (full width, detailed) ──── */}
           {(() => {
@@ -1597,10 +1599,10 @@ export function DashboardPage({ onNavigate }) {
           {/* ─── 2. BODY CARD GRID ────────────────────────────── */}
 
           {/* Row: Action Items + Upcoming Events */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TwoColGrid>
             <OrgActionItems stats={stats} onNavigate={onNavigate} />
             <OrgUpcomingEvents events={upcomingEvents} onNavigate={onNavigate} />
-          </div>
+          </TwoColGrid>
 
           {/* All Teams Table */}
           <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} />
@@ -1609,10 +1611,10 @@ export function DashboardPage({ onNavigate }) {
           <PeopleComplianceRow stats={stats} onNavigate={onNavigate} />
 
           {/* Row: Financials + Team Wall */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TwoColGrid>
             <OrgFinancials stats={stats} onNavigate={onNavigate} />
             <OrgWallPreview seasonId={selectedSeason?.id} onNavigate={onNavigate} />
-          </div>
+          </TwoColGrid>
 
           {/* Dashboard Filters — keep for team/season filtering */}
           <button
@@ -1914,7 +1916,7 @@ export function DashboardPage({ onNavigate }) {
         })()}
         <p className="text-3xl font-semibold text-[#4BB9EC]">You&rsquo;ve got this, {profile?.first_name}.</p>
       </div>
-        </div>
+        </DashboardContainer>
       </div>
 
     </div>
