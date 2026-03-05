@@ -2,15 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
-import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { PlayerCardExpanded } from '../../components/players'
 import {
-  ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
-  FileText, ChevronRight, ChevronUp, Star,
-  BarChart3, Camera, Megaphone, Trophy,
-  Image as ImageIcon, Award
+  ArrowLeft, ChevronUp, Camera, Megaphone
 } from '../../constants/icons'
+import TeamWallLeftSidebar from './TeamWallLeftSidebar'
+import TeamWallRightSidebar from './TeamWallRightSidebar'
 import PhotoLightbox from '../../components/common/PhotoLightbox'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import CreateChallengeModal from '../../components/engagement/CreateChallengeModal'
@@ -88,27 +87,6 @@ function VolleyballIcon({ className, style }) {
   )
 }
 
-function formatTime12(timeStr) {
-  if (!timeStr) return ''
-  const [hours, minutes] = timeStr.split(':')
-  const hour = parseInt(hours)
-  const ampm = hour >= 12 ? 'PM' : 'AM'
-  const hour12 = hour % 12 || 12
-  return hour12 + ':' + minutes + ' ' + ampm
-}
-
-function getEventDayLabel(dateStr) {
-  if (!dateStr) return null
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const eventDate = new Date(dateStr)
-  eventDate.setHours(0, 0, 0, 0)
-  const diff = Math.round((eventDate - today) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return 'TODAY'
-  if (diff === 1) return 'TOMORROW'
-  return null
-}
-
 // ═══════════════════════════════════════════════════════════
 // TEAM WALL PAGE — Instagram/Facebook-inspired 3-column layout
 // ═══════════════════════════════════════════════════════════
@@ -116,7 +94,6 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   const { profile, user } = useAuth()
   const { completeStep } = useParentTutorial?.() || {}
   const { isDark } = useTheme()
-  const tc = useThemeClasses()
 
   // ── Theme derived values ──
   const pageBg = isDark ? BRAND.midnight : BRAND.cloud
@@ -539,6 +516,14 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
   // Label style helper (11px/Hal 500/0.1em/uppercase/Slate)
   const labelStyle = { fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: BRAND.slate }
 
+  // Theme object for sidebar components
+  const th = { cardBg, innerBg, borderColor, textPrimary, textSecondary, textMuted, successColor, errorColor, warningColor, shadow, shadowElevated, labelStyle, isDark, BRAND }
+
+  function handleShoutout(preselect) {
+    setShoutoutPreselect(preselect)
+    setShowShoutoutModal(true)
+  }
+
   // ═══════════════════════════════════════════════════════════
   // RENDER — 3-column layout
   // ═══════════════════════════════════════════════════════════
@@ -573,236 +558,13 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       {/* ═══ 3-COLUMN GRID ═══ */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* LEFT COLUMN — Team Identity (Static, No Scroll)   */}
-        {/* ═══════════════════════════════════════════════════ */}
-        <aside className="hidden lg:flex flex-col gap-4 p-4 xl:p-5 overflow-y-auto tw-hide-scrollbar"
-          style={{ height: '100%' }}>
-
-          {/* Back button */}
-          <button onClick={onBack}
-            className="flex items-center gap-2 self-start transition-all"
-            style={{ fontSize: 15, fontWeight: 500, color: BRAND.sky, borderRadius: 10, padding: '4px 8px', marginBottom: -4 }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? `${BRAND.sky}15` : BRAND.ice}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-
-          {/* ─── Team Hero Header ─── */}
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
-            <div className="flex flex-col items-center p-5 gap-3">
-              {/* Logo */}
-              <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center"
-                style={{ border: `3px solid ${borderColor}` }}>
-                {team.logo_url ? (
-                  <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center"
-                    style={{ background: BRAND.ice }}>
-                    <span style={{ fontSize: 24, fontWeight: 700, color: BRAND.navy }}>{teamInitials}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Name */}
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: textPrimary, textAlign: 'center', lineHeight: 1.3 }}>
-                {team.name}
-              </h1>
-
-              {/* Season */}
-              {seasonLabel && (
-                <span style={labelStyle}>
-                  {sportIcon} {seasonLabel}
-                </span>
-              )}
-
-              {/* ─── Season Record ─── */}
-              <div className="w-full pt-3 mt-1" style={{ borderTop: `1px solid ${borderColor}` }}>
-                <p style={{ ...labelStyle, marginBottom: 8 }}>Season Record</p>
-
-                <div className="flex items-center justify-center gap-4">
-                  <div className="text-center">
-                    <span style={{ fontSize: 36, fontWeight: 900, color: successColor, lineHeight: 1 }}>
-                      {gameRecord.wins}
-                    </span>
-                    <p style={labelStyle}>W</p>
-                  </div>
-                  <span style={{ fontSize: 20, color: textMuted }}>—</span>
-                  <div className="text-center">
-                    <span style={{ fontSize: 36, fontWeight: 900, color: errorColor, lineHeight: 1 }}>
-                      {gameRecord.losses}
-                    </span>
-                    <p style={labelStyle}>L</p>
-                  </div>
-                </div>
-
-                {/* Win % */}
-                <p style={{ fontSize: 16, fontWeight: 400, color: textPrimary, textAlign: 'center', marginTop: 4 }}>
-                  {totalGames > 0 ? `${winRate}%` : 'No games played'}
-                </p>
-
-                {/* Progress bar */}
-                {totalGames > 0 && (
-                  <div className="mt-3 w-full rounded-full overflow-hidden"
-                    style={{ height: 5, background: isDark ? BRAND.graphite : BRAND.silver }}>
-                    <div className="h-full rounded-full transition-all"
-                      style={{ width: `${winRate}%`, background: 'linear-gradient(90deg, #10B981, #4BB9EC)', transition: 'width 250ms' }} />
-                  </div>
-                )}
-
-                {/* Recent form dots */}
-                {gameRecord.recentForm.length > 0 && (
-                  <div className="mt-3">
-                    <p style={{ ...labelStyle, marginBottom: 6 }}>Recent Form</p>
-                    <div className="flex items-center justify-center gap-2">
-                      {gameRecord.recentForm.map((result, i) => (
-                        <div key={i} className="w-3 h-3 rounded-full" style={{
-                          background: result === 'win' ? successColor : result === 'loss' ? errorColor : warningColor,
-                          transition: 'all 250ms',
-                        }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ─── Next Event Hero Card (Photo Background) ─── */}
-          {nextGame && (() => {
-            const isGame = nextGame.event_type === 'game' || nextGame.event_type === 'tournament'
-            const bgImage = isGame ? '/images/volleyball-game.jpg' : '/images/volleyball-practice.jpg'
-            const dayLabel = getEventDayLabel(nextGame.event_date)
-
-            return (
-              <div style={{
-                borderRadius: 12, overflow: 'hidden', position: 'relative', minHeight: 200,
-                border: `1px solid ${borderColor}`, boxShadow: shadow,
-              }}>
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  backgroundImage: `url(${bgImage})`,
-                  backgroundSize: 'cover', backgroundPosition: 'center',
-                }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.15) 100%)' }} />
-                <div style={{ position: 'relative', zIndex: 1, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', minHeight: 200 }}>
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                    <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#4BB9EC', color: '#fff' }}>
-                      {(nextGame.event_type || 'GAME').toUpperCase()}
-                    </span>
-                    {dayLabel && (
-                      <span style={{ padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: '#F59E0B', color: '#fff' }}>
-                        {dayLabel}
-                      </span>
-                    )}
-                  </div>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.8)' }}>
-                    {nextGame.event_type === 'practice' ? 'Practice' : 'Game Day'}
-                  </p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>
-                    {nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title || 'Practice'}
-                  </p>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    {nextGame.event_date && (
-                      <span>📅 {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                    )}
-                    {nextGame.event_time && <span>🕐 {formatTime12(nextGame.event_time)}</span>}
-                    {nextGame.location && <span>📍 {nextGame.location}</span>}
-                  </div>
-                  {nextGame.location && (
-                    <button
-                      onClick={() => {
-                        const q = encodeURIComponent(nextGame.location || '')
-                        window.open(`https://www.google.com/maps/search/?api=1&query=${q}`, '_blank')
-                      }}
-                      style={{
-                        marginTop: 12, padding: '8px 16px', borderRadius: 10,
-                        background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.25)',
-                        color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: 6, width: 'fit-content',
-                        transition: 'all 250ms',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,.25)' }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.15)' }}>
-                      📍 Get Directions
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          })()}
-
-          {/* ─── Upcoming Events ─── */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span style={labelStyle}>Upcoming</span>
-              <button onClick={() => onNavigate?.('schedule')}
-                className="flex items-center gap-1 transition-all"
-                style={{ fontSize: 14, fontWeight: 500, color: BRAND.sky }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                Full Calendar <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
-              {upcomingEvents.slice(0, 3).map((event, i) => {
-                const ed = new Date(event.event_date)
-                return (
-                  <div key={event.id} className="flex items-center gap-3 p-3.5"
-                    style={{ borderBottom: i < Math.min(upcomingEvents.length, 3) - 1 ? `1px solid ${borderColor}` : 'none' }}>
-                    <div className="text-center min-w-[36px]">
-                      <p style={{ ...labelStyle, color: BRAND.sky, fontSize: 10 }}>
-                        {ed.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}
-                      </p>
-                      <p style={{ fontSize: 28, fontWeight: 900, color: textPrimary, lineHeight: 1 }}>
-                        {ed.getDate()}
-                      </p>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p style={{ fontSize: 16, fontWeight: 500, color: textPrimary }} className="truncate">
-                        {event.title || event.event_type}{event.opponent ? ` vs ${event.opponent}` : ''}
-                      </p>
-                      <p style={{ fontSize: 14, fontWeight: 500, color: textMuted }}>
-                        {event.event_time && formatTime12(event.event_time)}
-                        {event.location ? ` · ${event.location}` : ''}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-              {upcomingEvents.length === 0 && (
-                <div className="p-6 text-center">
-                  <Calendar className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No upcoming events</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ─── Quick Actions ─── */}
-          <div>
-            <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>Quick Actions</span>
-            <div className="flex flex-col gap-1">
-              {[
-                { icon: Calendar, label: 'View Schedule', action: () => onNavigate?.('schedule') },
-                { icon: MessageCircle, label: 'Team Chat', action: openTeamChat },
-                { icon: BarChart3, label: 'Standings', action: () => onNavigate?.('standings') },
-                { icon: Trophy, label: 'Achievements', action: () => onNavigate?.('achievements') },
-              ].map(item => (
-                <button key={item.label} onClick={item.action}
-                  className="flex items-center gap-3 w-full p-2.5 transition-all"
-                  style={{ borderRadius: 10, fontSize: 16, fontWeight: 500, color: textPrimary, transition: 'all 250ms' }}
-                  onMouseEnter={e => e.currentTarget.style.background = innerBg}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <item.icon className="w-[18px] h-[18px]" style={{ color: BRAND.slate }} />
-                  <span className="flex-1 text-left">{item.label}</span>
-                  <ChevronRight className="w-4 h-4" style={{ color: textMuted }} />
-                </button>
-              ))}
-            </div>
-          </div>
-        </aside>
+        {/* LEFT COLUMN */}
+        <TeamWallLeftSidebar
+          team={team} teamInitials={teamInitials} seasonLabel={seasonLabel}
+          sportIcon={sportIcon} gameRecord={gameRecord} upcomingEvents={upcomingEvents}
+          nextGame={nextGame} headCoach={headCoach} th={th}
+          onBack={onBack} onNavigate={onNavigate} openTeamChat={openTeamChat}
+        />
 
         {/* ═══════════════════════════════════════════════════ */}
         {/* CENTER COLUMN — Social Feed (Scrollable)          */}
@@ -814,7 +576,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
 
             {/* ─── Create Post Bar ─── */}
             {canPost && (
-              <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
+              <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow }}>
                 <div className="flex items-center gap-3 p-4">
                   <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center overflow-hidden"
                     style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 14, fontWeight: 700 }}>
@@ -863,7 +625,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                 <div style={{
                   background: isDark ? 'rgba(75,185,236,.06)' : 'rgba(75,185,236,.03)',
                   border: `1px solid ${isDark ? 'rgba(75,185,236,.12)' : 'rgba(75,185,236,.08)'}`,
-                  borderRadius: 12,
+                  borderRadius: 14,
                   padding: '14px 18px',
                   transition: 'all 250ms',
                 }}>
@@ -978,7 +740,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
                   <button onClick={loadMorePosts} disabled={loadingMorePosts}
                     className="w-full py-3 text-center transition-all"
                     style={{
-                      borderRadius: 12, background: cardBg, border: `1px solid ${borderColor}`,
+                      borderRadius: 14, background: cardBg, border: `1px solid ${borderColor}`,
                       color: textSecondary, fontSize: 16, fontWeight: 500, transition: 'all 250ms',
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
@@ -995,7 +757,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
               </div>
             ) : (
               <div className="text-center p-12"
-                style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
+                style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow }}>
                 <Megaphone className="w-12 h-12 mx-auto" style={{ color: textMuted }} />
                 <p style={{ fontSize: 16, fontWeight: 700, color: textSecondary, marginTop: 16 }}>No posts yet</p>
                 <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 4 }}>
@@ -1007,206 +769,15 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           </div>
         </main>
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* RIGHT COLUMN — Discovery & Community (Scrollable) */}
-        {/* ═══════════════════════════════════════════════════ */}
-        <aside className="hidden md:flex flex-col gap-4 p-4 xl:p-5 overflow-y-auto tw-hide-scrollbar"
-          style={{ height: '100%' }}>
-
-          {/* ─── Gallery ─── */}
-          <div>
-            <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>Gallery</span>
-            {galleryImages.length > 0 ? (
-              <div className="grid grid-cols-3 gap-1.5">
-                {galleryImages.slice(0, 6).map((src, i) => (
-                  <div key={i}
-                    className="relative aspect-square overflow-hidden cursor-pointer"
-                    style={{ borderRadius: 8, transition: 'transform 250ms' }}
-                    onClick={() => setGalleryLightboxIdx(i)}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-                    <img src={src} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-6"
-                style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
-                <ImageIcon className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No photos yet</p>
-              </div>
-            )}
-          </div>
-
-          {/* ─── Challenges / Achievements / Leaderboard ─── */}
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow }}>
-            {[
-              { icon: Trophy, label: 'Challenges', count: activeChallenges.length, nav: 'challenges' },
-              { icon: Award, label: 'Achievements', nav: 'achievements' },
-              { icon: BarChart3, label: 'Leaderboard', nav: 'leaderboards' },
-            ].map((item, i, arr) => (
-              <button key={item.label} onClick={() => onNavigate?.(item.nav)}
-                className="flex items-center gap-3 w-full p-3.5 transition-all text-left"
-                style={{
-                  borderBottom: i < arr.length - 1 ? `1px solid ${borderColor}` : 'none',
-                  color: textPrimary, transition: 'all 250ms',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = innerBg}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <item.icon className="w-5 h-5" style={{ color: BRAND.sky }} />
-                <span style={{ fontSize: 16, fontWeight: 500, flex: 1 }}>{item.label}</span>
-                {item.count > 0 && (
-                  <span style={{
-                    fontSize: 13, fontWeight: 700, padding: '1px 8px', borderRadius: 999,
-                    background: isDark ? `${BRAND.sky}20` : BRAND.ice, color: BRAND.sky,
-                  }}>
-                    {item.count}
-                  </span>
-                )}
-                <ChevronRight className="w-4 h-4" style={{ color: textMuted }} />
-              </button>
-            ))}
-          </div>
-
-          {/* ─── Give Shoutout Link ─── */}
-          <div
-            onClick={() => { setShoutoutPreselect(null); setShowShoutoutModal(true) }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-              cursor: 'pointer', transition: 'all 200ms', borderRadius: 10,
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.03)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <span style={{ fontSize: 18 }}>⭐</span>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#4BB9EC' }}>Give Shoutout</span>
-          </div>
-
-          {/* ─── Head Coach Profile Card ─── */}
-          {headCoach && (
-            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, transition: 'all 250ms', cursor: 'pointer' }}
-              className="flex items-center gap-3 p-4"
-              onMouseEnter={e => e.currentTarget.style.boxShadow = shadowElevated}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = shadow}>
-              <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center shrink-0"
-                style={{ background: BRAND.ice, color: BRAND.deepSky, fontSize: 20, fontWeight: 700 }}>
-                {headCoach.avatar_url ? (
-                  <img src={headCoach.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  headCoach.full_name?.charAt(0) || '?'
-                )}
-              </div>
-              <div>
-                <span style={labelStyle}>Head Coach</span>
-                <p style={{ fontSize: 17, fontWeight: 700, color: textPrimary, marginTop: 2 }}>
-                  {headCoach.full_name}
-                </p>
-                {headCoach.email && (
-                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted }} className="truncate">
-                    {headCoach.email}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ─── Team Roster ─── */}
-          <div>
-            <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>
-              Roster · {roster.length}
-            </span>
-            <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
-              {roster.map((player, i) => (
-                <div key={player.id}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-                    cursor: 'pointer', transition: 'all 200ms',
-                    borderBottom: i < roster.length - 1 ? `1px solid ${borderColor}` : 'none',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = innerBg}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  {/* Avatar + Info — clicking opens profile */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}
-                    onClick={() => setSelectedPlayer(player)}>
-                    <div className="shrink-0 overflow-hidden" style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      background: BRAND.ice, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: BRAND.deepSky, fontSize: 11, fontWeight: 700,
-                    }}>
-                      {player.photo_url ? (
-                        <img src={player.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        (player.first_name?.[0] || '') + (player.last_name?.[0] || '')
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p style={{ fontSize: 14, fontWeight: 600, color: textPrimary }} className="truncate">
-                        {player.first_name} {player.last_name}
-                      </p>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.45)' }}>
-                        {player.jersey_number ? `#${player.jersey_number}` : ''}
-                        {player.jersey_number && player.position ? ' · ' : ''}
-                        {player.position || ''}
-                      </p>
-                    </div>
-                  </div>
-                  {/* Shoutout button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShoutoutPreselect({
-                        id: player.id,
-                        full_name: `${player.first_name} ${player.last_name}`,
-                        avatar_url: player.photo_url || null,
-                        role: 'player',
-                      })
-                      setShowShoutoutModal(true)
-                    }}
-                    title="Give Shoutout"
-                    style={{
-                      width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'transparent', border: 'none', cursor: 'pointer',
-                      fontSize: 16, transition: 'all 200ms',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(75,185,236,.15)' : 'rgba(75,185,236,.1)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    ⭐
-                  </button>
-                </div>
-              ))}
-              {roster.length === 0 && (
-                <div className="p-6 text-center">
-                  <Users className="w-8 h-8 mx-auto" style={{ color: textMuted }} />
-                  <p style={{ fontSize: 14, fontWeight: 500, color: textMuted, marginTop: 8 }}>No players yet</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ─── Documents ─── */}
-          {documents.length > 0 && (
-            <div>
-              <span style={{ ...labelStyle, display: 'block', marginBottom: 8 }}>Documents</span>
-              <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 12, boxShadow: shadow, overflow: 'hidden' }}>
-                {documents.slice(0, 3).map((doc, i) => (
-                  <a key={doc.id} href={doc.file_url} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-3 transition-all"
-                    style={{
-                      borderBottom: i < Math.min(documents.length, 3) - 1 ? `1px solid ${borderColor}` : 'none',
-                      transition: 'all 250ms',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = innerBg}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <FileText className="h-4 w-4 shrink-0" style={{ color: textMuted }} />
-                    <span style={{ fontSize: 14, fontWeight: 500, color: textSecondary }} className="truncate">
-                      {doc.name}
-                    </span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
+        {/* RIGHT COLUMN */}
+        <TeamWallRightSidebar
+          roster={roster} headCoach={headCoach} galleryImages={galleryImages}
+          documents={documents} activeChallenges={activeChallenges}
+          th={th} onNavigate={onNavigate}
+          onGalleryClick={(i) => setGalleryLightboxIdx(i)}
+          onSelectPlayer={setSelectedPlayer}
+          onShoutout={handleShoutout}
+        />
       </div>
 
       {/* ═══ BACK-TO-TOP FAB ═══ */}
