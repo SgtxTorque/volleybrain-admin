@@ -32,7 +32,6 @@ import AdminSetupTracker from '../../components/dashboard/AdminSetupTracker'
 import AdminActionChecklist from '../../components/dashboard/AdminActionChecklist'
 import AdminQuickActions from '../../components/dashboard/AdminQuickActions'
 import AdminNotificationsCard from '../../components/dashboard/AdminNotificationsCard'
-import DashboardFilterCard from '../../components/dashboard/DashboardFilterCard'
 import CalendarStripCard from '../../components/coach/CalendarStripCard'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
@@ -1450,7 +1449,6 @@ export function DashboardPage({ onNavigate }) {
     { id: 'people-compliance', label: 'People & Compliance', defaultLayout: { x: 0, y: 31, w: 12, h: 6 }, minW: 2, minH: 2, maxH: 16, component: <PeopleComplianceRow stats={stats} onNavigate={onNavigate} /> },
     { id: 'kpi-row', label: 'KPI Stats', defaultLayout: { x: 16, y: 29, w: 6, h: 6 }, minW: 2, minH: 2, maxH: 12, component: <OrgKpiRow stats={stats} /> },
     { id: 'all-teams-table', label: 'All Teams', defaultLayout: { x: 16, y: 35, w: 6, h: 10 }, minW: 2, minH: 2, maxH: 32, component: <AllTeamsTable teams={teamsData} teamStats={teamStats} onNavigate={onNavigate} /> },
-    { id: 'dashboard-filters', label: 'Filters', defaultLayout: { x: 8, y: 0, w: 4, h: 4 }, minW: 2, minH: 2, maxH: 10, component: <DashboardFilterCard selectedSeason={selectedSeason} seasons={seasons} allSeasons={allSeasons} sports={sports} teamsData={teamsData} selectedSport={selectedSport} filterTeam={filterTeam} onSeasonChange={selectSeason} onSportChange={selectSport} onTeamChange={setFilterTeam} /> },
     { id: 'org-action-items', label: 'Action Items', defaultLayout: { x: 0, y: 37, w: 1, h: 1 }, minW: 2, minH: 2, maxH: 28, component: <OrgActionItems stats={stats} onNavigate={onNavigate} /> },
   ], [profile?.full_name, selectedSeason, isDark, organization, stats, healthScore, totalTeams, totalPlayers, waiverPct, eventsThisMonth, overdueCount, urgentItems, quickActionCounts, upcomingEvents, teamsData, teamStats, allSeasons, seasons, sports, teamCountsMap, playerCountsMap, orgName, onNavigate])
 
