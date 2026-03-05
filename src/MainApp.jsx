@@ -71,6 +71,9 @@ import { TeamStandingsPage } from './pages/standings'
 import { SeasonLeaderboardsPage } from './pages/leaderboards'
 import { ReportsPage, RegistrationFunnelPage } from './pages/reports'
 
+// Admin Pages
+import SeasonManagementPage from './pages/admin/SeasonManagementPage'
+
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
 
@@ -813,6 +816,9 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
           isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
         />
       } />
+
+      {/* Admin — Season Management */}
+      <Route path="/admin/seasons" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId) => navigate(getPathForPage(pageId))} />} />
 
       {/* Settings */}
       <Route path="/settings/seasons" element={<SeasonsPage showToast={showToast} />} />

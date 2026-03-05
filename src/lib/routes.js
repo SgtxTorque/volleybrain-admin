@@ -36,6 +36,9 @@ export const ROUTES = {
   'season-archives': '/archives',
   'org-directory': '/directory',
 
+  // Season Management (guided workflow)
+  'season-management': '/admin/seasons',
+
   // Settings
   'seasons': '/settings/seasons',
   'templates': '/settings/templates',
@@ -79,6 +82,11 @@ export function getPathForPage(pageId) {
   if (pageId.startsWith('player-') && !pageId.startsWith('player-profile-')) {
     const playerId = pageId.replace('player-', '')
     return `/parent/player/${playerId}`
+  }
+
+  // Dynamic: season management with season ID
+  if (pageId === 'season-management') {
+    return '/admin/seasons'
   }
 
   // Dynamic: team wall
@@ -127,7 +135,8 @@ export const PAGE_TITLES = {
   '/reports/funnel': 'Registration Funnel',
   '/archives': 'Season Archives',
   '/directory': 'Org Directory',
-  '/settings/seasons': 'Season Management',
+  '/admin/seasons': 'Season Management',
+  '/settings/seasons': 'Season Settings',
   '/settings/templates': 'Registration Forms',
   '/settings/waivers': 'Waivers',
   '/settings/payment-setup': 'Payment Setup',
