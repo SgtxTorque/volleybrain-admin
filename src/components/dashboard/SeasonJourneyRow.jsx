@@ -64,15 +64,15 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
               <Circle className="w-3 h-3" style={{ color: sportColor }} />
             </div>
             <div>
-              <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {sportName || 'Sport'}
               </p>
-              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 {season?.name || 'Season'}
               </p>
             </div>
           </div>
-          <span className="text-3xl font-black tabular-nums" style={{ color: sportColor }}>
+          <span className="text-4xl font-black tabular-nums" style={{ color: sportColor }}>
             {progressPct}%
           </span>
         </div>
@@ -111,7 +111,7 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
                 ) : (
                   <div className={`w-8 h-8 rounded-full border-2 ${isDark ? 'border-white/10' : 'border-slate-200'}`} />
                 )}
-                <span className={`text-[8px] font-medium ${
+                <span className={`text-base font-medium ${
                   isDone || isActive
                     ? (isDark ? 'text-slate-300' : 'text-slate-600')
                     : (isDark ? 'text-slate-600' : 'text-slate-300')
@@ -126,16 +126,16 @@ function SportJourneyCard({ season, sportName, sportColor, teamCount, playerCoun
         {/* Footer: counts + CTA */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <span className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               {teamCount || 0} teams
             </span>
-            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <span className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               {playerCount || 0} players
             </span>
           </div>
           <button
             onClick={() => onNavigate?.('seasons')}
-            className="flex items-center gap-1 text-sm font-semibold transition-colors"
+            className="flex items-center gap-1 text-lg font-semibold transition-colors"
             style={{ color: sportColor }}
           >
             Continue

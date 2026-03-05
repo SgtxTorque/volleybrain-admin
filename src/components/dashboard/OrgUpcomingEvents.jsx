@@ -27,7 +27,7 @@ function EventTypeChip({ type }) {
   }
   const cfg = config[type] || { label: type || 'Event', bg: 'bg-slate-500/10', text: 'text-slate-500' }
   return (
-    <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase ${cfg.bg} ${cfg.text}`}>
+    <span className={`px-1.5 py-0.5 rounded-md text-base font-bold uppercase ${cfg.bg} ${cfg.text}`}>
       {cfg.label}
     </span>
   )
@@ -45,13 +45,13 @@ export default function OrgUpcomingEvents({ events = [], onNavigate }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <Calendar className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h3 className={`text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Upcoming Events
           </h3>
         </div>
         <button
           onClick={() => onNavigate?.('schedule')}
-          className="text-xs text-lynx-sky font-medium flex items-center gap-1"
+          className="text-base text-lynx-sky font-medium flex items-center gap-1"
         >
           View All <ChevronRight className="w-3 h-3" />
         </button>
@@ -59,10 +59,10 @@ export default function OrgUpcomingEvents({ events = [], onNavigate }) {
 
       {events.length === 0 ? (
         <div className="text-center py-4">
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
+          <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
           <button
             onClick={() => onNavigate?.('schedule')}
-            className="text-xs text-lynx-sky font-semibold mt-1"
+            className="text-base text-lynx-sky font-semibold mt-1"
           >
             Create Event
           </button>
@@ -77,19 +77,19 @@ export default function OrgUpcomingEvents({ events = [], onNavigate }) {
               }`}
             >
               <div className={`text-center min-w-[44px] shrink-0 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                <p className="text-xs font-bold">{formatEventDate(event.event_date).split(', ')[0]}</p>
-                <p className="text-[10px]">{formatEventDate(event.event_date).split(', ')[1]}</p>
+                <p className="text-base font-bold">{formatEventDate(event.event_date).split(', ')[0]}</p>
+                <p className="text-lg">{formatEventDate(event.event_date).split(', ')[1]}</p>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {event.opponent_name
                       ? `vs ${event.opponent_name}`
                       : event.title || (event.event_type?.charAt(0).toUpperCase() + event.event_type?.slice(1))}
                   </p>
                   <EventTypeChip type={event.event_type} />
                 </div>
-                <div className="flex items-center gap-2 text-[11px]">
+                <div className="flex items-center gap-2 text-lg">
                   {event.teams?.name && (
                     <span style={{ color: event.teams?.color || '#4BB9EC' }} className="font-semibold">
                       {event.teams.name}

@@ -28,8 +28,8 @@ function HealthRing({ score, size = 160 }) {
       }}
     >
       <div className="absolute inset-[6px] rounded-full bg-[#0B1628] flex flex-col items-center justify-center">
-        <span className="text-6xl font-black text-white tabular-nums">{score}</span>
-        <span className="text-sm font-bold uppercase tracking-wider text-slate-400">Health</span>
+        <span className="text-7xl font-black text-white tabular-nums">{score}</span>
+        <span className="text-lg font-bold uppercase tracking-wider text-slate-400">Health</span>
       </div>
     </div>
   )
@@ -46,11 +46,11 @@ function KpiPill({ label, value, change, icon: Icon }) {
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-white text-base font-bold tabular-nums">{value}</p>
-        <p className="text-sm text-slate-500 truncate">{label}</p>
+        <p className="text-white text-xl font-bold tabular-nums">{value}</p>
+        <p className="text-lg text-slate-500 truncate">{label}</p>
       </div>
       {change !== undefined && change !== null && (
-        <div className={`flex items-center gap-0.5 text-sm font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+        <div className={`flex items-center gap-0.5 text-lg font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
           {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           {isPositive ? '+' : ''}{change}%
         </div>
@@ -73,9 +73,9 @@ function UrgentItem({ label, count, severity = 'warning', onClick }) {
       className="w-full flex items-center gap-3 py-2 text-left hover:bg-white/[0.04] rounded-lg transition-colors px-1"
     >
       <div className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-      <span className="text-base text-slate-300 flex-1 truncate">{label}</span>
+      <span className="text-xl text-slate-300 flex-1 truncate">{label}</span>
       {count > 0 && (
-        <span className="text-base font-bold text-white tabular-nums">{count}</span>
+        <span className="text-xl font-bold text-white tabular-nums">{count}</span>
       )}
     </button>
   )
@@ -117,8 +117,8 @@ export default function OrgHealthHero({
         <div className="flex flex-col items-center justify-center gap-3">
           <HealthRing score={healthScore} />
           <div className="text-center">
-            <h2 className="text-xl font-black text-white tracking-wide">{orgName}</h2>
-            <p className="text-sm font-bold mt-1" style={{ color: status.color }}>
+            <h2 className="text-3xl font-black text-white tracking-wide">{orgName}</h2>
+            <p className="text-lg font-bold mt-1" style={{ color: status.color }}>
               {status.label}
             </p>
           </div>
@@ -172,12 +172,12 @@ export default function OrgHealthHero({
         <div className="border-l border-white/[0.06] pl-5">
           <div className="flex items-center gap-2 mb-3">
             <AlertCircle className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400">Needs Attention</h3>
+            <h3 className="text-lg font-bold uppercase tracking-wider text-slate-400">Needs Attention</h3>
           </div>
           {urgentItems.length === 0 ? (
             <div className="text-center py-4">
-              <p className="text-emerald-400 text-base font-semibold">All clear!</p>
-              <p className="text-slate-500 text-sm mt-1">Nothing needs your attention.</p>
+              <p className="text-emerald-400 text-xl font-semibold">All clear!</p>
+              <p className="text-slate-500 text-lg mt-1">Nothing needs your attention.</p>
             </div>
           ) : (
             <div className="space-y-0.5">

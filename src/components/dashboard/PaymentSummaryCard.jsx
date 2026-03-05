@@ -19,12 +19,12 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-[10px] font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
+        <h3 className={`text-lg font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
           Payment Summary
         </h3>
         <button
           onClick={() => onNavigate('payments')}
-          className="flex items-center gap-1 text-[11px] font-bold transition-colors"
+          className="flex items-center gap-1 text-lg font-bold transition-colors"
           style={{ color: isDark ? '#5eead4' : '#4BB9EC' }}
         >
           View All
@@ -53,7 +53,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
             <span className="text-[36px] font-bold leading-none text-red-500">
               ${pastDue.toLocaleString()}
             </span>
-            <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
+            <span className={`text-lg font-semibold ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
               overdue
             </span>
           </div>
@@ -76,11 +76,11 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
               <div className="mt-2 flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{Math.round(collectedW)}% collected</span>
+                  <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{Math.round(collectedW)}% collected</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{Math.round(overdueW)}% overdue</span>
+                  <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{Math.round(overdueW)}% overdue</span>
                 </div>
               </div>
             </>
@@ -92,7 +92,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
       <div className="flex items-stretch gap-0">
         {/* Payment Sources */}
         <div className="flex flex-1 flex-col gap-0 pr-8">
-          <span className={`mb-2 text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+          <span className={`mb-2 text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Sources
           </span>
           {[
@@ -109,8 +109,8 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
                 className={`flex items-center gap-3 border-t py-2.5 ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}
               >
                 <Icon className={`h-4 w-4 ${source.color}`} />
-                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{source.label}</span>
-                <span className={`ml-auto text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <span className={`text-lg ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{source.label}</span>
+                <span className={`ml-auto text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   ${source.amount.toLocaleString()}
                 </span>
               </div>
@@ -123,7 +123,7 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
 
         {/* Recent Payments */}
         <div className="flex flex-1 flex-col gap-0 pl-8">
-          <span className={`mb-2 text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+          <span className={`mb-2 text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
             Recent
           </span>
           {recentPayments && recentPayments.length > 0 ? (
@@ -136,15 +136,15 @@ export default function PaymentSummaryCard({ stats, recentPayments, onNavigate }
                     : ''
                 }`}
               >
-                <span className={`text-sm font-semibold truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{payment.name}</span>
-                <span className={`text-xs text-center ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{payment.date}</span>
-                <span className={`text-xs text-center ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{payment.lineItem}</span>
-                <span className={`text-sm font-semibold text-right ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.amount}</span>
+                <span className={`text-lg font-semibold truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{payment.name}</span>
+                <span className={`text-base text-center ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{payment.date}</span>
+                <span className={`text-base text-center ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{payment.lineItem}</span>
+                <span className={`text-lg font-semibold text-right ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.amount}</span>
               </div>
             ))
           ) : (
             <div className={`border-t py-2.5 ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-              <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No recent payments</span>
+              <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No recent payments</span>
             </div>
           )}
         </div>

@@ -72,14 +72,14 @@ function CardHeader({ title, action, onAction, children, color = 'blue', icon: I
       <div className="flex items-center justify-between px-5 py-3">
         <div className="flex items-center gap-2">
           {Icon && <Icon className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`} />}
-          <h3 className={`font-semibold text-[15px] ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
+          <h3 className={`font-semibold text-3xl ${isDark ? 'text-white' : 'text-slate-800'}`}>{title}</h3>
         </div>
         <div className="flex items-center gap-2">
           {children}
           {action && (
             <button 
               onClick={onAction}
-              className={`text-base px-3 py-1.5 rounded-2xl font-medium transition flex items-center gap-1
+              className={`text-xl px-3 py-1.5 rounded-2xl font-medium transition flex items-center gap-1
                 ${colorClasses[color] || colorClasses.blue} text-white hover:brightness-110`}
             >
               {action}
@@ -129,7 +129,7 @@ function DonutChart({ data, total, centerLabel, size = 160 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${centerLabel}</span>
+        <span className={`text-5xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${centerLabel}</span>
       </div>
     </div>
   )
@@ -169,8 +169,8 @@ function RegistrationDonut({ data, total, size = 138 }) {
         })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-3xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
-        <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
+        <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{total.toLocaleString()}</span>
+        <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total</span>
       </div>
     </div>
   )
@@ -302,7 +302,7 @@ function SeasonCard({ season, stats, onNavigate }) {
         
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-4xl font-bold text-white">
               {season?.name || 'Spring 2026'}
             </h2>
             <span className="text-white/80 font-medium">
@@ -314,8 +314,8 @@ function SeasonCard({ season, stats, onNavigate }) {
               <VolleyballIcon className="w-6 h-6 text-white" />
             </div>
             <div className="text-right">
-              <span className="text-4xl font-bold text-white">{stats.teams}</span>
-              <p className="text-white/70 text-base">Active Teams</p>
+              <span className="text-5xl font-bold text-white">{stats.teams}</span>
+              <p className="text-white/70 text-xl">Active Teams</p>
             </div>
           </div>
         </div>
@@ -346,7 +346,7 @@ function SeasonCard({ season, stats, onNavigate }) {
         
         <button 
           onClick={() => onNavigate('seasons')}
-          className={`mt-3 px-4 py-2 font-medium text-base rounded-2xl transition ${isDark ? "bg-white/[0.06] hover:bg-white/[0.1] text-slate-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
+          className={`mt-3 px-4 py-2 font-medium text-xl rounded-2xl transition ${isDark ? "bg-white/[0.06] hover:bg-white/[0.1] text-slate-200" : "bg-slate-100 hover:bg-slate-200 text-slate-700"}`}
         >
           Manage Season
         </button>
@@ -388,10 +388,10 @@ function FinancialSummary({ stats, onNavigate }) {
       <div className="p-5">
         {/* Main Total */}
         <div className="mb-6">
-          <span className={`text-4xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+          <span className={`text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
             ${stats.totalCollected?.toLocaleString() || '0'}
           </span>
-          <span className={`text-xl ml-2 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Collected YTD</span>
+          <span className={`text-3xl ml-2 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Collected YTD</span>
         </div>
         
         {/* Chart and Breakdown */}
@@ -456,13 +456,13 @@ function FinancialOverview({ monthlyData, totalCollected }) {
   return (
     <DashCard isDark={isDark}>
       <CardHeader isDark={isDark} title="Financial Overview" color="teal" icon={TrendingUp}>
-        <span className={`text-sm px-2 py-1 rounded-full ${isDark ? "text-slate-400 bg-white/[0.06]" : "text-lynx-slate bg-slate-100"}`}>All Seasons</span>
+        <span className={`text-lg px-2 py-1 rounded-full ${isDark ? "text-slate-400 bg-white/[0.06]" : "text-lynx-slate bg-slate-100"}`}>All Seasons</span>
       </CardHeader>
       
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Registration Payments</span>
-          <span className={`text-4xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
+          <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Registration Payments</span>
+          <span className={`text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${totalCollected?.toLocaleString() || '0'}</span>
         </div>
         
         <div className="h-32">
@@ -473,15 +473,15 @@ function FinancialOverview({ monthlyData, totalCollected }) {
         <div className={`flex items-center gap-4 mt-6 pt-4 border-t ${isDark ? "border-white/[0.06]" : "border-slate-100"}`}>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Online</span>
+            <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Online</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Manual</span>
+            <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Manual</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500" />
-            <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Refunds</span>
+            <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Refunds</span>
           </div>
         </div>
       </div>
@@ -516,24 +516,24 @@ function RegistrationStats({ stats, onNavigate }) {
         <div className="flex items-stretch gap-4 mb-5">
           {/* Total Registrations */}
           <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? "bg-white/[0.05]" : "bg-lynx-cloud"}`}>
-            <p className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
-            <p className={`text-base mt-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total Registrations</p>
+            <p className={`text-5xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>{stats.totalRegistrations || 0}</p>
+            <p className={`text-xl mt-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Total Registrations</p>
           </div>
           
           {/* Rostered */}
           <div className={`flex-1 p-4 rounded-2xl text-center ${isDark ? "bg-emerald-500/10" : "bg-emerald-50"}`}>
-            <p className={`text-4xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+            <p className={`text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               {rostered}
-              <span className={`text-xl ${isDark ? "text-emerald-500" : "text-emerald-400"}`}>/{stats.totalRegistrations || 0}</span>
+              <span className={`text-3xl ${isDark ? "text-emerald-500" : "text-emerald-400"}`}>/{stats.totalRegistrations || 0}</span>
             </p>
-            <p className={`text-base mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Rostered</p>
+            <p className={`text-xl mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Rostered</p>
           </div>
         </div>
         
         {/* Capacity Bar */}
         {stats.capacity > 0 && (
           <div className="mb-5">
-            <div className="flex justify-between text-sm text-slate-500 mb-1">
+            <div className="flex justify-between text-lg text-slate-500 mb-1">
               <span>Capacity</span>
               <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
             </div>
@@ -554,41 +554,41 @@ function RegistrationStats({ stats, onNavigate }) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-amber-400" />
-                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Pending Review</span>
+                <span className={`text-xl ${isDark ? "text-slate-300" : "text-slate-600"}`}>Pending Review</span>
               </div>
-              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.pending || 0}</span>
+              <span className={`text-xl font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.pending || 0}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Approved (Unrostered)</span>
+                <span className={`text-xl ${isDark ? "text-slate-300" : "text-slate-600"}`}>Approved (Unrostered)</span>
               </div>
-              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{unrostered}</span>
+              <span className={`text-xl font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{unrostered}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>On Roster</span>
+                <span className={`text-xl ${isDark ? "text-slate-300" : "text-slate-600"}`}>On Roster</span>
               </div>
-              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{rostered}</span>
+              <span className={`text-xl font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{rostered}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-purple-500" />
-                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Waitlisted</span>
+                <span className={`text-xl ${isDark ? "text-slate-300" : "text-slate-600"}`}>Waitlisted</span>
               </div>
-              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.waitlisted || 0}</span>
+              <span className={`text-xl font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.waitlisted || 0}</span>
             </div>
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span className={`text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>Denied/Withdrawn</span>
+                <span className={`text-xl ${isDark ? "text-slate-300" : "text-slate-600"}`}>Denied/Withdrawn</span>
               </div>
-              <span className={`text-base font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.denied || 0}</span>
+              <span className={`text-xl font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{stats.denied || 0}</span>
             </div>
           </div>
         </div>
@@ -619,7 +619,7 @@ function RecentActivity({ tasks, onNavigate }) {
         {/* Filter Dropdown */}
         <div className="flex items-center gap-2 mb-4">
           <ClipboardList className="w-4 h-4 text-slate-400" />
-          <span className={`text-base font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}>Recent Tasks</span>
+          <span className={`text-xl font-medium ${isDark ? "text-slate-200" : "text-slate-700"}`}>Recent Tasks</span>
           <ChevronRight className="w-4 h-4 text-slate-400 rotate-90" />
         </div>
         
@@ -638,11 +638,11 @@ function RecentActivity({ tasks, onNavigate }) {
                 {task.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-base ${isDark ? "text-slate-200" : "text-slate-700"}`}>{task.title}</p>
+                <p className={`text-xl ${isDark ? "text-slate-200" : "text-slate-700"}`}>{task.title}</p>
               </div>
               {task.badge && (
                 <span 
-                  className="px-2 py-0.5 rounded-full text-sm font-medium text-white"
+                  className="px-2 py-0.5 rounded-full text-lg font-medium text-white"
                   style={{ backgroundColor: task.color }}
                 >
                   {task.badge}
@@ -656,7 +656,7 @@ function RecentActivity({ tasks, onNavigate }) {
         {/* Manage Link */}
         <button 
           onClick={() => onNavigate('registrations')}
-          className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-base font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+          className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-xl font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
         >
           Manage All Tasks
           <ChevronRight className="w-4 h-4" />
@@ -702,7 +702,7 @@ function UpcomingEvents({ events, onNavigate }) {
       <div className="p-5 space-y-4">
         {Object.entries(groupedEvents).slice(0, 2).map(([date, dateEvents]) => (
           <div key={date}>
-            <p className={`text-base font-semibold mb-3 ${isDark ? "text-white" : "text-slate-800"}`}>{formatDate(date)}</p>
+            <p className={`text-xl font-semibold mb-3 ${isDark ? "text-white" : "text-slate-800"}`}>{formatDate(date)}</p>
             
             {dateEvents.map((event, i) => (
               <div 
@@ -718,7 +718,7 @@ function UpcomingEvents({ events, onNavigate }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{event.teams?.name || event.title}</p>
-                  <p className={`text-base flex items-center gap-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
+                  <p className={`text-xl flex items-center gap-1 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
                     <span>{formatTime(event.event_time)}</span>
                     {event.location && (
                       <>
@@ -729,7 +729,7 @@ function UpcomingEvents({ events, onNavigate }) {
                     )}
                   </p>
                 </div>
-                <span className={`text-base font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{formatTime(event.event_time)}</span>
+                <span className={`text-xl font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{formatTime(event.event_time)}</span>
               </div>
             ))}
           </div>
@@ -745,7 +745,7 @@ function UpcomingEvents({ events, onNavigate }) {
         {/* View All Link */}
         <button 
           onClick={() => onNavigate('schedule')}
-          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-base font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
+          className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-xl font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
         >
           View All Events
           <ChevronRight className="w-4 h-4" />
@@ -767,11 +767,11 @@ function QuickActionsWidget({ activities }) {
       <div className="p-5 space-y-3">
         {activities.map((activity, i) => (
           <div key={i} className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0 ${isDark ? "bg-white/[0.08] text-slate-300" : "bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600"}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold shrink-0 ${isDark ? "bg-white/[0.08] text-slate-300" : "bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600"}`}>
               {activity.initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-base ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+              <p className={`text-xl ${isDark ? "text-slate-300" : "text-slate-700"}`}>
                 <span className={`font-semibold ${isDark ? "text-white" : "text-slate-800"}`}>{activity.name}</span>
                 {' '}{activity.action}
                 {activity.highlight && (
@@ -805,14 +805,14 @@ function OverduePayments({ stats, onNavigate }) {
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500" />
-              <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
-              <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Fees</span>
+              <span className={`text-5xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueFees?.toLocaleString() || '0'}</span>
+              <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Fees</span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-500" />
-              <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
-              <span className={`text-base ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Stripe</span>
+              <span className={`text-5xl font-bold ${isDark ? "text-white" : "text-slate-800"}`}>${stats.overdueStripe?.toLocaleString() || '0'}</span>
+              <span className={`text-xl ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue Stripe</span>
             </div>
           </div>
           
@@ -830,8 +830,8 @@ function OverduePayments({ stats, onNavigate }) {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-base font-bold text-red-600">${total.toLocaleString()}</span>
-              <span className={`text-sm uppercase ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue</span>
+              <span className="text-xl font-bold text-red-600">${total.toLocaleString()}</span>
+              <span className={`text-lg uppercase ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>Overdue</span>
             </div>
           </div>
         </div>
@@ -862,9 +862,9 @@ export function GettingStartedGuide({ onNavigate }) {
         className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
         style={{ backgroundColor: accent.primary + '20' }}
       >
-        <span className="text-4xl">🎉</span>
+        <span className="text-5xl">🎉</span>
       </div>
-      <h1 className={`text-4xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
+      <h1 className={`text-5xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
         Welcome to {organization?.name || 'Lynx'}!
       </h1>
       <p className={`mb-8 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
@@ -1501,7 +1501,7 @@ export function DashboardPage({ onNavigate }) {
             }`}
           >
             <Search className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'opacity-40'}`} />
-            <span className={`text-[14px] ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>Search players, families, teams...</span>
+            <span className={`text-3xl ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>Search players, families, teams...</span>
           </button>
 
       {/* Dashboard Filters */}
@@ -1518,7 +1518,7 @@ export function DashboardPage({ onNavigate }) {
               const season = (seasons || allSeasons || []).find(s => s.id === e.target.value)
               if (season) selectSeason(season)
             }}
-            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-lg font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
                 : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
@@ -1541,7 +1541,7 @@ export function DashboardPage({ onNavigate }) {
               const sport = sports.find(s => s.id === e.target.value) || null
               selectSport(sport)
             }}
-            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-lg font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
                 : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
@@ -1560,7 +1560,7 @@ export function DashboardPage({ onNavigate }) {
           <select
             value={filterTeam}
             onChange={(e) => setFilterTeam(e.target.value)}
-            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-lg font-medium cursor-pointer transition-colors ${
               isDark
                 ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]'
                 : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
@@ -1584,9 +1584,9 @@ export function DashboardPage({ onNavigate }) {
         if ((stats.teams || 0) > (stats.teamsWithCoach || 0)) { const n = (stats.teams || 0) - (stats.teamsWithCoach || 0); queueItems.push({ id: 'coaches', icon: '👤', color: '#8B5CF6', urgency: 'UPCOMING', category: 'Coach', title: `${n} Team${n !== 1 ? 's' : ''} Need a Coach`, subtitle: 'Assign coaches to keep teams on track.', actionLabel: 'Assign Coach', page: 'coaches' }) }
         if (queueItems.length === 0) return (
           <div className="text-center py-6">
-            <p className="text-4xl mb-2">&#x2705;</p>
-            <p className={`text-[16px] font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>All clear!</p>
-            <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>Nothing needs your attention right now.</p>
+            <p className="text-5xl mb-2">&#x2705;</p>
+            <p className={`text-3xl font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>All clear!</p>
+            <p className={`text-2xl ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>Nothing needs your attention right now.</p>
           </div>
         )
         return (
@@ -1597,12 +1597,12 @@ export function DashboardPage({ onNavigate }) {
                 <div className="w-1 shrink-0" style={{ backgroundColor: item.color }} />
                 <div className="flex-1 p-4">
                   <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="text-[14px]">{item.icon}</span>
-                    <span className="text-sm font-bold tracking-[0.08em]" style={{ color: item.color }}>{item.urgency} &middot; {item.category}</span>
+                    <span className="text-3xl">{item.icon}</span>
+                    <span className="text-lg font-bold tracking-[0.08em]" style={{ color: item.color }}>{item.urgency} &middot; {item.category}</span>
                   </div>
-                  <p className={`text-[15px] font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{item.title}</p>
-                  <p className={`text-lg mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{item.subtitle}</p>
-                  <span className="inline-block px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-lg font-semibold">{item.actionLabel}</span>
+                  <p className={`text-3xl font-semibold mb-0.5 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{item.title}</p>
+                  <p className={`text-2xl mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{item.subtitle}</p>
+                  <span className="inline-block px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-2xl font-semibold">{item.actionLabel}</span>
                 </div>
               </button>
             ))}
@@ -1617,7 +1617,7 @@ export function DashboardPage({ onNavigate }) {
             <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>{(selectedSeason?.name || 'SEASON').toUpperCase()}</span>
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-              <span className="text-sm font-semibold text-[#22C55E]">Active</span>
+              <span className="text-lg font-semibold text-[#22C55E]">Active</span>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5">
@@ -1632,13 +1632,13 @@ export function DashboardPage({ onNavigate }) {
                   className={`${tileBg} border ${tileBorder} rounded-2xl p-2.5 text-left transition-colors hover:brightness-95 h-[94px] flex flex-col justify-between`}>
                   <div className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: team.color || '#4BB9EC' }} />
-                    <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
+                    <p className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
-                    <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{ts.record}</span>
+                    <span className={`text-lg ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{ts.playerCount}/{team.max_players || '?'}</span>
+                    <span className={`text-lg font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{ts.record}</span>
                   </div>
-                  <span className={`text-sm font-semibold ${tileStatus === 'good' ? 'text-[#22C55E]' : 'text-[#F59E0B]'}`}>
+                  <span className={`text-lg font-semibold ${tileStatus === 'good' ? 'text-[#22C55E]' : 'text-[#F59E0B]'}`}>
                     {tileStatus === 'good' ? '✓ Good' : '⚠ Check'}
                   </span>
                 </button>
@@ -1659,36 +1659,36 @@ export function DashboardPage({ onNavigate }) {
           <div className={`rounded-2xl border p-4 shadow-sm ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-brand-border'}`}>
             <div className="flex items-center justify-between mb-3.5">
               <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>PAYMENTS</span>
-              <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{selectedSeason?.name || ''}</span>
+              <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>{selectedSeason?.name || ''}</span>
             </div>
             {pct >= 100 ? (
-              <p className="text-[14px] font-semibold text-[#22C55E] text-center">&#x2705; 100% collected! ${collected.toLocaleString()} total.</p>
+              <p className="text-3xl font-semibold text-[#22C55E] text-center">&#x2705; 100% collected! ${collected.toLocaleString()} total.</p>
             ) : (
               <>
                 <div className="flex items-end justify-between mb-3">
                   <div>
-                    <span className={`text-[20px] font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>${collected.toLocaleString()}</span>
-                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>collected</p>
+                    <span className={`text-4xl font-bold ${isDark ? 'text-emerald-400' : 'text-[#22C55E]'}`}>${collected.toLocaleString()}</span>
+                    <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>collected</p>
                   </div>
                   <div className="text-right">
-                    <span className={`text-[20px] font-bold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>${outstanding.toLocaleString()}</span>
-                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>outstanding</p>
+                    <span className={`text-4xl font-bold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>${outstanding.toLocaleString()}</span>
+                    <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/25'}`}>outstanding</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mb-2.5">
                   <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-[#F0F2F5]'}`}>
                     <div className="h-full rounded-full bg-[#22C55E] transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
                   </div>
-                  <span className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{pct}%</span>
+                  <span className={`text-lg font-semibold ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{pct}%</span>
                 </div>
                 {overdueCount > 0 && (
-                  <p className="text-sm text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
+                  <p className="text-lg text-[#F59E0B] mb-3">{overdueCount} famil{overdueCount === 1 ? 'y' : 'ies'} overdue{(stats.pastDue || 0) > 0 ? ` · $${(stats.pastDue || 0).toLocaleString()}` : ''}</p>
                 )}
                 <div className="flex items-center justify-between">
                   {overdueCount > 0 && (
-                    <button onClick={() => onNavigate('blasts')} className="px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-lg font-semibold">Send All Reminders</button>
+                    <button onClick={() => onNavigate('blasts')} className="px-4 py-1.5 rounded-xl bg-[#4BB9EC] text-white text-2xl font-semibold">Send All Reminders</button>
                   )}
-                  <button onClick={() => onNavigate('payments')} className="text-lg text-[#4BB9EC] font-medium">View Details ›</button>
+                  <button onClick={() => onNavigate('payments')} className="text-2xl text-[#4BB9EC] font-medium">View Details ›</button>
                 </div>
               </>
             )}
@@ -1710,8 +1710,8 @@ export function DashboardPage({ onNavigate }) {
           ].map(a => (
             <button key={a.label} onClick={() => onNavigate(a.page)}
               className={`h-20 rounded-2xl flex flex-col items-center justify-center transition-colors ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-[#F0F2F5] hover:bg-[#E8ECF2]'}`}>
-              <span className="text-4xl mb-1">{a.icon}</span>
-              <span className={`text-sm font-semibold text-center leading-[14px] whitespace-pre-line ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{a.label}</span>
+              <span className="text-5xl mb-1">{a.icon}</span>
+              <span className={`text-lg font-semibold text-center leading-[14px] whitespace-pre-line ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{a.label}</span>
             </button>
           ))}
         </div>
@@ -1722,17 +1722,17 @@ export function DashboardPage({ onNavigate }) {
         <div>
           <div className="flex items-center justify-between mb-3">
             <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>COACHES</span>
-            <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>{coachesData.length} Active</span>
+            <span className={`text-lg font-semibold ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>{coachesData.length} Active</span>
           </div>
           <div className="space-y-2.5">
             {coachesData.map(coach => (
               <div key={coach.id} className="flex items-center gap-2.5">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold ${isDark ? 'bg-white/[0.06] text-white' : 'bg-[#F0F2F5] text-[#10284C]'}`}>
                   {coach.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[14px] font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{coach.name}</p>
-                  <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
+                  <p className={`text-3xl font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{coach.name}</p>
+                  <p className={`text-lg truncate ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{coach.teams.join(', ') || 'No teams assigned'}</p>
                 </div>
               </div>
             ))}
@@ -1744,12 +1744,12 @@ export function DashboardPage({ onNavigate }) {
       <div>
         <div className="flex items-center justify-between mb-3">
           <span className={isDark ? 'brand-section-header-dark' : 'brand-section-header'}>UPCOMING</span>
-          <button onClick={() => onNavigate('schedule')} className="text-sm text-[#4BB9EC] font-medium">View Calendar ›</button>
+          <button onClick={() => onNavigate('schedule')} className="text-lg text-[#4BB9EC] font-medium">View Calendar ›</button>
         </div>
         {upcomingEvents.length === 0 ? (
           <div className="text-center py-3">
-            <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>No upcoming events.</p>
-            <button onClick={() => onNavigate('schedule')} className="text-lg font-semibold text-[#4BB9EC] mt-1">Create Event ›</button>
+            <p className={`text-2xl ${isDark ? 'text-slate-500' : 'text-[#10284C]/40'}`}>No upcoming events.</p>
+            <button onClick={() => onNavigate('schedule')} className="text-2xl font-semibold text-[#4BB9EC] mt-1">Create Event ›</button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -1763,12 +1763,12 @@ export function DashboardPage({ onNavigate }) {
               const typeLabel = e.opponent_name ? `${(e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1)} vs ${e.opponent_name}` : (e.title || (e.event_type || '').charAt(0).toUpperCase() + (e.event_type || '').slice(1))
               return (
                 <div key={e.id} className="flex items-start gap-3">
-                  <span className={`w-[72px] text-lg font-semibold shrink-0 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{dateLabel}</span>
+                  <span className={`w-[72px] text-2xl font-semibold shrink-0 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{dateLabel}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-lg truncate mb-0.5 ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>{typeLabel}</p>
+                    <p className={`text-2xl truncate mb-0.5 ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>{typeLabel}</p>
                     <div className="flex items-center gap-1">
-                      <span className="text-sm font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
-                      {timeLabel && <><span className={`text-sm ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
+                      <span className="text-lg font-semibold" style={{ color: e.teams?.color || '#4BB9EC' }}>{e.teams?.name || ''}</span>
+                      {timeLabel && <><span className={`text-lg ${isDark ? 'text-slate-600' : 'text-[#10284C]/25'}`}>&middot;</span><span className={`text-lg ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{timeLabel}</span></>}
                     </div>
                   </div>
                 </div>
@@ -1780,18 +1780,18 @@ export function DashboardPage({ onNavigate }) {
 
       {/* ─── 9. CLOSING MOTIVATION ────────────────────── */}
       <div className="text-center py-4">
-        <p className="text-[36px] mb-3">🐱</p>
-        <p className={`text-lg leading-5 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
+        <p className="text-5xl mb-3">🐱</p>
+        <p className={`text-2xl leading-5 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>
           You&rsquo;re managing {stats.teams || 0} team{(stats.teams || 0) !== 1 ? 's' : ''},{' '}
           {stats.totalRegistrations || 0} player{(stats.totalRegistrations || 0) !== 1 ? 's' : ''} this season.
         </p>
         {(() => {
           const queueTotal = (stats.pending || 0) + ((stats.pastDue || 0) > 0 ? 1 : 0) + ((stats.unsignedWaivers || 0) > 0 ? 1 : 0)
           return queueTotal > 0
-            ? <p className={`text-lg mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{queueTotal} item{queueTotal !== 1 ? 's' : ''} left in your queue.</p>
-            : <p className="text-lg text-[#22C55E] mb-3">Queue is clear — great work!</p>
+            ? <p className={`text-2xl mb-3 ${isDark ? 'text-slate-400' : 'text-[#10284C]/40'}`}>{queueTotal} item{queueTotal !== 1 ? 's' : ''} left in your queue.</p>
+            : <p className="text-2xl text-[#22C55E] mb-3">Queue is clear — great work!</p>
         })()}
-        <p className="text-[14px] font-semibold text-[#4BB9EC]">You&rsquo;ve got this, {profile?.first_name}.</p>
+        <p className="text-3xl font-semibold text-[#4BB9EC]">You&rsquo;ve got this, {profile?.first_name}.</p>
       </div>
         </div>
       </div>
