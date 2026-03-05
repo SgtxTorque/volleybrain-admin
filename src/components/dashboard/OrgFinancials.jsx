@@ -8,9 +8,9 @@ import { DollarSign, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react'
 function FinTile({ label, value, sub, color, isDark }) {
   return (
     <div className={`rounded-xl p-3 ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
-      <p className="text-2xl font-black tabular-nums" style={{ color }}>{value}</p>
-      <p className={`text-lg font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
-      {sub && <p className={`text-lg mt-0.5 ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>{sub}</p>}
+      <p className="text-r-2xl font-black tabular-nums" style={{ color }}>{value}</p>
+      <p className={`text-r-lg font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
+      {sub && <p className={`text-r-lg mt-0.5 ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>{sub}</p>}
     </div>
   )
 }
@@ -34,13 +34,13 @@ export default function OrgFinancials({ stats = {}, onNavigate }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <DollarSign className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h3 className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Financials
           </h3>
         </div>
         <button
           onClick={() => onNavigate?.('payments')}
-          className="text-base text-lynx-sky font-medium flex items-center gap-1"
+          className="text-r-base text-lynx-sky font-medium flex items-center gap-1"
         >
           Details <ChevronRight className="w-3 h-3" />
         </button>
@@ -76,7 +76,7 @@ export default function OrgFinancials({ stats = {}, onNavigate }) {
       {overdueCount > 0 && (
         <button
           onClick={() => onNavigate?.('blasts')}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-lynx-sky text-white text-lg font-semibold hover:brightness-110 transition"
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-lynx-sky text-white text-r-lg font-semibold hover:brightness-110 transition"
         >
           <AlertCircle className="w-3.5 h-3.5" />
           Send Reminders ({overdueCount})

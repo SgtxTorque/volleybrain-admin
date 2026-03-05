@@ -43,14 +43,14 @@ export default function CoachNotifications({ items = [], blasts = [] }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <Bell className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h3 className={`text-r-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Notifications
           </h3>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setActiveTab('recent')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+            className={`px-2.5 py-1 rounded-lg text-r-xs font-bold transition-colors ${
               activeTab === 'recent'
                 ? 'bg-lynx-sky/15 text-lynx-sky'
                 : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
@@ -60,7 +60,7 @@ export default function CoachNotifications({ items = [], blasts = [] }) {
           </button>
           <button
             onClick={() => setActiveTab('blasts')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
+            className={`px-2.5 py-1 rounded-lg text-r-xs font-bold transition-colors flex items-center gap-1 ${
               activeTab === 'blasts'
                 ? 'bg-lynx-sky/15 text-lynx-sky'
                 : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
@@ -75,7 +75,7 @@ export default function CoachNotifications({ items = [], blasts = [] }) {
       {/* Notification list */}
       <div className="space-y-1.5">
         {isEmpty ? (
-          <p className={`text-base py-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`text-r-base py-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             Nothing new — your team is quietly crushing it 🤙
           </p>
         ) : (
@@ -87,7 +87,7 @@ export default function CoachNotifications({ items = [], blasts = [] }) {
               {n.unread && <div className="w-2 h-2 rounded-full bg-lynx-sky mt-2 shrink-0" />}
               {!n.unread && <div className="w-2 h-2 mt-2 shrink-0" />}
               <div className="min-w-0 flex-1">
-                <p className={`text-base leading-relaxed ${
+                <p className={`text-r-base leading-relaxed ${
                   n.unread
                     ? (isDark ? 'text-white font-medium' : 'text-slate-900 font-medium')
                     : (isDark ? 'text-slate-400' : 'text-slate-500')
@@ -95,7 +95,7 @@ export default function CoachNotifications({ items = [], blasts = [] }) {
                   {n.emoji ? `${n.emoji} ` : ''}{n.text}
                 </p>
                 {n.time && (
-                  <p className={`text-sm mt-0.5 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                  <p className={`text-r-sm mt-0.5 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
                     {timeAgo(n.time)}
                   </p>
                 )}

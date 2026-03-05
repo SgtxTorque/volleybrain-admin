@@ -31,12 +31,12 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h3 className={`text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <h3 className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Upcoming Events
         </h3>
         <button
           onClick={() => onNavigate('schedule')}
-          className="flex items-center gap-1 text-lg font-medium transition-colors"
+          className="flex items-center gap-1 text-r-lg font-medium transition-colors"
           style={{ color: isDark ? '#5eead4' : '#0d9488' }}
         >
           Full Calendar
@@ -66,7 +66,7 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
                   <Calendar className="h-5 w-5" style={{ color: teamColor }} />
                 </div>
                 <div className="flex-1">
-                  <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-r-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {teamName}
                     {opponent && (
                       <>
@@ -76,11 +76,11 @@ export default function UpcomingEventsCard({ events, onNavigate }) {
                       </>
                     )}
                   </p>
-                  <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{event.location || ''}</p>
+                  <p className={`text-r-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{event.location || ''}</p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatDate(event.event_date)}</p>
-                  <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{formatTime(event.event_time)}</p>
+                  <p className={`text-r-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatDate(event.event_date)}</p>
+                  <p className={`text-r-lg ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{formatTime(event.event_time)}</p>
                 </div>
               </div>
             )

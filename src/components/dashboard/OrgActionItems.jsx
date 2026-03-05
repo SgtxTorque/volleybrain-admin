@@ -28,8 +28,8 @@ function ActionItem({ icon: Icon, label, count, severity, onClick, isDark }) {
       >
         <Icon className="w-4 h-4" style={{ color }} />
       </div>
-      <span className={`text-lg flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{label}</span>
-      <span className="text-lg font-bold tabular-nums" style={{ color }}>{count}</span>
+      <span className={`text-r-lg flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{label}</span>
+      <span className="text-r-lg font-bold tabular-nums" style={{ color }}>{count}</span>
       <ChevronRight className={`w-3.5 h-3.5 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
     </button>
   )
@@ -53,14 +53,14 @@ export default function OrgActionItems({ stats = {}, onNavigate }) {
     <div className={`${cardBg} rounded-2xl shadow-sm p-4`}>
       <div className="flex items-center gap-1.5 mb-3">
         <Zap className="w-3.5 h-3.5 text-amber-500" />
-        <h3 className={`text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h3 className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Action Items
         </h3>
       </div>
       {items.length === 0 ? (
         <div className="text-center py-4">
-          <p className="text-emerald-500 text-lg font-semibold">All clear!</p>
-          <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Nothing needs attention.</p>
+          <p className="text-emerald-500 text-r-lg font-semibold">All clear!</p>
+          <p className={`text-r-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Nothing needs attention.</p>
         </div>
       ) : (
         <div className="space-y-0.5">

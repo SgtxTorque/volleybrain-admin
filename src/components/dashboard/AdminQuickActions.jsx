@@ -31,7 +31,7 @@ export default function AdminQuickActions({ counts = {}, onNavigate }) {
     }`}>
       {/* Header */}
       <div className={`px-6 py-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
-        <h3 className={`text-xl font-bold tracking-wide uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <h3 className={`text-r-xl font-bold tracking-wide uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
           Quick Actions
         </h3>
       </div>
@@ -55,13 +55,13 @@ export default function AdminQuickActions({ counts = {}, onNavigate }) {
               >
                 {/* Counter badge */}
                 {count > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-xs font-bold shadow-sm">
+                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-r-xs font-bold shadow-sm">
                     {count > 99 ? '99+' : count}
                   </span>
                 )}
 
                 <Icon className={`w-6 h-6 ${isDark ? 'text-lynx-sky' : 'text-lynx-sky'}`} />
-                <span className={`text-base font-medium text-center leading-tight ${
+                <span className={`text-r-base font-medium text-center leading-tight ${
                   isDark ? 'text-white' : 'text-slate-800'
                 }`}>
                   {action.label}

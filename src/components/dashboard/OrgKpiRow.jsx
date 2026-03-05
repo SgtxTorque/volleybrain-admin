@@ -20,14 +20,14 @@ function KpiCard({ icon: Icon, label, value, sub, iconColor, isDark }) {
           <Icon className="w-5 h-5" style={{ color: iconColor }} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`text-4xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-r-4xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {value}
           </p>
-          <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
+          <p className={`text-r-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
         </div>
       </div>
       {sub && (
-        <p className={`text-lg mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</p>
+        <p className={`text-r-lg mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</p>
       )}
     </div>
   )

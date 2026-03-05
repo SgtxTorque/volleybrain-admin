@@ -20,8 +20,8 @@ function getOrgInitials(name) {
 function StatItem({ value, label, isDark }) {
   return (
     <div className="flex flex-col items-center">
-      <span className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
-      <span className={`text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+      <span className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</span>
+      <span className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
         {label}
       </span>
     </div>
@@ -38,8 +38,8 @@ function AttentionItem({ icon, label, badge, badgeColor, onClick, isDark }) {
       }`}
     >
       <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{icon}</span>
-      <span className={`flex-1 text-lg font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{label}</span>
-      <span className={`rounded-full px-2.5 py-0.5 text-base font-bold ${badgeColor}`}>
+      <span className={`flex-1 text-r-lg font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{label}</span>
+      <span className={`rounded-full px-2.5 py-0.5 text-r-base font-bold ${badgeColor}`}>
         {badge}
       </span>
     </button>
@@ -57,12 +57,12 @@ function QuickAction({ icon, label, badge, onClick, isDark }) {
       }`}
     >
       {badge > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-lg font-bold text-white">
+        <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-r-lg font-bold text-white">
           {badge}
         </span>
       )}
       {icon}
-      <span className={`text-lg font-medium ${isDark ? 'text-slate-300' : 'text-slate-800'}`}>{label}</span>
+      <span className={`text-r-lg font-medium ${isDark ? 'text-slate-300' : 'text-slate-800'}`}>{label}</span>
     </button>
   )
 }
@@ -110,17 +110,17 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           />
         ) : (
           <div
-            className="flex h-[200px] w-[200px] items-center justify-center rounded-2xl text-4xl font-bold text-white shadow -mt-[30px]"
+            className="flex h-[200px] w-[200px] items-center justify-center rounded-2xl text-r-4xl font-bold text-white shadow -mt-[30px]"
             style={{ backgroundColor: accent.primary || '#10284C' }}
           >
             {initials}
           </div>
         )}
         <div className="text-center w-full">
-          <h2 className={`text-3xl font-bold break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className={`text-r-3xl font-bold break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {orgName || 'My Organization'}
           </h2>
-          <p className={`mt-0.5 text-xl break-words ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <p className={`mt-0.5 text-r-xl break-words ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             {season?.name || 'No season selected'}
             {season?.status ? ` · ${season.status.charAt(0).toUpperCase() + season.status.slice(1)}` : ''}
           </p>
@@ -145,8 +145,8 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className={`text-lg font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Setup Progress</span>
-            <span className="text-lg font-bold" style={{ color: accent.primary || '#0d9488' }}>
+            <span className={`text-r-lg font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>Setup Progress</span>
+            <span className="text-r-lg font-bold" style={{ color: accent.primary || '#0d9488' }}>
               {journey.completedCount}/{journey.totalSteps}
             </span>
           </div>
@@ -158,10 +158,10 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           </div>
           {journey.currentStep && (
             <div className="mt-3 flex items-center gap-2">
-              <span className={`text-base font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+              <span className={`text-r-base font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                 Next:
               </span>
-              <span className={`text-lg font-bold flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <span className={`text-r-lg font-bold flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 {journey.currentStep.title}
               </span>
               <ChevronRight className="h-4 w-4" style={{ color: accent.primary || '#0d9488' }} />
@@ -174,7 +174,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 px-1 pb-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <span className={`text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Needs Attention
           </span>
         </div>
@@ -190,7 +190,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           icon={<DollarSign className="h-4 w-4" />}
           label="Overdue payments"
           badge={stats.pastDue > 0 ? `$${stats.pastDue.toLocaleString()}` : null}
-          badgeColor={isDark ? 'bg-red-500/20 text-red-400 !text-lg !font-black' : 'bg-red-50 text-red-600 !text-lg !font-black'}
+          badgeColor={isDark ? 'bg-red-500/20 text-red-400 !text-r-lg !font-black' : 'bg-red-50 text-red-600 !text-r-lg !font-black'}
           onClick={() => onNavigate('payments')}
           isDark={isDark}
         />
@@ -206,7 +206,7 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
 
       {/* Quick Actions */}
       <div className="flex flex-col gap-3">
-        <span className={`px-1 text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+        <span className={`px-1 text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
           Quick Actions
         </span>
         <div className="grid grid-cols-2 gap-3">
@@ -245,12 +245,12 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 px-1">
               <Award className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              <span className={`text-lg font-bold uppercase tracking-[1.2px] flex-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <span className={`text-r-lg font-bold uppercase tracking-[1.2px] flex-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 Recent Badges
               </span>
               <button
                 onClick={() => onNavigate('badges')}
-                className="flex items-center gap-1 text-base font-bold transition-colors"
+                className="flex items-center gap-1 text-r-base font-bold transition-colors"
                 style={{ color: isDark ? '#5eead4' : '#0d9488' }}
               >
                 View All
@@ -268,10 +268,10 @@ export default function OrgSidebar({ stats, season, onNavigate }) {
                       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white'
                     }`}
                   >
-                    <span className="text-3xl">{badge.icon}</span>
+                    <span className="text-r-3xl">{badge.icon}</span>
                     <div className="flex flex-col min-w-0">
-                      <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{badge.name}</span>
-                      <span className={`text-base ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{badge.description}</span>
+                      <span className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{badge.name}</span>
+                      <span className={`text-r-base ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{badge.description}</span>
                     </div>
                   </div>
                 )

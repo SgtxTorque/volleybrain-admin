@@ -76,16 +76,16 @@ function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCou
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span
-            className="text-xs font-bold px-2 py-0.5 rounded-md shrink-0"
+            className="text-r-xs font-bold px-2 py-0.5 rounded-md shrink-0"
             style={{ backgroundColor: `${sportColor}20`, color: sportColor }}
           >
             {sportAbbr}
           </span>
-          <span className={`text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <span className={`text-r-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {season?.name || 'Season'}
           </span>
         </div>
-        <span className={`text-2xl font-extrabold tabular-nums shrink-0 ml-2 ${pctColor}`}>
+        <span className={`text-r-2xl font-extrabold tabular-nums shrink-0 ml-2 ${pctColor}`}>
           {progressPct}%
         </span>
       </div>
@@ -102,18 +102,18 @@ function CompactSeasonCard({ season, sportName, sportColor, teamCount, playerCou
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {blocker ? (
-            <span className={`text-sm truncate ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+            <span className={`text-r-sm truncate ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
               Blocker: {blocker}
             </span>
           ) : (
-            <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`text-r-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               {teamCount} teams · {playerCount} players
             </span>
           )}
         </div>
         <button
           onClick={() => onNavigate?.('season-management', { seasonId: season?.id })}
-          className="flex items-center gap-1 text-sm font-bold shrink-0 ml-2 transition-colors"
+          className="flex items-center gap-1 text-r-sm font-bold shrink-0 ml-2 transition-colors"
           style={{ color: sportColor }}
         >
           Continue
@@ -174,7 +174,7 @@ export default function SeasonJourneyList({ seasons = [], sports = [], teamCount
       {hasMore && !showAll && (
         <button
           onClick={() => setShowAll(true)}
-          className={`text-center py-2 text-sm font-semibold rounded-xl transition-colors ${
+          className={`text-center py-2 text-r-sm font-semibold rounded-xl transition-colors ${
             isDark ? 'text-lynx-sky hover:bg-white/[0.04]' : 'text-lynx-sky hover:bg-slate-50'
           }`}
         >
@@ -186,7 +186,7 @@ export default function SeasonJourneyList({ seasons = [], sports = [], teamCount
       {hasMore && showAll && (
         <button
           onClick={() => setShowAll(false)}
-          className={`text-center py-2 text-sm font-semibold rounded-xl transition-colors ${
+          className={`text-center py-2 text-r-sm font-semibold rounded-xl transition-colors ${
             isDark ? 'text-lynx-sky hover:bg-white/[0.04]' : 'text-lynx-sky hover:bg-slate-50'
           }`}
         >

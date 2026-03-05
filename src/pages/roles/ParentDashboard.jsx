@@ -264,22 +264,22 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     return (
       <div className={`w-full space-y-6 py-12 px-6 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
         <div className="text-center">
-          <span className="text-6xl block mb-4">🏐</span>
-          <h2 className={`text-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
+          <span className="text-r-5xl block mb-4">🏐</span>
+          <h2 className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
           <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You haven't registered any players yet.</p>
-          <p className={`${isDark ? 'text-slate-500' : 'text-slate-400'} mb-6`}>Get started by registering for an open season below.</p>
+          <p className={`${isDark ? 'text-slate-500' : 'text-slate-400'} mb-r-4`}>Get started by registering for an open season below.</p>
         </div>
         {openSeasons.length > 0 && (
           <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6`}>
-            <h2 className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Open Registrations</h2>
+            <h2 className={`text-r-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Open Registrations</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {openSeasons.map(season => (
                 <a key={season.id} href={getRegistrationUrl(season)} target="_blank" rel="noopener noreferrer"
                   className={`${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-slate-50 hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}>
-                  <div className="w-14 h-14 rounded-xl bg-lynx-sky/20 flex items-center justify-center text-3xl">{season.sports?.icon || '🏐'}</div>
+                  <div className="w-14 h-14 rounded-xl bg-lynx-sky/20 flex items-center justify-center text-r-3xl">{season.sports?.icon || '🏐'}</div>
                   <div className="flex-1">
                     <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
-                    <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
+                    <p className={`text-r-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
                   </div>
                   <span className="text-lynx-sky font-semibold">Register →</span>
                 </a>
@@ -334,11 +334,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           <div className="px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              <h3 className={`text-lg font-bold uppercase tracking-wider ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+              <h3 className={`text-r-lg font-bold uppercase tracking-wider ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
                 Action Required
               </h3>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-sm font-extrabold animate-pulse">
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-r-sm font-extrabold animate-pulse">
               {actionItems.length}
             </span>
           </div>
@@ -348,10 +348,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 className={`w-full flex items-center gap-3 px-5 py-3 text-left transition ${
                   isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-amber-100/50'
                 } ${idx > 0 ? (isDark ? 'border-t border-amber-500/10' : 'border-t border-amber-100') : ''}`}>
-                <span className="text-xl">{item.icon || '⚠️'}</span>
+                <span className="text-r-xl">{item.icon || '⚠️'}</span>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</p>
-                  <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
+                  <p className={`text-r-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</p>
+                  <p className={`text-r-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
                 </div>
                 <ChevronRight className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-white/20' : 'text-slate-300'}`} />
               </button>
@@ -371,8 +371,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               }`}>
               <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
               <div className="flex-1 min-w-0">
-                <p className={`font-semibold text-base truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{alert.title}</p>
-                <p className={`text-sm truncate ${isDark ? 'text-red-300/70' : 'text-red-600/70'}`}>
+                <p className={`font-semibold text-r-base truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{alert.title}</p>
+                <p className={`text-r-sm truncate ${isDark ? 'text-red-300/70' : 'text-red-600/70'}`}>
                   {new Date(alert.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </p>
               </div>
@@ -388,11 +388,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
         }`}>
           <div className="px-5 py-3 flex items-center justify-between">
-            <h3 className={`text-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <h3 className={`text-r-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Upcoming Events
             </h3>
             <button onClick={() => onNavigate?.('schedule')}
-              className="text-sm font-bold uppercase tracking-wider text-lynx-sky hover:underline">
+              className="text-r-sm font-bold uppercase tracking-wider text-lynx-sky hover:underline">
               View All
             </button>
           </div>
@@ -411,10 +411,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 <div className={`w-12 h-14 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${
                   isGame ? 'bg-lynx-sky/10' : (isDark ? 'bg-white/[0.04]' : 'bg-slate-50')
                 }`}>
-                  <span className={`text-sm font-bold uppercase ${isGame ? 'text-lynx-sky' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
+                  <span className={`text-r-sm font-bold uppercase ${isGame ? 'text-lynx-sky' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
                     {eventDate ? eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : ''}
                   </span>
-                  <span className={`text-2xl font-extrabold ${isGame ? 'text-lynx-sky' : (isDark ? 'text-white' : 'text-slate-900')}`}>
+                  <span className={`text-r-2xl font-extrabold ${isGame ? 'text-lynx-sky' : (isDark ? 'text-white' : 'text-slate-900')}`}>
                     {eventDate?.getDate() || ''}
                   </span>
                 </div>
@@ -425,18 +425,18 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                     {isGame && (
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: teamColor }} />
                     )}
-                    <p className={`font-semibold text-base truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    <p className={`font-semibold text-r-base truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {event.title || (isGame ? `vs ${event.opponent_name || 'TBD'}` : 'Practice')}
                     </p>
                   </div>
                   <div className="flex items-center gap-3 mt-0.5">
                     {event.event_time && (
-                      <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <span className={`text-r-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                         {formatTime12(event.event_time)}
                       </span>
                     )}
                     {(event.venue_name || event.location) && (
-                      <span className={`text-sm truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span className={`text-r-sm truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                         {event.venue_name || event.location}
                       </span>
                     )}
@@ -461,10 +461,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             {activeTeam.name?.[0] || 'T'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`font-semibold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
-            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
+            <p className={`font-semibold text-r-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
+            <p className={`text-r-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
           </div>
-          <span className="text-lynx-sky text-sm font-bold uppercase tracking-wider">View Hub →</span>
+          <span className="text-lynx-sky text-r-sm font-bold uppercase tracking-wider">View Hub →</span>
         </button>
       )}
 
@@ -476,12 +476,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           <div className="px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Award className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              <h3 className={`text-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <h3 className={`text-r-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Achievements
               </h3>
             </div>
             <button onClick={() => onNavigate?.('achievements')}
-              className="text-sm font-bold uppercase tracking-wider text-lynx-sky hover:underline">
+              className="text-r-sm font-bold uppercase tracking-wider text-lynx-sky hover:underline">
               View All
             </button>
           </div>
@@ -498,8 +498,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               const color = rarityColors[badge?.rarity] || rarityColors.common
               return (
                 <div key={ach.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${color}`}>
-                  <span className="text-lg">{badge?.icon || '🏅'}</span>
-                  <span className="text-sm font-bold">{badge?.name || 'Badge'}</span>
+                  <span className="text-r-lg">{badge?.icon || '🏅'}</span>
+                  <span className="text-r-sm font-bold">{badge?.name || 'Badge'}</span>
                 </div>
               )
             })}
@@ -513,19 +513,19 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
         }`}>
           <div className="px-5 py-3 flex items-center justify-between">
-            <h3 className={`text-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <h3 className={`text-r-lg font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Balance Due
             </h3>
             <DollarSign className={`w-4 h-4 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
           </div>
           <div className={`px-5 pb-5 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`}>
-            <p className="text-4xl font-extrabold text-red-500 mt-3">${totalChildDue.toFixed(2)}</p>
-            <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className="text-r-4xl font-extrabold text-red-500 mt-3">${totalChildDue.toFixed(2)}</p>
+            <p className={`text-r-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               {activeChildUnpaid.length} unpaid item{activeChildUnpaid.length !== 1 ? 's' : ''} for {activeChild?.first_name}
             </p>
             {paymentSummary.totalPaid > 0 && (
               <div className="mb-4">
-                <div className="flex justify-between text-sm mb-1">
+                <div className="flex justify-between text-r-sm mb-1">
                   <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>Paid</span>
                   <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>${paymentSummary.totalPaid.toFixed(2)}</span>
                 </div>
@@ -536,7 +536,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               </div>
             )}
             <button onClick={() => setShowPaymentModal(true)}
-              className="w-full py-2.5 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-base transition hover:brightness-110">
+              className="w-full py-2.5 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-r-base transition hover:brightness-110">
               Pay Now
             </button>
           </div>

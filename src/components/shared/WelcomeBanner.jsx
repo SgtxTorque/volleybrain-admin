@@ -103,13 +103,13 @@ export default function WelcomeBanner({
   return (
     <div className="mb-1">
       <h1
-        className={`text-3xl font-extrabold tracking-tight transition-opacity duration-500 ${
+        className={`text-r-3xl font-extrabold tracking-tight transition-opacity duration-500 ${
           isDark ? 'text-white' : 'text-slate-900'
         }`}
       >
         {greeting}
       </h1>
-      <p className={`text-lg mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+      <p className={`text-r-lg mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
         {subLine}
       </p>
     </div>

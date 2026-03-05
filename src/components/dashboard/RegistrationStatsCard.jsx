@@ -63,12 +63,12 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
       isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border'
     }`}>
       <div className="flex items-center justify-between">
-        <h3 className={`text-lg font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
+        <h3 className={`text-r-lg font-bold tracking-[0.12em] uppercase ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`}>
           Registration Stats
         </h3>
         <button
           onClick={() => onNavigate('registrations')}
-          className="flex items-center gap-1 text-lg font-bold transition-colors"
+          className="flex items-center gap-1 text-r-lg font-bold transition-colors"
           style={{ color: isDark ? '#5eead4' : '#4BB9EC' }}
         >
           View All
@@ -101,7 +101,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
           </svg>
           <div className="absolute flex flex-col items-center">
             <span className={`text-[36px] font-bold leading-none ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{total}</span>
-            <span className={`text-lg font-medium ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>
+            <span className={`text-r-lg font-medium ${isDark ? 'text-slate-500' : 'text-[#0D1B3E]/30'}`}>
               Total
             </span>
           </div>
@@ -112,7 +112,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
           {statItems.map((stat) => (
             <div key={stat.label} className="flex items-center gap-3">
               <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: stat.color }} />
-              <span className={`text-lg font-medium ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>{stat.label}</span>
+              <span className={`text-r-lg font-medium ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/40'}`}>{stat.label}</span>
               <span className={`ml-auto text-[13px] font-bold ${isDark ? 'text-white' : 'text-[#0D1B3E]'}`}>{stat.count}</span>
             </div>
           ))}
@@ -125,10 +125,10 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
             <div className="flex flex-1 flex-col items-center gap-4 px-4">
               {/* Season name + status badge */}
               <div className="flex flex-col items-center gap-2">
-                <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <span className={`text-r-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   {season.name || 'Current Season'}
                 </span>
-                <span className={`inline-block px-5 py-2 rounded-full text-xl font-black uppercase tracking-wide ${
+                <span className={`inline-block px-5 py-2 rounded-full text-r-xl font-black uppercase tracking-wide ${
                   season.status === 'active'
                     ? 'bg-emerald-500/15 text-emerald-500'
                     : season.status === 'upcoming'
@@ -153,28 +153,28 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
                     return (
                       <>
                         <div className="min-w-0">
-                          <p className={`text-lg font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                          <p className={`text-r-lg font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Rostered
                           </p>
-                          <p className="text-2xl font-black whitespace-nowrap">
+                          <p className="text-r-2xl font-black whitespace-nowrap">
                             <span className={rosterMatch ? (isDark ? 'text-white' : 'text-slate-900') : 'text-amber-500'}>{rostered}</span>
                             <span className={isDark ? 'text-white' : 'text-slate-900'}>/{total}</span>
                           </p>
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-lg font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                          <p className={`text-r-lg font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Coached
                           </p>
-                          <p className="text-2xl font-black whitespace-nowrap">
+                          <p className="text-r-2xl font-black whitespace-nowrap">
                             <span className={coachMatch ? (isDark ? 'text-white' : 'text-slate-900') : 'text-amber-500'}>{stats.teamsWithCoach || 0}</span>
                             <span className={isDark ? 'text-white' : 'text-slate-900'}>/{stats.teams || 0}</span>
                           </p>
                         </div>
                         <div className="min-w-0">
-                          <p className={`text-lg font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+                          <p className={`text-r-lg font-bold uppercase tracking-[1.2px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                             Open Spots
                           </p>
-                          <p className={`text-2xl font-black ${
+                          <p className={`text-r-2xl font-black ${
                             spots > 0 ? 'text-amber-500' : isDark ? 'text-emerald-400' : 'text-emerald-500'
                           }`}>
                             {spots}
@@ -185,7 +185,7 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
                   })()}
                 </div>
               </div>
-              <p className={`-mt-2 text-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+              <p className={`-mt-2 text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                 Team Status
               </p>
             </div>
@@ -199,33 +199,33 @@ export default function RegistrationStatsCard({ stats, season, onNavigate }) {
         return (
           <div className={`grid grid-cols-3 gap-4 pt-5 mt-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
             <div className="text-center">
-              <p className={`text-lg font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <p className={`text-r-lg font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 Reg Open Date
               </p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <p className={`text-r-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {formatDateShort(season.registration_opens)}
               </p>
             </div>
             <div className="text-center">
-              <p className={`text-lg font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <p className={`text-r-lg font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 Reg Close Date
               </p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <p className={`text-r-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {formatDateShort(season.registration_closes)}
               </p>
             </div>
             <div className="text-center">
-              <p className={`text-lg font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+              <p className={`text-r-lg font-bold uppercase tracking-[1.2px] mb-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
                 {daysLeft != null && daysLeft > 0 ? 'Days Left' : 'Status'}
               </p>
               {daysLeft != null && daysLeft > 0 ? (
-                <p className={`text-4xl font-black ${
+                <p className={`text-r-4xl font-black ${
                   daysLeft <= 7 ? 'text-red-500' : daysLeft <= 30 ? 'text-amber-500' : isDark ? 'text-white' : 'text-slate-900'
                 }`}>
                   {daysLeft}
                 </p>
               ) : (
-                <span className="inline-block mt-1 px-4 py-1.5 rounded-full text-lg font-black bg-red-500/15 text-red-500">
+                <span className="inline-block mt-1 px-4 py-1.5 rounded-full text-r-lg font-black bg-red-500/15 text-red-500">
                   Registration Closed
                 </span>
               )}

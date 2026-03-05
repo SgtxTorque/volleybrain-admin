@@ -67,14 +67,14 @@ export default function AdminSetupTracker({
         </div>
 
         {/* Step count */}
-        <span className={`text-lg font-bold tabular-nums shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <span className={`text-r-lg font-bold tabular-nums shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
           {completedCount}/{totalSteps}
         </span>
       </div>
 
       {/* Next step hint */}
       {nextStep && (
-        <p className={`text-lg mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`text-r-lg mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Next: <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{nextStep.label}</span>
           <span className={`ml-2 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>&middot; ~{nextStep.time}</span>
         </p>

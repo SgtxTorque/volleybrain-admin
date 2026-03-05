@@ -75,13 +75,13 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calendar className={`h-4 w-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <span className={`text-base font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-r-base font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Upcoming Events
           </span>
         </div>
         <button
           onClick={() => onNavigate('schedule')}
-          className="flex items-center gap-1 text-base font-bold transition-colors"
+          className="flex items-center gap-1 text-r-base font-bold transition-colors"
           style={{ color: isDark ? '#5eead4' : '#0d9488' }}
         >
           View All
@@ -113,9 +113,9 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
               >
                 {/* Date badge */}
                 <div className="text-center w-10 flex-shrink-0">
-                  <div className={`text-base uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.weekday}</div>
-                  <div className={`text-3xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{d.day}</div>
-                  <div className={`text-base uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.month}</div>
+                  <div className={`text-r-base uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.weekday}</div>
+                  <div className={`text-r-3xl font-black leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{d.day}</div>
+                  <div className={`text-r-base uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d.month}</div>
                 </div>
 
                 {/* Color bar */}
@@ -127,7 +127,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={`text-base font-bold px-2 py-0.5 rounded-md ${
+                    <span className={`text-r-base font-bold px-2 py-0.5 rounded-md ${
                       isGame
                         ? isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'
                         : isTournament
@@ -137,17 +137,17 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
                       {isGame ? 'GAME' : isTournament ? 'TOURNEY' : 'PRACTICE'}
                     </span>
                     {(event.opponent_name || event.opponent) && (
-                      <span className={`text-base font-semibold truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <span className={`text-r-base font-semibold truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                         vs {event.opponent_name || event.opponent}
                       </span>
                     )}
-                    {daysUntil === 0 && <span className={`text-base font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-500'}`}>TODAY</span>}
-                    {daysUntil === 1 && <span className={`text-base font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>TOMORROW</span>}
+                    {daysUntil === 0 && <span className={`text-r-base font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-500'}`}>TODAY</span>}
+                    {daysUntil === 1 && <span className={`text-r-base font-bold px-1.5 py-0.5 rounded-md ${isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>TOMORROW</span>}
                   </div>
-                  <div className={`text-base mt-0.5 truncate ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+                  <div className={`text-r-base mt-0.5 truncate ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                     {formatTime12(event.event_time)}{event.location && ` · ${event.location}`}{event.venue_name && !event.location && ` · ${event.venue_name}`}
                   </div>
-                  <div className="text-lg font-bold mt-0.5 truncate" style={{ color: teamColor }}>
+                  <div className="text-r-lg font-bold mt-0.5 truncate" style={{ color: teamColor }}>
                     {event.teams?.name || event.title || ''}
                   </div>
                 </div>
@@ -162,7 +162,7 @@ function UpcomingEventsHero({ events, onNavigate, isDark }) {
           isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-brand-border shadow-sm'
         }`}>
           <Calendar className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-          <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No upcoming events</p>
+          <p className={`text-r-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No upcoming events</p>
         </div>
       )}
     </div>
@@ -179,13 +179,13 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Trophy className={`h-4 w-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-          <span className={`text-base font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+          <span className={`text-r-base font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
             Leaderboard
           </span>
         </div>
         <button
           onClick={() => onNavigate('leaderboards')}
-          className="flex items-center gap-1 text-base font-bold transition-colors"
+          className="flex items-center gap-1 text-r-base font-bold transition-colors"
           style={{ color: isDark ? '#5eead4' : '#0d9488' }}
         >
           View All
@@ -211,7 +211,7 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
             >
               {/* Rank */}
               <span
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-base font-black ${
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-r-base font-black ${
                   isTop3
                     ? 'text-white'
                     : isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-slate-100 text-slate-500'
@@ -223,27 +223,27 @@ function LeaderboardCard({ players, onNavigate, isDark }) {
 
               {/* Player info */}
               <div className="flex-1 min-w-0">
-                <p className={`text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <p className={`text-r-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   {player.first_name} {player.last_name}
                 </p>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-lg font-bold truncate" style={{ color: teamColor }}>
+                  <span className="text-r-lg font-bold truncate" style={{ color: teamColor }}>
                     {entry.team?.name || '—'}
                   </span>
                   {player.position && (
                     <>
-                      <span className={`text-lg ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>·</span>
-                      <span className={`text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{player.position}</span>
+                      <span className={`text-r-lg ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>·</span>
+                      <span className={`text-r-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{player.position}</span>
                     </>
                   )}
                 </div>
               </div>
 
               {/* Points */}
-              <span className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`text-r-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {entry.total_points || 0}
               </span>
-              <span className={`text-base font-bold uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+              <span className={`text-r-base font-bold uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                 pts
               </span>
             </div>
@@ -271,7 +271,7 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
         <LeaderboardCard players={topPlayers} onNavigate={onNavigate} isDark={isDark} />
       )}
 
-      <h3 className={`text-base font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
+      <h3 className={`text-r-base font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
         Live Activity
       </h3>
 
@@ -297,13 +297,13 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
 
                 {/* Content */}
                 <div className="flex-1 overflow-hidden">
-                  <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-r-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {activity.action}
                     {activity.highlight && (
                       <span> &mdash; {activity.highlight}</span>
                     )}
                   </p>
-                  <p className={`mt-0.5 truncate text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+                  <p className={`mt-0.5 truncate text-r-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
                     {activity.name}
                     {activity.name && activity.timestamp && ' · '}
                     {activity.timestamp && timeAgo(activity.timestamp)}
@@ -315,7 +315,7 @@ export default function LiveActivity({ activities, upcomingEvents, topPlayers, o
         ) : (
           <div className="py-8 text-center">
             <ClipboardCheck className={`h-8 w-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-            <p className={`text-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No recent activity</p>
+            <p className={`text-r-lg ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>No recent activity</p>
           </div>
         )}
       </div>

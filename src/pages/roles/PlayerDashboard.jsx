@@ -81,8 +81,8 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
       >
         <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--player-border)' }}>
           <div>
-            <h2 className="text-lg font-bold" style={{ color: 'var(--player-text)' }}>Select Player</h2>
-            <p className="text-sm" style={{ color: 'var(--player-text-muted)' }}>Choose a player to view</p>
+            <h2 className="text-r-lg font-bold" style={{ color: 'var(--player-text)' }}>Select Player</h2>
+            <p className="text-r-sm" style={{ color: 'var(--player-text-muted)' }}>Choose a player to view</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl">
             <X className="w-5 h-5" style={{ color: 'var(--player-text-muted)' }} />
@@ -94,7 +94,7 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
             placeholder="Search by name or jersey #..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+            className="w-full px-4 py-2.5 rounded-xl text-r-sm outline-none"
             style={{ background: 'var(--player-card)', border: '1px solid var(--player-border)', color: 'var(--player-text)' }}
           />
         </div>
@@ -112,17 +112,17 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
               {player.photo_url ? (
                 <img src={player.photo_url} className="w-10 h-10 rounded-lg object-cover" style={{ border: '1px solid var(--player-border)' }} alt="" />
               ) : (
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: 'var(--player-card-hover)', color: 'var(--player-text-secondary)' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-r-sm font-bold" style={{ background: 'var(--player-card-hover)', color: 'var(--player-text-secondary)' }}>
                   {player.jersey_number || `${player.first_name?.[0]}${player.last_name?.[0]}`}
                 </div>
               )}
               <div className="text-left flex-1">
                 <p className="font-medium" style={{ color: 'var(--player-text)' }}>{player.first_name} {player.last_name}</p>
-                <p className="text-xs" style={{ color: 'var(--player-text-muted)' }}>#{player.jersey_number} · {player.position || 'Player'}</p>
+                <p className="text-r-xs" style={{ color: 'var(--player-text-muted)' }}>#{player.jersey_number} · {player.position || 'Player'}</p>
               </div>
               {selectedPlayerId === player.id && (
                 <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--player-accent-glow)' }}>
-                  <span className="font-bold text-xs" style={{ color: 'var(--player-accent)' }}>✓</span>
+                  <span className="font-bold text-r-xs" style={{ color: 'var(--player-accent)' }}>✓</span>
                 </div>
               )}
             </button>
@@ -304,7 +304,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       <div className="flex items-center justify-center" style={{ ...themeVars, background: 'var(--player-bg)', minHeight: 'calc(100vh - 4rem)' }}>
         <div className="text-center">
           <div className="w-14 h-14 mx-auto rounded-full animate-spin" style={{ border: '3px solid var(--player-border)', borderTopColor: 'var(--player-accent)' }} />
-          <p className="mt-4 text-sm tracking-wider uppercase" style={{ color: 'var(--player-text-muted)' }}>Loading player data...</p>
+          <p className="mt-4 text-r-sm tracking-wider uppercase" style={{ color: 'var(--player-text-muted)' }}>Loading player data...</p>
         </div>
       </div>
     )
@@ -314,9 +314,9 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
     return (
       <div className="flex flex-col items-center justify-center text-center" style={{ ...themeVars, background: 'var(--player-bg)', minHeight: 'calc(100vh - 4rem)' }}>
         <Shield className="w-16 h-16 mb-4" style={{ color: 'var(--player-text-muted)' }} />
-        <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--player-text)' }}>Player Dashboard</h2>
+        <h2 className="text-r-xl font-bold mb-2" style={{ color: 'var(--player-text)' }}>Player Dashboard</h2>
         <p style={{ color: 'var(--player-text-muted)' }}>Player account not linked yet.</p>
-        <p className="text-sm mt-1" style={{ color: 'var(--player-text-muted)' }}>Contact your league admin to set up your player profile.</p>
+        <p className="text-r-sm mt-1" style={{ color: 'var(--player-text-muted)' }}>Contact your league admin to set up your player profile.</p>
       </div>
     )
   }
@@ -331,12 +331,12 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
           style={{ background: 'linear-gradient(90deg, rgba(75,185,236,0.12), rgba(75,185,236,0.04))', borderBottom: '1px solid rgba(75,185,236,0.15)' }}
         >
           <Eye className="w-4 h-4" style={{ color: 'var(--player-accent)' }} />
-          <p className="text-xs flex-1" style={{ color: 'var(--player-text-secondary)' }}>
+          <p className="text-r-xs flex-1" style={{ color: 'var(--player-text-secondary)' }}>
             Viewing as <span className="font-bold" style={{ color: 'var(--player-accent)' }}>{displayName}</span>
           </p>
           <button
             onClick={() => setShowPlayerSelector(true)}
-            className="text-xs px-3 py-1 rounded-lg font-medium"
+            className="text-r-xs px-3 py-1 rounded-lg font-medium"
             style={{ background: 'var(--player-accent-glow)', color: 'var(--player-accent)', border: '1px solid var(--player-accent)' }}
           >
             Switch Player

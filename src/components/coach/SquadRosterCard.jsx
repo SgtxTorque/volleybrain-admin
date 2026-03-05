@@ -18,17 +18,17 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
           <Users className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h3 className={`text-r-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Squad ({roster.length})
           </h3>
         </div>
-        <button onClick={() => onNavigate?.('teams')} className="text-sm text-lynx-sky font-semibold flex items-center gap-1 hover:brightness-110">
+        <button onClick={() => onNavigate?.('teams')} className="text-r-sm text-lynx-sky font-semibold flex items-center gap-1 hover:brightness-110">
           Full Roster <ChevronRight className="w-3 h-3" />
         </button>
       </div>
 
       {roster.length === 0 ? (
-        <p className={`text-base text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`text-r-base text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           No players on roster yet. Time to build the squad! 🏐
         </p>
       ) : (
@@ -54,7 +54,7 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
                     className="w-12 h-12 rounded-xl object-cover shrink-0"
                   />
                 ) : (
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold shrink-0 ${
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-r-base font-bold shrink-0 ${
                     isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
                   }`}>
                     {initials}
@@ -63,20 +63,20 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
 
                 {/* Info */}
                 <div className="min-w-0 flex-1">
-                  <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-r-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {player.jersey_number ? <span className="text-lynx-sky font-bold">#{player.jersey_number}</span> : null}
                     {player.jersey_number ? ' ' : ''}{player.first_name} {(player.last_name || '').charAt(0)}.
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {player.position && (
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+                      <span className={`text-r-xs font-bold px-2 py-0.5 rounded-md ${
                         isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-slate-100 text-slate-500'
                       }`}>
                         {player.position}
                       </span>
                     )}
                     {stats.length > 0 && stats.slice(0, 3).map((s, i) => (
-                      <span key={i} className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span key={i} className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                         {s.label}: {s.value}
                       </span>
                     ))}
@@ -86,12 +86,12 @@ export default function SquadRosterCard({ roster = [], selectedTeam, onNavigate,
                 {/* Overall rating */}
                 {rating != null && rating > 0 && (
                   <div className={`flex flex-col items-center shrink-0 min-w-[36px]`}>
-                    <span className={`text-lg font-black tabular-nums ${
+                    <span className={`text-r-lg font-black tabular-nums ${
                       rating >= 8 ? 'text-emerald-400' : rating >= 5 ? 'text-amber-400' : 'text-red-400'
                     }`}>
                       {typeof rating === 'number' ? rating.toFixed(1) : rating}
                     </span>
-                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>OVR</span>
+                    <span className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>OVR</span>
                   </div>
                 )}
               </button>

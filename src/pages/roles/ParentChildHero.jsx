@@ -27,7 +27,7 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
           <img src={child.photo_url} alt={child.first_name}
             className="w-20 h-20 rounded-2xl object-cover border-2 border-white/10 flex-shrink-0" />
         ) : (
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-black text-4xl border-2 border-white/10 flex-shrink-0"
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-black text-r-4xl border-2 border-white/10 flex-shrink-0"
             style={{ backgroundColor: teamColor }}>
             {jersey || '?'}
           </div>
@@ -35,23 +35,23 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
 
         {/* Player info */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold uppercase tracking-wider text-lynx-sky">
+          <p className="text-r-sm font-bold uppercase tracking-wider text-lynx-sky">
             {child.team?.name || 'No Team'}
           </p>
-          <h3 className="text-3xl font-extrabold text-white truncate">
+          <h3 className="text-r-3xl font-extrabold text-white truncate">
             {child.first_name} {child.last_name || ''}
           </h3>
           <div className="flex items-center gap-3 mt-1.5">
             {jersey && (
-              <span className="text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+              <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
                 #{jersey}
               </span>
             )}
-            <span className="text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+            <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
               {position}
             </span>
             {child.registrationStatus === 'active' && (
-              <span className="text-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+              <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
                 Active
               </span>
             )}
@@ -92,7 +92,7 @@ export default function ParentChildHero({
           }`}
           style={{ minWidth: 160 }}>
           <Plus className="w-6 h-6 mb-1" />
-          <span className="text-sm font-bold uppercase tracking-wider">Add Child</span>
+          <span className="text-r-sm font-bold uppercase tracking-wider">Add Child</span>
         </button>
       )}
     </div>

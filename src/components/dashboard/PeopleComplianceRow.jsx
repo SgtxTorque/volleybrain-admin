@@ -19,14 +19,14 @@ function ComplianceCard({ icon: Icon, title, items, iconColor, isDark }) {
         >
           <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
-        <h4 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h4>
+        <h4 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h4>
       </div>
       <div className="space-y-2.5">
         {items.map((item, idx) => (
           <div key={idx}>
             <div className="flex items-center justify-between mb-1">
-              <span className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</span>
-              <span className={`text-base font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-700'}`}>
+              <span className={`text-r-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.label}</span>
+              <span className={`text-r-base font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-700'}`}>
                 {item.value}/{item.total}
               </span>
             </div>

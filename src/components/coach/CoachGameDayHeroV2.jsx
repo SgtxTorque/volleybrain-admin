@@ -65,7 +65,7 @@ function useLiveCountdown(event) {
 function FormBadge({ result }) {
   const isWin = result === 'W'
   return (
-    <span className={`w-7 h-7 rounded-md flex items-center justify-center text-sm font-black ${
+    <span className={`w-7 h-7 rounded-md flex items-center justify-center text-r-sm font-black ${
       isWin ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
     }`}>
       {result}
@@ -97,7 +97,7 @@ function JourneyTracker({ activeStep = 0, onStepClick }) {
               title={step.label}
             >
               <div className={`
-                w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold
+                w-8 h-8 rounded-full border-2 flex items-center justify-center text-r-sm font-bold
                 transition-colors cursor-pointer
                 ${isCompleted
                   ? 'bg-lynx-sky/20 border-lynx-sky text-lynx-sky'
@@ -108,7 +108,7 @@ function JourneyTracker({ activeStep = 0, onStepClick }) {
               `}>
                 {step.num}
               </div>
-              <span className={`text-xs font-medium whitespace-nowrap ${
+              <span className={`text-r-xs font-medium whitespace-nowrap ${
                 isCompleted || isCurrent ? 'text-slate-300' : 'text-slate-600'
               }`}>
                 {step.label}
@@ -147,13 +147,13 @@ export default function CoachGameDayHeroV2({
       <div className="relative rounded-2xl overflow-hidden max-h-hero" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)' }}>
         <DotGrid />
         <div className="relative z-10 p-r-6 flex flex-col justify-center h-full">
-          <p className="text-base font-bold uppercase tracking-[1.5px] text-slate-500 mb-3">Season Record</p>
+          <p className="text-r-base font-bold uppercase tracking-[1.5px] text-slate-500 mb-3">Season Record</p>
           <div className="flex items-baseline gap-3 mb-3">
-            <span className="text-6xl font-black text-emerald-400">{teamRecord.wins}</span>
-            <span className="text-3xl font-bold text-slate-600">—</span>
-            <span className="text-6xl font-black text-red-400">{teamRecord.losses}</span>
+            <span className="text-r-5xl font-black text-emerald-400">{teamRecord.wins}</span>
+            <span className="text-r-3xl font-bold text-slate-600">—</span>
+            <span className="text-r-5xl font-black text-red-400">{teamRecord.losses}</span>
           </div>
-          <p className="text-lg text-slate-400">{selectedTeam?.name} · {winRate}% win rate</p>
+          <p className="text-r-lg text-slate-400">{selectedTeam?.name} · {winRate}% win rate</p>
           {teamRecord.recentForm?.length > 0 && (
             <div className="flex items-center gap-1 mt-4">
               {teamRecord.recentForm.slice(0, 5).map((r, i) => (
@@ -186,33 +186,33 @@ export default function CoachGameDayHeroV2({
           <div>
             {/* Live badge */}
             {isToday && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-red-500/20 text-red-300 border border-red-500/30 self-start mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-r-sm font-bold uppercase tracking-widest bg-red-500/20 text-red-300 border border-red-500/30 self-start mb-3">
                 <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
                 {isGame ? 'GAME DAY' : 'TODAY'}
               </span>
             )}
 
             {!isToday && countdown && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold bg-white/10 text-white/70 self-start mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-r-sm font-bold bg-white/10 text-white/70 self-start mb-3">
                 <Clock className="w-3.5 h-3.5" />
                 {countdown}
               </span>
             )}
 
             {/* Team label */}
-            <p className="text-base font-bold uppercase tracking-wider text-slate-500 mb-1">
+            <p className="text-r-base font-bold uppercase tracking-wider text-slate-500 mb-1">
               {selectedTeam?.name}
             </p>
 
             {/* Matchup title */}
-            <h2 className="text-4xl font-black text-white tracking-wide mb-3">
+            <h2 className="text-r-4xl font-black text-white tracking-wide mb-3">
               {isGame && event.opponent_name
                 ? `vs ${event.opponent_name}`
                 : event.title || (isGame ? 'Game Day' : 'Practice')}
             </h2>
 
             {/* Date/Time/Venue */}
-            <div className="flex items-center gap-3 text-base text-slate-400 mb-4 flex-wrap">
+            <div className="flex items-center gap-3 text-r-base text-slate-400 mb-4 flex-wrap">
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
                 {formatDateShort(event.event_date)}
@@ -229,7 +229,7 @@ export default function CoachGameDayHeroV2({
             {/* CTA */}
             <button
               onClick={() => onNavigate?.(isGame ? 'gameprep' : 'schedule')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lynx-sky hover:brightness-110 text-white text-lg font-bold self-start transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lynx-sky hover:brightness-110 text-white text-r-lg font-bold self-start transition"
             >
               <Zap className="w-4 h-4" />
               {isGame ? 'START GAME DAY MODE' : 'View Schedule'}
@@ -248,15 +248,15 @@ export default function CoachGameDayHeroV2({
 
         {/* Right — Record */}
         <div className="flex flex-col items-center justify-center min-w-[160px]">
-          <p className="text-base font-bold uppercase tracking-[1.5px] text-slate-500 mb-3">
+          <p className="text-r-base font-bold uppercase tracking-[1.5px] text-slate-500 mb-3">
             Season Record
           </p>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-6xl font-black text-emerald-400 tabular-nums">{teamRecord.wins}</span>
-            <span className="text-3xl font-bold text-slate-600">—</span>
-            <span className="text-6xl font-black text-red-400 tabular-nums">{teamRecord.losses}</span>
+            <span className="text-r-5xl font-black text-emerald-400 tabular-nums">{teamRecord.wins}</span>
+            <span className="text-r-3xl font-bold text-slate-600">—</span>
+            <span className="text-r-5xl font-black text-red-400 tabular-nums">{teamRecord.losses}</span>
           </div>
-          <p className="text-base text-slate-500 mb-3">{winRate}% win rate</p>
+          <p className="text-r-base text-slate-500 mb-3">{winRate}% win rate</p>
 
           {/* Recent form */}
           {teamRecord.recentForm?.length > 0 && (

@@ -41,11 +41,11 @@ export default function AdminActionChecklist({ items = [], onNavigate }) {
         isDark ? 'border-white/[0.06]' : 'border-slate-100'
       }`}>
         <div className="flex items-center gap-3">
-          <h3 className={`text-xl font-bold tracking-wide uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h3 className={`text-r-xl font-bold tracking-wide uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Action Items
           </h3>
           {sorted.length > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-red-500 text-white text-sm font-bold">
+            <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-red-500 text-white text-r-sm font-bold">
               {sorted.length}
             </span>
           )}
@@ -57,7 +57,7 @@ export default function AdminActionChecklist({ items = [], onNavigate }) {
         {sorted.length === 0 ? (
           <div className="flex items-center gap-3 py-6 justify-center">
             <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-            <p className={`text-xl font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className={`text-r-xl font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               All clear — the org is running smooth
             </p>
           </div>
@@ -70,18 +70,18 @@ export default function AdminActionChecklist({ items = [], onNavigate }) {
 
                 {/* Description */}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-r-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {item.label}
                   </p>
                   {item.detail && (
-                    <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                    <p className={`text-r-base ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
                       {item.detail}
                     </p>
                   )}
                 </div>
 
                 {/* Severity tag */}
-                <span className={`text-sm font-medium px-2.5 py-1 rounded-full shrink-0 ${
+                <span className={`text-r-sm font-medium px-2.5 py-1 rounded-full shrink-0 ${
                   item.severity === 'critical'
                     ? 'bg-red-500/10 text-red-500'
                     : item.severity === 'warning'
@@ -94,7 +94,7 @@ export default function AdminActionChecklist({ items = [], onNavigate }) {
                 {/* Handle button */}
                 <button
                   onClick={() => onNavigate?.(item.page)}
-                  className={`flex items-center gap-1 text-base font-semibold shrink-0 px-3 py-1.5 rounded-xl transition-colors ${
+                  className={`flex items-center gap-1 text-r-base font-semibold shrink-0 px-3 py-1.5 rounded-xl transition-colors ${
                     isDark
                       ? 'text-lynx-sky hover:bg-white/[0.06]'
                       : 'text-lynx-sky hover:bg-slate-50'

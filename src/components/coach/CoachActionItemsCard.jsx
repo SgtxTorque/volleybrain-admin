@@ -64,12 +64,12 @@ export default function CoachActionItemsCard({ items = [], onNavigate }) {
 
   return (
     <div className="py-2">
-      <p className={`text-sm font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+      <p className={`text-r-sm font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
         Action Items
       </p>
 
       {items.length === 0 ? (
-        <p className={`text-lg font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <p className={`text-r-lg font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           {emptyMsg}
         </p>
       ) : (
@@ -86,8 +86,8 @@ export default function CoachActionItemsCard({ items = [], onNavigate }) {
                   isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
                 }`}
               >
-                <span className="text-xl mt-0.5 shrink-0">{emoji}</span>
-                <span className={`text-lg font-medium leading-snug flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <span className="text-r-xl mt-0.5 shrink-0">{emoji}</span>
+                <span className={`text-r-lg font-medium leading-snug flex-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   {text}
                 </span>
                 <ChevronRight className={`w-4 h-4 mt-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />

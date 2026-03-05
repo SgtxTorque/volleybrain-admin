@@ -37,7 +37,7 @@ export default function CoachTools({ onNavigate, onShowShoutout }) {
             }`}
           >
             <tool.icon className="w-4 h-4 shrink-0" style={{ color: tool.color }} />
-            <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+            <span className={`text-r-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
               {tool.label}
             </span>
           </button>

@@ -57,21 +57,21 @@ export default function AlsoThisWeekCard({ events = [] }) {
 
   return (
     <div className="py-2">
-      <p className={`text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+      <p className={`text-r-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
         Also this week
       </p>
       <div className="space-y-1">
         {displayEvents.map((event, i) => (
           <p
             key={event.id || i}
-            className={`text-lg font-medium transition-opacity duration-500 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+            className={`text-r-lg font-medium transition-opacity duration-500 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
           >
             {formatEventLine(event)}
           </p>
         ))}
       </div>
       {thisWeekEvents.length > 3 && (
-        <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+        <p className={`text-r-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           +{thisWeekEvents.length - 1} more this week
         </p>
       )}

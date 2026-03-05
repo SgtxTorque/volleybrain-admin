@@ -66,7 +66,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Calendar className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <h3 className={`text-r-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {monthLabel}
           </h3>
         </div>
@@ -76,7 +76,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button onClick={() => { setWeekOffset(0); setSelectedDayIdx(null) }}
-            className={`px-2 py-0.5 rounded-lg text-xs font-bold ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
+            className={`px-2 py-0.5 rounded-lg text-r-xs font-bold ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
             Today
           </button>
           <button onClick={() => { setWeekOffset(w => w + 1); setSelectedDayIdx(null) }}
@@ -103,8 +103,8 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
                     : isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <span className="text-xs font-bold uppercase">{day.dayName}</span>
-              <span className={`text-lg font-bold ${isActive ? '' : ''}`}>{day.dayNum}</span>
+              <span className="text-r-xs font-bold uppercase">{day.dayName}</span>
+              <span className={`text-r-lg font-bold ${isActive ? '' : ''}`}>{day.dayNum}</span>
               {hasEvent && (
                 <span className={`w-1.5 h-1.5 rounded-full mt-0.5 ${isActive ? 'bg-white' : 'bg-lynx-sky'}`} />
               )}
@@ -116,7 +116,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
       {/* Day Events */}
       <div className={`min-h-[60px] ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-100'} pt-3`}>
         {dayEvents.length === 0 ? (
-          <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events on this day</p>
+          <p className={`text-r-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events on this day</p>
         ) : (
           <div className="space-y-2">
             {dayEvents.slice(0, 3).map(event => (
@@ -127,14 +127,14 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
                   isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
                 }`}
               >
-                <span className="text-lg">{event.event_type === 'game' ? '🏐' : '⚡'}</span>
+                <span className="text-r-lg">{event.event_type === 'game' ? '🏐' : '⚡'}</span>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-r-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {event.event_type === 'game' && event.opponent_name
                       ? `vs ${event.opponent_name}`
                       : event.title || event.event_type}
                   </p>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p className={`text-r-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     {formatTime12(event.event_time)}{event.venue_name ? ` · ${event.venue_name}` : ''}
                   </p>
                 </div>
@@ -143,7 +143,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
             {dayEvents.length > 3 && (
               <button
                 onClick={() => onNavigate?.('schedule')}
-                className="text-sm font-semibold text-lynx-sky hover:brightness-110"
+                className="text-r-sm font-semibold text-lynx-sky hover:brightness-110"
               >
                 +{dayEvents.length - 3} more events →
               </button>
@@ -154,7 +154,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
 
       {/* Footer */}
       <div className={`mt-3 pt-2 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-100'}`}>
-        <button onClick={() => onNavigate?.('schedule')} className="text-sm font-semibold text-lynx-sky hover:brightness-110 flex items-center gap-1">
+        <button onClick={() => onNavigate?.('schedule')} className="text-r-sm font-semibold text-lynx-sky hover:brightness-110 flex items-center gap-1">
           View Full Schedule <ChevronRight className="w-3 h-3" />
         </button>
       </div>

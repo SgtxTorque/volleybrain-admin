@@ -12,8 +12,8 @@ function ReadinessBar({ label, value, total, isDark }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
-        <span className={`text-xs font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-700'}`}>{pct}%</span>
+        <span className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
+        <span className={`text-r-xs font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-700'}`}>{pct}%</span>
       </div>
       <div className={`h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />

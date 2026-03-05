@@ -29,8 +29,8 @@ function HealthRing({ score, size = 160 }) {
       }}
     >
       <div className="absolute inset-[8px] rounded-full bg-[#0B1628] flex flex-col items-center justify-center">
-        <span className="text-7xl font-black text-white tabular-nums">{score}</span>
-        <span className="text-lg font-bold uppercase tracking-wider text-slate-400">Health</span>
+        <span className="text-r-5xl font-black text-white tabular-nums">{score}</span>
+        <span className="text-r-lg font-bold uppercase tracking-wider text-slate-400">Health</span>
       </div>
     </div>
   )
@@ -46,8 +46,8 @@ function KpiPill({ label, value, icon: Icon }) {
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-white text-xl font-bold tabular-nums">{value}</p>
-        <p className="text-lg text-slate-500 truncate">{label}</p>
+        <p className="text-white text-r-xl font-bold tabular-nums">{value}</p>
+        <p className="text-r-lg text-slate-500 truncate">{label}</p>
       </div>
     </div>
   )
@@ -67,9 +67,9 @@ function UrgentItem({ label, count, severity = 'warning', onClick }) {
       className="w-full flex items-center gap-3 py-2.5 text-left hover:bg-white/[0.04] rounded-lg transition-colors px-2"
     >
       <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${dotColor}`} />
-      <span className="text-xl text-slate-300 flex-1 truncate">{label}</span>
+      <span className="text-r-xl text-slate-300 flex-1 truncate">{label}</span>
       {count > 0 && (
-        <span className="text-xl font-bold text-white bg-white/[0.08] px-2.5 py-0.5 rounded-lg tabular-nums">{count}</span>
+        <span className="text-r-xl font-bold text-white bg-white/[0.08] px-2.5 py-0.5 rounded-lg tabular-nums">{count}</span>
       )}
     </button>
   )
@@ -110,17 +110,17 @@ export default function OrgHealthHero({
         {/* ─── LEFT SIDE (~60%) ─── */}
         <div className="flex flex-col gap-4">
           {/* Org name label */}
-          <p className="text-lg text-white/40 uppercase tracking-wider font-semibold">{orgName}</p>
+          <p className="text-r-lg text-white/40 uppercase tracking-wider font-semibold">{orgName}</p>
 
           {/* Title + Ring row */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-r-4">
             <HealthRing score={healthScore} />
             <div>
-              <h2 className="text-3xl font-extrabold text-white mb-1">Organization Health</h2>
-              <p className="text-xl font-bold" style={{ color: status.color }}>
+              <h2 className="text-r-3xl font-extrabold text-white mb-1">Organization Health</h2>
+              <p className="text-r-xl font-bold" style={{ color: status.color }}>
                 {status.label}
               </p>
-              <p className="text-lg text-slate-500 mt-2">
+              <p className="text-r-lg text-slate-500 mt-2">
                 Weighted score across registration, payments, waivers, rosters, schedules, coaches, and compliance.
               </p>
             </div>
@@ -143,14 +143,14 @@ export default function OrgHealthHero({
         <div className="border-l border-white/[0.06] pl-6 flex flex-col">
           <div className="flex items-center gap-2 mb-4">
             <AlertCircle className="w-5 h-5 text-amber-500" />
-            <h3 className="text-lg font-bold uppercase tracking-wider text-amber-400">Needs Attention</h3>
+            <h3 className="text-r-lg font-bold uppercase tracking-wider text-amber-400">Needs Attention</h3>
           </div>
 
           {urgentItems.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center py-6">
               <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-3" />
-              <p className="text-emerald-400 text-xl font-bold">All systems go</p>
-              <p className="text-slate-500 text-lg mt-1">Nothing needs your attention right now.</p>
+              <p className="text-emerald-400 text-r-xl font-bold">All systems go</p>
+              <p className="text-slate-500 text-r-lg mt-1">Nothing needs your attention right now.</p>
             </div>
           ) : (
             <div className="space-y-1 flex-1">
