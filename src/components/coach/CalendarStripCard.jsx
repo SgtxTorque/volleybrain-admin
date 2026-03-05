@@ -1,6 +1,6 @@
 // =============================================================================
 // CalendarStripCard — Week-view calendar strip with day selection + event list
-// Supports narrow (4-col) layout: vertical day buttons, dark button at bottom
+// Horizontal day strip, "View Full Schedule" button below strip, events below
 // =============================================================================
 
 import { useState, useMemo } from 'react'
@@ -82,8 +82,8 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
         </div>
       </div>
 
-      {/* Day Strip — vertical stack for narrow card */}
-      <div className="flex flex-col gap-1 mb-2">
+      {/* Day Strip — horizontal row */}
+      <div className="grid grid-cols-7 gap-0.5 mb-2">
         {weekDays.map((day, idx) => {
           const isActive = idx === (activeDayIdx >= 0 ? activeDayIdx : 0)
           const hasEvent = eventDaySet.has(day.dateStr)
@@ -91,7 +91,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
             <button
               key={day.dateStr}
               onClick={() => setSelectedDayIdx(idx)}
-              className={`flex items-center gap-2 px-2 py-1 rounded-lg transition-colors text-left ${
+              className={`flex flex-col items-center py-1 rounded-lg transition-colors relative ${
                 isActive
                   ? 'bg-lynx-sky text-white'
                   : day.isToday
@@ -99,23 +99,31 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
                     : isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <span className="text-[10px] font-bold uppercase w-7">{day.dayName}</span>
-              <span className="text-sm font-bold">{day.dayNum}</span>
+              <span className="text-[9px] font-bold uppercase leading-tight">{day.dayName}</span>
+              <span className="text-xs font-bold leading-tight">{day.dayNum}</span>
               {hasEvent && (
-                <span className={`w-1.5 h-1.5 rounded-full ml-auto ${isActive ? 'bg-white' : 'bg-lynx-sky'}`} />
+                <span className={`absolute bottom-0.5 w-1 h-1 rounded-full ${isActive ? 'bg-white' : 'bg-lynx-sky'}`} />
               )}
             </button>
           )
         })}
       </div>
 
+      {/* "View Full Schedule" button — between strip and events */}
+      <button
+        onClick={() => onNavigate?.('schedule')}
+        className="w-full py-2 rounded-lg bg-lynx-navy text-white text-r-sm font-bold hover:brightness-125 transition-colors text-center mb-2"
+      >
+        View Full Schedule
+      </button>
+
       {/* Day Events */}
       <div className={`flex-1 min-h-0 overflow-y-auto ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-100'} pt-2`}>
         {dayEvents.length === 0 ? (
-          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events</p>
+          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events on this day</p>
         ) : (
           <div className="space-y-1.5">
-            {dayEvents.slice(0, 5).map(event => (
+            {dayEvents.slice(0, 3).map(event => (
               <button
                 key={event.id}
                 onClick={() => onEventSelect?.(event)}
@@ -136,17 +144,14 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
                 </div>
               </button>
             ))}
+            {dayEvents.length > 3 && (
+              <p className={`text-[10px] font-semibold ${isDark ? 'text-lynx-sky' : 'text-lynx-sky'} text-center`}>
+                +{dayEvents.length - 3} more
+              </p>
+            )}
           </div>
         )}
       </div>
-
-      {/* Dark "View Full Schedule" button at bottom */}
-      <button
-        onClick={() => onNavigate?.('schedule')}
-        className="mt-2 w-full py-2 rounded-lg bg-[#0B1628] text-white text-xs font-bold hover:bg-[#162a4a] transition-colors text-center"
-      >
-        View Full Schedule
-      </button>
     </div>
   )
 }
