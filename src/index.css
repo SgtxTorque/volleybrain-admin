@@ -287,3 +287,27 @@
 .player-ovr-pulse {
   animation: playerOvrPulse 1.25s ease-in-out infinite;
 }
+
+/* ================================================================
+   react-grid-layout overrides — drag/resize styling
+   ================================================================ */
+.react-grid-item {
+  transition: all 200ms ease;
+}
+.react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 100;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  opacity: 0.9;
+}
+.react-grid-placeholder {
+  background: rgba(75, 185, 236, 0.15) !important;
+  border: 2px dashed rgba(75, 185, 236, 0.4) !important;
+  border-radius: 14px !important;
+}
+.react-resizable-handle {
+  background: none !important;
+}
+.react-resizable-handle::after {
+  border-color: rgba(75, 185, 236, 0.4) !important;
+}
