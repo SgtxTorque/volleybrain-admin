@@ -7,25 +7,25 @@ import { Users, UserCheck, Shield, BarChart3 } from 'lucide-react'
 
 function KpiCard({ icon: Icon, label, value, sub, iconColor, isDark }) {
   return (
-    <div className={`rounded-xl p-3 ${
+    <div className={`rounded-xl p-2 ${
       isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-slate-50 border border-slate-100'
     }`}>
       <div className="flex items-center gap-2">
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
           style={{ backgroundColor: `${iconColor}15` }}
         >
           <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`text-xl font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <p className={`text-r-xl font-extrabold tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {value}
           </p>
-          <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
+          <p className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
         </div>
       </div>
       {sub && (
-        <p className={`text-[10px] mt-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</p>
+        <p className={`text-r-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</p>
       )}
     </div>
   )

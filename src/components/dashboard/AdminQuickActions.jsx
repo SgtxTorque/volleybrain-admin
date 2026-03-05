@@ -47,12 +47,12 @@ export default function AdminQuickActions({ counts = {}, onNavigate }) {
                 }`}
               >
                 {count > 0 && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm">
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm">
                     {count > 99 ? '99+' : count}
                   </span>
                 )}
                 <Icon className="w-4 h-4 text-lynx-sky" />
-                <span className={`text-[11px] font-medium text-center leading-tight truncate w-full ${
+                <span className={`text-r-xs font-medium text-center leading-tight truncate w-full ${
                   isDark ? 'text-white' : 'text-slate-800'
                 }`}>
                   {action.label}

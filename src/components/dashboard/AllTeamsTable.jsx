@@ -25,7 +25,7 @@ function StatusChip({ status, isDark }) {
   }
   const cfg = statusConfig[status] || statusConfig.good
   return (
-    <span className={`px-2 py-0.5 rounded-full text-r-lg font-bold ${cfg.bg} ${cfg.text}`}>
+    <span className={`px-2 py-0.5 rounded-full text-r-xs font-bold ${cfg.bg} ${cfg.text}`}>
       {cfg.label}
     </span>
   )
@@ -43,26 +43,26 @@ export default function AllTeamsTable({ teams = [], teamStats = {}, onNavigate }
   return (
     <div className={`${cardBg} rounded-2xl shadow-sm overflow-hidden`}>
       <div className="px-4 py-3 flex items-center justify-between border-b border-white/[0.06]">
-        <h3 className={`text-r-lg font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+        <h3 className={`text-xs font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           All Teams
         </h3>
         <button
           onClick={() => onNavigate?.('teams')}
-          className="text-r-base text-lynx-sky font-medium flex items-center gap-1"
+          className="text-r-xs text-lynx-sky font-medium flex items-center gap-1"
         >
           View All <ChevronRight className="w-3 h-3" />
         </button>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-r-lg">
+        <table className="w-full text-r-sm">
           <thead>
             <tr className={isDark ? 'text-slate-500' : 'text-slate-400'}>
-              <th className="text-left text-r-lg font-semibold uppercase tracking-wider px-4 py-2">Team</th>
-              <th className="text-center text-r-lg font-semibold uppercase tracking-wider px-2 py-2">Record</th>
-              <th className="text-center text-r-lg font-semibold uppercase tracking-wider px-2 py-2">Players</th>
-              <th className="text-center text-r-lg font-semibold uppercase tracking-wider px-2 py-2">Health</th>
-              <th className="text-center text-r-lg font-semibold uppercase tracking-wider px-2 py-2">Status</th>
+              <th className="text-left text-r-xs font-bold uppercase tracking-wider px-4 py-2">Team</th>
+              <th className="text-center text-r-xs font-bold uppercase tracking-wider px-2 py-2">Record</th>
+              <th className="text-center text-r-xs font-bold uppercase tracking-wider px-2 py-2">Players</th>
+              <th className="text-center text-r-xs font-bold uppercase tracking-wider px-2 py-2">Health</th>
+              <th className="text-center text-r-xs font-bold uppercase tracking-wider px-2 py-2">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -86,7 +86,7 @@ export default function AllTeamsTable({ teams = [], teamStats = {}, onNavigate }
                         className="w-2 h-2 rounded-full shrink-0"
                         style={{ backgroundColor: team.color || '#4BB9EC' }}
                       />
-                      <span className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      <span className={`text-r-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {team.name}
                       </span>
                     </div>
