@@ -465,6 +465,54 @@ export const widgetRegistry = [
     componentKey: 'AchievementsCard',
     icon: '🏆',
   },
+
+  // ══════════════════════════════════════
+  // PARENT-SPECIFIC
+  // ══════════════════════════════════════
+  {
+    id: 'next-event',
+    label: 'Next Event',
+    description: 'Dark hero card for next upcoming event with RSVP + Directions',
+    category: WIDGET_CATEGORIES.SCHEDULE,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 14, h: 8 },
+    minSize: { w: 6, h: 5 },
+    componentKey: 'NextEventCard',
+    icon: '📅',
+  },
+  {
+    id: 'season-record',
+    label: 'Season Record',
+    description: 'Big W/L numbers with last game result',
+    category: WIDGET_CATEGORIES.OVERVIEW,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 7, h: 6 },
+    minSize: { w: 4, h: 4 },
+    componentKey: 'SeasonRecordCard',
+    icon: '🏆',
+  },
+  {
+    id: 'engagement-progress',
+    label: 'Engagement Progress',
+    description: 'Level badge and XP progress bar to next level',
+    category: WIDGET_CATEGORIES.ACHIEVEMENTS,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 7, h: 5 },
+    minSize: { w: 4, h: 3 },
+    componentKey: 'EngagementProgressCard',
+    icon: '⭐',
+  },
+  {
+    id: 'quick-links',
+    label: 'Quick Links',
+    description: 'Parent navigation shortcuts — schedule, payments, roster',
+    category: WIDGET_CATEGORIES.ACTIONS,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 10, h: 6 },
+    minSize: { w: 4, h: 4 },
+    componentKey: 'QuickLinksCard',
+    icon: '🔗',
+  },
 ]
 
 /**

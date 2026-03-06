@@ -49,6 +49,10 @@ import ChatPreviewCard from '../shared/ChatPreviewCard'
 
 // ── Parent widgets ──
 import ParentChildHero from '../../pages/roles/ParentChildHero'
+import NextEventCard from '../parent/NextEventCard'
+import SeasonRecordCard from '../parent/SeasonRecordCard'
+import EngagementProgressCard from '../parent/EngagementProgressCard'
+import QuickLinksCard from '../parent/QuickLinksCard'
 
 /**
  * Maps componentKey → React component.
@@ -99,6 +103,10 @@ const componentMap = {
 
   // Parent
   ParentChildHero,
+  NextEventCard,
+  SeasonRecordCard,
+  EngagementProgressCard,
+  QuickLinksCard,
 }
 
 /**
