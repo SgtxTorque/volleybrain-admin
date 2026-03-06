@@ -311,120 +311,181 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const actionItems = (priorityEngine?.items || []).filter(i => !i.playerId || i.playerId === activeChild?.id)
   const visibleAlerts = alerts.filter(a => a.priority === 'urgent' || a.priority === 'high')
 
-  // ═══ BUILD WIDGET ARRAY (dynamic — conditional cards) ═══
-  // 24-col grid, 20px row height — matches reference screenshot layout
+  // ═══ BUILD WIDGET ARRAY (hardcoded layout — Carlos's export) ═══
   const parentWidgets = useMemo(() => {
-    let yPos = 0
-    const widgets = []
-
-    // 1. Welcome Banner — full width
-    widgets.push({ id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: yPos, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={(registrationData[activeChildIdx] || registrationData[0])?.first_name} isDark={isDark} /> })
-    yPos += 6
-
-    // 2. Athlete Cards — full width (inject level/XP for active child)
     const enrichedChildren = registrationData.map((child, idx) => {
       if (idx === activeChildIdx) return { ...child, _level: xpData.level, _xpPct: xpData.xpToNext > 0 ? (xpData.currentXp / xpData.xpToNext) * 100 : 0 }
       return { ...child, _level: 1, _xpPct: 0 }
     })
-    widgets.push({ id: 'athlete-cards', label: 'My Athletes', defaultLayout: { x: 0, y: yPos, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 16, component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> })
-    yPos += 8
 
-    // 3. Action Required — conditional, pulse on action buttons
-    if (actionItems.length > 0) {
-      widgets.push({ id: 'action-required', label: 'Action Required', defaultLayout: { x: 0, y: yPos, w: 24, h: 5 }, minW: 2, minH: 2, maxH: 20, component: (
-        <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-amber-500/[0.06] border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
-          <div className="px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>Action Required</h3>
+    return [
+      // 1. Welcome Banner (11×4 at 0,0)
+      { id: 'welcome-banner', label: 'Welcome Banner',
+        defaultLayout: { x: 0, y: 0, w: 11, h: 4 }, minW: 4, minH: 2, maxH: 8,
+        component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={activeChild?.first_name} isDark={isDark} /> },
+
+      // 2. Parent Journey (11×4 at 11,0)
+      { id: 'parent-journey', label: 'Season Onboarding',
+        defaultLayout: { x: 11, y: 0, w: 11, h: 4 }, minW: 8, minH: 3,
+        componentKey: 'ParentJourneyCard' },
+
+      // 3. Spacer Divider (17×1 at 3,4)
+      { id: 'spacer-divider', label: 'Spacer',
+        defaultLayout: { x: 3, y: 4, w: 17, h: 1 }, minW: 1, minH: 1,
+        componentKey: 'SpacerWidget' },
+
+      // 4. Action Required (9×7 at 0,5) — always present, empty state when no items
+      { id: 'action-required', label: 'Action Required',
+        defaultLayout: { x: 0, y: 5, w: 9, h: 7 }, minW: 4, minH: 4, maxH: 20,
+        component: (
+          <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-amber-500/[0.06] border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+                <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>Action Required</h3>
+              </div>
+              {actionItems.length > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-xs font-extrabold">{actionItems.length}</span>}
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-xs font-extrabold animate-soft-pulse">{actionItems.length}</span>
-          </div>
-          <div className={`border-t ${isDark ? 'border-amber-500/10' : 'border-amber-200'}`}>
-            {actionItems.slice(0, 4).map((item, idx) => (
-              <button key={idx} onClick={() => handlePriorityAction(item)} className={`w-full flex items-center gap-3 px-5 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-amber-100/50'} ${idx > 0 ? (isDark ? 'border-t border-amber-500/10' : 'border-t border-amber-100') : ''}`}>
-                <span className="text-lg">{item.icon || '⚠️'}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</p>
-                  <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
+            <div className={`border-t overflow-y-auto ${isDark ? 'border-amber-500/10' : 'border-amber-200'}`} style={{ maxHeight: 'calc(100% - 36px)' }}>
+              {actionItems.length > 0 ? actionItems.slice(0, 4).map((item, idx) => (
+                <button key={idx} onClick={() => handlePriorityAction(item)} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-amber-100/50'} ${idx > 0 ? (isDark ? 'border-t border-amber-500/10' : 'border-t border-amber-100') : ''}`}>
+                  <span className="text-base">{item.icon || '⚠️'}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-r-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</p>
+                    <p className={`text-r-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
+                  </div>
+                  <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+                </button>
+              )) : (
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <span className="text-2xl mb-1">✅</span>
+                  <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>All caught up!</p>
+                  <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No action items right now</p>
                 </div>
-                <span className="animate-soft-pulse"><ChevronRight className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} /></span>
-              </button>
-            ))}
-          </div>
-        </div>
-      ) })
-      yPos += 5
-    }
-
-    // 4. Next Event (left, w:14) + Team Hub (right, w:10)
-    if (activeChildEvents.length > 0) {
-      widgets.push({ id: 'next-event', label: 'Next Event', defaultLayout: { x: 0, y: yPos, w: 14, h: 9 }, minW: 4, minH: 4, maxH: 12, componentKey: 'NextEventCard' })
-    }
-    if (activeTeam) {
-      widgets.push({ id: 'team-hub', label: 'Team Hub', defaultLayout: { x: 14, y: yPos, w: 10, h: 9 }, minW: 2, minH: 2, maxH: 10, component: (
-        <button onClick={() => navigateToTeamWall?.(activeTeam.id)} className={`w-full rounded-2xl border p-5 flex flex-col justify-center gap-4 text-left transition h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: activeTeam.color || '#6366F1' }}>{activeTeam.name?.[0] || 'T'}</div>
-            <div className="flex-1 min-w-0">
-              <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
+              )}
             </div>
           </div>
-          <span className="text-lynx-sky text-xs font-bold uppercase tracking-wider">View Hub →</span>
-        </button>
-      ) })
-    }
-    if (activeChildEvents.length > 0 || activeTeam) yPos += 9
+        ) },
 
-    // 5. Three equal columns — Season Record | Balance Due | Team Chat
-    widgets.push({ id: 'season-record', label: 'Season Record', defaultLayout: { x: 0, y: yPos, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 10, componentKey: 'SeasonRecordCard' })
-    if (totalChildDue > 0) {
-      widgets.push({ id: 'balance-due', label: 'Balance Due', defaultLayout: { x: 8, y: yPos, w: 8, h: 7 }, minW: 2, minH: 2, maxH: 12, component: (
-        <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-          <div className="px-4 py-3 flex items-center justify-between">
-            <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Balance Due</h3>
-            <DollarSign className={`w-3.5 h-3.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
-          </div>
-          <div className={`px-4 pb-4 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`}>
-            <p className="text-3xl font-extrabold text-red-500 mt-2">${totalChildDue.toFixed(2)}</p>
-            <p className={`text-xs mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{activeChildUnpaid.length} unpaid item{activeChildUnpaid.length !== 1 ? 's' : ''}</p>
-            <button onClick={() => setShowPaymentModal(true)} className="w-full py-2 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-sm transition hover:brightness-110 animate-soft-pulse">Pay Now</button>
-          </div>
-        </div>
-      ) })
-    }
-    widgets.push({ id: 'team-chat', label: 'Team Chat', defaultLayout: { x: 16, y: yPos, w: 8, h: 7 }, minW: 4, minH: 3, maxH: 12, componentKey: 'ChatPreviewCard' })
-    yPos += 7
+      // 5. Athlete Cards (8×7 at 10,5)
+      { id: 'athlete-cards', label: 'My Athletes',
+        defaultLayout: { x: 10, y: 5, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 16,
+        component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> },
 
-    // 6. Three equal columns — Engagement Progress | Quick Links | (spacer)
-    widgets.push({ id: 'engagement-progress', label: 'Engagement Progress', defaultLayout: { x: 0, y: yPos, w: 8, h: 5 }, minW: 4, minH: 3, maxH: 10, componentKey: 'EngagementProgressCard' })
-    widgets.push({ id: 'quick-links', label: 'Quick Links', defaultLayout: { x: 8, y: yPos, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 10, componentKey: 'QuickLinksCard' })
-    yPos += 7
+      // 6. Engagement Progress (4×6 at 19,5)
+      { id: 'engagement-progress', label: 'Engagement Progress',
+        defaultLayout: { x: 19, y: 5, w: 4, h: 6 }, minW: 4, minH: 3, maxH: 10,
+        componentKey: 'EngagementProgressCard' },
 
-    // 7. Achievements — conditional
-    if (childAchievements.length > 0) {
-      widgets.push({ id: 'achievements', label: 'Achievements', defaultLayout: { x: 0, y: yPos, w: 24, h: 4 }, minW: 2, minH: 2, maxH: 16, component: (
-        <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-          <div className="px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Award className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-              <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
+      // 7. Achievements (4×6 at 19,11) — always present, empty state when none
+      { id: 'achievements', label: 'Achievements',
+        defaultLayout: { x: 19, y: 11, w: 4, h: 6 }, minW: 4, minH: 3, maxH: 16,
+        component: (
+          <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+            <div className="px-3 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Award className={`w-3.5 h-3.5 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+                <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
+              </div>
+              <button onClick={() => onNavigate?.('achievements')} className="text-[10px] font-bold uppercase tracking-wider text-lynx-sky hover:underline">All</button>
             </div>
-            <button onClick={() => onNavigate?.('achievements')} className="text-xs font-bold uppercase tracking-wider text-lynx-sky hover:underline">View All</button>
+            <div className={`px-3 pb-2 overflow-y-auto ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`} style={{ maxHeight: 'calc(100% - 32px)' }}>
+              {childAchievements.length > 0 ? (
+                <div className="grid grid-cols-2 gap-1 pt-2">
+                  {childAchievements.slice(0, 4).map(ach => {
+                    const badge = ach.achievements
+                    return (<div key={ach.id} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}><span className="text-sm">{badge?.icon || '🏅'}</span><span className="text-r-xs font-bold truncate">{badge?.name || 'Badge'}</span></div>)
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-3 text-center">
+                  <span className="text-xl mb-1">🏅</span>
+                  <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges yet</p>
+                </div>
+              )}
+            </div>
           </div>
-          <div className={`px-5 pb-4 flex flex-wrap gap-3 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`}>
-            {childAchievements.slice(0, 6).map(ach => {
-              const badge = ach.achievements
-              const rc = { common: isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600', uncommon: isDark ? 'bg-emerald-900/40 text-emerald-400' : 'bg-emerald-50 text-emerald-600', rare: isDark ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600', epic: isDark ? 'bg-purple-900/40 text-purple-400' : 'bg-purple-50 text-purple-600', legendary: isDark ? 'bg-amber-900/40 text-amber-400' : 'bg-amber-50 text-amber-600' }
-              return (<div key={ach.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${rc[badge?.rarity] || rc.common}`}><span className="text-lg">{badge?.icon || '🏅'}</span><span className="text-sm font-bold">{badge?.name || 'Badge'}</span></div>)
-            })}
-          </div>
-        </div>
-      ) })
-    }
+        ) },
 
-    return widgets
+      // 8. Next Event (9×9 at 0,12)
+      { id: 'next-event', label: 'Next Event',
+        defaultLayout: { x: 0, y: 12, w: 9, h: 9 }, minW: 4, minH: 4, maxH: 12,
+        componentKey: 'NextEventCard' },
+
+      // 9. Calendar Strip (8×9 at 10,12)
+      { id: 'calendar-strip', label: 'Calendar Strip',
+        defaultLayout: { x: 10, y: 12, w: 8, h: 9 }, minW: 6, minH: 4, maxH: 16,
+        componentKey: 'CalendarStripCard' },
+
+      // 10. Team Hub (4×9 at 19,17) — always present, empty state when no team
+      { id: 'team-hub', label: 'Team Hub',
+        defaultLayout: { x: 19, y: 17, w: 4, h: 9 }, minW: 4, minH: 4, maxH: 12,
+        component: activeTeam ? (
+          <button onClick={() => navigateToTeamWall?.(activeTeam.id)} className={`w-full rounded-2xl border p-3 flex flex-col justify-center gap-3 text-left transition h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-r-sm" style={{ backgroundColor: activeTeam.color || '#6366F1' }}>{activeTeam.name?.[0] || 'T'}</div>
+            <p className={`font-semibold text-r-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
+            <p className={`text-r-xs line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
+            <span className="text-lynx-sky text-[10px] font-bold uppercase tracking-wider mt-auto">View Hub →</span>
+          </button>
+        ) : (
+          <div className={`rounded-2xl border p-3 flex flex-col items-center justify-center gap-2 h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+            <span className="text-xl">🏠</span>
+            <p className={`text-r-xs text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No team assigned</p>
+          </div>
+        ) },
+
+      // 11. Quick Links (4×9 at 0,21)
+      { id: 'quick-links', label: 'Quick Links',
+        defaultLayout: { x: 0, y: 21, w: 4, h: 9 }, minW: 4, minH: 4, maxH: 10,
+        componentKey: 'QuickLinksCard' },
+
+      // 12. Balance Due (4×7 at 5,21) — always present, empty state when $0
+      { id: 'balance-due', label: 'Balance Due',
+        defaultLayout: { x: 5, y: 21, w: 4, h: 7 }, minW: 4, minH: 4, maxH: 12,
+        component: (
+          <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+            <div className="px-3 py-2 flex items-center justify-between">
+              <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Balance Due</h3>
+              <DollarSign className={`w-3.5 h-3.5 ${totalChildDue > 0 ? (isDark ? 'text-red-400' : 'text-red-500') : (isDark ? 'text-green-400' : 'text-green-500')}`} />
+            </div>
+            <div className={`px-3 pb-3 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`}>
+              {totalChildDue > 0 ? (
+                <>
+                  <p className="text-r-2xl font-extrabold text-red-500 mt-2 whitespace-nowrap">${totalChildDue.toFixed(2)}</p>
+                  <p className={`text-r-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{activeChildUnpaid.length} unpaid</p>
+                  <button onClick={() => setShowPaymentModal(true)} className="w-full py-2 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-r-sm transition hover:brightness-110">Pay Now</button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-3 text-center">
+                  <span className="text-xl mb-1">✅</span>
+                  <p className={`text-r-sm font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>Paid Up</p>
+                  <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No balance due</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) },
+
+      // 13. Season Record (4×8 at 10,21)
+      { id: 'season-record', label: 'Season Record',
+        defaultLayout: { x: 10, y: 21, w: 4, h: 8 }, minW: 4, minH: 4, maxH: 10,
+        componentKey: 'SeasonRecordCard' },
+
+      // 14. Give Shoutout (4×8 at 14,21) — placeholder until Phase 3
+      { id: 'give-shoutout', label: 'Give Shoutout',
+        defaultLayout: { x: 14, y: 21, w: 4, h: 8 }, minW: 4, minH: 4,
+        componentKey: 'PlaceholderWidget' },
+
+      // 15. Spacer Bottom (4×7 at 5,28)
+      { id: 'spacer-bottom', label: 'Spacer',
+        defaultLayout: { x: 5, y: 28, w: 4, h: 7 }, minW: 1, minH: 1,
+        componentKey: 'SpacerWidget' },
+
+      // 16. Team Chat (4×8 at 19,26)
+      { id: 'team-chat', label: 'Team Chat',
+        defaultLayout: { x: 19, y: 26, w: 4, h: 8 }, minW: 4, minH: 3, maxH: 12,
+        componentKey: 'ChatPreviewCard' },
+    ]
   }, [registrationData, activeChildIdx, actionItems, activeChildEvents, activeTeam, childAchievements, totalChildDue, isDark, profile?.full_name, paymentSummary, teamRecord, xpData])
 
   // Derive unique seasons from children registrations for the season switcher
