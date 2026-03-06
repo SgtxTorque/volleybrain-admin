@@ -798,6 +798,12 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               nextGame, nextEvent, teamRecord, winRate, upcomingEvents, events: upcomingEvents,
               roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, teams,
               userName: profile?.full_name, teamName: selectedTeam?.name, seasonName: selectedSeason?.name,
+              // Data for componentKey-resolved widgets
+              topPlayers: topPlayers.map(tp => { const p = roster.find(r => r.id === tp.player_id); return { ...tp, player: p } }),
+              challenges: activeChallenges,
+              seasonId: selectedSeason?.id,
+              teamId: selectedTeam?.id,
+              navigateToTeamWall: () => onNavigate?.('teams'),
             }}
           />
 

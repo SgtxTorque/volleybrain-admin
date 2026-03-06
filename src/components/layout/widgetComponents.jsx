@@ -41,6 +41,7 @@ import TopPlayersCard from '../coach/TopPlayersCard'
 import ChallengesCard from '../coach/ChallengesCard'
 import TeamWallPreviewCard from '../coach/TeamWallPreviewCard'
 import GameDayJourneyCard from '../coach/GameDayJourneyCard'
+import AchievementsCard from '../coach/AchievementsCard'
 
 // ── Shared widgets ──
 import WelcomeBanner from '../shared/WelcomeBanner'
@@ -94,6 +95,7 @@ const componentMap = {
   ChallengesCard,
   TeamWallPreviewCard,
   GameDayJourneyCard,
+  AchievementsCard,
 
   // Parent
   ParentChildHero,
