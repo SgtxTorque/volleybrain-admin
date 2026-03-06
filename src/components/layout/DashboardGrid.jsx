@@ -57,7 +57,31 @@ export default function DashboardGrid({
     maxH: w.maxH || 40,
   })), [widgetIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [layouts, setLayouts] = useState({ lg: defaultLg })
+  // Track current breakpoint to avoid cross-contamination
+  const [currentBreakpoint, setCurrentBreakpoint] = useState('lg')
+
+  // Initialize layouts for ALL breakpoints so resizing doesn't contaminate
+  const [layouts, setLayouts] = useState(() => {
+    const lg = defaultLg
+    const md = lg.map(item => ({
+      ...item,
+      w: Math.min(item.w, 24),
+      x: Math.min(item.x, 24 - Math.min(item.w, 24)),
+    }))
+    const sm = lg.map((item, idx) => ({
+      ...item,
+      x: 0,
+      w: 12,
+      y: idx * item.h,
+    }))
+    const xs = lg.map((item, idx) => ({
+      ...item,
+      x: 0,
+      w: 6,
+      y: idx * item.h,
+    }))
+    return { lg, md, sm, xs }
+  })
   const layoutRef = useRef(layouts)
   const [overlappingItems, setOverlappingItems] = useState(new Set())
 
@@ -65,29 +89,39 @@ export default function DashboardGrid({
   const prevWidgetIds = useRef(widgetIds)
   if (prevWidgetIds.current !== widgetIds) {
     prevWidgetIds.current = widgetIds
-    // Preserve existing positions, add new widget positions
-    const currentLg = layoutRef.current.lg || []
-    const existingIds = new Set(currentLg.map(l => l.i))
     const activeIds = new Set(effectiveWidgets.map(w => w.id))
 
-    // Keep layout items that are still active, add defaults for new ones
-    const merged = currentLg.filter(l => activeIds.has(l.i))
-    for (const w of effectiveWidgets) {
-      if (!existingIds.has(w.id)) {
-        merged.push({
-          i: w.id,
-          x: w.defaultLayout.x,
-          y: w.defaultLayout.y,
-          w: w.defaultLayout.w,
-          h: w.defaultLayout.h,
-          minW: w.minW || 2,
-          minH: w.minH || 2,
-          maxW: w.maxW || 24,
-          maxH: w.maxH || 40,
-        })
+    // Merge each breakpoint's layout
+    const mergeBreakpoint = (bpLayout, fallback) => {
+      const existing = (bpLayout || fallback || [])
+      const existingIds = new Set(existing.map(l => l.i))
+      const merged = existing.filter(l => activeIds.has(l.i))
+      for (const w of effectiveWidgets) {
+        if (!existingIds.has(w.id)) {
+          merged.push({
+            i: w.id,
+            x: w.defaultLayout.x,
+            y: w.defaultLayout.y,
+            w: w.defaultLayout.w,
+            h: w.defaultLayout.h,
+            minW: w.minW || 2,
+            minH: w.minH || 2,
+            maxW: w.maxW || 24,
+            maxH: w.maxH || 40,
+          })
+        }
       }
+      return merged
     }
-    const updated = { lg: merged }
+
+    const prev = layoutRef.current
+    const lgMerged = mergeBreakpoint(prev.lg, defaultLg)
+    const updated = {
+      lg: lgMerged,
+      md: mergeBreakpoint(prev.md, lgMerged),
+      sm: mergeBreakpoint(prev.sm, lgMerged),
+      xs: mergeBreakpoint(prev.xs, lgMerged),
+    }
     layoutRef.current = updated
     setLayouts(updated)
   }
@@ -108,19 +142,34 @@ export default function DashboardGrid({
     setOverlappingItems(overlaps)
   }, [])
 
+  const handleBreakpointChange = useCallback((newBreakpoint) => {
+    setCurrentBreakpoint(newBreakpoint)
+  }, [])
+
   const handleLayoutChange = useCallback((layout) => {
-    const updated = { ...layoutRef.current, lg: layout }
+    const updated = { ...layoutRef.current, [currentBreakpoint]: layout }
     layoutRef.current = updated
     setLayouts(updated)
     if (editMode) detectOverlaps(layout)
     onLayoutChange?.(updated)
-  }, [onLayoutChange, editMode, detectOverlaps])
+  }, [currentBreakpoint, onLayoutChange, editMode, detectOverlaps])
 
   const handleReset = useCallback(() => {
     // Reset layout AND restore all original widgets
     setAddedWidgets([])
     setRemovedWidgetIds(new Set())
-    const reset = { lg: defaultLg }
+    const md = defaultLg.map(item => ({
+      ...item,
+      w: Math.min(item.w, 24),
+      x: Math.min(item.x, 24 - Math.min(item.w, 24)),
+    }))
+    const sm = defaultLg.map((item, idx) => ({
+      ...item, x: 0, w: 12, y: idx * item.h,
+    }))
+    const xs = defaultLg.map((item, idx) => ({
+      ...item, x: 0, w: 6, y: idx * item.h,
+    }))
+    const reset = { lg: defaultLg, md, sm, xs }
     layoutRef.current = reset
     setLayouts(reset)
     setOverlappingItems(new Set())
@@ -262,6 +311,7 @@ export default function DashboardGrid({
           rowHeight={rowHeight}
           dragConfig={{ enabled: editMode, handle: '.widget-drag-handle' }}
           resizeConfig={{ enabled: editMode, handles: ['se', 'sw', 'ne', 'nw', 'e', 'w', 'n', 's'] }}
+          onBreakpointChange={handleBreakpointChange}
           onLayoutChange={handleLayoutChange}
           compactor={editMode ? editCompactor : verticalCompactor}
           margin={[12, 12]}
