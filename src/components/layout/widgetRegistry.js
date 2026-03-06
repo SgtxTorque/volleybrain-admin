@@ -289,6 +289,17 @@ export const widgetRegistry = [
     icon: '📱',
   },
   {
+    id: 'team-chat',
+    label: 'Team Chat',
+    description: 'Latest team chat messages with quick preview',
+    category: WIDGET_CATEGORIES.COMMUNICATION,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 6, h: 8 },
+    minSize: { w: 4, h: 4 },
+    componentKey: 'ChatPreviewCard',
+    icon: '💬',
+  },
+  {
     id: 'team-hub',
     label: 'Team Hub Preview',
     description: 'Quick link to team wall, photos, and updates',

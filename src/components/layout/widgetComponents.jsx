@@ -44,6 +44,7 @@ import GameDayJourneyCard from '../coach/GameDayJourneyCard'
 
 // ── Shared widgets ──
 import WelcomeBanner from '../shared/WelcomeBanner'
+import ChatPreviewCard from '../shared/ChatPreviewCard'
 
 // ── Parent widgets ──
 import ParentChildHero from '../../pages/roles/ParentChildHero'
@@ -55,6 +56,7 @@ import ParentChildHero from '../../pages/roles/ParentChildHero'
 const componentMap = {
   // Shared
   WelcomeBanner,
+  ChatPreviewCard,
 
   // Admin / Dashboard
   OrgHealthHero,
