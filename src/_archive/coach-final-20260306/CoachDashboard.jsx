@@ -23,6 +23,7 @@ import CoachTools from '../../components/coach/CoachTools'
 import AlsoThisWeekCard from '../../components/coach/AlsoThisWeekCard'
 import CalendarStripCard from '../../components/coach/CalendarStripCard'
 import CoachActionItemsCard from '../../components/coach/CoachActionItemsCard'
+import TeamHealthCard from '../../components/coach/TeamHealthCard'
 import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
@@ -711,23 +712,19 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     setChecklistState(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  // ── Build widget array — Carlos's exported layout (24-col grid, 20px row height) ──
+  // ── Build widget array (memoized to prevent layout snap-back on re-render) ──
+  // 24-col grid, 20px row height — all x/y/w/h doubled from 12-col/40px originals
   const coachWidgets = useMemo(() => [
-    { id: 'spacer-top', label: 'Spacer', defaultLayout: { x: 0, y: 0, w: 1, h: 26 }, minW: 1, minH: 1, maxH: 40, componentKey: 'SpacerWidget' },
-    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 1, y: 0, w: 8, h: 3 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
-    { id: 'spacer-divider', label: 'Spacer', defaultLayout: { x: 1, y: 3, w: 21, h: 1 }, minW: 1, minH: 1, maxH: 4, componentKey: 'SpacerWidget' },
-    { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 1, y: 4, w: 5, h: 7 }, minW: 2, minH: 2, maxH: 20, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
-    { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 7, y: 4, w: 9, h: 12 }, minW: 2, minH: 2, maxH: 28, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
-    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 17, y: 4, w: 6, h: 6 }, minW: 2, minH: 2, maxH: 20, component: <CoachNotifications /> },
-    { id: 'action-items', label: 'Action Items', defaultLayout: { x: 17, y: 10, w: 6, h: 7 }, minW: 2, minH: 2, maxH: 20, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
-    { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 1, y: 11, w: 5, h: 5 }, minW: 2, minH: 2, maxH: 12, component: <AlsoThisWeekCard events={upcomingEvents} /> },
-    { id: 'squad-roster', label: 'Squad Roster', defaultLayout: { x: 1, y: 16, w: 5, h: 9 }, minW: 2, minH: 2, maxH: 36, component: <SquadRosterCard roster={roster} selectedTeam={selectedTeam} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} /> },
-    { id: 'calendar-strip', label: 'Calendar Strip', defaultLayout: { x: 7, y: 16, w: 9, h: 10 }, minW: 2, minH: 2, maxH: 20, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} onEventSelect={setSelectedEventDetail} /> },
-    { id: 'challenges', label: 'Challenges', defaultLayout: { x: 17, y: 17, w: 3, h: 9 }, minW: 2, minH: 2, maxH: 16, componentKey: 'ChallengesCard' },
-    { id: 'achievements', label: 'Achievements', defaultLayout: { x: 20, y: 17, w: 3, h: 9 }, minW: 2, minH: 2, maxH: 16, componentKey: 'AchievementsCard' },
-    { id: 'team-readiness', label: 'Team Readiness', defaultLayout: { x: 1, y: 25, w: 5, h: 9 }, minW: 2, minH: 2, maxH: 20, component: <TeamReadinessCard rosterSize={roster.length} rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0} attendanceRate={avgAttendanceLast3 || 100} waiversSigned={roster.length} /> },
-    { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 11, y: 26, w: 5, h: 7 }, minW: 2, minH: 2, maxH: 20, componentKey: 'OrgWallPreview' },
-    { id: 'top-players', label: 'Top Players', defaultLayout: { x: 17, y: 26, w: 6, h: 6 }, minW: 2, minH: 2, maxH: 16, componentKey: 'TopPlayersCard' },
+    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: 0, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
+    { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 0, y: 6, w: 14, h: 18 }, minW: 2, minH: 2, maxH: 28, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
+    { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 0, y: 24, w: 14, h: 8 }, minW: 2, minH: 2, maxH: 12, component: <AlsoThisWeekCard events={upcomingEvents} /> },
+    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 14, y: 6, w: 10, h: 10 }, minW: 2, minH: 2, maxH: 20, component: <CoachNotifications /> },
+    { id: 'squad-roster', label: 'Squad Roster', defaultLayout: { x: 14, y: 16, w: 10, h: 16 }, minW: 2, minH: 2, maxH: 36, component: <SquadRosterCard roster={roster} selectedTeam={selectedTeam} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} /> },
+    { id: 'calendar-strip', label: 'Calendar Strip', defaultLayout: { x: 0, y: 32, w: 12, h: 14 }, minW: 2, minH: 2, maxH: 20, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} onEventSelect={setSelectedEventDetail} /> },
+    { id: 'action-items', label: 'Action Items', defaultLayout: { x: 12, y: 32, w: 12, h: 14 }, minW: 2, minH: 2, maxH: 20, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
+    { id: 'team-health', label: 'Team Health', defaultLayout: { x: 0, y: 46, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 16, component: <TeamHealthCard attendanceRate={avgAttendanceLast3 || 0} gameAttendance={avgAttendanceLast3 || 0} practiceAttendance={avgAttendanceLast3 || 0} avgRating={0} record={{ wins: teamRecord.wins, losses: teamRecord.losses }} winRate={winRate} /> },
+    { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 0, y: 56, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 20, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
+    { id: 'team-readiness', label: 'Team Readiness', defaultLayout: { x: 12, y: 56, w: 12, h: 12 }, minW: 2, minH: 2, maxH: 20, component: <TeamReadinessCard rosterSize={roster.length} rsvpCount={nextEvent ? (rsvpCounts[nextEvent.id]?.going || rsvpCounts[nextEvent.id]?.total || 0) : 0} attendanceRate={avgAttendanceLast3 || 100} waiversSigned={roster.length} /> },
   ], [profile?.full_name, selectedTeam, selectedSeason, isDark, nextGame, nextEvent, teamRecord, winRate, upcomingEvents, roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, onNavigate])
 
   // ── Loading State ──
