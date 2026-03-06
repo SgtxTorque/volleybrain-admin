@@ -21,6 +21,7 @@ import SeasonJourneyList from '../dashboard/SeasonJourneyList'
 import AdminNotificationsCard from '../dashboard/AdminNotificationsCard'
 import DashboardFilterCard from '../dashboard/DashboardFilterCard'
 import PlaceholderWidget from '../dashboard/PlaceholderWidget'
+import SpacerWidget from './SpacerWidget'
 
 // ── Coach widgets ──
 import CoachGameDayHeroV2 from '../coach/CoachGameDayHeroV2'
@@ -67,6 +68,7 @@ const componentMap = {
   AdminNotificationsCard,
   DashboardFilterCard,
   PlaceholderWidget,
+  SpacerWidget,
 
   // Coach
   CoachGameDayHeroV2,

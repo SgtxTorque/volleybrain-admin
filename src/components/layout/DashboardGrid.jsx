@@ -300,7 +300,7 @@ export default function DashboardGrid({
                 )}
                 {/* The actual card component — scrolls internally when resized small */}
                 <div className={`h-full overflow-auto scrollbar-hide ${editMode ? 'pt-8' : ''}`}>
-                  {widget.component || resolveWidget(widget.componentKey, sharedProps)}
+                  {widget.component || resolveWidget(widget.componentKey, { ...sharedProps, editMode })}
                 </div>
               </div>
             )

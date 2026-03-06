@@ -117,6 +117,18 @@ export const widgetRegistry = [
     icon: '⬜',
     allowMultiple: true,
   },
+  {
+    id: 'spacer',
+    label: 'Spacer',
+    description: 'Invisible spacing widget — no outline, no text. Use for layout gaps.',
+    category: WIDGET_CATEGORIES.OVERVIEW,
+    roles: ['admin', 'coach', 'parent'],
+    defaultSize: { w: 1, h: 1 },
+    minSize: { w: 1, h: 1 },
+    componentKey: 'SpacerWidget',
+    icon: '⬜',
+    allowMultiple: true,
+  },
 
   // ══════════════════════════════════════
   // SCHEDULE & EVENTS
