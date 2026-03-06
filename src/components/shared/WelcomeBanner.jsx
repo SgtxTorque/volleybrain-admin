@@ -101,15 +101,15 @@ export default function WelcomeBanner({
   const subLine = subParts.join(' · ')
 
   return (
-    <div className="mb-1">
+    <div className="overflow-hidden h-full flex flex-col justify-center">
       <h1
-        className={`text-r-3xl font-extrabold tracking-tight transition-opacity duration-500 ${
+        className={`text-r-2xl font-extrabold tracking-tight transition-opacity duration-500 truncate ${
           isDark ? 'text-white' : 'text-slate-900'
         }`}
       >
         {greeting}
       </h1>
-      <p className={`text-r-lg mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+      <p className={`text-r-base mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
         {subLine}
       </p>
     </div>

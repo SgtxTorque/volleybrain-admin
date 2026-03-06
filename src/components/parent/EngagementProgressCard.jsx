@@ -35,18 +35,18 @@ export default function EngagementProgressCard({ xpData }) {
     : 'bg-white border border-brand-border'
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-4 h-full flex flex-col`}>
-      <div className="flex items-center gap-1.5 mb-3">
-        <Star className="w-3.5 h-3.5" style={{ color: tier.color }} />
-        <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          Engagement Progress
+    <div className={`${cardBg} rounded-2xl shadow-sm p-3 h-full flex flex-col overflow-hidden`}>
+      <div className="flex items-center gap-1.5 mb-2">
+        <Star className="w-3.5 h-3.5 flex-shrink-0" style={{ color: tier.color }} />
+        <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          Engagement
         </h3>
       </div>
 
       {/* Level badge */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="mb-2">
         <div
-          className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
+          className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide whitespace-nowrap"
           style={{ backgroundColor: tier.color + '20', color: tier.color }}
         >
           Lvl {level} {tier.label}
@@ -55,7 +55,7 @@ export default function EngagementProgressCard({ xpData }) {
 
       {/* XP bar */}
       <div className="flex-1 flex flex-col justify-center">
-        <div className={`h-3 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+        <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
@@ -64,8 +64,8 @@ export default function EngagementProgressCard({ xpData }) {
             }}
           />
         </div>
-        <p className={`text-xs mt-1.5 tabular-nums ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-          {currentXp} / {xpToNext} XP to Level {level + 1}
+        <p className={`text-[10px] mt-1 tabular-nums truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          {currentXp}/{xpToNext} XP → Lvl {level + 1}
         </p>
       </div>
     </div>

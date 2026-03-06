@@ -20,18 +20,18 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
       className={`relative overflow-hidden rounded-[14px] text-left transition-all ${
         isActive ? 'ring-2 ring-lynx-sky shadow-lg' : 'hover:ring-1 hover:ring-white/20'
       }`}
-      style={{ minWidth: 320, background: `linear-gradient(135deg, #0B1628 0%, ${teamColor}30 100%)` }}>
+      style={{ minWidth: 200, background: `linear-gradient(135deg, #0B1628 0%, ${teamColor}30 100%)` }}>
       {/* Dot grid overlay */}
       <div className="absolute inset-0 opacity-[0.04]"
         style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
 
-      <div className="relative flex items-center gap-4 p-5">
+      <div className="relative flex items-center gap-3 p-3">
         {/* Photo / Jersey fallback */}
         {child.photo_url ? (
           <img src={child.photo_url} alt={child.first_name}
-            className="w-20 h-20 rounded-2xl object-cover border-2 border-white/10 flex-shrink-0" />
+            className="w-14 h-14 rounded-xl object-cover border-2 border-white/10 flex-shrink-0" />
         ) : (
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-black text-r-4xl border-2 border-white/10 flex-shrink-0"
+          <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-black text-r-2xl border-2 border-white/10 flex-shrink-0"
             style={{ backgroundColor: teamColor }}>
             {jersey || '?'}
           </div>
@@ -39,33 +39,32 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
 
         {/* Player info */}
         <div className="flex-1 min-w-0">
-          <p className="text-r-sm font-bold uppercase tracking-wider text-lynx-sky">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-lynx-sky truncate">
             {child.team?.name || 'No Team'}
           </p>
-          <h3 className="text-r-3xl font-extrabold text-white truncate">
+          <h3 className="text-r-xl font-extrabold text-white truncate">
             {child.first_name} {child.last_name || ''}
           </h3>
-          <div className="flex items-center gap-3 mt-1.5">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             {jersey && (
-              <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/70">
                 #{jersey}
               </span>
             )}
-            <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/70">
               {position}
             </span>
-            {/* Level badge */}
-            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ backgroundColor: TIER.color + '20', color: TIER.color }}>
+            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full" style={{ backgroundColor: TIER.color + '20', color: TIER.color }}>
               Lv.{level}
             </span>
           </div>
           {/* XP Progress bar */}
-          <div className="mt-2 h-1.5 rounded-full overflow-hidden bg-white/[0.08]" style={{ maxWidth: 200 }}>
+          <div className="mt-1.5 h-1 rounded-full overflow-hidden bg-white/[0.08]" style={{ maxWidth: 160 }}>
             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, backgroundColor: TIER.color }} />
           </div>
         </div>
 
-        <ChevronRight className="w-5 h-5 text-white/30 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-white/30 flex-shrink-0" />
       </div>
     </button>
   )

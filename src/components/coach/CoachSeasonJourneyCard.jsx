@@ -180,29 +180,29 @@ export default function CoachSeasonJourneyCard({ onNavigate, teamId, seasonId, r
     : 'bg-white border border-slate-200'
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-5`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className={`text-r-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+    <div className={`${cardBg} rounded-2xl shadow-sm p-3 overflow-hidden h-full flex flex-col`}>
+      {/* Header — compact */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Season Prep
           </h3>
-          <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            {completedCount}/{STEPS.length} complete
-          </p>
+          <span className={`text-[10px] tabular-nums ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            {completedCount}/{STEPS.length}
+          </span>
         </div>
         {nextStep && (
           <button
             onClick={() => onNavigate?.(nextStep.nav)}
-            className="flex items-center gap-1 text-r-sm font-semibold text-lynx-sky hover:brightness-110 transition"
+            className="flex items-center gap-1 text-[10px] font-bold text-lynx-sky hover:brightness-110 transition whitespace-nowrap"
           >
             Handle <ChevronRight className="w-3 h-3" />
           </button>
         )}
       </div>
 
-      {/* Step tracker */}
-      <div className="flex items-center justify-between">
+      {/* Step tracker — compact circles */}
+      <div className="flex items-center justify-between flex-1">
         {STEPS.map((step, idx) => {
           const isCompleted = stepStatus[step.id]
           const isCurrent = !isCompleted && step.id === nextStep?.id
@@ -212,11 +212,11 @@ export default function CoachSeasonJourneyCard({ onNavigate, teamId, seasonId, r
             <div key={step.id} className="flex items-center flex-1 last:flex-none">
               <button
                 onClick={() => onNavigate?.(step.nav)}
-                className="flex flex-col items-center gap-1.5 group/step"
+                className="flex flex-col items-center gap-1 group/step"
                 title={step.label}
               >
                 <div className={`
-                  w-8 h-8 rounded-full border-2 flex items-center justify-center text-r-xs font-bold
+                  w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] font-bold
                   transition-all cursor-pointer
                   ${isCompleted
                     ? 'bg-green-500/15 border-green-500 text-green-500'
@@ -226,9 +226,9 @@ export default function CoachSeasonJourneyCard({ onNavigate, teamId, seasonId, r
                   }
                   ${isUpcoming ? '' : 'group-hover/step:brightness-110'}
                 `}>
-                  {isCompleted ? <Check className="w-3.5 h-3.5" /> : step.num}
+                  {isCompleted ? <Check className="w-3 h-3" /> : step.num}
                 </div>
-                <span className={`text-[10px] font-medium whitespace-nowrap ${
+                <span className={`text-[9px] font-medium whitespace-nowrap ${
                   isCompleted || isCurrent
                     ? (isDark ? 'text-slate-300' : 'text-slate-600')
                     : (isDark ? 'text-slate-600' : 'text-slate-400')
@@ -238,7 +238,7 @@ export default function CoachSeasonJourneyCard({ onNavigate, teamId, seasonId, r
               </button>
 
               {idx < STEPS.length - 1 && (
-                <div className={`flex-1 h-[2px] mx-1 mt-[-18px] ${
+                <div className={`flex-1 h-[2px] mx-0.5 mt-[-14px] ${
                   isCompleted ? 'bg-green-500' : (isDark ? 'bg-white/[0.08]' : 'bg-slate-200')
                 }`} />
               )}

@@ -58,7 +58,7 @@ export default function NextEventCard({ event, onNavigate, onRsvp }) {
         </div>
 
         {/* Event title */}
-        <h3 className="text-2xl font-extrabold text-white mb-2 leading-tight">
+        <h3 className="text-r-xl font-extrabold text-white mb-2 leading-tight line-clamp-2">
           {title}
         </h3>
 
