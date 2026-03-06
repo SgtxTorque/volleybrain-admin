@@ -54,6 +54,13 @@ import SeasonRecordCard from '../parent/SeasonRecordCard'
 import EngagementProgressCard from '../parent/EngagementProgressCard'
 import QuickLinksCard from '../parent/QuickLinksCard'
 
+// ── Player widgets ──
+import PlayerHeroCard from '../player/PlayerHeroCard'
+import ScoutingReportCard from '../player/ScoutingReportCard'
+import TrophyCaseCard from '../player/TrophyCaseCard'
+import LastGameCard from '../player/LastGameCard'
+import DailyChallengeCard from '../player/DailyChallengeCard'
+
 /**
  * Maps componentKey → React component.
  * Keys match the componentKey field in widgetRegistry.js.
@@ -107,6 +114,13 @@ const componentMap = {
   SeasonRecordCard,
   EngagementProgressCard,
   QuickLinksCard,
+
+  // Player
+  PlayerHeroCard,
+  ScoutingReportCard,
+  TrophyCaseCard,
+  LastGameCard,
+  DailyChallengeCard,
 }
 
 /**
