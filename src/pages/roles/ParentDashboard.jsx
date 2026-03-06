@@ -468,8 +468,63 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   }
 
   // ═══ RENDER — WIDGET GRID ═══
+
+  // Derive unique seasons from children registrations for the season switcher
+  const parentSeasons = useMemo(() => {
+    const seen = new Map()
+    for (const child of registrationData) {
+      const s = child.season
+      if (s?.id && !seen.has(s.id)) seen.set(s.id, { id: s.id, name: s.name })
+    }
+    return [...seen.values()]
+  }, [registrationData])
+
   return (
     <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+
+      {/* ── Season + Child Switcher — fixed UI above grid ── */}
+      {(parentSeasons.length > 1 || registrationData.length > 1) && (
+        <div className="flex items-center gap-4 flex-wrap">
+          {/* Season filter — only when children span multiple seasons */}
+          {parentSeasons.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season</span>
+              {parentSeasons.map(s => (
+                <button key={s.id} onClick={() => setSeasonId(s.id)}
+                  className={`px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors ${
+                    seasonId === s.id
+                      ? 'bg-lynx-sky text-white'
+                      : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}>{s.name}</button>
+              ))}
+            </div>
+          )}
+          {/* Child switcher — only when multiple children */}
+          {registrationData.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Player</span>
+              {registrationData.map((child, idx) => (
+                <button
+                  key={child.id}
+                  onClick={() => setActiveChildIdx(idx)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors whitespace-nowrap ${
+                    idx === activeChildIdx
+                      ? 'bg-lynx-sky text-white'
+                      : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {child.first_name}
+                  {child.team_players?.[0]?.teams?.name && (
+                    <span className={`text-[10px] ${idx === activeChildIdx ? 'text-white/70' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {child.team_players[0].teams.name}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Widget Grid */}
       <DashboardGridLayout
