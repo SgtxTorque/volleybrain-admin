@@ -317,17 +317,21 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     let yPos = 0
     const widgets = []
 
-    // 1. Welcome Banner — always
-    widgets.push({ id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: yPos, w: 24, h: 5 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={(registrationData[activeChildIdx] || registrationData[0])?.first_name} isDark={isDark} /> })
-    yPos += 5
+    // 1. Welcome Banner — full width
+    widgets.push({ id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 0, y: yPos, w: 24, h: 6 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={(registrationData[activeChildIdx] || registrationData[0])?.first_name} isDark={isDark} /> })
+    yPos += 6
 
-    // 2. Child Hero Cards — always
-    widgets.push({ id: 'child-hero', label: 'My Players', defaultLayout: { x: 0, y: yPos, w: 24, h: 10 }, minW: 2, minH: 2, maxH: 16, component: <ParentChildHero children={registrationData} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> })
-    yPos += 10
+    // 2. Athlete Cards — full width (inject level/XP for active child)
+    const enrichedChildren = registrationData.map((child, idx) => {
+      if (idx === activeChildIdx) return { ...child, _level: xpData.level, _xpPct: xpData.xpToNext > 0 ? (xpData.currentXp / xpData.xpToNext) * 100 : 0 }
+      return { ...child, _level: 1, _xpPct: 0 }
+    })
+    widgets.push({ id: 'athlete-cards', label: 'My Athletes', defaultLayout: { x: 0, y: yPos, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 16, component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> })
+    yPos += 8
 
-    // 3. Action Items — conditional, pulse on action buttons
+    // 3. Action Required — conditional, pulse on action buttons
     if (actionItems.length > 0) {
-      widgets.push({ id: 'action-required', label: 'Action Required', defaultLayout: { x: 0, y: yPos, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 20, component: (
+      widgets.push({ id: 'action-required', label: 'Action Required', defaultLayout: { x: 0, y: yPos, w: 24, h: 5 }, minW: 2, minH: 2, maxH: 20, component: (
         <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-amber-500/[0.06] border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
           <div className="px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -350,31 +354,33 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           </div>
         </div>
       ) })
-      yPos += 8
+      yPos += 5
     }
 
-    // 4. Next Event (left, dark hero) + Team Hub (right)
+    // 4. Next Event (left, w:14) + Team Hub (right, w:10)
     if (activeChildEvents.length > 0) {
-      widgets.push({ id: 'next-event', label: 'Next Event', defaultLayout: { x: 0, y: yPos, w: 14, h: 8 }, minW: 4, minH: 4, maxH: 12, componentKey: 'NextEventCard' })
+      widgets.push({ id: 'next-event', label: 'Next Event', defaultLayout: { x: 0, y: yPos, w: 14, h: 9 }, minW: 4, minH: 4, maxH: 12, componentKey: 'NextEventCard' })
     }
     if (activeTeam) {
-      widgets.push({ id: 'team-hub', label: 'Team Hub', defaultLayout: { x: 14, y: yPos, w: 10, h: 8 }, minW: 2, minH: 2, maxH: 10, component: (
-        <button onClick={() => navigateToTeamWall?.(activeTeam.id)} className={`w-full rounded-2xl border p-5 flex items-center gap-4 text-left transition h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: activeTeam.color || '#6366F1' }}>{activeTeam.name?.[0] || 'T'}</div>
-          <div className="flex-1 min-w-0">
-            <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
+      widgets.push({ id: 'team-hub', label: 'Team Hub', defaultLayout: { x: 14, y: yPos, w: 10, h: 9 }, minW: 2, minH: 2, maxH: 10, component: (
+        <button onClick={() => navigateToTeamWall?.(activeTeam.id)} className={`w-full rounded-2xl border p-5 flex flex-col justify-center gap-4 text-left transition h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: activeTeam.color || '#6366F1' }}>{activeTeam.name?.[0] || 'T'}</div>
+            <div className="flex-1 min-w-0">
+              <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
+            </div>
           </div>
-          <span className="text-lynx-sky text-xs font-bold uppercase tracking-wider">View Hub</span>
+          <span className="text-lynx-sky text-xs font-bold uppercase tracking-wider">View Hub →</span>
         </button>
       ) })
     }
-    if (activeChildEvents.length > 0 || activeTeam) yPos += 8
+    if (activeChildEvents.length > 0 || activeTeam) yPos += 9
 
-    // 5. Season Record (left) + Balance Due (center, conditional) + Team Chat (right)
-    widgets.push({ id: 'season-record', label: 'Season Record', defaultLayout: { x: 0, y: yPos, w: 7, h: 7 }, minW: 4, minH: 4, maxH: 10, componentKey: 'SeasonRecordCard' })
+    // 5. Three equal columns — Season Record | Balance Due | Team Chat
+    widgets.push({ id: 'season-record', label: 'Season Record', defaultLayout: { x: 0, y: yPos, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 10, componentKey: 'SeasonRecordCard' })
     if (totalChildDue > 0) {
-      widgets.push({ id: 'balance-due', label: 'Balance Due', defaultLayout: { x: 7, y: yPos, w: 7, h: 7 }, minW: 2, minH: 2, maxH: 12, component: (
+      widgets.push({ id: 'balance-due', label: 'Balance Due', defaultLayout: { x: 8, y: yPos, w: 8, h: 7 }, minW: 2, minH: 2, maxH: 12, component: (
         <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           <div className="px-4 py-3 flex items-center justify-between">
             <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Balance Due</h3>
@@ -388,17 +394,17 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         </div>
       ) })
     }
-    widgets.push({ id: 'team-chat', label: 'Team Chat', defaultLayout: { x: 14, y: yPos, w: 10, h: 7 }, minW: 4, minH: 3, maxH: 12, componentKey: 'ChatPreviewCard' })
+    widgets.push({ id: 'team-chat', label: 'Team Chat', defaultLayout: { x: 16, y: yPos, w: 8, h: 7 }, minW: 4, minH: 3, maxH: 12, componentKey: 'ChatPreviewCard' })
     yPos += 7
 
-    // 6. Engagement Progress (left) + Quick Links (right)
-    widgets.push({ id: 'engagement-progress', label: 'Engagement Progress', defaultLayout: { x: 0, y: yPos, w: 7, h: 6 }, minW: 4, minH: 3, maxH: 10, componentKey: 'EngagementProgressCard' })
-    widgets.push({ id: 'quick-links', label: 'Quick Links', defaultLayout: { x: 7, y: yPos, w: 10, h: 6 }, minW: 4, minH: 4, maxH: 10, componentKey: 'QuickLinksCard' })
-    yPos += 6
+    // 6. Three equal columns — Engagement Progress | Quick Links | (spacer)
+    widgets.push({ id: 'engagement-progress', label: 'Engagement Progress', defaultLayout: { x: 0, y: yPos, w: 8, h: 5 }, minW: 4, minH: 3, maxH: 10, componentKey: 'EngagementProgressCard' })
+    widgets.push({ id: 'quick-links', label: 'Quick Links', defaultLayout: { x: 8, y: yPos, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 10, componentKey: 'QuickLinksCard' })
+    yPos += 7
 
     // 7. Achievements — conditional
     if (childAchievements.length > 0) {
-      widgets.push({ id: 'achievements', label: 'Achievements', defaultLayout: { x: 0, y: yPos, w: 24, h: 8 }, minW: 2, minH: 2, maxH: 16, component: (
+      widgets.push({ id: 'achievements', label: 'Achievements', defaultLayout: { x: 0, y: yPos, w: 24, h: 4 }, minW: 2, minH: 2, maxH: 16, component: (
         <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           <div className="px-5 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">

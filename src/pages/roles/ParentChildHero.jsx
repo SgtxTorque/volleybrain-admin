@@ -10,6 +10,10 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
   const teamColor = child.team?.color || '#6366F1'
   const position = child.position || child.team_position || '—'
   const jersey = child.jersey_number
+  // Level/XP from child._xp (injected by parent) or defaults
+  const level = child._level || 1
+  const xpPct = child._xpPct || 0
+  const TIER = level >= 10 ? { label: 'Diamond', color: '#B9F2FF' } : level >= 7 ? { label: 'Gold', color: '#FFD700' } : level >= 4 ? { label: 'Silver', color: '#C0C0C0' } : { label: 'Bronze', color: '#CD7F32' }
 
   return (
     <button onClick={onClick}
@@ -50,11 +54,14 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
             <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">
               {position}
             </span>
-            {child.registrationStatus === 'active' && (
-              <span className="text-r-sm font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                Active
-              </span>
-            )}
+            {/* Level badge */}
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ backgroundColor: TIER.color + '20', color: TIER.color }}>
+              Lv.{level}
+            </span>
+          </div>
+          {/* XP Progress bar */}
+          <div className="mt-2 h-1.5 rounded-full overflow-hidden bg-white/[0.08]" style={{ maxWidth: 200 }}>
+            <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, backgroundColor: TIER.color }} />
           </div>
         </div>
 

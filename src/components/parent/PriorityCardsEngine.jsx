@@ -53,17 +53,20 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
         } else if (payments) {
           for (const p of payments) {
             const isOverdue = p.due_date && new Date(p.due_date) < new Date()
+            const childName = p.players?.first_name || 'Player'
+            const amt = parseFloat(p.amount) || 0
             allItems.push({
               id: `payment-${p.id}`,
               type: 'payment',
               priority: isOverdue ? PRIORITY.PAYMENT_OVERDUE : PRIORITY.PAYMENT_UPCOMING,
-              title: isOverdue ? 'Payment Overdue' : 'Payment Due',
-              subtitle: `${p.fee_name || p.description || 'Fee'} — ${p.players?.first_name || 'Player'}`,
-              amount: parseFloat(p.amount) || 0,
-              icon: 'dollar',
+              title: isOverdue ? `Payment overdue for ${childName} – $${amt.toFixed(2)}` : `Payment due for ${childName} – $${amt.toFixed(2)}`,
+              description: p.fee_name || p.description || 'Fee',
+              amount: amt,
+              icon: '💰',
               color: isOverdue ? '#EF4444' : '#F59E0B',
               actionLabel: 'Pay Now',
               actionType: 'payment',
+              playerId: p.player_id,
               data: p,
             })
           }
@@ -115,12 +118,13 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
                     id: `waiver-${waiver.id}-${child.id}`,
                     type: 'waiver',
                     priority: PRIORITY.WAIVER_UNSIGNED,
-                    title: 'Waiver Needed',
-                    subtitle: `"${waiver.name}" for ${child.first_name}`,
-                    icon: 'file',
+                    title: `Sign "${waiver.name}" for ${child.first_name}`,
+                    description: waiver.is_required ? 'Required before next game' : 'Optional waiver',
+                    icon: '📋',
                     color: '#8B5CF6',
                     actionLabel: 'Sign Now',
                     actionType: 'waiver',
+                    playerId: child.id,
                     data: { waiver, player: child },
                   })
                 }
@@ -186,13 +190,14 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
 
               // Missing RSVP
               if (!hasRsvp && event.rsvp_enabled !== false) {
+                const dateStr = new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                 allItems.push({
                   id: `rsvp-${event.id}`,
                   type: 'rsvp',
                   priority: PRIORITY.RSVP_MISSING,
-                  title: 'RSVP Needed',
-                  subtitle: `${event.title || event.event_type} — ${new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`,
-                  icon: 'calendar',
+                  title: `RSVP needed for ${event.title || event.event_type} – ${dateStr}`,
+                  description: event.teams?.name || 'Team event',
+                  icon: '📅',
                   color: '#3B82F6',
                   actionLabel: 'RSVP',
                   actionType: 'rsvp',
@@ -202,13 +207,15 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
 
               // Upcoming game in <48hrs
               if (isGame && hoursUntil > 0 && hoursUntil <= 48) {
+                const gameDateStr = new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                const gameTime = event.event_time ? ' ' + formatTime12(event.event_time) : ''
                 allItems.push({
                   id: `game-${event.id}`,
                   type: 'game',
                   priority: hoursUntil <= 24 ? PRIORITY.GAME_UPCOMING_24H : PRIORITY.GAME_UPCOMING_48H,
-                  title: hoursUntil <= 24 ? 'Game Day!' : 'Game Tomorrow',
-                  subtitle: `${event.opponent ? `vs ${event.opponent}` : event.title || 'Game'} — ${new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}${event.event_time ? ' ' + formatTime12(event.event_time) : ''}`,
-                  icon: 'clock',
+                  title: hoursUntil <= 24 ? `Game Day! ${event.opponent ? `vs ${event.opponent}` : ''}` : `Game tomorrow ${event.opponent ? `vs ${event.opponent}` : ''}`,
+                  description: `${gameDateStr}${gameTime} — ${event.teams?.name || 'Team'}`,
+                  icon: '🏐',
                   color: hoursUntil <= 24 ? '#EF4444' : '#F59E0B',
                   actionLabel: 'View Details',
                   actionType: 'event-detail',
