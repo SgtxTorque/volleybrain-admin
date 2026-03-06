@@ -309,6 +309,19 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
 
+  // Derive coach-scoped seasons from their teams' season_ids
+  const coachSeasonIds = useMemo(() => {
+    const ids = new Set()
+    for (const tc of coachTeamAssignments) {
+      if (tc.teams?.season_id) ids.add(tc.teams.season_id)
+    }
+    return ids
+  }, [coachTeamAssignments])
+  const coachSeasons = useMemo(() =>
+    availableSeasons.filter(s => coachSeasonIds.has(s.id)),
+    [availableSeasons, coachSeasonIds]
+  )
+
   // ── Data Loading ──
   useEffect(() => { loadCoachData() }, [coachTeamAssignments?.length, selectedSeason?.id])
 
@@ -765,25 +778,40 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       <div className="w-full h-full overflow-y-auto">
         <DashboardContainer className="space-y-5">
 
-          {/* Team Selector — not in grid, always at top */}
-          {teams.length > 1 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {teams.map(team => (
-                <button
-                  key={team.id}
-                  onClick={() => handleTeamSelect(team)}
-                  className={`px-3 py-1.5 rounded-xl text-r-base font-semibold transition-colors ${
-                    selectedTeam?.id === team.id
-                      ? 'bg-lynx-sky text-white'
-                      : isDark
-                        ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ backgroundColor: team.color || '#4BB9EC' }} />
-                  {team.name}
-                </button>
-              ))}
+          {/* Season + Team Selectors — progressive disclosure */}
+          {(coachSeasons.length > 1 || teams.length > 1) && (
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* Season filter — only when coach has teams in multiple seasons */}
+              {coachSeasons.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season</span>
+                  {coachSeasons.map(s => (
+                    <button key={s.id} onClick={() => selectSeason(s)}
+                      className={`px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors ${
+                        selectedSeason?.id === s.id
+                          ? 'bg-lynx-sky text-white'
+                          : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}>{s.name}</button>
+                  ))}
+                </div>
+              )}
+              {/* Team filter — only when coach has multiple teams */}
+              {teams.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Team</span>
+                  {teams.map(team => (
+                    <button key={team.id} onClick={() => handleTeamSelect(team)}
+                      className={`px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors ${
+                        selectedTeam?.id === team.id
+                          ? 'bg-lynx-sky text-white'
+                          : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}>
+                      <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ backgroundColor: team.color || '#4BB9EC' }} />
+                      {team.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
