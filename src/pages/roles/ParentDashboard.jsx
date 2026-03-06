@@ -427,6 +427,17 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     return widgets
   }, [registrationData, activeChildIdx, actionItems, activeChildEvents, activeTeam, childAchievements, totalChildDue, isDark, profile?.full_name, paymentSummary, teamRecord, xpData])
 
+  // Derive unique seasons from children registrations for the season switcher
+  // (must be before conditional returns to maintain hook order)
+  const parentSeasons = useMemo(() => {
+    const seen = new Map()
+    for (const child of registrationData) {
+      const s = child.season
+      if (s?.id && !seen.has(s.id)) seen.set(s.id, { id: s.id, name: s.name })
+    }
+    return [...seen.values()]
+  }, [registrationData])
+
   // ═══ CONDITIONAL RETURNS ═══
   if (loading) {
     return (
@@ -468,17 +479,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   }
 
   // ═══ RENDER — WIDGET GRID ═══
-
-  // Derive unique seasons from children registrations for the season switcher
-  const parentSeasons = useMemo(() => {
-    const seen = new Map()
-    for (const child of registrationData) {
-      const s = child.season
-      if (s?.id && !seen.has(s.id)) seen.set(s.id, { id: s.id, name: s.name })
-    }
-    return [...seen.values()]
-  }, [registrationData])
-
   return (
     <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
 
