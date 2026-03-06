@@ -98,15 +98,15 @@ export default {
       // Responsive font sizes: clamp(min, preferred, max)
       // min = readable on 1024px laptop, max = capped on ultrawide
       fontSize: {
-        'r-xs':   ['clamp(0.6875rem, 0.6rem + 0.25vw, 0.8125rem)', { lineHeight: '1.4' }],
-        'r-sm':   ['clamp(0.75rem, 0.65rem + 0.3vw, 0.9375rem)', { lineHeight: '1.4' }],
-        'r-base': ['clamp(0.875rem, 0.75rem + 0.35vw, 1.0625rem)', { lineHeight: '1.5' }],
-        'r-lg':   ['clamp(1rem, 0.85rem + 0.4vw, 1.25rem)', { lineHeight: '1.4' }],
-        'r-xl':   ['clamp(1.125rem, 0.95rem + 0.5vw, 1.5rem)', { lineHeight: '1.3' }],
-        'r-2xl':  ['clamp(1.375rem, 1.1rem + 0.7vw, 1.875rem)', { lineHeight: '1.2' }],
-        'r-3xl':  ['clamp(1.75rem, 1.4rem + 0.9vw, 2.5rem)', { lineHeight: '1.1' }],
-        'r-4xl':  ['clamp(2.25rem, 1.8rem + 1.2vw, 3.25rem)', { lineHeight: '1' }],
-        'r-5xl':  ['clamp(3rem, 2.4rem + 1.5vw, 4.5rem)', { lineHeight: '1' }],
+        'r-xs':   ['clamp(0.6875rem, 0.6rem + 0.2vw, 0.75rem)', { lineHeight: '1.4' }],     // 11px → 12px
+        'r-sm':   ['clamp(0.75rem, 0.7rem + 0.2vw, 0.8125rem)', { lineHeight: '1.4' }],   // 12px → 13px
+        'r-base': ['clamp(0.8125rem, 0.75rem + 0.2vw, 0.9375rem)', { lineHeight: '1.5' }], // 13px → 15px
+        'r-lg':   ['clamp(0.9375rem, 0.85rem + 0.25vw, 1.0625rem)', { lineHeight: '1.4' }], // 15px → 17px
+        'r-xl':   ['clamp(1.0625rem, 0.95rem + 0.3vw, 1.25rem)', { lineHeight: '1.3' }],  // 17px → 20px
+        'r-2xl':  ['clamp(1.25rem, 1.1rem + 0.4vw, 1.5rem)', { lineHeight: '1.2' }],      // 20px → 24px
+        'r-3xl':  ['clamp(1.5rem, 1.3rem + 0.5vw, 2rem)', { lineHeight: '1.1' }],          // 24px → 32px
+        'r-4xl':  ['clamp(2rem, 1.7rem + 0.7vw, 2.5rem)', { lineHeight: '1' }],            // 32px → 40px
+        'r-5xl':  ['clamp(2.5rem, 2.1rem + 1vw, 3.5rem)', { lineHeight: '1' }],            // 40px → 56px
       },
       // Responsive spacing: scales smoothly between viewport sizes
       spacing: {
