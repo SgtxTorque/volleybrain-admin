@@ -494,7 +494,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   ]
 
   return (
-    <div className="max-w-5xl mx-auto space-y-0">
+    <div className="w-full space-y-0">
       {/* ═══ HERO HEADER ═══ */}
       <div className={`${tc.cardBg} border ${tc.border} rounded-t-2xl overflow-hidden`}>
         <div className="relative flex" style={{ minHeight: '280px' }}>

@@ -448,7 +448,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
     <div className={`flex-1 ${tc.pageBg} overflow-y-auto`}>
       {/* Header */}
       <div className={`${tc.cardBg} border-b ${tc.border} sticky top-0 z-10`}>
-        <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="w-full px-6 py-4">
           <div className="flex items-center gap-4">
             {onBack && (
               <button 
@@ -519,7 +519,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
       </div>
       
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-6">
+      <div className="w-full px-6 py-6">
         
         {/* Overview Tab */}
         {activeTab === 'overview' && (
