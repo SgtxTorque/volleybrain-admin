@@ -1,10 +1,11 @@
 // =============================================================================
 // WidgetLibraryPanel — slide-out panel to browse, add, and remove widgets
+// Role badge pills + role-first category sorting
 // =============================================================================
 
 import { useState } from 'react'
 import { X, Search } from 'lucide-react'
-import { getWidgetsByCategory } from './widgetRegistry'
+import { getWidgetsByCategory, ROLE_BADGE_COLORS } from './widgetRegistry'
 import { widgetExists } from './widgetComponents'
 
 export default function WidgetLibraryPanel({
@@ -16,6 +17,7 @@ export default function WidgetLibraryPanel({
   onRemoveWidget,
 }) {
   const [search, setSearch] = useState('')
+  // getWidgetsByCategory now returns ordered by current role
   const grouped = getWidgetsByCategory(role)
 
   const filteredGrouped = {}
@@ -82,11 +84,22 @@ export default function WidgetLibraryPanel({
                   } transition-opacity`}>
                     <span className="text-lg mt-0.5 flex-shrink-0">{widget.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-white font-bold text-r-sm">{widget.label}</span>
                         {!exists && (
                           <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Soon</span>
                         )}
+                        {widget.roles.map(r => {
+                          const badge = ROLE_BADGE_COLORS[r]
+                          return badge ? (
+                            <span
+                              key={r}
+                              className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${badge.bg} ${badge.text}`}
+                            >
+                              {badge.label}
+                            </span>
+                          ) : null
+                        })}
                       </div>
                       <p className="text-white/30 text-r-xs mt-0.5 line-clamp-2">{widget.description}</p>
                     </div>
