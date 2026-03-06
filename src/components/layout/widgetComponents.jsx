@@ -46,6 +46,7 @@ import AchievementsCard from '../coach/AchievementsCard'
 // ── Shared widgets ──
 import WelcomeBanner from '../shared/WelcomeBanner'
 import ChatPreviewCard from '../shared/ChatPreviewCard'
+import GiveShoutoutCard from '../shared/GiveShoutoutCard'
 
 // ── Parent widgets ──
 import ParentChildHero from '../../pages/roles/ParentChildHero'
@@ -73,6 +74,7 @@ const componentMap = {
   // Shared
   WelcomeBanner,
   ChatPreviewCard,
+  GiveShoutoutCard,
 
   // Admin / Dashboard
   OrgHealthHero,

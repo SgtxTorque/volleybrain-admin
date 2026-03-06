@@ -471,10 +471,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 10, y: 21, w: 4, h: 8 }, minW: 4, minH: 4, maxH: 10,
         componentKey: 'SeasonRecordCard' },
 
-      // 14. Give Shoutout (4×8 at 14,21) — placeholder until Phase 3
+      // 14. Give Shoutout (4×8 at 14,21)
       { id: 'give-shoutout', label: 'Give Shoutout',
         defaultLayout: { x: 14, y: 21, w: 4, h: 8 }, minW: 4, minH: 4,
-        componentKey: 'PlaceholderWidget' },
+        componentKey: 'GiveShoutoutCard' },
 
       // 15. Spacer Bottom (4×7 at 5,28)
       { id: 'spacer-bottom', label: 'Spacer',

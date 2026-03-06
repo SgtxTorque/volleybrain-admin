@@ -563,6 +563,17 @@ export const widgetRegistry = [
     icon: '📊',
   },
   {
+    id: 'give-shoutout',
+    label: 'Give Shoutout',
+    description: 'Recognize a player — select a player and shoutout type to send kudos',
+    category: WIDGET_CATEGORIES.SHARED,
+    roles: ['parent', 'coach', 'admin'],
+    defaultSize: { w: 8, h: 8 },
+    minSize: { w: 4, h: 6 },
+    componentKey: 'GiveShoutoutCard',
+    icon: '⭐',
+  },
+  {
     id: 'placeholder',
     label: 'Placeholder',
     description: 'Empty card to reserve space — add as many as you want',
