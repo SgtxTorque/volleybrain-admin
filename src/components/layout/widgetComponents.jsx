@@ -53,6 +53,10 @@ import NextEventCard from '../parent/NextEventCard'
 import SeasonRecordCard from '../parent/SeasonRecordCard'
 import EngagementProgressCard from '../parent/EngagementProgressCard'
 import QuickLinksCard from '../parent/QuickLinksCard'
+import ParentJourneyCard from '../parent/ParentJourneyCard'
+
+// ── Coach journey ──
+import CoachSeasonJourneyCard from '../coach/CoachSeasonJourneyCard'
 
 // ── Player widgets ──
 import PlayerHeroCard from '../player/PlayerHeroCard'
@@ -114,6 +118,10 @@ const componentMap = {
   SeasonRecordCard,
   EngagementProgressCard,
   QuickLinksCard,
+  ParentJourneyCard,
+
+  // Coach journey
+  CoachSeasonJourneyCard,
 
   // Player
   PlayerHeroCard,
