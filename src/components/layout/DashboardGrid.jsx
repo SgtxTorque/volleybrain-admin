@@ -212,7 +212,7 @@ export default function DashboardGrid({
       componentKey: widgetDef.componentKey,
       defaultLayout: {
         x: 0,
-        y: maxY + 1,
+        y: maxY + 2,
         w: widgetDef.defaultSize.w,
         h: widgetDef.defaultSize.h,
       },
