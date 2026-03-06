@@ -17,6 +17,7 @@ import {
 // import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
 // LynxSidebar now rendered by MainApp — no longer needed here
 import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
+import CoachHeroCarousel from '../../components/coach/CoachHeroCarousel'
 import CoachNotifications from '../../components/coach/CoachNotifications'
 import SquadRosterCard from '../../components/coach/SquadRosterCard'
 import CoachTools from '../../components/coach/CoachTools'
@@ -717,7 +718,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 1, y: 0, w: 8, h: 3 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
     { id: 'spacer-divider', label: 'Spacer', defaultLayout: { x: 1, y: 3, w: 21, h: 1 }, minW: 1, minH: 1, maxH: 4, componentKey: 'SpacerWidget' },
     { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 1, y: 4, w: 5, h: 7 }, minW: 2, minH: 2, maxH: 20, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
-    { id: 'gameday-hero', label: 'Game Day Hero', defaultLayout: { x: 7, y: 4, w: 9, h: 12 }, minW: 2, minH: 2, maxH: 28, component: <CoachGameDayHeroV2 nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} /> },
+    { id: 'gameday-hero', label: 'Hero Card', defaultLayout: { x: 7, y: 4, w: 9, h: 12 }, minW: 2, minH: 2, maxH: 28, component: <CoachHeroCarousel nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} roster={roster} rsvpCounts={rsvpCounts} lineupsSet={lineupsSet} upcomingEvents={upcomingEvents} /> },
     { id: 'notifications', label: 'Notifications', defaultLayout: { x: 17, y: 4, w: 6, h: 6 }, minW: 2, minH: 2, maxH: 20, component: <CoachNotifications /> },
     { id: 'action-items', label: 'Action Items', defaultLayout: { x: 17, y: 10, w: 6, h: 7 }, minW: 2, minH: 2, maxH: 20, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
     { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 1, y: 11, w: 5, h: 5 }, minW: 2, minH: 2, maxH: 12, component: <AlsoThisWeekCard events={upcomingEvents} /> },

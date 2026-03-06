@@ -25,6 +25,10 @@ import SpacerWidget from './SpacerWidget'
 
 // ── Coach widgets ──
 import CoachGameDayHeroV2 from '../coach/CoachGameDayHeroV2'
+import CoachHeroCarousel from '../coach/CoachHeroCarousel'
+import PracticeHeroCard from '../coach/PracticeHeroCard'
+import SeasonSetupHeroCard from '../coach/SeasonSetupHeroCard'
+import IdleHeroCard from '../coach/IdleHeroCard'
 import CoachNotifications from '../coach/CoachNotifications'
 import SquadRosterCard from '../coach/SquadRosterCard'
 import CoachTools from '../coach/CoachTools'
@@ -72,6 +76,10 @@ const componentMap = {
 
   // Coach
   CoachGameDayHeroV2,
+  CoachHeroCarousel,
+  PracticeHeroCard,
+  SeasonSetupHeroCard,
+  IdleHeroCard,
   CoachNotifications,
   SquadRosterCard,
   CoachTools,
