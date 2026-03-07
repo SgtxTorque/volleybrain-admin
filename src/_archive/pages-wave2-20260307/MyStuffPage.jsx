@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useTheme } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
   User, DollarSign, FileText, Settings, Users, ChevronRight,
   Camera, Save, Mail, Phone, Check, X, RefreshCw, Bell,
   Shield, Edit, ExternalLink, AlertTriangle
 } from '../../constants/icons'
-import PageShell from '../../components/pages/PageShell'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ============================================
-// MY STUFF PAGE -- Consolidated Parent Self-Service
+// MY STUFF PAGE — Consolidated Parent Self-Service
 // Tabs: Profile | Payments | Waivers | Settings | Linked Players
 // ============================================
 
@@ -24,11 +24,18 @@ const TABS = [
 
 function MyStuffPage({ roleContext, showToast }) {
   const { user, profile } = useAuth()
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [activeTab, setActiveTab] = useState('profile')
 
   return (
-    <PageShell title="My Stuff" breadcrumb="Account" subtitle="Manage your profile, payments, and preferences">
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className={`text-3xl font-bold ${tc.text}`}>My Stuff</h1>
+        <p className={tc.textSecondary}>Manage your profile, payments, and preferences</p>
+      </div>
+
       {/* Tab Bar */}
       <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-lynx-charcoal/60' : 'bg-slate-100'}`}>
         {TABS.map(tab => {
@@ -38,9 +45,9 @@ function MyStuffPage({ roleContext, showToast }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-r-sm font-semibold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all ${
                 isActive
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
+                  ? `${isDark ? 'bg-slate-700 text-white shadow-md' : 'bg-white text-slate-900 shadow-md'}`
                   : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`
               }`}
             >
@@ -52,14 +59,12 @@ function MyStuffPage({ roleContext, showToast }) {
       </div>
 
       {/* Tab Content */}
-      <div className="mt-6">
-        {activeTab === 'profile' && <ProfileTab showToast={showToast} />}
-        {activeTab === 'payments' && <PaymentsTab roleContext={roleContext} showToast={showToast} />}
-        {activeTab === 'waivers' && <WaiversTab roleContext={roleContext} showToast={showToast} />}
-        {activeTab === 'settings' && <SettingsTab showToast={showToast} />}
-        {activeTab === 'players' && <LinkedPlayersTab roleContext={roleContext} showToast={showToast} />}
-      </div>
-    </PageShell>
+      {activeTab === 'profile' && <ProfileTab showToast={showToast} />}
+      {activeTab === 'payments' && <PaymentsTab roleContext={roleContext} showToast={showToast} />}
+      {activeTab === 'waivers' && <WaiversTab roleContext={roleContext} showToast={showToast} />}
+      {activeTab === 'settings' && <SettingsTab showToast={showToast} />}
+      {activeTab === 'players' && <LinkedPlayersTab roleContext={roleContext} showToast={showToast} />}
+    </div>
   )
 }
 
@@ -68,6 +73,7 @@ function MyStuffPage({ roleContext, showToast }) {
 // ============================================
 function ProfileTab({ showToast }) {
   const { user, profile } = useAuth()
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const fileInputRef = useRef(null)
   const [uploading, setUploading] = useState(false)
@@ -127,15 +133,15 @@ function ProfileTab({ showToast }) {
   }
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 space-y-6`}>
-      <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Profile Information</h2>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 space-y-6`}>
+      <h2 className={`text-lg font-bold ${tc.text}`}>Profile Information</h2>
 
       <div className="flex flex-col sm:flex-row gap-6">
         {/* Avatar */}
         <div className="flex flex-col items-center gap-3">
           <div className="relative group">
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-r-2xl font-bold overflow-hidden border-2 shadow-lg"
+              className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold overflow-hidden border-2 shadow-lg"
               style={{
                 background: form.avatar_url ? 'transparent' : 'var(--accent-primary)',
                 color: '#fff',
@@ -157,45 +163,45 @@ function ProfileTab({ showToast }) {
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
           </div>
-          <p className="text-r-xs text-slate-400">Click to change</p>
+          <p className={`text-xs ${tc.textMuted}`}>Click to change</p>
         </div>
 
         {/* Fields */}
         <div className="flex-1 space-y-4">
           <div>
-            <label className="text-r-xs font-semibold uppercase text-slate-400 block mb-1">Full Name</label>
+            <label className={`text-xs font-semibold uppercase ${tc.textMuted} block mb-1`}>Full Name</label>
             <input
               type="text"
               value={form.full_name}
               onChange={e => set('full_name', e.target.value)}
-              className={`w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border ${tc.border} ${isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-slate-900'} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50`}
             />
           </div>
           <div>
-            <label className="text-r-xs font-semibold uppercase text-slate-400 block mb-1">Email</label>
+            <label className={`text-xs font-semibold uppercase ${tc.textMuted} block mb-1`}>Email</label>
             <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-slate-400" />
-              <span className={`text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{form.email}</span>
-              <span className={`text-r-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+              <Mail className={`w-4 h-4 ${tc.textMuted}`} />
+              <span className={`text-sm ${tc.textSecondary}`}>{form.email}</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
                 Managed by login
               </span>
             </div>
           </div>
           <div>
-            <label className="text-r-xs font-semibold uppercase text-slate-400 block mb-1">Phone</label>
+            <label className={`text-xs font-semibold uppercase ${tc.textMuted} block mb-1`}>Phone</label>
             <input
               type="tel"
               value={form.phone}
               onChange={e => set('phone', e.target.value)}
               placeholder="(555) 123-4567"
-              className={`w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm border ${tc.border} ${isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-slate-900'} focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/50`}
             />
           </div>
 
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold text-sm hover:brightness-110 transition disabled:opacity-50"
           >
             {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving...' : 'Save Changes'}
@@ -207,9 +213,10 @@ function ProfileTab({ showToast }) {
 }
 
 // ============================================
-// PAYMENTS TAB -- summary + recent
+// PAYMENTS TAB — summary + recent
 // ============================================
 function PaymentsTab({ roleContext, showToast }) {
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -244,7 +251,7 @@ function PaymentsTab({ roleContext, showToast }) {
   const paid = payments.filter(p => p.paid)
 
   return (
-    <div className="space-y-4">
+    <DashboardContainer className="space-y-4">
       {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryCard label="Total Due" value={`$${totalDue.toFixed(2)}`} color={totalDue > 0 ? '#EF4444' : '#10B981'} />
@@ -254,25 +261,25 @@ function PaymentsTab({ roleContext, showToast }) {
 
       {/* Unpaid */}
       {unpaid.length > 0 && (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
-          <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-3 flex items-center gap-2`}>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
+          <h3 className={`font-bold ${tc.text} mb-3 flex items-center gap-2`}>
             <AlertTriangle className="w-4 h-4 text-red-500" />
             Outstanding ({unpaid.length})
           </h3>
           <div className="space-y-2">
             {unpaid.map(p => (
-              <div key={p.id} className={`${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'} rounded-[14px] p-4 flex items-center gap-3`}>
+              <div key={p.id} className={`${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'} rounded-xl p-4 flex items-center gap-3`}>
                 <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-red-500" />
                 </div>
                 <div className="flex-1">
-                  <p className={`font-semibold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.fee_name || p.description || 'Fee'}</p>
-                  <p className="text-r-xs text-slate-400">
+                  <p className={`font-semibold text-sm ${tc.text}`}>{p.fee_name || p.description || 'Fee'}</p>
+                  <p className={`text-xs ${tc.textMuted}`}>
                     {p.players?.first_name} {p.players?.last_name}
-                    {p.due_date && ` - Due ${new Date(p.due_date).toLocaleDateString()}`}
+                    {p.due_date && ` — Due ${new Date(p.due_date).toLocaleDateString()}`}
                   </p>
                 </div>
-                <span className="text-r-lg font-bold text-red-500">${parseFloat(p.amount).toFixed(2)}</span>
+                <span className="text-lg font-bold text-red-500">${parseFloat(p.amount).toFixed(2)}</span>
               </div>
             ))}
           </div>
@@ -280,36 +287,37 @@ function PaymentsTab({ roleContext, showToast }) {
       )}
 
       {/* Paid history */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
-        <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-3`}>Payment History ({paid.length})</h3>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
+        <h3 className={`font-bold ${tc.text} mb-3`}>Payment History ({paid.length})</h3>
         {paid.length > 0 ? (
           <div className="space-y-2">
             {paid.slice(0, 10).map(p => (
-              <div key={p.id} className={`${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'} rounded-[14px] p-3 flex items-center gap-3`}>
+              <div key={p.id} className={`${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'} rounded-xl p-3 flex items-center gap-3`}>
                 <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className={`text-r-sm ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>{p.fee_name || p.description || 'Payment'}</p>
-                  <p className="text-r-xs text-slate-400">
-                    {p.players?.first_name} - {p.paid_at ? new Date(p.paid_at).toLocaleDateString() : 'Paid'}
+                  <p className={`text-sm ${tc.text} truncate`}>{p.fee_name || p.description || 'Payment'}</p>
+                  <p className={`text-xs ${tc.textMuted}`}>
+                    {p.players?.first_name} — {p.paid_at ? new Date(p.paid_at).toLocaleDateString() : 'Paid'}
                   </p>
                 </div>
-                <span className="text-r-sm font-semibold text-emerald-500">${parseFloat(p.amount).toFixed(2)}</span>
+                <span className="text-sm font-semibold text-emerald-500">${parseFloat(p.amount).toFixed(2)}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-r-sm text-center py-6 text-slate-400">No payment history yet</p>
+          <p className={`text-sm text-center py-6 ${tc.textMuted}`}>No payment history yet</p>
         )}
       </div>
-    </div>
+    </DashboardContainer>
   )
 }
 
 // ============================================
-// WAIVERS TAB -- status + signing
+// WAIVERS TAB — status + signing
 // ============================================
 function WaiversTab({ roleContext, showToast }) {
   const { user, profile } = useAuth()
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [waivers, setWaivers] = useState([])
   const [signatures, setSignatures] = useState([])
@@ -389,23 +397,21 @@ function WaiversTab({ roleContext, showToast }) {
   return (
     <div className="space-y-4">
       {waivers.length === 0 ? (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-8 text-center`}>
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-            <FileText className="w-8 h-8 text-slate-400" />
-          </div>
-          <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>No Active Waivers</p>
-          <p className="text-r-sm text-slate-400 mt-1">Your organization has not published any waivers yet.</p>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
+          <FileText className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
+          <p className={`font-semibold ${tc.text}`}>No Active Waivers</p>
+          <p className={`text-sm ${tc.textMuted} mt-1`}>Your organization hasn't published any waivers yet.</p>
         </div>
       ) : (
         waivers.map(waiver => (
-          <div key={waiver.id} className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
+          <div key={waiver.id} className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{waiver.title}</h3>
-                {waiver.description && <p className="text-r-sm text-slate-400 mt-1">{waiver.description}</p>}
+                <h3 className={`font-bold ${tc.text}`}>{waiver.title}</h3>
+                {waiver.description && <p className={`text-sm ${tc.textMuted} mt-1`}>{waiver.description}</p>}
               </div>
               {waiver.required && (
-                <span className="text-r-xs font-bold px-2 py-1 rounded-full bg-red-500/15 text-red-500">Required</span>
+                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-red-500/15 text-red-500">Required</span>
               )}
             </div>
 
@@ -416,20 +422,20 @@ function WaiversTab({ roleContext, showToast }) {
                 const isSigningThis = signingWaiver?.waiverId === waiver.id && signingWaiver?.playerId === child.id
 
                 return (
-                  <div key={child.id} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+                  <div key={child.id} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'}`}>
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${signed ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
                       {signed ? <Check className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-amber-500" />}
                     </div>
                     <div className="flex-1">
-                      <p className={`text-r-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{child.first_name} {child.last_name}</p>
-                      <p className={`text-r-xs ${signed ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      <p className={`text-sm font-semibold ${tc.text}`}>{child.first_name} {child.last_name}</p>
+                      <p className={`text-xs ${signed ? 'text-emerald-500' : 'text-amber-500'}`}>
                         {signed ? 'Signed' : 'Not signed'}
                       </p>
                     </div>
                     {!signed && !isSigningThis && (
                       <button
                         onClick={() => setSigningWaiver({ waiverId: waiver.id, playerId: child.id })}
-                        className="px-4 py-1.5 rounded-lg bg-lynx-navy text-white text-r-xs font-bold hover:brightness-110 transition"
+                        className="px-4 py-1.5 rounded-lg bg-[var(--accent-primary)] text-white text-xs font-bold hover:brightness-110 transition"
                       >
                         Sign
                       </button>
@@ -441,12 +447,12 @@ function WaiversTab({ roleContext, showToast }) {
                           placeholder="Type full name to sign"
                           value={signatureName}
                           onChange={e => setSignatureName(e.target.value)}
-                          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                          className={`px-3 py-1.5 rounded-lg text-xs border ${tc.border} ${isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'}`}
                           autoFocus
                         />
                         <button
                           onClick={() => handleSign(waiver.id, child.id)}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-r-xs font-bold hover:bg-emerald-600"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600"
                         >
                           Confirm
                         </button>
@@ -470,10 +476,11 @@ function WaiversTab({ roleContext, showToast }) {
 }
 
 // ============================================
-// SETTINGS TAB -- notification prefs
+// SETTINGS TAB — notification prefs
 // ============================================
 function SettingsTab({ showToast }) {
   const { user, profile } = useAuth()
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [prefs, setPrefs] = useState({
     email_notifications: true,
@@ -517,26 +524,26 @@ function SettingsTab({ showToast }) {
   ]
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 space-y-5`}>
-      <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Notification Preferences</h2>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 space-y-5`}>
+      <h2 className={`text-lg font-bold ${tc.text}`}>Notification Preferences</h2>
 
       <div className="space-y-3">
         {settingsItems.map(item => {
           const Icon = item.icon
           return (
-            <div key={item.key} className={`flex items-center justify-between p-4 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+            <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-lynx-charcoal' : 'bg-lynx-cloud'}`}>
               <div className="flex items-center gap-3">
-                <Icon className="w-5 h-5 text-slate-400" />
+                <Icon className={`w-5 h-5 ${tc.textMuted}`} />
                 <div>
-                  <p className={`text-r-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.label}</p>
-                  <p className="text-r-xs text-slate-400">{item.desc}</p>
+                  <p className={`text-sm font-semibold ${tc.text}`}>{item.label}</p>
+                  <p className={`text-xs ${tc.textMuted}`}>{item.desc}</p>
                 </div>
               </div>
               <button
                 onClick={() => toggle(item.key)}
                 className={`w-12 h-7 rounded-full transition-all relative ${
                   prefs[item.key]
-                    ? 'bg-lynx-sky'
+                    ? 'bg-[var(--accent-primary)]'
                     : isDark ? 'bg-slate-600' : 'bg-slate-300'
                 }`}
               >
@@ -552,7 +559,7 @@ function SettingsTab({ showToast }) {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition disabled:opacity-50"
+        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold text-sm hover:brightness-110 transition disabled:opacity-50"
       >
         {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         {saving ? 'Saving...' : 'Save Settings'}
@@ -565,18 +572,17 @@ function SettingsTab({ showToast }) {
 // LINKED PLAYERS TAB
 // ============================================
 function LinkedPlayersTab({ roleContext, showToast }) {
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
 
   const children = roleContext?.children || []
 
   if (!children.length) {
     return (
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-8 text-center`}>
-        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-          <Users className="w-8 h-8 text-slate-400" />
-        </div>
-        <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>No Linked Players</p>
-        <p className="text-r-sm text-slate-400 mt-1">Register a player to get started.</p>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
+        <Users className={`w-12 h-12 mx-auto ${tc.textMuted} mb-3`} />
+        <p className={`font-semibold ${tc.text}`}>No Linked Players</p>
+        <p className={`text-sm ${tc.textMuted} mt-1`}>Register a player to get started.</p>
       </div>
     )
   }
@@ -588,12 +594,12 @@ function LinkedPlayersTab({ roleContext, showToast }) {
         const teamColor = team?.color || '#6366F1'
 
         return (
-          <div key={child.id} className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden`}>
+          <div key={child.id} className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
             <div className="h-2" style={{ backgroundColor: teamColor }} />
             <div className="p-5 flex items-center gap-4">
               {/* Photo */}
               <div
-                className="w-16 h-16 rounded-xl flex items-center justify-center text-r-xl font-bold text-white overflow-hidden"
+                className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold text-white overflow-hidden"
                 style={{ backgroundColor: teamColor }}
               >
                 {child.photo_url ? (
@@ -605,10 +611,10 @@ function LinkedPlayersTab({ roleContext, showToast }) {
 
               {/* Info */}
               <div className="flex-1">
-                <h3 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h3 className={`text-lg font-bold ${tc.text}`}>
                   {child.first_name} {child.last_name}
                 </h3>
-                <div className="text-r-sm text-slate-400 space-y-0.5">
+                <div className={`text-sm ${tc.textMuted} space-y-0.5`}>
                   {team && <p className="font-semibold" style={{ color: teamColor }}>{team.name}</p>}
                   {child.position && <p>Position: {child.position}</p>}
                   {child.jersey_number && <p>Jersey: #{child.jersey_number || child.team_players?.[0]?.jersey_number}</p>}
@@ -620,11 +626,11 @@ function LinkedPlayersTab({ roleContext, showToast }) {
               <div className="text-right">
                 {child.season && (
                   <div>
-                    <p className="text-r-xs font-semibold text-slate-400">{child.season.name}</p>
-                    <p className="text-r-xs text-slate-400">{child.season.sports?.icon} {child.season.sports?.name}</p>
+                    <p className={`text-xs font-semibold ${tc.textMuted}`}>{child.season.name}</p>
+                    <p className={`text-xs ${tc.textMuted}`}>{child.season.sports?.icon} {child.season.sports?.name}</p>
                   </div>
                 )}
-                <span className={`inline-block mt-2 text-r-xs font-bold px-2 py-0.5 rounded-full ${
+                <span className={`inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   child.status === 'approved' || child.team_players?.[0]
                     ? 'bg-emerald-500/15 text-emerald-500'
                     : 'bg-amber-500/15 text-amber-500'
@@ -646,18 +652,19 @@ function LinkedPlayersTab({ roleContext, showToast }) {
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center h-48">
-      <div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full" />
     </div>
   )
 }
 
 function SummaryCard({ label, value, color }) {
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
-      <p className="text-r-xs font-semibold uppercase text-slate-400">{label}</p>
-      <p className="text-r-3xl font-bold mt-1" style={{ color }}>{value}</p>
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-5`}>
+      <p className={`text-xs font-semibold uppercase ${tc.textMuted}`}>{label}</p>
+      <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
     </div>
   )
 }
