@@ -4,13 +4,15 @@
 // Supports widget library: add/remove widgets from a slide-out panel.
 // =============================================================================
 
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ResponsiveGridLayout, useContainerWidth, verticalCompactor, getCompactor } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import { Copy, RotateCcw, Check, LayoutGrid, X } from 'lucide-react'
 import WidgetLibraryPanel from './WidgetLibraryPanel'
 import { resolveWidget } from './widgetComponents'
+import { useAuth } from '../../contexts/AuthContext'
+import { saveLayout, loadLayout, resetLayout as deleteLayout } from '../../lib/layoutService'
 
 // Edit mode compactor: no compaction, allow overlap, no collision prevention
 const editCompactor = getCompactor(null, true, false)
@@ -24,7 +26,13 @@ export default function DashboardGrid({
   role = 'admin',
   sharedProps = {},
 }) {
+  const { profile } = useAuth()
   const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1200 })
+
+  // ── Persistence state ──
+  const [isLoading, setIsLoading] = useState(true)
+  const [showSaveToast, setShowSaveToast] = useState(false)
+  const prevEditMode = useRef(editMode)
 
   // ── Widget add/remove state ──
   const [addedWidgets, setAddedWidgets] = useState([])
@@ -84,6 +92,60 @@ export default function DashboardGrid({
   })
   const layoutRef = useRef(layouts)
   const [overlappingItems, setOverlappingItems] = useState(new Set())
+
+  // ── Load saved layout on mount / role change ──
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      if (!profile?.id) { setIsLoading(false); return }
+      try {
+        const saved = await loadLayout(profile.id, role)
+        if (cancelled) return
+        if (saved?.layout?.length && saved?.widgets?.length) {
+          // Restore saved widget list
+          const savedWidgetIds = new Set(saved.widgets)
+          const removed = new Set()
+          const added = []
+          // Mark original widgets that are NOT in saved as removed
+          for (const w of widgets) {
+            if (!savedWidgetIds.has(w.id)) removed.add(w.id)
+          }
+          setRemovedWidgetIds(removed)
+          setAddedWidgets(added)
+
+          // Apply saved layout positions
+          const lg = saved.layout
+          const md = lg.map(item => ({ ...item, w: Math.min(item.w, 24), x: Math.min(item.x, 24 - Math.min(item.w, 24)) }))
+          const sm = lg.map((item, idx) => ({ ...item, x: 0, w: 12, y: idx * item.h }))
+          const xs = lg.map((item, idx) => ({ ...item, x: 0, w: 6, y: idx * item.h }))
+          const restored = { lg, md, sm, xs }
+          layoutRef.current = restored
+          setLayouts(restored)
+        }
+      } catch (e) {
+        console.error('Failed to load saved layout:', e)
+      }
+      if (!cancelled) setIsLoading(false)
+    }
+    load()
+    return () => { cancelled = true }
+  }, [profile?.id, role]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-save when exiting edit mode (editMode true → false) ──
+  useEffect(() => {
+    if (prevEditMode.current && !editMode) {
+      // User clicked "Done Editing" — save to Supabase
+      const currentLg = layoutRef.current.lg || []
+      const currentWidgetIds = effectiveWidgets.map(w => w.id)
+      if (profile?.id && currentLg.length > 0) {
+        saveLayout(profile.id, role, currentLg, currentWidgetIds).then(() => {
+          setShowSaveToast(true)
+          setTimeout(() => setShowSaveToast(false), 2500)
+        })
+      }
+    }
+    prevEditMode.current = editMode
+  }, [editMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync layouts when widgets are added or removed
   const prevWidgetIds = useRef(widgetIds)
@@ -154,7 +216,11 @@ export default function DashboardGrid({
     onLayoutChange?.(updated)
   }, [currentBreakpoint, onLayoutChange, editMode, detectOverlaps])
 
-  const handleReset = useCallback(() => {
+  const handleReset = useCallback(async () => {
+    // Delete saved layout from Supabase
+    if (profile?.id) {
+      await deleteLayout(profile.id, role)
+    }
     // Reset layout AND restore all original widgets
     setAddedWidgets([])
     setRemovedWidgetIds(new Set())
@@ -173,7 +239,7 @@ export default function DashboardGrid({
     layoutRef.current = reset
     setLayouts(reset)
     setOverlappingItems(new Set())
-  }, [defaultLg])
+  }, [defaultLg, profile?.id, role])
 
   const [exported, setExported] = useState(false)
 
@@ -251,8 +317,33 @@ export default function DashboardGrid({
 
   const overlapCount = overlappingItems.size > 0 ? Math.floor(overlappingItems.size / 2) : 0
 
+  // ── Skeleton while loading saved layout ──
+  if (isLoading) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-12 bg-slate-200/60 rounded-2xl" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-44 bg-slate-200/60 rounded-2xl" />
+          <div className="h-44 bg-slate-200/60 rounded-2xl" />
+          <div className="h-44 bg-slate-200/60 rounded-2xl" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-52 bg-slate-200/60 rounded-2xl" />
+          <div className="h-52 bg-slate-200/60 rounded-2xl" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative" ref={containerRef}>
+      {/* Save confirmation toast */}
+      {showSaveToast && (
+        <div className="fixed bottom-20 right-6 z-50 bg-emerald-500 text-white px-5 py-3 rounded-xl shadow-lg font-bold text-sm animate-fade-in">
+          ✓ Layout saved
+        </div>
+      )}
+
       {/* Edit mode banner */}
       {editMode && (
         <div className="sticky top-0 z-50 bg-amber-50 border-b-2 border-amber-400 px-4 py-2 flex items-center justify-between mb-4 rounded-lg">
