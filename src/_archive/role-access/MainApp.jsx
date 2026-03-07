@@ -93,9 +93,6 @@ import { PlatformSubscriptionsPage } from './pages/platform/PlatformSubscription
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
 
-// Auth
-import RouteGuard from './components/auth/RouteGuard'
-
 // Archives
 import { SeasonArchivePage } from './pages/archives'
 
@@ -791,14 +788,14 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/parent/register" element={<ParentRegistrationHub roleContext={roleContext} showToast={showToast} />} />
       <Route path="/claim-account" element={<ClaimAccountPage showToast={showToast} />} />
 
-      {/* Roster Manager — admin + coach */}
-      <Route path="/roster" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+      {/* Roster Manager */}
+      <Route path="/roster" element={<RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
 
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
-      <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachesPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/coaches" element={<CoachesPage showToast={showToast} />} />
+      <Route path="/registrations" element={<RegistrationsPage showToast={showToast} />} />
+      <Route path="/jerseys" element={<JerseysPage showToast={showToast} />} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/schedule/availability" element={<CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
       <Route path="/attendance" element={<AttendancePage showToast={showToast} />} />
@@ -807,14 +804,14 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
           ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
           : <PaymentsPage showToast={showToast} />
       } />
-      <Route path="/gameprep" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><GamePrepPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/gameprep" element={<GamePrepPage showToast={showToast} />} />
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
       <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
-      <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/reports/funnel" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationFunnelPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/blasts" element={<BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
+      <Route path="/notifications" element={<NotificationsPage showToast={showToast} />} />
+      <Route path="/reports" element={<ReportsPage showToast={showToast} />} />
+      <Route path="/reports/funnel" element={<RegistrationFunnelPage showToast={showToast} />} />
       <Route path="/archives" element={<SeasonArchivePage showToast={showToast} />} />
       <Route path="/directory" element={<OrgDirectoryPage isEmbedded />} />
       <Route path="/achievements" element={
@@ -838,26 +835,26 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       } />
 
       {/* Admin — Season Management */}
-      <Route path="/admin/seasons/:seasonId" element={<RouteGuard allow={['admin']} activeView={activeView}><SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
-      <Route path="/admin/seasons" element={<RouteGuard allow={['admin']} activeView={activeView}><SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+      <Route path="/admin/seasons/:seasonId" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
+      <Route path="/admin/seasons" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
 
-      {/* Settings — admin only */}
-      <Route path="/settings/seasons" element={<RouteGuard allow={['admin']} activeView={activeView}><SeasonsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/templates" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationTemplatesPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/waivers" element={<RouteGuard allow={['admin']} activeView={activeView}><WaiversPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/payment-setup" element={<RouteGuard allow={['admin']} activeView={activeView}><PaymentSetupPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/organization" element={<RouteGuard allow={['admin']} activeView={activeView}><OrganizationPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/data-export" element={<RouteGuard allow={['admin']} activeView={activeView}><DataExportPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/subscription" element={<RouteGuard allow={['admin']} activeView={activeView}><SubscriptionPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/settings/venues" element={<RouteGuard allow={['admin']} activeView={activeView}><VenueManagerPage showToast={showToast} /></RouteGuard>} />
+      {/* Settings */}
+      <Route path="/settings/seasons" element={<SeasonsPage showToast={showToast} />} />
+      <Route path="/settings/templates" element={<RegistrationTemplatesPage showToast={showToast} />} />
+      <Route path="/settings/waivers" element={<WaiversPage showToast={showToast} />} />
+      <Route path="/settings/payment-setup" element={<PaymentSetupPage showToast={showToast} />} />
+      <Route path="/settings/organization" element={<OrganizationPage showToast={showToast} />} />
+      <Route path="/settings/data-export" element={<DataExportPage showToast={showToast} />} />
+      <Route path="/settings/subscription" element={<SubscriptionPage showToast={showToast} />} />
+      <Route path="/settings/venues" element={<VenueManagerPage showToast={showToast} />} />
 
       {/* Profile */}
       <Route path="/profile" element={<MyProfilePage showToast={showToast} />} />
 
-      {/* Platform Admin — admin only */}
-      <Route path="/platform/admin" element={<RouteGuard allow={['admin']} activeView={activeView}><PlatformAdminPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/platform/analytics" element={<RouteGuard allow={['admin']} activeView={activeView}><PlatformAnalyticsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/platform/subscriptions" element={<RouteGuard allow={['admin']} activeView={activeView}><PlatformSubscriptionsPage showToast={showToast} /></RouteGuard>} />
+      {/* Platform Admin */}
+      <Route path="/platform/admin" element={<PlatformAdminPage showToast={showToast} />} />
+      <Route path="/platform/analytics" element={<PlatformAnalyticsPage showToast={showToast} />} />
+      <Route path="/platform/subscriptions" element={<PlatformSubscriptionsPage showToast={showToast} />} />
 
       {/* Default: redirect / to /dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

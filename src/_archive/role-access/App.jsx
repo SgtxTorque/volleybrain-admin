@@ -40,6 +40,14 @@ function AuthenticatedApp() {
     <JourneyProvider>
       {needsOnboarding ? (
         <SetupWizard onComplete={completeOnboarding} />
+      ) : !isAdmin ? (
+        <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bg }}>
+          <div className="text-center">
+            <span className="text-5xl">🔒</span>
+            <h2 className="text-xl font-bold mt-4" style={{ color: colors.text }}>Access Denied</h2>
+            <p className="mt-2" style={{ color: colors.textSecondary }}>Admin access required</p>
+          </div>
+        </div>
       ) : (
         <MainApp />
       )}
