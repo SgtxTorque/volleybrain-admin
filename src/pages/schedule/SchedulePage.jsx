@@ -21,7 +21,7 @@ import BulkGamesModal from './BulkGamesModal'
 import VenueManagerModal from './VenueManagerModal'
 import AvailabilitySurveyModal from './AvailabilitySurveyModal'
 import EventDetailModal from './EventDetailModal'
-import DashboardContainer from '../../components/layout/DashboardContainer'
+import PageShell from '../../components/pages/PageShell'
 
 function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
@@ -206,13 +206,11 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const dropdownItemCls = isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-800 hover:bg-slate-50'
 
   return (
-    <DashboardContainer className="space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Schedule</h1>
-          <p className="text-slate-400 text-base mt-0.5">{selectedSeason.name} · {filteredEvents.length} events</p>
-        </div>
+    <PageShell
+      breadcrumb="Schedule"
+      title="Schedule"
+      subtitle={`${selectedSeason.name} · ${filteredEvents.length} events`}
+      actions={
         <div className="flex gap-2">
           {/* Share & Export */}
           <div className="relative">
@@ -266,8 +264,9 @@ function SchedulePage({ showToast, activeView, roleContext }) {
             </div>
           )}
         </div>
-      </div>
-
+      }
+    >
+      <div className="space-y-5">
       <ScheduleStatRow events={events} activeView={activeView} />
 
       <ScheduleUpcomingStrip
@@ -370,7 +369,8 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       {(showQuickActions || showShareMenu) && (
         <div className="fixed inset-0 z-10" onClick={() => { setShowQuickActions(false); setShowShareMenu(false) }} />
       )}
-    </DashboardContainer>
+      </div>
+    </PageShell>
   )
 }
 
