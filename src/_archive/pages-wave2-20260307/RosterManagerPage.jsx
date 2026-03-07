@@ -15,7 +15,7 @@ import RosterTable from './RosterTable'
 import RosterEvalMode from './RosterEvalMode'
 import PlayerDevelopmentCard from './PlayerDevelopmentCard'
 import SeasonSetupWizard from './SeasonSetupWizard'
-import PageShell from '../../components/pages/PageShell'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 export default function RosterManagerPage({ showToast, roleContext, onNavigate }) {
   const { user, organization } = useAuth()
@@ -303,62 +303,68 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
 
   if (loading && roster.length === 0) {
     return (
-      <PageShell title="Roster Manager" breadcrumb="My Teams" subtitle={selectedSeason?.name || 'No season selected'}>
+      <DashboardContainer className="space-y-4">
         <div className={`${cardBg} rounded-[14px] p-6 animate-pulse`}>
           <div className={`h-6 w-48 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
           <div className={`h-4 w-32 rounded mt-2 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
         </div>
-      </PageShell>
+      </DashboardContainer>
     )
   }
 
   // ========== RENDER ==========
 
-  const headerActions = (
-    <>
-      {/* Team Selector */}
-      {teams.length > 0 && (
-        <div className="relative">
-          <button onClick={() => setShowTeamDropdown(!showTeamDropdown)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-r-sm font-bold transition ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white hover:bg-white/10' : 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50'}`}>
-            {selectedTeam && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedTeam.color || '#4BB9EC' }} />}
-            {selectedTeam?.name || 'Select Team'} <ChevronDown className="w-4 h-4" />
-          </button>
-          {showTeamDropdown && (
-            <div className={`absolute right-0 top-full mt-1 w-56 rounded-[14px] shadow-2xl z-30 border overflow-hidden ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-              {teams.map(t => (
-                <button key={t.id} onClick={() => { setSelectedTeam(t); setShowTeamDropdown(false); setSelectedIds(new Set()) }}
-                  className={`w-full text-left px-4 py-2.5 text-r-sm flex items-center gap-2 transition ${isDark ? 'hover:bg-white/[0.06] text-white' : 'hover:bg-slate-100 text-slate-900'} ${selectedTeam?.id === t.id ? (isDark ? 'bg-white/[0.06]' : 'bg-slate-50') : ''}`}>
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.color || '#4BB9EC' }} />
-                  {t.name} {t.coachRole === 'head' && <span className="text-r-xs text-amber-500">HC</span>}
+  return (
+    <DashboardContainer className="space-y-5">
+      {/* Click-outside overlay */}
+      {showTeamDropdown && <div className="fixed inset-0 z-20" onClick={() => setShowTeamDropdown(false)} />}
+
+      {/* Page Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Roster Manager</h1>
+          <p className="text-slate-400 text-base mt-0.5">{selectedSeason?.name || 'No season selected'}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Team Selector */}
+          {teams.length > 0 && (
+            <div className="relative">
+              <button onClick={() => setShowTeamDropdown(!showTeamDropdown)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-base font-bold transition ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white hover:bg-white/10' : 'bg-white border-slate-200 text-slate-900 hover:bg-slate-50'}`}>
+                {selectedTeam && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedTeam.color || '#4BB9EC' }} />}
+                {selectedTeam?.name || 'Select Team'} <ChevronDown className="w-4 h-4" />
+              </button>
+              {showTeamDropdown && (
+                <div className={`absolute right-0 top-full mt-1 w-56 rounded-xl shadow-lg z-30 border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+                  {teams.map(t => (
+                    <button key={t.id} onClick={() => { setSelectedTeam(t); setShowTeamDropdown(false); setSelectedIds(new Set()) }}
+                      className={`w-full text-left px-4 py-2.5 text-base flex items-center gap-2 transition first:rounded-t-xl last:rounded-b-xl ${isDark ? 'hover:bg-white/[0.06] text-white' : 'hover:bg-slate-50 text-slate-900'} ${selectedTeam?.id === t.id ? (isDark ? 'bg-white/[0.06]' : 'bg-slate-50') : ''}`}>
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.color || '#4BB9EC' }} />
+                      {t.name} {t.coachRole === 'head' && <span className="text-sm text-amber-500">HC</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Mode Tabs */}
+          {selectedTeam && (
+            <div className={`flex rounded-xl p-1 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
+              {[
+                { id: 'overview', label: 'Overview' },
+                { id: 'evaluate', label: 'Evaluate' },
+                { id: 'setup', label: 'Setup' },
+              ].map(tab => (
+                <button key={tab.id} onClick={() => setViewMode(tab.id)}
+                  className={`px-4 py-2 rounded-lg text-base font-bold transition ${viewMode === tab.id ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400 hover:text-slate-300'}`}>
+                  {tab.label}
                 </button>
               ))}
             </div>
           )}
         </div>
-      )}
-      {/* Mode Tabs */}
-      {selectedTeam && (
-        <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-          {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'evaluate', label: 'Evaluate' },
-            { id: 'setup', label: 'Setup' },
-          ].map(tab => (
-            <button key={tab.id} onClick={() => setViewMode(tab.id)}
-              className={`px-4 py-2 rounded-lg text-r-sm font-bold transition ${viewMode === tab.id ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-400 hover:text-slate-300'}`}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </>
-  )
-
-  return (
-    <PageShell title="Roster Manager" breadcrumb="My Teams" subtitle={selectedSeason?.name || 'No season selected'} actions={headerActions}>
-      {/* Click-outside overlay */}
-      {showTeamDropdown && <div className="fixed inset-0 z-20" onClick={() => setShowTeamDropdown(false)} />}
+      </div>
 
       {/* Stat Row */}
       {selectedTeam && viewMode === 'overview' && (
@@ -372,10 +378,10 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
             <Check className="w-4 h-4 inline mr-1 text-lynx-sky" /> {selectedIds.size} selected
           </span>
           <button onClick={() => setViewMode('evaluate')}
-            className="px-3 py-1.5 rounded-lg text-r-sm font-bold bg-lynx-navy text-white hover:brightness-110">
+            className="px-3 py-1.5 rounded-xl text-sm font-bold bg-lynx-sky text-lynx-navy hover:bg-lynx-sky/80">
             <ClipboardList className="w-3.5 h-3.5 inline mr-1" /> Bulk Evaluate
           </button>
-          <button onClick={() => setSelectedIds(new Set())} className="px-3 py-1.5 rounded-lg text-r-sm font-bold text-slate-400 hover:bg-white/[0.04]">
+          <button onClick={() => setSelectedIds(new Set())} className="px-3 py-1.5 rounded-lg text-sm font-bold text-slate-400 hover:bg-white/[0.04]">
             Clear
           </button>
         </div>
@@ -421,11 +427,9 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
       {/* No Team */}
       {!selectedTeam && !loading && (
         <div className={`${cardBg} rounded-[14px] p-12 text-center`}>
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-            <Users className="w-7 h-7 text-slate-400" />
-          </div>
-          <h3 className={`text-r-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No teams found</h3>
-          <p className="text-slate-400 mt-1 text-r-sm">You need to be assigned as a coach to use Roster Manager.</p>
+          <Users className={`w-12 h-12 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+          <h3 className={`text-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No teams found</h3>
+          <p className="text-slate-400 mt-1 text-base">You need to be assigned as a coach to use Roster Manager.</p>
         </div>
       )}
 
@@ -434,6 +438,6 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
         <PlayerDevelopmentCard player={selectedPlayer} teamId={selectedTeam?.id} seasonId={selectedSeason?.id}
           onClose={() => setSelectedPlayer(null)} showToast={showToast} />
       )}
-    </PageShell>
+    </DashboardContainer>
   )
 }

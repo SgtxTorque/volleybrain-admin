@@ -8,8 +8,8 @@ import {
   Smartphone, Mail, Filter, Search, BarChart3, Zap, MessageSquare
 } from 'lucide-react';
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext';
-import PageShell from '../../components/pages/PageShell'
-import InnerStatRow from '../../components/pages/InnerStatRow'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { StatGrid } from '../../components/layout/DashboardGrids'
 
 // =====================================================
 // NOTIFICATIONS ADMIN PAGE
@@ -135,41 +135,47 @@ export function NotificationsPage({ showToast }) {
   ];
 
   return (
-    <PageShell
-      title="Push Notifications"
-      breadcrumb="Communication"
-      subtitle="Manage and monitor push notifications for your organization"
-      actions={
+    <DashboardContainer className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-wide">
+            Push Notifications
+          </h1>
+          <p className={`text-sm mt-1 ${tc.textMuted}`}>
+            Manage and monitor push notifications for your organization
+          </p>
+        </div>
         <div className="flex gap-3">
           <button
             onClick={loadData}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-medium transition ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-white hover:bg-white/[0.04]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105 ${tc.cardBgAlt} border ${tc.border}`}
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             Refresh
           </button>
           <button
             onClick={() => setShowSendModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-bold bg-lynx-navy text-white hover:brightness-110 transition"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold text-black transition-all hover:scale-105 bg-[var(--accent-primary)]"
           >
             <Send size={16} />
             Send Notification
           </button>
         </div>
-      }
-    >
+      </div>
+
       {/* Tabs */}
-      <div className={`flex gap-1 rounded-xl p-1 border mb-6 w-fit ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+      <div className="flex gap-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-bold transition ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                 activeTab === tab.id
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'bg-[var(--accent-primary)] text-black font-bold'
+                  : `${tc.cardBgAlt} ${tc.text}`
               }`}
             >
               <Icon size={16} />
@@ -210,7 +216,7 @@ export function NotificationsPage({ showToast }) {
           selectedSeason={selectedSeason}
         />
       )}
-    </PageShell>
+    </DashboardContainer>
   );
 }
 
@@ -220,8 +226,12 @@ export function NotificationsPage({ showToast }) {
 function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
   const tc = useThemeClasses();
   const { isDark } = useTheme();
-
-  const readRate = stats.sent > 0 ? Math.round((stats.read / stats.sent) * 100) + '%' : '0%'
+  const statCards = [
+    { label: 'Total Sent', value: stats.sent, icon: Send, color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
+    { label: 'Pending', value: stats.pending, icon: Clock, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
+    { label: 'Failed', value: stats.failed, icon: XCircle, color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
+    { label: 'Read Rate', value: stats.sent > 0 ? Math.round((stats.read / stats.sent) * 100) + '%' : '—', icon: Eye, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
+  ];
 
   // Type breakdown
   const typeCounts = {};
@@ -232,40 +242,61 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
   return (
     <div className="space-y-6">
       {/* Stat Cards */}
-      <InnerStatRow stats={[
-        { value: stats.sent, label: 'TOTAL SENT', icon: '📤', color: 'text-emerald-500' },
-        { value: stats.pending, label: 'PENDING', icon: '⏳', color: 'text-amber-500' },
-        { value: stats.failed, label: 'FAILED', icon: '❌', color: 'text-red-500' },
-        { value: readRate, label: 'READ RATE', icon: '👁', color: 'text-blue-500' },
-      ]} />
+      <StatGrid>
+        {statCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={i}
+              className={`p-5 rounded-xl ${tc.cardBg} border ${tc.border}`}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 rounded-xl" style={{ background: card.bg }}>
+                  <Icon size={18} style={{ color: card.color }} />
+                </div>
+                <span className={`text-xs font-medium uppercase tracking-wider ${tc.textMuted}`}>
+                  {card.label}
+                </span>
+              </div>
+              <div className="text-3xl font-bold">
+                {card.value}
+              </div>
+            </div>
+          );
+        })}
+      </StatGrid>
 
       {/* Type Breakdown */}
-      <div className={`p-6 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-r-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      <div
+        className={`p-6 rounded-xl ${tc.cardBg} border ${tc.border}`}
+      >
+        <h3 className="text-lg font-bold mb-4 tracking-wide">
           Notifications by Type
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <StatGrid>
           {Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).map(([type, count]) => {
             const config = typeConfig[type] || typeConfig.general;
             return (
-              <div key={type} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+              <div key={type} className={`flex items-center gap-3 p-3 rounded-xl ${tc.cardBgAlt}`}>
                 <span className="text-xl">{config.icon}</span>
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{config.label}</div>
-                  <div className={`text-r-lg font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>{count}</div>
+                  <div className={`text-xs ${tc.textMuted}`}>{config.label}</div>
+                  <div className="text-lg font-bold">{count}</div>
                 </div>
               </div>
             );
           })}
-        </div>
+        </StatGrid>
         {Object.keys(typeCounts).length === 0 && (
-          <p className="text-r-sm text-center py-8 text-slate-400">No notifications sent yet. Use the "Send Notification" button to get started.</p>
+          <p className={`text-sm text-center py-8 ${tc.textMuted}`}>No notifications sent yet. Use the "Send Notification" button to get started.</p>
         )}
       </div>
 
       {/* Recent Activity */}
-      <div className={`p-6 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-r-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      <div
+        className={`p-6 rounded-xl ${tc.cardBg} border ${tc.border}`}
+      >
+        <h3 className="text-lg font-bold mb-4 tracking-wide">
           Recent Activity
         </h3>
         <div className="space-y-2">
@@ -274,22 +305,22 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
             const sConfig = statusConfig[n.push_status] || statusConfig.pending;
             const StatusIcon = sConfig.icon;
             return (
-              <div key={n.id} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+              <div key={n.id} className={`flex items-center gap-3 p-3 rounded-xl ${tc.cardBgAlt}`}>
                 <span className="text-lg">{tConfig.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-r-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{n.title}</div>
-                  <div className="text-r-xs truncate text-slate-400">{n.profiles?.full_name || 'Unknown user'}</div>
+                  <div className="text-sm font-medium truncate">{n.title}</div>
+                  <div className={`text-xs truncate ${tc.textMuted}`}>{n.profiles?.full_name || 'Unknown user'}</div>
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold" style={{ background: sConfig.bg, color: sConfig.color }}>
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium" style={{ background: sConfig.bg, color: sConfig.color }}>
                   <StatusIcon size={12} />
                   {n.push_status}
                 </div>
-                <span className="text-r-xs text-slate-400">{new Date(n.created_at).toLocaleDateString()}</span>
+                <span className={`text-xs ${tc.textMuted}`}>{new Date(n.created_at).toLocaleDateString()}</span>
               </div>
             );
           })}
           {notifications.length === 0 && (
-            <p className="text-r-sm text-center py-8 text-slate-400">No notifications yet.</p>
+            <p className={`text-sm text-center py-8 ${tc.textMuted}`}>No notifications yet.</p>
           )}
         </div>
       </div>
@@ -310,19 +341,19 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
           <input
             type="text"
             placeholder="Search notifications..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+            className={`w-full pl-10 pr-4 py-2 rounded-xl text-sm border ${tc.input}`}
           />
         </div>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+          className={`px-3 py-2 rounded-xl text-sm border ${tc.input}`}
         >
           <option value="all">All Types</option>
           {Object.entries(typeConfig).map(([key, cfg]) => (
@@ -332,7 +363,7 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+          className={`px-3 py-2 rounded-xl text-sm border ${tc.input}`}
         >
           <option value="all">All Status</option>
           <option value="sent">Sent</option>
@@ -353,56 +384,56 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
           return (
             <div
               key={n.id}
-              className={`rounded-[14px] overflow-hidden transition-all ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}
+              className={`rounded-xl overflow-hidden transition-all ${tc.cardBg} border ${tc.border}`}
             >
               <div
-                className={`flex items-center gap-3 p-4 cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}
+                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/5 transition-colors"
                 onClick={() => setExpandedId(isExpanded ? null : n.id)}
               >
                 <span className="text-lg">{tConfig.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-r-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{n.title}</div>
-                  <div className="text-r-xs text-slate-400">{n.body?.substring(0, 80)}{n.body?.length > 80 ? '...' : ''}</div>
+                  <div className="text-sm font-medium">{n.title}</div>
+                  <div className={`text-xs ${tc.textMuted}`}>{n.body?.substring(0, 80)}{n.body?.length > 80 ? '...' : ''}</div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold" style={{ background: sConfig.bg, color: sConfig.color }}>
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium" style={{ background: sConfig.bg, color: sConfig.color }}>
                     <StatusIcon size={12} />
                     {n.push_status}
                   </div>
-                  <div className="text-r-xs mt-1 text-slate-400">{new Date(n.created_at).toLocaleString()}</div>
+                  <div className={`text-xs mt-1 ${tc.textMuted}`}>{new Date(n.created_at).toLocaleString()}</div>
                 </div>
-                {isExpanded ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
+                {isExpanded ? <ChevronDown size={16} className="opacity-40" /> : <ChevronRight size={16} className="opacity-40" />}
               </div>
 
               {isExpanded && (
-                <div className={`px-4 pb-4 pt-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
-                  <div className="grid grid-cols-2 gap-4 text-r-sm">
+                <div className={`px-4 pb-4 pt-2 border-t ${tc.border}`}>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-r-xs block text-slate-400">Recipient</span>
-                      <span className={isDark ? 'text-white' : 'text-slate-900'}>{n.profiles?.full_name || 'Unknown'}</span>
+                      <span className={`text-xs block ${tc.textMuted}`}>Recipient</span>
+                      <span>{n.profiles?.full_name || 'Unknown'}</span>
                     </div>
                     <div>
-                      <span className="text-r-xs block text-slate-400">Type</span>
-                      <span className={isDark ? 'text-white' : 'text-slate-900'}>{tConfig.label}</span>
+                      <span className={`text-xs block ${tc.textMuted}`}>Type</span>
+                      <span>{tConfig.label}</span>
                     </div>
                     <div>
-                      <span className="text-r-xs block text-slate-400">Full Body</span>
-                      <span className={isDark ? 'text-white' : 'text-slate-900'}>{n.body}</span>
+                      <span className={`text-xs block ${tc.textMuted}`}>Full Body</span>
+                      <span>{n.body}</span>
                     </div>
                     <div>
-                      <span className="text-r-xs block text-slate-400">Read</span>
-                      <span className={isDark ? 'text-white' : 'text-slate-900'}>{n.is_read ? `Yes (${new Date(n.read_at).toLocaleString()})` : 'No'}</span>
+                      <span className={`text-xs block ${tc.textMuted}`}>Read</span>
+                      <span>{n.is_read ? `Yes (${new Date(n.read_at).toLocaleString()})` : 'No'}</span>
                     </div>
                     {n.push_error && (
                       <div className="col-span-2">
-                        <span className="text-r-xs block text-slate-400">Error</span>
+                        <span className={`text-xs block ${tc.textMuted}`}>Error</span>
                         <span className="text-red-400">{n.push_error}</span>
                       </div>
                     )}
                     {n.data && Object.keys(n.data).length > 0 && (
                       <div className="col-span-2">
-                        <span className="text-r-xs block text-slate-400">Data</span>
-                        <code className="text-r-xs block mt-1 text-slate-400">{JSON.stringify(n.data, null, 2)}</code>
+                        <span className={`text-xs block ${tc.textMuted}`}>Data</span>
+                        <code className={`text-xs block mt-1 ${tc.textMuted}`}>{JSON.stringify(n.data, null, 2)}</code>
                       </div>
                     )}
                   </div>
@@ -412,12 +443,9 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
           );
         })}
         {notifications.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-              <Bell size={24} className="text-slate-400" />
-            </div>
-            <p className={`text-r-sm mt-4 ${isDark ? 'text-white' : 'text-slate-900'} font-bold`}>No notifications match your filters</p>
-            <p className="text-r-xs text-slate-400 mt-1">Try adjusting your search or filter criteria</p>
+          <div className={`text-center py-12 ${tc.textMuted}`}>
+            <Bell size={48} className="mx-auto mb-3 opacity-30" />
+            <p>No notifications match your filters.</p>
           </div>
         )}
       </div>
@@ -448,7 +476,7 @@ function TemplatesView({ templates, typeConfig, showToast, onRefresh }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-r-sm text-slate-400">
+      <p className={`text-sm ${tc.textMuted}`}>
         These templates control automatic notifications. Toggle them on/off to control what gets sent.
       </p>
       <div className="space-y-3">
@@ -457,25 +485,25 @@ function TemplatesView({ templates, typeConfig, showToast, onRefresh }) {
           return (
             <div
               key={tmpl.id}
-              className={`flex items-center gap-4 p-4 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}
+              className={`flex items-center gap-4 p-4 rounded-xl ${tc.cardBg} border ${tc.border}`}
               style={{ opacity: tmpl.is_active ? 1 : 0.5 }}
             >
               <span className="text-2xl">{config.icon}</span>
               <div className="flex-1">
-                <div className={`text-r-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{tmpl.name}</div>
-                <div className="text-r-xs mt-1 text-slate-400">
+                <div className="text-sm font-bold">{tmpl.name}</div>
+                <div className={`text-xs mt-1 ${tc.textMuted}`}>
                   <span className="font-medium">Title:</span> {tmpl.title_template}
                 </div>
-                <div className="text-r-xs text-slate-400">
+                <div className={`text-xs ${tc.textMuted}`}>
                   <span className="font-medium">Body:</span> {tmpl.body_template}
                 </div>
-                <div className="text-r-xs mt-1 text-slate-400">
-                  Trigger: <code className="text-lynx-sky">{tmpl.trigger_event}</code>
+                <div className={`text-xs mt-1 ${tc.textMuted}`}>
+                  Trigger: <code>{tmpl.trigger_event}</code>
                 </div>
               </div>
               <button
                 onClick={() => toggleTemplate(tmpl.id, tmpl.is_active)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${tmpl.is_active ? 'bg-lynx-sky' : isDark ? 'bg-white/15' : 'bg-slate-300'}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${tmpl.is_active ? 'bg-[var(--accent-primary)]' : isDark ? 'bg-white/15' : 'bg-slate-300'}`}
               >
                 <div
                   className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
@@ -486,12 +514,9 @@ function TemplatesView({ templates, typeConfig, showToast, onRefresh }) {
           );
         })}
         {templates.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-              <Settings size={24} className="text-slate-400" />
-            </div>
-            <p className={`text-r-sm font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No templates configured</p>
-            <p className="text-r-xs text-slate-400 mt-1">Run the SQL migration to seed default templates.</p>
+          <div className={`text-center py-12 ${tc.textMuted}`}>
+            <Settings size={48} className="mx-auto mb-3 opacity-30" />
+            <p>No templates configured. Run the SQL migration to seed default templates.</p>
           </div>
         )}
       </div>
@@ -578,17 +603,14 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
     }
   };
 
-  const inputCls = `w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div
-        className={`w-full max-w-lg rounded-[14px] overflow-hidden ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}
-        onClick={e => e.stopPropagation()}
+        className={`w-full max-w-lg rounded-xl overflow-hidden ${tc.cardBg} border ${tc.border}`}
       >
         {/* Header */}
-        <div className={`p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
-          <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <div className={`p-5 border-b ${tc.border}`}>
+          <h2 className="text-lg font-bold tracking-wide">
             Send Push Notification
           </h2>
         </div>
@@ -597,7 +619,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
         <div className="p-5 space-y-4">
           {/* Target */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">SEND TO</label>
+            <label className={`text-xs font-medium block mb-2 ${tc.textMuted}`}>SEND TO</label>
             <div className="flex gap-2">
               {[
                 { id: 'team', label: 'Team', icon: Users },
@@ -608,10 +630,10 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
                   <button
                     key={opt.id}
                     onClick={() => setTarget(opt.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-bold transition ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all ${
                       target === opt.id
-                        ? 'bg-lynx-sky/20 text-lynx-sky'
-                        : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'}`
+                        ? 'bg-[var(--accent-primary)] text-black font-bold'
+                        : `${tc.cardBgAlt} ${tc.text}`
                     }`}
                   >
                     <Icon size={14} />
@@ -625,8 +647,12 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
           {/* Team selector */}
           {target === 'team' && (
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">SELECT TEAM</label>
-              <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className={inputCls}>
+              <label className={`text-xs font-medium block mb-2 ${tc.textMuted}`}>SELECT TEAM</label>
+              <select
+                value={selectedTeam}
+                onChange={(e) => setSelectedTeam(e.target.value)}
+                className={`w-full px-3 py-2 rounded-xl text-sm border ${tc.input}`}
+              >
                 <option value="">Choose a team...</option>
                 {teams.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -637,40 +663,56 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
 
           {/* Type */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">TYPE</label>
-            <select value={type} onChange={(e) => setType(e.target.value)} className={inputCls}>
-              <option value="announcement">Announcement</option>
-              <option value="game_reminder">Game Reminder</option>
-              <option value="schedule_change">Schedule Change</option>
-              <option value="general">General</option>
+            <label className={`text-xs font-medium block mb-2 ${tc.textMuted}`}>TYPE</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className={`w-full px-3 py-2 rounded-xl text-sm border ${tc.input}`}
+            >
+              <option value="announcement">📢 Announcement</option>
+              <option value="game_reminder">🏐 Game Reminder</option>
+              <option value="schedule_change">📅 Schedule Change</option>
+              <option value="general">🔔 General</option>
             </select>
           </div>
 
           {/* Title */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">TITLE</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Notification title..." className={inputCls} />
+            <label className={`text-xs font-medium block mb-2 ${tc.textMuted}`}>TITLE</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Notification title..."
+              className={`w-full px-3 py-2 rounded-xl text-sm border ${tc.input}`}
+            />
           </div>
 
           {/* Body */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">MESSAGE</label>
-            <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Notification message..." rows={3} className={`${inputCls} resize-none`} />
+            <label className={`text-xs font-medium block mb-2 ${tc.textMuted}`}>MESSAGE</label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Notification message..."
+              rows={3}
+              className={`w-full px-3 py-2 rounded-xl text-sm resize-none border ${tc.input}`}
+            />
           </div>
         </div>
 
         {/* Footer */}
-        <div className={`p-5 border-t flex justify-end gap-3 ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+        <div className={`p-5 border-t flex justify-end gap-3 ${tc.border}`}>
           <button
             onClick={onClose}
-            className={`px-5 py-2 rounded-lg text-r-sm font-medium border ${isDark ? 'border-white/[0.06] text-white hover:bg-white/[0.04]' : 'border-slate-200 text-slate-700 hover:bg-slate-100'}`}
+            className={`px-5 py-2 rounded-xl text-sm ${tc.cardBgAlt} ${tc.text}`}
           >
             Cancel
           </button>
           <button
             onClick={handleSend}
             disabled={sending || !title.trim() || !body.trim()}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-r-sm font-bold bg-lynx-navy text-white hover:brightness-110 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold text-black transition-all hover:scale-105 disabled:opacity-50 bg-[var(--accent-primary)]"
           >
             <Send size={14} />
             {sending ? 'Sending...' : 'Send'}

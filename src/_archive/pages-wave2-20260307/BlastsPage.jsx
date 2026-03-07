@@ -4,11 +4,11 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { sanitizeText } from '../../lib/validation'
-import {
-  Megaphone, DollarSign, Calendar, Clock, Users, Check, X, Plus
+import { 
+  Megaphone, DollarSign, Calendar, Clock, Users, Check, X
 } from '../../constants/icons'
-import PageShell from '../../components/pages/PageShell'
-import InnerStatRow from '../../components/pages/InnerStatRow'
+import DashboardContainer from '../../components/layout/DashboardContainer'
+import { StatGrid } from '../../components/layout/DashboardGrids'
 
 function BlastsPage({ showToast, activeView, roleContext }) {
   const { organization, profile, user } = useAuth()
@@ -111,53 +111,71 @@ function BlastsPage({ showToast, activeView, roleContext }) {
     }
   }
 
-  const avgReadRate = blasts.length > 0
-    ? Math.round(blasts.reduce((sum, b) => sum + b.read_percentage, 0) / blasts.length)
-    : 0
-
   return (
-    <PageShell
-      title="Announcements"
-      breadcrumb="Communication"
-      subtitle="Send messages to teams, parents, and track read receipts"
-      actions={
+    <DashboardContainer className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-3xl font-bold ${tc.text}`}>Announcements</h1>
+          <p className={tc.textMuted}>Send messages to teams, parents, and track read receipts</p>
+        </div>
         <button
           onClick={() => setShowComposeModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold hover:brightness-110 transition"
+          className="px-4 py-2 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition"
         >
-          <Plus className="w-4 h-4" /> New Announcement
+          + New Announcement
         </button>
-      }
-    >
-      {/* Stats */}
-      <InnerStatRow stats={[
-        { value: blasts.length, label: 'TOTAL SENT', icon: '📢' },
-        { value: `${avgReadRate}%`, label: 'AVG READ RATE', icon: '📊', color: 'text-emerald-500' },
-        { value: blasts.filter(b => b.read_percentage < 100).length, label: 'PENDING READS', icon: '👀', color: 'text-amber-500' },
-        { value: blasts.filter(b => b.priority === 'urgent').length, label: 'URGENT', icon: '🚨', color: 'text-red-500' },
-      ]} />
+      </div>
+      
+      {/* Stats Cards */}
+      <StatGrid>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
+          <p className={`text-sm ${tc.textMuted}`}>Total Sent</p>
+          <p className={`text-3xl font-bold ${tc.text}`}>{blasts.length}</p>
+        </div>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
+          <p className={`text-sm ${tc.textMuted}`}>Avg. Read Rate</p>
+          <p className={`text-3xl font-bold text-emerald-500`}>
+            {blasts.length > 0 
+              ? Math.round(blasts.reduce((sum, b) => sum + b.read_percentage, 0) / blasts.length)
+              : 0}%
+          </p>
+        </div>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
+          <p className={`text-sm ${tc.textMuted}`}>Pending Reads</p>
+          <p className={`text-3xl font-bold text-amber-500`}>
+            {blasts.filter(b => b.read_percentage < 100).length}
+          </p>
+        </div>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
+          <p className={`text-sm ${tc.textMuted}`}>Urgent</p>
+          <p className={`text-3xl font-bold text-red-500`}>
+            {blasts.filter(b => b.priority === 'urgent').length}
+          </p>
+        </div>
+      </StatGrid>
 
       {/* Filter Tabs */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-4`}>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
         <div className="flex flex-wrap gap-2">
           {[
-            { id: 'all', label: 'All' },
-            { id: 'urgent', label: 'Urgent' },
-            { id: 'pending', label: 'Pending Reads' },
-            { id: 'payment_reminder', label: 'Payment' },
-            { id: 'schedule_change', label: 'Schedule' },
-            { id: 'announcement', label: 'General' },
+            { id: 'all', label: 'All', icon: 'clipboard' },
+            { id: 'urgent', label: 'Urgent', icon: '🚨' },
+            { id: 'pending', label: 'Pending Reads', icon: '👀' },
+            { id: 'payment_reminder', label: 'Payment', icon: 'dollar' },
+            { id: 'schedule_change', label: 'Schedule', icon: 'calendar' },
+            { id: 'announcement', label: 'General', icon: 'megaphone' },
           ].map(filter => (
             <button
               key={filter.id}
               onClick={() => setFilterType(filter.id)}
-              className={`px-4 py-2 rounded-lg text-r-sm font-bold transition ${
+              className={`px-4 py-2 rounded-xl font-medium transition ${
                 filterType === filter.id
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
-                  : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'}`
+                  ? 'bg-[var(--accent-primary)] text-white'
+                  : `${tc.cardBgAlt} ${tc.text} ${tc.hoverBg}`
               }`}
             >
-              {filter.label}
+              {filter.icon} {filter.label}
             </button>
           ))}
         </div>
@@ -166,69 +184,67 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       {/* Blasts List */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="animate-spin w-8 h-8 border-4 border-lynx-sky border-t-transparent rounded-full mx-auto" />
-          <p className="text-slate-400 mt-4 text-r-sm">Loading announcements...</p>
+          <div className="animate-spin w-8 h-8 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto" />
+          <p className={`${tc.textMuted} mt-4`}>Loading announcements...</p>
         </div>
       ) : filteredBlasts.length === 0 ? (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-12 text-center`}>
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-            <Megaphone className="w-7 h-7 text-slate-400" />
-          </div>
-          <h3 className={`text-r-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No announcements yet</h3>
-          <p className="text-slate-400 mt-1 text-r-sm">Send your first announcement to parents and teams</p>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
+          <Megaphone className="w-16 h-16" />
+          <p className={`text-xl font-semibold ${tc.text} mt-4`}>No announcements yet</p>
+          <p className={tc.textMuted}>Send your first announcement to parents and teams</p>
           <button
             onClick={() => setShowComposeModal(true)}
-            className="mt-4 px-6 py-3 rounded-lg bg-lynx-navy text-white font-bold hover:brightness-110 transition"
+            className="mt-4 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-semibold"
           >
             Create Announcement
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filteredBlasts.map(blast => (
-            <div
+            <div 
               key={blast.id}
               onClick={() => setSelectedBlast(blast)}
-              className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-lynx-sky/30' : 'bg-white border border-slate-200 hover:border-lynx-sky/50'} rounded-[14px] p-4 cursor-pointer transition hover:shadow-md`}
+              className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 cursor-pointer hover:border-[var(--accent-primary)]/50 transition`}
             >
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center text-2xl ${getTypeColor(blast.message_type)}`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${getTypeColor(blast.message_type)}`}>
                   {getTypeIcon(blast.message_type)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{blast.title}</h3>
+                    <h3 className={`font-semibold ${tc.text}`}>{blast.title}</h3>
                     {blast.priority === 'urgent' && (
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-500 text-white">URGENT</span>
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white">URGENT</span>
                     )}
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${getTypeColor(blast.message_type)}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${getTypeColor(blast.message_type)}`}>
                       {blast.message_type?.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className={`text-r-sm line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{blast.body}</p>
-                  <div className="flex items-center gap-4 mt-2 text-r-xs text-slate-400">
-                    <span>
+                  <p className={`${tc.textSecondary} text-sm line-clamp-2`}>{blast.body}</p>
+                  <div className="flex items-center gap-4 mt-2 text-xs">
+                    <span className={tc.textMuted}>
                       {new Date(blast.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </span>
-                    <span>by {blast.profiles?.full_name}</span>
+                    <span className={tc.textMuted}>by {blast.profiles?.full_name}</span>
                     {blast.teams && (
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold" style={{ backgroundColor: (blast.teams.color || '#6366F1') + '30', color: blast.teams.color || '#6366F1' }}>
+                      <span className="px-2 py-0.5 rounded-full text-xs" style={{ backgroundColor: (blast.teams.color || '#6366F1') + '30', color: blast.teams.color || '#6366F1' }}>
                         {blast.teams.name}
                       </span>
                     )}
                   </div>
                 </div>
-
+                
                 {/* Read Progress */}
                 <div className="text-right min-w-[100px]">
-                  <div className={`text-r-2xl font-extrabold ${blast.read_percentage === 100 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                  <div className={`text-2xl font-bold ${blast.read_percentage === 100 ? 'text-emerald-500' : 'text-amber-500'}`}>
                     {blast.read_percentage}%
                   </div>
-                  <p className="text-r-xs text-slate-400">
+                  <p className={`text-xs ${tc.textMuted}`}>
                     {blast.acknowledged_count}/{blast.total_recipients} read
                   </p>
-                  <div className={`w-full h-2 rounded-full mt-2 overflow-hidden ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
-                    <div
+                  <div className="w-full h-2 rounded-full bg-slate-700 mt-2 overflow-hidden">
+                    <div 
                       className={`h-full rounded-full transition-all ${blast.read_percentage === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                       style={{ width: `${blast.read_percentage}%` }}
                     />
@@ -259,7 +275,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           showToast={showToast}
         />
       )}
-    </PageShell>
+    </DashboardContainer>
   )
 }
 

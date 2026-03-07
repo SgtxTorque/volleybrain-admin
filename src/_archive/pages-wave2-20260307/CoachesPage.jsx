@@ -4,13 +4,12 @@ import { useSeason } from '../../contexts/SeasonContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import {
+import { 
   Users, User, Mail, Phone, Edit, Trash2, X, Check, Star, UserCog,
   Camera, Shield, FileText, Calendar, ChevronDown, ChevronRight,
-  Award, AlertTriangle, Search, Filter, Upload, Eye, Plus
+  Award, AlertTriangle, Search, Filter, Upload, Eye
 } from '../../constants/icons'
-import PageShell from '../../components/pages/PageShell'
-import InnerStatRow from '../../components/pages/InnerStatRow'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 const roleLabels = { head: 'Head Coach', assistant: 'Assistant', manager: 'Manager', volunteer: 'Volunteer' }
 const bgCheckLabels = {
@@ -137,67 +136,64 @@ export function CoachesPage({ showToast }) {
 
   if (!selectedSeason) {
     return (
-      <PageShell title="Coach Management" subtitle="Select a season to manage coaches" breadcrumb="People">
-        <div className="bg-white rounded-[14px] border border-slate-200 p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <UserCog className="w-8 h-8 text-slate-400" />
-          </div>
-          <p className="text-slate-500">Please select a season to manage coaches</p>
-        </div>
-      </PageShell>
+      <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
+        <UserCog className="w-16 h-16 mx-auto mb-4 opacity-30" />
+        <p className={tc.textMuted}>Please select a season to manage coaches</p>
+      </div>
     )
   }
 
   return (
-    <PageShell
-      title="Coach Management"
-      subtitle={`Manage coaches, credentials, and team assignments -- ${selectedSeason.name}`}
-      breadcrumb="People"
-      actions={
+    <DashboardContainer className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className={`text-3xl font-bold ${tc.text}`}>Coach Management</h1>
+          <p className={tc.textMuted}>Manage coaches, credentials, and team assignments • {selectedSeason.name}</p>
+        </div>
         <button onClick={() => { setEditingCoach(null); setShowAddModal(true) }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-lynx-navy text-white font-bold rounded-lg hover:brightness-110 transition text-r-sm">
-          <Plus className="w-4 h-4" /> Add Coach
+          className="px-6 py-3 bg-[var(--accent-primary)] text-white font-semibold rounded-xl hover:brightness-110 transition flex items-center gap-2">
+          <span className="text-xl">+</span> Add Coach
         </button>
-      }
-    >
-      <InnerStatRow stats={[
-        { value: coaches.filter(c => c.status === 'active').length, label: 'ACTIVE', icon: '👨‍🏫' },
-        { value: coaches.filter(c => c.assignments?.some(a => a.role === 'head')).length, label: 'HEAD COACHES', icon: '⭐' },
-        { value: `${bgCheckCleared}/${coaches.length}`, label: 'BG CHECKS', icon: '🛡️', color: bgCheckCleared === coaches.length && coaches.length > 0 ? 'text-emerald-500' : 'text-amber-500' },
-        { value: `${waiversSigned}/${coaches.length}`, label: 'WAIVERS', icon: '📋', color: waiversSigned === coaches.length && coaches.length > 0 ? 'text-emerald-500' : 'text-amber-500' },
-        { value: `${conductSigned}/${coaches.length}`, label: 'CONDUCT', icon: '✅', color: conductSigned === coaches.length && coaches.length > 0 ? 'text-emerald-500' : 'text-amber-500' },
-      ]} />
+      </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-5">
+      <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-40" />
           <input type="text" placeholder="Search coaches..." value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20" />
+            className={`w-full pl-10 pr-4 py-3 rounded-xl ${tc.cardBg} border ${tc.border} ${tc.text}`} />
         </div>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20">
+          className={`px-4 py-3 rounded-xl ${tc.cardBg} border ${tc.border} ${tc.text}`}>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
           <option value="all">All</option>
         </select>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <StatCard label="Active" value={coaches.filter(c => c.status === 'active').length} icon="👨‍🏫" tc={tc} />
+        <StatCard label="Head Coaches" value={coaches.filter(c => c.assignments?.some(a => a.role === 'head')).length} icon="⭐" tc={tc} />
+        <StatCard label="BG Checks" value={`${bgCheckCleared}/${coaches.length}`} icon="🛡️" color={bgCheckCleared === coaches.length && coaches.length > 0 ? 'text-emerald-400' : 'text-amber-400'} tc={tc} />
+        <StatCard label="Waivers" value={`${waiversSigned}/${coaches.length}`} icon="📋" color={waiversSigned === coaches.length && coaches.length > 0 ? 'text-emerald-400' : 'text-amber-400'} tc={tc} />
+        <StatCard label="Code of Conduct" value={`${conductSigned}/${coaches.length}`} icon="✅" color={conductSigned === coaches.length && coaches.length > 0 ? 'text-emerald-400' : 'text-amber-400'} tc={tc} />
+      </div>
+
       {/* Coach Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin w-10 h-10 border-4 border-lynx-sky border-t-transparent rounded-full" />
+          <div className="animate-spin w-10 h-10 border-4 border-[var(--accent-primary)] border-t-transparent rounded-full" />
         </div>
       ) : filteredCoaches.length === 0 ? (
-        <div className="bg-white rounded-[14px] border border-slate-200 p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-            <UserCog className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">No coaches found</h3>
-          <p className="text-slate-500 mb-6">{searchTerm ? 'Try a different search term' : 'Add your first coach to get started'}</p>
+        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
+          <UserCog className="w-16 h-16 mx-auto mb-4 opacity-30" />
+          <h3 className={`text-xl font-semibold ${tc.text} mb-2`}>No coaches found</h3>
+          <p className={`${tc.textMuted} mb-6`}>{searchTerm ? 'Try a different search term' : 'Add your first coach to get started'}</p>
           {!searchTerm && (
-            <button onClick={() => setShowAddModal(true)} className="px-6 py-2.5 bg-lynx-navy text-white font-bold rounded-lg hover:brightness-110 transition">Add First Coach</button>
+            <button onClick={() => setShowAddModal(true)} className="px-6 py-3 bg-[var(--accent-primary)] text-white font-semibold rounded-xl">Add First Coach</button>
           )}
         </div>
       ) : (
@@ -217,7 +213,19 @@ export function CoachesPage({ showToast }) {
       {showAddModal && <CoachFormModal coach={editingCoach} onSave={saveCoach} onClose={() => { setShowAddModal(false); setEditingCoach(null) }} showToast={showToast} tc={tc} />}
       {assigningCoach && <AssignTeamsModal coach={assigningCoach} teams={teams} onSave={(a) => saveAssignments(assigningCoach.id, a)} onClose={() => setAssigningCoach(null)} tc={tc} />}
       {selectedCoachForDetail && <CoachDetailModal coach={selectedCoachForDetail} onClose={() => setSelectedCoachForDetail(null)} onEdit={() => { setSelectedCoachForDetail(null); setEditingCoach(selectedCoachForDetail); setShowAddModal(true) }} tc={tc} />}
-    </PageShell>
+    </DashboardContainer>
+  )
+}
+
+function StatCard({ label, value, icon, color, tc }) {
+  return (
+    <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4`}>
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-lg">{icon}</span>
+        <span className={`text-xs ${tc.textMuted} uppercase tracking-wider`}>{label}</span>
+      </div>
+      <div className={`text-2xl font-bold ${color || tc.text}`}>{value}</div>
+    </div>
   )
 }
 
