@@ -48,6 +48,9 @@ export const ROUTES = {
   'data-export': '/settings/data-export',
   'subscription': '/settings/subscription',
 
+  // Stats
+  'stats': '/stats',
+
   // Achievements
   'achievements': '/achievements',
 
@@ -151,6 +154,7 @@ export const PAGE_TITLES = {
   '/settings/organization': 'Organization Settings',
   '/settings/data-export': 'Data Export',
   '/settings/subscription': 'Subscription',
+  '/stats': 'My Stats',
   '/achievements': 'Achievements',
   '/profile': 'My Profile',
   '/platform/admin': 'Platform Admin',

@@ -77,6 +77,9 @@ import SeasonManagementPage from './pages/admin/SeasonManagementPage'
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
 
+// Stats Pages
+import { PlayerStatsPage } from './pages/stats/PlayerStatsPage'
+
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
 import { NotificationsPage } from './pages/notifications/NotificationsPage'
@@ -819,6 +822,17 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
         />
       } />
 
+      {/* Stats */}
+      <Route path="/stats" element={
+        <PlayerStatsPage
+          playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
+          showToast={showToast}
+        />
+      } />
+      <Route path="/stats/:playerId" element={
+        <PlayerStatsPage showToast={showToast} />
+      } />
+
       {/* Admin — Season Management */}
       <Route path="/admin/seasons/:seasonId" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
       <Route path="/admin/seasons" element={<SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
@@ -1053,6 +1067,7 @@ function MainApp() {
     { id: 'schedule', label: 'Schedule', type: 'single' },
     { id: 'achievements', label: 'Achievements', type: 'single' },
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      { id: 'stats', label: 'My Stats', icon: 'bar-chart' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'my-stuff', label: 'Profile & Stats', icon: 'user' },
