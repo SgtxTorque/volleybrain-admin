@@ -8,6 +8,7 @@ import {
   AlertTriangle, Sparkles, UserPlus, HelpCircle, BarChart3, Check
 } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 
 // Standard jersey sizes
@@ -452,6 +453,7 @@ export function JerseysPage({ showToast }) {
       }
     >
       <div className="space-y-6">
+      <SeasonFilterBar />
       {/* Team Filter */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         <button

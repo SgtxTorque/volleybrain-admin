@@ -22,6 +22,7 @@ import VenueManagerModal from './VenueManagerModal'
 import AvailabilitySurveyModal from './AvailabilitySurveyModal'
 import EventDetailModal from './EventDetailModal'
 import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
@@ -267,6 +268,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       }
     >
       <div className="space-y-5">
+      <SeasonFilterBar />
       <ScheduleStatRow events={events} activeView={activeView} />
 
       <ScheduleUpcomingStrip

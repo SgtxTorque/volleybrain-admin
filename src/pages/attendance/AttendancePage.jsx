@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 import { Calendar, X } from '../../constants/icons'
 import { PlayerCardExpanded } from '../../components/players'
 import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import EventCard from '../../components/pages/EventCard'
 
@@ -189,6 +190,7 @@ function AttendancePage({ showToast }) {
       title="Attendance & RSVP"
       subtitle={`Track RSVPs and manage volunteers · ${selectedSeason.name}`}
     >
+      <SeasonFilterBar />
       <InnerStatRow stats={stats} />
 
       {/* Filters */}
