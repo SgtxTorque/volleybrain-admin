@@ -11,7 +11,7 @@ import {
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
-  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun
+  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, MapPin
 } from 'lucide-react'
 
 // Icon lookup for nav items
@@ -32,6 +32,7 @@ const ICON_MAP = {
   'user': User, clipboard: ClipboardList, dollar: DollarSign,
   megaphone: Megaphone, calendar: Calendar, target: Target, star: Star,
   bell: Bell, shirt: Shirt, shield: Shield, volleyball: Star, users: Users,
+  'map-pin': MapPin,
 }
 
 // Paw logo SVG

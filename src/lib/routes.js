@@ -45,6 +45,7 @@ export const ROUTES = {
   'waivers': '/settings/waivers',
   'paymentsetup': '/settings/payment-setup',
   'organization': '/settings/organization',
+  'venues': '/settings/venues',
   'data-export': '/settings/data-export',
   'subscription': '/settings/subscription',
 
@@ -152,6 +153,7 @@ export const PAGE_TITLES = {
   '/settings/waivers': 'Waivers',
   '/settings/payment-setup': 'Payment Setup',
   '/settings/organization': 'Organization Settings',
+  '/settings/venues': 'Venue Manager',
   '/settings/data-export': 'Data Export',
   '/settings/subscription': 'Subscription',
   '/stats': 'My Stats',

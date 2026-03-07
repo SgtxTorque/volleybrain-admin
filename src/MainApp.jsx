@@ -76,6 +76,7 @@ import SeasonManagementPage from './pages/admin/SeasonManagementPage'
 
 // Settings Pages
 import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
+import { VenueManagerPage } from './pages/settings/VenueManagerPage'
 
 // Stats Pages
 import { PlayerStatsPage } from './pages/stats/PlayerStatsPage'
@@ -845,6 +846,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/settings/organization" element={<OrganizationPage showToast={showToast} />} />
       <Route path="/settings/data-export" element={<DataExportPage showToast={showToast} />} />
       <Route path="/settings/subscription" element={<SubscriptionPage showToast={showToast} />} />
+      <Route path="/settings/venues" element={<VenueManagerPage showToast={showToast} />} />
 
       {/* Profile */}
       <Route path="/profile" element={<MyProfilePage showToast={showToast} />} />
@@ -995,6 +997,7 @@ function MainApp() {
       { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
       { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+      { id: 'venues', label: 'Venues', icon: 'map-pin' },
       { id: 'organization', label: 'Organization', icon: 'building' },
       { id: 'data-export', label: 'Data Export', icon: 'download' },
       { id: 'subscription', label: 'Subscription', icon: 'credit-card' },
