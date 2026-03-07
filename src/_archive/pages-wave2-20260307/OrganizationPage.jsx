@@ -1,15 +1,23 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useJourney } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
-import { Settings } from '../../constants/icons'
+import {
+  Building2, Users, DollarSign, FileText, Settings, ChevronDown, ChevronUp,
+  Check, X, Plus, Trash2, Edit, Globe, Mail, Phone, MapPin, Save,
+  CreditCard, Calendar, Clock, Shield, Shirt, Bell, Heart, Palette, Image, Upload, Eye, Camera
+} from '../../constants/icons'
 import { SetupSectionCard } from './SetupSectionCard'
-import PageShell from '../../components/pages/PageShell'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function OrganizationPage({ showToast }) {
+  const navigate = useNavigate()
   const { organization, setOrganization } = useAuth()
   const tc = useThemeClasses()
   const { accent } = useTheme()
+  const journey = useJourney()
   
   // Track which sections are expanded
   const [expandedSection, setExpandedSection] = useState(null)
@@ -664,7 +672,7 @@ function OrganizationPage({ showToast }) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }}></div>
           <span className={tc.textSecondary}>Loading organization setup...</span>
         </div>
       </div>
@@ -672,13 +680,18 @@ function OrganizationPage({ showToast }) {
   }
 
   return (
-    <PageShell title="Organization Setup" subtitle="Configure your organization before creating seasons and opening registration" breadcrumb="Setup > Organization">
-     <div className="space-y-6">
+    <DashboardContainer className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className={`text-3xl font-bold ${tc.text}`}>Organization Setup</h1>
+        <p className={`${tc.textMuted} mt-1`}>Configure your organization before creating seasons and opening registration</p>
+      </div>
+
       {/* Overall Progress Card */}
-      <div className={`p-6 rounded-[14px] border ${tc.card}`}>
+      <div className={`p-6 rounded-xl border ${tc.card}`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-lynx-sky/20">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: accent.primary + '20' }}>
               🏢
             </div>
             <div>
@@ -687,19 +700,19 @@ function OrganizationPage({ showToast }) {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-3xl font-bold text-lynx-sky">{overallPercent}%</p>
+            <p className="text-3xl font-bold" style={{ color: accent.primary }}>{overallPercent}%</p>
             <p className={`text-sm ${tc.textMuted}`}>{Math.round(overallProgress)} of {sections.length} sections</p>
           </div>
         </div>
         <div className={`h-3 rounded-full ${tc.cardBgAlt}`}>
-          <div
-            className="h-full rounded-full transition-all duration-500 bg-lynx-sky"
-            style={{ width: `${overallPercent}%` }}
+          <div 
+            className="h-full rounded-full transition-all duration-500" 
+            style={{ width: `${overallPercent}%`, backgroundColor: accent.primary }}
           />
         </div>
         {overallPercent < 100 && (
           <p className={`text-sm ${tc.textMuted} mt-3`}>
-            Complete the <span className="text-lynx-sky font-medium">Foundation</span> sections first to unlock registration
+            💡 Complete the <span className="font-medium" style={{ color: accent.primary }}>Foundation</span> sections first to unlock registration
           </p>
         )}
       </div>
@@ -790,8 +803,7 @@ function OrganizationPage({ showToast }) {
           />
         ))}
       </div>
-     </div>
-    </PageShell>
+    </DashboardContainer>
   )
 }
 

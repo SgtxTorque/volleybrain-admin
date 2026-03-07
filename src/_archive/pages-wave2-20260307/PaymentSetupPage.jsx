@@ -3,11 +3,11 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
-  CreditCard, Key, CheckCircle2 as CheckCircle, AlertCircle, ExternalLink,
+  CreditCard, Key, CheckCircle, AlertCircle, ExternalLink,
   RefreshCw, Shield, Zap, DollarSign,
   Loader2, HelpCircle, AlertTriangle
-} from '../../constants/icons'
-import PageShell from '../../components/pages/PageShell'
+} from 'lucide-react'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 function PaymentSetupPage({ showToast }) {
   const { organization, setOrganization } = useAuth()
@@ -146,67 +146,78 @@ async function testStripeConnection() {
   }
 
   return (
-    <PageShell
-      title="Payment Setup"
-      subtitle="Configure how parents can pay fees"
-      breadcrumb="Setup › Payment Setup"
-      actions={
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-lynx-navy text-white font-bold px-5 py-2.5 rounded-lg hover:brightness-110 disabled:opacity-50 flex items-center gap-2 text-r-sm"
+    <DashboardContainer className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className={`text-3xl font-bold ${tc.text} flex items-center gap-3`}>
+            <DollarSign className="w-8 h-8" />
+            Payment Setup
+          </h1>
+          <p className={`${tc.textMuted} mt-1`}>Configure how parents can pay fees</p>
+        </div>
+        <button 
+          onClick={handleSave} 
+          disabled={saving} 
+          className="bg-[var(--accent-primary)] text-white font-semibold px-6 py-3 rounded-xl disabled:opacity-50 flex items-center gap-2"
         >
           {saving ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin" />
               Saving...
             </>
           ) : (
             <>
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className="w-5 h-5" />
               Save Settings
             </>
           )}
         </button>
-      }
-    >
+      </div>
 
       {/* Tab Navigation */}
-      <div className="flex items-center gap-1 rounded-xl p-1 border border-slate-200 w-fit mb-6">
+      <div className={`flex gap-2 border-b ${tc.border} pb-2`}>
         <button
           onClick={() => setActiveTab('manual')}
-          className={`px-4 py-2 rounded-lg text-r-sm font-medium transition ${
-            activeTab === 'manual' ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-500 hover:bg-slate-100'
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            activeTab === 'manual'
+              ? isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+              : `${tc.textMuted} ${isDark ? 'hover:text-white hover:bg-slate-800' : 'hover:text-slate-900 hover:bg-slate-50'}`
           }`}
         >
-          Manual Payments
+          💵 Manual Payments
         </button>
         <button
           onClick={() => setActiveTab('stripe')}
-          className={`px-4 py-2 rounded-lg text-r-sm font-medium transition flex items-center gap-2 ${
-            activeTab === 'stripe' ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-500 hover:bg-slate-100'
+          className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+            activeTab === 'stripe'
+              ? isDark ? 'bg-slate-700 text-white' : 'bg-white text-slate-900 shadow-sm'
+              : `${tc.textMuted} ${isDark ? 'hover:text-white hover:bg-slate-800' : 'hover:text-slate-900 hover:bg-slate-50'}`
           }`}
         >
-          <CreditCard className="w-4 h-4" /> Online Payments
-          {stripeSettings.stripe_enabled && <span className="w-2 h-2 rounded-full bg-emerald-400" />}
+          <CreditCard className="w-4 h-4" />
+          Online Payments (Stripe)
+          {stripeSettings.stripe_enabled && (
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          )}
         </button>
       </div>
 
       {/* Manual Payments Tab */}
       {activeTab === 'manual' && (
         <div className="space-y-6">
-          <div className="rounded-[14px] border border-slate-200 bg-white p-6 space-y-4">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6 space-y-4`}>
             <h2 className={`text-lg font-semibold ${tc.text}`}>Manual Payment Methods</h2>
             <p className={`${tc.textMuted} text-sm`}>
               Parents will see these options and send payment directly to you.
             </p>
-
+            
             {[
               { key: 'venmoHandle', label: 'Venmo', placeholder: '@YourVenmo', color: '#3D95CE', icon: 'V' },
               { key: 'zelleEmail', label: 'Zelle', placeholder: 'email@example.com', color: '#6D1ED4', icon: 'Z' },
               { key: 'cashappHandle', label: 'Cash App', placeholder: '$YourCashApp', color: '#00D632', icon: '$' },
             ].map(p => (
-              <div key={p.key} className={`p-4 ${tc.cardBgAlt} rounded-[14px]`}>
+              <div key={p.key} className={`p-4 ${tc.cardBgAlt} rounded-xl`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
@@ -227,17 +238,17 @@ async function testStripeConnection() {
             ))}
           </div>
 
-          <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
             <label className="flex items-center justify-between cursor-pointer">
               <div>
                 <p className={`font-medium ${tc.text}`}>Accept Manual Payments</p>
                 <p className={`text-sm ${tc.textMuted}`}>Show Venmo/Zelle/Cash App options during checkout</p>
               </div>
-              <input
-                type="checkbox"
-                checked={settings.acceptManualPayments}
+              <input 
+                type="checkbox" 
+                checked={settings.acceptManualPayments} 
                 onChange={e => setSettings({...settings, acceptManualPayments: e.target.checked})}
-                className="w-6 h-6 rounded accent-lynx-sky"
+                className="w-6 h-6 rounded accent-[#4BB9EC]" 
               />
             </label>
           </div>
@@ -276,7 +287,7 @@ async function testStripeConnection() {
           </div>
 
           {/* Enable/Disable Toggle */}
-          <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+          <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
@@ -310,7 +321,7 @@ async function testStripeConnection() {
           {stripeSettings.stripe_enabled && (
             <>
               {/* Mode Selection */}
-              <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
                 <h3 className={`${tc.text} font-semibold mb-4 flex items-center gap-2`}>
                   <Shield className="w-5 h-5" />
                   Environment Mode
@@ -319,7 +330,7 @@ async function testStripeConnection() {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setStripeSettings(prev => ({ ...prev, stripe_mode: 'test' }))}
-                    className={`p-4 rounded-[14px] border-2 transition text-left ${
+                    className={`p-4 rounded-xl border-2 transition text-left ${
                       stripeSettings.stripe_mode === 'test'
                         ? 'border-amber-500 bg-amber-500/10'
                         : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-200 hover:border-slate-300'
@@ -336,7 +347,7 @@ async function testStripeConnection() {
 
                   <button
                     onClick={() => setStripeSettings(prev => ({ ...prev, stripe_mode: 'live' }))}
-                    className={`p-4 rounded-[14px] border-2 transition text-left ${
+                    className={`p-4 rounded-xl border-2 transition text-left ${
                       stripeSettings.stripe_mode === 'live'
                         ? 'border-emerald-500 bg-emerald-500/10'
                         : isDark ? 'border-slate-600 hover:border-slate-500' : 'border-slate-200 hover:border-slate-300'
@@ -366,7 +377,7 @@ async function testStripeConnection() {
               </div>
 
               {/* API Keys */}
-              <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
                 <h3 className={`${tc.text} font-semibold mb-4 flex items-center gap-2`}>
                   <Key className="w-5 h-5" />
                   API Keys
@@ -462,7 +473,7 @@ async function testStripeConnection() {
               </div>
 
               {/* Payment Options */}
-              <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+              <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-6`}>
                 <h3 className={`${tc.text} font-semibold mb-4`}>Payment Options</h3>
                 
                 <div className="space-y-4">
@@ -523,7 +534,7 @@ async function testStripeConnection() {
           )}
           
           {!stripeSettings.stripe_enabled && (
-            <div className="rounded-[14px] border border-slate-200 bg-white p-8 text-center">
+            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
               <CreditCard className={`w-16 h-16 ${tc.textMuted} mx-auto mb-4`} />
               <h3 className={`${tc.text} font-semibold text-lg mb-2`}>Online Payments Disabled</h3>
               <p className={`${tc.textMuted} max-w-md mx-auto`}>
@@ -533,7 +544,7 @@ async function testStripeConnection() {
           )}
         </div>
       )}
-    </PageShell>
+    </DashboardContainer>
   )
 }
 
