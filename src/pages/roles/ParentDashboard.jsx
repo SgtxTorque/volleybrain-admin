@@ -329,8 +329,13 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 11, y: 0, w: 11, h: 4 }, minW: 8, minH: 3,
         componentKey: 'ParentJourneyCard' },
 
-      // 3. Spacer Divider (17×1 at 3,4)
+      // 3. Spacer Divider (1×1 at 0,4)
       { id: 'spacer-divider', label: 'Spacer',
+        defaultLayout: { x: 0, y: 4, w: 1, h: 1 }, minW: 1, minH: 1,
+        componentKey: 'SpacerWidget' },
+
+      // 3b. Spacer Divider 2 (17×1 at 3,4)
+      { id: 'spacer-divider-2', label: 'Spacer',
         defaultLayout: { x: 3, y: 4, w: 17, h: 1 }, minW: 1, minH: 1,
         componentKey: 'SpacerWidget' },
 
@@ -439,9 +444,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 0, y: 21, w: 4, h: 9 }, minW: 4, minH: 4, maxH: 10,
         componentKey: 'QuickLinksCard' },
 
-      // 12. Balance Due (4×7 at 5,21) — always present, empty state when $0
+      // 12. Balance Due (4×8 at 5,21) — always present, empty state when $0
       { id: 'balance-due', label: 'Balance Due',
-        defaultLayout: { x: 5, y: 21, w: 4, h: 7 }, minW: 4, minH: 4, maxH: 12,
+        defaultLayout: { x: 5, y: 21, w: 4, h: 8 }, minW: 4, minH: 4, maxH: 12,
         component: (
           <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
             <div className="px-3 py-2 flex items-center justify-between">
@@ -476,9 +481,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 14, y: 21, w: 4, h: 8 }, minW: 4, minH: 4,
         componentKey: 'GiveShoutoutCard' },
 
-      // 15. Spacer Bottom (4×7 at 5,28)
+      // 15. Spacer Bottom (1×1 at 0,30)
       { id: 'spacer-bottom', label: 'Spacer',
-        defaultLayout: { x: 5, y: 28, w: 4, h: 7 }, minW: 1, minH: 1,
+        defaultLayout: { x: 0, y: 30, w: 1, h: 1 }, minW: 1, minH: 1,
         componentKey: 'SpacerWidget' },
 
       // 16. Team Chat (4×8 at 19,26)
