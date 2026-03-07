@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
-  Users, Edit, X, Check, CheckSquare, ClipboardList, User, Star, Share2
+  Users, Edit, X, Check, CheckSquare, ClipboardList, User, Star, Share2, Link
 } from '../../constants/icons'
 import { PlayerCard, PlayerCardExpanded } from '../../components/players'
 import { ClickableCoachName, CoachDetailModal } from '../../pages/coaches/CoachesPage'
@@ -11,7 +11,7 @@ import { getEventColor, formatTime12 } from './scheduleHelpers'
 import LineupBuilder from './LineupBuilder'
 import GameCompletionModal from './GameCompletionModal'
 
-function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, parentTutorial }) {
+function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, onUpdateSeries, onDeleteSeries, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, parentTutorial }) {
   const { isAdmin: hasAdminRole, profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
@@ -24,6 +24,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
   const [loading, setLoading] = useState(true)
   const [showLineupBuilder, setShowLineupBuilder] = useState(false)
   const [showGameCompletion, setShowGameCompletion] = useState(false)
+  const [showSeriesMenu, setShowSeriesMenu] = useState(null) // 'edit' | 'delete' | null
   const [lineupCount, setLineupCount] = useState(0)
   
   // Rich data
@@ -233,6 +234,11 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
                 <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: getEventColor(event.event_type) + '30', color: getEventColor(event.event_type) }}>
                   {event.event_type}
                 </span>
+                {event.series_id && (
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-lynx-sky/15 text-lynx-sky flex items-center gap-1">
+                    <Link className="w-3 h-3" /> Series
+                  </span>
+                )}
               </div>
               <p className={`${tc.textMuted} text-sm`}>
                 {event.event_date ? new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : ''}
@@ -1020,14 +1026,70 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, a
 
         {/* Footer Actions */}
         <div className={`p-4 border-t ${tc.border} flex justify-between`}>
-          <button onClick={() => onDelete(event.id)} className="px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-xl">
-            🗑️ Delete Event
-          </button>
+          <div className="relative">
+            {event.series_id && onDeleteSeries ? (
+              <>
+                <button onClick={() => setShowSeriesMenu(showSeriesMenu === 'delete' ? null : 'delete')}
+                  className="px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-xl">
+                  🗑️ Delete ▾
+                </button>
+                {showSeriesMenu === 'delete' && (
+                  <div className={`absolute bottom-full left-0 mb-2 w-56 rounded-xl shadow-2xl z-30 border overflow-hidden ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+                    <button onClick={() => { setShowSeriesMenu(null); onDelete(event.id) }}
+                      className={`w-full text-left px-4 py-3 text-sm font-medium transition ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-slate-50'}`}>
+                      Delete this event only
+                    </button>
+                    <button onClick={() => { setShowSeriesMenu(null); onDeleteSeries(event.series_id, true, event.event_date) }}
+                      className={`w-full text-left px-4 py-3 text-sm font-medium text-red-400 transition ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}>
+                      Delete all future in series
+                    </button>
+                    <button onClick={() => { setShowSeriesMenu(null); onDeleteSeries(event.series_id, false) }}
+                      className={`w-full text-left px-4 py-3 text-sm font-medium text-red-500 transition ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}>
+                      Delete entire series
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <button onClick={() => onDelete(event.id)} className="px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-xl">
+                🗑️ Delete Event
+              </button>
+            )}
+          </div>
           <div className="flex gap-3">
             {isEditing ? (
               <>
                 <button onClick={() => setIsEditing(false)} className={`px-6 py-2.5 rounded-xl border font-medium transition ${isDark ? 'border-lynx-border-dark text-slate-300 hover:bg-slate-700' : 'border-lynx-silver text-slate-700 hover:bg-lynx-cloud'}`}>Cancel</button>
-                <button onClick={handleSave} className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">Save Changes</button>
+                {event.series_id && onUpdateSeries ? (
+                  <div className="relative">
+                    <button onClick={() => setShowSeriesMenu(showSeriesMenu === 'edit' ? null : 'edit')}
+                      className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">
+                      Save ▾
+                    </button>
+                    {showSeriesMenu === 'edit' && (
+                      <div className={`absolute bottom-full right-0 mb-2 w-56 rounded-xl shadow-2xl z-30 border overflow-hidden ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+                        <button onClick={() => { setShowSeriesMenu(null); handleSave() }}
+                          className={`w-full text-left px-4 py-3 text-sm font-medium transition ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-slate-50'}`}>
+                          Save this event only
+                        </button>
+                        <button onClick={async () => {
+                          setShowSeriesMenu(null)
+                          const { team_id, event_type, title, description, start_time: st, end_time: et, venue_name, venue_address, court_number, location_type, opponent_name } = form
+                          await onUpdateSeries(event.series_id, {
+                            event_type, title, description, event_time: st, end_time: et,
+                            venue_name, venue_address, court_number: court_number || null, location_type, opponent_name
+                          })
+                          setIsEditing(false)
+                        }}
+                          className={`w-full text-left px-4 py-3 text-sm font-medium transition ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-slate-50'}`}>
+                          Update all in series
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button onClick={handleSave} className="px-6 py-2.5 rounded-xl bg-[var(--accent-primary)] text-white font-semibold hover:brightness-110 transition">Save Changes</button>
+                )}
               </>
             ) : (
               <>

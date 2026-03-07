@@ -18,6 +18,7 @@ import GameCompletionModal from './GameCompletionModal'
 import AddEventModal from './AddEventModal'
 import BulkPracticeModal from './BulkPracticeModal'
 import BulkGamesModal from './BulkGamesModal'
+import BulkEventWizard from './BulkEventWizard'
 import VenueManagerModal from './VenueManagerModal'
 import AvailabilitySurveyModal from './AvailabilitySurveyModal'
 import EventDetailModal from './EventDetailModal'
@@ -51,6 +52,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showAddEvent, setShowAddEvent] = useState(false)
   const [showBulkPractice, setShowBulkPractice] = useState(false)
   const [showBulkGames, setShowBulkGames] = useState(false)
+  const [showBulkWizard, setShowBulkWizard] = useState(false)
   const [showVenueManager, setShowVenueManager] = useState(false)
   const [showAvailabilitySurvey, setShowAvailabilitySurvey] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
@@ -130,7 +132,14 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     try {
       const evts = eventsData.map(e => ({ ...e, season_id: selectedSeason.id, created_at: new Date().toISOString() }))
       const { error } = await supabase.from('schedule_events').insert(evts)
-      if (error) throw error
+      // If series_id column doesn't exist yet, retry without it
+      if (error && error.message?.includes('series_id')) {
+        const evtsNoSeries = evts.map(({ series_id, ...rest }) => rest)
+        const { error: retryError } = await supabase.from('schedule_events').insert(evtsNoSeries)
+        if (retryError) throw retryError
+      } else if (error) {
+        throw error
+      }
       showToast(`${evts.length} events created!`, 'success')
       journey?.completeStep('create_schedule')
       loadEvents()
@@ -155,6 +164,36 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       const { error } = await supabase.from('schedule_events').delete().eq('id', eventId)
       if (error) throw error
       showToast('Event deleted', 'success')
+      setSelectedEvent(null)
+      loadEvents()
+    } catch (err) { showToast('Error: ' + err.message, 'error') }
+  }
+
+  async function updateSeriesEvents(seriesId, eventData) {
+    try {
+      const { error } = await supabase.from('schedule_events')
+        .update({ ...eventData, updated_at: new Date().toISOString() })
+        .eq('series_id', seriesId)
+      if (error) throw error
+      showToast('All events in series updated!', 'success')
+      loadEvents()
+      return true
+    } catch (err) { showToast('Error: ' + err.message, 'error'); return false }
+  }
+
+  async function deleteSeriesEvents(seriesId, futureOnly, currentEventDate) {
+    const msg = futureOnly
+      ? 'Delete all future events in this series?'
+      : 'Delete ALL events in this series?'
+    if (!confirm(msg)) return
+    try {
+      let query = supabase.from('schedule_events').delete().eq('series_id', seriesId)
+      if (futureOnly && currentEventDate) {
+        query = query.gte('event_date', currentEventDate)
+      }
+      const { error } = await query
+      if (error) throw error
+      showToast('Series events deleted', 'success')
       setSelectedEvent(null)
       loadEvents()
     } catch (err) { showToast('Error: ' + err.message, 'error') }
@@ -256,8 +295,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
               {showQuickActions && (
                 <div className={`absolute right-0 mt-2 w-56 rounded-[14px] shadow-2xl z-30 border overflow-hidden ${dropdownCls}`}>
                   <button onClick={() => { setShowAddEvent(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>📝</span> Single Event</button>
-                  <button onClick={() => { setShowBulkPractice(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>🔄</span> Recurring Practice</button>
-                  <button onClick={() => { setShowBulkGames(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><VolleyballIcon className="w-4 h-4" /> Bulk Add Games</button>
+                  <button onClick={() => { setShowBulkWizard(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>📋</span> Create Event Series</button>
                   <button onClick={() => { setShowVenueManager(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>📍</span> Manage Venues</button>
                   <button onClick={() => { setShowAvailabilitySurvey(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><BarChart3 className="w-5 h-5" /> Availability Survey</button>
                 </div>
@@ -352,10 +390,12 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       {showAddEvent && <AddEventModal teams={teams} venues={venues} onClose={() => setShowAddEvent(false)} onCreate={createEvent} />}
       {showBulkPractice && <BulkPracticeModal teams={teams} venues={venues} onClose={() => setShowBulkPractice(false)} onCreate={createBulkEvents} />}
       {showBulkGames && <BulkGamesModal teams={teams} venues={venues} onClose={() => setShowBulkGames(false)} onCreate={createBulkEvents} />}
+      {showBulkWizard && <BulkEventWizard teams={teams} venues={venues} onClose={() => setShowBulkWizard(false)} onCreate={createBulkEvents} showToast={showToast} />}
       {showVenueManager && <VenueManagerModal venues={venues} onClose={() => setShowVenueManager(false)} onSave={saveVenues} />}
       {showAvailabilitySurvey && <AvailabilitySurveyModal teams={teams} organization={organization} onClose={() => setShowAvailabilitySurvey(false)} showToast={showToast} />}
       {selectedEvent && (
         <EventDetailModal event={selectedEvent} teams={teams} venues={venues} onClose={() => setSelectedEvent(null)} onUpdate={updateEvent} onDelete={deleteEvent}
+          onUpdateSeries={updateSeriesEvents} onDeleteSeries={deleteSeriesEvents}
           activeView={activeView} selectedSeason={selectedSeason} parentChildIds={parentChildIds} showToast={showToast}
           onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }} parentTutorial={parentTutorial} />
       )}
