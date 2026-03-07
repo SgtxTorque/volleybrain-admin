@@ -1,41 +1,58 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
-import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { 
-  Users, DollarSign, Calendar, BarChart3, Download, Filter, Settings,
-  ChevronDown, ChevronUp, Search, FileText, PieChart, Check, X, Star
-} from '../../constants/icons'
+import PageShell from '../../components/pages/PageShell'
+import InnerStatRow from '../../components/pages/InnerStatRow'
+import {
+  CategoryTabBar, ColumnPicker, FilterBar,
+  ReportDataTable, ExportMenu, SavePresetModal,
+  getAvailableColumns, formatValue
+} from './ReportCards'
 
-// ═══════════════════════════════════════════════════════════
-// REPORTS PAGE — 2026 Glass Redesign
-// Fixed: team_coaches, schedule_events, coaches→profiles, Star import
-// Added: Schedule Summary, Season Summary reports
-// ═══════════════════════════════════════════════════════════
+// ============================================
+// REPORTS PAGE - Lynx Brand Treatment
+// Orchestrator: state, data loaders, column defs
+// Sub-components live in ReportCards.jsx
+// ============================================
 
-const RPT_STYLES = `
-  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-  .rpt-au{animation:fadeUp .4s ease-out both}
-  .rpt-ai{animation:fadeIn .3s ease-out both}
-  .rpt-as{animation:scaleIn .25s ease-out both}
-  .rpt-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
-  .rpt-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
-  .rpt-nos::-webkit-scrollbar{display:none}.rpt-nos{-ms-overflow-style:none;scrollbar-width:none}
-  .rpt-light .rpt-glass{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.06);box-shadow:0 4px 24px rgba(0,0,0,.06)}
-  .rpt-light .rpt-glass-solid{background:rgba(255,255,255,.72);border-color:rgba(0,0,0,.06)}
-`
+const REPORT_CATEGORIES = {
+  people: {
+    label: 'People', icon: '\uD83D\uDC65',
+    reports: [
+      { id: 'players', label: 'Player Roster', icon: '\uD83C\uDFD0', description: 'All players with contact info' },
+      { id: 'teams', label: 'Team Composition', icon: '\u26A1', description: 'Teams with roster counts' },
+      { id: 'coaches', label: 'Coach Directory', icon: '\uD83E\uDDD1\u200D\uD83C\uDFEB', description: 'All coaches and assignments' },
+      { id: 'emergency', label: 'Emergency Contacts', icon: '\uD83D\uDEA8', description: 'Emergency contact list' },
+      { id: 'jerseys', label: 'Jersey Assignment', icon: '\uD83D\uDC55', description: 'Jersey numbers and sizes' },
+    ]
+  },
+  financial: {
+    label: 'Financial', icon: '\uD83D\uDCB0',
+    reports: [
+      { id: 'payments', label: 'Payment Summary', icon: '\uD83D\uDCB3', description: 'Payment status by player' },
+      { id: 'financial', label: 'Financial Overview', icon: '\uD83D\uDCCA', description: 'Revenue and collections' },
+      { id: 'outstanding', label: 'Outstanding Balances', icon: '\u26A0\uFE0F', description: 'Unpaid balances' },
+    ]
+  },
+  operations: {
+    label: 'Operations', icon: '\uD83D\uDCCB',
+    reports: [
+      { id: 'schedule', label: 'Schedule Summary', icon: '\uD83D\uDCC5', description: 'Events by type and team' },
+      { id: 'registrations', label: 'Registration Report', icon: '\uD83D\uDCDD', description: 'Registration pipeline' },
+      { id: 'season_summary', label: 'Season Summary', icon: '\uD83C\uDFC6', description: 'High-level season overview' },
+    ]
+  },
+}
 
 function ReportsPage({ showToast }) {
-  const tc = useThemeClasses()
-  const { isDark, accent } = useTheme()
+  const { isDark } = useTheme()
   const { selectedSeason: globalSeason } = useSeason()
   const { selectedSport: globalSport } = useSport()
   const { organization, user, profile } = useAuth()
-  
+
   const [seasons, setSeasons] = useState([])
   const [sports, setSports] = useState([])
   const [selectedSeasonId, setSelectedSeasonId] = useState(null)
@@ -60,49 +77,20 @@ function ReportsPage({ showToast }) {
   const [teams, setTeams] = useState([])
   const [openDropdown, setOpenDropdown] = useState(null)
 
-  const reportCategories = {
-    people: {
-      label: 'People', icon: '👥',
-      reports: [
-        { id: 'players', label: 'Player Roster', icon: '🏐', description: 'All players with contact info' },
-        { id: 'teams', label: 'Team Composition', icon: '⚡', description: 'Teams with roster counts' },
-        { id: 'coaches', label: 'Coach Directory', icon: '🧑‍🏫', description: 'All coaches and assignments' },
-        { id: 'emergency', label: 'Emergency Contacts', icon: '🚨', description: 'Emergency contact list' },
-        { id: 'jerseys', label: 'Jersey Assignment', icon: '👕', description: 'Jersey numbers and sizes' },
-      ]
-    },
-    financial: {
-      label: 'Financial', icon: '💰',
-      reports: [
-        { id: 'payments', label: 'Payment Summary', icon: '💳', description: 'Payment status by player' },
-        { id: 'financial', label: 'Financial Overview', icon: '📊', description: 'Revenue and collections' },
-        { id: 'outstanding', label: 'Outstanding Balances', icon: '⚠️', description: 'Unpaid balances' },
-      ]
-    },
-    operations: {
-      label: 'Operations', icon: '📋',
-      reports: [
-        { id: 'schedule', label: 'Schedule Summary', icon: '📅', description: 'Events by type and team' },
-        { id: 'registrations', label: 'Registration Report', icon: '📝', description: 'Registration pipeline' },
-        { id: 'season_summary', label: 'Season Summary', icon: '🏆', description: 'High-level season overview' },
-      ]
-    },
-  }
-
-  // ═══════ LIFECYCLE ═══════
+  // ====== LIFECYCLE ======
   useEffect(() => { loadSeasonsAndSports(); loadSavedPresets() }, [organization?.id])
   useEffect(() => { if (globalSeason?.id && !selectedSeasonId) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
   useEffect(() => { if (globalSport?.id && selectedSportId === 'all') setSelectedSportId(globalSport.id) }, [globalSport?.id])
   useEffect(() => { if (selectedSeasonId) loadTeams() }, [selectedSeasonId])
   useEffect(() => { if (selectedSeasonId) loadReportData() }, [selectedSeasonId, selectedSportId, activeReport, filters])
   useEffect(() => {
-    const cols = getAvailableColumns()
+    const cols = getAvailableColumns(activeReport)
     const dv = {}, order = []
     cols.forEach(col => { dv[col.id] = col.defaultVisible !== false; order.push(col.id) })
     setVisibleColumns(dv); setColumnOrder(order)
   }, [activeReport])
 
-  // ═══════ INFRASTRUCTURE ═══════
+  // ====== INFRASTRUCTURE ======
   async function loadSeasonsAndSports() {
     if (!organization?.id) return
     const { data: sd } = await supabase.from('seasons').select('id, name, status, start_date, sport_id').eq('organization_id', organization.id).order('start_date', { ascending: false })
@@ -156,7 +144,7 @@ function ReportsPage({ showToast }) {
   }
   const getSelectedSeason = () => seasons.find(s => s.id === selectedSeasonId)
 
-  // ═══════ REPORT LOADERS ═══════
+  // ====== REPORT LOADERS ======
 
   async function loadPlayersReport() {
     const { data, error } = await supabase.from('players')
@@ -184,7 +172,6 @@ function ReportsPage({ showToast }) {
     const { data, error } = await supabase.from('teams').select('id, name, color, age_group, team_type, skill_level, gender, max_roster_size, min_roster_size, roster_open, created_at, description').eq('season_id', selectedSeasonId).order('name')
     if (error) { setData([]); return }
     const { data: pc } = await supabase.from('team_players').select('team_id').in('team_id', (data || []).map(t => t.id))
-    // FIXED: team_coaches instead of coach_assignments
     const { data: ca } = await supabase.from('team_coaches').select('team_id, coach_id, role').in('team_id', (data || []).map(t => t.id))
     const coachIds = [...new Set((ca || []).map(c => c.coach_id).filter(Boolean))]
     let coachNames = {}
@@ -243,7 +230,6 @@ function ReportsPage({ showToast }) {
     setStats({ totalOutstanding: tot, playerCount: cnt, avgBalance: cnt > 0 ? Math.round(tot / cnt) : 0, over30Days: transformed.filter(p => p.days_outstanding > 30).length, labels: ['Total Outstanding', 'Players with Balance', 'Avg Balance', 'Over 30 Days'] })
   }
 
-  // FIXED: schedule_events with event_date/event_time columns
   async function loadScheduleReport() {
     const { data: events, error } = await supabase.from('schedule_events')
       .select('id, title, event_type, event_date, event_time, location, team_id, teams(name, color)')
@@ -302,7 +288,6 @@ function ReportsPage({ showToast }) {
     setStats({ total: filtered.length, assigned: filtered.filter(p => p.has_jersey).length, missingNumber: filtered.filter(p => !p.has_jersey).length, missingSize: filtered.filter(p => !p.has_size).length, labels: ['Total Players', 'Jersey Assigned', 'Missing Number', 'Missing Size'] })
   }
 
-  // FIXED: coaches uses profile_id→profiles, team_coaches instead of coach_assignments
   async function loadCoachesReport() {
     const { data, error } = await supabase.from('coaches').select('id, profile_id, profiles:profile_id(full_name, email)').eq('organization_id', organization?.id)
     if (error) { console.error('Coaches error:', error); setData([]); setStats({ total: 0, assigned: 0, unassigned: 0, totalTeams: 0, labels: ['Total Coaches', 'Assigned', 'Unassigned', 'Teams Covered'] }); return }
@@ -330,7 +315,6 @@ function ReportsPage({ showToast }) {
     setStats({ total: transformed.length, complete: transformed.filter(p => p.has_emergency).length, missing: transformed.filter(p => !p.has_emergency).length, hasMedical: transformed.filter(p => p.has_medical).length, labels: ['Total Players', 'Complete Info', 'Missing Emergency', 'Has Medical Notes'] })
   }
 
-  // NEW: Season Summary
   async function loadSeasonSummaryReport() {
     const { data: players } = await supabase.from('players').select('id, status').eq('season_id', selectedSeasonId)
     const { data: teamData } = await supabase.from('teams').select('id').eq('season_id', selectedSeasonId)
@@ -354,144 +338,22 @@ function ReportsPage({ showToast }) {
     setStats({ totalPlayers: tp, totalTeams: tt, totalEvents: te, collectionRate: cr, labels: ['Players', 'Teams', 'Events', 'Collection Rate'] })
   }
 
-  // ═══════ COLUMNS ═══════
-  const getAvailableColumns = () => {
-    switch (activeReport) {
-      case 'players': return [
-        { id: 'full_name', label: 'Player Name', sortable: true, defaultVisible: true },
-        { id: 'team_name', label: 'Team', sortable: true, defaultVisible: true },
-        { id: 'grade', label: 'Grade', sortable: true, defaultVisible: true },
-        { id: 'position', label: 'Position', sortable: true, defaultVisible: true },
-        { id: 'jersey_number', label: 'Jersey #', sortable: true, defaultVisible: true },
-        { id: 'parent_name', label: 'Parent Name', sortable: true, defaultVisible: true },
-        { id: 'parent_email', label: 'Parent Email', sortable: false, defaultVisible: true },
-        { id: 'parent_phone', label: 'Parent Phone', sortable: false, defaultVisible: true },
-        { id: 'parent_phone_secondary', label: 'Secondary Phone', sortable: false, defaultVisible: false },
-        { id: 'email', label: 'Player Email', sortable: false, defaultVisible: false },
-        { id: 'phone', label: 'Player Phone', sortable: false, defaultVisible: false },
-        { id: 'status', label: 'Status', sortable: true, defaultVisible: true },
-        { id: 'age', label: 'Age', sortable: true, defaultVisible: false },
-        { id: 'date_of_birth', label: 'DOB', sortable: true, defaultVisible: false, format: 'date' },
-        { id: 'school', label: 'School', sortable: true, defaultVisible: false },
-        { id: 'uniform_size_jersey', label: 'Jersey Size', sortable: true, defaultVisible: false },
-        { id: 'created_at', label: 'Added', sortable: true, defaultVisible: false, format: 'date' },
-      ]
-      case 'teams': return [
-        { id: 'name', label: 'Team Name', sortable: true, defaultVisible: true },
-        { id: 'age_group', label: 'Age Group', sortable: true, defaultVisible: true },
-        { id: 'team_type', label: 'Type', sortable: true, defaultVisible: true },
-        { id: 'gender', label: 'Gender', sortable: true, defaultVisible: false },
-        { id: 'skill_level', label: 'Skill Level', sortable: true, defaultVisible: false },
-        { id: 'player_count', label: 'Players', sortable: true, defaultVisible: true },
-        { id: 'max_roster_size', label: 'Max Size', sortable: true, defaultVisible: true },
-        { id: 'roster_fill', label: 'Fill %', sortable: true, defaultVisible: false, format: 'percent' },
-        { id: 'head_coach', label: 'Head Coach', sortable: true, defaultVisible: true },
-        { id: 'coaches_list', label: 'All Coaches', sortable: false, defaultVisible: false },
-        { id: 'roster_status', label: 'Status', sortable: true, defaultVisible: true },
-      ]
-      case 'payments': return [
-        { id: 'full_name', label: 'Player', sortable: true, defaultVisible: true },
-        { id: 'parent_name', label: 'Parent', sortable: true, defaultVisible: true },
-        { id: 'parent_email', label: 'Email', sortable: false, defaultVisible: false },
-        { id: 'total_due', label: 'Total Due', sortable: true, defaultVisible: true, format: 'currency' },
-        { id: 'total_paid', label: 'Paid', sortable: true, defaultVisible: true, format: 'currency' },
-        { id: 'balance', label: 'Balance', sortable: true, defaultVisible: true, format: 'currency' },
-        { id: 'payment_status', label: 'Status', sortable: true, defaultVisible: true },
-        { id: 'payment_count', label: '# Payments', sortable: true, defaultVisible: false },
-        { id: 'last_payment', label: 'Last Payment', sortable: true, defaultVisible: true, format: 'date' },
-      ]
-      case 'outstanding': return [
-        { id: 'full_name', label: 'Player', sortable: true, defaultVisible: true },
-        { id: 'parent_name', label: 'Parent', sortable: true, defaultVisible: true },
-        { id: 'parent_email', label: 'Email', sortable: false, defaultVisible: true },
-        { id: 'parent_phone', label: 'Phone', sortable: false, defaultVisible: true },
-        { id: 'balance', label: 'Balance Due', sortable: true, defaultVisible: true, format: 'currency' },
-        { id: 'unpaid_items', label: 'Unpaid Items', sortable: false, defaultVisible: true },
-        { id: 'days_outstanding', label: 'Days Outstanding', sortable: true, defaultVisible: true },
-      ]
-      case 'schedule': return [
-        { id: 'title', label: 'Event', sortable: true, defaultVisible: true },
-        { id: 'display_type', label: 'Type', sortable: true, defaultVisible: true },
-        { id: 'team_name', label: 'Team', sortable: true, defaultVisible: true },
-        { id: 'display_date', label: 'Date', sortable: true, defaultVisible: true, format: 'date' },
-        { id: 'display_time', label: 'Time', sortable: true, defaultVisible: true },
-        { id: 'location', label: 'Location', sortable: true, defaultVisible: true },
-      ]
-      case 'registrations': return [
-        { id: 'full_name', label: 'Player', sortable: true, defaultVisible: true },
-        { id: 'parent_name', label: 'Parent', sortable: true, defaultVisible: true },
-        { id: 'parent_email', label: 'Email', sortable: false, defaultVisible: true },
-        { id: 'parent_phone', label: 'Phone', sortable: false, defaultVisible: false },
-        { id: 'registration_type', label: 'Type', sortable: true, defaultVisible: true },
-        { id: 'reg_status', label: 'Status', sortable: true, defaultVisible: true },
-        { id: 'submitted_at', label: 'Submitted', sortable: true, defaultVisible: true, format: 'date' },
-        { id: 'approved_at', label: 'Approved', sortable: true, defaultVisible: false, format: 'date' },
-      ]
-      case 'financial': return [
-        { id: 'player_name', label: 'Player', sortable: true, defaultVisible: true },
-        { id: 'description', label: 'Description', sortable: true, defaultVisible: true },
-        { id: 'amount', label: 'Amount', sortable: true, defaultVisible: true, format: 'currency' },
-        { id: 'status', label: 'Status', sortable: true, defaultVisible: true },
-        { id: 'payment_method', label: 'Method', sortable: true, defaultVisible: true },
-        { id: 'paid_at', label: 'Paid Date', sortable: true, defaultVisible: true, format: 'date' },
-        { id: 'created_at', label: 'Created', sortable: true, defaultVisible: false, format: 'date' },
-      ]
-      case 'jerseys': return [
-        { id: 'jersey_number', label: 'Jersey #', sortable: true, defaultVisible: true },
-        { id: 'full_name', label: 'Player', sortable: true, defaultVisible: true },
-        { id: 'team_name', label: 'Team', sortable: true, defaultVisible: true },
-        { id: 'uniform_size_jersey', label: 'Size', sortable: true, defaultVisible: true },
-      ]
-      case 'coaches': return [
-        { id: 'full_name', label: 'Coach', sortable: true, defaultVisible: true },
-        { id: 'role', label: 'Role', sortable: true, defaultVisible: true },
-        { id: 'email', label: 'Email', sortable: false, defaultVisible: true },
-        { id: 'teams_list', label: 'Teams (This Season)', sortable: false, defaultVisible: true },
-        { id: 'team_count', label: '# Teams', sortable: true, defaultVisible: true },
-      ]
-      case 'emergency': return [
-        { id: 'full_name', label: 'Player', sortable: true, defaultVisible: true },
-        { id: 'team_name', label: 'Team', sortable: true, defaultVisible: true },
-        { id: 'parent_name', label: 'Parent', sortable: true, defaultVisible: true },
-        { id: 'parent_phone', label: 'Parent Phone', sortable: false, defaultVisible: true },
-        { id: 'emergency_contact_name', label: 'Emergency Contact', sortable: true, defaultVisible: true },
-        { id: 'emergency_contact_phone', label: 'Emergency Phone', sortable: false, defaultVisible: true },
-        { id: 'emergency_contact_relationship', label: 'Relationship', sortable: true, defaultVisible: true },
-        { id: 'medical_notes', label: 'Medical Notes', sortable: false, defaultVisible: false },
-        { id: 'allergies', label: 'Allergies', sortable: false, defaultVisible: false },
-      ]
-      case 'season_summary': return [
-        { id: 'metric', label: 'Metric', sortable: true, defaultVisible: true },
-        { id: 'value', label: 'Value', sortable: true, defaultVisible: true },
-        { id: 'category', label: 'Category', sortable: true, defaultVisible: true },
-      ]
-      default: return []
-    }
-  }
+  // ====== COLUMNS (imported from ReportCards) ======
   const getVisibleColumnsOrdered = () => {
-    const available = getAvailableColumns()
+    const available = getAvailableColumns(activeReport)
     return columnOrder.filter(colId => visibleColumns[colId]).map(colId => available.find(c => c.id === colId)).filter(Boolean)
   }
 
-  // ═══════ SORT + FORMAT ═══════
+  // ====== SORT ======
   const sortedData = [...data].sort((a, b) => {
     if (!sortField) return 0; const av = a[sortField], bv = b[sortField]
     if (av === bv) return 0; if (av == null) return 1; if (bv == null) return -1
     return (av < bv ? -1 : 1) * (sortDir === 'asc' ? 1 : -1)
   })
   const handleSort = (field) => { if (sortField === field) setSortDir(sortDir === 'asc' ? 'desc' : 'asc'); else { setSortField(field); setSortDir('asc') } }
-  const formatValue = (value, format) => {
-    if (value == null) return '-'
-    switch (format) {
-      case 'currency': return `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-      case 'percent': return `${value}%`
-      case 'date': return value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-'
-      default: return value
-    }
-  }
 
-  // ═══════ EXPORT ═══════
-  const getCurrentReport = () => { for (const cat of Object.values(reportCategories)) { const f = cat.reports.find(r => r.id === activeReport); if (f) return f } return null }
+  // ====== EXPORT ======
+  const getCurrentReport = () => { for (const cat of Object.values(REPORT_CATEGORIES)) { const f = cat.reports.find(r => r.id === activeReport); if (f) return f } return null }
   const getBrandedHeader = () => {
     const season = getSelectedSeason()
     return { orgName: organization?.name || 'Organization', seasonName: season?.name || 'All Seasons', reportTitle: getCurrentReport()?.label || 'Report', generatedBy: profile?.full_name || user?.email || 'Admin', generatedAt: new Date().toLocaleString() }
@@ -506,8 +368,8 @@ function ReportsPage({ showToast }) {
     showToast('Report exported to CSV', 'success'); setExporting(false); setShowExportMenu(false)
   }
   async function exportPDF() {
-    setExporting(true); const header = getBrandedHeader(); const columns = getVisibleColumnsOrdered(); const ac = accent?.primary || '#6366f1'
-    const html = `<!DOCTYPE html><html><head><title>${header.reportTitle}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:40px;color:#1a1a1a}.header{border-bottom:3px solid ${ac};padding-bottom:20px;margin-bottom:30px}.header h1{font-size:28px}.header h2{font-size:18px;color:#666;font-weight:normal}.meta{display:flex;gap:30px;margin-top:15px;font-size:12px;color:#888}.stats{display:flex;gap:20px;margin-bottom:30px;flex-wrap:wrap}.stat{background:#f8f9fa;padding:15px 20px;border-radius:8px;min-width:120px}.stat-value{font-size:24px;font-weight:bold}.stat-label{font-size:11px;color:#666;text-transform:uppercase;margin-top:4px}table{width:100%;border-collapse:collapse;font-size:10px}th{background:#f8f9fa;padding:8px 6px;text-align:left;font-weight:600;border-bottom:2px solid #e5e7eb;white-space:nowrap}td{padding:6px;border-bottom:1px solid #e5e7eb}tr:nth-child(even){background:#fafafa}.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:10px;color:#888;text-align:center}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>${header.orgName}</h1><h2>${header.seasonName} - ${header.reportTitle}</h2><div class="meta"><span>By: ${header.generatedBy}</span><span>${header.generatedAt}</span><span>${sortedData.length} records</span></div></div><div class="stats">${stats.labels ? stats.labels.map((label, i) => { const keys = Object.keys(stats).filter(k => k !== 'labels'); const v = stats[keys[i]]; const m = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i]); return `<div class="stat"><div class="stat-value">${m ? '$'+Number(v).toLocaleString() : keys[i].includes('Rate') ? v+'%' : v}</div><div class="stat-label">${label}</div></div>` }).join('') : ''}</div><table><thead><tr>${columns.map(c => `<th>${c.label}</th>`).join('')}</tr></thead><tbody>${sortedData.map(row => `<tr>${columns.map(c => `<td>${formatValue(row[c.id], c.format)}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="footer">${header.orgName} &bull; Lynx &bull; ${header.generatedAt}</div></body></html>`
+    setExporting(true); const header = getBrandedHeader(); const columns = getVisibleColumnsOrdered()
+    const html = `<!DOCTYPE html><html><head><title>${header.reportTitle}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:40px;color:#1a1a1a}.header{border-bottom:3px solid #0f172a;padding-bottom:20px;margin-bottom:30px}.header h1{font-size:28px}.header h2{font-size:18px;color:#666;font-weight:normal}.meta{display:flex;gap:30px;margin-top:15px;font-size:12px;color:#888}.stats{display:flex;gap:20px;margin-bottom:30px;flex-wrap:wrap}.stat{background:#f8f9fa;padding:15px 20px;border-radius:8px;min-width:120px}.stat-value{font-size:24px;font-weight:bold}.stat-label{font-size:11px;color:#666;text-transform:uppercase;margin-top:4px}table{width:100%;border-collapse:collapse;font-size:10px}th{background:#f8f9fa;padding:8px 6px;text-align:left;font-weight:600;border-bottom:2px solid #e5e7eb;white-space:nowrap}td{padding:6px;border-bottom:1px solid #e5e7eb}tr:nth-child(even){background:#fafafa}.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:10px;color:#888;text-align:center}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>${header.orgName}</h1><h2>${header.seasonName} - ${header.reportTitle}</h2><div class="meta"><span>By: ${header.generatedBy}</span><span>${header.generatedAt}</span><span>${sortedData.length} records</span></div></div><div class="stats">${stats.labels ? stats.labels.map((label, i) => { const keys = Object.keys(stats).filter(k => k !== 'labels'); const v = stats[keys[i]]; const m = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i]); return `<div class="stat"><div class="stat-value">${m ? '$'+Number(v).toLocaleString() : keys[i].includes('Rate') ? v+'%' : v}</div><div class="stat-label">${label}</div></div>` }).join('') : ''}</div><table><thead><tr>${columns.map(c => `<th>${c.label}</th>`).join('')}</tr></thead><tbody>${sortedData.map(row => `<tr>${columns.map(c => `<td>${formatValue(row[c.id], c.format)}</td>`).join('')}</tr>`).join('')}</tbody></table><div class="footer">${header.orgName} &bull; Lynx &bull; ${header.generatedAt}</div></body></html>`
     const w = window.open('', '_blank'); w.document.write(html); w.document.close(); setTimeout(() => w.print(), 250)
     showToast('PDF export opened', 'success'); setExporting(false); setShowExportMenu(false)
   }
@@ -528,320 +390,189 @@ function ReportsPage({ showToast }) {
     }
   }
 
-  // ═══════ RENDER ═══════
+  // ====== DERIVED ======
   const currentReport = getCurrentReport()
   const columns = getVisibleColumnsOrdered()
-  const allColumns = getAvailableColumns()
+  const allColumns = getAvailableColumns(activeReport)
   const statusOptions = getStatusOptions()
   const selectedSeason = getSelectedSeason()
-  const gc = `${tc.cardBg} border ${tc.border} rounded-xl`
-  const gi = `${tc.inputBg} border ${tc.border} ${tc.text} rounded-xl`
+
+  // Build InnerStatRow items from stats
+  const buildStatItems = () => {
+    if (!stats.labels) return []
+    const keys = Object.keys(stats).filter(k => k !== 'labels')
+    const icons = ['\uD83D\uDCCA', '\u2705', '\u26A0\uFE0F', '\uD83D\uDD0D']
+    return stats.labels.map((label, i) => {
+      const v = stats[keys[i]]
+      const isMon = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i])
+      const isRate = keys[i].includes('Rate')
+      return {
+        label,
+        value: isMon ? `$${Number(v).toLocaleString()}` : isRate ? `${v}%` : v,
+        icon: icons[i] || '\uD83D\uDCCA',
+      }
+    })
+  }
+
+  // Season/sport selector inputs
+  const inputCls = `px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
 
   return (
-    <div className={`flex flex-col h-[calc(100vh-100px)] ${!isDark ? 'rpt-light' : ''}`}>
-      <style>{RPT_STYLES}</style>
-      
-      {/* TOP HEADER */}
-      <div className={`px-6 py-5 rpt-glass-solid border-b ${tc.border}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className={`text-3xl font-bold ${tc.text}`}>REPORTS & ANALYTICS</h1>
-            <p className={`text-sm mt-0.5 ${tc.textMuted}`}>Generate, customize, and export reports</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {sports.length > 0 && (
-              <div>
-                <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SPORT</label>
-                <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className={`px-3 py-2 text-sm outline-none min-w-[140px] ${gi}`}>
-                  <option value="all">All Sports</option>
-                  {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
-                </select>
-              </div>
-            )}
+    <PageShell
+      title="Reports"
+      breadcrumb="Insights"
+      subtitle="Generate, customize, and export reports"
+      actions={
+        <div className="flex items-center gap-4">
+          {sports.length > 0 && (
             <div>
-              <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SEASON</label>
-              <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`px-3 py-2 text-sm outline-none min-w-[180px] ${gi}`}>
-                <option value="">Select Season</option>
-                {seasons.map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '●' : s.status === 'upcoming' ? '○' : '◌'}</option>)}
+              <label className="block text-r-xs font-bold tracking-wider mb-1 text-slate-400">SPORT</label>
+              <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className={`min-w-[140px] ${inputCls}`}>
+                <option value="all">All Sports</option>
+                {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
               </select>
             </div>
+          )}
+          <div>
+            <label className="block text-r-xs font-bold tracking-wider mb-1 text-slate-400">SEASON</label>
+            <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`min-w-[180px] ${inputCls}`}>
+              <option value="">Select Season</option>
+              {seasons.map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '\u25CF' : s.status === 'upcoming' ? '\u25CB' : '\u25CC'}</option>)}
+            </select>
           </div>
         </div>
-        {/* Category Tabs */}
-        <div className="flex items-center gap-2">
-          {Object.entries(reportCategories).map(([catId, cat]) => (
-            <div key={catId} className="relative">
-              <button onClick={() => setOpenDropdown(openDropdown === catId ? null : catId)}
-                className={`px-4 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2 ${activeCategory !== catId ? `${gc} ${tc.text}` : ''}`}
-                style={activeCategory === catId ? { background: accent.primary, color: 'white', boxShadow: `0 2px 12px ${accent.primary}40` } : undefined}>
-                <span>{cat.icon}</span><span>{cat.label}</span><span className="text-[10px] ml-1 opacity-50">▼</span>
+      }
+    >
+      {/* Category Tabs */}
+      <div className="mb-6">
+        <CategoryTabBar
+          reportCategories={REPORT_CATEGORIES}
+          activeCategory={activeCategory}
+          activeReport={activeReport}
+          openDropdown={openDropdown}
+          setOpenDropdown={setOpenDropdown}
+          setActiveCategory={setActiveCategory}
+          setActiveReport={setActiveReport}
+          setFilters={setFilters}
+          setSortField={setSortField}
+          savedPresets={savedPresets}
+          loadPreset={loadPreset}
+          deletePreset={deletePreset}
+          setShowPresetModal={setShowPresetModal}
+          isDark={isDark}
+        />
+      </div>
+
+      {!selectedSeasonId ? (
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center">
+            <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+              <span className="text-2xl">\uD83D\uDCC5</span>
+            </div>
+            <p className={`font-bold text-r-lg mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Select a Season</p>
+            <p className="mt-2 text-r-sm text-slate-400">Choose a season to view reports</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Report Header + Actions */}
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className={`text-r-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <span className="text-r-2xl">{currentReport?.icon}</span>{currentReport?.label}
+              </h2>
+              <p className="text-r-sm text-slate-400">{currentReport?.description} / {selectedSeason?.name}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowColumnPicker(!showColumnPicker)}
+                className={`px-3 py-2 rounded-lg text-r-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-white' : 'bg-white border border-slate-200 text-slate-900'} rounded-[14px]`}
+              >
+                \u2699\uFE0F Columns
               </button>
-              {openDropdown === catId && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                  <div className={`absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
-                    {cat.reports.map(report => (
-                      <button key={report.id} onClick={() => { setActiveCategory(catId); setActiveReport(report.id); setOpenDropdown(null); setFilters({ team: 'all', status: 'all', dateFrom: '', dateTo: '', search: '' }); setSortField('') }}
-                        className="w-full text-left px-4 py-3 transition flex items-center gap-3"
-                        style={{ background: activeReport === report.id ? `${accent.primary}15` : 'transparent' }}
-                        onMouseEnter={e => { if (activeReport !== report.id) e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)' }}
-                        onMouseLeave={e => { if (activeReport !== report.id) e.currentTarget.style.background = 'transparent' }}>
-                        <span className="text-xl">{report.icon}</span>
-                        <div className="flex-1"><p className={`font-bold text-[13px] ${tc.text}`}>{report.label}</p><p className={`text-[11px] ${tc.textMuted}`}>{report.description}</p></div>
-                        {activeReport === report.id && <span style={{ color: accent.primary }}>✓</span>}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-          {/* Presets */}
-          <div className="relative ml-auto">
-            <button onClick={() => setOpenDropdown(openDropdown === 'presets' ? null : 'presets')} className={`px-4 py-2 rounded-xl font-bold text-sm transition flex items-center gap-2 ${gc} ${tc.text}`}>
-              <Star className="w-4 h-4" style={{ color: '#facc15' }} /><span>Saved</span>
-              {savedPresets.length > 0 && <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full text-white" style={{ background: accent.primary }}>{savedPresets.length}</span>}
-            </button>
-            {openDropdown === 'presets' && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-                <div className={`absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rpt-as rounded-xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
-                  <div className={`px-4 py-3 border-b ${tc.border}`}>
-                    <p className={`font-bold text-sm ${tc.text}`}>Saved Report Presets</p>
-                  </div>
-                  {savedPresets.length === 0 ? (
-                    <div className="px-4 py-6 text-center"><p className={`text-sm ${tc.textMuted}`}>No saved presets yet</p></div>
-                  ) : (
-                    <div className="max-h-64 overflow-y-auto rpt-nos">
-                      {savedPresets.map(preset => (
-                        <div key={preset.id} className="px-4 py-3 flex items-center justify-between transition"
-                          onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.02)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          <button onClick={() => { loadPreset(preset); setOpenDropdown(null) }} className="flex-1 text-left">
-                            <p className={`font-bold text-[13px] ${tc.text}`}>{preset.name}</p>
-                            <p className={`text-[11px] ${tc.textMuted}`}>{reportCategories[preset.category]?.reports.find(r => r.id === preset.report)?.label}</p>
-                          </button>
-                          <button onClick={() => deletePreset(preset.id)} className="p-1 rounded text-red-400 hover:text-red-500">🗑️</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className={`px-4 py-3 border-t ${tc.border}`}>
-                    <button onClick={() => { setShowPresetModal(true); setOpenDropdown(null) }} className="w-full px-4 py-2 rounded-xl text-white font-bold text-sm" style={{ background: accent.primary }}>+ Save Current View</button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col overflow-hidden p-6">
-        {!selectedSeasonId ? (
-          <div className="flex-1 flex items-center justify-center rpt-ai">
-            <div className="text-center"><span className="text-6xl">📅</span><p className={`font-bold text-lg mt-4 ${tc.text}`}>Select a Season</p><p className={`mt-2 text-sm ${tc.textMuted}`}>Choose a season to view reports</p></div>
-          </div>
-        ) : (
-          <>
-            {/* Report Header + Actions */}
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h2 className={`text-xl font-bold flex items-center gap-2 ${tc.text}`}><span className="text-2xl">{currentReport?.icon}</span>{currentReport?.label}</h2>
-                <p className={`text-sm ${tc.textMuted}`}>{currentReport?.description} • {selectedSeason?.name}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowColumnPicker(!showColumnPicker)} className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition ${gc} ${tc.text}`}>⚙️ Columns</button>
-                <button onClick={() => setShowFilters(!showFilters)} className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition ${gc} ${tc.text}`}>
-                  🔍 Filters {(filters.team !== 'all' || filters.status !== 'all' || filters.search) && <span className="w-2 h-2 rounded-full" style={{ background: accent.primary }} />}
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`px-3 py-2 rounded-lg text-r-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-white' : 'bg-white border border-slate-200 text-slate-900'} rounded-[14px]`}
+              >
+                \uD83D\uDD0D Filters
+                {(filters.team !== 'all' || filters.status !== 'all' || filters.search) && (
+                  <span className="w-2 h-2 rounded-full bg-lynx-sky" />
+                )}
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  disabled={loading || data.length === 0}
+                  className="px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold text-r-sm flex items-center gap-2 disabled:opacity-40 hover:brightness-110 transition"
+                >
+                  \uD83D\uDCE4 Export \u25BC
                 </button>
-                <div className="relative">
-                  <button onClick={() => setShowExportMenu(!showExportMenu)} disabled={loading || data.length === 0} className="px-4 py-2 rounded-xl text-white font-bold text-sm flex items-center gap-2 disabled:opacity-40" style={{ background: accent.primary, boxShadow: `0 2px 12px ${accent.primary}30` }}>📤 Export ▼</button>
-                  {showExportMenu && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                      <div className={`absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden shadow-2xl rpt-as rounded-xl border backdrop-blur-xl ${tc.modalBg} ${tc.border}`}>
-                        {[{ id:'csv', label:'Download CSV', icon:'📊', action:exportCSV },{ id:'pdf', label:'Download PDF', icon:'📄', action:exportPDF },{ id:'print', label:'Print', icon:'🖨️', action:printReport },{ id:'email', label:'Email', icon:'📧', action:emailReport }].map(opt => (
-                          <button key={opt.id} onClick={opt.action} disabled={exporting} className={`w-full text-left px-4 py-2.5 flex items-center gap-2 text-sm transition ${tc.text}`}
-                            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.03)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span>{opt.icon}</span><span>{opt.label}</span></button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+                <ExportMenu
+                  showExportMenu={showExportMenu}
+                  setShowExportMenu={setShowExportMenu}
+                  exporting={exporting}
+                  exportCSV={exportCSV}
+                  exportPDF={exportPDF}
+                  printReport={printReport}
+                  emailReport={emailReport}
+                  isDark={isDark}
+                />
               </div>
-            </div>
-            
-            {/* Stats */}
-            {stats.labels && (
-              <div className="grid grid-cols-4 gap-3 mb-4">
-                {stats.labels.map((label, i) => {
-                  const keys = Object.keys(stats).filter(k => k !== 'labels'); const v = stats[keys[i]]
-                  const isMon = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i])
-                  return (<div key={label} className={`p-4 rpt-au ${gc}`} style={{ animationDelay: `${i*.05}s` }}>
-                    <p className={`text-2xl font-bold ${tc.text}`}>{isMon ? `$${Number(v).toLocaleString()}` : keys[i].includes('Rate') ? `${v}%` : v}</p>
-                    <p className={`text-[10px] font-bold tracking-wider mt-1 ${tc.textMuted}`}>{label}</p>
-                  </div>)
-                })}
-              </div>
-            )}
-            
-            {/* Column Picker */}
-            {showColumnPicker && (
-              <div className={`p-4 mb-4 rpt-as ${gc}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className={`font-bold text-sm ${tc.text}`}>Customize Columns</p>
-                  <button onClick={() => { const dv = {}; allColumns.forEach(c => { dv[c.id] = c.defaultVisible !== false }); setVisibleColumns(dv) }} className="text-sm font-bold" style={{ color: accent.primary }}>Reset to Default</button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {allColumns.map(col => (
-                    <label key={col.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition text-sm font-medium ${!visibleColumns[col.id] ? `${gc} ${tc.textMuted}` : ''}`}
-                      style={visibleColumns[col.id] ? { background: `${accent.primary}15`, color: accent.primary } : undefined}>
-                      <input type="checkbox" checked={visibleColumns[col.id] || false} onChange={e => setVisibleColumns({ ...visibleColumns, [col.id]: e.target.checked })} className="sr-only" />
-                      <span>{visibleColumns[col.id] ? '✓' : '○'}</span><span>{col.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Filters */}
-            {showFilters && (
-              <div className={`p-4 mb-4 rpt-as ${gc}`}>
-                <div className="flex flex-wrap gap-4">
-                  <div className="flex-1 min-w-[200px]">
-                    <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>SEARCH</label>
-                    <input type="text" value={filters.search} onChange={e => setFilters({ ...filters, search: e.target.value })} placeholder="Search..." className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
-                  </div>
-                  {['players','jerseys','schedule'].includes(activeReport) && teams.length > 0 && (
-                    <div className="min-w-[160px]">
-                      <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>TEAM</label>
-                      <select value={filters.team} onChange={e => setFilters({ ...filters, team: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`}>
-                        <option value="all">All Teams</option>
-                        {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                      </select>
-                    </div>
-                  )}
-                  {statusOptions.length > 0 && (
-                    <div className="min-w-[140px]">
-                      <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>STATUS</label>
-                      <select value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`}>
-                        {statusOptions.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                      </select>
-                    </div>
-                  )}
-                  {activeReport === 'financial' && (
-                    <>
-                      <div className="min-w-[140px]">
-                        <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>FROM DATE</label>
-                        <input type="date" value={filters.dateFrom} onChange={e => setFilters({ ...filters, dateFrom: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
-                      </div>
-                      <div className="min-w-[140px]">
-                        <label className={`block text-[10px] font-bold tracking-wider mb-1 ${tc.textMuted}`}>TO DATE</label>
-                        <input type="date" value={filters.dateTo} onChange={e => setFilters({ ...filters, dateTo: e.target.value })} className={`w-full px-3 py-2 text-sm outline-none ${gi}`} />
-                      </div>
-                    </>
-                  )}
-                  <div className="flex items-end">
-                    <button onClick={() => setFilters({ team: 'all', status: 'all', dateFrom: '', dateTo: '', search: '' })} className={`px-4 py-2 rounded-xl text-sm font-bold ${gc} ${tc.textMuted}`}>Clear</button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* DATA TABLE */}
-            <div className={`flex-1 overflow-hidden flex flex-col min-h-0 ${gc}`}>
-              {loading ? (
-                <div className="flex-1 flex items-center justify-center"><div className="text-center">
-                  <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
-                  <p className={`mt-3 text-sm ${tc.textMuted}`}>Loading report...</p>
-                </div></div>
-              ) : data.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center"><div className="text-center">
-                  <span className="text-5xl">📭</span><p className={`font-bold mt-4 ${tc.text}`}>No data found</p><p className={`text-sm mt-1 ${tc.textMuted}`}>Try adjusting your filters or selecting a different season</p>
-                </div></div>
-              ) : (
-                <>
-                  <div className="flex-1 overflow-auto rpt-nos">
-                    <table className="w-full">
-                      <thead className={`sticky top-0 backdrop-blur-sm ${tc.cardBg}`}>
-                        <tr>
-                          {columns.map(col => (
-                            <th key={col.id} onClick={() => col.sortable && handleSort(col.id)}
-                              className={`px-4 py-3 text-left text-[10px] font-bold tracking-wider whitespace-nowrap ${col.sortable ? 'cursor-pointer' : ''} ${tc.textMuted}`}
-                              onMouseEnter={e => { if (col.sortable) e.currentTarget.style.color = isDark ? 'rgba(255,255,255,.7)' : 'rgba(0,0,0,.7)' }}
-                              onMouseLeave={e => { if (col.sortable) e.currentTarget.style.color = '' }}>
-                              {col.label}{col.sortable && sortField === col.id && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sortedData.map((row, i) => (
-                          <tr key={row.id || i} className={`transition ${i % 2 === 1 ? tc.zebraRow : ''}`}
-                            style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.04)' }}
-                            onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.01)'}
-                            onMouseLeave={e => e.currentTarget.style.background = ''}>
-                            {columns.map(col => (
-                              <td key={col.id} className={`px-4 py-3 text-sm ${tc.text}`}>
-                                {col.id === 'team_name' && row.team_color ? (
-                                  <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: row.team_color }} />{row[col.id]}</span>
-                                ) : ['payment_status','status','reg_status','roster_status','bg_check_status','display_type'].includes(col.id) ? (
-                                  <span className="px-2.5 py-1 rounded-full text-[11px] font-bold" style={{
-                                    background: ['Paid','active','approved','Ready','cleared','Active','Game'].includes(row[col.id]) ? (isDark ? 'rgba(16,185,129,.15)' : 'rgba(16,185,129,.1)') :
-                                      ['Unpaid','denied','Need Players','failed'].includes(row[col.id]) ? (isDark ? 'rgba(239,68,68,.15)' : 'rgba(239,68,68,.1)') :
-                                      (isDark ? 'rgba(245,158,11,.15)' : 'rgba(245,158,11,.1)'),
-                                    color: ['Paid','active','approved','Ready','cleared','Active','Game'].includes(row[col.id]) ? '#10b981' :
-                                      ['Unpaid','denied','Need Players','failed'].includes(row[col.id]) ? '#ef4444' : '#f59e0b'
-                                  }}>{row[col.id]}</span>
-                                ) : col.id === 'roster_fill' ? (
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-16 h-2 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)' }}>
-                                      <div className="h-full rounded-full" style={{ width: `${Math.min(row[col.id], 100)}%`, background: row[col.id] >= 80 ? '#10b981' : row[col.id] >= 50 ? '#f59e0b' : '#ef4444' }} />
-                                    </div>
-                                    <span>{row[col.id]}%</span>
-                                  </div>
-                                ) : col.id === 'value' && row.format ? (
-                                  formatValue(row[col.id], row.format)
-                                ) : (
-                                  formatValue(row[col.id], col.format)
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {/* Footer */}
-                  <div className={`px-4 py-3 flex items-center justify-between flex-shrink-0 border-t ${tc.border} ${tc.cardBgAlt}`}>
-                    <p className={`text-sm ${tc.textMuted}`}>Showing {sortedData.length} records • {columns.length} columns</p>
-                    <p className={`text-xs ${tc.textMuted}`}>{organization?.name} • {selectedSeason?.name}</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-      
-      {/* Save Preset Modal */}
-      {showPresetModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 rpt-ai" style={{ background: 'rgba(0,0,0,.6)', backdropFilter: 'blur(8px)' }} onClick={() => { setShowPresetModal(false); setPresetName('') }}>
-          <div className={`w-full max-w-md p-6 rpt-as rounded-xl border ${tc.modalBg} ${tc.border}`} style={{ backdropFilter: 'blur(24px)' }} onClick={e => e.stopPropagation()}>
-            <h3 className={`text-lg font-bold mb-2 ${tc.text}`}>Save Report Preset</h3>
-            <p className={`text-sm mb-4 ${tc.textMuted}`}>Save your current view (report type, visible columns, filters) as a preset for quick access later.</p>
-            <input type="text" value={presetName} onChange={e => setPresetName(e.target.value)} placeholder="Preset name (e.g., 'Contact List for Coaches')"
-              className={`w-full px-4 py-3 mb-4 outline-none text-sm ${gi}`} autoFocus />
-            <div className="flex justify-end gap-3">
-              <button onClick={() => { setShowPresetModal(false); setPresetName('') }} className={`px-4 py-2 rounded-xl text-sm font-bold ${gc} ${tc.text}`}>Cancel</button>
-              <button onClick={savePreset} disabled={!presetName.trim()} className="px-4 py-2 rounded-xl text-white font-bold text-sm disabled:opacity-50" style={{ background: accent.primary }}>Save Preset</button>
             </div>
           </div>
-        </div>
+
+          {/* Stats Row */}
+          {stats.labels && <InnerStatRow stats={buildStatItems()} />}
+
+          {/* Column Picker */}
+          {showColumnPicker && (
+            <ColumnPicker
+              allColumns={allColumns}
+              visibleColumns={visibleColumns}
+              setVisibleColumns={setVisibleColumns}
+              isDark={isDark}
+            />
+          )}
+
+          {/* Filters */}
+          {showFilters && (
+            <FilterBar
+              filters={filters}
+              setFilters={setFilters}
+              activeReport={activeReport}
+              teams={teams}
+              statusOptions={statusOptions}
+              isDark={isDark}
+            />
+          )}
+
+          {/* Data Table */}
+          <ReportDataTable
+            loading={loading}
+            data={data}
+            sortedData={sortedData}
+            columns={columns}
+            sortField={sortField}
+            sortDir={sortDir}
+            handleSort={handleSort}
+            formatValue={formatValue}
+            isDark={isDark}
+            organization={organization}
+            selectedSeason={selectedSeason}
+          />
+        </>
       )}
-    </div>
+
+      {/* Save Preset Modal */}
+      <SavePresetModal
+        showPresetModal={showPresetModal}
+        setShowPresetModal={setShowPresetModal}
+        presetName={presetName}
+        setPresetName={setPresetName}
+        savePreset={savePreset}
+        isDark={isDark}
+      />
+    </PageShell>
   )
 }
 
