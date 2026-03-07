@@ -16,7 +16,8 @@ import { SkeletonPaymentsPage } from '../../components/ui'
 import PaymentsStatRow from './PaymentsStatRow'
 import { PlayerPaymentCard, FamilyPaymentCard } from './PaymentCards'
 import { MarkPaidModal, DeletePaymentModal, SendReminderModal, BlastReminderModal, AddFeeModal } from './PaymentsModals'
-import DashboardContainer from '../../components/layout/DashboardContainer'
+import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // ============================================
 // GENERATE FEES FOR EXISTING PLAYERS (backfill) — exported utility
@@ -313,34 +314,34 @@ export function PaymentsPage({ showToast }) {
 
   // ------ Main render ------
   return (
-    <DashboardContainer className="space-y-5">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Payments</h1>
-          <p className={`text-base mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Track and manage payment status · {selectedSeason.name}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <PageShell
+      breadcrumb="Payments"
+      title="Payments"
+      subtitle={`Track and manage payment status · ${selectedSeason.name}`}
+      actions={
+        <>
           <button onClick={() => setShowBlastModal(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/15' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold border transition ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/15' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
             <Bell className="w-4 h-4" /> Blast Overdue
           </button>
           <button onClick={handleBackfillFees} disabled={backfillLoading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'} ${backfillLoading ? 'opacity-50' : ''}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'} ${backfillLoading ? 'opacity-50' : ''}`}>
             {backfillLoading ? 'Generating...' : 'Backfill Fees'}
           </button>
           <button onClick={() => exportToCSV(payments, 'payments', csvColumns)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'}`}>
             <Download className="w-4 h-4" /> Export
           </button>
           <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-base bg-lynx-sky text-lynx-navy font-bold hover:brightness-110 transition">
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-lynx-navy text-white font-bold hover:brightness-110 transition">
             <Plus className="w-4 h-4" /> Add Fee
           </button>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <div className="space-y-5">
+      {/* Season filter */}
+      <SeasonFilterBar />
 
       {/* Stat row */}
       <PaymentsStatRow
@@ -406,7 +407,7 @@ export function PaymentsPage({ showToast }) {
           </div>
           <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No payments found</h3>
           <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Fees are automatically generated when registrations are approved.</p>
-          <button onClick={handleBackfillFees} className="mt-4 bg-lynx-sky text-lynx-navy font-bold px-6 py-2 rounded-lg hover:brightness-110 transition">
+          <button onClick={handleBackfillFees} className="mt-4 bg-lynx-navy text-white font-bold px-6 py-2 rounded-lg hover:brightness-110 transition">
             Generate Fees for Existing Players
           </button>
         </div>
@@ -446,6 +447,7 @@ export function PaymentsPage({ showToast }) {
       {showReminderModal && <SendReminderModal target={showReminderModal} onSend={handleSendReminder} onClose={() => setShowReminderModal(null)} />}
       {showBlastModal && <BlastReminderModal families={familyList} onSend={handleSendBlast} onClose={() => setShowBlastModal(false)} />}
       {showAddModal && <AddFeeModal players={players} onAdd={handleAddPayment} onClose={() => setShowAddModal(false)} />}
-    </DashboardContainer>
+      </div>
+    </PageShell>
   )
 }
