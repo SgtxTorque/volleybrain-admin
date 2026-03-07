@@ -258,11 +258,11 @@ function SetupSectionContent({
               <p className={`text-sm ${tc.textMuted} mb-2`}>Share this link for parents to register:</p>
               <div className="flex gap-2">
                 <code className={`flex-1 px-3 py-2 rounded-lg text-sm ${tc.input}`}>
-                  volleybrain.com/register/{organization?.slug || 'your-org'}
+                  lynxsports.com/register/{organization?.slug || 'your-org'}
                 </code>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(`https://volleybrain.com/register/${organization?.slug}`)
+                    navigator.clipboard.writeText(`https://lynxsports.com/register/${organization?.slug}`)
                     showToast('Link copied!', 'success')
                   }}
                   className="px-4 py-2 rounded-lg text-white font-medium"
