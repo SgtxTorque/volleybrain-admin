@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
-import { useTheme } from '../../contexts/ThemeContext'
+import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
-import PageShell from '../../components/pages/PageShell'
-import InnerStatRow from '../../components/pages/InnerStatRow'
+import DashboardContainer from '../../components/layout/DashboardContainer'
 
 // ============================================
 // TEAM STANDINGS PAGE
@@ -14,31 +13,28 @@ import InnerStatRow from '../../components/pages/InnerStatRow'
 // ============================================
 
 export default function TeamStandingsPage() {
+  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const { user, profile } = useAuth()
   const { selectedSeason } = useSeason()
-
+  
   const [loading, setLoading] = useState(true)
   const [standings, setStandings] = useState(null)
   const [recentGames, setRecentGames] = useState([])
   const [streakInfo, setStreakInfo] = useState({ type: null, count: 0 })
-
+  
   // Team selection (like GamePrepPage)
   const [teams, setTeams] = useState([])
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [showTeamDropdown, setShowTeamDropdown] = useState(false)
-
-  const cardCls = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-  const textPrimary = isDark ? 'text-white' : 'text-slate-900'
-  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
-
+  
   // Load teams when season changes
   useEffect(() => {
     if (selectedSeason?.id) {
       loadTeams()
     }
   }, [selectedSeason?.id])
-
+  
   // Load standings when team changes
   useEffect(() => {
     if (selectedTeam?.id && selectedSeason?.id) {
@@ -46,7 +42,7 @@ export default function TeamStandingsPage() {
       loadRecentGames()
     }
   }, [selectedTeam?.id, selectedSeason?.id])
-
+  
   async function loadTeams() {
     try {
       const { data } = await supabase
@@ -54,7 +50,7 @@ export default function TeamStandingsPage() {
         .select('id, name, color')
         .eq('season_id', selectedSeason.id)
         .order('name')
-
+      
       setTeams(data || [])
       if (data?.length > 0) {
         setSelectedTeam(data[0])
@@ -66,7 +62,7 @@ export default function TeamStandingsPage() {
       setLoading(false)
     }
   }
-
+  
   async function loadStandings() {
     setLoading(true)
     try {
@@ -77,7 +73,7 @@ export default function TeamStandingsPage() {
         .eq('team_id', selectedTeam.id)
         .eq('season_id', selectedSeason.id)
         .single()
-
+      
       if (standingsData) {
         setStandings(standingsData)
       } else {
@@ -89,14 +85,14 @@ export default function TeamStandingsPage() {
           .eq('season_id', selectedSeason.id)
           .eq('event_type', 'game')
           .eq('game_status', 'completed')
-
+        
         if (games && games.length > 0) {
           const wins = games.filter(g => g.game_result === 'win').length
           const losses = games.filter(g => g.game_result === 'loss').length
           const ties = games.filter(g => g.game_result === 'tie').length
           const totalPoints = games.reduce((sum, g) => sum + (g.our_score || 0), 0)
           const opponentPoints = games.reduce((sum, g) => sum + (g.opponent_score || 0), 0)
-
+          
           setStandings({
             wins,
             losses,
@@ -125,7 +121,7 @@ export default function TeamStandingsPage() {
     }
     setLoading(false)
   }
-
+  
   async function loadRecentGames() {
     try {
       const { data: games } = await supabase
@@ -137,9 +133,9 @@ export default function TeamStandingsPage() {
         .eq('game_status', 'completed')
         .order('event_date', { ascending: false })
         .limit(10)
-
+      
       setRecentGames(games || [])
-
+      
       // Calculate streak
       if (games && games.length > 0) {
         const firstResult = games[0].game_result
@@ -157,179 +153,215 @@ export default function TeamStandingsPage() {
       console.error('Error loading recent games:', err)
     }
   }
-
+  
   function formatDate(dateStr) {
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
-
-  // Team selector for PageShell actions
-  const teamSelectorAction = teams.length > 1 ? (
-    <div className="relative">
-      <button
-        onClick={() => setShowTeamDropdown(!showTeamDropdown)}
-        className={`flex items-center gap-3 px-4 py-2 rounded-[14px] ${cardCls} hover:border-[var(--accent-primary)] transition`}
-      >
-        <span
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: selectedTeam?.color || '#888' }}
-        />
-        <span className={`text-r-sm ${textPrimary}`}>{selectedTeam?.name}</span>
-        <ChevronDown className="w-4 h-4 text-slate-400" />
-      </button>
-
-      {showTeamDropdown && (
-        <div className={`absolute right-0 mt-2 w-56 ${cardCls} rounded-[14px] shadow-2xl z-50 overflow-hidden`}>
-          {teams.map(team => (
-            <button
-              key={team.id}
-              onClick={() => {
-                setSelectedTeam(team)
-                setShowTeamDropdown(false)
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-100'} ${
-                team.id === selectedTeam?.id ? 'bg-[var(--accent-primary)]/20' : ''
-              }`}
-            >
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: team.color || '#888' }}
-              />
-              <span className={`text-r-sm ${textPrimary}`}>{team.name}</span>
-              {team.id === selectedTeam?.id && (
-                <span className="ml-auto text-[var(--accent-primary)]">✓</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  ) : null
-
+  
   if (loading) {
     return (
-      <PageShell title="Team Standings" breadcrumb="Game Day" actions={teamSelectorAction}>
+      <div className={`min-h-screen ${tc.pageBg} p-6`}>
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse space-y-6">
-            <div className={`h-8 rounded w-48 ${altBg}`} />
+            <div className={`h-8 rounded w-48 ${tc.cardBgAlt}`} />
             <div className="grid grid-cols-4 gap-4">
-              {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-[14px] ${altBg}`} />)}
+              {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-xl ${tc.cardBgAlt}`} />)}
             </div>
           </div>
         </div>
-      </PageShell>
+      </div>
     )
   }
-
+  
   const winPct = standings?.win_percentage || 0
   const isWinning = winPct >= 50
-
+  
   // No team selected state
   if (!selectedTeam) {
     return (
-      <PageShell title="Team Standings" breadcrumb="Game Day">
+      <div className={`min-h-screen ${tc.pageBg} p-6`}>
         <div className="max-w-4xl mx-auto">
-          <div className={`${cardCls} rounded-[14px] p-12 text-center`}>
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <Trophy className="w-8 h-8 text-slate-400" />
-            </div>
-            <h2 className={`text-r-xl font-bold ${textPrimary} mt-4`}>No Team Selected</h2>
-            <p className="text-slate-400">Select a team to view standings</p>
+          <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-12 text-center`}>
+            <span className="text-6xl">📊</span>
+            <h2 className={`text-xl font-bold ${tc.text} mt-4`}>No Team Selected</h2>
+            <p className={tc.textMuted}>Select a team to view standings</p>
           </div>
         </div>
-      </PageShell>
+      </div>
     )
   }
-
+  
   return (
-    <PageShell
-      title="Team Standings"
-      breadcrumb="Game Day"
-      subtitle={`${selectedTeam?.name} / ${selectedSeason?.name}`}
-      actions={teamSelectorAction}
-    >
-      <div className="space-y-6">
-        {/* Stat Row */}
-        <InnerStatRow stats={[
-          {
-            icon: '🎯',
-            value: `${winPct.toFixed(1)}%`,
-            label: 'Win %',
-            color: isWinning ? 'text-emerald-500' : 'text-red-500'
-          },
-          {
-            icon: '📈',
-            value: standings?.points_for || 0,
-            label: 'Points For'
-          },
-          {
-            icon: '📉',
-            value: standings?.points_against || 0,
-            label: 'Points Against'
-          },
-          {
-            icon: (standings?.point_differential || 0) >= 0 ? '🔺' : '🔻',
-            value: `${(standings?.point_differential || 0) >= 0 ? '+' : ''}${standings?.point_differential || 0}`,
-            label: 'Point Diff',
-            color: (standings?.point_differential || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'
-          }
-        ]} />
-
+    <div className={`min-h-screen ${tc.pageBg}`}>
+      <DashboardContainer className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div 
+              className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
+              style={{ backgroundColor: selectedTeam?.color || 'var(--accent-primary)' }}
+            >
+              🏆
+            </div>
+            <div>
+              <h1 className={`text-2xl font-bold ${tc.text}`}>Team Standings</h1>
+              <p className={tc.textMuted}>{selectedTeam?.name} • {selectedSeason?.name}</p>
+            </div>
+          </div>
+          
+          {/* Team Selector */}
+          {teams.length > 1 && (
+            <div className="relative">
+              <button
+                onClick={() => setShowTeamDropdown(!showTeamDropdown)}
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl ${tc.cardBg} border ${tc.border} hover:border-[var(--accent-primary)] transition`}
+              >
+                <span 
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: selectedTeam?.color || '#888' }}
+                />
+                <span className={tc.text}>{selectedTeam?.name}</span>
+                <ChevronDown className={`w-4 h-4 ${tc.textMuted}`} />
+              </button>
+              
+              {showTeamDropdown && (
+                <div className={`absolute right-0 mt-2 w-56 ${tc.cardBg} border ${tc.border} rounded-xl shadow-xl z-50 overflow-hidden`}>
+                  {teams.map(team => (
+                    <button
+                      key={team.id}
+                      onClick={() => {
+                        setSelectedTeam(team)
+                        setShowTeamDropdown(false)
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-lynx-cloud'} ${
+                        team.id === selectedTeam?.id ? 'bg-[var(--accent-primary)]/20' : ''
+                      }`}
+                    >
+                      <span 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: team.color || '#888' }}
+                      />
+                      <span className={tc.text}>{team.name}</span>
+                      {team.id === selectedTeam?.id && (
+                        <span className="ml-auto text-[var(--accent-primary)]">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
         {/* Season Record Card */}
-        <div className={`${cardCls} rounded-[14px] overflow-hidden`}>
-          <div
+        <div className={`${tc.cardBg} rounded-xl border ${tc.border} overflow-hidden`}>
+          <div 
             className="p-6"
-            style={{
-              background: `linear-gradient(135deg, ${selectedTeam?.color || 'var(--accent-primary)'}33, transparent)`
+            style={{ 
+              background: `linear-gradient(135deg, ${selectedTeam?.color || 'var(--accent-primary)'}33, transparent)` 
             }}
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className={`text-r-lg font-semibold ${textPrimary}`}>Season Record</h2>
-                <p className="text-slate-400 text-r-sm">{standings?.games_played || 0} games played</p>
+                <h2 className={`text-lg font-semibold ${tc.text}`}>Season Record</h2>
+                <p className={tc.textMuted}>{standings?.games_played || 0} games played</p>
               </div>
               {streakInfo.type && streakInfo.count > 1 && (
-                <div className={`px-4 py-2 rounded-[14px] ${
+                <div className={`px-4 py-2 rounded-xl ${
                   streakInfo.type === 'win' ? 'bg-emerald-500/20 text-emerald-400' :
                   streakInfo.type === 'loss' ? 'bg-red-500/20 text-red-400' :
                   'bg-amber-500/20 text-amber-400'
                 }`}>
-                  <span className="text-r-lg font-bold">
+                  <span className="text-lg font-bold">
                     {streakInfo.count} {streakInfo.type === 'win' ? 'W' : streakInfo.type === 'loss' ? 'L' : 'T'} Streak
                   </span>
                 </div>
               )}
             </div>
-
+            
             {/* Big Record Display */}
             <div className="text-center py-8">
               <div className="flex items-center justify-center gap-4 text-6xl font-black">
                 <span className="text-emerald-400">{standings?.wins || 0}</span>
-                <span className="text-slate-400">-</span>
+                <span className={tc.textMuted}>-</span>
                 <span className="text-red-400">{standings?.losses || 0}</span>
                 {(standings?.ties || 0) > 0 && (
                   <>
-                    <span className="text-slate-400">-</span>
+                    <span className={tc.textMuted}>-</span>
                     <span className="text-amber-400">{standings.ties}</span>
                   </>
                 )}
               </div>
-              <p className="mt-2 text-r-lg text-slate-400">
+              <p className={`mt-2 text-lg ${tc.textMuted}`}>
                 {standings?.wins || 0}W - {standings?.losses || 0}L{(standings?.ties || 0) > 0 ? ` - ${standings.ties}T` : ''}
               </p>
             </div>
           </div>
+          
+          {/* Stats Grid */}
+          <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 p-6 border-t ${tc.border}`}>
+            {/* Win Percentage */}
+            <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-purple-400" />
+                <span className={`text-xs ${tc.textMuted}`}>Win %</span>
+              </div>
+              <p className={`text-2xl font-bold ${isWinning ? 'text-emerald-400' : 'text-red-400'}`}>
+                {winPct.toFixed(1)}%
+              </p>
+            </div>
+            
+            {/* Points For */}
+            <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span className={`text-xs ${tc.textMuted}`}>Points For</span>
+              </div>
+              <p className={`text-2xl font-bold ${tc.text}`}>
+                {standings?.points_for || 0}
+              </p>
+            </div>
+            
+            {/* Points Against */}
+            <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingDown className="w-4 h-4 text-red-400" />
+                <span className={`text-xs ${tc.textMuted}`}>Points Against</span>
+              </div>
+              <p className={`text-2xl font-bold ${tc.text}`}>
+                {standings?.points_against || 0}
+              </p>
+            </div>
+            
+            {/* Point Differential */}
+            <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+              <div className="flex items-center gap-2 mb-2">
+                {(standings?.point_differential || 0) >= 0 ? (
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <TrendingDown className="w-4 h-4 text-red-400" />
+                )}
+                <span className={`text-xs ${tc.textMuted}`}>Point Diff</span>
+              </div>
+              <p className={`text-2xl font-bold ${
+                (standings?.point_differential || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+              }`}>
+                {(standings?.point_differential || 0) >= 0 ? '+' : ''}{standings?.point_differential || 0}
+              </p>
+            </div>
+          </div>
         </div>
-
+        
         {/* Recent Results */}
-        <div className={`${cardCls} rounded-[14px] p-6`}>
-          <h3 className={`text-r-lg font-semibold ${textPrimary} mb-4`}>Recent Results</h3>
-
+        <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6`}>
+          <h3 className={`text-lg font-semibold ${tc.text} mb-4`}>Recent Results</h3>
+          
           {recentGames.length > 0 ? (
             <div className="space-y-3">
               {recentGames.map(game => (
-                <div
+                <div 
                   key={game.id}
-                  className={`p-4 rounded-[14px] border ${
+                  className={`p-4 rounded-xl border ${
                     game.game_result === 'win' ? 'bg-emerald-500/10 border-emerald-500/30' :
                     game.game_result === 'loss' ? 'bg-red-500/10 border-red-500/30' :
                     'bg-amber-500/10 border-amber-500/30'
@@ -338,39 +370,39 @@ export default function TeamStandingsPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       {/* Result indicator */}
-                      <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center text-white font-bold ${
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold ${
                         game.game_result === 'win' ? 'bg-emerald-500' :
                         game.game_result === 'loss' ? 'bg-red-500' :
                         'bg-amber-500'
                       }`}>
                         {game.game_result === 'win' ? 'W' : game.game_result === 'loss' ? 'L' : 'T'}
                       </div>
-
+                      
                       <div>
-                        <p className={`font-semibold text-r-sm ${textPrimary}`}>vs {game.opponent_name || 'TBD'}</p>
-                        <div className="flex items-center gap-2 text-r-xs">
+                        <p className={`font-semibold ${tc.text}`}>vs {game.opponent_name || 'TBD'}</p>
+                        <div className="flex items-center gap-2 text-sm">
                           <Calendar className="w-3 h-3" />
-                          <span className="text-slate-400">{formatDate(game.event_date)}</span>
+                          <span className={tc.textMuted}>{formatDate(game.event_date)}</span>
                           {game.location_type && (
-                            <span className="text-slate-400">
-                              / {game.location_type === 'home' ? 'Home' : 'Away'}
+                            <span className={tc.textMuted}>
+                              • {game.location_type === 'home' ? '🏠 Home' : '✈️ Away'}
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
-
+                    
                     <div className="text-right">
                       {/* Set-based score */}
                       {game.set_scores && game.our_sets_won !== undefined ? (
                         <>
-                          <p className={`text-r-2xl font-bold ${
-                            game.game_result === 'win' ? 'text-emerald-400' :
+                          <p className={`text-2xl font-bold ${
+                            game.game_result === 'win' ? 'text-emerald-400' : 
                             game.game_result === 'loss' ? 'text-red-400' : 'text-amber-400'
                           }`}>
                             {game.our_sets_won} - {game.opponent_sets_won}
                           </p>
-                          <p className="text-r-xs text-slate-400">
+                          <p className={`text-xs ${tc.textMuted}`}>
                             {game.set_scores
                               .filter(s => s && (s.our > 0 || s.their > 0))
                               .map(s => `${s.our}-${s.their}`)
@@ -378,8 +410,8 @@ export default function TeamStandingsPage() {
                           </p>
                         </>
                       ) : (
-                        <p className={`text-r-2xl font-bold ${
-                          game.game_result === 'win' ? 'text-emerald-400' :
+                        <p className={`text-2xl font-bold ${
+                          game.game_result === 'win' ? 'text-emerald-400' : 
                           game.game_result === 'loss' ? 'text-red-400' : 'text-amber-400'
                         }`}>
                           {game.our_score} - {game.opponent_score}
@@ -392,19 +424,17 @@ export default function TeamStandingsPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                <Trophy className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className={`text-r-lg font-semibold ${textPrimary} mt-4`}>No Games Completed Yet</h3>
-              <p className="text-slate-400">Complete some games to see your standings!</p>
+              <span className="text-5xl">📊</span>
+              <h3 className={`text-lg font-semibold ${tc.text} mt-4`}>No Games Completed Yet</h3>
+              <p className={tc.textMuted}>Complete some games to see your standings!</p>
             </div>
           )}
         </div>
-
-        {/* Form Guide (if enough games) */}
+        
+        {/* Monthly Breakdown (if enough games) */}
         {recentGames.length >= 3 && (
-          <div className={`${cardCls} rounded-[14px] p-6`}>
-            <h3 className={`text-r-lg font-semibold ${textPrimary} mb-4`}>Form Guide</h3>
+          <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6`}>
+            <h3 className={`text-lg font-semibold ${tc.text} mb-4`}>Form Guide</h3>
             <div className="flex items-center gap-2">
               {recentGames.slice(0, 5).reverse().map((game, idx) => (
                 <div
@@ -419,13 +449,13 @@ export default function TeamStandingsPage() {
                   {game.game_result === 'win' ? 'W' : game.game_result === 'loss' ? 'L' : 'T'}
                 </div>
               ))}
-              <ChevronRight className="w-5 h-5 text-slate-400" />
-              <span className="text-r-sm text-slate-400">Latest</span>
+              <ChevronRight className={`w-5 h-5 ${tc.textMuted}`} />
+              <span className={`text-sm ${tc.textMuted}`}>Latest →</span>
             </div>
           </div>
         )}
-      </div>
-    </PageShell>
+      </DashboardContainer>
+    </div>
   )
 }
 
@@ -433,20 +463,16 @@ export default function TeamStandingsPage() {
 // STANDINGS WIDGET (for dashboards)
 // ============================================
 export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
-  const { isDark } = useTheme()
+  const tc = useThemeClasses()
   const [standings, setStandings] = useState(null)
   const [loading, setLoading] = useState(true)
-
-  const cardCls = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-  const textPrimary = isDark ? 'text-white' : 'text-slate-900'
-  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
-
+  
   useEffect(() => {
     if (teamId && seasonId) {
       loadStandings()
     }
   }, [teamId, seasonId])
-
+  
   async function loadStandings() {
     try {
       const { data } = await supabase
@@ -455,7 +481,7 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
         .eq('team_id', teamId)
         .eq('season_id', seasonId)
         .single()
-
+      
       if (data) {
         setStandings(data)
       } else {
@@ -467,7 +493,7 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
           .eq('season_id', seasonId)
           .eq('event_type', 'game')
           .eq('game_status', 'completed')
-
+        
         if (games) {
           const wins = games.filter(g => g.game_result === 'win').length
           const losses = games.filter(g => g.game_result === 'loss').length
@@ -480,53 +506,53 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
     }
     setLoading(false)
   }
-
+  
   if (loading) {
     return (
-      <div className={`${cardCls} rounded-[14px] p-6 animate-pulse`}>
-        <div className={`h-6 rounded w-32 mb-4 ${altBg}`} />
-        <div className={`h-12 rounded w-24 ${altBg}`} />
+      <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6 animate-pulse`}>
+        <div className={`h-6 rounded w-32 mb-4 ${tc.cardBgAlt}`} />
+        <div className={`h-12 rounded w-24 ${tc.cardBgAlt}`} />
       </div>
     )
   }
-
+  
   if (!standings || standings.games_played === 0) {
     return (
-      <div className={`${cardCls} rounded-[14px] p-6`}>
-        <h3 className={`font-semibold ${textPrimary} mb-2`}>Season Record</h3>
-        <p className="text-slate-400">No games completed yet</p>
+      <div className={`${tc.cardBg} rounded-xl border ${tc.border} p-6`}>
+        <h3 className={`font-semibold ${tc.text} mb-2`}>📊 Season Record</h3>
+        <p className={tc.textMuted}>No games completed yet</p>
       </div>
     )
   }
-
+  
   return (
-    <div className={`${cardCls} rounded-[14px] overflow-hidden`}>
-      <div
+    <div className={`${tc.cardBg} rounded-xl border ${tc.border} overflow-hidden`}>
+      <div 
         className="p-4"
         style={{ backgroundColor: `${teamColor}22` }}
       >
-        <h3 className={`font-semibold ${textPrimary}`}>Season Record</h3>
-        <p className="text-r-xs text-slate-400">{teamName}</p>
+        <h3 className={`font-semibold ${tc.text}`}>📊 Season Record</h3>
+        <p className={`text-xs ${tc.textMuted}`}>{teamName}</p>
       </div>
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="text-center">
-            <p className="text-r-3xl font-black">
+            <p className="text-3xl font-black">
               <span className="text-emerald-400">{standings.wins}</span>
-              <span className="text-slate-400"> - </span>
+              <span className={tc.textMuted}> - </span>
               <span className="text-red-400">{standings.losses}</span>
             </p>
-            <p className="text-r-xs text-slate-400">W - L</p>
+            <p className={`text-xs ${tc.textMuted}`}>W - L</p>
           </div>
-          <div className={`px-3 py-2 rounded-[14px] ${
+          <div className={`px-3 py-2 rounded-xl ${
             (standings.point_differential || 0) >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'
           }`}>
-            <p className={`text-r-lg font-bold ${
+            <p className={`text-lg font-bold ${
               (standings.point_differential || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
             }`}>
               {(standings.point_differential || 0) >= 0 ? '+' : ''}{standings.point_differential || 0}
             </p>
-            <p className="text-r-xs text-slate-400">Point Diff</p>
+            <p className={`text-xs ${tc.textMuted}`}>Point Diff</p>
           </div>
         </div>
       </div>
