@@ -11,6 +11,7 @@ import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
 import { ChevronRight, DollarSign, AlertTriangle, Award } from '../../constants/icons'
+import { OrphanPlayerBanner } from '../parent/ClaimAccountPage'
 import { usePriorityItems } from '../../components/parent/PriorityCardsEngine'
 import { ActionItemsSidebar, QuickRsvpModal } from '../../components/parent/ActionItemsSidebar'
 import ParentChildHero from './ParentChildHero'
@@ -552,6 +553,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // ═══ RENDER — WIDGET GRID ═══
   return (
     <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+
+      {/* ── Orphan Player Banner — claim unclaimed children ── */}
+      <OrphanPlayerBanner onNavigate={onNavigate} />
 
       {/* ── Season + Child Switcher — fixed UI above grid ── */}
       {(parentSeasons.length > 1 || registrationData.length > 1) && (

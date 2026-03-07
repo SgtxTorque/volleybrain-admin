@@ -64,6 +64,7 @@ export const ROUTES = {
   'invite': '/invite',
   'my-stuff': '/my-stuff',
   'parent-register': '/parent/register',
+  'claim-account': '/claim-account',
 }
 
 // Reverse map: URL path → old page ID (for matching active nav items)
@@ -159,4 +160,5 @@ export const PAGE_TITLES = {
   '/invite': 'Invite Friends',
   '/my-stuff': 'My Stuff',
   '/parent/register': 'Registration Hub',
+  '/claim-account': 'Claim Account',
 }
