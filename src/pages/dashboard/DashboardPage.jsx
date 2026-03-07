@@ -623,7 +623,7 @@ function RecentActivity({ tasks, onNavigate }) {
   const { isDark } = useTheme()
   return (
     <DashCard isDark={isDark}>
-      <CardHeader isDark={isDark} title="Recent Activity" color="purple" icon={Clock} action="View All" onAction={() => onNavigate('registrations')} />
+      <CardHeader isDark={isDark} title="Recent Activity" color="purple" icon={Clock} />
       
       <div className="p-5">
         {/* Filter Dropdown */}
@@ -658,17 +658,17 @@ function RecentActivity({ tasks, onNavigate }) {
                   {task.badge}
                 </span>
               )}
-              <ChevronRight className="w-4 h-4 text-slate-300" />
+              <ChevronRight className="w-4 h-4 text-slate-400" />
             </div>
           ))}
         </div>
         
         {/* Manage Link */}
-        <button 
+        <button
           onClick={() => onNavigate('registrations')}
           className="mt-4 w-full px-4 py-2 bg-gradient-to-r from-lynx-sky to-lynx-deep text-white text-r-xl font-medium rounded-lg hover:brightness-110 transition flex items-center justify-center gap-1"
         >
-          Manage All Tasks
+          View Registrations
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -747,7 +747,7 @@ function UpcomingEvents({ events, onNavigate }) {
         
         {Object.keys(groupedEvents).length === 0 && (
           <div className="text-center py-8">
-            <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <Calendar className="w-12 h-12 text-slate-400 mx-auto mb-3" />
             <p className={`${isDark ? "text-slate-400" : "text-lynx-slate"}`}>No upcoming events</p>
           </div>
         )}
