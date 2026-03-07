@@ -4,3 +4,5 @@ export { ParentMessagesPage } from './ParentMessagesPage'
 export { InviteFriendsPage } from './InviteFriendsPage'
 export { ParentPaymentsPage } from './ParentPaymentsPage'
 export { MyStuffPage } from './MyStuffPage'
+export { ParentRegistrationHub } from './ParentRegistrationHub'
+

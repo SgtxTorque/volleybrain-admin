@@ -63,6 +63,7 @@ export const ROUTES = {
   'messages': '/messages',
   'invite': '/invite',
   'my-stuff': '/my-stuff',
+  'parent-register': '/parent/register',
 }
 
 // Reverse map: URL path → old page ID (for matching active nav items)
@@ -157,4 +158,5 @@ export const PAGE_TITLES = {
   '/messages': 'Messages',
   '/invite': 'Invite Friends',
   '/my-stuff': 'My Stuff',
+  '/parent/register': 'Registration Hub',
 }

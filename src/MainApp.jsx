@@ -48,7 +48,7 @@ import { DashboardPage } from './pages/dashboard'
 import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
 
 // Parent Portal Pages
-import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage } from './pages/parent'
+import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage, ParentRegistrationHub } from './pages/parent'
 
 // Public Pages
 import { OrgDirectoryPage } from './pages/public'
@@ -781,6 +781,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/messages" element={<ParentMessagesPage roleContext={roleContext} showToast={showToast} />} />
       <Route path="/invite" element={<InviteFriendsPage roleContext={roleContext} showToast={showToast} />} />
       <Route path="/my-stuff" element={<MyStuffPage roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/parent/register" element={<ParentRegistrationHub roleContext={roleContext} showToast={showToast} />} />
 
       {/* Roster Manager */}
       <Route path="/roster" element={<RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
@@ -1032,6 +1033,7 @@ function MainApp() {
     { id: 'payments', label: 'Payments', type: 'single', icon: 'payments' },
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
       { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
+      { id: 'parent-register', label: 'Registration', icon: 'clipboard' },
       { id: 'season-archives', label: 'Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Directory', icon: 'building' },
     ]},
