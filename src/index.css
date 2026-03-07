@@ -531,3 +531,42 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ================================================================
+   Chat utility classes (used by ChatThread, ChatPickers, MessageBubble)
+   ================================================================ */
+@keyframes chatFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes chatScaleIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes chatSlideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes chatMsgIn { from { opacity: 0; transform: translateY(6px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.ch-au { animation: chatFadeUp 0.4s ease-out both; }
+.ch-ai { animation: fadeIn 0.3s ease-out both; }
+.ch-as { animation: chatScaleIn 0.25s ease-out both; }
+.ch-sl { animation: chatSlideIn 0.3s ease-out both; }
+.ch-msg { animation: chatMsgIn 0.3s ease-out both; }
+
+.ch-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ch-glass-solid {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ch-nos::-webkit-scrollbar { display: none; }
+.ch-nos { -ms-overflow-style: none; scrollbar-width: none; }
+
+.ch-light .ch-glass {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+.ch-light .ch-glass-solid {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(0, 0, 0, 0.06);
+}
