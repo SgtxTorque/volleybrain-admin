@@ -87,7 +87,7 @@
 - No critical color token violations
 
 ### Branding
-- 2 "volleybrain.com" references found in SetupSectionContent.jsx → FIXED to lynxsports.com
+- 2 "volleybrain.com" references found in SetupSectionContent.jsx → FIXED to thelynxapp.com
 - No other user-facing VolleyBrain text in active code
 
 ### Card Styling
