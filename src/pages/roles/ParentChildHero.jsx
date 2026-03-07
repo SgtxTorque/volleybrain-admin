@@ -84,7 +84,7 @@ export default function ParentChildHero({
 
   // Multiple children — horizontal scroll
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+    <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide h-full">
       {children.map((child, idx) => (
         <PlayerCard key={child.id} child={child}
           isActive={idx === activeChildIdx}

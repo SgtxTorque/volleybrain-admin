@@ -396,11 +396,16 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             </div>
             <div className={`px-3 pb-2 overflow-y-auto ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`} style={{ maxHeight: 'calc(100% - 32px)' }}>
               {childAchievements.length > 0 ? (
-                <div className="grid grid-cols-2 gap-1 pt-2">
-                  {childAchievements.slice(0, 4).map(ach => {
+                <div className="grid grid-cols-3 gap-1 pt-2">
+                  {childAchievements.slice(0, 6).map(ach => {
                     const badge = ach.achievements
-                    return (<div key={ach.id} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}><span className="text-sm">{badge?.icon || '🏅'}</span><span className="text-r-xs font-bold truncate">{badge?.name || 'Badge'}</span></div>)
+                    return (<div key={ach.id} className={`flex flex-col items-center gap-0.5 py-1.5 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}><span className="w-8 h-8 flex items-center justify-center text-lg">{badge?.icon || '🏅'}</span><span className={`text-[9px] font-bold truncate w-full text-center px-0.5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{badge?.name || 'Badge'}</span></div>)
                   })}
+                  {childAchievements.length > 6 && (
+                    <div className={`flex flex-col items-center justify-center py-1.5 rounded-lg ${isDark ? 'bg-white/[0.04] text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                      <span className="text-r-xs font-bold">+{childAchievements.length - 6}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-3 text-center">

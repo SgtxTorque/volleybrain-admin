@@ -42,7 +42,7 @@ export default function NextEventCard({ event, onNavigate, onRsvp }) {
       className="rounded-2xl overflow-hidden h-full"
       style={{ background: 'linear-gradient(135deg, #0D1B3E 0%, #1A3560 60%, #0D1B3E 100%)' }}
     >
-      <div className="relative p-5 h-full flex flex-col">
+      <div className="relative p-4 h-full flex flex-col">
         {/* Volleyball decoration */}
         <div className="absolute top-3 right-4 text-3xl opacity-[0.08]">🏐</div>
 

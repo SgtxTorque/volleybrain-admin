@@ -70,7 +70,7 @@ export default function ChatPreviewCard({ selectedTeam, onNavigate }) {
     : 'bg-white border border-brand-border'
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-3 h-full flex flex-col`}>
+    <div className={`${cardBg} rounded-2xl shadow-sm p-3 h-full flex flex-col overflow-hidden`}>
       {/* Header */}
       <div className="flex items-center gap-1.5 mb-2">
         <MessageCircle className={`w-3.5 h-3.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />

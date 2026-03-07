@@ -57,7 +57,7 @@ export default function CalendarStripCard({ events = [], onNavigate, onEventSele
   const monthLabel = weekDays[3]?.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 
   return (
-    <div className={`${cardBg} rounded-2xl shadow-sm p-3 h-full flex flex-col`}>
+    <div className={`${cardBg} rounded-2xl shadow-sm p-4 h-full flex flex-col overflow-hidden`}>
       {/* Header — compact for narrow card */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
