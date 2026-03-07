@@ -19,7 +19,8 @@ import RegistrationsTable from './RegistrationsTable'
 import RegistrationAnalytics from './RegistrationAnalytics'
 import PlayerDetailModal from './PlayerDetailModal'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
-import DashboardContainer from '../../components/layout/DashboardContainer'
+import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // Re-export for any legacy imports
 export { calculateAge, ClickablePlayerName } from './PlayerDetailModal'
@@ -345,19 +346,17 @@ export function RegistrationsPage({ showToast }) {
   // ========== RENDER ==========
 
   return (
-    <DashboardContainer className="space-y-5">
-      {/* Page Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>Registrations</h1>
-          <p className="text-slate-400 text-base mt-0.5">{selectedSeason.name}</p>
-        </div>
-        <div className="flex gap-3">
+    <PageShell
+      breadcrumb="Registrations"
+      title="Registrations"
+      subtitle={selectedSeason.name}
+      actions={
+        <>
           {/* View Toggle */}
           <div className={`flex rounded-xl p-1 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
             <button
               onClick={() => setViewMode('table')}
-              className={`px-4 py-2 rounded-lg text-base font-bold transition flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
                 viewMode === 'table' ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400 hover:text-slate-300'
               }`}
             >
@@ -365,7 +364,7 @@ export function RegistrationsPage({ showToast }) {
             </button>
             <button
               onClick={() => setViewMode('analytics')}
-              className={`px-4 py-2 rounded-lg text-base font-bold transition flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
                 viewMode === 'analytics' ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400 hover:text-slate-300'
               }`}
             >
@@ -377,7 +376,7 @@ export function RegistrationsPage({ showToast }) {
             <button
               onClick={bulkApproveAllPending}
               disabled={bulkProcessing}
-              className="bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 flex items-center gap-2 font-bold text-base disabled:opacity-50"
+              className="bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 flex items-center gap-2 font-bold text-sm disabled:opacity-50"
             >
               <Check className="w-4 h-4" /> Approve All ({statusCounts.pending})
             </button>
@@ -385,14 +384,18 @@ export function RegistrationsPage({ showToast }) {
 
           <button
             onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-base ${
+            className={`px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm ${
               isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06] hover:bg-white/[0.08]' : 'bg-white text-slate-500 border border-slate-200 hover:border-lynx-sky hover:text-lynx-sky'
             }`}
           >
             <FileDown className="w-4 h-4" /> Export CSV
           </button>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <div className="space-y-5">
+      {/* Season filter */}
+      <SeasonFilterBar />
 
       {/* Stat Row */}
       <RegistrationsStatRow
@@ -470,6 +473,7 @@ export function RegistrationsPage({ showToast }) {
           processing={bulkProcessing}
         />
       )}
-    </DashboardContainer>
+      </div>
+    </PageShell>
   )
 }
