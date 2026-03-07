@@ -7,8 +7,8 @@ import {
   Users, User, Edit, Shirt, Clock, Package, CheckCircle2, 
   AlertTriangle, Sparkles, UserPlus, HelpCircle, BarChart3, Check
 } from '../../constants/icons'
-import DashboardContainer from '../../components/layout/DashboardContainer'
-import { StatGrid } from '../../components/layout/DashboardGrids'
+import PageShell from '../../components/pages/PageShell'
+import InnerStatRow from '../../components/pages/InnerStatRow'
 
 // Standard jersey sizes
 const JERSEY_SIZES = [
@@ -406,15 +406,11 @@ export function JerseysPage({ showToast }) {
   }
 
   return (
-    <DashboardContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className={`text-3xl font-bold ${tc.text}`}>Jersey Management</h1>
-          <p className={tc.textSecondary}>
-            {selectedTeam ? selectedTeam.name : 'All Teams'} • {selectedSeason.name}
-          </p>
-        </div>
+    <PageShell
+      breadcrumb="Jersey Management"
+      title="Jersey Management"
+      subtitle={`${selectedTeam ? selectedTeam.name : 'All Teams'} · ${selectedSeason.name}`}
+      actions={
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={() => setShowOrderHistory(true)}
@@ -453,8 +449,9 @@ export function JerseysPage({ showToast }) {
             </button>
           )}
         </div>
-      </div>
-
+      }
+    >
+      <div className="space-y-6">
       {/* Team Filter */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         <button
@@ -486,16 +483,16 @@ export function JerseysPage({ showToast }) {
 
       {/* Unrostered Alert */}
       {unrosteredCount > 0 && (
-        <div className={`${isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'} border-2 rounded-xl p-5`}>
+        <div className="bg-amber-50/80 border border-amber-200 rounded-[14px] p-5">
           <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
-              <Users className="w-6 h-6 text-blue-500" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-100">
+              <Users className="w-6 h-6 text-amber-600" />
             </div>
             <div className="flex-1">
-              <h3 className={`font-bold text-lg ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
+              <h3 className="font-bold text-lg text-amber-800">
                 {unrosteredCount} Approved Registration{unrosteredCount !== 1 ? 's' : ''} Not Yet Rostered
               </h3>
-              <p className={`mt-1 ${isDark ? 'text-blue-300/80' : 'text-blue-600'}`}>
+              <p className="mt-1 text-amber-700">
                 Go to <strong>Teams & Rosters</strong> to add them to teams before managing jerseys.
               </p>
             </div>
@@ -504,12 +501,12 @@ export function JerseysPage({ showToast }) {
       )}
 
       {/* Stats */}
-      <StatGrid>
-        <StatCard icon="users" value={stats.total} label="Total Rostered" onClick={() => {}} tc={tc} isDark={isDark} />
-        <StatCard icon="help-circle" value={stats.needsJersey} label="Needs Jersey" color={stats.needsJersey > 0 ? 'red' : null} onClick={() => setActiveTab('needs')} tc={tc} isDark={isDark} />
-        <StatCard icon="package" value={stats.needsOrder} label="Ready to Order" color={stats.needsOrder > 0 ? 'amber' : null} onClick={() => setActiveTab('assigned')} tc={tc} isDark={isDark} />
-        <StatCard icon="check" value={stats.ordered} label="Ordered" color="emerald" onClick={() => setActiveTab('ordered')} tc={tc} isDark={isDark} />
-      </StatGrid>
+      <InnerStatRow stats={[
+        { icon: '👥', value: stats.total, label: 'Total Rostered', color: 'text-slate-900' },
+        { icon: '❓', value: stats.needsJersey, label: 'Needs Jersey', color: stats.needsJersey > 0 ? 'text-red-600' : 'text-slate-900' },
+        { icon: '📦', value: stats.needsOrder, label: 'Ready to Order', color: stats.needsOrder > 0 ? 'text-amber-600' : 'text-slate-900' },
+        { icon: '✅', value: stats.ordered, label: 'Ordered', color: 'text-emerald-600' },
+      ]} />
 
       {/* Tabs */}
       <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
@@ -558,6 +555,7 @@ export function JerseysPage({ showToast }) {
               onAssign={(player) => setAssigningPlayer(player)}
               onAutoAssign={handleAutoAssign}
               autoAssigning={autoAssigning}
+              showToast={showToast}
               tc={tc}
               isDark={isDark}
             />
@@ -652,7 +650,8 @@ export function JerseysPage({ showToast }) {
           isDark={isDark}
         />
       )}
-    </DashboardContainer>
+      </div>
+    </PageShell>
   )
 }
 
@@ -700,7 +699,7 @@ function StatCard({ icon, value, label, color, onClick, tc, isDark }) {
 // ============================================
 // NEEDS JERSEY LIST
 // ============================================
-function NeedsJerseyList({ players, totalRostered, unrosteredCount, takenNumbers, selectedTeam, onAssign, onAutoAssign, autoAssigning, tc, isDark }) {
+function NeedsJerseyList({ players, totalRostered, unrosteredCount, takenNumbers, selectedTeam, onAssign, onAutoAssign, autoAssigning, showToast, tc, isDark }) {
   if (players.length === 0) {
     if (totalRostered > 0) {
       return (
@@ -779,8 +778,8 @@ function NeedsJerseyList({ players, totalRostered, unrosteredCount, takenNumbers
         </div>
       </div>
 
-      {/* Individual Players */}
-      <div className="space-y-3">
+      {/* Individual Players — 3-col compact cards, same size, red bg for missing info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {players.map(p => {
           const player = p.player
           if (!player) return null
@@ -789,88 +788,79 @@ function NeedsJerseyList({ players, totalRostered, unrosteredCount, takenNumbers
           const teamTaken = new Set(
             players.filter(x => x.team_id === p.team_id && x.jersey_number).map(x => x.jersey_number)
           )
-          const availablePrefs = prefs.filter(n => !teamTaken.has(n))
+          const hasMissing = !player.uniform_size_jersey
 
           return (
             <div
               key={p.id}
-              className={`${tc.cardBgAlt} border ${tc.border} rounded-xl p-4 flex items-center gap-4 transition hover:shadow-md`}
+              className={`rounded-[14px] border p-4 transition hover:shadow-md ${
+                hasMissing ? 'bg-red-50 border-red-200' : 'bg-white border-slate-200'
+              }`}
             >
-              <div className="w-1 h-12 rounded-full" style={{ backgroundColor: p.team?.color || '#888' }} />
-
-              <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{ backgroundColor: `${p.team?.color || '#888'}30`, color: p.team?.color || '#888' }}>
-                {player.photo_url ? (
-                  <img src={player.photo_url} alt="" className="w-11 h-11 rounded-full object-cover" />
-                ) : (
-                  `${player.first_name?.[0]}${player.last_name?.[0]}`
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</h4>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  style={{ backgroundColor: `${p.team?.color || '#888'}30`, color: p.team?.color || '#888' }}>
+                  {player.photo_url ? (
+                    <img src={player.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    `${player.first_name?.[0]}${player.last_name?.[0]}`
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-semibold text-slate-900 text-sm truncate">{player.first_name} {player.last_name}</h4>
                   {!selectedTeam && (
-                    <span className="text-xs px-2 py-0.5 rounded-full" 
-                      style={{ backgroundColor: `${p.team?.color || '#888'}20`, color: p.team?.color || '#888' }}>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-700">
                       {p.team?.name}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 mt-1 flex-wrap">
-                  {player.uniform_size_jersey ? (
-                    <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'} ${tc.textMuted}`}>
-                      {player.uniform_size_jersey}
-                    </span>
-                  ) : (
-                    <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-500 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> No size
-                    </span>
-                  )}
-                  {prefs.length > 0 ? (
-                    <div className="flex items-center gap-1">
-                      <span className={`text-xs ${tc.textMuted}`}>Wants:</span>
-                      {prefs.map((n, i) => (
-                        <span
-                          key={i}
-                          className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                            teamTaken.has(n)
-                              ? 'bg-red-500/20 text-red-500 line-through'
-                              : 'bg-emerald-500/20 text-emerald-500'
-                          }`}
-                        >
-                          #{n}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className={`text-xs ${tc.textMuted} italic`}>No preferences set</span>
-                  )}
-                </div>
+                {hasMissing && (
+                  <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0" title="Missing jersey size">!</span>
+                )}
               </div>
 
-              {availablePrefs.length > 0 && (
-                <div className="hidden md:flex gap-2">
-                  {availablePrefs.slice(0, 3).map(num => (
-                    <button
-                      key={num}
-                      onClick={() => onAssign({ ...p, quickAssign: num })}
-                      className="w-10 h-10 rounded-lg font-bold text-white transition hover:scale-105"
-                      style={{ backgroundColor: p.team?.color || 'var(--accent-primary)' }}
-                      title={`Assign #${num}`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                {player.uniform_size_jersey ? (
+                  <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                    {player.uniform_size_jersey}
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded bg-red-100 text-red-600 font-medium flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> No size
+                  </span>
+                )}
+                {prefs.length > 0 ? (
+                  prefs.map((n, i) => (
+                    <span key={i} className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                      teamTaken.has(n) ? 'bg-red-100 text-red-500 line-through' : 'bg-emerald-100 text-emerald-700'
+                    }`}>#{n}</span>
+                  ))
+                ) : (
+                  <span className="text-xs text-slate-400 italic">No prefs</span>
+                )}
+              </div>
 
-              <button
-                onClick={() => onAssign(p)}
-                className="px-4 py-2 rounded-xl font-medium bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/20 transition"
-              >
-                Assign
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onAssign(p)}
+                  className="flex-1 px-3 py-2 rounded-xl text-sm font-semibold bg-lynx-sky/10 text-lynx-sky hover:bg-lynx-sky/20 transition"
+                >
+                  Assign
+                </button>
+                {hasMissing && (
+                  <button
+                    onClick={() => {
+                      const msg = `Hi, we need ${player.first_name}'s jersey size to place the order. Please update it in the app.`
+                      navigator.clipboard?.writeText(msg)
+                      showToast?.(`Message copied for ${player.first_name}'s parent`, 'success')
+                    }}
+                    className="px-3 py-2 rounded-xl text-sm bg-amber-100 text-amber-700 hover:bg-amber-200 transition"
+                    title="Ask Parent for size"
+                  >
+                    📩
+                  </button>
+                )}
+              </div>
             </div>
           )
         })}
@@ -894,50 +884,42 @@ function PlayerList({ players, selectedTeam, onEdit, emptyIcon, emptyTitle, empt
   }
 
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {players.map(p => {
         const player = p.player
         if (!player) return null
 
         return (
-          <div key={p.id} className={`${tc.cardBgAlt} border ${tc.border} rounded-xl p-4 flex items-center gap-4`}>
-            <div className="w-1 h-12 rounded-full" style={{ backgroundColor: p.team?.color || '#888' }} />
-
-            <div
-              className="w-12 h-12 rounded-lg flex items-center justify-center text-lg font-bold text-white"
-              style={{ backgroundColor: p.team?.color || 'var(--accent-primary)' }}
-            >
-              {p.jersey_number}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h4 className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</h4>
-                {!selectedTeam && (
-                  <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: `${p.team?.color || '#888'}20`, color: p.team?.color || '#888' }}>
-                    {p.team?.name}
-                  </span>
-                )}
+          <div key={p.id} className="bg-white border border-slate-200 rounded-[14px] p-4 transition hover:shadow-md">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0"
+                style={{ backgroundColor: p.team?.color || 'var(--accent-primary)' }}
+              >
+                {p.jersey_number}
               </div>
-              <div className="flex items-center gap-3 mt-1">
-                {player.uniform_size_jersey ? (
-                  <span className={`text-xs px-2 py-0.5 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'} ${tc.textMuted}`}>
-                    {player.uniform_size_jersey}
-                  </span>
-                ) : (
-                  <span className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-500">No size</span>
-                )}
+              <div className="min-w-0 flex-1">
+                <h4 className="font-semibold text-slate-900 text-sm truncate">{player.first_name} {player.last_name}</h4>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {!selectedTeam && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-700">
+                      {p.team?.name}
+                    </span>
+                  )}
+                  {player.uniform_size_jersey ? (
+                    <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">{player.uniform_size_jersey}</span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded bg-red-100 text-red-600 font-medium">No size</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => onEdit(p)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 transition" title="Edit">
+                  <Edit className="w-4 h-4" />
+                </button>
+                {showCheck && <span className="text-emerald-500"><Check className="w-4 h-4" /></span>}
               </div>
             </div>
-            <button
-              onClick={() => onEdit(p)}
-              className={`p-2 rounded-lg ${tc.hoverBg} ${tc.textMuted} transition`}
-              title="Edit"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-            {showCheck && <span className="text-emerald-500"><Check className="w-4 h-4" /></span>}
           </div>
         )
       })}
