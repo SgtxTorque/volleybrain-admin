@@ -27,7 +27,7 @@ export default function SeasonRecordCard({ selectedTeam, onNavigate }) {
           <p className="text-r-2xl font-extrabold text-emerald-500 tabular-nums whitespace-nowrap">{record.wins}</p>
           <p className={`text-[10px] font-bold uppercase tracking-[1px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Wins</p>
         </div>
-        <div className={`text-r-xl font-light ${isDark ? 'text-white/10' : 'text-slate-200'}`}>|</div>
+        <div className={`text-r-xl font-light ${isDark ? 'text-white/10' : 'text-slate-300'}`}>|</div>
         <div className="text-center">
           <p className="text-r-2xl font-extrabold text-red-500 tabular-nums whitespace-nowrap">{record.losses}</p>
           <p className={`text-[10px] font-bold uppercase tracking-[1px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Losses</p>

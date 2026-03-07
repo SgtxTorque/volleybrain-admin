@@ -53,7 +53,7 @@ export default function NextEventCard({ event, onNavigate, onRsvp }) {
             {dateLabel === 'Today' ? 'TODAY' : 'NEXT EVENT'}
           </span>
           {timeLabel && (
-            <span className="text-[10px] font-medium text-white/50">· {timeLabel}</span>
+            <span className="text-[10px] font-medium text-white/60">· {timeLabel}</span>
           )}
         </div>
 
@@ -70,7 +70,7 @@ export default function NextEventCard({ event, onNavigate, onRsvp }) {
         )}
         {venue && (
           <div className="flex items-center gap-1.5 mb-4">
-            <MapPin className="w-3.5 h-3.5 text-white/50" />
+            <MapPin className="w-3.5 h-3.5 text-white/60" />
             <span className="text-sm text-white/60 truncate">{venue}</span>
           </div>
         )}

@@ -64,7 +64,7 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
           </div>
         </div>
 
-        <ChevronRight className="w-4 h-4 text-white/30 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-white/40 flex-shrink-0" />
       </div>
     </button>
   )
@@ -94,7 +94,7 @@ export default function ParentChildHero({
       {onAddChild && (
         <button onClick={onAddChild}
           className={`flex-shrink-0 rounded-[14px] border-2 border-dashed flex flex-col items-center justify-center px-8 transition ${
-            isDark ? 'border-white/10 text-white/30 hover:border-white/20 hover:text-white/50' : 'border-slate-200 text-slate-400 hover:border-lynx-sky hover:text-lynx-sky'
+            isDark ? 'border-white/10 text-white/40 hover:border-white/20 hover:text-white/60' : 'border-slate-200 text-slate-400 hover:border-lynx-sky hover:text-lynx-sky'
           }`}
           style={{ minWidth: 160 }}>
           <Plus className="w-6 h-6 mb-1" />

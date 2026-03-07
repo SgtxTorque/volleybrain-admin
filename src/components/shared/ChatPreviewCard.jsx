@@ -87,7 +87,7 @@ export default function ChatPreviewCard({ selectedTeam, onNavigate }) {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-4 text-center">
-            <MessageCircle className={`w-8 h-8 mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+            <MessageCircle className={`w-8 h-8 mb-2 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
             <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               No messages yet
             </p>
