@@ -19,7 +19,8 @@ import TeamsStatRow from './TeamsStatRow'
 import TeamsTableView from './TeamsTableView'
 import UnrosteredAlert from './UnrosteredAlert'
 import NewTeamModal from './NewTeamModal'
-import DashboardContainer from '../../components/layout/DashboardContainer'
+import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // ============================================
 // TEAMS PAGE
@@ -273,18 +274,20 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     if (seasonLoading) return <SkeletonTeamsPage />
     if (!seasons || seasons.length === 0) {
       return (
-        <DashboardContainer className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center max-w-md">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-              <Calendar className="w-10 h-10 text-slate-400" />
+        <PageShell breadcrumb="Teams & Roster" title="Teams & Roster">
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <div className="text-center max-w-md">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+                <Calendar className="w-10 h-10 text-slate-400" />
+              </div>
+              <h2 className={`text-3xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Create Your First Season</h2>
+              <p className="text-slate-400 mb-6">Before you can create teams, you need to set up a season.</p>
+              <button onClick={() => onNavigate?.('seasons')} className="bg-lynx-sky text-lynx-navy font-bold px-6 py-3 rounded-lg hover:brightness-110 transition">
+                Create First Season
+              </button>
             </div>
-            <h2 className={`text-3xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Create Your First Season</h2>
-            <p className="text-slate-400 mb-6">Before you can create teams, you need to set up a season.</p>
-            <button onClick={() => onNavigate?.('seasons')} className="bg-lynx-sky text-lynx-navy font-bold px-6 py-3 rounded-lg hover:brightness-110 transition">
-              Create First Season
-            </button>
           </div>
-        </DashboardContainer>
+        </PageShell>
       )
     }
     if (seasons.length > 0) {
@@ -305,21 +308,15 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
 
   // ------ Main render ------
   return (
-    <DashboardContainer className="space-y-5">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Teams & Roster
-          </h1>
-          <p className={`text-base mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {selectedSeason.name} · {teams.length} team{teams.length !== 1 ? 's' : ''} · {totalRegistered} player{totalRegistered !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <PageShell
+      breadcrumb="Teams & Roster"
+      title="Teams & Roster"
+      subtitle={`${selectedSeason.name} · ${teams.length} team${teams.length !== 1 ? 's' : ''} · ${totalRegistered} player${totalRegistered !== 1 ? 's' : ''}`}
+      actions={
+        <>
           <button
             onClick={() => exportToCSV(teams, 'teams', csvColumns)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium border transition ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${
               isDark
                 ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky'
                 : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
@@ -329,52 +326,57 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           </button>
           <button
             onClick={() => setShowNewTeamModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-base bg-lynx-sky text-lynx-navy font-bold hover:brightness-110 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-lynx-navy text-white font-bold hover:brightness-110 transition"
           >
             <Plus className="w-4 h-4" /> New Team
           </button>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {/* Season filter */}
+        <SeasonFilterBar />
 
-      {/* Stat row */}
-      <TeamsStatRow
-        teams={teams}
-        unrosteredCount={unrosteredPlayers.length}
-        totalRegistered={totalRegistered}
-      />
-
-      {/* Unrostered alert (progressive disclosure) */}
-      <UnrosteredAlert
-        players={unrosteredPlayers}
-        teams={teams}
-        onAssign={addPlayerToTeam}
-      />
-
-      {/* Main content */}
-      {loading ? (
-        <div className={`text-center py-12 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Loading teams...</div>
-      ) : teams.length === 0 ? (
-        <div className={`rounded-[14px] p-12 text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-          <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-            <Shield className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No teams yet</h3>
-          <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create your first team to start building rosters</p>
-          <button onClick={() => setShowNewTeamModal(true)} className="mt-4 bg-lynx-sky text-lynx-navy font-bold px-6 py-2 rounded-lg hover:brightness-110 transition">
-            Create Team
-          </button>
-        </div>
-      ) : (
-        <TeamsTableView
+        {/* Stat row */}
+        <TeamsStatRow
           teams={teams}
-          search={search}
-          onSearchChange={setSearch}
-          onDeleteTeam={deleteTeam}
-          onNavigateToWall={navigateToTeamWall}
-          unrosteredPlayers={unrosteredPlayers}
-          onAddPlayer={addPlayerToTeam}
+          unrosteredCount={unrosteredPlayers.length}
+          totalRegistered={totalRegistered}
         />
-      )}
+
+        {/* Unrostered alert (progressive disclosure) */}
+        <UnrosteredAlert
+          players={unrosteredPlayers}
+          teams={teams}
+          onAssign={addPlayerToTeam}
+        />
+
+        {/* Main content */}
+        {loading ? (
+          <div className={`text-center py-12 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Loading teams...</div>
+        ) : teams.length === 0 ? (
+          <div className={`rounded-[14px] p-12 text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
+            <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
+              <Shield className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No teams yet</h3>
+            <p className={`text-base mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create your first team to start building rosters</p>
+            <button onClick={() => setShowNewTeamModal(true)} className="mt-4 bg-lynx-navy text-white font-bold px-6 py-2 rounded-lg hover:brightness-110 transition">
+              Create Team
+            </button>
+          </div>
+        ) : (
+          <TeamsTableView
+            teams={teams}
+            search={search}
+            onSearchChange={setSearch}
+            onDeleteTeam={deleteTeam}
+            onNavigateToWall={navigateToTeamWall}
+            unrosteredPlayers={unrosteredPlayers}
+            onAddPlayer={addPlayerToTeam}
+          />
+        )}
+      </div>
 
       {/* Modals */}
       {showNewTeamModal && (
@@ -396,6 +398,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           isOwnChild={false}
         />
       )}
-    </DashboardContainer>
+    </PageShell>
   )
 }

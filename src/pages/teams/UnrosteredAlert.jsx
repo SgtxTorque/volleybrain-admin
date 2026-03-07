@@ -22,8 +22,8 @@ export default function UnrosteredAlert({ players = [], teams = [], onAssign }) 
   })
 
   return (
-    <div className={`rounded-[14px] border-l-[3px] border-l-amber-500 ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
+    <div className={`rounded-[14px] ${
+      isDark ? 'bg-amber-500/8 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
     }`}>
       {/* Header */}
       <button

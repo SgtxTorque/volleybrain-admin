@@ -45,13 +45,18 @@ function AvatarGroup({ players = [], teamColor, max = 5 }) {
 
 function HealthBar({ current, max }) {
   const pct = max > 0 ? Math.round((current / max) * 100) : 0
-  const color = pct >= 75 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-red-500'
+  // Brand gradient: sky-to-green for healthy, amber-to-red for critical
+  const barStyle = pct >= 75
+    ? 'bg-gradient-to-r from-lynx-sky to-emerald-500'
+    : pct >= 40
+      ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+      : 'bg-gradient-to-r from-red-400 to-red-500'
   const textColor = pct >= 75 ? 'text-emerald-500' : pct >= 40 ? 'text-amber-500' : 'text-red-500'
 
   return (
     <div className="flex items-center gap-2 min-w-[100px]">
       <div className="flex-1 h-[6px] rounded-full bg-slate-200 dark:bg-white/[0.08]">
-        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${Math.min(pct, 100)}%` }} />
+        <div className={`h-full rounded-full ${barStyle} transition-all`} style={{ width: `${Math.min(pct, 100)}%` }} />
       </div>
       <span className={`text-sm font-bold tabular-nums ${textColor}`}>{pct}%</span>
     </div>
@@ -167,10 +172,12 @@ export default function TeamsTableView({
 
                   {/* Type */}
                   <td className="px-5 py-3">
-                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${
+                    <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${
                       team.team_type === 'competitive'
                         ? 'bg-lynx-sky/15 text-lynx-sky'
-                        : isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-slate-100 text-slate-500'
+                        : team.team_type === 'travel'
+                          ? 'bg-purple-500/12 text-purple-500'
+                          : isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-emerald-50 text-emerald-600'
                     }`}>
                       {(team.team_type || 'rec').charAt(0).toUpperCase() + (team.team_type || 'rec').slice(1)}
                     </span>
