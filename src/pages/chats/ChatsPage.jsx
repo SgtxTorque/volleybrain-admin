@@ -5,6 +5,7 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Search, X, Plus } from '../../constants/icons'
 import ChatThread from './ChatThread'
+import CoppaConsentModal from '../../components/compliance/CoppaConsentModal'
 
 // ═══════════════════════════════════════════════════════════
 // STYLES
@@ -69,12 +70,27 @@ function ChatsPage({ showToast, activeView, roleContext }) {
   const [filterType, setFilterType] = useState('all')
   const [showNewChat, setShowNewChat] = useState(false)
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
+  const [coppaConsented, setCoppaConsented] = useState(null) // null = loading, true/false
 
   useEffect(() => {
     const handleResize = () => setIsMobileView(window.innerWidth < 768)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // COPPA consent check for parent role
+  useEffect(() => {
+    if (activeView !== 'parent') {
+      setCoppaConsented(true)
+      return
+    }
+    // Check profile for coppa_consent_given
+    if (profile?.coppa_consent_given) {
+      setCoppaConsented(true)
+    } else {
+      setCoppaConsented(false)
+    }
+  }, [activeView, profile])
 
   useEffect(() => {
     if (selectedSeason?.id) loadChats()
@@ -191,6 +207,14 @@ function ChatsPage({ showToast, activeView, roleContext }) {
     if (diff < 86400000) return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
     if (diff < 604800000) return d.toLocaleDateString('en-US', { weekday: 'short' })
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // COPPA GATE — Show consent modal for parent role if not consented
+  // ═══════════════════════════════════════════════════════════
+
+  if (coppaConsented === false) {
+    return <CoppaConsentModal onConsented={() => setCoppaConsented(true)} />
   }
 
   // ═══════════════════════════════════════════════════════════
