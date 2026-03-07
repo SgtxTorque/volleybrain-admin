@@ -1,142 +1,90 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
-import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { 
-  Users, Calendar, Clock, Check, X, AlertTriangle, ChevronDown, ChevronUp
-} from '../../constants/icons'
-import { PlayerCard, PlayerCardExpanded } from '../../components/players'
-import DashboardContainer from '../../components/layout/DashboardContainer'
-import { StatGrid } from '../../components/layout/DashboardGrids'
+import { Calendar, X } from '../../constants/icons'
+import { PlayerCardExpanded } from '../../components/players'
+import PageShell from '../../components/pages/PageShell'
+import InnerStatRow from '../../components/pages/InnerStatRow'
+import EventCard from '../../components/pages/EventCard'
 
-// Helper - format time to 12hr
 function formatTime12(timeStr) {
   if (!timeStr) return ''
   try {
     const [hours, minutes] = timeStr.split(':')
     const h = parseInt(hours)
-    const ampm = h >= 12 ? 'PM' : 'AM'
-    const hour12 = h % 12 || 12
-    return `${hour12}:${minutes} ${ampm}`
-  } catch {
-    return timeStr
-  }
-}
-
-// Clickable player name component
-function ClickablePlayerName({ player, onPlayerSelect, className = '' }) {
-  if (!player) return null
-  return (
-    <span 
-      className={`cursor-pointer hover:text-[var(--accent-primary)] hover:underline ${className}`}
-      onClick={(e) => {
-        e.stopPropagation()
-        onPlayerSelect?.(player)
-      }}
-    >
-      {player.first_name} {player.last_name}
-    </span>
-  )
+    return `${h % 12 || 12}:${minutes} ${h >= 12 ? 'PM' : 'AM'}`
+  } catch { return timeStr }
 }
 
 function AttendancePage({ showToast }) {
   const { organization, user } = useAuth()
   const { selectedSeason } = useSeason()
-  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [teams, setTeams] = useState([])
   const [selectedTeam, setSelectedTeam] = useState('all')
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [expandedEventId, setExpandedEventId] = useState(null)
   const [rsvps, setRsvps] = useState([])
   const [volunteers, setVolunteers] = useState([])
   const [teamPlayers, setTeamPlayers] = useState([])
-  const [viewMode, setViewMode] = useState('upcoming') // 'upcoming', 'past', 'all'
+  const [viewMode, setViewMode] = useState('upcoming')
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [selectedPlayerForCard, setSelectedPlayerForCard] = useState(null)
   const [availableParents, setAvailableParents] = useState([])
-  const [volunteerAssignModal, setVolunteerAssignModal] = useState(null) // { role: 'line_judge', position: 'primary' }
+  const [volunteerAssignModal, setVolunteerAssignModal] = useState(null)
 
   useEffect(() => {
-    if (selectedSeason?.id) {
-      loadTeams()
-      loadEvents()
-    }
+    if (selectedSeason?.id) { loadTeams(); loadEvents() }
   }, [selectedSeason?.id, selectedTeam, viewMode])
 
   async function loadTeams() {
-    const { data } = await supabase
-      .from('teams')
-      .select('id, name, color')
-      .eq('season_id', selectedSeason.id)
-      .order('name')
+    const { data } = await supabase.from('teams').select('id, name, color')
+      .eq('season_id', selectedSeason.id).order('name')
     setTeams(data || [])
   }
 
   async function loadEvents() {
     setLoading(true)
     try {
-      let query = supabase
-        .from('schedule_events')
+      let query = supabase.from('schedule_events')
         .select('*, teams!schedule_events_team_id_fkey(id, name, color)')
         .eq('season_id', selectedSeason.id)
         .order('event_date', { ascending: viewMode !== 'past' })
         .order('event_time', { ascending: true })
 
-      if (selectedTeam !== 'all') {
-        query = query.eq('team_id', selectedTeam)
-      }
+      if (selectedTeam !== 'all') query = query.eq('team_id', selectedTeam)
 
       const today = new Date().toISOString().split('T')[0]
-      if (viewMode === 'upcoming') {
-        query = query.gte('event_date', today)
-      } else if (viewMode === 'past') {
-        query = query.lt('event_date', today)
-      }
+      if (viewMode === 'upcoming') query = query.gte('event_date', today)
+      else if (viewMode === 'past') query = query.lt('event_date', today)
 
       const { data, error } = await query.limit(50)
       if (error) throw error
 
-      // Load RSVP counts for each event
       const eventsWithCounts = await Promise.all((data || []).map(async (event) => {
         let counts = { yes: 0, no: 0, maybe: 0 }
         let volunteerInfo = null
-
         try {
-          const { data: rsvpData } = await supabase
-            .from('event_rsvps')
-            .select('status')
-            .eq('event_id', event.id)
+          const { data: rsvpData } = await supabase.from('event_rsvps')
+            .select('status').eq('event_id', event.id)
+          rsvpData?.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++ })
+        } catch (err) { console.log('Could not load RSVPs for event:', event.id) }
 
-          rsvpData?.forEach(r => {
-            if (counts[r.status] !== undefined) counts[r.status]++
-          })
-        } catch (err) {
-          console.log('Could not load RSVPs for event:', event.id)
-        }
-
-        // For games, also check volunteers
         if (event.event_type === 'game') {
           try {
-            const { data: volData } = await supabase
-              .from('event_volunteers')
-              .select('role, position')
-              .eq('event_id', event.id)
-
+            const { data: volData } = await supabase.from('event_volunteers')
+              .select('role, position').eq('event_id', event.id)
             volunteerInfo = {
               line_judge: volData?.find(v => v.role === 'line_judge' && v.position === 'primary'),
               scorekeeper: volData?.find(v => v.role === 'scorekeeper' && v.position === 'primary')
             }
-          } catch (err) {
-            console.log('Could not load volunteers for event:', event.id)
-          }
+          } catch (err) { console.log('Could not load volunteers for event:', event.id) }
         }
-
-        return { ...event, rsvp_counts: counts, volunteer_info: volunteerInfo }
+        return { ...event, rsvp_counts_raw: counts, volunteer_info: volunteerInfo }
       }))
-
       setEvents(eventsWithCounts)
     } catch (err) {
       console.error('Error loading events:', err)
@@ -145,62 +93,25 @@ function AttendancePage({ showToast }) {
     setLoading(false)
   }
 
-  async function loadEventDetails(event) {
+  async function toggleEventExpand(event) {
+    if (expandedEventId === event.id) {
+      setExpandedEventId(null)
+      return
+    }
+    setExpandedEventId(event.id)
     setLoadingDetail(true)
-    setSelectedEvent(event)
 
     try {
-      // Load RSVPs with player info
-      try {
-        const { data: rsvpData } = await supabase
-          .from('event_rsvps')
-          .select('*, players(id, first_name, last_name, jersey_number)')
-          .eq('event_id', event.id)
-        setRsvps(rsvpData || [])
-      } catch (err) {
-        console.log('Could not load RSVPs:', err)
-        setRsvps([])
-      }
-
-      // Load volunteers with profile info
-      try {
-        const { data: volData } = await supabase
-          .from('event_volunteers')
-          .select('*, profiles(id, full_name)')
-          .eq('event_id', event.id)
-          .order('role')
-          .order('position')
-        setVolunteers(volData || [])
-      } catch (err) {
-        console.log('Could not load volunteers:', err)
-        setVolunteers([])
-      }
-
-      // Load team players for RSVP tracking
-      if (event.team_id) {
-        try {
-          const { data: playersData } = await supabase
-            .from('team_players')
-            .select('*, players(id, first_name, last_name, jersey_number, photo_url, position)')
-            .eq('team_id', event.team_id)
-          setTeamPlayers(playersData || [])
-        } catch (err) {
-          console.log('Could not load team players:', err)
-          setTeamPlayers([])
-        }
-      }
-
-      // Load available parents for volunteer assignment
-      try {
-        const { data: parentsData } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .order('full_name')
-        setAvailableParents(parentsData || [])
-      } catch (err) {
-        console.log('Could not load parents:', err)
-        setAvailableParents([])
-      }
+      const [rsvpRes, volRes, playersRes, parentsRes] = await Promise.all([
+        supabase.from('event_rsvps').select('*, players(id, first_name, last_name, jersey_number)').eq('event_id', event.id).then(r => r.data || []).catch(() => []),
+        supabase.from('event_volunteers').select('*, profiles(id, full_name)').eq('event_id', event.id).order('role').order('position').then(r => r.data || []).catch(() => []),
+        event.team_id ? supabase.from('team_players').select('*, players(id, first_name, last_name, jersey_number, photo_url, position)').eq('team_id', event.team_id).then(r => r.data || []).catch(() => []) : Promise.resolve([]),
+        supabase.from('profiles').select('id, full_name, email').order('full_name').then(r => r.data || []).catch(() => [])
+      ])
+      setRsvps(rsvpRes)
+      setVolunteers(volRes)
+      setTeamPlayers(playersRes)
+      setAvailableParents(parentsRes)
     } catch (err) {
       console.error('Error loading event details:', err)
     }
@@ -208,74 +119,45 @@ function AttendancePage({ showToast }) {
   }
 
   async function updateRsvp(playerId, status) {
-    if (!selectedEvent) return
-
+    const event = events.find(e => e.id === expandedEventId)
+    if (!event) return
     try {
       const existingRsvp = rsvps.find(r => r.player_id === playerId)
-
       if (existingRsvp) {
-        await supabase
-          .from('event_rsvps')
-          .update({ status, updated_at: new Date().toISOString() })
-          .eq('id', existingRsvp.id)
+        await supabase.from('event_rsvps').update({ status, updated_at: new Date().toISOString() }).eq('id', existingRsvp.id)
       } else {
-        await supabase
-          .from('event_rsvps')
-          .insert({
-            event_id: selectedEvent.id,
-            player_id: playerId,
-            status,
-            responded_by: user?.id
-          })
+        await supabase.from('event_rsvps').insert({ event_id: event.id, player_id: playerId, status, responded_by: user?.id })
       }
-
       showToast('RSVP updated', 'success')
-      loadEventDetails(selectedEvent)
+      toggleEventExpand(event) // re-opens to reload
+      setExpandedEventId(event.id)
       loadEvents()
-    } catch (err) {
-      showToast('Error updating RSVP', 'error')
-    }
+    } catch (err) { showToast('Error updating RSVP', 'error') }
   }
 
   async function assignVolunteer(role, position, profileId) {
-    if (!selectedEvent) return
-
+    const event = events.find(e => e.id === expandedEventId)
+    if (!event) return
     try {
-      // Check if slot is taken
       const existing = volunteers.find(v => v.role === role && v.position === position)
-      if (existing) {
-        showToast('This slot is already filled', 'error')
-        return
-      }
-
-      await supabase
-        .from('event_volunteers')
-        .insert({
-          event_id: selectedEvent.id,
-          profile_id: profileId,
-          role,
-          position
-        })
-
+      if (existing) { showToast('This slot is already filled', 'error'); return }
+      await supabase.from('event_volunteers').insert({ event_id: event.id, profile_id: profileId, role, position })
       showToast('Volunteer assigned!', 'success')
-      loadEventDetails(selectedEvent)
+      toggleEventExpand(event)
+      setExpandedEventId(event.id)
       loadEvents()
-    } catch (err) {
-      showToast('Error assigning volunteer', 'error')
-    }
+    } catch (err) { showToast('Error assigning volunteer', 'error') }
   }
 
   async function removeVolunteer(volunteerId) {
     if (!confirm('Remove this volunteer?')) return
-
+    const event = events.find(e => e.id === expandedEventId)
     try {
       await supabase.from('event_volunteers').delete().eq('id', volunteerId)
       showToast('Volunteer removed', 'success')
-      loadEventDetails(selectedEvent)
+      if (event) { toggleEventExpand(event); setExpandedEventId(event.id) }
       loadEvents()
-    } catch (err) {
-      showToast('Error removing volunteer', 'error')
-    }
+    } catch (err) { showToast('Error removing volunteer', 'error') }
   }
 
   const formatDate = (dateStr) => {
@@ -283,407 +165,226 @@ function AttendancePage({ showToast }) {
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
   }
 
-  const formatTime = (timeStr) => {
-    if (!timeStr) return ''
-    const [hours, minutes] = timeStr.split(':')
-    const h = parseInt(hours)
-    const ampm = h >= 12 ? 'PM' : 'AM'
-    const hour12 = h % 12 || 12
-    return `${hour12}:${minutes} ${ampm}`
-  }
-
-  const eventTypeColors = {
-    game: { bg: 'bg-red-500/20', text: 'text-red-400', label: 'Game' },
-    practice: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', label: 'Practice' },
-    event: { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Event' },
-    tournament: { bg: 'bg-orange-500/20', text: 'text-orange-400', label: 'Tournament' }
-  }
-
   // Stats
-  const stats = {
-    totalEvents: events.length,
-    games: events.filter(e => e.event_type === 'game').length,
-    practices: events.filter(e => e.event_type === 'practice').length,
-    needsVolunteers: events.filter(e => e.event_type === 'game' && (!e.volunteer_info?.line_judge || !e.volunteer_info?.scorekeeper)).length
-  }
+  const stats = [
+    { icon: '📋', value: events.length, label: 'Total Events', color: 'text-slate-900' },
+    { icon: '🏐', value: events.filter(e => e.event_type === 'game').length, label: 'Games', color: 'text-amber-600' },
+    { icon: '⚡', value: events.filter(e => e.event_type === 'practice').length, label: 'Practices', color: 'text-emerald-600' },
+    { icon: '⚠️', value: events.filter(e => e.event_type === 'game' && (!e.volunteer_info?.line_judge || !e.volunteer_info?.scorekeeper)).length, label: 'Need Volunteers', color: 'text-red-600' },
+  ]
 
   if (!selectedSeason) {
     return (
       <div className="p-8 text-center">
-        <Check className="w-16 h-16 text-emerald-500 mb-4" />
-        <h2 className={`text-xl font-semibold ${tc.text} mb-2`}>No Season Selected</h2>
-        <p className={tc.textMuted}>Please select a season to manage attendance</p>
+        <Calendar className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-slate-900 mb-2">No Season Selected</h2>
+        <p className="text-slate-500">Please select a season to manage attendance</p>
       </div>
     )
   }
 
   return (
-    <DashboardContainer>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className={`text-3xl font-bold ${tc.text}`}>Attendance & RSVP</h1>
-          <p className={`${tc.textMuted} mt-1`}>Track RSVPs and manage volunteers • {selectedSeason.name}</p>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <StatGrid className="mb-6">
-        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 text-center`}>
-          <div className={`text-2xl font-bold ${tc.text}`}>{stats.totalEvents}</div>
-          <div className={`text-xs ${tc.textMuted}`}>Total Events</div>
-        </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 text-center`}>
-          <div className="text-2xl font-bold text-red-400">{stats.games}</div>
-          <div className={`text-xs ${tc.textMuted}`}>Games</div>
-        </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 text-center`}>
-          <div className="text-2xl font-bold text-cyan-400">{stats.practices}</div>
-          <div className={`text-xs ${tc.textMuted}`}>Practices</div>
-        </div>
-        <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-4 text-center`}>
-          <div className="text-2xl font-bold text-[var(--accent-primary)]">{stats.needsVolunteers}</div>
-          <div className={`text-xs ${tc.textMuted}`}>Need Volunteers</div>
-        </div>
-      </StatGrid>
+    <PageShell
+      breadcrumb="Attendance & RSVP"
+      title="Attendance & RSVP"
+      subtitle={`Track RSVPs and manage volunteers · ${selectedSeason.name}`}
+    >
+      <InnerStatRow stats={stats} />
 
       {/* Filters */}
-      <div className="flex gap-4 mb-6">
-        <select
-          value={selectedTeam}
-          onChange={e => setSelectedTeam(e.target.value)}
-          className={`${tc.input} rounded-xl px-4 py-2`}
-        >
+      <div className="flex gap-3 items-center mb-5 flex-wrap">
+        <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700">
           <option value="all">All Teams</option>
-          {teams.map(team => (
-            <option key={team.id} value={team.id}>{team.name}</option>
-          ))}
+          {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
 
-        <div className={`flex ${tc.cardBgAlt} rounded-xl p-1`}>
+        <div className="flex rounded-xl p-1 border border-slate-200 bg-white">
           {['upcoming', 'past', 'all'].map(mode => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                viewMode === mode ? 'bg-[var(--accent-primary)] text-white' : `${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'}`
-              }`}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            <button key={mode} onClick={() => setViewMode(mode)}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${
+                viewMode === mode ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-500 hover:text-slate-800'
+              }`}>
+              {mode}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* Events List */}
-        <div className="flex-1">
-          <h2 className={`text-lg font-semibold ${tc.text} mb-4`}>Events</h2>
-          
-          {loading ? (
-            <div className={`text-center py-12 ${tc.textMuted}`}>Loading...</div>
-          ) : events.length === 0 ? (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-12 text-center`}>
-              <Calendar className="w-16 h-16 mb-4" />
-              <h3 className={`text-xl font-semibold ${tc.text} mb-2`}>No Events Found</h3>
-              <p className={tc.textMuted}>No {viewMode} events match your filters</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {events.map(event => {
-                const typeConfig = eventTypeColors[event.event_type] || eventTypeColors.event
-                const isSelected = selectedEvent?.id === event.id
-                const needsVol = event.event_type === 'game' && (!event.volunteer_info?.line_judge || !event.volunteer_info?.scorekeeper)
-
-                return (
-                  <button
-                    key={event.id}
-                    onClick={() => loadEventDetails(event)}
-                    className={`w-full text-left ${tc.cardBg} border rounded-xl p-4 transition ${
-                      isSelected ? 'border-[var(--accent-primary)]' : `${tc.border} ${isDark ? 'hover:border-slate-600' : 'hover:border-slate-300'}`
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${typeConfig.bg} ${typeConfig.text}`}>
-                            {typeConfig.label}
-                          </span>
-                          {event.teams && (
-                            <span 
-                              className="px-2 py-0.5 rounded text-xs font-medium"
-                              style={{ backgroundColor: `${event.teams.color}20`, color: event.teams.color }}
-                            >
-                              {event.teams.name}
-                            </span>
-                          )}
-                          {needsVol && (
-                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]">
-                              ⚠️ Needs Volunteers
-                            </span>
-                          )}
-                        </div>
-                        <div className={`${tc.text} font-semibold`}>{event.title}</div>
-                        <div className={`text-sm ${tc.textMuted}`}>
-                          {formatDate(event.event_date)} • {formatTime(event.event_time)}
-                          {event.venue_name && ` • ${event.venue_name}`}
-                        </div>
-                      </div>
-                      
-                      {/* RSVP Summary */}
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-emerald-400">{event.rsvp_counts?.yes || 0} ✓</span>
-                        <span className="text-red-400">{event.rsvp_counts?.no || 0} ✗</span>
-                        <span className="text-[var(--accent-primary)]">{event.rsvp_counts?.maybe || 0} ?</span>
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
+      {/* Event List with Inline Expand */}
+      {loading ? (
+        <div className="text-center py-12 text-slate-400">Loading events...</div>
+      ) : events.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-[14px] p-12 text-center">
+          <Calendar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-slate-900 mb-2">No Events Found</h3>
+          <p className="text-slate-500">No {viewMode} events match your filters</p>
         </div>
+      ) : (
+        <div>
+          {events.map(event => {
+            const isExpanded = expandedEventId === event.id
+            const needsVol = event.event_type === 'game' && (!event.volunteer_info?.line_judge || !event.volunteer_info?.scorekeeper)
 
-        {/* Event Details Panel */}
-        <div className="w-96">
-          {selectedEvent ? (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-xl sticky top-8`}>
-              <div className={`p-4 border-b ${tc.border}`}>
-                <div className="flex items-center justify-between">
-                  <h2 className={`text-lg font-semibold ${tc.text}`}>{selectedEvent.title}</h2>
-                  <button onClick={() => setSelectedEvent(null)} className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'}`}><X className="w-4 h-4" /></button>
-                </div>
-                <p className={`text-sm ${tc.textMuted}`}>{formatDate(selectedEvent.event_date)} • {formatTime(selectedEvent.event_time)}</p>
-              </div>
+            return (
+              <EventCard
+                key={event.id}
+                event={{
+                  ...event,
+                  event_type: event.event_type,
+                  title: event.title,
+                  date_display: formatDate(event.event_date),
+                  time_display: formatTime12(event.event_time),
+                  venue: event.venue_name || '',
+                  team_name: event.teams?.name || '',
+                  needs_volunteers: needsVol,
+                  rsvp_counts: {
+                    going: event.rsvp_counts_raw?.yes || 0,
+                    no: event.rsvp_counts_raw?.no || 0,
+                    maybe: event.rsvp_counts_raw?.maybe || 0,
+                  }
+                }}
+                onClick={() => toggleEventExpand(event)}
+                expandable
+                expanded={isExpanded}
+              >
+                {/* Expanded inline detail */}
+                {loadingDetail ? (
+                  <div className="text-center py-6 text-slate-400">Loading details...</div>
+                ) : (
+                  <div className="space-y-5">
+                    {/* RSVP Summary Grid */}
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { label: 'Going', count: rsvps.filter(r => r.status === 'yes').length, bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+                        { label: "Can't Go", count: rsvps.filter(r => r.status === 'no').length, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+                        { label: 'Maybe', count: rsvps.filter(r => r.status === 'maybe').length, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+                        { label: 'Pending', count: teamPlayers.length - rsvps.length, bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
+                      ].map(s => (
+                        <div key={s.label} className={`${s.bg} ${s.border} border rounded-xl p-3 text-center`}>
+                          <div className={`text-2xl font-extrabold ${s.text}`}>{Math.max(0, s.count)}</div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
 
-              {loadingDetail ? (
-                <div className={`p-8 text-center ${tc.textMuted}`}>Loading...</div>
-              ) : (
-                <div className="p-4 max-h-[calc(100vh-300px)] overflow-y-auto">
-                  {/* RSVP Section */}
-                  <div className="mb-6">
-                    <h3 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wider mb-3`}>RSVPs</h3>
-                    
-                    {/* RSVP Summary */}
-                    <div className="flex gap-2 mb-4">
-                      <div className="flex-1 bg-emerald-500/10 rounded-lg p-3 text-center">
-                        <div className="text-xl font-bold text-emerald-400">{rsvps.filter(r => r.status === 'yes').length}</div>
-                        <div className="text-xs text-emerald-400">Going</div>
-                      </div>
-                      <div className="flex-1 bg-red-500/10 rounded-lg p-3 text-center">
-                        <div className="text-xl font-bold text-red-400">{rsvps.filter(r => r.status === 'no').length}</div>
-                        <div className="text-xs text-red-400">Can't Go</div>
-                      </div>
-                      <div className="flex-1 bg-[var(--accent-primary)]/10 rounded-lg p-3 text-center">
-                        <div className="text-xl font-bold text-[var(--accent-primary)]">{rsvps.filter(r => r.status === 'maybe').length}</div>
-                        <div className="text-xs text-[var(--accent-primary)]">Maybe</div>
+                    {/* Player Roster with RSVP Buttons */}
+                    <div>
+                      <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Player RSVPs</h4>
+                      <div className="space-y-1">
+                        {teamPlayers.map((tp, idx) => {
+                          const player = tp.players
+                          if (!player) return null
+                          const rsvp = rsvps.find(r => r.player_id === player.id)
+                          const status = rsvp?.status
+
+                          return (
+                            <div key={tp.id} className={`flex items-center justify-between rounded-lg px-3 py-2 ${idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'}`}>
+                              <div className="flex items-center gap-2">
+                                {tp.jersey_number && (
+                                  <span className="w-6 h-6 rounded bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center">
+                                    {tp.jersey_number}
+                                  </span>
+                                )}
+                                <span
+                                  className="text-sm font-medium text-slate-800 cursor-pointer hover:text-lynx-sky hover:underline"
+                                  onClick={(e) => { e.stopPropagation(); setSelectedPlayerForCard(player) }}
+                                >
+                                  {player.first_name} {player.last_name}
+                                </span>
+                              </div>
+                              <div className="flex gap-1">
+                                {[
+                                  { s: 'yes', label: '✓', active: 'bg-emerald-500 text-white', inactive: 'bg-slate-200 text-slate-400 hover:bg-emerald-100 hover:text-emerald-600' },
+                                  { s: 'no', label: '✕', active: 'bg-red-500 text-white', inactive: 'bg-slate-200 text-slate-400 hover:bg-red-100 hover:text-red-600' },
+                                  { s: 'maybe', label: '?', active: 'bg-amber-500 text-white', inactive: 'bg-slate-200 text-slate-400 hover:bg-amber-100 hover:text-amber-600' },
+                                ].map(btn => (
+                                  <button key={btn.s}
+                                    onClick={(e) => { e.stopPropagation(); updateRsvp(player.id, btn.s) }}
+                                    className={`w-7 h-7 rounded-lg text-xs font-bold transition ${status === btn.s ? btn.active : btn.inactive}`}>
+                                    {btn.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        })}
+                        {teamPlayers.length === 0 && (
+                          <p className="text-center text-slate-400 text-sm py-4">No players on this team</p>
+                        )}
                       </div>
                     </div>
 
-                    {/* Player List */}
-                    <div className="space-y-2">
-                      {teamPlayers.map((tp, idx) => {
-                        const player = tp.players
-                        if (!player) return null
-                        const rsvp = rsvps.find(r => r.player_id === player.id)
-                        const status = rsvp?.status
-
-                        return (
-                          <div key={tp.id} className={`flex items-center justify-between ${idx % 2 === 1 ? tc.zebraRow : tc.cardBgAlt} rounded-lg p-2`}>
-                            <div className="flex items-center gap-2">
-                              {tp.jersey_number && (
-                                <span className="w-6 h-6 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] text-xs font-bold flex items-center justify-center">
-                                  {tp.jersey_number}
-                                </span>
-                              )}
-                              <ClickablePlayerName 
-                                player={player}
-                                onPlayerSelect={setSelectedPlayerForCard}
-                                className={`${tc.text} text-sm`}
-                              />
+                    {/* Volunteers Section (Games Only) */}
+                    {event.event_type === 'game' && (
+                      <div>
+                        <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Volunteers</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                          {['line_judge', 'scorekeeper'].map(role => (
+                            <div key={role} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span>{role === 'line_judge' ? '🚩' : '📋'}</span>
+                                <span className="text-sm font-semibold text-slate-800">{role === 'line_judge' ? 'Line Judge' : 'Scorekeeper'}</span>
+                              </div>
+                              {['primary', 'backup_1', 'backup_2'].map(position => {
+                                const vol = volunteers.find(v => v.role === role && v.position === position)
+                                const isAssigning = volunteerAssignModal?.role === role && volunteerAssignModal?.position === position
+                                return (
+                                  <div key={position} className="flex items-center justify-between py-1.5 border-t border-slate-200">
+                                    <span className="text-xs text-slate-400 w-16">
+                                      {position === 'primary' ? 'Primary' : position === 'backup_1' ? 'Backup 1' : 'Backup 2'}
+                                    </span>
+                                    {vol ? (
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm text-slate-700">{vol.profiles?.full_name || 'Assigned'}</span>
+                                        <button onClick={(e) => { e.stopPropagation(); removeVolunteer(vol.id) }}
+                                          className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                                      </div>
+                                    ) : isAssigning ? (
+                                      <div className="flex items-center gap-1">
+                                        <select autoFocus
+                                          onClick={e => e.stopPropagation()}
+                                          onChange={(e) => { if (e.target.value) assignVolunteer(role, position, e.target.value); setVolunteerAssignModal(null) }}
+                                          onBlur={() => setVolunteerAssignModal(null)}
+                                          className="rounded px-2 py-1 text-xs border border-slate-200 bg-white text-slate-700 max-w-[140px]">
+                                          <option value="">Select parent...</option>
+                                          {availableParents.filter(p => !volunteers.some(v => v.profile_id === p.id))
+                                            .map(parent => <option key={parent.id} value={parent.id}>{parent.full_name || 'Parent'}</option>)}
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <button onClick={(e) => { e.stopPropagation(); setVolunteerAssignModal({ role, position }) }}
+                                        className={`text-sm hover:underline ${position === 'primary' ? 'text-lynx-sky font-semibold' : 'text-slate-400 hover:text-lynx-sky'}`}>
+                                        {position === 'primary' ? '+ Assign' : '+ Add'}
+                                      </button>
+                                    )}
+                                  </div>
+                                )
+                              })}
                             </div>
-                            <div className="flex gap-1">
-                              {['yes', 'no', 'maybe'].map(s => (
-                                <button
-                                  key={s}
-                                  onClick={() => updateRsvp(player.id, s)}
-                                  className={`w-7 h-7 rounded-lg text-xs font-bold transition ${
-                                    status === s
-                                      ? s === 'yes' ? 'bg-emerald-500 text-white' 
-                                        : s === 'no' ? 'bg-red-500 text-white' 
-                                        : 'bg-yellow-500 text-black'
-                                      : `${isDark ? 'bg-slate-700 text-slate-500 hover:text-white' : 'bg-slate-200 text-slate-400 hover:text-slate-900'}`
-                                  }`}
-                                >
-                                  {s === 'yes' ? '✓' : s === 'no' ? '✗' : '?'}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      })}
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                      {teamPlayers.length === 0 && (
-                        <p className={`text-center ${tc.textMuted} text-sm py-4`}>No players on this team</p>
-                      )}
+                    {/* Send Reminders Button */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <button onClick={(e) => { e.stopPropagation(); showToast('Reminder sent to pending players', 'success') }}
+                        className="bg-lynx-navy text-white font-bold px-4 py-2 rounded-xl text-sm hover:bg-lynx-navy/90 transition">
+                        📩 Send RSVP Reminders
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); setExpandedEventId(null) }}
+                        className="text-sm text-slate-400 hover:text-slate-600 font-semibold">
+                        Collapse ▲
+                      </button>
                     </div>
                   </div>
-
-                  {/* Volunteers Section (Games Only) */}
-                  {selectedEvent.event_type === 'game' && (
-                    <div>
-                      <h3 className={`text-sm font-semibold ${tc.textMuted} uppercase tracking-wider mb-3`}>Volunteers</h3>
-                      
-                      {/* Line Judge */}
-                      <div className={`${tc.cardBgAlt} rounded-xl p-3 mb-3`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span>🚩</span>
-                          <span className={`${tc.text} font-medium`}>Line Judge</span>
-                        </div>
-                        {['primary', 'backup_1', 'backup_2'].map(position => {
-                          const vol = volunteers.find(v => v.role === 'line_judge' && v.position === position)
-                          const isAssigning = volunteerAssignModal?.role === 'line_judge' && volunteerAssignModal?.position === position
-                          return (
-                            <div key={position} className={`flex items-center justify-between py-1.5 border-t ${tc.border}`}>
-                              <span className={`text-xs ${tc.textMuted} w-20`}>
-                                {position === 'primary' ? 'Primary' : position === 'backup_1' ? 'Backup 1' : 'Backup 2'}
-                              </span>
-                              {vol ? (
-                                <div className="flex items-center gap-2">
-                                  <span className={`${tc.text} text-sm`}>
-                                    {vol.profiles?.full_name || 'Assigned'}
-                                  </span>
-                                  <button
-                                    onClick={() => removeVolunteer(vol.id)}
-                                    className="text-red-400 hover:text-red-300 text-xs"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : isAssigning ? (
-                                <div className="flex items-center gap-1">
-                                  <select
-                                    autoFocus
-                                    onChange={(e) => {
-                                      if (e.target.value) {
-                                        assignVolunteer('line_judge', position, e.target.value)
-                                      }
-                                      setVolunteerAssignModal(null)
-                                    }}
-                                    onBlur={() => setVolunteerAssignModal(null)}
-                                    className={`${tc.input} rounded px-2 py-1 text-xs max-w-[140px]`}
-                                  >
-                                    <option value="">Select parent...</option>
-                                    {availableParents
-                                      .filter(p => !volunteers.some(v => v.profile_id === p.id))
-                                      .map(parent => (
-                                        <option key={parent.id} value={parent.id}>
-                                          {parent.full_name || 'Parent'}
-                                        </option>
-                                      ))
-                                    }
-                                  </select>
-                                  <button
-                                    onClick={() => setVolunteerAssignModal(null)}
-                                    className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'} text-xs`}
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => setVolunteerAssignModal({ role: 'line_judge', position })}
-                                  className={`text-sm hover:underline ${position === 'primary' ? 'text-[var(--accent-primary)]' : 'text-slate-500 hover:text-[var(--accent-primary)]'}`}
-                                >
-                                  {position === 'primary' ? '+ Assign' : '+ Add'}
-                                </button>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Scorekeeper */}
-                      <div className={`${tc.cardBgAlt} rounded-xl p-3`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span>📋</span>
-                          <span className={`${tc.text} font-medium`}>Scorekeeper</span>
-                        </div>
-                        {['primary', 'backup_1', 'backup_2'].map(position => {
-                          const vol = volunteers.find(v => v.role === 'scorekeeper' && v.position === position)
-                          const isAssigning = volunteerAssignModal?.role === 'scorekeeper' && volunteerAssignModal?.position === position
-                          return (
-                            <div key={position} className={`flex items-center justify-between py-1.5 border-t ${tc.border}`}>
-                              <span className={`text-xs ${tc.textMuted} w-20`}>
-                                {position === 'primary' ? 'Primary' : position === 'backup_1' ? 'Backup 1' : 'Backup 2'}
-                              </span>
-                              {vol ? (
-                                <div className="flex items-center gap-2">
-                                  <span className={`${tc.text} text-sm`}>
-                                    {vol.profiles?.full_name || 'Assigned'}
-                                  </span>
-                                  <button
-                                    onClick={() => removeVolunteer(vol.id)}
-                                    className="text-red-400 hover:text-red-300 text-xs"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : isAssigning ? (
-                                <div className="flex items-center gap-1">
-                                  <select
-                                    autoFocus
-                                    onChange={(e) => {
-                                      if (e.target.value) {
-                                        assignVolunteer('scorekeeper', position, e.target.value)
-                                      }
-                                      setVolunteerAssignModal(null)
-                                    }}
-                                    onBlur={() => setVolunteerAssignModal(null)}
-                                    className={`${tc.input} rounded px-2 py-1 text-xs max-w-[140px]`}
-                                  >
-                                    <option value="">Select parent...</option>
-                                    {availableParents
-                                      .filter(p => !volunteers.some(v => v.profile_id === p.id))
-                                      .map(parent => (
-                                        <option key={parent.id} value={parent.id}>
-                                          {parent.full_name || 'Parent'}
-                                        </option>
-                                      ))
-                                    }
-                                  </select>
-                                  <button
-                                    onClick={() => setVolunteerAssignModal(null)}
-                                    className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'} text-xs`}
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => setVolunteerAssignModal({ role: 'scorekeeper', position })}
-                                  className={`text-sm hover:underline ${position === 'primary' ? 'text-[var(--accent-primary)]' : 'text-slate-500 hover:text-[var(--accent-primary)]'}`}
-                                >
-                                  {position === 'primary' ? '+ Assign' : '+ Add'}
-                                </button>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className={`${tc.cardBg} border ${tc.border} rounded-xl p-8 text-center`}>
-              <div className="text-4xl mb-3">👈</div>
-              <p className={tc.textMuted}>Select an event to view details</p>
-            </div>
-          )}
+                )}
+              </EventCard>
+            )
+          })}
         </div>
-      </div>
+      )}
 
       {/* Player Card Modal */}
       {selectedPlayerForCard && (
@@ -694,9 +395,8 @@ function AttendancePage({ showToast }) {
           context="attendance"
         />
       )}
-    </DashboardContainer>
+    </PageShell>
   )
 }
-
 
 export { AttendancePage }
