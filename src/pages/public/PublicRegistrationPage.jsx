@@ -106,6 +106,9 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     console.log('Prefill applied:', { playerPrefill, sharedPrefill })
   }, [prefillApplied])
 
+  // ─── Scroll to top on mount ────────────────────────────────────────────
+  useEffect(() => { window.scrollTo({ top: 0 }) }, [])
+
   // ─── Load season data ──────────────────────────────────────────────────
   useEffect(() => { loadSeasonData() }, [orgIdOrSlug, seasonId])
 
@@ -346,7 +349,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             />
           )}
           <h1 className="text-r-2xl font-bold text-white">
-            {organization?.name || 'Registration'}
+            {organization?.name || 'Join the Den'}
           </h1>
           {orgTagline && (
             <p className="text-r-xs text-white/60 mt-1">{orgTagline}</p>
@@ -435,7 +438,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             disabled={submitting || (children.length === 0 && !currentChild.first_name)}
             className="w-full py-4 rounded-lg font-bold text-r-lg transition-all bg-lynx-navy text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-soft-sm"
           >
-            {submitting ? 'Submitting...' : `Submit Registration${children.length > 1 ? ` (${children.length} children)` : ''}`}
+            {submitting ? 'Submitting...' : `Let's Get Started${children.length > 1 ? ` (${children.length} children)` : ''}`}
           </button>
         </form>
 

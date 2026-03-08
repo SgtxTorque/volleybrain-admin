@@ -1,21 +1,38 @@
-import { X } from '../../constants/icons'
+import { useState } from 'react'
+import { X, AlertCircle } from '../../constants/icons'
 
 export function SeasonFormModal({
   showModal, setShowModal, editingSeason, form, setForm, handleSave,
   modalTab, setModalTab, sports, templates, tc, isDark
 }) {
+  const [showErrors, setShowErrors] = useState(false)
   if (!showModal) return null
 
   const totalFee = (parseFloat(form.fee_registration) || 0) +
     (parseFloat(form.fee_uniform) || 0) +
     ((parseFloat(form.fee_monthly) || 0) * (parseInt(form.months_in_season) || 0))
 
+  const hasSports = sports && sports.length > 0
+  const missingName = !form.name?.trim()
+  const missingSport = hasSports && !form.sport_id
+  const hasErrors = missingName || missingSport
+
+  function handleSaveClick() {
+    if (hasErrors) {
+      setShowErrors(true)
+      setModalTab('basic')
+      return
+    }
+    setShowErrors(false)
+    handleSave()
+  }
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
       <div className={`${tc.cardBg} border ${tc.border} rounded-[14px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`}>
         <div className={`p-6 border-b ${tc.border} flex items-center justify-between`}>
           <h2 className={`text-xl font-semibold ${tc.text}`}>{editingSeason ? 'Edit Season' : 'Create Season'}</h2>
-          <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'}`}>
+          <button onClick={() => { setShowModal(false); setModalTab('basic'); setShowErrors(false); }} className={`${tc.textMuted} ${isDark ? 'hover:text-white' : 'hover:text-slate-900'}`}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -44,7 +61,7 @@ export function SeasonFormModal({
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {/* Basic Info Tab */}
           {modalTab === 'basic' && (
-            <BasicInfoTab form={form} setForm={setForm} sports={sports} tc={tc} isDark={isDark} />
+            <BasicInfoTab form={form} setForm={setForm} sports={sports} tc={tc} isDark={isDark} showErrors={showErrors} />
           )}
 
           {/* Registration Tab */}
@@ -58,35 +75,45 @@ export function SeasonFormModal({
           )}
         </div>
 
-        <div className={`p-6 border-t ${tc.border} flex justify-between`}>
-          <button onClick={() => { setShowModal(false); setModalTab('basic'); }} className={`px-6 py-2 rounded-[14px] border ${tc.border} ${tc.text}`}>
-            Cancel
-          </button>
-          <div className="flex gap-3">
-            {modalTab !== 'basic' && (
-              <button
-                onClick={() => setModalTab(modalTab === 'fees' ? 'registration' : 'basic')}
-                className={`px-6 py-2 rounded-[14px] border ${tc.border} ${tc.text}`}
-              >
-                Back
-              </button>
-            )}
-            {modalTab !== 'fees' ? (
-              <button
-                onClick={() => setModalTab(modalTab === 'basic' ? 'registration' : 'fees')}
-                className="px-6 py-2 rounded-[14px] bg-lynx-navy text-white font-bold hover:brightness-110"
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                onClick={handleSave}
-                disabled={!form.name || (sports && sports.length > 0 && !form.sport_id)}
-                className="px-6 py-2 rounded-[14px] bg-lynx-navy text-white font-bold hover:brightness-110 disabled:opacity-50"
-              >
-                {editingSeason ? 'Save Changes' : 'Create Season'}
-              </button>
-            )}
+        <div className={`p-6 border-t ${tc.border}`}>
+          {showErrors && hasErrors && (
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+              <div className="text-sm text-red-400">
+                {missingName && <p>Season name is required</p>}
+                {missingSport && <p>Please select a sport</p>}
+              </div>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <button onClick={() => { setShowModal(false); setModalTab('basic'); setShowErrors(false); }} className={`px-6 py-2 rounded-[14px] border ${tc.border} ${tc.text}`}>
+              Cancel
+            </button>
+            <div className="flex gap-3">
+              {modalTab !== 'basic' && (
+                <button
+                  onClick={() => setModalTab(modalTab === 'fees' ? 'registration' : 'basic')}
+                  className={`px-6 py-2 rounded-[14px] border ${tc.border} ${tc.text}`}
+                >
+                  Back
+                </button>
+              )}
+              {modalTab !== 'fees' ? (
+                <button
+                  onClick={() => setModalTab(modalTab === 'basic' ? 'registration' : 'fees')}
+                  className="px-6 py-2 rounded-[14px] bg-lynx-navy text-white font-bold hover:brightness-110"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={handleSaveClick}
+                  className={`px-6 py-2 rounded-[14px] bg-lynx-navy text-white font-bold hover:brightness-110 ${hasErrors ? 'opacity-80' : ''}`}
+                >
+                  {hasErrors ? 'Complete required fields' : (editingSeason ? 'Save Changes' : 'Create Season')}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -97,14 +124,17 @@ export function SeasonFormModal({
 /* ------------------------------------------------------------------ */
 /*  Basic Info Tab                                                      */
 /* ------------------------------------------------------------------ */
-function BasicInfoTab({ form, setForm, sports, tc, isDark }) {
+function BasicInfoTab({ form, setForm, sports, tc, isDark, showErrors }) {
+  const missingName = showErrors && !form.name?.trim()
+  const missingSport = showErrors && sports && sports.length > 0 && !form.sport_id
+
   return (
     <>
       {/* Sport Selection */}
       {sports && sports.length > 0 && (
         <div>
-          <label className={`block text-sm ${tc.textMuted} mb-2`}>Sport <span className="text-red-400">*</span></label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+          <label className={`block text-sm ${missingSport ? 'text-red-400' : tc.textMuted} mb-2`}>Sport <span className="text-red-400">*</span></label>
+          <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2 ${missingSport ? 'ring-2 ring-red-400/40 rounded-[14px] p-1' : ''}`}>
             {sports.map(sport => (
               <button
                 key={sport.id}
@@ -123,13 +153,15 @@ function BasicInfoTab({ form, setForm, sports, tc, isDark }) {
               </button>
             ))}
           </div>
+          {missingSport && <p className="text-xs text-red-400 mt-1">Please select a sport</p>}
         </div>
       )}
 
       <div>
-        <label className={`block text-sm ${tc.textMuted} mb-2`}>Season Name <span className="text-red-400">*</span></label>
+        <label className={`block text-sm ${missingName ? 'text-red-400' : tc.textMuted} mb-2`}>Season Name <span className="text-red-400">*</span></label>
         <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Spring 2026"
-          className={`w-full ${tc.input} rounded-[14px] px-4 py-3`} />
+          className={`w-full ${tc.input} rounded-[14px] px-4 py-3 ${missingName ? 'border-red-400 ring-2 ring-red-400/30' : ''}`} />
+        {missingName && <p className="text-xs text-red-400 mt-1">Season name is required</p>}
       </div>
 
       <div>
