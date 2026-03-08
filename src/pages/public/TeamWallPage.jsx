@@ -436,7 +436,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
       </div>}
 
       {/* ═══ 3-PANEL LAYOUT — centered (Fix 9) ═══ */}
-      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-[320px_1fr] xl:grid-cols-[320px_1fr_320px] gap-6" style={{ maxWidth: 1600, margin: '0 auto', padding: '24px 32px 0' }}>
+      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-[320px_1fr] xl:grid-cols-[320px_1fr_320px] gap-6" style={{ padding: '24px 32px 0' }}>
 
         {/* ═══ LEFT: Roster Sidebar ═══ */}
         <aside className="hidden lg:flex flex-col gap-4 overflow-y-auto py-6 px-4 teamwall-scroll">

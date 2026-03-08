@@ -542,7 +542,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
       </div>
 
       {/* ═══ 3-COLUMN GRID ═══ */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ maxWidth: 1400, margin: '0 auto', gap: 24, height: 'calc(100vh - 64px)' }}>
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_335px] lg:grid-cols-[335px_1fr_335px] px-4 lg:px-12" style={{ gap: 24, height: 'calc(100vh - 64px)' }}>
 
         {/* LEFT COLUMN */}
         <TeamWallLeftSidebar

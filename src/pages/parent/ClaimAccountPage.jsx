@@ -85,7 +85,7 @@ function ClaimAccountPage({ showToast }) {
   if (orphans.length === 0) {
     return (
       <DashboardContainer>
-        <div className="max-w-lg mx-auto mt-16">
+        <div className="mx-auto mt-16">
           <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
             <Users className="w-12 h-12 mx-auto mb-4 text-slate-400" />
             <h2 className={`text-xl font-bold mb-2 ${tc.text}`}>No Unclaimed Players Found</h2>
@@ -104,7 +104,7 @@ function ClaimAccountPage({ showToast }) {
 
   return (
     <DashboardContainer>
-      <div className="max-w-lg mx-auto mt-12">
+      <div className="mx-auto mt-12">
         <div className={`rounded-2xl p-8 ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-lg'}`}>
           {/* Header */}
           <div className="flex justify-center mb-5">

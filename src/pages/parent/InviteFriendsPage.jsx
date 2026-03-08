@@ -105,7 +105,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
       }
       subtitle="Share the love -- grow the Lynx family"
     >
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
         {/* Stat Row */}
         <InnerStatRow stats={[
           { icon: <Send className="w-5 h-5 text-lynx-sky" />, value: inviteCount, label: 'Invites Sent', color: 'text-lynx-sky' },

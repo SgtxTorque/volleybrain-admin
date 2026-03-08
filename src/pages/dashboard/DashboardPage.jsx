@@ -867,7 +867,7 @@ export function GettingStartedGuide({ onNavigate }) {
   const { isDark, accent } = useTheme()
   
   return (
-    <div className="max-w-2xl mx-auto py-12 text-center">
+    <div className="py-12 text-center">
       <div 
         className="w-20 h-20 rounded-full mx-auto mb-r-4 flex items-center justify-center"
         style={{ backgroundColor: accent.primary + '20' }}

@@ -62,7 +62,7 @@ function MyProfilePage({ showToast }) {
       }
       subtitle="Manage your personal information"
     >
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-6">
         <ProfileInfoSection
           profile={profile}
           user={user}

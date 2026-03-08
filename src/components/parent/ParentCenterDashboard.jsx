@@ -267,7 +267,7 @@ export default function ParentCenterDashboard({
           SCROLLABLE CONTENT (floating cards over navy)
           ═══════════════════════════════════════════════════════════ */}
       <div className="flex-1 px-6 -mt-20 overflow-y-auto pb-8 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div className="flex flex-col gap-5 max-w-[960px] mx-auto">
+        <div className="flex flex-col gap-5">
 
           {/* ── Attention Banner ── */}
           {attentionCount > 0 && (

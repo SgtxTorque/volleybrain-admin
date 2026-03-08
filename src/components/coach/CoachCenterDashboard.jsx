@@ -268,7 +268,7 @@ export default function CoachCenterDashboard({
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-w-0">
       <div className={`flex-1 overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-        <div className="max-w-3xl mx-auto px-6 py-6 space-y-5">
+        <div className="px-6 py-6 space-y-5">
 
           {/* ─── 1. WELCOME BRIEFING (Tier 3 ambient) ──────────── */}
           <div className="text-center pt-2 pb-2">

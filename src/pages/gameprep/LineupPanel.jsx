@@ -64,7 +64,7 @@ export default function LineupPanel({
     <div className="flex flex-col h-full">
       {/* Court area */}
       <div className="flex-1 overflow-y-auto p-5 lg:p-7">
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="space-y-4">
           {/* Rotation indicator */}
           {(mode === GAME_MODES.PRE_GAME || mode === GAME_MODES.LIVE) && (
             <div className="flex items-center justify-center gap-4">

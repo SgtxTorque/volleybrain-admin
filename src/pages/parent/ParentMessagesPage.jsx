@@ -250,7 +250,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
         </button>
       }
     >
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
         {/* Stat Row */}
         <InnerStatRow stats={[
           { icon: <Bell className="w-5 h-5 text-lynx-sky" />, value: unreadCount, label: 'Unread', color: unreadCount > 0 ? 'text-lynx-sky' : 'text-slate-400' },

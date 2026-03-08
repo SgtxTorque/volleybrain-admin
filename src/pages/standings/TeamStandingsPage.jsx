@@ -208,12 +208,10 @@ export default function TeamStandingsPage() {
   if (loading) {
     return (
       <PageShell title="Team Standings" breadcrumb="Game Day" actions={teamSelectorAction}>
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className={`h-8 rounded w-48 ${altBg}`} />
-            <div className="grid grid-cols-4 gap-4">
-              {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-[14px] ${altBg}`} />)}
-            </div>
+        <div className="animate-pulse space-y-6">
+          <div className={`h-8 rounded w-48 ${altBg}`} />
+          <div className="grid grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className={`h-32 rounded-[14px] ${altBg}`} />)}
           </div>
         </div>
       </PageShell>
@@ -227,7 +225,7 @@ export default function TeamStandingsPage() {
   if (!selectedTeam) {
     return (
       <PageShell title="Team Standings" breadcrumb="Game Day">
-        <div className="max-w-4xl mx-auto">
+        <div>
           <div className={`${cardCls} rounded-[14px] p-12 text-center`}>
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
               <Trophy className="w-8 h-8 text-slate-400" />

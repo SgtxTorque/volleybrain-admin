@@ -760,7 +760,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   if (teams.length === 0) {
     return (
       <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`} style={{ minHeight: '60vh' }}>
-        <div className="text-center max-w-md mx-auto px-6">
+        <div className="text-center px-6">
           <div className={`w-20 h-20 rounded-xl mx-auto mb-r-4 flex items-center justify-center ${isDark ? 'bg-lynx-sky/10 border border-lynx-sky/20' : 'bg-lynx-ice border border-lynx-sky/20'}`}>
             <Shield className="w-10 h-10 text-lynx-sky" />
           </div>

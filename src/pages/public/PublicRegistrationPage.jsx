@@ -336,7 +336,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     <div className="min-h-screen bg-lynx-cloud">
       {/* Branded header */}
       <div className="bg-lynx-navy">
-        <div className="max-w-2xl mx-auto px-4 py-8 text-center">
+        <div className="px-4 py-8 text-center">
           {organization?.logo_url && (
             <img
               src={organization.logo_url}
@@ -362,7 +362,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       </div>
 
       {/* Form body */}
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="px-4 py-8">
         {/* Fee Preview */}
         <FeePreviewCard
           season={season}
