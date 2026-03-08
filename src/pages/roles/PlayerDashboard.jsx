@@ -85,6 +85,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   const [badges, setBadges] = useState([])
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [rankings, setRankings] = useState({})
+  const [skillRatings, setSkillRatings] = useState(null)
   const [editMode, setEditMode] = useState(false)
   const [selectedTeamIdx, setSelectedTeamIdx] = useState(0)
 
@@ -141,6 +142,12 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
         const { data: gameData } = await supabase.from('game_player_stats').select('*, event:event_id(*)').eq('player_id', player.id).order('created_at', { ascending: false }).limit(5)
         setGameStats(gameData || [])
         await loadRankings(player.id)
+
+        // Load coach-evaluated skill ratings (mobile parity: player_skill_ratings table)
+        try {
+          const { data: ratings } = await supabase.from('player_skill_ratings').select('*').eq('player_id', player.id).eq('season_id', selectedSeason.id).order('rated_at', { ascending: false }).limit(1).maybeSingle()
+          setSkillRatings(ratings)
+        } catch { setSkillRatings(null) }
       }
 
       const teamIds = teamData?.map(tp => tp.team_id).filter(Boolean) || []
@@ -151,7 +158,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       }
 
       try {
-        const { data: badgeData } = await supabase.from('player_achievements').select('*, achievement:achievement_id(id, name, icon, rarity, color_primary)').eq('player_id', player.id).order('awarded_at', { ascending: false })
+        const { data: badgeData } = await supabase.from('player_achievements').select('id, earned_at, achievement:achievement_id(id, name, icon, rarity, color_primary, description)').eq('player_id', player.id).order('earned_at', { ascending: false })
         setBadges(badgeData || [])
       } catch { setBadges([]) }
     } catch (err) { console.error('Error loading player dashboard:', err) }
@@ -348,7 +355,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
             role: 'player', onNavigate, navigateToTeamWall,
             viewingPlayer, displayName, primaryTeam,
             level, xp, xpProgress, xpToNext, overallRating, gamesPlayed,
-            seasonStats, gameStats, badges, rankings, upcomingEvents,
+            seasonStats, gameStats, badges, rankings, upcomingEvents, skillRatings,
             selectedTeam: primaryTeam,
           }}
         />
