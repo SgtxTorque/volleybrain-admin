@@ -27,4 +27,4 @@ supabase/supabase.exe
 supabase/*.exe
 
 # Legacy backup
-src_backup/
+src_backup/NUL

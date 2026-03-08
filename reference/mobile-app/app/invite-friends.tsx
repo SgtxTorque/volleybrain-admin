@@ -1,11 +1,14 @@
 import { useAuth } from '@/lib/auth';
+import { displayTextStyle, radii, shadows, spacing } from '@/lib/design-tokens';
 import { useTheme } from '@/lib/theme';
+import { FONTS } from '@/theme/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Alert,
+  Image,
   Linking,
   Platform,
   ScrollView,
@@ -31,8 +34,8 @@ export default function InviteFriendsScreen() {
   const orgSlug = (organization as any)?.slug || profile?.current_organization_id || '';
   const orgName = (organization as any)?.name || 'our team';
   const registrationUrl = orgSlug
-    ? `https://app.volleybrain.com/register/${orgSlug}`
-    : 'https://app.volleybrain.com/register';
+    ? `https://app.thelynxapp.com/register/${orgSlug}`
+    : 'https://app.thelynxapp.com/register';
 
   // -----------------------------------------------
   // Actions
@@ -51,7 +54,7 @@ export default function InviteFriendsScreen() {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Join ${orgName} on VolleyBrain! Register here: ${registrationUrl}`,
+        message: `Join ${orgName} on Lynx! Register here: ${registrationUrl}`,
         url: registrationUrl,
       });
     } catch (e) {
@@ -59,7 +62,7 @@ export default function InviteFriendsScreen() {
     }
   };
 
-  const shareMessage = `Join ${orgName} on VolleyBrain! Register here: ${registrationUrl}`;
+  const shareMessage = `Join ${orgName} on Lynx! Register here: ${registrationUrl}`;
 
   const handleShareSMS = () => {
     const url = Platform.OS === 'ios'
@@ -77,7 +80,7 @@ export default function InviteFriendsScreen() {
   };
 
   const handleShareEmail = () => {
-    const subject = encodeURIComponent(`Join ${orgName} on VolleyBrain!`);
+    const subject = encodeURIComponent(`Join ${orgName} on Lynx!`);
     const body = encodeURIComponent(shareMessage);
     Linking.openURL(`mailto:?subject=${subject}&body=${body}`).catch(() =>
       Alert.alert('Error', 'Could not open email client.')
@@ -106,10 +109,12 @@ export default function InviteFriendsScreen() {
       >
         {/* Hero Section */}
         <View style={s.heroCard}>
-          <View style={[s.heroIconWrap, { backgroundColor: colors.primary + '20' }]}>
-            <Ionicons name="people" size={40} color={colors.primary} />
-          </View>
-          <Text style={s.heroTitle}>Grow Your Team</Text>
+          <Image
+            source={require('@/assets/images/mascot/Meet-Lynx.png')}
+            style={s.mascotImage}
+            resizeMode="contain"
+          />
+          <Text style={s.heroTitle}>Spread the Word!</Text>
           <Text style={s.heroSubtitle}>
             Share the registration link with other parents to help grow {orgName}!
           </Text>
@@ -230,7 +235,7 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
+      paddingHorizontal: spacing.screenPadding,
       paddingVertical: 14,
     },
     backBtn: {
@@ -240,8 +245,8 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     headerTitle: {
+      ...displayTextStyle,
       fontSize: 28,
-      fontWeight: '800',
       color: colors.text,
     },
 
@@ -250,13 +255,13 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     scrollContent: {
-      paddingHorizontal: 16,
+      paddingHorizontal: spacing.screenPadding,
     },
 
     // Section Title
     sectionTitle: {
       fontSize: 13,
-      fontWeight: '700',
+      fontFamily: FONTS.bodyBold,
       color: colors.textMuted,
       marginBottom: 12,
       marginTop: 8,
@@ -269,31 +274,20 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.glassCard,
       borderWidth: 1,
       borderColor: colors.glassBorder,
-      borderRadius: 16,
+      borderRadius: radii.card,
       padding: 28,
       alignItems: 'center',
       marginBottom: 24,
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        },
-        android: { elevation: 6 },
-      }),
+      ...shadows.card,
     },
-    heroIconWrap: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 16,
+    mascotImage: {
+      width: 140,
+      height: 140,
+      marginBottom: 12,
     },
     heroTitle: {
+      ...displayTextStyle,
       fontSize: 24,
-      fontWeight: '800',
       color: colors.text,
       marginBottom: 8,
     },
@@ -309,18 +303,10 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.glassCard,
       borderWidth: 1,
       borderColor: colors.glassBorder,
-      borderRadius: 16,
+      borderRadius: radii.card,
       padding: 16,
       marginBottom: 24,
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        },
-        android: { elevation: 6 },
-      }),
+      ...shadows.card,
     },
     linkRow: {
       flexDirection: 'row',
@@ -362,7 +348,7 @@ const createStyles = (colors: any) =>
     },
     actionBtnText: {
       fontSize: 15,
-      fontWeight: '700',
+      fontFamily: FONTS.bodyBold,
     },
 
     // Social Share Row
@@ -383,7 +369,7 @@ const createStyles = (colors: any) =>
     },
     socialBtnText: {
       fontSize: 12,
-      fontWeight: '700',
+      fontFamily: FONTS.bodyBold,
     },
 
     // Info Card
@@ -391,19 +377,11 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.glassCard,
       borderWidth: 1,
       borderColor: colors.glassBorder,
-      borderRadius: 16,
+      borderRadius: radii.card,
       padding: 20,
       marginBottom: 20,
       gap: 18,
-      ...Platform.select({
-        ios: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 12,
-        },
-        android: { elevation: 6 },
-      }),
+      ...shadows.card,
     },
     infoRow: {
       flexDirection: 'row',
@@ -419,14 +397,14 @@ const createStyles = (colors: any) =>
     },
     infoStepNum: {
       fontSize: 16,
-      fontWeight: '800',
+      fontFamily: FONTS.bodyExtraBold,
     },
     infoStepContent: {
       flex: 1,
     },
     infoStepTitle: {
       fontSize: 15,
-      fontWeight: '700',
+      fontFamily: FONTS.bodyBold,
       color: colors.text,
       marginBottom: 4,
     },

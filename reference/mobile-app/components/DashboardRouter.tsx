@@ -8,12 +8,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 // Import dashboard components
-import AdminDashboard from './AdminDashboard';
+import AdminHomeScroll from './AdminHomeScroll';
 import ChildPickerScreen, { type ChildPlayer } from './ChildPickerScreen';
-import CoachDashboard from './CoachDashboard';
-import CoachParentDashboard from './CoachParentDashboard';
-import ParentDashboard from './ParentDashboard';
-import PlayerDashboard from './PlayerDashboard';
+import CoachHomeScroll from './CoachHomeScroll';
+import ParentHomeScroll from './ParentHomeScroll';
+import PlayerHomeScroll from './PlayerHomeScroll';
 
 const LAST_CHILD_KEY = 'vb_player_last_child_id';
 
@@ -249,13 +248,13 @@ export default function DashboardRouter() {
 
   switch (dashboardType) {
     case 'admin':
-      return <AdminDashboard />;
+      return <AdminHomeScroll />;
     case 'coach':
-      return <CoachDashboard />;
+      return <CoachHomeScroll />;
     case 'parent':
-      return <ParentDashboard />;
+      return <ParentHomeScroll />;
     case 'coach_parent':
-      return <CoachParentDashboard />;
+      return <CoachHomeScroll />;
     case 'player': {
       // Still loading children
       if (!playerChildrenLoaded) {
@@ -288,7 +287,7 @@ export default function DashboardRouter() {
         : undefined;
 
       return (
-        <PlayerDashboard
+        <PlayerHomeScroll
           playerId={selectedChildId}
           playerName={selectedChildName}
           onSwitchChild={handleSwitchChild}
@@ -296,7 +295,7 @@ export default function DashboardRouter() {
       );
     }
     default:
-      return <ParentDashboard />;
+      return <ParentHomeScroll />;
   }
 }
 

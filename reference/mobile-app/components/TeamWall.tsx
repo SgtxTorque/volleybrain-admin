@@ -1029,7 +1029,7 @@ export default function TeamWall({ teamId: propTeamId, embedded = false, feedOnl
         async (idx: number) => {
           if (idx === 0) {
             const { status } = await MediaLibrary.requestPermissionsAsync();
-            if (status !== 'granted') { Alert.alert('Permission Required', 'VolleyBrain needs permission to save photos.'); return; }
+            if (status !== 'granted') { Alert.alert('Permission Required', 'Lynx needs permission to save photos.'); return; }
             const localUri = `${LegacyFileSystem.cacheDirectory}vb_save_${Date.now()}.jpg`;
             const dl = await LegacyFileSystem.downloadAsync(url, localUri);
             await MediaLibrary.saveToLibraryAsync(dl.uri);
@@ -1047,7 +1047,7 @@ export default function TeamWall({ teamId: propTeamId, embedded = false, feedOnl
           text: 'Save Photo',
           onPress: async () => {
             const { status } = await MediaLibrary.requestPermissionsAsync();
-            if (status !== 'granted') { Alert.alert('Permission Required', 'VolleyBrain needs permission to save photos.'); return; }
+            if (status !== 'granted') { Alert.alert('Permission Required', 'Lynx needs permission to save photos.'); return; }
             const localUri = `${LegacyFileSystem.cacheDirectory}vb_save_${Date.now()}.jpg`;
             const dl = await LegacyFileSystem.downloadAsync(url, localUri);
             await MediaLibrary.saveToLibraryAsync(dl.uri);
@@ -1155,7 +1155,7 @@ export default function TeamWall({ teamId: propTeamId, embedded = false, feedOnl
     try {
       const authorName = post.profiles?.full_name || 'A teammate';
       const teamName = team?.name || 'the team';
-      const message = `${authorName} posted on ${teamName}:\n\n${post.content}\n\nShared from VolleyBrain`;
+      const message = `${authorName} posted on ${teamName}:\n\n${post.content}\n\nShared from Lynx`;
       const result = await Share.share({ message });
 
       // Track share on success

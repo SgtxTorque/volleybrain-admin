@@ -1,4 +1,6 @@
+import { displayTextStyle, radii, shadows, spacing } from '@/lib/design-tokens';
 import { useTheme } from '@/lib/theme';
+import { FONTS } from '@/theme/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -20,7 +22,7 @@ type TermsSection = {
 const TERMS_SECTIONS: TermsSection[] = [
   {
     title: '1. Acceptance of Terms',
-    content: 'By creating an account or using VolleyBrain, you agree to these terms. If you do not agree, do not use the service. Parents/guardians accepting on behalf of minor children are bound by these terms.',
+    content: 'By creating an account or using Lynx, you agree to these terms. If you do not agree, do not use the service. Parents/guardians accepting on behalf of minor children are bound by these terms.',
   },
   {
     title: '2. Account Responsibilities',
@@ -49,7 +51,7 @@ const TERMS_SECTIONS: TermsSection[] = [
     content: '',
     bullets: [
       'You retain ownership of content you upload (photos, messages, etc.)',
-      'You grant VolleyBrain a license to display and store your content for app functionality',
+      'You grant Lynx a license to display and store your content for app functionality',
       'Organization administrators may moderate or remove inappropriate content',
       'Chat messages may be visible to team members, coaches, and administrators',
     ],
@@ -58,10 +60,10 @@ const TERMS_SECTIONS: TermsSection[] = [
     title: '5. Payment Terms',
     content: '',
     bullets: [
-      'Registration fees and payments are set by your organization, not VolleyBrain',
+      'Registration fees and payments are set by your organization, not Lynx',
       'Payment processing is handled through the organization\'s chosen method',
       'Refund policies are determined by your organization',
-      'VolleyBrain is not responsible for disputes between users and organizations',
+      'Lynx is not responsible for disputes between users and organizations',
     ],
   },
   {
@@ -78,7 +80,7 @@ const TERMS_SECTIONS: TermsSection[] = [
     title: '7. Disclaimers',
     content: '',
     bullets: [
-      'VolleyBrain is provided "as is" without warranty of any kind',
+      'Lynx is provided "as is" without warranty of any kind',
       'We do not guarantee uninterrupted service availability',
       'We are not responsible for the actions of organizations, coaches, or users',
       'Medical information in the app does not constitute medical advice',
@@ -88,7 +90,7 @@ const TERMS_SECTIONS: TermsSection[] = [
     title: '8. Limitation of Liability',
     content: '',
     bullets: [
-      'VolleyBrain\'s liability is limited to the amount paid for the service',
+      'Lynx\'s liability is limited to the amount paid for the service',
       'We are not liable for injuries, losses, or damages arising from sports participation',
       'We are not liable for data loss beyond our reasonable control',
     ],
@@ -99,7 +101,7 @@ const TERMS_SECTIONS: TermsSection[] = [
     bullets: [
       'You may delete your account at any time through profile settings',
       'Organizations may remove users who violate their policies',
-      'VolleyBrain may suspend accounts that violate these terms',
+      'Lynx may suspend accounts that violate these terms',
       'Upon termination, your data will be handled per our Privacy Policy',
     ],
   },
@@ -190,8 +192,8 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     headerTitle: {
+      ...displayTextStyle,
       fontSize: 18,
-      fontWeight: '600',
       color: colors.text,
     },
     scroll: {
@@ -214,24 +216,20 @@ const createStyles = (colors: any) =>
     updatedText: {
       fontSize: 14,
       color: colors.textMuted,
-      fontWeight: '500',
+      fontFamily: FONTS.bodySemiBold,
     },
     sectionCard: {
       backgroundColor: colors.glassCard,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: radii.card,
+      padding: spacing.screenPadding,
       marginBottom: 12,
       borderWidth: 1,
       borderColor: colors.glassBorder,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 6,
+      ...shadows.card,
     },
     sectionTitle: {
       fontSize: 16,
-      fontWeight: '700',
+      fontFamily: FONTS.bodyBold,
       color: colors.text,
       marginBottom: 10,
     },
@@ -239,7 +237,7 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.textSecondary,
       lineHeight: 22,
-      marginBottom: 4,
+      marginBottom: 10,
     },
     bulletRow: {
       flexDirection: 'row',
@@ -268,7 +266,7 @@ const createStyles = (colors: any) =>
     },
     understandBtnText: {
       fontSize: 16,
-      fontWeight: '600',
-      color: '#000',
+      fontFamily: FONTS.bodySemiBold,
+      color: colors.background,
     },
   });

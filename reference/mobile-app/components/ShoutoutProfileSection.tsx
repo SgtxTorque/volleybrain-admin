@@ -1,218 +1,163 @@
-// =============================================================================
-// ShoutoutProfileSection — Shows shoutout stats on player/coach profiles
-// =============================================================================
-
+/**
+ * ShoutoutProfileSection — Shows a player's shoutout stats.
+ * Total received/given + category breakdown.
+ */
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { fetchShoutoutStats } from '@/lib/shoutout-service';
-import { useTheme } from '@/lib/theme';
-import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-// =============================================================================
-// Types
-// =============================================================================
+import { supabase } from '@/lib/supabase';
+import { BRAND } from '@/theme/colors';
+import { FONTS } from '@/theme/fonts';
 
 type Props = {
-  profileId: string;
+  /** Profile ID (profiles.id) — used directly if provided */
+  profileId?: string | null;
+  /** Player ID (players.id) — resolved to profile via parent_account_id */
+  playerId?: string | null;
 };
 
 type ShoutoutStats = {
   received: number;
   given: number;
-  categoryBreakdown: Array<{ category: string; emoji: string; color: string; count: number }>;
+  categoryBreakdown: { name: string; emoji: string; count: number }[];
 };
 
-// =============================================================================
-// Component
-// =============================================================================
-
-export default function ShoutoutProfileSection({ profileId }: Props) {
-  const { colors } = useTheme();
+export default function ShoutoutProfileSection({ profileId, playerId }: Props) {
   const [stats, setStats] = useState<ShoutoutStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'received' | 'given'>('received');
-  const s = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
-    loadStats();
-  }, [profileId]);
+    (async () => {
+      try {
+        let resolvedId = profileId || null;
 
-  const loadStats = async () => {
-    setLoading(true);
-    try {
-      const data = await fetchShoutoutStats(profileId);
-      setStats(data);
-    } catch (err) {
-      if (__DEV__) console.error('[ShoutoutProfile] error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Resolve playerId → profileId via parent_account_id
+        if (!resolvedId && playerId) {
+          const { data } = await supabase
+            .from('players')
+            .select('parent_account_id')
+            .eq('id', playerId)
+            .maybeSingle();
+          resolvedId = data?.parent_account_id || null;
+        }
 
-  if (loading) {
-    return (
-      <View style={s.container}>
-        <ActivityIndicator size="small" color={colors.primary} />
-      </View>
-    );
-  }
+        if (!resolvedId) return;
 
-  if (!stats || (stats.received === 0 && stats.given === 0)) {
-    return null; // Don't show section if no shoutouts
-  }
+        const data = await fetchShoutoutStats(resolvedId);
+        if (data) {
+          setStats({
+            received: data.received ?? 0,
+            given: data.given ?? 0,
+            categoryBreakdown: (data.categoryBreakdown || []).map((c) => ({
+              name: c.category || 'Shoutout',
+              emoji: c.emoji || '\u{1F31F}',
+              count: c.count || 0,
+            })),
+          });
+        }
+      } catch {
+        // Silently fail — not critical
+      }
+    })();
+  }, [profileId, playerId]);
+
+  if (!stats || (stats.received === 0 && stats.given === 0)) return null;
 
   return (
-    <View style={s.container}>
-      {/* Section header */}
-      <View style={s.headerRow}>
-        <Ionicons name="heart" size={18} color="#A855F7" />
-        <Text style={[s.headerTitle, { color: colors.text }]}>Shoutouts</Text>
+    <View style={styles.card}>
+      <Text style={styles.sectionLabel}>SHOUTOUTS</Text>
+
+      <View style={styles.countsRow}>
+        <View style={styles.countItem}>
+          <Text style={styles.countValue}>{stats.received}</Text>
+          <Text style={styles.countLabel}>Received</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.countItem}>
+          <Text style={styles.countValue}>{stats.given}</Text>
+          <Text style={styles.countLabel}>Given</Text>
+        </View>
       </View>
 
-      {/* Summary counts */}
-      <View style={s.countRow}>
-        <TouchableTab
-          label={`${stats.received} Received`}
-          isActive={tab === 'received'}
-          color="#A855F7"
-          onPress={() => setTab('received')}
-          textColor={colors.text}
-          mutedColor={colors.textMuted}
-        />
-        <TouchableTab
-          label={`${stats.given} Given`}
-          isActive={tab === 'given'}
-          color="#A855F7"
-          onPress={() => setTab('given')}
-          textColor={colors.text}
-          mutedColor={colors.textMuted}
-        />
-      </View>
-
-      {/* Category breakdown (received tab) */}
-      {tab === 'received' && stats.categoryBreakdown.length > 0 && (
-        <View style={s.categoryList}>
-          {stats.categoryBreakdown.map((cat) => (
-            <View key={cat.category} style={[s.categoryChip, { borderColor: cat.color + '40' }]}>
-              <Text style={s.categoryEmoji}>{cat.emoji}</Text>
-              <Text style={[s.categoryName, { color: colors.text }]}>{cat.category}</Text>
-              <View style={[s.categoryCount, { backgroundColor: cat.color + '20' }]}>
-                <Text style={[s.categoryCountText, { color: cat.color }]}>x{cat.count}</Text>
-              </View>
+      {stats.categoryBreakdown.length > 0 && (
+        <View style={styles.categoriesWrap}>
+          {stats.categoryBreakdown.slice(0, 4).map((cat, i) => (
+            <View key={i} style={styles.categoryPill}>
+              <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+              <Text style={styles.categoryText}>
+                {cat.name} x{cat.count}
+              </Text>
             </View>
           ))}
         </View>
       )}
-
-      {tab === 'received' && stats.categoryBreakdown.length === 0 && (
-        <Text style={[s.emptyText, { color: colors.textMuted }]}>No shoutouts received yet</Text>
-      )}
-
-      {tab === 'given' && (
-        <Text style={[s.givenText, { color: colors.textSecondary }]}>
-          Has given {stats.given} shoutout{stats.given !== 1 ? 's' : ''} to teammates
-        </Text>
-      )}
     </View>
   );
 }
 
-// =============================================================================
-// TouchableTab helper
-// =============================================================================
-
-function TouchableTab({ label, isActive, color, onPress, textColor, mutedColor }: {
-  label: string;
-  isActive: boolean;
-  color: string;
-  onPress: () => void;
-  textColor: string;
-  mutedColor: string;
-}) {
-  return (
-    <View style={{ alignItems: 'center' }}>
-      <Text
-        onPress={onPress}
-        style={{
-          fontSize: 14,
-          fontWeight: isActive ? '700' : '500',
-          color: isActive ? color : mutedColor,
-          paddingVertical: 6,
-          paddingHorizontal: 12,
-        }}
-      >
-        {label}
-      </Text>
-      {isActive && (
-        <View style={{ height: 2, width: '80%', backgroundColor: color, borderRadius: 1 }} />
-      )}
-    </View>
-  );
-}
-
-// =============================================================================
-// Styles
-// =============================================================================
-
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    container: {
-      padding: 16,
-      gap: 12,
-    },
-    headerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    headerTitle: {
-      fontSize: 16,
-      fontWeight: '700',
-    },
-    countRow: {
-      flexDirection: 'row',
-      gap: 16,
-    },
-    categoryList: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-    },
-    categoryChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingVertical: 6,
-      paddingHorizontal: 10,
-      borderRadius: 20,
-      borderWidth: 1,
-    },
-    categoryEmoji: {
-      fontSize: 16,
-    },
-    categoryName: {
-      fontSize: 13,
-      fontWeight: '500',
-    },
-    categoryCount: {
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 10,
-    },
-    categoryCountText: {
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    emptyText: {
-      fontSize: 13,
-      fontStyle: 'italic',
-    },
-    givenText: {
-      fontSize: 14,
-    },
-  });
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    marginTop: 16,
+    backgroundColor: BRAND.white,
+    borderColor: BRAND.border,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontFamily: FONTS.bodyBold,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    color: BRAND.textMuted,
+  },
+  countsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
+    marginBottom: 12,
+  },
+  countItem: {
+    alignItems: 'center',
+  },
+  countValue: {
+    fontSize: 28,
+    fontFamily: FONTS.bodyExtraBold,
+    color: BRAND.textPrimary,
+  },
+  countLabel: {
+    fontSize: 12,
+    fontFamily: FONTS.bodyMedium,
+    marginTop: 2,
+    color: BRAND.textMuted,
+  },
+  divider: {
+    width: 1,
+    height: 32,
+    backgroundColor: 'rgba(128,128,128,0.2)',
+  },
+  categoriesWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+  },
+  categoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(168,85,247,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  categoryEmoji: {
+    fontSize: 14,
+  },
+  categoryText: {
+    fontSize: 12,
+    fontFamily: FONTS.bodySemiBold,
+    color: BRAND.textSecondary,
+  },
+});

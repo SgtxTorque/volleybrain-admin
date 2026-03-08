@@ -41,7 +41,7 @@ const BADGE_DEFS = {
 
 /**
  * ParentLeftSidebar — left column of the parent dashboard
- * Handles its own data fetching for payments, badges, and priority items
+ * BRAND-styled with offWhite bg, consistent section headers
  */
 export default function ParentLeftSidebar({
   orgLogo, orgName, orgTagline,
@@ -63,7 +63,7 @@ export default function ParentLeftSidebar({
 }) {
   const { isDark } = useTheme()
 
-  // Badge data — fetched when active child changes
+  // Badge data
   const [playerBadges, setPlayerBadges] = useState([])
   const [badgesInProgress, setBadgesInProgress] = useState([])
 
@@ -75,7 +75,6 @@ export default function ParentLeftSidebar({
     if (!activeChildId) return
 
     async function loadBadges() {
-      // player_achievements table (NOT player_badges — doesn't exist in schema)
       try {
         const { data, error } = await supabase
           .from('player_achievements')
@@ -92,7 +91,6 @@ export default function ParentLeftSidebar({
       } catch {
         if (!cancelled) setPlayerBadges([])
       }
-      // player_achievement_progress
       try {
         const { data, error } = await supabase
           .from('player_achievement_progress')
@@ -115,102 +113,100 @@ export default function ParentLeftSidebar({
   }, [activeChildId])
 
   return (
-    <aside className={`hidden xl:flex w-[310px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className="hidden xl:flex w-[310px] shrink-0 flex-col bg-brand-off-white overflow-y-auto p-5 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
-      {/* Org Header Card */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-5 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      {/* ── Org Header Card ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-5 shadow-sm">
         {orgLogo ? (
           <div className="flex items-center gap-3 mb-3">
-            <div className={`w-10 h-10 rounded-xl overflow-hidden shadow-sm ${isDark ? 'border border-white/[0.06]' : 'border border-slate-100'}`}>
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-brand-border shadow-sm">
               <img src={orgLogo} alt={orgName} className="w-full h-full object-cover" />
             </div>
             <div className="min-w-0">
-              <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>{orgName}</p>
-              {orgTagline && <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'} truncate`}>{orgTagline}</p>}
+              <p className="text-sm font-bold text-brand-navy truncate">{orgName}</p>
+              {orgTagline && <p className="text-[11px] text-brand-text-muted truncate">{orgTagline}</p>}
             </div>
           </div>
         ) : (
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/10 flex items-center justify-center">
-              <VolleyballIcon className="w-5 h-5 text-[var(--accent-primary)]" />
+            <div className="w-10 h-10 rounded-xl bg-[#4BB9EC]/10 flex items-center justify-center">
+              <VolleyballIcon className="w-5 h-5 text-[#4BB9EC]" />
             </div>
-            <div>
-              <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Lynx</p>
-            </div>
+            <p className="text-sm font-bold text-brand-navy">Lynx</p>
           </div>
         )}
-        <div className={`border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} pt-3`}>
+        <div className="border-t border-brand-border pt-3">
           <div className="flex items-center gap-3">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
             ) : (
-              <div className={`w-9 h-9 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} flex items-center justify-center`}>
-                <UserCircle className="w-5 h-5 text-slate-400" />
+              <div className="w-9 h-9 rounded-full bg-brand-warm-gray flex items-center justify-center">
+                <UserCircle className="w-5 h-5 text-brand-text-muted" />
               </div>
             )}
             <div>
-              <p className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{profile?.full_name || 'Parent'}</p>
-              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Parent</p>
+              <p className="text-sm font-semibold text-brand-navy">{profile?.full_name || 'Parent'}</p>
+              <p className="text-[11px] text-brand-text-muted">Parent</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Parent Stats */}
+      {/* ── Parent Stats Row ── */}
       <div className="flex gap-2">
         {[
           { value: registrationData.length, label: 'Players' },
           { value: [...new Set(registrationData.map(c => c.season?.id).filter(Boolean))].length, label: 'Seasons' },
           { value: teamIds.length, label: 'Teams' },
         ].map(stat => (
-          <div key={stat.label} className={`flex-1 ${isDark ? 'bg-white/[0.06]' : 'bg-lynx-cloud'} rounded-xl px-3 py-3 text-center`}>
-            <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stat.value}</div>
-            <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mt-0.5 uppercase font-semibold tracking-wide`}>{stat.label}</div>
+          <div key={stat.label} className="flex-1 bg-brand-warm-gray rounded-xl px-3 py-3 text-center">
+            <div className="text-xl font-black text-brand-navy">{stat.value}</div>
+            <div className="text-[10px] text-brand-text-faint mt-0.5 uppercase font-bold tracking-wider">{stat.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Payment Summary Card */}
+      {/* ── Payment Summary Card ── */}
       <div
-        className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 cursor-pointer hover:shadow-md transition-shadow`}
+        className="bg-white border border-brand-border rounded-2xl p-4 cursor-pointer hover:shadow-md transition-shadow shadow-sm"
         onClick={() => paymentSummary.totalDue > 0 ? onShowPayment?.() : onNavigate?.('payments')}
       >
-        <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-3`}>Payment Status</h3>
+        <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint mb-2">Payment Status</p>
         {paymentSummary.totalDue > 0 ? (
           <>
-            <p className="text-3xl font-black text-red-500">${paymentSummary.totalDue.toFixed(2)}</p>
-            <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mt-1`}>Balance due</p>
+            <p className="text-2xl font-black text-red-500">${paymentSummary.totalDue.toFixed(2)}</p>
+            <p className="text-[11px] text-brand-text-muted mt-1">Balance due</p>
             {paymentSummary.totalPaid > 0 && (
               <div className="mt-2">
-                <div className={`w-full h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+                <div className="w-full h-1.5 rounded-full bg-brand-warm-gray">
                   <div
-                    className="h-2 rounded-full bg-emerald-500 transition-all duration-500"
+                    className="h-1.5 rounded-full bg-[#22C55E] transition-all duration-500"
                     style={{ width: `${Math.min(100, (paymentSummary.totalPaid / (paymentSummary.totalDue + paymentSummary.totalPaid)) * 100)}%` }}
                   />
                 </div>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mt-1`}>${paymentSummary.totalPaid.toFixed(2)} paid</p>
+                <p className="text-[10px] text-brand-text-muted mt-1">${paymentSummary.totalPaid.toFixed(2)} paid</p>
               </div>
             )}
           </>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
-              <Check className="w-4 h-4 text-emerald-500" />
+            <div className="w-8 h-8 rounded-full bg-[#22C55E]/10 flex items-center justify-center">
+              <Check className="w-4 h-4 text-[#22C55E]" />
             </div>
             <div>
-              <p className="text-base font-bold text-emerald-600">All Paid Up</p>
-              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>No outstanding balance</p>
+              <p className="text-sm font-bold text-[#22C55E]">All Paid Up</p>
+              <p className="text-[11px] text-brand-text-muted">No outstanding balance</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Needs Attention Card */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      {/* ── Needs Attention Card ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-base font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Needs Attention</h3>
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint">Needs Attention</p>
           {priorityEngine.count > 0 && (
-            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-sm font-bold rounded-full">
+            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">
               {priorityEngine.count}
             </span>
           )}
@@ -223,7 +219,7 @@ export default function ParentLeftSidebar({
                 onClick={() => handlePriorityAction?.(item)}
                 className="w-full flex items-center justify-between py-2 group"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${
                     item.actionType === 'payment' ? 'bg-red-50 text-red-500' :
                     item.actionType === 'waiver' ? 'bg-purple-50 text-purple-500' :
@@ -233,17 +229,17 @@ export default function ParentLeftSidebar({
                     {item.actionType === 'payment' ? '💰' : item.actionType === 'waiver' ? '📋' : item.actionType === 'rsvp' ? '📅' : '⚠️'}
                   </div>
                   <div className="text-left">
-                    <div className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title || item.label}</div>
-                    {item.subtitle && <div className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>{item.subtitle}</div>}
+                    <div className="text-xs font-bold text-brand-navy">{item.title || item.label}</div>
+                    {item.subtitle && <div className="text-[10px] text-brand-text-muted">{item.subtitle}</div>}
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition" />
+                <ChevronRight className="w-3.5 h-3.5 text-brand-text-faint group-hover:text-[#4BB9EC] transition" />
               </button>
             ))}
             {priorityEngine.count > 3 && (
               <button
                 onClick={() => onShowActionSidebar?.()}
-                className="text-base text-[var(--accent-primary)] font-semibold hover:opacity-80 transition w-full text-left pt-1"
+                className="text-[11px] text-[#4BB9EC] font-bold hover:opacity-80 transition w-full text-left pt-1"
               >
                 View All {priorityEngine.count} items →
               </button>
@@ -251,20 +247,20 @@ export default function ParentLeftSidebar({
           </div>
         ) : (
           <div className="flex items-center gap-2 py-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
-              <Check className="w-4 h-4 text-emerald-500" />
+            <div className="w-8 h-8 rounded-full bg-[#22C55E]/10 flex items-center justify-center">
+              <Check className="w-4 h-4 text-[#22C55E]" />
             </div>
             <div>
-              <p className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>All caught up!</p>
-              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Nothing needs your attention</p>
+              <p className="text-xs font-bold text-brand-navy">All caught up!</p>
+              <p className="text-[10px] text-brand-text-muted">Nothing needs your attention</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Quick Actions */}
+      {/* ── Quick Actions (matches mobile QuickActionsGrid) ── */}
       <div>
-        <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'} mb-3`}>Quick Actions</h3>
+        <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint mb-2">Quick Actions</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: 'Calendar', icon: Calendar, action: () => onNavigate?.('schedule') },
@@ -275,20 +271,20 @@ export default function ParentLeftSidebar({
             <button
               key={btn.label}
               onClick={btn.action}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl ${isDark ? 'bg-white/[0.06] hover:bg-white/10' : 'bg-lynx-cloud hover:bg-slate-100'} transition-colors`}
+              className="flex flex-col items-center gap-1.5 p-3.5 rounded-xl bg-white border border-brand-border hover:shadow-sm hover:border-[#4BB9EC]/20 transition-all"
             >
-              <btn.icon className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`} />
-              <span className={`text-base font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{btn.label}</span>
+              <btn.icon className="w-5 h-5 text-brand-text-muted" />
+              <span className="text-[11px] font-bold text-brand-navy">{btn.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Badge Progress Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      {/* ── Badge Progress Preview ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Badge Progress</h3>
-          <button onClick={() => onNavigate?.('achievements')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint">Badge Progress</p>
+          <button onClick={() => onNavigate?.('achievements')} className="text-[10px] text-[#4BB9EC] font-bold hover:opacity-80 transition">
             View All →
           </button>
         </div>
@@ -299,35 +295,35 @@ export default function ParentLeftSidebar({
               return (
                 <div key={i} className="flex flex-col items-center gap-1.5">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
                     style={{ background: `${def.color}15`, border: `2px solid ${def.color}40` }}
                   >
                     {def.icon}
                   </div>
-                  <span className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-lynx-slate'} text-center max-w-[60px] leading-tight`}>{def.name}</span>
+                  <span className="text-[10px] font-bold text-brand-text-muted text-center max-w-[55px] leading-tight">{def.name}</span>
                 </div>
               )
             })}
           </div>
         ) : badgesInProgress.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {badgesInProgress.slice(0, 2).map((b, i) => {
               const def = BADGE_DEFS[b.badge_id] || BADGE_DEFS[b.achievement_id] || { name: b.badge_id || 'Badge', icon: '🏅', color: '#6B7280' }
               const pct = b.target_value > 0 ? Math.min((b.current_value / b.target_value) * 100, 100) : 0
               return (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex items-center gap-2.5">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
                     style={{ background: `${def.color}15`, border: `2px solid ${def.color}40` }}
                   >
                     {def.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-base font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} truncate`}>{def.name}</span>
-                      <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-lynx-slate'} ml-2 flex-shrink-0`}>{b.current_value}/{b.target_value}</span>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-[11px] font-bold text-brand-navy truncate">{def.name}</span>
+                      <span className="text-[10px] text-brand-text-muted ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
                     </div>
-                    <div className={`h-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
+                    <div className="h-1.5 rounded-full bg-brand-warm-gray overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: def.color }} />
                     </div>
                   </div>
@@ -336,11 +332,11 @@ export default function ParentLeftSidebar({
             })}
           </div>
         ) : (
-          <p className={`text-base ${isDark ? 'text-slate-400' : 'text-lynx-slate'} text-center py-2`}>No badges earned yet</p>
+          <p className="text-[11px] text-brand-text-muted text-center py-2">No badges earned yet</p>
         )}
       </div>
 
-      {/* Getting Started Checklist */}
+      {/* ── Getting Started Checklist ── */}
       <ParentChecklistWidget
         onNavigate={onNavigate}
         onTeamHub={() => navigateToTeamWall?.(activeTeam?.id)}

@@ -41,8 +41,9 @@ const SPORT_LEADERBOARD = {
 }
 
 /**
- * ParentRightPanel — right sidebar with context-specific data for selected player/team
- * Handles its own data fetching
+ * ParentRightPanel — right sidebar with season record, events, achievements
+ * BRAND-styled: big display numbers for wins/losses (matches mobile SeasonSnapshot),
+ * event cards, achievement pills, leaderboard preview
  */
 export default function ParentRightPanel({
   activeChild,
@@ -62,12 +63,10 @@ export default function ParentRightPanel({
   const teamId = activeTeam?.id
   const playerId = activeChild?.id
 
-  // Fetch right panel data when team/player changes
   useEffect(() => {
     let cancelled = false
 
     async function loadData() {
-      // team_standings — EXISTS: id, team_id, season_id, wins, losses, ties, points_for, points_against, win_percentage, streak, last_10, updated_at
       if (teamId) {
         try {
           const { data, error } = await supabase
@@ -87,7 +86,6 @@ export default function ParentRightPanel({
         }
       }
 
-      // player_achievements — EXISTS: id, player_id, achievement_id, awarded_at, awarded_by, notes, created_at
       if (playerId) {
         try {
           const { data, error } = await supabase
@@ -129,67 +127,91 @@ export default function ParentRightPanel({
   }, [teamId, playerId])
 
   const leaderboardCats = SPORT_LEADERBOARD[sportName?.toLowerCase()] || SPORT_LEADERBOARD.volleyball
+  const wins = teamRecord?.wins || 0
+  const losses = teamRecord?.losses || 0
+  const ties = teamRecord?.ties || 0
+  const totalGames = wins + losses + ties
+  const winPct = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0
 
   return (
-    <aside className={`hidden lg:flex w-[330px] shrink-0 flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-[#F6F8FB]'} overflow-y-auto p-5 space-y-5 scrollbar-hide`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <aside className="hidden lg:flex w-[330px] shrink-0 flex-col bg-brand-off-white overflow-y-auto p-5 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
-      {/* Upcoming Events */}
+      {/* ── Season Record (matches mobile SeasonSnapshot — big display numbers) ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-5 shadow-sm">
+        <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint mb-3">Season</p>
+        {totalGames > 0 ? (
+          <>
+            <div className="flex items-center justify-center gap-6">
+              <div className="text-center">
+                <div className="text-[44px] font-black text-[#22C55E] leading-none tracking-wide">{wins}</div>
+                <div className="text-[10px] uppercase font-bold text-brand-text-faint mt-1">Wins</div>
+              </div>
+              <div className="text-2xl font-bold text-brand-border">|</div>
+              <div className="text-center">
+                <div className="text-[44px] font-black text-[#EF4444] leading-none tracking-wide">{losses}</div>
+                <div className="text-[10px] uppercase font-bold text-brand-text-faint mt-1">Losses</div>
+              </div>
+              {ties > 0 && (
+                <>
+                  <div className="text-2xl font-bold text-brand-border">|</div>
+                  <div className="text-center">
+                    <div className="text-[44px] font-black text-amber-500 leading-none tracking-wide">{ties}</div>
+                    <div className="text-[10px] uppercase font-bold text-brand-text-faint mt-1">Ties</div>
+                  </div>
+                </>
+              )}
+            </div>
+            {/* Win rate bar */}
+            <div className="mt-4">
+              <div className="w-full h-1.5 rounded-full bg-brand-warm-gray">
+                <div
+                  className="h-1.5 rounded-full bg-[#22C55E] transition-all duration-500"
+                  style={{ width: `${winPct}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-brand-text-muted text-center mt-1.5 font-semibold">{winPct}% win rate</p>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <span className="text-2xl block mb-1">🏆</span>
+            <p className="text-xs text-brand-text-muted">No games played yet</p>
+          </div>
+        )}
+        <p className="text-[11px] text-brand-text-faint text-center mt-2">{activeTeam?.name}</p>
+      </div>
+
+      {/* ── Upcoming Events ── */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
-          <button onClick={() => onNavigate?.('schedule')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint">Upcoming</p>
+          <button onClick={() => onNavigate?.('schedule')} className="text-[10px] text-[#4BB9EC] font-bold hover:opacity-80 transition">
             Full Calendar →
           </button>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {activeChildEvents?.slice(0, 3).map(event => (
             <ParentEventCard key={event.id} event={event} onClick={onShowEventDetail} />
           ))}
           {(!activeChildEvents || activeChildEvents.length === 0) && (
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-6 text-center transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
-              <Calendar className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-2`} />
-              <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
+            <div className="bg-white border border-brand-border rounded-2xl p-6 text-center shadow-sm">
+              <Calendar className="w-8 h-8 mx-auto text-brand-text-faint mb-2" />
+              <p className="text-xs text-brand-text-muted">No upcoming events</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Season Record */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
-        <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-3`}>Season Record</h3>
-        <div className="flex items-center justify-center gap-4">
-          <div className="text-center">
-            <div className="text-4xl font-black text-emerald-500">{teamRecord?.wins || 0}</div>
-            <div className={`text-sm uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Wins</div>
-          </div>
-          <div className={`text-3xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
-          <div className="text-center">
-            <div className="text-4xl font-black text-red-500">{teamRecord?.losses || 0}</div>
-            <div className={`text-sm uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Losses</div>
-          </div>
-          {(teamRecord?.ties || 0) > 0 && (
-            <>
-              <div className={`text-3xl font-bold ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>-</div>
-              <div className="text-center">
-                <div className="text-4xl font-black text-amber-500">{teamRecord.ties}</div>
-                <div className={`text-sm uppercase font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Ties</div>
-              </div>
-            </>
-          )}
-        </div>
-        <p className={`text-base text-center mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeTeam?.name}</p>
-      </div>
-
-      {/* Achievements Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      {/* ── Achievements Preview ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
-          <button onClick={() => onNavigate?.('achievements')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint">Achievements</p>
+          <button onClick={() => onNavigate?.('achievements')} className="text-[10px] text-[#4BB9EC] font-bold hover:opacity-80 transition">
             View All →
           </button>
         </div>
         {playerBadges.length > 0 ? (
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {playerBadges.slice(0, 4).map((b, i) => {
               const def = BADGE_DEFS[b.achievement_id] || {
                 name: b.achievements?.name || 'Badge',
@@ -199,20 +221,20 @@ export default function ParentRightPanel({
               }
               const rarityColor = RARITY_COLORS[def.rarity] || RARITY_COLORS[b.achievements?.rarity] || '#6B7280'
               return (
-                <div key={i} className="flex flex-col items-center gap-1.5">
+                <div key={i} className="flex flex-col items-center gap-1">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
                     style={{ background: `${def.color}15`, border: `2px solid ${rarityColor}` }}
                   >
                     {def.icon}
                   </div>
-                  <span className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'} text-center max-w-[60px] leading-tight`}>{def.name}</span>
+                  <span className="text-[10px] font-bold text-brand-text-muted text-center max-w-[55px] leading-tight">{def.name}</span>
                 </div>
               )
             })}
           </div>
         ) : badgesInProgress.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {badgesInProgress.slice(0, 3).map((b, i) => {
               const def = BADGE_DEFS[b.achievement_id] || {
                 name: b.achievements?.name || 'Badge',
@@ -221,19 +243,19 @@ export default function ParentRightPanel({
               }
               const pct = b.target_value > 0 ? Math.min((b.current_value / b.target_value) * 100, 100) : 0
               return (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex items-center gap-2.5">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
                     style={{ background: `${def.color}15`, border: `2px solid ${def.color}40` }}
                   >
                     {def.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-base font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'} truncate`}>{def.name}</span>
-                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'} ml-2 flex-shrink-0`}>{b.current_value}/{b.target_value}</span>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-[11px] font-bold text-brand-navy truncate">{def.name}</span>
+                      <span className="text-[10px] text-brand-text-muted ml-2 flex-shrink-0">{b.current_value}/{b.target_value}</span>
                     </div>
-                    <div className={`h-1.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
+                    <div className="h-1.5 rounded-full bg-brand-warm-gray overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: def.color }} />
                     </div>
                   </div>
@@ -243,45 +265,43 @@ export default function ParentRightPanel({
           </div>
         ) : (
           <div className="text-center py-4">
-            <Award className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-1`} />
-            <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges earned yet</p>
-            <p className={`text-base ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Keep playing to unlock badges!</p>
+            <Award className="w-8 h-8 mx-auto text-brand-text-faint mb-1" />
+            <p className="text-xs text-brand-text-muted">No badges earned yet</p>
+            <p className="text-[10px] text-brand-text-faint mt-1">Keep playing to unlock badges!</p>
           </div>
         )}
       </div>
 
-      {/* Leaderboard Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      {/* ── Leaderboard Preview ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Leaderboard</h3>
-          <button onClick={() => onNavigate?.('leaderboards')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint">Leaderboard</p>
+          <button onClick={() => onNavigate?.('leaderboards')} className="text-[10px] text-[#4BB9EC] font-bold hover:opacity-80 transition">
             View All →
           </button>
         </div>
         <div className="space-y-1">
           {leaderboardCats.map(stat => (
-            <div key={stat.cat} className={`flex items-center justify-between py-2 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'} last:border-b-0`}>
-              <span className={`text-base font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{stat.cat}</span>
-              {/* TODO: Wire to actual game_stats rankings when data exists */}
-              <span className={`text-base font-bold px-3 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>—</span>
+            <div key={stat.cat} className="flex items-center justify-between py-2 border-b border-brand-border last:border-b-0">
+              <span className="text-xs font-semibold text-brand-navy">{stat.cat}</span>
+              <span className="text-xs font-bold px-3 py-1 rounded-lg bg-brand-warm-gray text-brand-text-faint">—</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Player Stats Preview */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.08] shadow-lg shadow-black/25' : 'bg-white border border-[#E8ECF2] shadow-sm'} rounded-[18px] p-4 transition-all hover:-translate-y-0.5 hover:shadow-xl`}>
+      {/* ── Player Stats Preview ── */}
+      <div className="bg-white border border-brand-border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Player Stats</h3>
-          <button onClick={() => onNavigate?.('leaderboards')} className="text-sm text-[var(--accent-primary)] font-semibold hover:opacity-80 transition">
+          <p className="text-[10px] font-bold uppercase tracking-[1.2px] text-brand-text-faint">Player Stats</p>
+          <button onClick={() => onNavigate?.('leaderboards')} className="text-[10px] text-[#4BB9EC] font-bold hover:opacity-80 transition">
             Full Stats →
           </button>
         </div>
-        {/* TODO: Wire to Supabase game_stats for actual player stats */}
         <div className="text-center py-4">
-          <BarChart3 className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-600' : 'text-slate-300'} mb-1`} />
-          <p className={`text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Stats update after games</p>
-          <p className={`text-base ${isDark ? 'text-slate-600' : 'text-slate-300'} mt-1`}>Check leaderboards for rankings</p>
+          <BarChart3 className="w-8 h-8 mx-auto text-brand-text-faint mb-1" />
+          <p className="text-xs text-brand-text-muted">Stats update after games</p>
+          <p className="text-[10px] text-brand-text-faint mt-1">Check leaderboards for rankings</p>
         </div>
       </div>
     </aside>

@@ -1,22 +1,36 @@
 import CoppaConsentModal from '@/components/CoppaConsentModal';
+import GestureDrawer from '@/components/GestureDrawer';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { DrawerProvider } from '@/lib/drawer-context';
+import { ParentScrollProvider } from '@/lib/parent-scroll-context';
 import { PermissionsProvider } from '@/lib/permissions-context';
 import { SeasonProvider } from '@/lib/season';
 import { SportProvider } from '@/lib/sport';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import {
+  BebasNeue_400Regular,
+} from '@expo-google-fonts/bebas-neue';
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useRef } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
-  const { session, loading, profile, needsOnboarding } = useAuth();
+  const { session, loading, profile, needsOnboarding, hasOrphanRecords } = useAuth();
   const { colors, isDark } = useTheme();
   const segments = useSegments();
   const router = useRouter();
@@ -40,7 +54,10 @@ function RootLayoutNav() {
         router.replace('/(auth)/pending-approval');
       } else if (needsOnboarding) {
         hasNavigated.current = true;
-        router.replace('/(auth)/league-setup');
+        router.replace('/(tabs)');
+      } else if (hasOrphanRecords) {
+        hasNavigated.current = true;
+        router.replace('/claim-account' as any);
       } else {
         hasNavigated.current = true;
         router.replace('/(tabs)');
@@ -50,9 +67,9 @@ function RootLayoutNav() {
       router.replace('/(auth)/pending-approval');
     } else if (session && !inAuthGroup && needsOnboarding) {
       hasNavigated.current = true;
-      router.replace('/(auth)/league-setup');
+      router.replace('/(tabs)');
     }
-  }, [session, loading, profile?.pending_approval, needsOnboarding]);
+  }, [session, loading, profile?.pending_approval, needsOnboarding, hasOrphanRecords]);
 
   useEffect(() => {
     hasNavigated.current = false;
@@ -119,6 +136,7 @@ function RootLayoutNav() {
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
         </Stack>
+        <GestureDrawer />
       </KeyboardAvoidingView>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <CoppaConsentModal />
@@ -129,6 +147,12 @@ function RootLayoutNav() {
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     'Oswald-Bold': require('../assets/fonts/Oswald-Bold.ttf'),
+    BebasNeue_400Regular,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
 
   useEffect(() => {
@@ -140,16 +164,22 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <SportProvider>
-          <SeasonProvider>
-            <PermissionsProvider>
-              <RootLayoutNav />
-            </PermissionsProvider>
-          </SeasonProvider>
-        </SportProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <ThemeProvider>
+          <SportProvider>
+            <SeasonProvider>
+              <PermissionsProvider>
+                <ParentScrollProvider>
+                  <DrawerProvider>
+                    <RootLayoutNav />
+                  </DrawerProvider>
+                </ParentScrollProvider>
+              </PermissionsProvider>
+            </SeasonProvider>
+          </SportProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

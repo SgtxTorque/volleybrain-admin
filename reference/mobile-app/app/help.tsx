@@ -1,9 +1,12 @@
+import { displayTextStyle, radii, shadows } from '@/lib/design-tokens';
 import { useTheme } from '@/lib/theme';
+import { FONTS } from '@/theme/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Image,
   Linking,
   ScrollView,
   StyleSheet,
@@ -55,7 +58,7 @@ export default function HelpScreen() {
   };
 
   const handleContactSupport = () => {
-    Linking.openURL('mailto:support@volleybrain.com');
+    Linking.openURL('mailto:support@thelynxapp.com');
   };
 
   const s = createStyles(colors);
@@ -73,6 +76,16 @@ export default function HelpScreen() {
       </View>
 
       <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+        {/* Mascot Welcome */}
+        <View style={s.mascotWrap}>
+          <Image
+            source={require('@/assets/images/mascot/HiLynx.png')}
+            style={s.mascotImage}
+            resizeMode="contain"
+          />
+          <Text style={s.mascotTitle}>How can we help?</Text>
+        </View>
+
         {/* FAQ Section */}
         <View style={s.sectionContainer}>
           <Text style={s.sectionTitle}>Frequently Asked Questions</Text>
@@ -110,14 +123,14 @@ export default function HelpScreen() {
             </Text>
             <TouchableOpacity style={s.emailRow} onPress={handleContactSupport}>
               <Ionicons name="mail-outline" size={20} color={colors.primary} />
-              <Text style={s.emailText}>support@volleybrain.com</Text>
+              <Text style={s.emailText}>support@thelynxapp.com</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* App Version */}
         <View style={s.versionContainer}>
-          <Text style={s.versionText}>VolleyBrain v{appVersion}</Text>
+          <Text style={s.versionText}>Lynx v{appVersion}</Text>
         </View>
 
         <View style={{ height: 40 }} />
@@ -147,8 +160,8 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     headerTitle: {
+      ...displayTextStyle,
       fontSize: 18,
-      fontWeight: '600',
       color: colors.text,
     },
     scroll: {
@@ -157,12 +170,26 @@ const createStyles = (colors: any) =>
     scrollContent: {
       padding: 20,
     },
+    mascotWrap: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    mascotImage: {
+      width: 120,
+      height: 120,
+      marginBottom: 8,
+    },
+    mascotTitle: {
+      ...displayTextStyle,
+      fontSize: 20,
+      color: colors.text,
+    },
     sectionContainer: {
       marginBottom: 24,
     },
     sectionTitle: {
       fontSize: 13,
-      fontWeight: '700',
+      fontFamily: FONTS.bodyBold,
       color: colors.textMuted,
       marginBottom: 16,
       textTransform: 'uppercase',
@@ -170,16 +197,12 @@ const createStyles = (colors: any) =>
     },
     faqCard: {
       backgroundColor: colors.glassCard,
-      borderRadius: 16,
+      borderRadius: radii.card,
       padding: 16,
       marginBottom: 10,
       borderWidth: 1,
       borderColor: colors.glassBorder,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 6,
+      ...shadows.card,
     },
     faqHeader: {
       flexDirection: 'row',
@@ -188,7 +211,7 @@ const createStyles = (colors: any) =>
     },
     faqQuestion: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: FONTS.bodySemiBold,
       color: colors.text,
       flex: 1,
       marginRight: 12,
@@ -204,16 +227,12 @@ const createStyles = (colors: any) =>
     },
     contactCard: {
       backgroundColor: colors.glassCard,
-      borderRadius: 16,
+      borderRadius: radii.card,
       padding: 24,
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.glassBorder,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 6,
+      ...shadows.card,
     },
     contactText: {
       fontSize: 15,
@@ -234,7 +253,7 @@ const createStyles = (colors: any) =>
     },
     emailText: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: FONTS.bodySemiBold,
       color: colors.primary,
     },
     versionContainer: {

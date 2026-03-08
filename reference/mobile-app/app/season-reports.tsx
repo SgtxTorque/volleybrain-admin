@@ -4,6 +4,7 @@ import { displayTextStyle, radii, shadows, spacing } from '@/lib/design-tokens';
 import { useSeason } from '@/lib/season';
 import { supabase } from '@/lib/supabase';
 import { useTheme } from '@/lib/theme';
+import { FONTS } from '@/theme/fonts';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -283,7 +284,7 @@ export default function SeasonReportsScreen() {
               return (
                 <View key={i} style={{ marginBottom: i < rosterFill.length - 1 ? 8 : 0 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <Text style={{ fontSize: 12, color: colors.text, fontWeight: '500' }}>{team.name}</Text>
+                    <Text style={{ fontSize: 12, color: colors.text, fontFamily: FONTS.bodySemiBold }}>{team.name}</Text>
                     <Text style={{ fontSize: 12, color: colors.textMuted }}>{team.count}/{team.max}</Text>
                   </View>
                   <View style={[s.progressBar, { marginTop: 0, marginBottom: 0 }]}>
@@ -339,9 +340,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   cardTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: FONTS.bodyBold,
     color: colors.textMuted,
     letterSpacing: 0.5,
+    textTransform: 'uppercase' as const,
   },
   statRow: {
     flexDirection: 'row',
@@ -356,6 +358,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   statLabel: {
     fontSize: 11,
     color: colors.textMuted,
+    fontFamily: FONTS.bodyMedium,
     marginTop: 2,
   },
   progressBar: {
@@ -374,6 +377,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   progressText: {
     fontSize: 12,
     color: colors.textMuted,
+    fontFamily: FONTS.bodyMedium,
     textAlign: 'center',
   },
 });
