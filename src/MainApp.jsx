@@ -1178,7 +1178,7 @@ function MainApp() {
 
         {/* Floating buttons */}
         {activeView === 'parent' && <FloatingHelpButton />}
-        {activeView === 'admin' && <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />}
+        <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
       </div>
     </ParentTutorialProvider>
     </SeasonProvider>

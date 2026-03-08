@@ -58,6 +58,8 @@ export default function WelcomeBanner({
   seasonName = '',
   childName = '',
   isDark = false,
+  onNavigate,
+  unreadChats = 0,
 }) {
   const [useMotivational, setUseMotivational] = useState(false)
 
@@ -102,13 +104,33 @@ export default function WelcomeBanner({
 
   return (
     <div className="overflow-hidden h-full flex flex-col justify-center">
-      <h1
-        className={`text-r-2xl font-extrabold tracking-tight transition-opacity duration-500 truncate ${
-          isDark ? 'text-white' : 'text-slate-900'
-        }`}
-      >
-        {greeting}
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1
+          className={`text-r-2xl font-extrabold tracking-tight transition-opacity duration-500 truncate flex-1 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}
+        >
+          {greeting}
+        </h1>
+        {onNavigate && (
+          <button
+            onClick={() => onNavigate('chats')}
+            className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-r-xs font-bold transition-colors flex-shrink-0 ${
+              isDark
+                ? 'bg-white/[0.08] hover:bg-white/[0.12] text-white/70 hover:text-white'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800'
+            }`}
+            title="Open Chats"
+          >
+            💬 Chats
+            {unreadChats > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                {unreadChats > 99 ? '99+' : unreadChats}
+              </span>
+            )}
+          </button>
+        )}
+      </div>
       <p className={`text-r-base mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
         {subLine}
       </p>
