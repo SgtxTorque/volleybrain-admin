@@ -5,7 +5,7 @@
 // =============================================================================
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { ResponsiveGridLayout, useContainerWidth, verticalCompactor, getCompactor } from 'react-grid-layout'
+import { ResponsiveGridLayout, verticalCompactor, getCompactor } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import { Copy, RotateCcw, Check, LayoutGrid, X } from 'lucide-react'
@@ -27,7 +27,32 @@ export default function DashboardGrid({
   sharedProps = {},
 }) {
   const { profile } = useAuth()
-  const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1200 })
+
+  // Manual width measurement via ResizeObserver — replaces useContainerWidth
+  const containerRef = useRef(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const measure = () => {
+      const w = containerRef.current.offsetWidth
+      console.log('[DashboardGrid] measured width:', w, 'window.innerWidth:', window.innerWidth)
+      setContainerWidth(w)
+    }
+
+    // Initial measurement after a frame so DOM has settled
+    requestAnimationFrame(measure)
+
+    const observer = new ResizeObserver(() => measure())
+    observer.observe(containerRef.current)
+    window.addEventListener('resize', measure)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
 
   // ── Persistence state ──
   const [isLoading, setIsLoading] = useState(true)
@@ -336,7 +361,7 @@ export default function DashboardGrid({
   }
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div ref={containerRef} className="w-full relative">
       {/* Save confirmation toast */}
       {showSaveToast && (
         <div className="fixed bottom-20 right-6 z-50 bg-emerald-500 text-white px-5 py-3 rounded-xl shadow-lg font-bold text-sm animate-fade-in">
@@ -392,10 +417,10 @@ export default function DashboardGrid({
         </div>
       )}
 
-      {mounted && (
+      {containerWidth > 0 && (
         <ResponsiveGridLayout
           className="layout"
-          width={width}
+          width={containerWidth}
           layouts={layouts}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
           cols={{ lg: columns, md: columns, sm: 12, xs: 6 }}
@@ -405,7 +430,7 @@ export default function DashboardGrid({
           onBreakpointChange={handleBreakpointChange}
           onLayoutChange={handleLayoutChange}
           compactor={editMode ? editCompactor : verticalCompactor}
-          margin={[12, 12]}
+          margin={[16, 16]}
           containerPadding={[24, 24]}
         >
           {effectiveWidgets.map(widget => {
