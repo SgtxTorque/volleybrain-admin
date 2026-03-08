@@ -71,7 +71,10 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         userTeamIds = roleContext.coachInfo.team_coaches.map(tc => tc.team_id).filter(Boolean)
       }
 
-      let channelsQuery = supabase
+      // Primary query with joins (same as working pattern)
+      let channelsData = null
+
+      const { data: d1, error: e1 } = await supabase
         .from('chat_channels')
         .select(`
           *,
@@ -82,9 +85,48 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         .eq('is_archived', false)
         .order('updated_at', { ascending: false })
 
-      const { data: channelsData, error } = await channelsQuery
+      if (!e1) {
+        channelsData = d1
+      } else {
+        // Fallback: query without joins if relationship is missing
+        console.warn('ChatsPage: joined query failed, trying without joins:', e1.message)
+        const { data: d2, error: e2 } = await supabase
+          .from('chat_channels')
+          .select('*')
+          .eq('season_id', selectedSeason.id)
+          .eq('is_archived', false)
+          .order('updated_at', { ascending: false })
 
-      if (error) throw error
+        if (e2) throw e2
+        // Load team data separately for each channel
+        const teamIds = [...new Set((d2 || []).map(ch => ch.team_id).filter(Boolean))]
+        let teamsMap = {}
+        if (teamIds.length > 0) {
+          const { data: teamsData } = await supabase
+            .from('teams')
+            .select('id, name, color, logo_url')
+            .in('id', teamIds)
+          ;(teamsData || []).forEach(t => { teamsMap[t.id] = t })
+        }
+        // Load channel_members separately
+        const channelIds = (d2 || []).map(ch => ch.id)
+        let membersMap = {}
+        if (channelIds.length > 0) {
+          const { data: membersData } = await supabase
+            .from('channel_members')
+            .select('id, user_id, display_name, last_read_at, channel_id')
+            .in('channel_id', channelIds)
+          ;(membersData || []).forEach(m => {
+            if (!membersMap[m.channel_id]) membersMap[m.channel_id] = []
+            membersMap[m.channel_id].push(m)
+          })
+        }
+        channelsData = (d2 || []).map(ch => ({
+          ...ch,
+          teams: teamsMap[ch.team_id] || null,
+          channel_members: membersMap[ch.id] || [],
+        }))
+      }
 
       const channelsWithMessages = await Promise.all((channelsData || []).map(async (ch) => {
         const { data: lastMsg } = await supabase

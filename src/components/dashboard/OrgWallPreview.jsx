@@ -26,9 +26,12 @@ export default function OrgWallPreview({ seasonId, onNavigate }) {
   useEffect(() => {
     if (!seasonId) return
     async function load() {
+      // Query copied from TeamWallPage.jsx loadPosts (lines 310-318)
       const { data } = await supabase
         .from('team_posts')
-        .select('id, content, created_at, author_name, team_id, teams(name, color), post_type')
+        .select('id, content, created_at, post_type, team_id, teams(name, color), profiles:author_id(id, full_name, avatar_url)')
+        .eq('is_published', true)
+        .neq('post_type', 'shoutout')
         .order('created_at', { ascending: false })
         .limit(3)
       setPosts(data || [])
@@ -70,10 +73,10 @@ export default function OrgWallPreview({ seasonId, onNavigate }) {
                   className="w-6 h-6 rounded-full flex items-center justify-center text-r-base font-bold text-white"
                   style={{ backgroundColor: post.teams?.color || '#4BB9EC' }}
                 >
-                  {(post.author_name || '?').charAt(0).toUpperCase()}
+                  {(post.profiles?.full_name || '?').charAt(0).toUpperCase()}
                 </div>
                 <span className={`text-r-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {post.author_name || 'Coach'}
+                  {post.profiles?.full_name || 'Coach'}
                 </span>
                 <span className={`text-r-lg ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
                   {timeAgo(post.created_at)}

@@ -35,11 +35,12 @@ export default function ChatPreviewCard({ selectedTeam, onNavigate }) {
     async function fetchMessages() {
       setLoading(true)
       try {
-        // Find the team's chat channel
+        // Find the team's chat channel (query from ChatsPage.jsx loadChats)
         const { data: channel } = await supabase
           .from('chat_channels')
           .select('id')
           .eq('team_id', selectedTeam.id)
+          .eq('is_archived', false)
           .limit(1)
           .maybeSingle()
 
