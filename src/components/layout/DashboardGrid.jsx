@@ -29,20 +29,25 @@ export default function DashboardGrid({
   const { profile } = useAuth()
 
   // Manual width measurement via ResizeObserver — replaces useContainerWidth
+  // Initialize with viewport minus sidebar (64px) so grid renders immediately
   const containerRef = useRef(null)
-  const [containerWidth, setContainerWidth] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(window.innerWidth - 64)
 
   useEffect(() => {
     if (!containerRef.current) return
 
     const measure = () => {
-      const w = containerRef.current.offsetWidth
-      console.log('[DashboardGrid] measured width:', w, 'window.innerWidth:', window.innerWidth)
-      setContainerWidth(w)
+      const w = containerRef.current?.offsetWidth
+      if (w && w > 0) {
+        console.log('[DashboardGrid] measured width:', w, 'window.innerWidth:', window.innerWidth)
+        setContainerWidth(w)
+      }
     }
 
-    // Initial measurement after a frame so DOM has settled
-    requestAnimationFrame(measure)
+    // Measure after a short delay to ensure DOM is ready
+    requestAnimationFrame(() => {
+      measure()
+    })
 
     const observer = new ResizeObserver(() => measure())
     observer.observe(containerRef.current)
