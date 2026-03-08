@@ -127,11 +127,17 @@ export default function DashboardGrid({
   useEffect(() => {
     let cancelled = false
     async function load() {
-      if (!profile?.id) { setIsLoading(false); return }
+      if (!profile?.id) {
+        console.log('[DashboardGrid] No profile.id, skipping load')
+        setIsLoading(false)
+        return
+      }
+      console.log('[DashboardGrid] Loading layout for role:', role, 'user:', profile.id)
       try {
         const saved = await loadLayout(profile.id, role)
         if (cancelled) return
         if (saved?.layout?.length && saved?.widgets?.length) {
+          console.log('[DashboardGrid] Restoring saved layout:', saved.layout.length, 'items,', saved.widgets.length, 'widgets')
           // Restore saved widget list
           const savedWidgetIds = new Set(saved.widgets)
           const removed = new Set()
@@ -151,9 +157,11 @@ export default function DashboardGrid({
           const restored = { lg, md, sm, xs }
           layoutRef.current = restored
           setLayouts(restored)
+        } else {
+          console.log('[DashboardGrid] No saved layout found, using defaults')
         }
       } catch (e) {
-        console.error('Failed to load saved layout:', e)
+        console.error('[DashboardGrid] Failed to load saved layout:', e)
       }
       if (!cancelled) setIsLoading(false)
     }
@@ -167,10 +175,16 @@ export default function DashboardGrid({
       // User clicked "Done Editing" — save to Supabase
       const currentLg = layoutRef.current.lg || []
       const currentWidgetIds = effectiveWidgets.map(w => w.id)
+      console.log('[DashboardGrid] Saving layout:', currentLg.length, 'items,', currentWidgetIds.length, 'widgets')
       if (profile?.id && currentLg.length > 0) {
-        saveLayout(profile.id, role, currentLg, currentWidgetIds).then(() => {
-          setShowSaveToast(true)
-          setTimeout(() => setShowSaveToast(false), 2500)
+        saveLayout(profile.id, role, currentLg, currentWidgetIds).then((result) => {
+          if (result) {
+            console.log('[DashboardGrid] Save succeeded')
+            setShowSaveToast(true)
+            setTimeout(() => setShowSaveToast(false), 2500)
+          } else {
+            console.error('[DashboardGrid] Save returned null — check console for Supabase error above')
+          }
         })
       }
     }
