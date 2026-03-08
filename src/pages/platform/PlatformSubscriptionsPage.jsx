@@ -294,7 +294,7 @@ function PlatformSubscriptionsPage({ showToast }) {
     return (
       <>
         <style>{PS_STYLES}</style>
-        <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="space-y-6 w-full">
           <div className="ps-au"><div className={`h-10 w-80 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-200'} ps-shimmer`} /></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1,2,3,4].map(i => (
@@ -310,7 +310,7 @@ function PlatformSubscriptionsPage({ showToast }) {
   return (
     <>
       <style>{PS_STYLES}</style>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-6 w-full">
 
         {/* HEADER */}
         <div className="ps-au" style={{ animationDelay: '.05s' }}>

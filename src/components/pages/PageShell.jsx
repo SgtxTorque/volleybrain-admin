@@ -1,6 +1,6 @@
 export default function PageShell({ breadcrumb, title, subtitle, actions, children }) {
   return (
-    <div className="w-full max-w-[1400px] px-6 py-6">
+    <div className="w-full px-6 py-6">
       {breadcrumb && (
         <div className="text-r-xs font-medium text-lynx-sky mb-1 flex items-center gap-1.5">
           <span>🏠</span> <span className="text-slate-400">›</span> {breadcrumb}

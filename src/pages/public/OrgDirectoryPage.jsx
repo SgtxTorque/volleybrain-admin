@@ -661,7 +661,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
       {/* Standalone header (when not embedded in MainApp) */}
       {!isEmbedded && (
         <header className="sticky top-0 z-50 px-4 py-3 od-ai" style={{ background: isDark ? 'rgba(15,23,42,0.9)' : 'rgba(248,250,252,0.9)', backdropFilter: 'blur(16px)', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}>
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="w-full flex items-center justify-between">
             <div className="flex items-center gap-3">
               <VolleyballIcon className="w-8 h-8" />
               <span className={`od-display text-2xl ${isDark ? 'text-white' : 'text-slate-900'}`}>Lynx</span>
@@ -686,7 +686,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
         </header>
       )}
 
-      <div className={`max-w-7xl mx-auto ${isEmbedded ? '' : 'px-4 sm:px-6 lg:px-8'}`}>
+      <div className={`w-full ${isEmbedded ? '' : 'px-4 sm:px-6 lg:px-8'}`}>
         {/* Hero Section */}
         <div className="text-center py-10 od-au">
           <div className="od-float inline-block mb-4">

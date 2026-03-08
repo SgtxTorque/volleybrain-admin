@@ -264,7 +264,7 @@ function SubscriptionPage({ showToast }) {
   return (
     <>
       <style>{SUB_STYLES}</style>
-      <div className="space-y-6 max-w-6xl mx-auto">
+      <div className="space-y-6 w-full">
 
         {/* HEADER */}
         <div className="sb-au" style={{ animationDelay: '.05s' }}>

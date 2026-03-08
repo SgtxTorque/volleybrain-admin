@@ -219,7 +219,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
 
   return (
     <DashboardContainer>
-      <div className="max-w-[1400px] mx-auto">
+      <div className="w-full">
         {/* Header */}
         <div className="mb-6">
           <h1 className={`text-3xl font-bold ${tc.text}`}>Registration Hub</h1>
