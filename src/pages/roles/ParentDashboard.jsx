@@ -376,7 +376,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       // 5. Athlete Cards (8×7 at 10,5)
       { id: 'athlete-cards', label: 'My Athletes',
         defaultLayout: { x: 10, y: 5, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 16,
-        component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> },
+        component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} parentName={profile?.full_name} /> },
 
       // 6. Engagement Progress (4×6 at 19,5)
       { id: 'engagement-progress', label: 'Engagement Progress',

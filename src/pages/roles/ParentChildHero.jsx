@@ -6,7 +6,7 @@
 import { useTheme } from '../../contexts/ThemeContext'
 import { ChevronRight, Plus } from '../../constants/icons'
 
-function PlayerCard({ child, isActive, onClick, isDark }) {
+function PlayerCard({ child, isActive, onClick, isDark, parentName }) {
   const teamColor = child.team?.color || '#6366F1'
   const position = child.position || child.team_position || '—'
   const jersey = child.jersey_number
@@ -62,6 +62,9 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
           <div className="mt-1.5 h-1 rounded-full overflow-hidden bg-white/[0.08]" style={{ maxWidth: 160 }}>
             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${xpPct}%`, backgroundColor: TIER.color }} />
           </div>
+          {parentName && (
+            <p className="text-[9px] font-medium text-white/30 mt-1 truncate">Parent: {parentName}</p>
+          )}
         </div>
 
         <ChevronRight className="w-4 h-4 text-white/40 flex-shrink-0" />
@@ -71,14 +74,14 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
 }
 
 export default function ParentChildHero({
-  children, activeChildIdx, onSelectChild, onAddChild, isDark,
+  children, activeChildIdx, onSelectChild, onAddChild, isDark, parentName,
 }) {
   if (!children?.length) return null
 
-  // Single child — full-width
+  // Single child — full-width, clicking selects (visual confirmation)
   if (children.length === 1) {
     return (
-      <PlayerCard child={children[0]} isActive={true} onClick={() => {}} isDark={isDark} />
+      <PlayerCard child={children[0]} isActive={true} onClick={() => onSelectChild(0)} isDark={isDark} parentName={parentName} />
     )
   }
 
@@ -89,7 +92,7 @@ export default function ParentChildHero({
         <PlayerCard key={child.id} child={child}
           isActive={idx === activeChildIdx}
           onClick={() => onSelectChild(idx)}
-          isDark={isDark} />
+          isDark={isDark} parentName={parentName} />
       ))}
       {onAddChild && (
         <button onClick={onAddChild}
