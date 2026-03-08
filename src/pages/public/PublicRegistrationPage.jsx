@@ -320,6 +320,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         seasonName={season?.name}
         totalFee={totalFee}
         currentChildName={currentChild.first_name}
+        organization={organization}
       />
     )
   }

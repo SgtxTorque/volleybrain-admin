@@ -149,7 +149,7 @@ function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onT
 }
 
 // ─── Success / confirmation screen ────────────────────────────────────────
-function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName }) {
+function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization }) {
   const count = childrenCount + (currentChildName ? 1 : 0)
 
   return (
@@ -170,6 +170,42 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName }
             <p className="text-r-xs text-slate-500">Estimated total fees</p>
             <p className="text-r-2xl font-bold text-lynx-navy mt-1">${totalFee.toFixed(2)}</p>
             <p className="text-r-xs text-slate-400 mt-1">Payment details will be sent after approval</p>
+          </div>
+        )}
+
+        {/* Section A: Create Your Account CTA */}
+        <div className="mt-8 pt-6 border-t border-slate-200">
+          <h2 className="text-r-lg font-bold text-slate-900">What's next?</h2>
+          <p className="text-r-sm text-slate-600 mt-2 leading-relaxed">
+            Create a Lynx account to track your registration status, manage payments, and stay connected with your team.
+          </p>
+          <a
+            href="/"
+            className="inline-block mt-4 bg-lynx-sky text-white font-semibold py-3 px-8 rounded-[14px] hover:brightness-110 transition"
+          >
+            Create Account
+          </a>
+          <p className="text-r-xs text-slate-400 mt-2">Use the same email you registered with</p>
+        </div>
+
+        {/* Section B: Download the App */}
+        <div className="mt-6 pt-6 border-t border-slate-200">
+          <h3 className="text-r-sm font-bold text-slate-700">Get the Lynx App</h3>
+          <p className="text-r-xs text-slate-400 mt-1">
+            Download the mobile app for game day updates, real-time notifications, and more.
+          </p>
+          <p className="text-r-xs text-slate-400 mt-1">Coming soon to App Store and Google Play</p>
+        </div>
+
+        {/* Section C: Organization contact info */}
+        {organization?.name && (
+          <div className="mt-6 pt-6 border-t border-slate-200">
+            <p className="text-r-xs text-slate-400">
+              Questions? Contact {organization.name}
+              {organization.email && (
+                <> at <a href={`mailto:${organization.email}`} className="text-lynx-sky hover:underline">{organization.email}</a></>
+              )}
+            </p>
           </div>
         )}
       </div>
