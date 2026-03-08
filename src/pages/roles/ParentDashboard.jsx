@@ -20,6 +20,7 @@ import {
   ReRegisterModal, AlertDetailModal,
 } from './ParentModals'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
+import ParentTopBanner from '../../components/parent/ParentTopBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
 import EditLayoutButton from '../../components/layout/EditLayoutButton'
@@ -325,10 +326,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 0, y: 0, w: 11, h: 4 }, minW: 4, minH: 2, maxH: 8,
         component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={activeChild?.first_name} isDark={isDark} /> },
 
-      // 2. Parent Journey (11×4 at 11,0)
+      // 2. Parent Top Banner — alerts > open registrations > onboarding (11×4 at 11,0)
       { id: 'parent-journey', label: 'Season Onboarding',
         defaultLayout: { x: 11, y: 0, w: 11, h: 4 }, minW: 8, minH: 3,
-        componentKey: 'ParentJourneyCard' },
+        component: <ParentTopBanner onNavigate={onNavigate} registrationData={registrationData} openSeasons={openSeasons} alerts={alerts} /> },
 
       // 3. Spacer Divider (1×1 at 0,4)
       { id: 'spacer-divider', label: 'Spacer',
