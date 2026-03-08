@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import { 
-  User, Users, DollarSign, ClipboardList, MessageCircle, Calendar, 
+import {
+  User, Users, DollarSign, ClipboardList, MessageCircle, Calendar,
   Check, X, Edit, Trash2, Plus, Eye, Download, Upload, Settings,
   BarChart3, Target, Bell, Lock, Unlock, Globe, CreditCard,
   Mail, Phone, MapPin, Home, AlertTriangle, Shirt, Star, Award,
-  TrendingUp, FileText, ChevronRight, RefreshCw, Save
+  TrendingUp, FileText, ChevronRight, RefreshCw, Save, Camera
 } from '../../constants/icons'
 
 // ============================================
@@ -462,8 +462,11 @@ export function PlayerCard({ player, context = 'roster', teamColor, onClick, sho
         {showPhoto && player.photo_url ? (
           <img src={player.photo_url} alt="" className="w-16 h-16 rounded-full border-2 object-cover" style={{ borderColor: posColor + '60' }} />
         ) : (
-          <div className="w-16 h-16 rounded-full bg-[#1a1a2e] border-2 flex items-center justify-center" style={{ borderColor: cardColor + '40' }}>
+          <div className="w-16 h-16 rounded-full bg-[#1a1a2e] border-2 flex items-center justify-center relative" style={{ borderColor: cardColor + '40' }}>
             <span className="flex items-center justify-center"><User className="w-6 h-6 text-slate-600" /></span>
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: cardColor }}>
+              <Camera className="w-3 h-3 text-white" />
+            </div>
           </div>
         )}
       </div>
