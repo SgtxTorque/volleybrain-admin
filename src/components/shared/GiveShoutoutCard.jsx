@@ -96,8 +96,9 @@ export default function GiveShoutoutCard({ selectedTeam }) {
   if (!teamId) {
     return (
       <div className={`${cardBg} rounded-2xl shadow-sm p-3 h-full flex flex-col items-center justify-center overflow-hidden`}>
-        <Star className={`w-6 h-6 mb-2 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
-        <p className={`text-r-xs text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No team selected</p>
+        <Star className={`w-6 h-6 mb-2 ${isDark ? 'text-amber-400/40' : 'text-amber-400/60'}`} />
+        <p className={`text-r-sm font-semibold text-center ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Shoutouts</p>
+        <p className={`text-r-xs text-center mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Assign a team to send shoutouts</p>
       </div>
     )
   }

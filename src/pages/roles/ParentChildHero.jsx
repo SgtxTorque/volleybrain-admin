@@ -20,7 +20,7 @@ function PlayerCard({ child, isActive, onClick, isDark }) {
       className={`relative overflow-hidden rounded-[14px] text-left transition-all ${
         isActive ? 'ring-2 ring-lynx-sky shadow-lg' : 'hover:ring-1 hover:ring-white/20'
       }`}
-      style={{ minWidth: 200, background: `linear-gradient(135deg, #0B1628 0%, ${teamColor}30 100%)` }}>
+      style={{ minWidth: 240, background: `linear-gradient(135deg, #0B1628 0%, ${teamColor}30 100%)` }}>
       {/* Dot grid overlay */}
       <div className="absolute inset-0 opacity-[0.04]"
         style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />

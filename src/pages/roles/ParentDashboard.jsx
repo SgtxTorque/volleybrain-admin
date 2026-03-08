@@ -304,7 +304,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const activeTeamWithRecord = activeTeam ? { ...activeTeam, _record: teamRecord } : null
   const activeChildEvents = activeTeam
     ? upcomingEvents.filter(e => e.team_id === activeTeam.id).slice(0, 3)
-    : upcomingEvents.slice(0, 3)
+    : []
 
   const activeChildUnpaid = paymentSummary.unpaidItems.filter(p => p.player_id === activeChild?.id)
   const totalChildDue = activeChildUnpaid.reduce((sum, p) => sum + (p.amount || 0), 0)
@@ -441,7 +441,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         ) : (
           <div className={`rounded-2xl border p-3 flex flex-col items-center justify-center gap-2 h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
             <span className="text-xl">🏠</span>
-            <p className={`text-r-xs text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No team assigned</p>
+            <p className={`text-r-sm font-semibold text-center ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{activeChild?.first_name || 'Player'}</p>
+            <p className={`text-r-xs text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Not assigned to a team yet</p>
           </div>
         ) },
 
@@ -618,6 +619,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           event: activeChildEvents[0],
           selectedTeam: activeTeamWithRecord,
           xpData,
+          childName: activeChild?.first_name,
           onRsvp: (evt) => setQuickRsvpEvent(evt),
         }}
       />
