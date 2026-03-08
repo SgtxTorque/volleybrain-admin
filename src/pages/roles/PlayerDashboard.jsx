@@ -86,6 +86,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [rankings, setRankings] = useState({})
   const [editMode, setEditMode] = useState(false)
+  const [selectedTeamIdx, setSelectedTeamIdx] = useState(0)
 
   // Admin preview
   const [isAdminPreview, setIsAdminPreview] = useState(false)
@@ -175,7 +176,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   // ── Computed ──
   const displayName = viewingPlayer ? `${viewingPlayer.first_name} ${viewingPlayer.last_name}` : 'Player'
   const teams = playerData?.teams || []
-  const primaryTeam = teams[0]
+  const primaryTeam = teams[selectedTeamIdx] || teams[0]
   const gamesPlayed = seasonStats?.games_played || 0
   const streak = gamesPlayed > 0 ? Math.min(gamesPlayed * 2 + 3, 30) : 0
   const nextEvent = upcomingEvents[0] || null
@@ -317,6 +318,23 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
           <button onClick={() => setShowPlayerSelector(true)} className="text-xs px-3 py-1 rounded-lg font-medium" style={{ background: 'rgba(75,185,236,0.15)', color: '#4BB9EC', border: '1px solid #4BB9EC' }}>
             Switch Player
           </button>
+        </div>
+      )}
+
+      {/* Multi-team selector */}
+      {teams.length > 1 && (
+        <div className="flex items-center gap-2 px-6 py-2.5" style={{ borderBottom: '1px solid rgba(75,185,236,0.10)' }}>
+          <span className="text-[10px] font-bold uppercase tracking-wider mr-1" style={{ color: 'rgba(255,255,255,0.30)' }}>Team</span>
+          {teams.map((t, idx) => (
+            <button key={t.id} onClick={() => setSelectedTeamIdx(idx)}
+              className="px-3 py-1 rounded-full text-xs font-bold transition-all"
+              style={idx === selectedTeamIdx
+                ? { background: t.color || '#4BB9EC', color: '#fff', boxShadow: `0 0 8px ${t.color || '#4BB9EC'}40` }
+                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.50)', border: '1px solid rgba(255,255,255,0.08)' }
+              }>
+              {t.name}
+            </button>
+          ))}
         </div>
       )}
 
