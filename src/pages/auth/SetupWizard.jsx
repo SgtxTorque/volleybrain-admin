@@ -96,7 +96,7 @@ function SetupWizard({ onComplete }) {
           name: orgName,
           slug: slug,
           type: 'club',
-          settings: { sports: ['volleyball'] },
+          settings: {},
         })
         .select()
         .single()
@@ -151,7 +151,7 @@ function SetupWizard({ onComplete }) {
         name: teamName,
         slug: slug,
         type: 'independent_team',
-        settings: { sports: ['volleyball'] },
+        settings: {},
       })
       .select()
       .single()
@@ -341,7 +341,7 @@ function SetupWizard({ onComplete }) {
           label="Organization Name" 
           value={orgName} 
           onChange={(e) => setOrgName(e.target.value)} 
-          placeholder="e.g., Black Hornets Volleyball" 
+          placeholder="e.g., Black Hornets Athletics"
           tc={tc} 
         />
 
