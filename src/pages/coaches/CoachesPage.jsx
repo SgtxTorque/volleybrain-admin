@@ -11,6 +11,7 @@ import {
 } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 const roleLabels = { head: 'Head Coach', assistant: 'Assistant', manager: 'Manager', volunteer: 'Volunteer' }
 const bgCheckLabels = {
@@ -160,6 +161,7 @@ export function CoachesPage({ showToast }) {
         </button>
       }
     >
+      <SeasonFilterBar />
       <InnerStatRow stats={[
         { value: coaches.filter(c => c.status === 'active').length, label: 'ACTIVE', icon: '👨‍🏫' },
         { value: coaches.filter(c => c.assignments?.some(a => a.role === 'head')).length, label: 'HEAD COACHES', icon: '⭐' },

@@ -37,6 +37,7 @@ import {
   JourneyCelebrations
 } from './components/layout'
 import LynxSidebar from './components/layout/LynxSidebar'
+import FloatingChatButton from './components/layout/FloatingChatButton'
 
 // Parent Onboarding Components
 import { SpotlightOverlay, ParentChecklistWidget, FloatingHelpButton } from './components/parent/ParentOnboarding'
@@ -1175,8 +1176,9 @@ function MainApp() {
         <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
         <BlastAlertChecker />
 
-        {/* Parent Floating Help Button */}
+        {/* Floating buttons */}
         {activeView === 'parent' && <FloatingHelpButton />}
+        {activeView === 'admin' && <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />}
       </div>
     </ParentTutorialProvider>
     </SeasonProvider>

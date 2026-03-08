@@ -36,6 +36,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const [unrosteredPlayers, setUnrosteredPlayers] = useState([])
   const [search, setSearch] = useState('')
   const [selectedPlayer, setSelectedPlayer] = useState(null)
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('')
 
   useEffect(() => {
     if (selectedSeason?.id) {
@@ -334,8 +335,24 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       }
     >
       <div className="space-y-5">
-        {/* Season filter */}
-        <SeasonFilterBar />
+        {/* Season + age group filters */}
+        <div className="flex gap-3 items-center flex-wrap">
+          <SeasonFilterBar />
+          {(() => {
+            const ageGroups = [...new Set(teams.map(t => t.age_group).filter(Boolean))].sort()
+            if (ageGroups.length <= 1) return null
+            return (
+              <select
+                value={selectedAgeGroup}
+                onChange={e => setSelectedAgeGroup(e.target.value)}
+                className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'border-white/10 bg-lynx-charcoal text-slate-200' : 'border-slate-200 bg-white text-slate-700'}`}
+              >
+                <option value="">All Age Groups</option>
+                {ageGroups.map(ag => <option key={ag} value={ag}>{ag}</option>)}
+              </select>
+            )
+          })()}
+        </div>
 
         {/* Stat row */}
         <TeamsStatRow
@@ -367,7 +384,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           </div>
         ) : (
           <TeamsTableView
-            teams={teams}
+            teams={selectedAgeGroup ? teams.filter(t => t.age_group === selectedAgeGroup) : teams}
             search={search}
             onSearchChange={setSearch}
             onDeleteTeam={deleteTeam}
