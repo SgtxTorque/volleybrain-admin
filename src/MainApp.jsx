@@ -1152,9 +1152,9 @@ function MainApp() {
           onPlatformAdmin={() => navigate('/platform/admin')}
         />
 
-        {/* Main Content — offset by sidebar width (64px) */}
+        {/* Main Content — offset by sidebar width (64px), capped at 2400px on ultrawide */}
         <div className="flex-1 min-h-screen pl-16 relative z-10">
-          <div className={`w-full h-full ${
+          <div className={`w-full h-full 3xl:max-w-[2400px] 3xl:mx-auto ${
             mainLocation.pathname === '/dashboard' || mainLocation.pathname.startsWith('/teams/')
               ? 'overflow-hidden'
               : 'overflow-auto animate-slide-up'

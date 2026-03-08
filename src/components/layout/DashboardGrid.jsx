@@ -39,23 +39,33 @@ export default function DashboardGrid({
     const measure = () => {
       const w = containerRef.current?.offsetWidth
       if (w && w > 0) {
-        console.log('[DashboardGrid] measured width:', w, 'window.innerWidth:', window.innerWidth)
-        setContainerWidth(w)
+        setContainerWidth(prev => {
+          if (prev !== w) {
+            console.log('[DashboardGrid] width changed:', prev, '→', w)
+          }
+          return w
+        })
       }
     }
 
-    // Measure after a short delay to ensure DOM is ready
-    requestAnimationFrame(() => {
-      measure()
-    })
+    // Measure immediately after layout
+    requestAnimationFrame(measure)
 
-    const observer = new ResizeObserver(() => measure())
+    // ResizeObserver for container changes — use rAF for reliable measurement
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(measure)
+    })
     observer.observe(containerRef.current)
-    window.addEventListener('resize', measure)
+
+    // Window resize listener — CRITICAL for reflow after browser window resize
+    const handleWindowResize = () => {
+      requestAnimationFrame(measure)
+    }
+    window.addEventListener('resize', handleWindowResize)
 
     return () => {
       observer.disconnect()
-      window.removeEventListener('resize', measure)
+      window.removeEventListener('resize', handleWindowResize)
     }
   }, [])
 

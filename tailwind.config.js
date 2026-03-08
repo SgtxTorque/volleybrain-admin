@@ -132,6 +132,9 @@ export default {
         'card-sm': '320px',
         'card-tall': '700px',
       },
+      screens: {
+        '3xl': '2560px',
+      },
       borderRadius: {
         '3xl': '1.5rem',
         '4xl': '2rem',
