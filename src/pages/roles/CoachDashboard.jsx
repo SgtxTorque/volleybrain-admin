@@ -8,7 +8,8 @@ import { sanitizeText } from '../../lib/validation'
 import { PlayerCardExpanded } from '../../components/players'
 import {
   Calendar, MapPin, Clock, Users, ChevronRight, Check, X,
-  Target, MessageCircle, Swords, Shield, Send, Timer
+  Target, MessageCircle, Swords, Shield, Send, Timer,
+  Filter, ChevronDown
 } from '../../constants/icons'
 
 // Old layout components archived — replaced by LynxSidebar + card grid
@@ -778,38 +779,44 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
       <div className="w-full h-full overflow-y-auto">
         <DashboardContainer className="space-y-5">
 
-          {/* Season + Team Selectors — progressive disclosure */}
+          {/* Season + Team Filter Bar — same style as admin dashboard, progressive disclosure */}
           {(coachSeasons.length > 1 || teams.length > 1) && (
-            <div className="flex items-center gap-4 flex-wrap px-6">
-              {/* Season filter — only when coach has teams in multiple seasons */}
+            <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mx-6 ${
+              isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
+            }`}>
+              <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
+              {/* Season — only when coach has teams in multiple seasons */}
               {coachSeasons.length > 1 && (
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season</span>
-                  {coachSeasons.map(s => (
-                    <button key={s.id} onClick={() => selectSeason(s)}
-                      className={`px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors ${
-                        selectedSeason?.id === s.id
-                          ? 'bg-lynx-sky text-white'
-                          : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}>{s.name}</button>
-                  ))}
+                <div className="relative">
+                  <select
+                    value={selectedSeason?.id || ''}
+                    onChange={(e) => { const season = coachSeasons.find(s => s.id === e.target.value); if (season) selectSeason(season) }}
+                    className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
+                      isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+                    }`}
+                  >
+                    {coachSeasons.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
                 </div>
               )}
-              {/* Team filter — only when coach has multiple teams */}
+              {/* Team — only when coach has multiple teams */}
               {teams.length > 1 && (
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Team</span>
-                  {teams.map(team => (
-                    <button key={team.id} onClick={() => handleTeamSelect(team)}
-                      className={`px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors ${
-                        selectedTeam?.id === team.id
-                          ? 'bg-lynx-sky text-white'
-                          : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}>
-                      <span className="w-2 h-2 rounded-full inline-block mr-1.5" style={{ backgroundColor: team.color || '#4BB9EC' }} />
-                      {team.name}
-                    </button>
-                  ))}
+                <div className="relative">
+                  <select
+                    value={selectedTeam?.id || ''}
+                    onChange={(e) => { const team = teams.find(t => t.id === e.target.value); if (team) handleTeamSelect(team) }}
+                    className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
+                      isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
+                    }`}
+                  >
+                    {teams.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
                 </div>
               )}
             </div>
