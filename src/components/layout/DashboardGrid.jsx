@@ -17,6 +17,30 @@ import { saveLayout, loadLayout, resetLayout as deleteLayout } from '../../lib/l
 // Edit mode compactor: no compaction, allow overlap, no collision prevention
 const editCompactor = getCompactor(null, true, false)
 
+// ── Auto-generate responsive layouts from lg layout ──
+
+function generateMediumLayout(lgLayout) {
+  // Sort by y then x to preserve reading order, then stack full-width
+  const sorted = [...lgLayout].sort((a, b) => a.y - b.y || a.x - b.x)
+  let currentY = 0
+  return sorted.map(item => {
+    const result = { ...item, x: 0, y: currentY, w: 12 }
+    currentY += item.h
+    return result
+  })
+}
+
+function generateStackedLayout(lgLayout, cols = 6) {
+  // Everything single column, stacked vertically
+  const sorted = [...lgLayout].sort((a, b) => a.y - b.y || a.x - b.x)
+  let currentY = 0
+  return sorted.map(item => {
+    const result = { ...item, x: 0, y: currentY, w: cols, minW: Math.min(item.minW || 2, cols) }
+    currentY += item.h
+    return result
+  })
+}
+
 export default function DashboardGrid({
   widgets,
   editMode = false,
@@ -111,24 +135,7 @@ export default function DashboardGrid({
   // Initialize layouts for ALL breakpoints so resizing doesn't contaminate
   const [layouts, setLayouts] = useState(() => {
     const lg = defaultLg
-    const md = lg.map(item => ({
-      ...item,
-      w: Math.min(item.w, 24),
-      x: Math.min(item.x, 24 - Math.min(item.w, 24)),
-    }))
-    const sm = lg.map((item, idx) => ({
-      ...item,
-      x: 0,
-      w: 12,
-      y: idx * item.h,
-    }))
-    const xs = lg.map((item, idx) => ({
-      ...item,
-      x: 0,
-      w: 6,
-      y: idx * item.h,
-    }))
-    return { lg, md, sm, xs }
+    return { lg, md: generateMediumLayout(lg), sm: generateStackedLayout(lg, 6), xs: generateStackedLayout(lg, 4) }
   })
   const layoutRef = useRef(layouts)
   const [overlappingItems, setOverlappingItems] = useState(new Set())
@@ -159,12 +166,9 @@ export default function DashboardGrid({
           setRemovedWidgetIds(removed)
           setAddedWidgets(added)
 
-          // Apply saved layout positions
+          // Apply saved layout positions — derive md/sm/xs from lg
           const lg = saved.layout
-          const md = lg.map(item => ({ ...item, w: Math.min(item.w, 24), x: Math.min(item.x, 24 - Math.min(item.w, 24)) }))
-          const sm = lg.map((item, idx) => ({ ...item, x: 0, w: 12, y: idx * item.h }))
-          const xs = lg.map((item, idx) => ({ ...item, x: 0, w: 6, y: idx * item.h }))
-          const restored = { lg, md, sm, xs }
+          const restored = { lg, md: generateMediumLayout(lg), sm: generateStackedLayout(lg, 6), xs: generateStackedLayout(lg, 4) }
           layoutRef.current = restored
           setLayouts(restored)
         } else {
@@ -278,18 +282,7 @@ export default function DashboardGrid({
     // Reset layout AND restore all original widgets
     setAddedWidgets([])
     setRemovedWidgetIds(new Set())
-    const md = defaultLg.map(item => ({
-      ...item,
-      w: Math.min(item.w, 24),
-      x: Math.min(item.x, 24 - Math.min(item.w, 24)),
-    }))
-    const sm = defaultLg.map((item, idx) => ({
-      ...item, x: 0, w: 12, y: idx * item.h,
-    }))
-    const xs = defaultLg.map((item, idx) => ({
-      ...item, x: 0, w: 6, y: idx * item.h,
-    }))
-    const reset = { lg: defaultLg, md, sm, xs }
+    const reset = { lg: defaultLg, md: generateMediumLayout(defaultLg), sm: generateStackedLayout(defaultLg, 6), xs: generateStackedLayout(defaultLg, 4) }
     layoutRef.current = reset
     setLayouts(reset)
     setOverlappingItems(new Set())
@@ -390,7 +383,14 @@ export default function DashboardGrid({
   }
 
   return (
-    <div ref={containerRef} className="w-full relative">
+    <div ref={containerRef} className="w-full relative min-w-[320px]">
+      {/* "Use the Lynx app" banner for phone-sized screens */}
+      {containerWidth > 0 && containerWidth < 480 && (
+        <div className="bg-lynx-navy text-white text-center py-3 px-4 text-r-sm rounded-xl mb-3">
+          📱 For the best experience, <span className="text-lynx-sky font-bold">use the Lynx mobile app</span>
+        </div>
+      )}
+
       {/* Save confirmation toast */}
       {showSaveToast && (
         <div className="fixed bottom-20 right-6 z-50 bg-emerald-500 text-white px-5 py-3 rounded-xl shadow-lg font-bold text-sm animate-fade-in">
@@ -451,8 +451,8 @@ export default function DashboardGrid({
           className="layout"
           width={containerWidth}
           layouts={layouts}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-          cols={{ lg: columns, md: columns, sm: 12, xs: 6 }}
+          breakpoints={{ lg: 1200, md: 768, sm: 480, xs: 0 }}
+          cols={{ lg: columns, md: 12, sm: 6, xs: 4 }}
           rowHeight={rowHeight}
           dragConfig={{ enabled: editMode, handle: '.widget-drag-handle' }}
           resizeConfig={{ enabled: editMode, handles: ['se', 'sw', 'ne', 'nw', 'e', 'w', 'n', 's'] }}
