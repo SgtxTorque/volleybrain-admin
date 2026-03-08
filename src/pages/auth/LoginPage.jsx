@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { VolleyballIcon } from '../../constants/icons'
+import { supabase } from '../../lib/supabase'
 
 /* ─── SVG brand logos ─── */
 function GoogleLogo() {
@@ -36,6 +37,7 @@ export function LoginPage() {
   const [oauthLoading, setOauthLoading] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [resetSending, setResetSending] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -54,6 +56,24 @@ export function LoginPage() {
       setError(err.message)
     }
     setLoading(false)
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError('Please enter your email address first')
+      return
+    }
+    setResetSending(true)
+    setError('')
+    setMessage('')
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim())
+      if (resetError) throw resetError
+      setMessage('Password reset link sent! Check your email.')
+    } catch (err) {
+      setError(err.message)
+    }
+    setResetSending(false)
   }
 
   async function handleGoogleLogin() {
@@ -205,6 +225,16 @@ export function LoginPage() {
               />
               {mode === 'signup' && (
                 <p className="text-xs text-slate-500 mt-1">Minimum 6 characters</p>
+              )}
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={resetSending}
+                  className="text-sm text-slate-400 hover:text-[var(--accent-primary)] transition cursor-pointer mt-1 disabled:opacity-50"
+                >
+                  {resetSending ? 'Sending...' : 'Forgot password?'}
+                </button>
               )}
             </div>
 
