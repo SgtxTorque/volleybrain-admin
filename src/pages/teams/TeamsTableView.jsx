@@ -199,30 +199,48 @@ export default function TeamsTableView({
                   </td>
 
                   {/* Actions */}
-                  <td className="px-5 py-3 relative">
-                    <button
-                      onClick={() => setMenuOpen(menuOpen === team.id ? null : team.id)}
-                      className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center ${
-                        isDark ? 'border-white/[0.06] text-slate-400 hover:bg-white/[0.04]' : 'border-slate-200 text-slate-400 hover:bg-slate-50'
-                      }`}
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                    {menuOpen === team.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
-                        <div className={`absolute right-5 top-12 z-20 rounded-lg shadow-lg border py-1 min-w-[140px] ${
-                          isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
-                        }`}>
-                          <button
-                            onClick={() => { onDeleteTeam(team.id); setMenuOpen(null) }}
-                            className={`w-full px-4 py-2 text-left text-base flex items-center gap-2 text-red-500 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-red-50'}`}
+                  <td className="px-5 py-3">
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setMenuOpen(menuOpen === team.id ? null : team.id)
+                        }}
+                        className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center ${
+                          isDark ? 'border-white/[0.06] text-slate-400 hover:bg-white/[0.04]' : 'border-slate-200 text-slate-400 hover:bg-slate-50'
+                        }`}
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                      {menuOpen === team.id && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(null)} />
+                          <div className={`absolute right-0 top-full mt-1 z-50 rounded-lg shadow-xl border py-1 min-w-[140px] ${
+                            isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
+                          }`}
+                            style={{ position: 'fixed', transform: 'translateX(-100px)' }}
+                            ref={el => {
+                              if (el) {
+                                const btn = el.previousElementSibling?.previousElementSibling
+                                if (btn) {
+                                  const rect = btn.getBoundingClientRect()
+                                  el.style.top = `${rect.bottom + 4}px`
+                                  el.style.left = `${rect.right - 140}px`
+                                  el.style.transform = 'none'
+                                }
+                              }
+                            }}
                           >
-                            <Trash2 className="w-3.5 h-3.5" /> Delete Team
-                          </button>
-                        </div>
-                      </>
-                    )}
+                            <button
+                              onClick={() => { onDeleteTeam(team.id); setMenuOpen(null) }}
+                              className={`w-full px-4 py-2 text-left text-base flex items-center gap-2 text-red-500 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-red-50'}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Delete Team
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
