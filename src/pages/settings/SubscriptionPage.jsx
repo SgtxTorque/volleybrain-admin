@@ -248,7 +248,7 @@ function SubscriptionPage({ showToast }) {
     return (
       <>
         <style>{SUB_STYLES}</style>
-        <DashboardContainer className="space-y-6">
+        <DashboardContainer className="space-y-6 px-6">
           <div className="sb-au"><div className={`h-10 w-64 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-200'} sb-shimmer`} /></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1,2,3,4].map(i => (

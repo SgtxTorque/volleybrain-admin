@@ -1494,7 +1494,7 @@ export function DashboardPage({ onNavigate }) {
         <DashboardContainer className="space-y-5">
 
           {/* ─── Filters — not in grid, always at top ──── */}
-          <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm ${
+          <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mx-6 ${
             isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
           }`}>
             <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />

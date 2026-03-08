@@ -406,6 +406,7 @@ export default function DashboardGrid({
           onLayoutChange={handleLayoutChange}
           compactor={editMode ? editCompactor : verticalCompactor}
           margin={[12, 12]}
+          containerPadding={[24, 24]}
         >
           {effectiveWidgets.map(widget => {
             const dims = editMode ? getCurrentDims(widget.id, widget.defaultLayout.w, widget.defaultLayout.h) : null

@@ -227,6 +227,7 @@ export function DashboardGrid({ role = 'admin' }) {
           onLayoutChange={handleLayoutChange}
           compactor={verticalCompactor}
           margin={[16, 16]}
+          containerPadding={[24, 24]}
         >
           {activeWidgets.map(widgetId => {
             const reg = WIDGET_REGISTRY[widgetId]

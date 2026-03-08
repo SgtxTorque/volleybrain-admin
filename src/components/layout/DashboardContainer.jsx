@@ -5,7 +5,7 @@
 
 export default function DashboardContainer({ children, className = '' }) {
   return (
-    <div className={`w-full px-r-4 py-r-4 ${className}`}>
+    <div className={`w-full py-r-4 ${className}`}>
       {children}
     </div>
   )

@@ -780,7 +780,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
           {/* Season + Team Selectors — progressive disclosure */}
           {(coachSeasons.length > 1 || teams.length > 1) && (
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-4 flex-wrap px-6">
               {/* Season filter — only when coach has teams in multiple seasons */}
               {coachSeasons.length > 1 && (
                 <div className="flex items-center gap-2">

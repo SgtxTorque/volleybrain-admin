@@ -254,7 +254,7 @@ function GamePrepPage({ showToast }) {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
-    <DashboardContainer className="space-y-6 animate-page-in">
+    <DashboardContainer className="space-y-6 animate-page-in px-6">
       {/* Stats Pending Banner */}
       {statsPendingCount > 0 && (
         <div className={`${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-300'} border rounded-xl p-4 flex items-center justify-between`}>

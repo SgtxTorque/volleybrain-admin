@@ -73,7 +73,7 @@ function ClaimAccountPage({ showToast }) {
 
   if (loading) {
     return (
-      <DashboardContainer>
+      <DashboardContainer className="px-6">
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-lynx-sky" />
         </div>
@@ -84,7 +84,7 @@ function ClaimAccountPage({ showToast }) {
   // No orphans found -- redirect or show message
   if (orphans.length === 0) {
     return (
-      <DashboardContainer>
+      <DashboardContainer className="px-6">
         <div className="mx-auto mt-16">
           <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
             <Users className="w-12 h-12 mx-auto mb-4 text-slate-400" />
@@ -103,7 +103,7 @@ function ClaimAccountPage({ showToast }) {
   }
 
   return (
-    <DashboardContainer>
+    <DashboardContainer className="px-6">
       <div className="mx-auto mt-12">
         <div className={`rounded-2xl p-8 ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-lg'}`}>
           {/* Header */}

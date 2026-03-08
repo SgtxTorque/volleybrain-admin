@@ -356,7 +356,7 @@ export default function SeasonManagementPage({ onNavigate, showToast }) {
   return (
     <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
       <div className="w-full h-full overflow-y-auto">
-        <DashboardContainer className="space-y-5">
+        <DashboardContainer className="space-y-5 px-6">
 
           {/* Header: Season name + sport + date range + season selector */}
           <div className="flex items-center justify-between">

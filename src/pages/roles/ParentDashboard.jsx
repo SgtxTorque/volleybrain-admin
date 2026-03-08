@@ -521,7 +521,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
   if (registrationData.length === 0) {
     return (
-      <DashboardContainer className={`space-y-6 py-12 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+      <DashboardContainer className={`space-y-6 py-12 px-6 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
         <div className="text-center">
           <span className="text-r-5xl block mb-4">🏐</span>
           <h2 className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
@@ -555,11 +555,13 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
 
       {/* ── Orphan Player Banner — claim unclaimed children ── */}
-      <OrphanPlayerBanner onNavigate={onNavigate} />
+      <div className="px-6">
+        <OrphanPlayerBanner onNavigate={onNavigate} />
+      </div>
 
       {/* ── Season + Child Switcher — fixed UI above grid ── */}
       {(parentSeasons.length > 1 || registrationData.length > 1) && (
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap px-6">
           {/* Season filter — only when children span multiple seasons */}
           {parentSeasons.length > 1 && (
             <div className="flex items-center gap-2">
