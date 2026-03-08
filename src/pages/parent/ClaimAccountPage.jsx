@@ -81,7 +81,7 @@ function ClaimAccountPage({ showToast }) {
     )
   }
 
-  // No orphans found -- redirect or show message
+  // No orphans found - redirect or show message
   if (orphans.length === 0) {
     return (
       <DashboardContainer className="px-6">
@@ -135,7 +135,7 @@ function ClaimAccountPage({ showToast }) {
                   <p className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</p>
                   <p className={`text-xs ${tc.textSecondary}`}>
                     {player.position || 'Player'}
-                    {player.jersey_number ? ` -- #${player.jersey_number}` : ''}
+                    {player.jersey_number ? ` - #${player.jersey_number}` : ''}
                   </p>
                 </div>
               </div>
@@ -157,7 +157,7 @@ function ClaimAccountPage({ showToast }) {
               className={`w-full py-3 rounded-xl text-sm font-medium transition-colors ${
                 isDark ? 'text-slate-400 hover:text-slate-300 hover:bg-white/[0.04]' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}>
-              This isn't me -- skip
+              Not my players - skip
             </button>
           </div>
         </div>
