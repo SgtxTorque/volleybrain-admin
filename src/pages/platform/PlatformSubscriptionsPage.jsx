@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
@@ -21,16 +20,17 @@ const PS_STYLES = `
   .ps-au{animation:fadeUp .4s ease-out both}
   .ps-ai{animation:fadeIn .3s ease-out both}
   .ps-as{animation:scaleIn .25s ease-out both}
-  .ps-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
-  .ps-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
+  .ps-glass{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+  .ps-glass-solid{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08)}
   .ps-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.04) 50%,transparent 100%);background-size:200% 100%;animation:shimmer 3s ease-in-out infinite}
 `
 
 const TIER_CONFIG = {
-  free:       { label: 'Free',       icon: Star,   color: '#94A3B8', monthly: 0,    annual: 0 },
-  starter:    { label: 'Starter',    icon: Zap,    color: '#3B82F6', monthly: 2900, annual: 29000 },
-  pro:        { label: 'Pro',        icon: Gem,    color: '#8B5CF6', monthly: 7900, annual: 79000 },
-  enterprise: { label: 'Enterprise', icon: Shield, color: '#F59E0B', monthly: null, annual: null },
+  free:       { label: 'Free',       icon: Star,   color: '#94A3B8', monthly: 0,     annual: 0 },
+  pro:        { label: 'Pro',        icon: Zap,    color: '#3B82F6', monthly: 2900,  annual: 29000 },
+  club:       { label: 'Club',       icon: Gem,    color: '#8B5CF6', monthly: 7900,  annual: 79000 },
+  elite:      { label: 'Elite',      icon: Star,   color: '#F59E0B', monthly: 14900, annual: 149000 },
+  enterprise: { label: 'Enterprise', icon: Shield, color: '#EC4899', monthly: null,  annual: null },
 }
 
 const STATUS_CONFIG = {
@@ -54,7 +54,6 @@ function fmtDate(d) {
 // ═══════ MAIN COMPONENT ═══════
 
 function PlatformSubscriptionsPage({ showToast }) {
-  const { isPlatformAdmin } = useAuth()
   const { isDark, accent } = useTheme()
   const tc = useThemeClasses()
   const accentColor = accent?.primary || '#EAB308'
@@ -75,19 +74,6 @@ function PlatformSubscriptionsPage({ showToast }) {
   const [showInvoicesFor, setShowInvoicesFor] = useState(null)
   const [savingSub, setSavingSub] = useState(false)
   const [creatingInvoice, setCreatingInvoice] = useState(false)
-
-  // ═══════ ACCESS GATE ═══════
-  if (!isPlatformAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-lynx-silver'} border rounded-xl p-8 text-center max-w-md`}>
-          <Shield className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className={`text-xl font-bold ${tc.text} mb-2`}>Access Denied</h2>
-          <p className={tc.textMuted}>Only platform super-admins can manage subscriptions.</p>
-        </div>
-      </div>
-    )
-  }
 
   // ═══════ LOAD DATA ═══════
   useEffect(() => { loadData() }, [])
@@ -312,18 +298,12 @@ function PlatformSubscriptionsPage({ showToast }) {
       <style>{PS_STYLES}</style>
       <div className="space-y-6 w-full">
 
-        {/* HEADER */}
-        <div className="ps-au" style={{ animationDelay: '.05s' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className={`text-3xl sm:text-4xl ${tc.text}`}>PLATFORM SUBSCRIPTIONS</h1>
-              <p className={`text-sm ${tc.textMuted} mt-1`}>Manage organization plans, billing, and revenue</p>
-            </div>
-            <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-lynx-cloud text-slate-600 border border-lynx-silver'}`}>
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-          </div>
+        {/* Controls */}
+        <div className="flex justify-end ps-au" style={{ animationDelay: '.05s' }}>
+          <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'}`}>
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
         </div>
 
         {/* REVENUE METRICS */}
