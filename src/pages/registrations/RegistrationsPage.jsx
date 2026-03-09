@@ -64,7 +64,7 @@ export function RegistrationsPage({ showToast }) {
   const [viewMode, setViewMode] = useState('table')
 
   useEffect(() => {
-    if (selectedSeason?.id) loadRegistrations()
+    loadRegistrations()
   }, [selectedSeason?.id, statusFilter])
 
   useEffect(() => {
@@ -74,13 +74,17 @@ export function RegistrationsPage({ showToast }) {
   // ========== DATA LOADING ==========
 
   async function loadRegistrations() {
-    if (!selectedSeason?.id) return
     setLoading(true)
-    const { data, error } = await supabase
+    let query = supabase
       .from('players')
-      .select('*, registrations(*)')
-      .eq('season_id', selectedSeason.id)
+      .select('*, registrations(*), seasons:season_id(id, name)')
       .order('created_at', { ascending: false })
+
+    if (selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error loading registrations:', error)
@@ -333,23 +337,13 @@ export function RegistrationsPage({ showToast }) {
   const returningCount = registrations.filter(p => p.is_returning).length
   const newCount = registrations.length - returningCount
 
-  // ========== NO SEASON SELECTED ==========
-
-  if (!selectedSeason) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400">Please select a season from the sidebar</p>
-      </div>
-    )
-  }
-
   // ========== RENDER ==========
 
   return (
     <PageShell
       breadcrumb="Registrations"
       title="Registrations"
-      subtitle={selectedSeason.name}
+      subtitle={selectedSeason?.name || 'All Seasons'}
       actions={
         <>
           {/* View Toggle */}
