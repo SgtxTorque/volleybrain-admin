@@ -11,7 +11,8 @@ import {
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
-  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, MapPin
+  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, MapPin,
+  Search
 } from 'lucide-react'
 
 // Icon lookup for nav items
@@ -229,6 +230,23 @@ export default function LynxSidebar({
           <span className="text-r-xs font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
       </div>
+
+      {/* ---- Search Trigger ---- */}
+      <button
+        onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
+        className="mx-2 mb-1 flex items-center gap-3 h-9 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors duration-200"
+        title="Search (⌘K)"
+      >
+        <div className="w-12 min-w-[48px] flex items-center justify-center shrink-0">
+          <Search className="w-[18px] h-[18px]" />
+        </div>
+        <span className="flex-1 text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          Search
+        </span>
+        <kbd className="mr-3 text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          ⌘K
+        </kbd>
+      </button>
 
       {/* Divider */}
       <div className="border-b border-white/[0.08] mx-3 shrink-0" />
