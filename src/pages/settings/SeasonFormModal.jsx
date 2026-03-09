@@ -219,12 +219,12 @@ function RegistrationTab({ form, setForm, templates, tc, isDark }) {
               ...form,
               registration_template_id: templateId,
               registration_config: template ? {
-                player_fields: template.player_fields,
-                parent_fields: template.parent_fields,
-                emergency_fields: template.emergency_fields,
-                medical_fields: template.medical_fields,
-                waivers: template.waivers,
-                custom_questions: template.custom_questions
+                player_fields: template.player_fields || {},
+                parent_fields: template.parent_fields || {},
+                emergency_fields: template.emergency_fields || {},
+                medical_fields: template.medical_fields || {},
+                waivers: template.waivers || {},
+                custom_questions: template.custom_questions || []
               } : null
             })
           }}
@@ -685,7 +685,7 @@ export function ShareHubModal({ showShareModal, setShowShareModal, shareSeason, 
                 Email
               </button>
               <button
-                onClick={() => window.open(shareLink, '_blank')}
+                onClick={() => window.open(shareLink + (shareLink.includes('?') ? '&' : '?') + 'preview=true', '_blank')}
                 className={`px-4 py-3 rounded-[14px] ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'} text-sm font-medium flex items-center justify-center gap-2`}
               >
                 Preview

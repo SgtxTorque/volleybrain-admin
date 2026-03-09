@@ -172,6 +172,8 @@ function SeasonsPage({ showToast }) {
       waitlist_enabled: season.waitlist_enabled,
       waitlist_capacity: season.waitlist_capacity,
       description: season.description,
+      registration_template_id: season.registration_template_id || null,
+      registration_config: season.registration_config || null,
     }
 
     const { data: newSeason, error } = await supabase
@@ -266,7 +268,7 @@ function SeasonsPage({ showToast }) {
                     Share
                   </button>
                   <button
-                    onClick={() => window.open(regLink, '_blank')}
+                    onClick={() => window.open(regLink + '?preview=true', '_blank')}
                     className="flex-1 px-3 py-2 rounded-lg bg-lynx-navy hover:brightness-110 text-white text-xs font-medium"
                   >
                     Preview

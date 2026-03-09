@@ -43,6 +43,9 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [prefillApplied, setPrefillApplied] = useState(false)
   const [formStartTracked, setFormStartTracked] = useState(false)
 
+  // Preview mode — blocks real submissions
+  const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true'
+
   // ─── Funnel tracking (fire-and-forget) ─────────────────────────────────
   function getSessionId() {
     let sid = sessionStorage.getItem('vb_session')
@@ -131,12 +134,26 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
       if (!seasonData) { setError('Season not found'); setLoading(false); return }
       setSeason(seasonData)
-      if (seasonData.registration_config) setConfig(seasonData.registration_config)
+
+      // Merge saved config with defaults — if a section is missing or empty, use DEFAULT_CONFIG
+      const raw = seasonData.registration_config
+      const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0 &&
+        Object.values(obj).some(v => v && typeof v === 'object' && 'enabled' in v)
+      const resolved = (raw && typeof raw === 'object') ? {
+        player_fields: hasFields(raw.player_fields) ? raw.player_fields : DEFAULT_CONFIG.player_fields,
+        parent_fields: hasFields(raw.parent_fields) ? raw.parent_fields : DEFAULT_CONFIG.parent_fields,
+        emergency_fields: hasFields(raw.emergency_fields) ? raw.emergency_fields : DEFAULT_CONFIG.emergency_fields,
+        medical_fields: hasFields(raw.medical_fields) ? raw.medical_fields : DEFAULT_CONFIG.medical_fields,
+        waivers: hasFields(raw.waivers) ? raw.waivers : DEFAULT_CONFIG.waivers,
+        custom_questions: Array.isArray(raw.custom_questions) && raw.custom_questions.length > 0
+          ? raw.custom_questions : DEFAULT_CONFIG.custom_questions,
+      } : DEFAULT_CONFIG
+      setConfig(resolved)
 
       trackFunnelEvent('page_view', null, { season_name: seasonData.name })
 
-      // Initialize waiver state
-      const waiverConfig = seasonData.registration_config?.waivers || DEFAULT_CONFIG.waivers
+      // Initialize waiver state from resolved config
+      const waiverConfig = resolved.waivers
       const waiverInit = {}
       Object.keys(waiverConfig).forEach(key => {
         if (waiverConfig[key]?.enabled) waiverInit[key] = false
@@ -144,7 +161,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       setWaiverState(waiverInit)
 
       // Initialize custom answers
-      const customQs = seasonData.registration_config?.custom_questions || []
+      const customQs = resolved.custom_questions || []
       const customInit = {}
       customQs.forEach(q => { customInit[q.id] = q.type === 'checkbox' ? false : '' })
       setCustomAnswers(customInit)
@@ -213,6 +230,10 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   // ─── Submit ────────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
+    if (isPreview) {
+      setSubmitted(true)
+      return
+    }
     setSubmitting(true)
     setError(null)
 
@@ -318,13 +339,20 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   if (loading) return <LoadingScreen />
   if (submitted) {
     return (
-      <SuccessScreen
-        childrenCount={children.length}
-        seasonName={season?.name}
-        totalFee={totalFee}
-        currentChildName={currentChild.first_name}
-        organization={organization}
-      />
+      <>
+        {isPreview && (
+          <div className="bg-amber-500 text-white text-center py-2 font-bold text-r-sm">
+            PREVIEW MODE — No data was submitted
+          </div>
+        )}
+        <SuccessScreen
+          childrenCount={children.length}
+          seasonName={season?.name}
+          totalFee={totalFee}
+          currentChildName={currentChild.first_name}
+          organization={organization}
+        />
+      </>
     )
   }
   if (error && !season) return <ErrorScreen message={error} />
@@ -364,6 +392,13 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           )}
         </div>
       </div>
+
+      {/* Preview mode banner */}
+      {isPreview && (
+        <div className="bg-amber-500 text-white text-center py-2 font-bold text-r-sm">
+          PREVIEW MODE — This form will NOT submit real data
+        </div>
+      )}
 
       {/* Form body */}
       <div className="px-4 py-8">
