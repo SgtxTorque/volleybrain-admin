@@ -110,7 +110,7 @@ export default function LynxSidebar({
   profile = null, activeView = 'admin', availableViews = [], onSwitchRole,
   onToggleTheme, onSignOut, onNavigateToProfile, isDark = false,
   notificationCount = 0, onOpenNotifications,
-  isPlatformAdmin = false, onPlatformAnalytics, onPlatformSubscriptions, onPlatformAdmin,
+  isPlatformAdmin = false, onEnterPlatformMode,
 }) {
   const displayName = profile?.full_name || 'User'
   const avatarInitial = displayName.charAt(0).toUpperCase()
@@ -303,21 +303,18 @@ export default function LynxSidebar({
       <div className="border-t border-white/[0.06] shrink-0">
         {isPlatformAdmin && (
           <div className="py-1">
-            <NavItem
-              item={{ id: 'platform-analytics', label: 'Analytics', icon: 'reports' }}
-              isActive={activePage === 'platform-analytics'}
-              onNavigate={() => onPlatformAnalytics?.()}
-            />
-            <NavItem
-              item={{ id: 'platform-subscriptions', label: 'Subscriptions', icon: 'credit-card' }}
-              isActive={activePage === 'platform-subscriptions'}
-              onNavigate={() => onPlatformSubscriptions?.()}
-            />
-            <NavItem
-              item={{ id: 'platform-admin', label: 'Platform Admin', icon: 'shield' }}
-              isActive={activePage === 'platform-admin'}
-              onNavigate={() => onPlatformAdmin?.()}
-            />
+            <button
+              onClick={() => onEnterPlatformMode?.()}
+              className="relative w-full flex items-center gap-3 h-9 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors duration-200"
+              title="Platform Mode"
+            >
+              <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
+                <Shield className="w-[18px] h-[18px]" />
+              </div>
+              <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Platform Mode
+              </span>
+            </button>
           </div>
         )}
 

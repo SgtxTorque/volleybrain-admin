@@ -92,6 +92,14 @@ import { NotificationsPage } from './pages/notifications/NotificationsPage'
 import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
 import { PlatformAnalyticsPage } from './pages/platform/PlatformAnalyticsPage'
 import { PlatformSubscriptionsPage } from './pages/platform/PlatformSubscriptionsPage'
+import PlatformOverview from './pages/platform/PlatformOverview'
+import PlatformOrganizations from './pages/platform/PlatformOrganizations'
+import PlatformOrgDetail from './pages/platform/PlatformOrgDetail'
+import PlatformUsersPage from './pages/platform/PlatformUsers'
+import PlatformSupport from './pages/platform/PlatformSupport'
+import PlatformAuditLog from './pages/platform/PlatformAuditLog'
+import PlatformSettings from './pages/platform/PlatformSettings'
+import PlatformShell from './components/platform/PlatformShell'
 
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
@@ -762,7 +770,16 @@ function MainApp() {
   // Document title updates
   useDocumentTitle()
 
-  const [appMode, setAppMode] = useState('org') // 'org' | 'platform'
+  const [appMode, setAppMode] = useState(() =>
+    window.location.pathname.startsWith('/platform') ? 'platform' : 'org'
+  ) // 'org' | 'platform'
+
+  // Sync appMode with URL changes (browser back/forward)
+  useEffect(() => {
+    const isPlatformUrl = mainLocation.pathname.startsWith('/platform')
+    if (isPlatformUrl && appMode !== 'platform') setAppMode('platform')
+    else if (!isPlatformUrl && appMode === 'platform') setAppMode('org')
+  }, [mainLocation.pathname])
   const [activeView, setActiveView] = useState('admin')
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)
@@ -993,6 +1010,55 @@ function MainApp() {
     navigate(getPathForPage(itemId))
   }
 
+  const orgName = organization?.name || 'My Club'
+  const orgInitials = (organization?.name || 'MC').substring(0, 2).toUpperCase()
+
+  const handleExitPlatformMode = () => {
+    setAppMode('org')
+    navigate('/dashboard')
+  }
+
+  const handleEnterPlatformMode = () => {
+    setAppMode('platform')
+    navigate('/platform/overview')
+  }
+
+  // ── Platform Mode ──
+  if (appMode === 'platform') {
+    return (
+      <>
+        <PlatformShell
+          profile={profile}
+          orgName={orgName}
+          orgInitials={orgInitials}
+          platformStats={{}}
+          onExitPlatformMode={handleExitPlatformMode}
+          onSignOut={signOut}
+        >
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/platform/overview" element={<PlatformOverview showToast={showToast} />} />
+              <Route path="/platform/organizations/:orgId" element={<PlatformOrgDetail showToast={showToast} />} />
+              <Route path="/platform/organizations" element={<PlatformOrganizations showToast={showToast} />} />
+              <Route path="/platform/users" element={<PlatformUsersPage showToast={showToast} />} />
+              <Route path="/platform/subscriptions" element={<PlatformSubscriptionsPage showToast={showToast} />} />
+              <Route path="/platform/analytics" element={<PlatformAnalyticsPage showToast={showToast} />} />
+              <Route path="/platform/support" element={<PlatformSupport showToast={showToast} />} />
+              <Route path="/platform/audit" element={<PlatformAuditLog showToast={showToast} />} />
+              <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
+              <Route path="/platform/admin" element={<PlatformAdminPage showToast={showToast} />} />
+              <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
+              <Route path="*" element={<Navigate to="/platform/overview" replace />} />
+            </Routes>
+          </ErrorBoundary>
+        </PlatformShell>
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+        <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
+      </>
+    )
+  }
+
+  // ── Org Mode (default) ──
   return (
     <OrgBrandingProvider>
     <SportProvider>
@@ -1013,8 +1079,8 @@ function MainApp() {
           activePathname={mainLocation.pathname}
           directTeamWallId={directTeamWallId}
           onNavigate={handleNavigation}
-          orgName={organization?.name || 'My Club'}
-          orgInitials={(organization?.name || 'MC').substring(0, 2).toUpperCase()}
+          orgName={orgName}
+          orgInitials={orgInitials}
           orgLogo={organization?.logo_url}
           profile={profile}
           activeView={activeView}
@@ -1027,9 +1093,7 @@ function MainApp() {
           notificationCount={0}
           onOpenNotifications={() => navigate('/notifications')}
           isPlatformAdmin={isPlatformAdmin}
-          onPlatformAnalytics={() => navigate('/platform/analytics')}
-          onPlatformSubscriptions={() => navigate('/platform/subscriptions')}
-          onPlatformAdmin={() => navigate('/platform/admin')}
+          onEnterPlatformMode={handleEnterPlatformMode}
         />
 
         {/* Main Content — offset by sidebar width (64px), capped at 2400px on ultrawide */}
