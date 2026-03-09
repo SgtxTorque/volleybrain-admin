@@ -35,6 +35,9 @@ export const JOURNEY_BADGES = {
   superfan: { id: 'superfan', icon: '🌟', name: 'Superfan', description: 'Viewed stats after 5 games' },
   perfect_attendance: { id: 'perfect_attendance', icon: '🏆', name: 'Perfect Attendance', description: 'RSVP\'d to 10+ events' },
   
+  // Beta badge
+  beta_tester: { id: 'beta_tester', icon: '🔍', name: 'Beta Tester', description: 'Joined Lynx during the beta — thank you for helping us build!', rarity: 'legendary' },
+
   // Milestone badges
   week_one: { id: 'week_one', icon: 'calendar', name: 'Week One', description: 'Completed first week' },
   midseason: { id: 'midseason', icon: 'star', name: 'Midseason Star', description: 'Reached midseason' },

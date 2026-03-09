@@ -211,7 +211,7 @@ export function SetupWizard({ onComplete, onBack }) {
           role: 'org_director', organization_id: org.id,
           completed_at: new Date().toISOString(),
           completed_steps: ['create_org'],
-          earned_badges: ['founder'],
+          earned_badges: ['founder', 'beta_tester'],
         },
       }).eq('id', user.id)
 
@@ -255,7 +255,7 @@ export function SetupWizard({ onComplete, onBack }) {
           role: 'team_manager', organization_id: org.id,
           completed_at: new Date().toISOString(),
           completed_steps: ['join_create_team'],
-          earned_badges: ['team_builder'],
+          earned_badges: ['team_builder', 'beta_tester'],
         },
       }).eq('id', user.id)
 
@@ -307,6 +307,7 @@ export function SetupWizard({ onComplete, onBack }) {
             role: accountInvite.role || 'parent',
             organization_id: accountInvite.organization_id,
             completed_at: new Date().toISOString(),
+            earned_badges: ['beta_tester'],
           },
         }).eq('id', user.id)
 
@@ -328,6 +329,7 @@ export function SetupWizard({ onComplete, onBack }) {
           role: 'parent', organization_id: orgId,
           team_id: invite.team_id,
           completed_at: new Date().toISOString(),
+          earned_badges: ['beta_tester'],
         },
       }).eq('id', user.id)
 
@@ -344,7 +346,7 @@ export function SetupWizard({ onComplete, onBack }) {
   const skipOnboarding = async () => {
     await supabase.from('profiles').update({
       onboarding_completed: true,
-      onboarding_data: { skipped: true, completed_at: new Date().toISOString() },
+      onboarding_data: { skipped: true, completed_at: new Date().toISOString(), earned_badges: ['beta_tester'] },
     }).eq('id', user.id)
     onComplete()
   }
