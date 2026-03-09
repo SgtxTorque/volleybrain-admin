@@ -1521,6 +1521,23 @@ export function DashboardPage({ onNavigate }) {
             </div>
           </div>
 
+          {/* ─── Empty state for brand new orgs ──── */}
+          {totalTeams === 0 && !loading && (
+            <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+              <img src="/images/laptoplynx.png" alt="Lynx" className="w-32 h-32 mb-6 opacity-80" />
+              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>Your dashboard is waiting!</h3>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} max-w-md mb-6`}>
+                Start by setting up your season, creating teams, and opening registration. Your dashboard will come alive as data flows in.
+              </p>
+              <button
+                onClick={() => onNavigate?.('seasons')}
+                className="bg-lynx-sky text-white font-bold px-6 py-3 rounded-xl hover:brightness-110 transition"
+              >
+                Set Up Your First Season
+              </button>
+            </div>
+          )}
+
           {/* ─── Widget Grid ──── */}
           <DashboardGridLayout
             widgets={adminWidgets}

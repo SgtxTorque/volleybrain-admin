@@ -8,6 +8,7 @@ export const ROUTES = {
   // People
   'teams': '/teams',
   'coaches': '/coaches',
+  'team-hubs': '/team-hubs',
 
   // Operations
   'registrations': '/registrations',
@@ -130,6 +131,7 @@ export const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
   '/teams': 'Teams & Rosters',
   '/coaches': 'Coaches',
+  '/team-hubs': 'Team Hubs',
   '/registrations': 'Registrations',
   '/jerseys': 'Jerseys',
   '/schedule': 'Schedule',

@@ -56,6 +56,7 @@ import { OrgDirectoryPage } from './pages/public'
 
 // Team Wall (authenticated — has lightbox, shared FeedPost, photo grid)
 import { TeamWallPage } from './pages/teams/TeamWallPage'
+import TeamHubSelectorPage from './pages/teams/TeamHubSelectorPage'
 
 // Core Admin Pages
 import { RegistrationsPage } from './pages/registrations'
@@ -783,6 +784,13 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Team Wall — /teams/:teamId */}
       <Route path="/teams/:teamId" element={<TeamWallRoute showToast={showToast} activeView={activeView} />} />
 
+      {/* Team Hubs — admin selector */}
+      <Route path="/team-hubs" element={
+        <RouteGuard allow={['admin']} activeView={activeView}>
+          <TeamHubSelectorPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} />
+        </RouteGuard>
+      } />
+
       {/* Parent-specific routes */}
       <Route path="/parent/player/:playerId/profile" element={<PlayerProfileRoute roleContext={roleContext} showToast={showToast} />} />
       <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
@@ -971,6 +979,7 @@ function MainApp() {
     { id: 'people', label: 'People', type: 'group', icon: 'users', items: [
       { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
       { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
+      { id: 'team-hubs', label: 'Team Hubs', icon: 'teamwall' },
     ]},
     { id: 'operations', label: 'Operations', type: 'group', icon: 'settings', items: [
       { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
