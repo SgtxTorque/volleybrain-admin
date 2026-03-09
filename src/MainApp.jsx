@@ -64,6 +64,7 @@ import { RegistrationsPage } from './pages/registrations'
 import { PaymentsPage } from './pages/payments'
 import { TeamsPage } from './pages/teams'
 import { CoachesPage } from './pages/coaches'
+import { StaffPage } from './pages/staff/StaffPage'
 import { JerseysPage } from './pages/jerseys'
 import { SchedulePage, CoachAvailabilityPage } from './pages/schedule'
 import { AttendancePage } from './pages/attendance'
@@ -684,6 +685,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
       <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachesPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/staff" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPage showToast={showToast} /></RouteGuard>} />
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
@@ -864,37 +866,53 @@ function MainApp() {
 
   const adminNavGroups = [
     { id: 'dashboard', label: 'Dashboard', type: 'single' },
-    { id: 'people', label: 'People', type: 'group', icon: 'users', items: [
-      { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
-      { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
-      { id: 'team-hubs', label: 'Team Hubs', icon: 'teamwall' },
+
+    // --- CLUB MANAGEMENT (people + teams + staff) ---
+    { id: 'club', label: 'Club Management', type: 'group', icon: 'shield', items: [
+      { id: 'teams', label: 'Team Management', icon: 'shield' },
+      { id: 'coaches', label: 'Coach Directory', icon: 'user-cog' },
+      { id: 'staff', label: 'Staff & Volunteers', icon: 'users' },
     ]},
-    { id: 'operations', label: 'Operations', type: 'group', icon: 'settings', items: [
+
+    // --- REGISTRATION & PAYMENTS (the money stuff) ---
+    { id: 'registration', label: 'Registration & Payments', type: 'group', icon: 'clipboard', items: [
       { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
-      { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
+      { id: 'payments', label: 'Payment Admin', icon: 'dollar' },
+      { id: 'jerseys', label: 'Jersey Management', icon: 'shirt', hasBadge: true },
+    ]},
+
+    // --- SCHEDULING & ATTENDANCE ---
+    { id: 'scheduling', label: 'Scheduling', type: 'group', icon: 'calendar', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
-      { id: 'payments', label: 'Payments', icon: 'dollar' },
       { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
     ]},
+
+    // --- GAME DAY (unchanged, this group is solid) ---
     { id: 'game', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
     ]},
+
+    // --- COMMUNICATION (unchanged) ---
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chats', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
       { id: 'notifications', label: 'Push Notifications', icon: 'bell' },
     ]},
-    { id: 'insights', label: 'Insights', type: 'group', icon: 'reports', items: [
+
+    // --- INSIGHTS & REPORTS ---
+    { id: 'insights', label: 'Reports & Insights', type: 'group', icon: 'reports', items: [
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
       { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
       { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
-    { id: 'setup', label: 'Setup', type: 'group', icon: 'settings', items: [
-      { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+
+    // --- SETUP & SETTINGS ---
+    { id: 'setup', label: 'Settings', type: 'group', icon: 'settings', items: [
+      { id: 'seasons', label: 'Season Management', icon: 'calendar' },
       { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
       { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },

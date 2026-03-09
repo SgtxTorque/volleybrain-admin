@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
-import { Search, Trash2, MoreVertical, ExternalLink } from 'lucide-react'
+import { Search, Trash2, MoreVertical, ExternalLink, Edit, Users, UserCog, Shield } from 'lucide-react'
 
 function AvatarGroup({ players = [], teamColor, max = 5 }) {
   const { isDark } = useTheme()
@@ -79,6 +79,11 @@ export default function TeamsTableView({
   onSearchChange,
   onDeleteTeam,
   onNavigateToWall,
+  onEditTeam,
+  onManageRoster,
+  onAssignCoaches,
+  onToggleRosterOpen,
+  onViewTeamDetail,
   unrosteredPlayers = [],
   onAddPlayer,
 }) {
@@ -146,9 +151,12 @@ export default function TeamsTableView({
                     <div className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: team.color || '#888' }} />
                       <div className="min-w-0">
-                        <p className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <button
+                          onClick={() => onViewTeamDetail?.(team)}
+                          className={`text-r-base font-semibold truncate ${isDark ? 'text-white hover:text-lynx-sky' : 'text-lynx-navy hover:text-lynx-sky'} transition cursor-pointer text-left block w-full`}
+                        >
                           {team.name}
-                        </p>
+                        </button>
                         <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                           {team.age_group || ''}{team.gender && team.gender !== 'coed' ? ` · ${team.gender}` : ''}
                         </p>
@@ -215,27 +223,67 @@ export default function TeamsTableView({
                       {menuOpen === team.id && (
                         <>
                           <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(null)} />
-                          <div className={`absolute right-0 top-full mt-1 z-50 rounded-lg shadow-xl border py-1 min-w-[140px] ${
-                            isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
+                          <div className={`absolute right-0 top-full mt-1 z-50 rounded-xl shadow-lg border py-1.5 min-w-[200px] ${
+                            isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-lynx-silver'
                           }`}
-                            style={{ position: 'fixed', transform: 'translateX(-100px)' }}
+                            style={{ position: 'fixed', transform: 'translateX(-160px)' }}
                             ref={el => {
                               if (el) {
                                 const btn = el.previousElementSibling?.previousElementSibling
                                 if (btn) {
                                   const rect = btn.getBoundingClientRect()
                                   el.style.top = `${rect.bottom + 4}px`
-                                  el.style.left = `${rect.right - 140}px`
+                                  el.style.left = `${rect.right - 200}px`
                                   el.style.transform = 'none'
                                 }
                               }
                             }}
                           >
+                            {/* View & Edit */}
+                            <button
+                              onClick={() => { onNavigateToWall?.(team.id); setMenuOpen(null) }}
+                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                            >
+                              <ExternalLink className="w-4 h-4 opacity-60" /> View Team Wall
+                            </button>
+                            <button
+                              onClick={() => { onEditTeam?.(team); setMenuOpen(null) }}
+                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                            >
+                              <Edit className="w-4 h-4 opacity-60" /> Edit Team Settings
+                            </button>
+
+                            {/* Roster */}
+                            <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
+                            <button
+                              onClick={() => { onManageRoster?.(team); setMenuOpen(null) }}
+                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                            >
+                              <Users className="w-4 h-4 opacity-60" /> Manage Roster
+                            </button>
+                            <button
+                              onClick={() => { onAssignCoaches?.(team); setMenuOpen(null) }}
+                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                            >
+                              <UserCog className="w-4 h-4 opacity-60" /> Assign Coaches
+                            </button>
+
+                            {/* Roster Status Toggle */}
+                            <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
+                            <button
+                              onClick={() => { onToggleRosterOpen?.(team); setMenuOpen(null) }}
+                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                            >
+                              <Shield className="w-4 h-4 opacity-60" /> {team.roster_open ? 'Close Roster' : 'Open Roster'}
+                            </button>
+
+                            {/* Danger zone */}
+                            <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
                             <button
                               onClick={() => { onDeleteTeam(team.id); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2 text-left text-base flex items-center gap-2 text-red-500 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-red-50'}`}
+                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 text-red-500 ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete Team
+                              <Trash2 className="w-4 h-4" /> Delete Team
                             </button>
                           </div>
                         </>

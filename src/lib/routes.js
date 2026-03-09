@@ -5,9 +5,10 @@ export const ROUTES = {
   // Dashboards (role-based)
   'dashboard': '/dashboard',
 
-  // People
+  // Club Management
   'teams': '/teams',
   'coaches': '/coaches',
+  'staff': '/staff',
   'team-hubs': '/team-hubs',
 
   // Operations
@@ -135,15 +136,16 @@ export function getPageIdFromPath(pathname) {
 // Document titles per route
 export const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
-  '/teams': 'Teams & Rosters',
-  '/coaches': 'Coaches',
+  '/teams': 'Team Management',
+  '/coaches': 'Coach Directory',
+  '/staff': 'Staff & Volunteers',
   '/team-hubs': 'Team Hubs',
   '/registrations': 'Registrations',
   '/jerseys': 'Jerseys',
   '/schedule': 'Schedule',
   '/schedule/availability': 'Coach Availability',
   '/attendance': 'Attendance & RSVP',
-  '/payments': 'Payments',
+  '/payments': 'Payment Admin',
   '/roster': 'Roster Manager',
   '/gameprep': 'Game Prep',
   '/standings': 'Standings',
@@ -156,7 +158,7 @@ export const PAGE_TITLES = {
   '/archives': 'Season Archives',
   '/directory': 'Org Directory',
   '/admin/seasons': 'Season Management',
-  '/settings/seasons': 'Season Settings',
+  '/settings/seasons': 'Season Management',
   '/settings/templates': 'Registration Forms',
   '/settings/waivers': 'Waivers',
   '/settings/payment-setup': 'Payment Setup',
