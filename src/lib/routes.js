@@ -59,10 +59,16 @@ export const ROUTES = {
   // Profile
   'my-profile': '/profile',
 
-  // Platform Admin
-  'platform-admin': '/platform/admin',
-  'platform-analytics': '/platform/analytics',
+  // Platform Mode
+  'platform-overview': '/platform/overview',
+  'platform-organizations': '/platform/organizations',
+  'platform-users': '/platform/users',
   'platform-subscriptions': '/platform/subscriptions',
+  'platform-analytics': '/platform/analytics',
+  'platform-support': '/platform/support',
+  'platform-audit': '/platform/audit',
+  'platform-settings': '/platform/settings',
+  'platform-admin': '/platform/admin',
 
   // Parent-specific
   'messages': '/messages',
@@ -161,9 +167,15 @@ export const PAGE_TITLES = {
   '/stats': 'My Stats',
   '/achievements': 'Achievements',
   '/profile': 'My Profile',
-  '/platform/admin': 'Platform Admin',
-  '/platform/analytics': 'Platform Analytics',
+  '/platform/overview': 'Platform Overview',
+  '/platform/organizations': 'Platform Organizations',
+  '/platform/users': 'Platform Users',
   '/platform/subscriptions': 'Platform Subscriptions',
+  '/platform/analytics': 'Platform Analytics',
+  '/platform/support': 'Platform Support',
+  '/platform/audit': 'Platform Audit Log',
+  '/platform/settings': 'Platform Settings',
+  '/platform/admin': 'Platform Admin',
   '/messages': 'Messages',
   '/invite': 'Invite Friends',
   '/my-stuff': 'My Stuff',

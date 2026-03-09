@@ -509,137 +509,6 @@ function UserProfileDropdown({
 
 
 // ============================================
-// HORIZONTAL NAV BAR COMPONENT
-// ============================================
-function HorizontalNavBar({
-  activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
-  getAvailableViews, setActiveView, signOut,
-  tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
-  roleContext, organization, isPlatformAdmin,
-  // Phase 2: nav groups + handler passed from MainApp
-  navGroups: navGroupsProp, handleNavigation: handleNavigateProp
-}) {
-  const navigate = useNavigate()
-  const page = useCurrentPageId()
-  const location = useLocation()
-  const directTeamWallId = location.pathname.match(/^\/teams\/([^/]+)$/)?.[1] || null
-
-  // Use nav groups and handler from props (from MainApp)
-  const navItems = navGroupsProp || []
-  const handleNavigate = handleNavigateProp || ((id) => navigate(getPathForPage(id)))
-
-  const isGroupActive = (group) => {
-    if (group.type === 'single') return page === group.id && !directTeamWallId
-    if (group.items) {
-      return group.items.some(item => {
-        if (item.teamId) return directTeamWallId === item.teamId
-        if (item.playerId) return page === `player-${item.playerId}`
-        return item.id === page
-      })
-    }
-    return false
-  }
-
-  return (
-    <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full shadow-lg"
-      style={{
-        background: isDark
-          ? 'linear-gradient(135deg, #10284C 0%, #153050 50%, #1B3A5C 100%)'
-          : 'linear-gradient(to right, #F5F7FA 0%, #F5F7FA 55%, #E8F4FD 65%, #4BB9EC 80%, #10284C 100%)'
-      }}>
-
-      {/* LEFT: Logo */}
-      <div className="flex items-center gap-3">
-        <img src="/lynx-logo.png" alt="Lynx" className="h-8" />
-      </div>
-
-      {/* CENTER: Navigation */}
-      <nav className="flex items-center gap-1">
-        {navItems.map((item, idx) => {
-          // In light mode: all nav buttons use navy text to stay readable on the gradient
-          const navPosition = 'light'
-          const onDarkBg = isDark || navPosition === 'dark'
-
-          if (item.type === 'single') {
-            const isActive = page === item.id && !directTeamWallId
-            return (
-              <button key={item.id} onClick={() => handleNavigate(item.id)}
-                className={`px-5 py-2 text-lg rounded-full transition-all duration-200 whitespace-nowrap font-bold ${
-                  isActive
-                    ? onDarkBg
-                      ? 'bg-white/15 text-white'
-                      : 'bg-[#10284C]/10 text-[#10284C]'
-                    : onDarkBg
-                      ? 'text-white/80 hover:text-white hover:bg-white/10'
-                      : 'text-[#10284C]/70 hover:text-[#10284C] hover:bg-[#10284C]/[0.06]'
-                }`}>
-                {item.label}
-              </button>
-            )
-          } else if (item.items && item.items.length > 0) {
-            return (
-              <NavDropdown key={item.id} label={item.label} items={item.items} currentPage={page}
-                onNavigate={(id, navItem) => handleNavigate(id, navItem)}
-                isActive={isGroupActive(item)} directTeamWallId={directTeamWallId}
-                navPosition={navPosition} />
-            )
-          }
-          return null
-        })}
-      </nav>
-
-      {/* RIGHT: Platform Admin + Notifications + Profile */}
-      <div className="flex items-center gap-3">
-        {isPlatformAdmin && (
-          <>
-            <button
-              onClick={() => navigate('/platform/analytics')}
-              title="Platform Analytics"
-              className={`relative p-2 rounded-full transition ${
-                page === 'platform-analytics'
-                  ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/80'
-              }`}
-            >
-              <BarChart3 className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/platform/subscriptions')}
-              title="Platform Subscriptions"
-              className={`relative p-2 rounded-full transition ${
-                page === 'platform-subscriptions'
-                  ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/80'
-              }`}
-            >
-              <CreditCard className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/platform/admin')}
-              title="Platform Admin"
-              className={`relative p-2 rounded-full transition ${
-                page === 'platform-admin'
-                  ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/80'
-              }`}
-            >
-              <Shield className="w-5 h-5" />
-            </button>
-          </>
-        )}
-        <NotificationDropdown tc={tc} organization={organization} isDark={isDark} />
-        <UserProfileDropdown
-          profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
-          setShowRoleSwitcher={setShowRoleSwitcher} getAvailableViews={getAvailableViews}
-          setActiveView={setActiveView} signOut={signOut} tc={tc}
-          accent={accent} accentColor={accentColor} changeAccent={changeAccent}
-          accentColors={accentColors} isDark={isDark} toggleTheme={toggleTheme} />
-      </div>
-    </header>
-  )
-}
-
-// ============================================
 // MAIN APP COMPONENT
 // ============================================
 // ── Background Layer ─────────────────────────────────────────────────
@@ -893,6 +762,7 @@ function MainApp() {
   // Document title updates
   useDocumentTitle()
 
+  const [appMode, setAppMode] = useState('org') // 'org' | 'platform'
   const [activeView, setActiveView] = useState('admin')
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)
