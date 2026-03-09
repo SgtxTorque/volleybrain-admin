@@ -9,6 +9,19 @@ import {
 } from '../../constants/icons'
 import { VolleyballIcon } from '../../constants/icons'
 
+const WIZARD_STEPS = {
+  ROLE_SELECTION: 'role_selection',
+  ORG_INFO: 'org_info',
+  ORG_COMPLETE: 'org_complete',
+  TEAM_CONTEXT: 'team_context',
+  INDEPENDENT_TEAM_INFO: 'independent_team_info',
+  INDEPENDENT_TEAM_COMPLETE: 'independent_team_complete',
+  JOIN_ORG: 'join_org',
+  JOIN_PENDING: 'join_pending',
+  PARENT_PLAYER_TYPE: 'parent_player_type',
+  AWAITING_ASSIGNMENT: 'awaiting_assignment',
+}
+
 function SetupWizard({ onComplete }) {
   const { user, profile } = useAuth()
   const journey = useJourney()
