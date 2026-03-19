@@ -1109,10 +1109,41 @@ function MainApp() {
     ]},
   ]
 
+  const teamManagerNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
+      { id: 'roster', label: 'Roster Manager', icon: 'users' },
+      ...(roleContext?.teamManagerInfo?.map(ts => ({
+        id: `teamwall-${ts.team_id}`,
+        label: ts.teams?.name || 'Team',
+        icon: 'users',
+        teamId: ts.team_id,
+      })) || [])
+    ]},
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
+      { id: 'chats', label: 'Team Chat', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+    { id: 'operations', label: 'Team Ops', type: 'group', icon: 'settings', items: [
+      { id: 'payments', label: 'Payments', icon: 'dollar' },
+    ]},
+    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
+    ]},
+  ]
+
   function getNavGroups() {
     switch (activeView) {
       case 'admin': return adminNavGroups
       case 'coach': return coachNavGroups
+      case 'team_manager': return teamManagerNavGroups
       case 'parent': return parentNavGroups
       case 'player': return playerNavGroups
       default: return []
