@@ -959,6 +959,10 @@ function MainApp() {
       const teamNames = roleContext.coachInfo?.team_coaches?.map(tc => tc.teams?.name).filter(Boolean).join(', ')
       views.push({ id: 'coach', label: 'Coach', icon: 'user-cog', description: teamNames || 'Team management' })
     }
+    if (roleContext?.isTeamManager) {
+      const teamNames = roleContext.teamManagerInfo?.map(ts => ts.teams?.name).filter(Boolean).join(', ')
+      views.push({ id: 'team_manager', label: 'Team Manager', icon: 'clipboard', description: teamNames || 'Team operations' })
+    }
     if (roleContext?.isParent && roleContext.children?.length > 0) {
       const childNames = roleContext.children.map(c => c.first_name).join(', ')
       views.push({ id: 'parent', label: 'Parent', icon: 'users', description: childNames })
