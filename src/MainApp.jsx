@@ -907,10 +907,18 @@ function MainApp() {
         .from('coaches').select('*, team_coaches(team_id, role, teams(id, name, color))')
         .eq('profile_id', profile.id).maybeSingle()
 
+      const { data: teamManagerStaff } = await supabase
+        .from('team_staff')
+        .select('team_id, staff_role, is_active, teams(id, name, color, season_id)')
+        .eq('user_id', profile.id)
+        .eq('staff_role', 'team_manager')
+        .eq('is_active', true)
+
       const { data: children } = await supabase
         .from('players').select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
         .eq('parent_account_id', profile.id)
 
+      // TODO: needs profile_id linkage — players table has no profile_id column to link a profile to a player self-record
       const playerSelf = null
 
       setRoleContext({
@@ -918,6 +926,8 @@ function MainApp() {
         isAdmin: roles?.some(r => r.role === 'league_admin' || r.role === 'admin'),
         isCoach: !!coachLink,
         coachInfo: coachLink,
+        isTeamManager: teamManagerStaff && teamManagerStaff.length > 0,
+        teamManagerInfo: teamManagerStaff || [],
         isParent: roles?.some(r => r.role === 'parent') && children?.length > 0,
         children: children || [],
         isPlayer: !!playerSelf,
@@ -928,6 +938,8 @@ function MainApp() {
         setActiveView('admin')
       } else if (coachLink) {
         setActiveView('coach')
+      } else if (teamManagerStaff && teamManagerStaff.length > 0) {
+        setActiveView('team_manager')
       } else if (children?.length > 0) {
         setActiveView('parent')
       } else if (playerSelf) {
