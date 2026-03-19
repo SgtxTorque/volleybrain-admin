@@ -798,14 +798,14 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Parent-specific routes */}
       <Route path="/parent/player/:playerId/profile" element={<PlayerProfileRoute roleContext={roleContext} showToast={showToast} />} />
       <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/messages" element={<ParentMessagesPage roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/invite" element={<InviteFriendsPage roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/my-stuff" element={<MyStuffPage roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/parent/register" element={<ParentRegistrationHub roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/messages" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentMessagesPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/invite" element={<RouteGuard allow={['parent']} activeView={activeView}><InviteFriendsPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/my-stuff" element={<RouteGuard allow={['parent']} activeView={activeView}><MyStuffPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/parent/register" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentRegistrationHub roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/claim-account" element={<ClaimAccountPage showToast={showToast} />} />
 
       {/* Roster Manager — admin + coach */}
-      <Route path="/roster" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+      <Route path="/roster" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
 
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
@@ -813,8 +813,8 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/schedule/availability" element={<CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
-      <Route path="/attendance" element={<AttendancePage showToast={showToast} />} />
+      <Route path="/schedule/availability" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+      <Route path="/attendance" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><AttendancePage showToast={showToast} /></RouteGuard>} />
       <Route path="/payments" element={
         activeView === 'parent'
           ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
@@ -824,7 +824,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
       <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
+      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
       <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/reports/funnel" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationFunnelPage showToast={showToast} /></RouteGuard>} />
