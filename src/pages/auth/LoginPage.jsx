@@ -285,6 +285,11 @@ export function LoginPage({ initialMode, onBack }) {
             Browse Organizations
           </a>
         </div>
+        <div className="text-center mt-6 pb-4">
+          <a href="/privacy-policy" className="text-slate-500 hover:text-slate-300 text-xs transition">Privacy Policy</a>
+          <span className="text-slate-600 mx-2">·</span>
+          <a href="/terms" className="text-slate-500 hover:text-slate-300 text-xs transition">Terms of Service</a>
+        </div>
       </div>
     </div>
   )
