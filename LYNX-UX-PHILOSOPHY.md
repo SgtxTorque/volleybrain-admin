@@ -84,7 +84,7 @@ Each role's home experience follows a priority-ordered stack. Sections are arran
 
 **How they feel like one product:**
 - Same color system (Navy #10284C, Sky #4BB9EC/#5BCBFA, Gold #FFD700)
-- Same typography (Tele-Grotesk)
+- Same typography family feel (Web: Inter Variable self-hosted from `public/fonts/Inter-Variable.ttf`; Mobile: Plus Jakarta Sans + Bebas Neue display)
 - Same card design language (glassmorphism, rounded-2xl, consistent shadows)
 - Same gradient system (navy → sky at 135°)
 - Same conditional rendering logic (content earns its place)
@@ -147,7 +147,7 @@ These power bars and tier indicators must look identical whether you're viewing 
 
 ## 7. ROLE-BASED EVERYTHING
 
-Four user roles — Admin, Coach, Parent, Player — each see a fundamentally different experience. Different nav structures, different home screens, different content priorities. The role switcher lets multi-role users toggle instantly without logging out.
+Six user roles — Admin, Coach, Team Manager, Parent, Player (plus Platform Admin for super-admin access) — each see a fundamentally different experience. Different nav structures, different home screens, different content priorities. The role switcher lets multi-role users toggle instantly without logging out. Team Manager is auto-detected from the `team_staff` table. Player is auto-detected when a profile is linked to a player record.
 
 **This is true on both platforms.** A coach logging into the web sees the coach command center. Switching to parent role completely transforms the layout, sidebar content, and center dashboard. Same on mobile — the bottom tabs, home screen sections, and available features all shift based on active role.
 
