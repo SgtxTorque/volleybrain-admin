@@ -28,8 +28,11 @@ function BlastsPage({ showToast, activeView, roleContext }) {
   }, [selectedSeason?.id])
   
   const isCoach = activeView === 'coach'
+  const isTeamManager = activeView === 'team_manager'
   const coachTeamIds = isCoach
     ? (roleContext?.coachInfo?.team_coaches || []).map(tc => tc.team_id).filter(Boolean)
+    : isTeamManager
+    ? (roleContext?.teamManagerInfo || []).map(ts => ts.team_id).filter(Boolean)
     : []
 
   async function loadBlasts() {
@@ -37,7 +40,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
     try {
       // Load teams (scoped to coach's teams if coach role)
       let teamsQuery = supabase.from('teams').select('*').eq('season_id', selectedSeason.id)
-      if (isCoach && coachTeamIds.length > 0) {
+      if ((isCoach || isTeamManager) && coachTeamIds.length > 0) {
         teamsQuery = teamsQuery.in('id', coachTeamIds)
       }
       const { data: teamsData } = await teamsQuery
@@ -55,9 +58,9 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         .eq('season_id', selectedSeason.id)
         .order('created_at', { ascending: false })
 
-      // If coach, filter to only relevant blasts
+      // If coach or TM, filter to only relevant blasts
       let relevantBlasts = blastsData || []
-      if (isCoach && coachTeamIds.length > 0) {
+      if ((isCoach || isTeamManager) && coachTeamIds.length > 0) {
         relevantBlasts = relevantBlasts.filter(b =>
           b.target_type === 'all' ||
           coachTeamIds.includes(b.target_team_id) ||

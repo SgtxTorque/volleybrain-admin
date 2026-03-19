@@ -13,10 +13,10 @@ import { getPathForPage } from './lib/routes'
 // Icons
 import { 
   Building2, Users, ChevronDown, ChevronLeft, ChevronRight, Check,
-  LogOut, Shield, UserCog, User, Home, Calendar, DollarSign, 
+  LogOut, Shield, UserCog, User, Home, Calendar, DollarSign,
   MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone,
   Trophy, Bell, Settings, Zap, BarChart3, Moon, Sun, Clock, TrendingUp,
-  Award, CreditCard, UserPlus, X
+  Award, CreditCard, UserPlus, X, ClipboardList
 } from './constants/icons'
 import { VolleyballIcon } from './constants/icons'
 
@@ -392,6 +392,7 @@ function UserProfileDropdown({
     switch(activeView) {
       case 'admin': return 'Admin'
       case 'coach': return 'Coach'
+      case 'team_manager': return 'Team Manager'
       case 'parent': return 'Parent'
       case 'player': return 'Player'
       default: return 'User'
@@ -447,6 +448,7 @@ function UserProfileDropdown({
               <p className={`text-sm ${tc.textMuted} flex items-center gap-1`}>
                 {activeView === 'admin' && <Shield className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {activeView === 'coach' && <UserCog className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
+                {activeView === 'team_manager' && <ClipboardList className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {activeView === 'parent' && <Users className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {activeView === 'player' && <VolleyballIcon className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {getRoleLabel()}

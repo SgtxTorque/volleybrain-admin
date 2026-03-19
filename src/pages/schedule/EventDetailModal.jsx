@@ -16,7 +16,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   // Use activeView if provided, otherwise fall back to admin role check
-  const isAdminView = activeView ? (activeView === 'admin' || activeView === 'coach') : hasAdminRole
+  const isAdminView = activeView ? (activeView === 'admin' || activeView === 'coach' || activeView === 'team_manager') : hasAdminRole
   const isCoachView = activeView === 'coach'
   const isParentView = activeView === 'parent'
   const [activeTab, setActiveTab] = useState('details')
