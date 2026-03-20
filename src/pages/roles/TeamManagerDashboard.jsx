@@ -10,6 +10,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useTeamManagerData } from '../../hooks/useTeamManagerData'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
+import InviteCodeModal from '../../components/team-manager/InviteCodeModal'
 import {
   DollarSign, Users, Calendar, CheckSquare, MessageCircle, Megaphone,
   ChevronRight, AlertCircle, Clock, MapPin, Share2, RefreshCw
@@ -174,12 +175,11 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
 
       {/* Invite Code Modal */}
       {showInviteModal && (
-        <InviteCodeModalPlaceholder
+        <InviteCodeModal
           teamId={teamId}
           teamName={teamName}
           onClose={() => setShowInviteModal(false)}
           showToast={showToast}
-          isDark={isDark}
         />
       )}
     </DashboardContainer>
@@ -329,20 +329,6 @@ function RosterStatusCard({ data, rosterCount, loading, isDark, cardClass, onNav
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-// ── Invite Code Modal Placeholder ──
-// Will be replaced by full InviteCodeModal in Phase 2.4
-function InviteCodeModalPlaceholder({ teamId, teamName, onClose, showToast, isDark }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className={`w-full max-w-md rounded-[14px] p-6 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-lynx-silver'}`} onClick={e => e.stopPropagation()}>
-        <h2 className={`text-r-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Invite Code</h2>
-        <p className={`text-r-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Invite codes for {teamName} coming soon.</p>
-        <button onClick={onClose} className="px-4 py-2 rounded-[14px] text-r-sm font-medium bg-lynx-sky text-white hover:bg-lynx-deep transition">Close</button>
-      </div>
     </div>
   )
 }
