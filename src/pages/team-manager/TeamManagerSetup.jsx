@@ -1,6 +1,6 @@
 // =============================================================================
-// TeamManagerSetup — 4-step setup wizard for new Team Managers
-// Steps: Team Info → Season Info → Organization → Confirmation + Invite Code
+// TeamManagerSetup — 3-step setup wizard for new Team Managers
+// Steps: Create Your Team → Season Info → You're All Set! (Confirmation)
 // Ported from mobile team-manager-setup.tsx, adapted for desktop
 // =============================================================================
 
@@ -9,8 +9,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
-  ChevronLeft, ChevronRight, Check, Copy, Share2, Users, Calendar,
-  Building2, Trophy
+  ChevronLeft, ChevronRight, Check, Copy, Share2, Users, Calendar, Trophy
 } from '../../constants/icons'
 
 const SPORT_OPTIONS = [
@@ -61,6 +60,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
   const [sport, setSport] = useState('volleyball')
   const [ageGroup, setAgeGroup] = useState('14U')
   const [teamColor, setTeamColor] = useState('#1E40AF')
+  const [teamType, setTeamType] = useState('competitive')
 
   // Step 2: Season Info
   const [seasonName, setSeasonName] = useState(getDefaultSeasonName())
@@ -167,6 +167,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
           name: teamName.trim(),
           color: teamColor,
           age_group: ageGroup,
+          team_type: teamType,
           max_players: 20,
         })
         .select()
@@ -205,7 +206,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
 
       setInviteCode(code)
       setCreatedTeamName(newTeam.name)
-      setStep(4)
+      setStep(3)
       showToast?.('Team created successfully!', 'success')
     } catch (err) {
       console.error('TeamManagerSetup error:', err)
@@ -229,14 +230,14 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
       <div className={`w-full max-w-lg ${cardClass} overflow-hidden`}>
         {/* Progress Bar */}
         <div className={`h-1.5 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-          <div className="h-full bg-lynx-sky transition-all duration-500" style={{ width: `${(step / 4) * 100}%` }} />
+          <div className="h-full bg-lynx-sky transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }} />
         </div>
 
         <div className="p-8">
           {/* Step Indicator */}
-          {step < 4 && (
+          {step < 3 && (
             <p className={`text-r-xs font-bold uppercase tracking-widest mb-6 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-              Step {step} of 4
+              Step {step} of 3
             </p>
           )}
 
@@ -287,6 +288,27 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
                   ))}
                 </div>
               </div>
+
+              <div>
+                <label className={labelClass}>Team Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'recreational', label: 'Recreational', icon: '🎉', desc: 'Fun-focused, all skill levels' },
+                    { value: 'competitive', label: 'Competitive', icon: '🏆', desc: 'Tournaments & league play' },
+                  ].map(t => (
+                    <button key={t.value} onClick={() => setTeamType(t.value)}
+                      className={`p-3 rounded-[14px] text-center transition ${
+                        teamType === t.value
+                          ? (isDark ? 'bg-lynx-sky/10 border-2 border-lynx-sky text-white' : 'bg-lynx-ice border-2 border-lynx-sky text-lynx-navy')
+                          : (isDark ? 'bg-white/[0.04] border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50')
+                      }`}>
+                      <span className="text-r-xl block mb-1">{t.icon}</span>
+                      <span className="text-r-xs font-semibold block">{t.label}</span>
+                      <span className={`text-r-xs block mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{t.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -316,56 +338,8 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
             </div>
           )}
 
-          {/* Step 3: Organization */}
+          {/* Step 3: Confirmation */}
           {step === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className={`text-r-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Organization</h2>
-                <p className={`text-r-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {organization ? 'Your team will be added to your existing organization.' : 'We\'ll create an organization for your team.'}
-                </p>
-              </div>
-
-              {organization ? (
-                <div className={`p-4 rounded-[14px] flex items-center gap-3 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-slate-100'}`}>
-                  <Building2 className="w-8 h-8 text-lynx-sky" />
-                  <div>
-                    <p className={`text-r-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{organization.name}</p>
-                    <p className={`text-r-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Existing organization</p>
-                  </div>
-                  <Check className="w-5 h-5 text-emerald-500 ml-auto" />
-                </div>
-              ) : (
-                <div className={`p-4 rounded-[14px] ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-slate-100'}`}>
-                  <p className={`text-r-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{teamName.trim() || 'My Team'} Club</p>
-                  <p className={`text-r-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>A new organization will be created automatically</p>
-                </div>
-              )}
-
-              {/* Summary */}
-              <div className={`p-4 rounded-[14px] space-y-3 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-lynx-cloud border border-slate-100'}`}>
-                <p className={`text-r-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Summary</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full" style={{ backgroundColor: teamColor }} />
-                  <div>
-                    <p className={`text-r-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{teamName || 'Team Name'}</p>
-                    <p className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{SPORT_OPTIONS.find(s => s.value === sport)?.label} · {ageGroup}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Calendar className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
-                  <p className={`text-r-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{seasonName}</p>
-                </div>
-              </div>
-
-              {error && (
-                <p className="text-r-sm text-red-400 font-medium">{error}</p>
-              )}
-            </div>
-          )}
-
-          {/* Step 4: Confirmation */}
-          {step === 4 && (
             <div className="text-center space-y-6">
               <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center mx-auto">
                 <Check className="w-10 h-10 text-white" />
@@ -396,9 +370,9 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
           )}
 
           {/* Navigation Buttons */}
-          <div className={`flex gap-3 mt-8 ${step === 4 ? 'justify-center' : 'justify-between'}`}>
-            {step > 1 && step < 4 && (
-              <button onClick={() => { setStep(step - 1); setError(null) }}
+          <div className={`flex gap-3 mt-8 ${step === 3 ? 'justify-center' : 'justify-between'}`}>
+            {step === 2 && (
+              <button onClick={() => { setStep(1); setError(null) }}
                 className={`flex items-center gap-1 px-5 py-3 rounded-[14px] font-semibold text-r-sm ${
                   isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-lynx-silver text-slate-600 hover:bg-slate-50'
                 }`}>
@@ -406,30 +380,30 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
               </button>
             )}
 
-            {step < 3 && (
-              <button onClick={() => { if (step === 1 && !teamName.trim()) { setError('Team name is required'); return }; setStep(step + 1); setError(null) }}
-                disabled={step === 1 && !teamName.trim()}
+            {step === 1 && (
+              <button onClick={() => { if (!teamName.trim()) { setError('Team name is required'); return }; setStep(2); setError(null) }}
+                disabled={!teamName.trim()}
                 className="flex items-center gap-1 px-5 py-3 rounded-[14px] font-bold text-r-sm bg-lynx-sky text-white hover:bg-lynx-deep disabled:opacity-50 transition ml-auto">
                 Next <ChevronRight className="w-4 h-4" />
               </button>
             )}
 
-            {step === 3 && (
+            {step === 2 && (
               <button onClick={handleCreate} disabled={saving}
                 className="flex items-center gap-1 px-6 py-3 rounded-[14px] font-bold text-r-sm bg-lynx-sky text-white hover:bg-lynx-deep disabled:opacity-50 transition ml-auto">
                 {saving ? 'Creating...' : 'Create Team'}
               </button>
             )}
 
-            {step === 4 && (
-              <button onClick={onComplete}
+            {step === 3 && (
+              <button onClick={() => { window.location.href = '/dashboard' }}
                 className="px-8 py-3 rounded-[14px] font-bold text-r-sm bg-lynx-sky text-white hover:bg-lynx-deep transition">
                 Go to Dashboard
               </button>
             )}
           </div>
 
-          {error && step !== 3 && (
+          {error && step < 3 && (
             <p className="text-r-sm text-red-400 font-medium mt-3">{error}</p>
           )}
         </div>
