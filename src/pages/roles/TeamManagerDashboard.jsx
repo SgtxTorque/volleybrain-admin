@@ -3,17 +3,18 @@
 // Fixed layout (not widget grid). Shows payment health, RSVP, roster, events.
 // =============================================================================
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useTeamManagerData } from '../../hooks/useTeamManagerData'
+import { supabase } from '../../lib/supabase'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import InviteCodeModal from '../../components/team-manager/InviteCodeModal'
 import {
   DollarSign, Users, Calendar, CheckSquare, MessageCircle, Megaphone,
-  ChevronRight, AlertCircle, Clock, MapPin, Share2, RefreshCw
+  ChevronRight, AlertCircle, Clock, MapPin, Share2, RefreshCw, CheckCircle2, Circle
 } from '../../constants/icons'
 
 function formatTime12(t) {
@@ -42,6 +43,41 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
 
   const { paymentHealth, nextEventRsvp, registrationStatus, rosterCount, upcomingEvents, loading, refresh } = useTeamManagerData(teamId)
 
+  // ── Getting Started checklist ──
+  const [hasEvents, setHasEvents] = useState(false)
+  const [dismissed, setDismissed] = useState(() => {
+    if (!teamId) return false
+    return localStorage.getItem(`tm_setup_dismissed_${teamId}`) === 'true'
+  })
+
+  const checkEvents = useCallback(async () => {
+    if (!teamId) return
+    const { count, error } = await supabase
+      .from('schedule_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('team_id', teamId)
+    if (!error) setHasEvents((count || 0) > 0)
+  }, [teamId])
+
+  useEffect(() => { checkEvents() }, [checkEvents])
+
+  const hasPlayers = rosterCount > 0
+  const hasPayments = (paymentHealth?.totalPayments || 0) > 0
+  const hasInvitedParents = rosterCount > 2
+
+  const checklistItems = [
+    { id: 'roster', label: 'Add players to roster', done: hasPlayers, time: '~2 min', page: 'roster' },
+    { id: 'event', label: 'Create first event', done: hasEvents, time: '~3 min', page: 'schedule' },
+    { id: 'invite', label: 'Invite parents', done: hasInvitedParents, time: '~1 min', action: () => setShowInviteModal(true) },
+    { id: 'payments', label: 'Set up payments', done: hasPayments, time: '~5 min', page: 'payments' },
+  ]
+  const allDone = checklistItems.every(item => item.done)
+
+  const handleDismiss = () => {
+    setDismissed(true)
+    if (teamId) localStorage.setItem(`tm_setup_dismissed_${teamId}`, 'true')
+  }
+
   const cardClass = isDark
     ? 'bg-lynx-charcoal border border-white/[0.06] rounded-[14px]'
     : 'bg-white border border-lynx-silver rounded-[14px] shadow-soft-sm'
@@ -49,6 +85,59 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
   return (
     <DashboardContainer>
       <div className="space-y-r-4 px-r-4">
+        {/* ── Getting Started Checklist ── */}
+        {!dismissed && !loading && (
+          <div className={`${cardClass} p-5`}>
+            {allDone ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <span className={`text-r-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Setup complete!</span>
+                </div>
+                <button onClick={handleDismiss} className={`text-r-sm font-semibold ${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-600'}`}>
+                  Dismiss
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Getting Started</h3>
+                  <span className={`text-r-xs font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {checklistItems.filter(i => i.done).length}/{checklistItems.length} complete
+                  </span>
+                </div>
+                <p className={`text-r-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Complete these steps to get your team running</p>
+                <div className="space-y-2">
+                  {checklistItems.map(item => (
+                    <div key={item.id} className={`flex items-center gap-3 p-3 rounded-[14px] transition ${
+                      isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'
+                    }`}>
+                      {item.done
+                        ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                        : <Circle className={`w-5 h-5 shrink-0 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                      }
+                      <span className={`flex-1 text-r-sm font-medium ${
+                        item.done
+                          ? (isDark ? 'text-slate-500 line-through' : 'text-slate-400 line-through')
+                          : (isDark ? 'text-white' : 'text-slate-900')
+                      }`}>{item.label}</span>
+                      <span className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.time}</span>
+                      {!item.done && (
+                        <button
+                          onClick={() => item.action ? item.action() : onNavigate?.(item.page)}
+                          className="text-r-xs font-bold text-lynx-sky hover:underline shrink-0"
+                        >
+                          {item.action ? 'Share Code' : item.id === 'roster' ? 'Add Players' : item.id === 'event' ? 'Create Event' : 'Set Up'}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* ── Team Identity Bar ── */}
         <div className={`${cardClass} p-5`}>
           <div className="flex items-center gap-4">
