@@ -1,17 +1,17 @@
 // =============================================================================
-// LynxSidebar — Full navigation + utility sidebar
-// 64px collapsed, 228px expanded on hover. Always dark navy.
-// Profile + role switcher at top. Collapsible nav groups. Utilities at bottom.
+// LynxSidebar — V2 SlimSidebar
+// Permanently 60px wide. Icon-only navigation. White bg, navy active state.
+// Player dark mode: midnight bg, gold active state.
+// Backward-compatible: same props interface, same onNavigate callback.
 // =============================================================================
 
-import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Users, UserCog, Shield, DollarSign,
   ClipboardList, Megaphone, Settings, Calendar, BarChart3,
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
-  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, MapPin,
+  CheckSquare, CalendarCheck, User, LogOut, MapPin,
   Search
 } from 'lucide-react'
 
@@ -38,71 +38,37 @@ const ICON_MAP = {
 
 
 // =============================================================================
-// NavItem — single navigation row
+// NavItem — single icon button
 // =============================================================================
-function NavItem({ item, isActive, onNavigate, indented = false }) {
+function NavItem({ item, isActive, onNavigate, isPlayer }) {
   const Icon = ICON_MAP[item.icon] || ICON_MAP[item.id] || LayoutDashboard
 
   return (
     <button
       onClick={() => onNavigate?.(item.id, item)}
-      className={`
-        relative w-full flex items-center gap-3 h-9 rounded-lg transition-colors duration-200
-        ${isActive
-          ? 'bg-lynx-sky/15 text-lynx-sky'
-          : 'text-slate-200 hover:text-white hover:bg-white/[0.04]'
-        }
-      `}
+      className="v2-sidebar-btn"
+      data-active={isActive || undefined}
+      data-player={isPlayer || undefined}
       title={item.label}
+      style={isActive ? {
+        background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+        color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+      } : undefined}
     >
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-lynx-sky" />
-      )}
-      <div className={`${indented ? 'w-16 min-w-[64px] pl-2' : 'w-16 min-w-[64px]'} flex items-center justify-center shrink-0`}>
-        <Icon className="w-[18px] h-[18px]" />
-      </div>
-      <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate pr-2">
-        {item.label}
-      </span>
+      <Icon style={{ width: 18, height: 18 }} />
       {item.badge > 0 && (
-        <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-r-xs font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          {item.badge > 99 ? '99+' : item.badge}
-        </span>
+        <span className="v2-sidebar-badge">{item.badge > 9 ? '9+' : item.badge}</span>
       )}
-      {item.hasBadge && (
-        <span className="ml-auto mr-4 w-2 h-2 rounded-full bg-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      {item.hasBadge && !item.badge && (
+        <span className="v2-sidebar-dot" />
       )}
     </button>
   )
 }
 
-// =============================================================================
-// CollapsibleGroupHeader — clickable section with expand/collapse chevron
-// Hidden in collapsed sidebar (64px), visible in expanded sidebar (hover)
-// =============================================================================
-function CollapsibleGroupHeader({ label, icon, isExpanded, onToggle }) {
-  const Icon = ICON_MAP[icon] || LayoutDashboard
-
-  return (
-    <button
-      onClick={onToggle}
-      className="hidden group-hover:flex w-full items-center h-8 mt-2 text-slate-500 hover:text-slate-300 transition-colors"
-    >
-      <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
-        <Icon className="w-4 h-4" />
-      </div>
-      <span className="flex-1 text-r-sm font-bold uppercase tracking-wider whitespace-nowrap text-left">
-        {label}
-      </span>
-      <ChevronRight
-        className={`w-3.5 h-3.5 mr-4 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-      />
-    </button>
-  )
-}
 
 // =============================================================================
-// LynxSidebar
+// LynxSidebar — V2
 // =============================================================================
 export default function LynxSidebar({
   navGroups = [], activePage = '', activePathname = '', directTeamWallId = null, onNavigate,
@@ -112,8 +78,7 @@ export default function LynxSidebar({
   notificationCount = 0, onOpenNotifications,
   isPlatformAdmin = false, onEnterPlatformMode,
 }) {
-  const displayName = profile?.full_name || 'User'
-  const avatarInitial = displayName.charAt(0).toUpperCase()
+  const isPlayer = activeView === 'player'
 
   const isItemActive = (item) => {
     if (item.teamId) return directTeamWallId === item.teamId
@@ -121,252 +86,188 @@ export default function LynxSidebar({
     return activePage === item.id
   }
 
-  // Track which nav groups are expanded (by group.id)
-  const [expandedGroups, setExpandedGroups] = useState(() => {
-    const initialSet = new Set()
-    for (const group of navGroups) {
-      if (group.type !== 'single' && group.items) {
-        if (group.items.some(item => {
-          if (item.teamId) return directTeamWallId === item.teamId
-          if (item.playerId) return activePage === `player-${item.playerId}`
-          return activePage === item.id
-        })) initialSet.add(group.id)
+  // Flatten nav groups to get all renderable items for icon-only display
+  const flatItems = []
+  for (const group of navGroups) {
+    if (group.type === 'single') {
+      flatItems.push({ ...group, icon: group.icon || group.id, _isSingle: true })
+    } else if (group.items) {
+      // Add a separator marker
+      flatItems.push({ _separator: true, id: `sep-${group.id}` })
+      for (const item of group.items) {
+        flatItems.push(item)
       }
     }
-    return initialSet
-  })
-
-  // Auto-expand only the group containing the active page, collapse all others
-  useEffect(() => {
-    const activeGroup = new Set()
-    for (const group of navGroups) {
-      if (group.type !== 'single' && group.items) {
-        const hasActive = group.items.some(item => {
-          if (item.teamId) return directTeamWallId === item.teamId
-          if (item.playerId) return activePage === `player-${item.playerId}`
-          return activePage === item.id
-        })
-        if (hasActive) activeGroup.add(group.id)
-      }
-    }
-    setExpandedGroups(activeGroup)
-  }, [activePage, directTeamWallId])
-
-  const toggleGroup = (groupId) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev)
-      if (next.has(groupId)) next.delete(groupId)
-      else next.add(groupId)
-      return next
-    })
   }
 
   return (
     <div
-      className="group fixed left-0 top-0 z-40 h-screen flex flex-col
-        w-16 hover:w-60 xl:hover:w-64 bg-[#0B1628]
-        transition-[width] duration-[280ms] ease-[cubic-bezier(0.4,0,0.2,1)]
-        border-r border-white/[0.06] overflow-hidden"
+      className="v2-sidebar"
+      data-player={isPlayer || undefined}
+      style={{
+        position: 'fixed', top: 0, left: 0,
+        width: 'var(--v2-sidebar-width)', height: '100vh',
+        background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
+        borderRight: isPlayer
+          ? '1px solid rgba(255,255,255,0.06)'
+          : '1px solid var(--v2-border-subtle)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        padding: '14px 0 20px',
+        zIndex: 200,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      }}
     >
-      {/* ---- 1. Logo Row ---- */}
-      <div className="flex items-center h-14 shrink-0">
-        <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
-          <img src="/lynx-icon-logo.png" alt="Lynx" className="w-8 h-8" />
-        </div>
-        <img
-          src="/lynx-logo.png"
-          alt="Lynx"
-          className="h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        />
-      </div>
-
-      {/* ---- 2. Profile + Role Switcher (top, below logo) ---- */}
-      <div className="shrink-0 mx-2 mb-1">
-        <button
-          onClick={() => onNavigateToProfile?.()}
-          className="flex items-center gap-3 px-1 py-2 w-full rounded-lg hover:bg-white/[0.04] transition-colors"
-        >
-          <div className="w-10 min-w-[40px] flex items-center justify-center shrink-0">
-            <div
-              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold"
-              style={{ background: profile?.photo_url ? 'transparent' : 'rgba(75,185,236,0.2)', color: '#4BB9EC' }}
-            >
-              {profile?.photo_url ? (
-                <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
-              ) : avatarInitial}
-            </div>
-          </div>
-          <div className="min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-left">
-            <p className="text-r-base font-bold text-white truncate">{displayName}</p>
-            <p className="text-r-xs text-slate-500 truncate">{orgName || 'Organization'}</p>
-          </div>
-        </button>
-
-        {/* Role pills — visible on hover */}
-        {availableViews.length > 1 && (
-          <div className="flex flex-wrap gap-1 px-1 pb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {availableViews.map(view => (
-              <button
-                key={view.id}
-                onClick={() => onSwitchRole?.(view.id)}
-                className={`px-3 py-1 rounded-full text-r-xs font-bold transition-colors ${
-                  activeView === view.id
-                    ? 'bg-lynx-sky/15 text-lynx-sky'
-                    : 'text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {view.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Dark mode toggle — under role pills */}
-        <button
-          onClick={() => onToggleTheme?.()}
-          className="flex items-center gap-2 px-2 py-1.5 mt-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        >
-          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-          <span className="text-r-xs font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-        </button>
-      </div>
-
-      {/* ---- Search Trigger ---- */}
-      <button
-        onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
-        className="mx-2 mb-1 flex items-center gap-3 h-9 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors duration-200"
-        title="Search (⌘K)"
+      {/* ---- Logo ---- */}
+      <div
+        style={{
+          width: 34, height: 34, borderRadius: 10,
+          background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+          color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 800, fontSize: 17,
+          flexShrink: 0,
+          marginBottom: 16,
+        }}
       >
-        <div className="w-12 min-w-[48px] flex items-center justify-center shrink-0">
-          <Search className="w-[18px] h-[18px]" />
-        </div>
-        <span className="flex-1 text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          Search
-        </span>
-        <kbd className="mr-3 text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          ⌘K
-        </kbd>
-      </button>
+        L
+      </div>
 
-      {/* Divider */}
-      <div className="border-b border-white/[0.08] mx-3 shrink-0" />
-
-      {/* ---- 3. Nav Items — collapsible groups ---- */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-1 scrollbar-thin">
-        {navGroups.map((group, gIdx) => {
-          if (group.type === 'single') {
+      {/* ---- Nav Items ---- */}
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        {flatItems.map((item, idx) => {
+          if (item._separator) {
             return (
-              <NavItem
-                key={group.id}
-                item={{ ...group, icon: group.icon || group.id }}
-                isActive={activePage === group.id && !directTeamWallId}
-                onNavigate={(id) => onNavigate?.(id, group)}
+              <div
+                key={item.id}
+                style={{
+                  width: 24, height: 1, margin: '6px 0',
+                  background: isPlayer ? 'rgba(255,255,255,0.08)' : 'var(--v2-border-subtle)',
+                  flexShrink: 0,
+                }}
               />
             )
           }
 
-          const isExpanded = expandedGroups.has(group.id)
+          const active = item._isSingle
+            ? (activePage === item.id && !directTeamWallId)
+            : isItemActive(item)
 
           return (
-            <div key={group.id || gIdx}>
-              <CollapsibleGroupHeader
-                label={group.label}
-                icon={group.icon || group.id}
-                isExpanded={isExpanded}
-                onToggle={() => toggleGroup(group.id)}
-              />
-              {/*
-                In collapsed sidebar (64px): all items visible as icons (max-h-[500px]).
-                In expanded sidebar (hover): collapsed groups hide via group-hover:max-h-0.
-              */}
-              <div className={`overflow-hidden transition-all duration-200 ease-in-out ${
-                isExpanded
-                  ? 'max-h-[500px]'
-                  : 'max-h-[500px] group-hover:max-h-0'
-              }`}>
-                {group.items?.map(item => (
-                  <NavItem
-                    key={item.id + (item.teamId || '') + (item.playerId || '')}
-                    item={item}
-                    isActive={isItemActive(item)}
-                    onNavigate={onNavigate}
-                    indented
-                  />
-                ))}
-              </div>
-            </div>
+            <NavItem
+              key={item.id + (item.teamId || '') + (item.playerId || '')}
+              item={item}
+              isActive={active}
+              onNavigate={onNavigate}
+              isPlayer={isPlayer}
+            />
           )
         })}
       </nav>
 
-      {/* ---- 4. Divider + Utilities ---- */}
-      <div className="border-t border-white/[0.06] shrink-0">
+      {/* ---- Bottom Utilities ---- */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0, paddingTop: 8 }}>
+        {/* Separator */}
+        <div style={{
+          width: 24, height: 1, marginBottom: 4,
+          background: isPlayer ? 'rgba(255,255,255,0.08)' : 'var(--v2-border-subtle)',
+        }} />
+
+        {/* Platform Mode */}
         {isPlatformAdmin && (
-          <div className="py-1">
-            <button
-              onClick={() => onEnterPlatformMode?.()}
-              className="relative w-full flex items-center gap-3 h-9 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors duration-200"
-              title="Platform Mode"
-            >
-              <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
-                <Shield className="w-[18px] h-[18px]" />
-              </div>
-              <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                Platform Mode
-              </span>
-            </button>
-          </div>
+          <button
+            onClick={() => onEnterPlatformMode?.()}
+            title="Platform Mode"
+            className="v2-sidebar-btn"
+            style={{
+              color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-amber)',
+            }}
+          >
+            <Shield style={{ width: 18, height: 18 }} />
+          </button>
         )}
 
-        {/* Notifications */}
+        {/* Settings */}
         <button
-          onClick={() => onOpenNotifications?.()}
-          className="relative w-full flex items-center gap-3 h-9 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors duration-200"
-          title="Notifications"
+          onClick={() => onNavigate?.('settings', { id: 'settings' })}
+          title="Settings"
+          className="v2-sidebar-btn"
+          data-player={isPlayer || undefined}
         >
-          <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0 relative">
-            <Bell className="w-[18px] h-[18px]" />
-            {notificationCount > 0 && (
-              <span className="absolute top-0.5 right-3 w-4 h-4 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </span>
-            )}
-          </div>
-          <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            Notifications
-          </span>
-          {notificationCount > 0 && (
-            <span className="ml-auto mr-4 min-w-[20px] h-5 rounded-full bg-red-500 text-white text-r-xs font-bold flex items-center justify-center px-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {notificationCount}
-            </span>
-          )}
+          <Settings style={{ width: 18, height: 18 }} />
+        </button>
+
+        {/* Sign Out */}
+        <button
+          onClick={() => onSignOut?.()}
+          title="Sign Out"
+          className="v2-sidebar-btn"
+          style={{
+            color: isPlayer ? 'rgba(239,68,68,0.6)' : 'rgba(239,68,68,0.5)',
+          }}
+        >
+          <LogOut style={{ width: 18, height: 18 }} />
         </button>
       </div>
 
-      {/* ---- 5. Bottom Utility Section ---- */}
-      <div className="border-t border-white/[0.06] shrink-0">
-        {/* Expanded: sign out */}
-        <div className="max-h-0 group-hover:max-h-[60px] overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-200">
-          <button
-            onClick={() => onSignOut?.()}
-            className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="text-r-sm font-semibold">Sign Out</span>
-          </button>
-        </div>
-
-        {/* Collapsed: sign out icon */}
-        <div className="flex group-hover:hidden items-center h-10 shrink-0">
-          <button
-            onClick={() => onSignOut?.()}
-            className="w-16 min-w-[64px] flex items-center justify-center shrink-0 text-red-400/60 hover:text-red-400 transition-colors"
-            title="Sign Out"
-          >
-            <LogOut className="w-[18px] h-[18px]" />
-          </button>
-        </div>
-      </div>
+      {/* ---- Inline styles for sidebar buttons ---- */}
+      <style>{`
+        .v2-sidebar-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          border: none;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+          flex-shrink: 0;
+          color: var(--v2-text-muted);
+          background: transparent;
+        }
+        .v2-sidebar-btn:hover {
+          background: var(--v2-surface);
+          color: var(--v2-text-secondary);
+        }
+        .v2-sidebar-btn[data-player]:hover {
+          background: rgba(255,255,255,0.06);
+          color: rgba(255,255,255,0.7);
+        }
+        .v2-sidebar-btn[data-player] {
+          color: rgba(255,255,255,0.35);
+        }
+        .v2-sidebar-badge {
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          min-width: 16px;
+          height: 16px;
+          border-radius: 8px;
+          background: #EF4444;
+          color: white;
+          font-size: 10px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          line-height: 1;
+        }
+        .v2-sidebar-dot {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: var(--v2-amber);
+        }
+        @media (max-width: 700px) {
+          .v2-sidebar { display: none !important; }
+        }
+      `}</style>
     </div>
   )
 }
