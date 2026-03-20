@@ -1,21 +1,20 @@
 // =============================================================================
-// TeamManagerDashboard — Operational hub for Team Managers
-// Fixed layout (not widget grid). Shows payment health, RSVP, roster, events.
+// TeamManagerDashboard — v2 layout, operational hub for Team Managers
+// Preserves all data from useTeamManagerData hook
 // =============================================================================
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
-import { useTheme } from '../../contexts/ThemeContext'
 import { useTeamManagerData } from '../../hooks/useTeamManagerData'
 import { supabase } from '../../lib/supabase'
-import WelcomeBanner from '../../components/shared/WelcomeBanner'
-import DashboardContainer from '../../components/layout/DashboardContainer'
 import InviteCodeModal from '../../components/team-manager/InviteCodeModal'
+import { CheckCircle2, Circle } from '../../constants/icons'
+// V2 shared components
 import {
-  DollarSign, Users, Calendar, CheckSquare, MessageCircle, Megaphone,
-  ChevronRight, AlertCircle, Clock, MapPin, Share2, RefreshCw, CheckCircle2, Circle
-} from '../../constants/icons'
+  HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
+  WeeklyLoad, ThePlaybook, MilestoneCard, MascotNudge, V2DashboardLayout,
+} from '../../components/v2'
 
 function formatTime12(t) {
   if (!t) return 'TBD'
@@ -33,7 +32,6 @@ function formatEventDate(dateStr) {
 export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWall, onNavigate }) {
   const { profile } = useAuth()
   const { selectedSeason } = useSeason()
-  const { isDark } = useTheme()
   const [showInviteModal, setShowInviteModal] = useState(false)
 
   const teamInfo = roleContext?.teamManagerInfo?.[0]
@@ -78,189 +76,225 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
     if (teamId) localStorage.setItem(`tm_setup_dismissed_${teamId}`, 'true')
   }
 
-  const cardClass = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06] rounded-[14px]'
-    : 'bg-white border border-lynx-silver rounded-[14px] shadow-soft-sm'
+  // ── Derived values for v2 ──
+  const [activeTab, setActiveTab] = useState('roster')
+  const firstName = profile?.full_name?.split(' ')[0] || 'Manager'
+
+  const heroStats = [
+    { label: 'Roster', value: rosterCount },
+    { label: 'Capacity', value: registrationStatus?.capacity || '—' },
+    { label: 'Overdue', value: paymentHealth?.overdueCount || 0 },
+    { label: 'RSVPs', value: nextEventRsvp?.confirmed || 0 },
+  ]
+
+  const attentionItems = [
+    ...(paymentHealth?.overdueCount > 0 ? [{
+      icon: '💰', label: `${paymentHealth.overdueCount} overdue payments`, type: 'coral',
+      onClick: () => onNavigate?.('payments'),
+    }] : []),
+    ...(registrationStatus?.pendingCount > 0 ? [{
+      icon: '📋', label: `${registrationStatus.pendingCount} pending registrations`, type: 'amber',
+      onClick: () => onNavigate?.('registrations'),
+    }] : []),
+  ]
+
+  const playbookItems = [
+    { icon: '✅', label: 'Attendance', onClick: () => onNavigate?.('attendance') },
+    { icon: '📢', label: 'Send Blast', onClick: () => onNavigate?.('blasts') },
+    { icon: '📅', label: 'Schedule', onClick: () => onNavigate?.('schedule') },
+    { icon: '💬', label: 'Team Chat', onClick: () => onNavigate?.('chats') },
+    { icon: '💳', label: 'Payments', onClick: () => onNavigate?.('payments') },
+    { icon: '🔗', label: 'Invite Code', onClick: () => setShowInviteModal(true) },
+  ]
+
+  const tmTabs = [
+    { key: 'roster', label: 'Roster' },
+    { key: 'payments', label: 'Payments' },
+    { key: 'schedule', label: 'Schedule' },
+    { key: 'attendance', label: 'Attendance' },
+  ]
 
   return (
-    <DashboardContainer>
-      <div className="space-y-r-4 px-r-4">
-        {/* ── Getting Started Checklist ── */}
-        {!dismissed && !loading && (
-          <div className={`${cardClass} p-5`}>
-            {allDone ? (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span className={`text-r-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Setup complete!</span>
-                </div>
-                <button onClick={handleDismiss} className={`text-r-sm font-semibold ${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-600'}`}>
-                  Dismiss
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Getting Started</h3>
-                  <span className={`text-r-xs font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                    {checklistItems.filter(i => i.done).length}/{checklistItems.length} complete
-                  </span>
-                </div>
-                <p className={`text-r-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Complete these steps to get your team running</p>
-                <div className="space-y-2">
-                  {checklistItems.map(item => (
-                    <div key={item.id} className={`flex items-center gap-3 p-3 rounded-[14px] transition ${
-                      isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'
-                    }`}>
-                      {item.done
-                        ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                        : <Circle className={`w-5 h-5 shrink-0 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-                      }
-                      <span className={`flex-1 text-r-sm font-medium ${
-                        item.done
-                          ? (isDark ? 'text-slate-500 line-through' : 'text-slate-400 line-through')
-                          : (isDark ? 'text-white' : 'text-slate-900')
-                      }`}>{item.label}</span>
-                      <span className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.time}</span>
-                      {!item.done && (
-                        <button
-                          onClick={() => item.action ? item.action() : onNavigate?.(item.page)}
-                          className="text-r-xs font-bold text-lynx-sky hover:underline shrink-0"
-                        >
-                          {item.action ? 'Share Code' : item.id === 'roster' ? 'Add Players' : item.id === 'event' ? 'Create Event' : 'Set Up'}
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </>
+    <>
+      <V2DashboardLayout
+        mainContent={
+          <>
+            {/* Hero Card */}
+            <HeroCard
+              orgLine={`${teamName} · ${selectedSeason?.name || 'Current Season'}`}
+              greeting={`Your team is looking good, ${firstName}.`}
+              subLine={`${rosterCount} players · ${upcomingEvents[0]?.title || 'No upcoming events'}`}
+              stats={heroStats}
+            />
+
+            {/* Attention Strip */}
+            {attentionItems.length > 0 && (
+              <AttentionStrip items={attentionItems} />
             )}
-          </div>
-        )}
 
-        {/* ── Team Identity Bar ── */}
-        <div className={`${cardClass} p-5`}>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center text-white text-r-xl font-bold"
-              style={{ backgroundColor: teamColor }}>
-              {teamName.charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <WelcomeBanner role="coach" userName={profile?.full_name} teamName={teamName} seasonName={selectedSeason?.name} isDark={isDark} />
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-r-sm font-semibold ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-lynx-cloud text-slate-600'}`}>
-                <Users className="w-4 h-4" />
-                {rosterCount} players
-              </div>
-              <button onClick={refresh} className={`p-2 rounded-lg transition ${isDark ? 'hover:bg-white/[0.06] text-slate-400' : 'hover:bg-slate-100 text-slate-400'}`}>
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── 2-Column Layout ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-r-4">
-          {/* Left: Operational Cards */}
-          <div className="space-y-r-4">
-            {/* Payment Health */}
-            <PaymentHealthCard
-              data={paymentHealth}
-              loading={loading}
-              isDark={isDark}
-              cardClass={cardClass}
-              onNavigate={onNavigate}
-            />
-
-            {/* RSVP Summary */}
-            <RsvpSummaryCard
-              data={nextEventRsvp}
-              loading={loading}
-              isDark={isDark}
-              cardClass={cardClass}
-              onNavigate={onNavigate}
-            />
-
-            {/* Roster Status */}
-            <RosterStatusCard
-              data={registrationStatus}
-              rosterCount={rosterCount}
-              loading={loading}
-              isDark={isDark}
-              cardClass={cardClass}
-              onNavigate={onNavigate}
-            />
-          </div>
-
-          {/* Right: Quick Actions + Upcoming Events */}
-          <div className="space-y-r-4">
-            {/* Quick Actions */}
-            <div className={`${cardClass} p-5`}>
-              <h3 className={`text-r-base font-bold uppercase tracking-wider mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Attendance', icon: CheckSquare, page: 'attendance', color: 'text-emerald-500' },
-                  { label: 'Send Blast', icon: Megaphone, page: 'blasts', color: 'text-amber-500' },
-                  { label: 'Schedule', icon: Calendar, page: 'schedule', color: 'text-lynx-sky' },
-                  { label: 'Team Chat', icon: MessageCircle, page: 'chats', color: 'text-violet-500' },
-                  { label: 'Payments', icon: DollarSign, page: 'payments', color: 'text-emerald-500' },
-                  { label: 'Invite Code', icon: Share2, action: () => setShowInviteModal(true), color: 'text-lynx-sky' },
-                ].map(action => (
-                  <button
-                    key={action.label}
-                    onClick={() => action.action ? action.action() : onNavigate?.(action.page)}
-                    className={`flex items-center gap-2.5 p-3 rounded-[14px] text-left transition-all ${
-                      isDark ? 'hover:bg-white/[0.06] border border-white/[0.06]' : 'hover:bg-lynx-cloud border border-slate-100'
-                    }`}
-                  >
-                    <action.icon className={`w-5 h-5 ${action.color}`} />
-                    <span className={`text-r-sm font-semibold ${isDark ? 'text-white' : 'text-slate-700'}`}>{action.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Upcoming Events */}
-            <div className={`${cardClass} p-5`}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`text-r-base font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Upcoming</h3>
-                <button onClick={() => onNavigate?.('schedule')} className="text-r-xs font-semibold text-lynx-sky hover:underline">View All</button>
-              </div>
-              {loading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className={`h-16 rounded-[14px] animate-pulse ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`} />
-                  ))}
-                </div>
-              ) : upcomingEvents.length === 0 ? (
-                <p className={`text-r-sm text-center py-6 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
-              ) : (
-                <div className="space-y-2">
-                  {upcomingEvents.slice(0, 3).map(event => (
-                    <div key={event.id} className={`flex items-center gap-3 p-3 rounded-[14px] transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-lynx-cloud'}`}>
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-r-base ${
-                        isDark ? 'bg-white/[0.06]' : 'bg-slate-100'
-                      }`}>
-                        {event.event_type === 'game' ? '🏐' : event.event_type === 'tournament' ? '🏆' : '⚡'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-r-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          {event.title || event.event_type}
-                        </p>
-                        <p className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                          {formatEventDate(event.event_date)} · {formatTime12(event.event_time)}
-                        </p>
-                      </div>
-                      <ChevronRight className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-300'}`} />
+            {/* Getting Started Checklist — restyled but preserved */}
+            {!dismissed && !loading && (
+              <div style={{
+                background: '#FFFFFF', borderRadius: 16, padding: 20,
+                fontFamily: 'var(--v2-font)',
+                border: '1px solid var(--v2-border-subtle)',
+              }}>
+                {allDone ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <CheckCircle2 style={{ width: 20, height: 20, color: '#10B981' }} />
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--v2-text-primary)' }}>Setup complete!</span>
                     </div>
-                  ))}
+                    <button onClick={handleDismiss} style={{ fontSize: 12, fontWeight: 600, color: 'var(--v2-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                      Dismiss
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--v2-text-muted)' }}>Getting Started</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--v2-text-muted)' }}>
+                        {checklistItems.filter(i => i.done).length}/{checklistItems.length}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--v2-text-secondary)', marginBottom: 14 }}>Complete these steps to get your team running</p>
+                    {checklistItems.map(item => (
+                      <div key={item.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 0',
+                        borderBottom: '1px solid var(--v2-border-subtle)',
+                      }}>
+                        {item.done
+                          ? <CheckCircle2 style={{ width: 20, height: 20, color: '#10B981', flexShrink: 0 }} />
+                          : <Circle style={{ width: 20, height: 20, color: 'var(--v2-text-muted)', flexShrink: 0 }} />
+                        }
+                        <span style={{
+                          flex: 1, fontSize: 13, fontWeight: 500,
+                          color: item.done ? 'var(--v2-text-muted)' : 'var(--v2-text-primary)',
+                          textDecoration: item.done ? 'line-through' : 'none',
+                        }}>{item.label}</span>
+                        <span style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>{item.time}</span>
+                        {!item.done && (
+                          <button
+                            onClick={() => item.action ? item.action() : onNavigate?.(item.page)}
+                            style={{ fontSize: 11, fontWeight: 700, color: 'var(--v2-sky)', background: 'none', border: 'none', cursor: 'pointer' }}
+                          >
+                            {item.action ? 'Share Code' : item.id === 'roster' ? 'Add Players' : item.id === 'event' ? 'Create Event' : 'Set Up'}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Body Tabs */}
+            <BodyTabs
+              tabs={tmTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            >
+              {activeTab === 'roster' && (
+                <RosterStatusCard data={registrationStatus} rosterCount={rosterCount} loading={loading} onNavigate={onNavigate} />
+              )}
+              {activeTab === 'payments' && (
+                <PaymentHealthCard data={paymentHealth} loading={loading} onNavigate={onNavigate} />
+              )}
+              {activeTab === 'schedule' && (
+                <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
+                  {upcomingEvents.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: 'var(--v2-text-muted)' }}>No upcoming events</div>
+                  ) : (
+                    upcomingEvents.slice(0, 5).map((event, i) => {
+                      const evDate = new Date(event.event_date + 'T00:00:00')
+                      return (
+                        <div key={event.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0',
+                          borderBottom: i < Math.min(upcomingEvents.length, 5) - 1 ? '1px solid var(--v2-border-subtle)' : 'none',
+                        }}>
+                          <div style={{ width: 48, textAlign: 'center', flexShrink: 0 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--v2-text-muted)' }}>
+                              {evDate.toLocaleDateString('en-US', { weekday: 'short' })}
+                            </div>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--v2-navy)' }}>{evDate.getDate()}</div>
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--v2-text-primary)' }}>
+                              {event.title || event.event_type}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>
+                              {formatTime12(event.event_time)}{event.location ? ` · ${event.location}` : ''}
+                            </div>
+                          </div>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--v2-sky)',
+                            background: 'rgba(75,185,236,0.08)', padding: '3px 8px', borderRadius: 6,
+                          }}>
+                            {event.event_type}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
+              {activeTab === 'attendance' && (
+                <RsvpSummaryCard data={nextEventRsvp} loading={loading} onNavigate={onNavigate} />
+              )}
+            </BodyTabs>
+
+            {/* Mascot Nudge */}
+            <MascotNudge
+              message={
+                paymentHealth?.overdueCount > 0
+                  ? `${paymentHealth.overdueCount} overdue payment${paymentHealth.overdueCount > 1 ? 's' : ''} — send reminders to keep things on track.`
+                  : rosterCount < 6
+                    ? 'Your roster is light — invite more players to fill out the team.'
+                    : 'Everything looks great! Your team is humming.'
+              }
+            />
+          </>
+        }
+        sideContent={
+          <>
+            {/* Financial Snapshot */}
+            <FinancialSnapshot
+              title="Team Finances"
+              collected={paymentHealth?.collectedAmount || 0}
+              outstanding={(paymentHealth?.overdueAmount || 0) + (paymentHealth?.pendingAmount || 0)}
+              breakdown={[
+                { label: 'Collected', amount: paymentHealth?.collectedAmount || 0 },
+                { label: 'Overdue', amount: paymentHealth?.overdueAmount || 0 },
+                { label: 'Pending', amount: paymentHealth?.pendingAmount || 0 },
+              ]}
+            />
+
+            {/* Upcoming Events */}
+            <WeeklyLoad
+              title="Upcoming"
+              events={upcomingEvents.slice(0, 5).map(e => ({
+                label: e.title || e.event_type,
+                date: e.event_date,
+                time: e.event_time,
+                type: e.event_type,
+              }))}
+            />
+
+            {/* The Playbook */}
+            <ThePlaybook actions={playbookItems} />
+
+            {/* Milestone Card */}
+            <MilestoneCard
+              variant="sky"
+              title="Team Progress"
+              xpCurrent={rosterCount * 50 + (paymentHealth?.collectedAmount || 0) / 10}
+              xpGoal={1000}
+              level={Math.floor((rosterCount * 50) / 1000) + 1}
+            />
+          </>
+        }
+      />
 
       {/* Invite Code Modal */}
       {showInviteModal && (
@@ -271,99 +305,86 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
           showToast={showToast}
         />
       )}
-    </DashboardContainer>
+    </>
   )
 }
 
-// ── Payment Health Card ──
-function PaymentHealthCard({ data, loading, isDark, cardClass, onNavigate }) {
-  if (loading) return <CardSkeleton isDark={isDark} cardClass={cardClass} />
+// ── Payment Health Card (v2 styled) ──
+function PaymentHealthCard({ data, loading, onNavigate }) {
+  if (loading) return <div style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--v2-text-muted)', fontSize: 13 }}>Loading...</div>
   if (!data) return null
 
   const hasOverdue = data.overdueCount > 0
 
   return (
-    <div className={`${cardClass} p-5`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <DollarSign className="w-5 h-5 text-emerald-500" />
-          <h3 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Payment Health</h3>
+    <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
+        <div style={{
+          padding: 14, borderRadius: 10, textAlign: 'center',
+          background: hasOverdue ? 'rgba(239,68,68,0.08)' : 'var(--v2-surface)',
+        }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: hasOverdue ? 'var(--v2-coral)' : 'var(--v2-text-primary)' }}>{data.overdueCount}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)' }}>Overdue</div>
+          {hasOverdue && <div style={{ fontSize: 11, color: 'var(--v2-coral)', fontWeight: 600 }}>${data.overdueAmount.toLocaleString()}</div>}
         </div>
-        <button onClick={() => onNavigate?.('payments')} className="flex items-center gap-1 text-r-sm font-semibold text-lynx-sky hover:underline">
-          View All <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div className={`p-3 rounded-[14px] ${hasOverdue ? (isDark ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200') : (isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud')}`}>
-          <p className={`text-r-xs font-semibold uppercase tracking-wider ${hasOverdue ? 'text-red-400' : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>Overdue</p>
-          <p className={`text-r-2xl font-bold mt-1 ${hasOverdue ? 'text-red-400' : (isDark ? 'text-white' : 'text-slate-900')}`}>{data.overdueCount}</p>
-          {hasOverdue && <p className="text-r-xs text-red-400 font-medium">${data.overdueAmount.toLocaleString()}</p>}
+        <div style={{ padding: 14, borderRadius: 10, textAlign: 'center', background: 'var(--v2-surface)' }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--v2-text-primary)' }}>{data.pendingCount}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)' }}>Pending</div>
         </div>
-        <div className={`p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
-          <p className={`text-r-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Pending</p>
-          <p className={`text-r-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.pendingCount}</p>
-        </div>
-        <div className={`p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-lynx-cloud'}`}>
-          <p className={`text-r-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Collected</p>
-          <p className={`text-r-2xl font-bold mt-1 text-emerald-500`}>${data.collectedAmount.toLocaleString()}</p>
+        <div style={{ padding: 14, borderRadius: 10, textAlign: 'center', background: 'rgba(16,185,129,0.08)' }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--v2-green)' }}>${data.collectedAmount.toLocaleString()}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)' }}>Collected</div>
         </div>
       </div>
 
       {hasOverdue && (
-        <button onClick={() => onNavigate?.('payments')} className="mt-4 w-full py-2.5 rounded-[14px] bg-red-500 text-white font-bold text-r-sm hover:bg-red-600 transition flex items-center justify-center gap-2">
-          <AlertCircle className="w-4 h-4" /> Send Reminders
+        <button onClick={() => onNavigate?.('payments')} style={{
+          width: '100%', padding: 10, borderRadius: 10,
+          fontSize: 12, fontWeight: 700,
+          background: 'var(--v2-coral)', color: '#FFFFFF',
+          border: 'none', cursor: 'pointer',
+        }}>
+          Send Reminders
         </button>
       )}
     </div>
   )
 }
 
-// ── RSVP Summary Card ──
-function RsvpSummaryCard({ data, loading, isDark, cardClass, onNavigate }) {
-  if (loading) return <CardSkeleton isDark={isDark} cardClass={cardClass} />
+// ── RSVP Summary Card (v2 styled) ──
+function RsvpSummaryCard({ data, loading, onNavigate }) {
+  if (loading) return <div style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--v2-text-muted)', fontSize: 13 }}>Loading...</div>
 
   return (
-    <div className={`${cardClass} p-5`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-lynx-sky" />
-          <h3 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Next Event RSVP</h3>
-        </div>
-        <button onClick={() => onNavigate?.('schedule')} className="flex items-center gap-1 text-r-sm font-semibold text-lynx-sky hover:underline">
-          Schedule <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
+    <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
       {!data ? (
-        <p className={`text-r-sm text-center py-6 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No upcoming events</p>
+        <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: 'var(--v2-text-muted)' }}>No upcoming events</div>
       ) : (
         <>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`px-2.5 py-1 rounded-full text-r-xs font-bold uppercase ${
-              data.eventType === 'game'
-                ? (isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600')
-                : (isDark ? 'bg-lynx-sky/10 text-lynx-sky' : 'bg-lynx-ice text-lynx-sky')
-            }`}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <span style={{
+              fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+              background: data.eventType === 'game' ? 'rgba(245,158,11,0.1)' : 'rgba(75,185,236,0.08)',
+              color: data.eventType === 'game' ? 'var(--v2-amber)' : 'var(--v2-sky)',
+              padding: '3px 8px', borderRadius: 6,
+            }}>
               {data.eventType}
-            </div>
-            <p className={`text-r-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{data.title}</p>
-            <p className={`text-r-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{formatEventDate(data.eventDate)}</p>
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--v2-text-primary)' }}>{data.title}</span>
+            <span style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>{formatEventDate(data.eventDate)}</span>
           </div>
 
-          {/* RSVP Progress Bar */}
-          <div className="space-y-2">
-            <div className="flex h-3 rounded-full overflow-hidden bg-slate-200 dark:bg-white/[0.06]">
-              {data.confirmed > 0 && <div className="bg-emerald-500 transition-all" style={{ width: `${(data.confirmed / data.totalRoster) * 100}%` }} />}
-              {data.maybe > 0 && <div className="bg-amber-400 transition-all" style={{ width: `${(data.maybe / data.totalRoster) * 100}%` }} />}
-              {data.declined > 0 && <div className="bg-red-400 transition-all" style={{ width: `${(data.declined / data.totalRoster) * 100}%` }} />}
-            </div>
-            <div className="flex gap-4 text-r-xs font-medium">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Confirmed {data.confirmed}</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Maybe {data.maybe}</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-400" /> Declined {data.declined}</span>
-              {data.noResponse > 0 && <span className={`flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}><span className={`w-2.5 h-2.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} /> No Response {data.noResponse}</span>}
-            </div>
+          {/* RSVP bar */}
+          <div style={{ height: 8, borderRadius: 4, background: 'var(--v2-surface)', overflow: 'hidden', display: 'flex', marginBottom: 10 }}>
+            {data.confirmed > 0 && <div style={{ height: '100%', background: '#10B981', width: `${(data.confirmed / data.totalRoster) * 100}%` }} />}
+            {data.maybe > 0 && <div style={{ height: '100%', background: '#F59E0B', width: `${(data.maybe / data.totalRoster) * 100}%` }} />}
+            {data.declined > 0 && <div style={{ height: '100%', background: '#EF4444', width: `${(data.declined / data.totalRoster) * 100}%` }} />}
+          </div>
+          <div style={{ display: 'flex', gap: 16, fontSize: 11, fontWeight: 600 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} /> Confirmed {data.confirmed}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} /> Maybe {data.maybe}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} /> Declined {data.declined}</span>
+            {data.noResponse > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--v2-text-muted)' }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--v2-surface)', display: 'inline-block' }} /> No Response {data.noResponse}</span>}
           </div>
         </>
       )}
@@ -371,67 +392,59 @@ function RsvpSummaryCard({ data, loading, isDark, cardClass, onNavigate }) {
   )
 }
 
-// ── Roster Status Card ──
-function RosterStatusCard({ data, rosterCount, loading, isDark, cardClass, onNavigate }) {
-  if (loading) return <CardSkeleton isDark={isDark} cardClass={cardClass} />
+// ── Roster Status Card (v2 styled) ──
+function RosterStatusCard({ data, rosterCount, loading, onNavigate }) {
+  if (loading) return <div style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--v2-text-muted)', fontSize: 13 }}>Loading...</div>
   if (!data) return null
 
   const fillPercent = data.capacity > 0 ? Math.min(100, (data.filled / data.capacity) * 100) : 0
 
   return (
-    <div className={`${cardClass} p-5`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-violet-500" />
-          <h3 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Roster Status</h3>
-        </div>
-        <button onClick={() => onNavigate?.('roster')} className="flex items-center gap-1 text-r-sm font-semibold text-lynx-sky hover:underline">
-          View Roster <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="flex items-end gap-6">
+    <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginBottom: 16 }}>
         <div>
-          <p className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{rosterCount}</p>
-          <p className={`text-r-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--v2-text-primary)' }}>{rosterCount}</div>
+          <div style={{ fontSize: 13, color: 'var(--v2-text-muted)' }}>
             {data.capacity > 0 ? `of ${data.capacity} spots filled` : 'players rostered'}
-          </p>
+          </div>
         </div>
         {data.pendingCount > 0 && (
-          <div className={`px-3 py-1.5 rounded-full text-r-xs font-bold ${isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+            background: 'rgba(245,158,11,0.1)', color: 'var(--v2-amber)',
+            padding: '4px 10px', borderRadius: 6,
+          }}>
             {data.pendingCount} pending
-          </div>
+          </span>
         )}
-        <div className={`px-3 py-1.5 rounded-full text-r-xs font-bold ${
-          data.isOpen
-            ? (isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
-            : (isDark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600')
-        }`}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+          background: data.isOpen ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+          color: data.isOpen ? 'var(--v2-green)' : 'var(--v2-coral)',
+          padding: '4px 10px', borderRadius: 6,
+        }}>
           {data.isOpen ? 'Open' : 'Full'}
-        </div>
+        </span>
       </div>
 
       {data.capacity > 0 && (
-        <div className="mt-4">
-          <div className={`h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`}>
-            <div className={`h-full rounded-full transition-all ${fillPercent >= 90 ? 'bg-amber-500' : 'bg-lynx-sky'}`} style={{ width: `${fillPercent}%` }} />
-          </div>
+        <div style={{ height: 8, borderRadius: 4, background: 'var(--v2-surface)', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: 4,
+            background: fillPercent >= 90 ? 'var(--v2-amber)' : 'var(--v2-sky)',
+            width: `${fillPercent}%`, transition: 'width 0.4s ease',
+          }} />
         </div>
       )}
-    </div>
-  )
-}
 
-// ── Card Skeleton ──
-function CardSkeleton({ isDark, cardClass }) {
-  return (
-    <div className={`${cardClass} p-5`}>
-      <div className={`h-6 w-40 rounded-lg mb-4 animate-pulse ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`} />
-      <div className="grid grid-cols-3 gap-4">
-        {[1, 2, 3].map(i => (
-          <div key={i} className={`h-20 rounded-[14px] animate-pulse ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`} />
-        ))}
-      </div>
+      <button onClick={() => onNavigate?.('roster')} style={{
+        width: '100%', padding: 10, borderRadius: 10,
+        fontSize: 12, fontWeight: 700, marginTop: 16,
+        background: 'var(--v2-navy)', color: '#FFFFFF',
+        border: 'none', cursor: 'pointer',
+      }}>
+        View Full Roster →
+      </button>
     </div>
   )
 }
