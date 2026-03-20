@@ -200,10 +200,11 @@ export function SetupWizard({ onComplete, onBack }) {
 
       if (orgError) throw orgError
 
-      await supabase.from('user_roles').insert({
+      const { error: roleError } = await supabase.from('user_roles').insert({
         user_id: user.id, organization_id: org.id,
         role: 'league_admin', is_active: true,
       })
+      if (roleError) throw roleError
 
       await supabase.from('profiles').update({
         onboarding_completed: true,
@@ -249,20 +250,22 @@ export function SetupWizard({ onComplete, onBack }) {
 
       if (orgError) throw orgError
 
-    await supabase.from('user_roles').insert({
+    const { error: roleError } = await supabase.from('user_roles').insert({
       user_id: user.id,
       organization_id: org.id,
       role: 'team_manager',
       is_active: true,
     })
+    if (roleError) throw roleError
 
     // Update profile with current org (required for RLS)
-    await supabase
+    const { error: profileOrgError } = await supabase
       .from('profiles')
       .update({ current_organization_id: org.id })
       .eq('id', user.id)
+    if (profileOrgError) throw profileOrgError
 
-    await supabase.from('profiles').update({
+    const { error: profileError } = await supabase.from('profiles').update({
       onboarding_completed: true,
       onboarding_data: {
         role: 'team_manager',
@@ -272,6 +275,7 @@ export function SetupWizard({ onComplete, onBack }) {
         earned_badges: ['team_builder'], // Award the team builder badge
       },
     }).eq('id', user.id)
+    if (profileError) throw profileError
 
       if (journey?.completeStep) journey.completeStep('join_create_team')
 
@@ -310,10 +314,11 @@ export function SetupWizard({ onComplete, onBack }) {
           .update({ status: 'accepted', accepted_at: new Date().toISOString() })
           .eq('id', accountInvite.id)
 
-        await supabase.from('user_roles').insert({
+        const { error: roleError } = await supabase.from('user_roles').insert({
           user_id: user.id, organization_id: accountInvite.organization_id,
           role: accountInvite.role || 'parent', is_active: true,
         })
+        if (roleError) throw roleError
 
         await supabase.from('profiles').update({
           onboarding_completed: true,
@@ -332,10 +337,11 @@ export function SetupWizard({ onComplete, onBack }) {
       }
 
       const orgId = invite.teams?.organization_id
-      await supabase.from('user_roles').insert({
+      const { error: roleError2 } = await supabase.from('user_roles').insert({
         user_id: user.id, organization_id: orgId,
         role: 'parent', is_active: true,
       })
+      if (roleError2) throw roleError2
 
       await supabase.from('profiles').update({
         onboarding_completed: true,
