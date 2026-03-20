@@ -228,62 +228,60 @@ export function SetupWizard({ onComplete, onBack }) {
     }
   }
 
-  const createIndependentTeam = async () => {
-  setSaving(true)
-  setError(null)
-  try {
-    const slug = teamName.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
-      .replace(/\s+/g, '-')
-      .substring(0, 50) + '-' + Date.now().toString(36)
+  const createMicroOrgForTM = async () => {
+    setSaving(true)
+    setError(null)
+    try {
+      const autoOrgName = `${profile?.full_name || 'My'} Club`
+      const slug = autoOrgName.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 50) + '-' + Date.now().toString(36)
 
-    // Just create org - they'll add team from dashboard
-    const { data: org, error: orgError } = await supabase
-      .from('organizations')
-      .insert({
-        name: teamName,
-        slug: slug,
-        is_active: true,
-      })
-      .select()
-      .single()
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .insert({
+          name: autoOrgName,
+          slug,
+          is_active: true,
+        })
+        .select()
+        .single()
 
       if (orgError) throw orgError
 
-    const { error: roleError } = await supabase.from('user_roles').insert({
-      user_id: user.id,
-      organization_id: org.id,
-      role: 'team_manager',
-      is_active: true,
-    })
-    if (roleError) throw roleError
-
-    // Update profile with current org (required for RLS)
-    const { error: profileOrgError } = await supabase
-      .from('profiles')
-      .update({ current_organization_id: org.id })
-      .eq('id', user.id)
-    if (profileOrgError) throw profileOrgError
-
-    const { error: profileError } = await supabase.from('profiles').update({
-      onboarding_completed: true,
-      onboarding_data: {
-        role: 'team_manager',
+      const { error: roleError } = await supabase.from('user_roles').insert({
+        user_id: user.id,
         organization_id: org.id,
-        completed_at: new Date().toISOString(),
-        completed_steps: ['join_create_team'], // Initialize with first step complete
-        earned_badges: ['team_builder'], // Award the team builder badge
-      },
-    }).eq('id', user.id)
-    if (profileError) throw profileError
+        role: 'team_manager',
+        is_active: true,
+      })
+      if (roleError) throw roleError
+
+      const { error: profileOrgError } = await supabase
+        .from('profiles')
+        .update({ current_organization_id: org.id })
+        .eq('id', user.id)
+      if (profileOrgError) throw profileOrgError
+
+      const { error: profileError } = await supabase.from('profiles').update({
+        onboarding_completed: true,
+        onboarding_data: {
+          role: 'team_manager',
+          organization_id: org.id,
+          completed_at: new Date().toISOString(),
+          completed_steps: ['join_create_team'],
+          earned_badges: ['team_builder'],
+        },
+      }).eq('id', user.id)
+      if (profileError) throw profileError
 
       if (journey?.completeStep) journey.completeStep('join_create_team')
 
       setSaving(false)
-      setSuccessContext({ type: 'team', name: teamName, role: 'Team Manager', badge: 'Team Builder' })
-      goTo(STEPS.SUCCESS)
+      onComplete() // Go directly to dashboard — TeamManagerSetup handles real team creation
     } catch (err) {
-      console.error('Error creating team:', err)
+      console.error('Error creating team manager org:', err)
       setSaving(false)
       setError(err.message)
     }
@@ -540,11 +538,23 @@ export function SetupWizard({ onComplete, onBack }) {
                 We'll get you connected to your team.
               </p>
 
-              <div className="space-y-3">
-                <OptionCard emoji="\ud83c\udfd0" title="Start a new team" desc="I'm building something from scratch" onClick={() => goTo(STEPS.TEAM_NAME)} />
-                <OptionCard emoji="\ud83d\udd17" title="I have an invite code" desc="My organization gave me a code" onClick={() => goTo(STEPS.INVITE_CODE)} />
-                <OptionCard emoji="\u23f3" title="I'll be added later" desc="Someone will assign me to a team" onClick={() => goTo(STEPS.PENDING)} />
-              </div>
+              {saving ? (
+                <div className="flex flex-col items-center py-8">
+                  <svg className="animate-spin w-8 h-8 mb-3" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke={BRAND.sky} strokeWidth="3" opacity="0.3" />
+                    <path d="M12 2a10 10 0 019.95 9" stroke={BRAND.sky} strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                  <p className="text-sm font-medium" style={{ color: BRAND.textMuted }}>Setting up your account...</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <OptionCard emoji={'\ud83c\udfd0'} title="Start a new team" desc="I'm building something from scratch" onClick={createMicroOrgForTM} />
+                  <OptionCard emoji={'\ud83d\udd17'} title="I have an invite code" desc="My organization gave me a code" onClick={() => goTo(STEPS.INVITE_CODE)} />
+                  <OptionCard emoji={'\u23f3'} title="I'll be added later" desc="Someone will assign me to a team" onClick={() => goTo(STEPS.PENDING)} />
+                </div>
+              )}
+
+              {error && <ErrorMessage message={error} />}
             </>
           )}
 
@@ -566,35 +576,7 @@ export function SetupWizard({ onComplete, onBack }) {
             </>
           )}
 
-          {/* ─── STEP: Team Name ─── */}
-          {step === STEPS.TEAM_NAME && (
-            <>
-              <MascotImage step={step} className="w-24 h-24 mb-4" />
-              <h1 className="text-2xl font-bold text-center mb-1" style={{ color: BRAND.textPrimary }}>
-                Name your team
-              </h1>
-              <p className="text-center mb-6" style={{ color: BRAND.textMuted }}>
-                You can add players and schedules from your dashboard.
-              </p>
-
-              <label className="block text-sm font-semibold mb-2" style={{ color: BRAND.textPrimary }}>Team Name</label>
-              <input type="text" value={teamName} onChange={e => setTeamName(e.target.value)} autoFocus
-                placeholder="e.g., 14U Lightning"
-                className="w-full px-4 py-3 rounded-[14px] border-2 text-base font-medium outline-none transition-colors mb-6"
-                style={{ borderColor: '#E2E8F0', color: BRAND.textPrimary, background: '#FAFBFC' }}
-                onFocus={e => e.target.style.borderColor = BRAND.sky}
-                onBlur={e => e.target.style.borderColor = '#E2E8F0'}
-              />
-
-              {error && <ErrorMessage message={error} />}
-
-              <PrimaryButton onClick={createIndependentTeam} disabled={!teamName.trim()} saving={saving}>
-                Create Team
-              </PrimaryButton>
-
-              {meta.time && <TimeLabel time={meta.time} />}
-            </>
-          )}
+          {/* ─── STEP: Team Name (no longer used — TMs skip to dashboard, team created in TeamManagerSetup) ─── */}
 
           {/* ─── STEP: Invite Code ─── */}
           {step === STEPS.INVITE_CODE && (
