@@ -165,6 +165,12 @@ function SetupWizard({ onComplete }) {
       is_active: true,
     })
 
+    // Update profile with current org (required for RLS)
+    await supabase
+      .from('profiles')
+      .update({ current_organization_id: org.id })
+      .eq('id', user.id)
+
     await supabase.from('profiles').update({
       onboarding_completed: true,
       onboarding_data: {
