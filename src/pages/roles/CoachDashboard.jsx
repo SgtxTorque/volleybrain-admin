@@ -7,32 +7,21 @@ import { supabase } from '../../lib/supabase'
 import { sanitizeText } from '../../lib/validation'
 import { PlayerCardExpanded } from '../../components/players'
 import {
-  Calendar, MapPin, Clock, Users, ChevronRight, Check, X,
-  Target, MessageCircle, Swords, Shield, Send, Timer,
-  Filter, ChevronDown
+  Calendar, MapPin, X, Swords, Shield, Send, Timer,
 } from '../../constants/icons'
-
-// Old layout components archived — replaced by LynxSidebar + card grid
-// import CoachLeftSidebar from '../../components/coach/CoachLeftSidebar'
-// import CoachCenterDashboard from '../../components/coach/CoachCenterDashboard'
-// import CoachRosterPanel from '../../components/coach/CoachRosterPanel'
-// LynxSidebar now rendered by MainApp — no longer needed here
-import CoachGameDayHeroV2 from '../../components/coach/CoachGameDayHeroV2'
-import CoachHeroCarousel from '../../components/coach/CoachHeroCarousel'
-import CoachNotifications from '../../components/coach/CoachNotifications'
-import SquadRosterCard from '../../components/coach/SquadRosterCard'
-import CoachTools from '../../components/coach/CoachTools'
-import AlsoThisWeekCard from '../../components/coach/AlsoThisWeekCard'
-import CalendarStripCard from '../../components/coach/CalendarStripCard'
-import CoachActionItemsCard from '../../components/coach/CoachActionItemsCard'
-import TeamReadinessCard from '../../components/coach/TeamReadinessCard'
-import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
-import WelcomeBanner from '../../components/shared/WelcomeBanner'
-import DashboardContainer from '../../components/layout/DashboardContainer'
-import DashboardGridLayout from '../../components/layout/DashboardGrid'
-import EditLayoutButton from '../../components/layout/EditLayoutButton'
-import { HeroGrid, TwoColGrid } from '../../components/layout/DashboardGrids'
 import { formatTime12, countdownText } from '../../lib/date-helpers'
+import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
+import {
+  HeroCard, AttentionStrip, BodyTabs, WeeklyLoad, ThePlaybook,
+  MilestoneCard, MascotNudge, V2DashboardLayout,
+} from '../../components/v2'
+import TeamSwitcher from '../../components/v2/coach/TeamSwitcher'
+import GameDayCard from '../../components/v2/coach/GameDayCard'
+import ShoutoutCard from '../../components/v2/coach/ShoutoutCard'
+import CoachRosterTab from '../../components/v2/coach/CoachRosterTab'
+import CoachAttendanceTab from '../../components/v2/coach/CoachAttendanceTab'
+import CoachStatsTab from '../../components/v2/coach/CoachStatsTab'
+import CoachGamePrepTab from '../../components/v2/coach/CoachGamePrepTab'
 
 // ── Event Detail Modal ──
 function EventDetailModal({ event, team, onClose }) {
@@ -305,7 +294,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // V2.1 Workflow button badges
   const [newPlayersCount, setNewPlayersCount] = useState(0)
-  const [editMode, setEditMode] = useState(false)
+  const [activeTab, setActiveTab] = useState('roster')
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
@@ -726,24 +715,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     setChecklistState(prev => ({ ...prev, [key]: !prev[key] }))
   }
 
-  // ── Build widget array — Carlos's exported layout (24-col grid, 20px row height) ──
-  const coachWidgets = useMemo(() => [
-    { id: 'spacer-top', label: 'Spacer', defaultLayout: { x: 0, y: 0, w: 1, h: 26 }, minW: 1, minH: 1, maxH: 40, componentKey: 'SpacerWidget' },
-    { id: 'welcome-banner', label: 'Welcome Banner', defaultLayout: { x: 1, y: 0, w: 8, h: 3 }, minW: 2, minH: 2, maxH: 8, component: <WelcomeBanner role="coach" userName={profile?.full_name} teamName={selectedTeam?.name} seasonName={selectedSeason?.name} isDark={isDark} /> },
-    { id: 'spacer-divider', label: 'Spacer', defaultLayout: { x: 1, y: 3, w: 21, h: 1 }, minW: 1, minH: 1, maxH: 4, componentKey: 'SpacerWidget' },
-    { id: 'coach-tools', label: 'Coach Tools', defaultLayout: { x: 1, y: 4, w: 5, h: 7 }, minW: 2, minH: 2, maxH: 20, component: <CoachTools onNavigate={onNavigate} onShowShoutout={() => setShowShoutoutModal(true)} /> },
-    { id: 'action-items', label: 'Action Items', defaultLayout: { x: 7, y: 4, w: 9, h: 4 }, minW: 2, minH: 2, maxH: 20, component: <CoachActionItemsCard items={needsAttentionItems} onNavigate={onNavigate} /> },
-    { id: 'gameday-hero', label: 'Hero Card', defaultLayout: { x: 7, y: 8, w: 9, h: 12 }, minW: 2, minH: 2, maxH: 28, component: <CoachHeroCarousel nextGame={nextGame} nextEvent={nextEvent} selectedTeam={selectedTeam} teamRecord={teamRecord} winRate={winRate} onNavigate={onNavigate} roster={roster} rsvpCounts={rsvpCounts} lineupsSet={lineupsSet} upcomingEvents={upcomingEvents} /> },
-    { id: 'notifications', label: 'Notifications', defaultLayout: { x: 17, y: 4, w: 6, h: 6 }, minW: 2, minH: 2, maxH: 20, component: <CoachNotifications /> },
-    { id: 'org-wall-preview', label: 'Team Wall', defaultLayout: { x: 17, y: 10, w: 6, h: 8 }, minW: 2, minH: 2, maxH: 20, componentKey: 'TeamWallPreviewCard' },
-    { id: 'squad-roster', label: 'Squad Roster', defaultLayout: { x: 1, y: 11, w: 5, h: 9 }, minW: 2, minH: 2, maxH: 36, component: <SquadRosterCard roster={roster} selectedTeam={selectedTeam} onNavigate={onNavigate} onPlayerSelect={setSelectedPlayer} /> },
-    { id: 'team-chat', label: 'Team Chat', defaultLayout: { x: 17, y: 18, w: 6, h: 9 }, minW: 2, minH: 2, maxH: 20, componentKey: 'ChatPreviewCard' },
-    { id: 'also-this-week', label: 'Also This Week', defaultLayout: { x: 7, y: 20, w: 9, h: 4 }, minW: 2, minH: 2, maxH: 12, component: <AlsoThisWeekCard events={upcomingEvents} /> },
-    { id: 'top-players', label: 'Top Players', defaultLayout: { x: 1, y: 20, w: 5, h: 11 }, minW: 2, minH: 2, maxH: 16, componentKey: 'TopPlayersCard' },
-    { id: 'calendar-strip', label: 'Calendar Strip', defaultLayout: { x: 7, y: 24, w: 9, h: 10 }, minW: 2, minH: 2, maxH: 20, component: <CalendarStripCard events={upcomingEvents} onNavigate={onNavigate} onEventSelect={setSelectedEventDetail} /> },
-    { id: 'challenges', label: 'Challenges', defaultLayout: { x: 17, y: 27, w: 3, h: 8 }, minW: 2, minH: 2, maxH: 16, componentKey: 'ChallengesCard' },
-    { id: 'achievements', label: 'Achievements', defaultLayout: { x: 20, y: 27, w: 3, h: 8 }, minW: 2, minH: 2, maxH: 16, componentKey: 'AchievementsCard' },
-  ], [profile?.full_name, selectedTeam, selectedSeason, isDark, nextGame, nextEvent, teamRecord, winRate, upcomingEvents, roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, onNavigate])
+  // (Old coachWidgets grid array removed — v2 uses fixed layout)
 
   // ── Loading State ──
   if (loading) {
@@ -772,81 +744,170 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     )
   }
 
-  // ── Main Render: Full-width scrollable content (sidebar handled by MainApp) ──
+  // ── Coach greeting logic (extracted from CoachHeroCarousel state machine) ──
+  const getCoachGreeting = () => {
+    const hour = new Date().getHours()
+    const timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+    const todayStr = new Date().toISOString().split('T')[0]
+    const todayGame = upcomingEvents.find(e => e.event_type === 'game' && e.event_date === todayStr)
+    const todayPractice = upcomingEvents.find(e => (e.event_type === 'practice' || e.event_type === 'training') && e.event_date === todayStr)
+
+    if (todayGame) return `Game day, ${coachName}! Let's go.`
+    if (todayPractice) return `Practice day, ${coachName}. Let's get after it.`
+    if (nextGame) return `${timeGreeting}, ${coachName}. Game coming up.`
+    return `${timeGreeting}, ${coachName}.`
+  }
+
+  const getCoachSubLine = () => {
+    const parts = [selectedTeam?.name || 'Your Team']
+    if (selectedSeason?.name) parts.push(selectedSeason.name)
+    parts.push(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }))
+    return parts.join(' · ')
+  }
+
+  // Next game countdown
+  const getGameCountdown = () => {
+    if (!nextGame?.event_date) return null
+    try {
+      return countdownText(nextGame.event_date, nextGame.event_time)
+    } catch { return null }
+  }
+
+  const nextGameRsvp = nextGame ? rsvpCounts[nextGame.id] : null
+  const attentionCount = needsAttentionItems.length
+
+  // ── Main Render ──
   return (
-    <div className={`h-[calc(100vh)] overflow-hidden ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-      {/* Main Content — full width */}
-      <div className="w-full h-full overflow-y-auto">
-        <DashboardContainer className="space-y-5">
+    <>
+      <V2DashboardLayout
+        mainContent={
+          <>
+            {/* HERO CARD */}
+            <HeroCard
+              orgLine={selectedTeam?.name || 'Your Team'}
+              greeting={getCoachGreeting()}
+              subLine={getCoachSubLine()}
+              stats={[
+                { value: roster.length, label: 'Roster' },
+                { value: avgAttendanceLast3 != null ? `${avgAttendanceLast3}%` : '—', label: 'Attendance' },
+                { value: `${teamRecord.wins}-${teamRecord.losses}`, label: 'Record' },
+                { value: notResponded || 0, label: 'No RSVP', color: notResponded > 0 ? 'red' : undefined },
+              ]}
+            />
 
-          {/* Season + Team Filter Bar — same style as admin dashboard, progressive disclosure */}
-          {(coachSeasons.length > 1 || teams.length > 1) && (
-            <div className={`flex items-center gap-3 rounded-[14px] px-4 py-2 shadow-sm mx-6 ${
-              isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white/90 backdrop-blur-sm border border-brand-border'
-            }`}>
-              <Filter className={`h-3.5 w-3.5 shrink-0 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-              {/* Season — only when coach has teams in multiple seasons */}
-              {coachSeasons.length > 1 && (
-                <div className="relative">
-                  <select
-                    value={selectedSeason?.id || ''}
-                    onChange={(e) => { const season = coachSeasons.find(s => s.id === e.target.value); if (season) selectSeason(season) }}
-                    className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
-                      isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
-                    }`}
-                  >
-                    {coachSeasons.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-                </div>
+            {/* TEAM SWITCHER */}
+            <TeamSwitcher
+              teams={teams}
+              selectedTeamId={selectedTeam?.id}
+              onTeamSelect={handleTeamSelect}
+            />
+
+            {/* ATTENTION STRIP */}
+            {attentionCount > 0 && (
+              <AttentionStrip
+                message={`${attentionCount} item${attentionCount !== 1 ? 's' : ''} need${attentionCount === 1 ? 's' : ''} your attention`}
+                ctaLabel="REVIEW →"
+                onClick={() => onNavigate?.('schedule')}
+              />
+            )}
+
+            {/* BODY TABS */}
+            <BodyTabs
+              tabs={[
+                { id: 'roster', label: 'Roster' },
+                { id: 'attendance', label: 'Attendance' },
+                { id: 'stats', label: 'Stats' },
+                { id: 'gameprep', label: 'Game Prep' },
+              ]}
+              activeTabId={activeTab}
+              onTabChange={setActiveTab}
+              footerLink={activeTab === 'roster' ? { label: `View full roster (${roster.length}) →`, onClick: () => onNavigate?.('teams') } : undefined}
+            >
+              {activeTab === 'roster' && (
+                <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={setSelectedPlayer} />
               )}
-              {/* Team — only when coach has multiple teams */}
-              {teams.length > 1 && (
-                <div className="relative">
-                  <select
-                    value={selectedTeam?.id || ''}
-                    onChange={(e) => { const team = teams.find(t => t.id === e.target.value); if (team) handleTeamSelect(team) }}
-                    className={`appearance-none rounded-lg px-3 pr-8 py-1.5 text-r-lg font-medium cursor-pointer transition-colors ${
-                      isDark ? 'bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-brand-off-white border border-brand-border text-[#0D1B3E]/60 hover:bg-[#F0F3F7]'
-                    }`}
-                  >
-                    {teams.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 ${isDark ? 'text-slate-400' : 'text-[#0D1B3E]/30'}`} />
-                </div>
+              {activeTab === 'attendance' && (
+                <CoachAttendanceTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} />
               )}
-            </div>
-          )}
+              {activeTab === 'stats' && (
+                <CoachStatsTab topPlayers={topPlayers} roster={roster} onPlayerClick={setSelectedPlayer} />
+              )}
+              {activeTab === 'gameprep' && (
+                <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />
+              )}
+            </BodyTabs>
 
-          {/* Widget Grid */}
-          <DashboardGridLayout
-            widgets={coachWidgets}
-            editMode={editMode}
-            onLayoutChange={(layouts) => console.log('Coach layout changed:', layouts)}
-            role="coach"
-            sharedProps={{
-              role: 'coach', isDark, onNavigate, profile, selectedSeason, selectedTeam,
-              nextGame, nextEvent, teamRecord, winRate, upcomingEvents, events: upcomingEvents,
-              roster, needsAttentionItems, avgAttendanceLast3, rsvpCounts, teams,
-              userName: profile?.full_name, teamName: selectedTeam?.name, seasonName: selectedSeason?.name,
-              // Data for componentKey-resolved widgets
-              topPlayers: topPlayers.map(tp => { const p = roster.find(r => r.id === tp.player_id); return { ...tp, player: p } }),
-              challenges: activeChallenges,
-              seasonId: selectedSeason?.id,
-              teamId: selectedTeam?.id,
-              navigateToTeamWall: () => onNavigate?.('teams'),
-            }}
-          />
+            {/* MASCOT NUDGE */}
+            {notResponded > 0 && (
+              <MascotNudge
+                message={<>Hey {coachName}! <strong>{notResponded} player{notResponded !== 1 ? 's' : ''}</strong> haven&apos;t RSVP&apos;d for the next event. Want to send a nudge?</>}
+                primaryAction={{ label: 'Send reminders', onClick: () => setShowCoachBlast(true) }}
+                secondaryAction={{ label: 'Not now', onClick: () => {} }}
+              />
+            )}
+          </>
+        }
 
-          {/* Edit Layout FAB */}
-          <EditLayoutButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
+        sideContent={
+          <>
+            {/* GAME DAY CARD */}
+            {nextGame && (
+              <GameDayCard
+                overline="Next Game"
+                countdownText={getGameCountdown() ? `⏱ ${getGameCountdown()}` : undefined}
+                matchup={`${selectedTeam?.name || 'Your Team'} vs. ${nextGame.opponent_name || 'TBD'}`}
+                details={`${new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} · ${nextGame.location || 'TBD'} · ${nextGame.event_time ? formatTime12(nextGame.event_time) : ''}`}
+                confirmed={nextGameRsvp?.going || 0}
+                pending={Math.max(0, roster.length - (nextGameRsvp?.total || 0))}
+                seasonRecord={`${teamRecord.wins}-${teamRecord.losses}`}
+                ctaLabel="Start Game Day Mode →"
+                onCtaClick={() => onNavigate?.('gameprep')}
+              />
+            )}
 
-        </DashboardContainer>
-      </div>
+            {/* WEEKLY LOAD */}
+            <WeeklyLoad
+              title="This Week"
+              dateRange={selectedTeam?.name || 'Team Schedule'}
+              events={(upcomingEvents || []).slice(0, 5).map(evt => ({
+                dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
+                dayNum: new Date(evt.event_date).getDate(),
+                isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
+                title: evt.title || evt.event_type || 'Event',
+                meta: `${evt.location || 'TBD'} · ${evt.event_time ? formatTime12(evt.event_time) : ''}`,
+              }))}
+            />
+
+            {/* THE PLAYBOOK */}
+            <ThePlaybook
+              actions={[
+                { emoji: '📋', label: 'Attendance', onClick: () => onNavigate?.('attendance'), isPrimary: true },
+                { emoji: '⚡', label: 'Lineup', onClick: () => onNavigate?.('gameprep') },
+                { emoji: '⭐', label: 'Shoutout', onClick: () => setShowShoutoutModal(true) },
+                { emoji: '📊', label: 'Enter Stats', onClick: () => onNavigate?.('gameprep') },
+                { emoji: '💬', label: 'Message', onClick: () => setShowCoachBlast(true) },
+                { emoji: '🏆', label: 'Challenge', onClick: () => onNavigate?.('teams') },
+              ]}
+            />
+
+            {/* SHOUTOUT CARD */}
+            <ShoutoutCard
+              quote={weeklyShoutouts > 0 ? `${weeklyShoutouts} shoutout${weeklyShoutouts !== 1 ? 's' : ''} given this week — keep the energy going!` : null}
+              fromLabel={weeklyShoutouts > 0 ? `— ${coachName}` : undefined}
+            />
+
+            {/* MILESTONE */}
+            <MilestoneCard
+              trophy="🏐"
+              title={`${selectedTeam?.name || 'Team'} Coach`}
+              subtitle={`${teamRecord.wins}W-${teamRecord.losses}L · ${roster.length} players`}
+              xpCurrent={teamRecord.wins * 100 + roster.length * 10}
+              xpTarget={2000}
+              variant="sky"
+            />
+          </>
+        }
+      />
 
       {/* Modals — DO NOT DELETE */}
       {selectedEventDetail && (
@@ -873,7 +934,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           showToast={showToast}
         />
       )}
-    </div>
+    </>
   )
 }
 
