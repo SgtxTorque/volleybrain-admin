@@ -150,8 +150,7 @@ function SetupWizard({ onComplete }) {
       .insert({
         name: teamName,
         slug: slug,
-        type: 'independent_team',
-        settings: {},
+        is_active: true,
       })
       .select()
       .single()
@@ -161,7 +160,7 @@ function SetupWizard({ onComplete }) {
     await supabase.from('user_roles').insert({
       user_id: user.id,
       organization_id: org.id,
-      role: 'league_admin',
+      role: 'team_manager',
       is_active: true,
     })
 
