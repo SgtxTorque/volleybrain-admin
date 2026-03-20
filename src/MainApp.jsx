@@ -46,6 +46,7 @@ import { DashboardPage } from './pages/dashboard'
 
 // Role-specific Dashboards
 import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
+import { TeamManagerDashboard } from './pages/roles/TeamManagerDashboard'
 
 // Parent Portal Pages
 import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage, ParentRegistrationHub, ClaimAccountPage } from './pages/parent'
@@ -769,18 +770,6 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
   const location = useLocation()
   const navigateToTeamWall = (teamId) => navigate(`/teams/${teamId}`)
 
-  function TeamManagerPlaceholder() {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="text-r-3xl font-bold text-lynx-navy dark:text-white mb-2">Team Manager Dashboard</div>
-          <p className="text-r-base text-slate-500 dark:text-slate-400">Coming soon. Your team operations hub is being built.</p>
-          <p className="text-r-sm text-slate-400 dark:text-slate-500 mt-4">Role detected successfully. Nav and permissions are active.</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div key={location.pathname} className="animate-page-in">
     <Routes>
@@ -788,7 +777,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/dashboard" element={
         activeView === 'admin' ? <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
-        activeView === 'team_manager' ? <TeamManagerPlaceholder /> :
+        activeView === 'team_manager' ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} /> :
         <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
