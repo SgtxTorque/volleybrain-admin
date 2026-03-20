@@ -228,36 +228,50 @@ export function SetupWizard({ onComplete, onBack }) {
   }
 
   const createIndependentTeam = async () => {
-    setSaving(true)
-    setError(null)
-    try {
-      const slug = teamName.toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')
-        .replace(/\s+/g, '-')
-        .substring(0, 50) + '-' + Date.now().toString(36)
+  setSaving(true)
+  setError(null)
+  try {
+    const slug = teamName.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50) + '-' + Date.now().toString(36)
 
-      const { data: org, error: orgError } = await supabase
-        .from('organizations')
-        .insert({ name: teamName, slug, type: 'independent_team', settings: {} })
-        .select()
-        .single()
+    // Just create org - they'll add team from dashboard
+    const { data: org, error: orgError } = await supabase
+      .from('organizations')
+      .insert({
+        name: teamName,
+        slug: slug,
+        is_active: true,
+      })
+      .select()
+      .single()
 
       if (orgError) throw orgError
 
-      await supabase.from('user_roles').insert({
-        user_id: user.id, organization_id: org.id,
-        role: 'league_admin', is_active: true,
-      })
+    await supabase.from('user_roles').insert({
+      user_id: user.id,
+      organization_id: org.id,
+      role: 'team_manager',
+      is_active: true,
+    })
 
-      await supabase.from('profiles').update({
-        onboarding_completed: true,
-        onboarding_data: {
-          role: 'team_manager', organization_id: org.id,
-          completed_at: new Date().toISOString(),
-          completed_steps: ['join_create_team'],
-          earned_badges: ['team_builder', 'beta_tester'],
-        },
-      }).eq('id', user.id)
+    // Update profile with current org (required for RLS)
+    await supabase
+      .from('profiles')
+      .update({ current_organization_id: org.id })
+      .eq('id', user.id)
+
+    await supabase.from('profiles').update({
+      onboarding_completed: true,
+      onboarding_data: {
+        role: 'team_manager',
+        organization_id: org.id,
+        completed_at: new Date().toISOString(),
+        completed_steps: ['join_create_team'], // Initialize with first step complete
+        earned_badges: ['team_builder'], // Award the team builder badge
+      },
+    }).eq('id', user.id)
 
       if (journey?.completeStep) journey.completeStep('join_create_team')
 

@@ -71,6 +71,10 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         userTeamIds = roleContext.coachInfo.team_coaches.map(tc => tc.team_id).filter(Boolean)
       }
 
+      if (roleContext?.teamManagerInfo?.length > 0 && activeView === 'team_manager') {
+        userTeamIds = roleContext.teamManagerInfo.map(ts => ts.team_id).filter(Boolean)
+      }
+
       // Primary query with joins (same as working pattern)
       let channelsData = null
 
@@ -160,7 +164,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       }))
 
       let filtered = channelsWithMessages
-      if (activeView === 'parent' || activeView === 'coach') {
+      if (activeView === 'parent' || activeView === 'coach' || activeView === 'team_manager') {
         filtered = channelsWithMessages.filter(ch => {
           if (ch.my_membership) return true
           if (ch.channel_type === 'dm') return ch.channel_members?.some(m => m.user_id === user?.id)

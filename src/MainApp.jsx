@@ -13,10 +13,10 @@ import { getPathForPage } from './lib/routes'
 // Icons
 import { 
   Building2, Users, ChevronDown, ChevronLeft, ChevronRight, Check,
-  LogOut, Shield, UserCog, User, Home, Calendar, DollarSign, 
+  LogOut, Shield, UserCog, User, Home, Calendar, DollarSign,
   MessageCircle, Target, CheckSquare, Star, LayoutDashboard, Megaphone,
   Trophy, Bell, Settings, Zap, BarChart3, Moon, Sun, Clock, TrendingUp,
-  Award, CreditCard, UserPlus, X
+  Award, CreditCard, UserPlus, X, ClipboardList
 } from './constants/icons'
 import { VolleyballIcon } from './constants/icons'
 
@@ -48,6 +48,8 @@ import { DashboardPage } from './pages/dashboard'
 
 // Role-specific Dashboards
 import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
+import { TeamManagerDashboard } from './pages/roles/TeamManagerDashboard'
+import TeamManagerSetup from './pages/team-manager/TeamManagerSetup'
 
 // Parent Portal Pages
 import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage, ParentRegistrationHub, ClaimAccountPage } from './pages/parent'
@@ -404,6 +406,7 @@ function UserProfileDropdown({
     switch(activeView) {
       case 'admin': return 'Admin'
       case 'coach': return 'Coach'
+      case 'team_manager': return 'Team Manager'
       case 'parent': return 'Parent'
       case 'player': return 'Player'
       default: return 'User'
@@ -459,6 +462,7 @@ function UserProfileDropdown({
               <p className={`text-sm ${tc.textMuted} flex items-center gap-1`}>
                 {activeView === 'admin' && <Shield className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {activeView === 'coach' && <UserCog className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
+                {activeView === 'team_manager' && <ClipboardList className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {activeView === 'parent' && <Users className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {activeView === 'player' && <VolleyballIcon className={`w-3.5 h-3.5 ${isDark ? '' : 'text-[#10284C]'}`} />}
                 {getRoleLabel()}
@@ -655,6 +659,11 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/dashboard" element={
         activeView === 'admin' ? <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
+        activeView === 'team_manager' ? (
+          roleContext?.teamManagerInfo?.length > 0
+            ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
+            : <TeamManagerSetup roleContext={roleContext} showToast={showToast} onComplete={() => loadRoleContext()} />
+        ) :
         activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} /> :
         <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
@@ -673,14 +682,14 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Parent-specific routes */}
       <Route path="/parent/player/:playerId/profile" element={<PlayerProfileRoute roleContext={roleContext} showToast={showToast} />} />
       <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/messages" element={<ParentMessagesPage roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/invite" element={<InviteFriendsPage roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/my-stuff" element={<MyStuffPage roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/parent/register" element={<ParentRegistrationHub roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/messages" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentMessagesPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/invite" element={<RouteGuard allow={['parent']} activeView={activeView}><InviteFriendsPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/my-stuff" element={<RouteGuard allow={['parent']} activeView={activeView}><MyStuffPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/parent/register" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentRegistrationHub roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/claim-account" element={<ClaimAccountPage showToast={showToast} />} />
 
       {/* Roster Manager — admin + coach */}
-      <Route path="/roster" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+      <Route path="/roster" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
 
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
@@ -689,8 +698,8 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/schedule/availability" element={<CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
-      <Route path="/attendance" element={<AttendancePage showToast={showToast} />} />
+      <Route path="/schedule/availability" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+      <Route path="/attendance" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><AttendancePage showToast={showToast} /></RouteGuard>} />
       <Route path="/payments" element={
         activeView === 'parent'
           ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
@@ -700,7 +709,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
       <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
+      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
       <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/reports/funnel" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationFunnelPage showToast={showToast} /></RouteGuard>} />
@@ -806,10 +815,18 @@ function MainApp() {
         .from('coaches').select('*, team_coaches(team_id, role, teams(id, name, color))')
         .eq('profile_id', profile.id).maybeSingle()
 
+      const { data: teamManagerStaff } = await supabase
+        .from('team_staff')
+        .select('team_id, staff_role, is_active, teams(id, name, color, season_id)')
+        .eq('user_id', profile.id)
+        .eq('staff_role', 'team_manager')
+        .eq('is_active', true)
+
       const { data: children } = await supabase
         .from('players').select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
         .eq('parent_account_id', profile.id)
 
+      // TODO: needs profile_id linkage — players table has no profile_id column to link a profile to a player self-record
       const playerSelf = null
 
       setRoleContext({
@@ -817,6 +834,8 @@ function MainApp() {
         isAdmin: roles?.some(r => r.role === 'league_admin' || r.role === 'admin'),
         isCoach: !!coachLink,
         coachInfo: coachLink,
+        isTeamManager: (teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager'),
+        teamManagerInfo: teamManagerStaff || [],
         isParent: roles?.some(r => r.role === 'parent') && children?.length > 0,
         children: children || [],
         isPlayer: !!playerSelf,
@@ -827,6 +846,8 @@ function MainApp() {
         setActiveView('admin')
       } else if (coachLink) {
         setActiveView('coach')
+      } else if ((teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager')) {
+        setActiveView('team_manager')
       } else if (children?.length > 0) {
         setActiveView('parent')
       } else if (playerSelf) {
@@ -845,6 +866,10 @@ function MainApp() {
     if (roleContext?.isCoach) {
       const teamNames = roleContext.coachInfo?.team_coaches?.map(tc => tc.teams?.name).filter(Boolean).join(', ')
       views.push({ id: 'coach', label: 'Coach', icon: 'user-cog', description: teamNames || 'Team management' })
+    }
+    if (roleContext?.isTeamManager) {
+      const teamNames = roleContext.teamManagerInfo?.map(ts => ts.teams?.name).filter(Boolean).join(', ')
+      views.push({ id: 'team_manager', label: 'Team Manager', icon: 'clipboard', description: teamNames || 'Team operations' })
     }
     if (roleContext?.isParent && roleContext.children?.length > 0) {
       const childNames = roleContext.children.map(c => c.first_name).join(', ')
@@ -996,10 +1021,41 @@ function MainApp() {
     ]},
   ]
 
+  const teamManagerNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+    { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
+      { id: 'roster', label: 'Roster Manager', icon: 'users' },
+      ...(roleContext?.teamManagerInfo?.map(ts => ({
+        id: `teamwall-${ts.team_id}`,
+        label: ts.teams?.name || 'Team',
+        icon: 'users',
+        teamId: ts.team_id,
+      })) || [])
+    ]},
+    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+    ]},
+    { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
+      { id: 'chats', label: 'Team Chat', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
+    ]},
+    { id: 'operations', label: 'Team Ops', type: 'group', icon: 'settings', items: [
+      { id: 'payments', label: 'Payments', icon: 'dollar' },
+    ]},
+    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
+      { id: 'org-directory', label: 'Org Directory', icon: 'building' },
+    ]},
+  ]
+
   function getNavGroups() {
     switch (activeView) {
       case 'admin': return adminNavGroups
       case 'coach': return coachNavGroups
+      case 'team_manager': return teamManagerNavGroups
       case 'parent': return parentNavGroups
       case 'player': return playerNavGroups
       default: return []
