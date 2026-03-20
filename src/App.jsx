@@ -13,6 +13,9 @@ import { PublicRegistrationPage, OrgDirectoryPage } from './pages/public'
 // Main App
 import { MainApp } from './MainApp'
 
+// V2 Design Tokens (namespaced under --v2-*, no collision with existing theme)
+import './styles/v2-tokens.css'
+
 function PublicRegistrationRoute() {
   return <PublicRegistrationPage />
 }

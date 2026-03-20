@@ -1,0 +1,57 @@
+/* ============================================
+   LYNX V2 DESIGN TOKENS
+   Source of truth for all v2 dashboard styles.
+   Import in App.jsx or index.css.
+   ============================================ */
+
+:root {
+  /* ---- Brand ---- */
+  --v2-navy: #10284C;
+  --v2-midnight: #0B1628;
+  --v2-sky: #4BB9EC;
+  --v2-gold: #FFD700;
+
+  /* ---- Surfaces (Light Mode) ---- */
+  --v2-surface: #F5F6F8;
+  --v2-white: #FFFFFF;
+  --v2-card-bg: var(--v2-white);
+  --v2-border-subtle: rgba(16, 40, 76, 0.06);
+
+  /* ---- Semantic Colors ---- */
+  --v2-green: #22C55E;
+  --v2-red: #EF4444;
+  --v2-amber: #F59E0B;
+  --v2-purple: #8B5CF6;
+  --v2-coral: #F87171;
+
+  /* ---- Text ---- */
+  --v2-text-primary: #10284C;
+  --v2-text-secondary: #64748B;
+  --v2-text-muted: #94A3B8;
+
+  /* ---- Shadows ---- */
+  --v2-card-shadow: 0 1px 3px rgba(16, 40, 76, 0.04), 0 4px 12px rgba(16, 40, 76, 0.03);
+  --v2-card-shadow-hover: 0 2px 8px rgba(16, 40, 76, 0.06), 0 8px 24px rgba(16, 40, 76, 0.05);
+
+  /* ---- Dimensions ---- */
+  --v2-radius: 14px;
+  --v2-sidebar-width: 60px;
+  --v2-topbar-height: 56px;
+  --v2-side-col-width: 340px;
+
+  /* ---- Typography ---- */
+  --v2-font: 'Inter Variable', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ---- Player Dark Mode Override ---- */
+/* Applied via .v2-player-dark parent class on player dashboard only */
+.v2-player-dark {
+  --v2-surface: #060E1A;
+  --v2-card-bg: #132240;
+  --v2-white: #0D1B2F;
+  --v2-border-subtle: rgba(255, 255, 255, 0.06);
+  --v2-text-primary: #E2E8F0;
+  --v2-text-secondary: #94A3B8;
+  --v2-text-muted: #64748B;
+  --v2-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
