@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
-import { VolleyballIcon } from '../../constants/icons'
+
 import { supabase } from '../../lib/supabase'
 
 /* ─── SVG brand logos ─── */
@@ -24,11 +24,11 @@ function AppleLogo() {
   )
 }
 
-export function LoginPage() {
+export function LoginPage({ initialMode, onBack }) {
   const { signIn, signUp, signInWithGoogle, signInWithApple } = useAuth()
   const tc = useThemeClasses()
   const { accent } = useTheme()
-  const [mode, setMode] = useState('login') // 'login' or 'signup'
+  const [mode, setMode] = useState(initialMode || 'login') // 'login' or 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -99,10 +99,21 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#0B1628' }}>
       <div className="w-full max-w-md">
+        {/* Back button */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-medium mb-6 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            Back
+          </button>
+        )}
+
         <div className="text-center mb-8">
-          <div className="text-5xl mb-4"><VolleyballIcon className="w-16 h-16" /></div>
+          <img src="/lynx-icon-logo.png" alt="Lynx" className="w-16 h-16 mx-auto mb-4" style={{ filter: 'drop-shadow(0 4px 12px rgba(91,203,250,0.3))' }} />
           <h1 className="text-3xl font-bold text-white">Lynx</h1>
           <p className="text-slate-400 mt-2">
             {mode === 'login' ? 'Sign in to continue' : 'Create your account'}
@@ -268,11 +279,16 @@ export function LoginPage() {
           <p className="text-slate-500 text-sm mb-2">Looking for a league?</p>
           <a
             href="/directory"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-black transition hover:opacity-90"
-            style={{ background: '#EAB308' }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+            style={{ background: '#5BCBFA' }}
           >
             Browse Organizations
           </a>
+        </div>
+        <div className="text-center mt-6 pb-4">
+          <a href="/privacy-policy" className="text-slate-500 hover:text-slate-300 text-xs transition">Privacy Policy</a>
+          <span className="text-slate-600 mx-2">·</span>
+          <a href="/terms" className="text-slate-500 hover:text-slate-300 text-xs transition">Terms of Service</a>
         </div>
       </div>
     </div>

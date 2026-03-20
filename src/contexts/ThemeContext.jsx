@@ -11,7 +11,7 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem('vb_theme') || 'dark')
+  const [theme, setTheme] = useState(() => localStorage.getItem('vb_theme') || 'light')
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('vb_accent') || 'lynx')
 
   const toggleTheme = () => {

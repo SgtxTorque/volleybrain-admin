@@ -19,6 +19,10 @@ import TeamsStatRow from './TeamsStatRow'
 import TeamsTableView from './TeamsTableView'
 import UnrosteredAlert from './UnrosteredAlert'
 import NewTeamModal from './NewTeamModal'
+import EditTeamModal from './EditTeamModal'
+import ManageRosterModal from './ManageRosterModal'
+import AssignCoachesModal from './AssignCoachesModal'
+import TeamDetailPanel from './TeamDetailPanel'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
@@ -36,11 +40,18 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const [unrosteredPlayers, setUnrosteredPlayers] = useState([])
   const [search, setSearch] = useState('')
   const [selectedPlayer, setSelectedPlayer] = useState(null)
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('')
+  const [editingTeam, setEditingTeam] = useState(null)
+  const [rosterTeam, setRosterTeam] = useState(null)
+  const [coachAssignTeam, setCoachAssignTeam] = useState(null)
+  const [detailTeam, setDetailTeam] = useState(null)
+  const [coaches, setCoaches] = useState([])
 
   useEffect(() => {
     if (selectedSeason?.id) {
       loadTeams()
       loadUnrosteredPlayers()
+      loadCoaches()
     }
   }, [selectedSeason?.id])
 
@@ -259,6 +270,22 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     }
   }
 
+  async function loadCoaches() {
+    if (!selectedSeason?.id) return
+    const { data } = await supabase
+      .from('coaches')
+      .select('*, team_coaches(*, teams(id, name))')
+      .eq('season_id', selectedSeason.id)
+      .eq('status', 'active')
+    setCoaches(data || [])
+  }
+
+  async function toggleRosterOpen(team) {
+    await supabase.from('teams').update({ roster_open: !team.roster_open }).eq('id', team.id)
+    showToast(`Roster ${team.roster_open ? 'closed' : 'opened'} for ${team.name}`, 'success')
+    loadTeams()
+  }
+
   // ------ CSV export ------
   const csvColumns = [
     { label: 'Team', accessor: t => t.name },
@@ -274,7 +301,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     if (seasonLoading) return <SkeletonTeamsPage />
     if (!seasons || seasons.length === 0) {
       return (
-        <PageShell breadcrumb="Teams & Roster" title="Teams & Roster">
+        <PageShell breadcrumb="Club Management" title="Team Management">
           <div className="flex items-center justify-center min-h-[40vh]">
             <div className="text-center max-w-md">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
@@ -309,8 +336,8 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   // ------ Main render ------
   return (
     <PageShell
-      breadcrumb="Teams & Roster"
-      title="Teams & Roster"
+      breadcrumb="Club Management"
+      title="Team Management"
       subtitle={`${selectedSeason.name} · ${teams.length} team${teams.length !== 1 ? 's' : ''} · ${totalRegistered} player${totalRegistered !== 1 ? 's' : ''}`}
       actions={
         <>
@@ -334,8 +361,24 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       }
     >
       <div className="space-y-5">
-        {/* Season filter */}
-        <SeasonFilterBar />
+        {/* Season + age group filters */}
+        <div className="flex gap-3 items-center flex-wrap">
+          <SeasonFilterBar />
+          {(() => {
+            const ageGroups = [...new Set(teams.map(t => t.age_group).filter(Boolean))].sort()
+            if (ageGroups.length <= 1) return null
+            return (
+              <select
+                value={selectedAgeGroup}
+                onChange={e => setSelectedAgeGroup(e.target.value)}
+                className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'border-white/10 bg-lynx-charcoal text-slate-200' : 'border-slate-200 bg-white text-slate-700'}`}
+              >
+                <option value="">All Age Groups</option>
+                {ageGroups.map(ag => <option key={ag} value={ag}>{ag}</option>)}
+              </select>
+            )
+          })()}
+        </div>
 
         {/* Stat row */}
         <TeamsStatRow
@@ -367,11 +410,16 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           </div>
         ) : (
           <TeamsTableView
-            teams={teams}
+            teams={selectedAgeGroup ? teams.filter(t => t.age_group === selectedAgeGroup) : teams}
             search={search}
             onSearchChange={setSearch}
             onDeleteTeam={deleteTeam}
             onNavigateToWall={navigateToTeamWall}
+            onEditTeam={(team) => setEditingTeam(team)}
+            onManageRoster={(team) => setRosterTeam(team)}
+            onAssignCoaches={(team) => setCoachAssignTeam(team)}
+            onToggleRosterOpen={toggleRosterOpen}
+            onViewTeamDetail={(team) => setDetailTeam(team)}
             unrosteredPlayers={unrosteredPlayers}
             onAddPlayer={addPlayerToTeam}
           />
@@ -396,6 +444,75 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           seasonId={selectedSeason?.id}
           sport={selectedSeason?.sport || 'volleyball'}
           isOwnChild={false}
+        />
+      )}
+
+      {editingTeam && (
+        <EditTeamModal
+          team={editingTeam}
+          onClose={() => setEditingTeam(null)}
+          onSave={() => { setEditingTeam(null); loadTeams() }}
+          showToast={showToast}
+        />
+      )}
+
+      {rosterTeam && (
+        <ManageRosterModal
+          team={rosterTeam}
+          unrosteredPlayers={unrosteredPlayers}
+          onClose={() => setRosterTeam(null)}
+          onAddPlayer={async (teamId, playerId) => {
+            await addPlayerToTeam(teamId, playerId)
+            setRosterTeam(prev => prev ? { ...prev } : null)
+          }}
+          onRemovePlayer={async (teamId, playerId) => {
+            await supabase.from('team_players').delete().eq('team_id', teamId).eq('player_id', playerId)
+            showToast('Player removed from team', 'success')
+            loadTeams()
+            loadUnrosteredPlayers()
+            setRosterTeam(prev => prev ? { ...prev } : null)
+          }}
+          showToast={showToast}
+        />
+      )}
+
+      {coachAssignTeam && (
+        <AssignCoachesModal
+          team={coachAssignTeam}
+          coaches={coaches}
+          onClose={() => setCoachAssignTeam(null)}
+          onSave={async (teamId, assignments) => {
+            const { data: existing } = await supabase
+              .from('team_coaches').select('id, coach_id').eq('team_id', teamId)
+            for (const ex of (existing || [])) {
+              if (!assignments.find(a => a.coach_id === ex.coach_id)) {
+                await supabase.from('team_coaches').delete().eq('id', ex.id)
+              }
+            }
+            for (const a of assignments) {
+              const ex = (existing || []).find(e => e.coach_id === a.coach_id)
+              if (ex) await supabase.from('team_coaches').update({ role: a.role }).eq('id', ex.id)
+              else await supabase.from('team_coaches').insert({ team_id: teamId, coach_id: a.coach_id, role: a.role })
+            }
+            showToast('Coach assignments saved', 'success')
+            setCoachAssignTeam(null)
+            loadTeams()
+            loadCoaches()
+          }}
+          showToast={showToast}
+        />
+      )}
+
+      {detailTeam && (
+        <TeamDetailPanel
+          team={detailTeam}
+          onClose={() => setDetailTeam(null)}
+          onEditTeam={(team) => { setDetailTeam(null); setEditingTeam(team) }}
+          onManageRoster={(team) => { setDetailTeam(null); setRosterTeam(team) }}
+          onAssignCoaches={(team) => { setDetailTeam(null); setCoachAssignTeam(team) }}
+          onToggleRosterOpen={(team) => { toggleRosterOpen(team); setDetailTeam(null) }}
+          onNavigateToWall={(teamId) => navigateToTeamWall(teamId)}
+          onDeleteTeam={(teamId) => { setDetailTeam(null); deleteTeam(teamId) }}
         />
       )}
     </PageShell>

@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { JourneyProvider } from './contexts/JourneyContext'
 
 // Auth Pages
-import { LoginPage, SetupWizard } from './pages/auth'
+import { LoginPage, SetupWizard, LandingPage } from './pages/auth'
 
 // Public Pages
 import { PublicRegistrationPage, OrgDirectoryPage } from './pages/public'
@@ -23,6 +24,7 @@ function PublicDirectoryRoute() {
 function AuthenticatedApp() {
   const { user, isAdmin, loading, needsOnboarding, completeOnboarding } = useAuth()
   const { colors } = useTheme()
+  const [authView, setAuthView] = useState('landing') // 'landing' | 'login' | 'signup'
 
   if (loading) {
     return (
@@ -34,7 +36,11 @@ function AuthenticatedApp() {
     )
   }
 
-  if (!user) return <LoginPage />
+  if (!user) {
+    if (authView === 'login') return <LoginPage initialMode="login" onBack={() => setAuthView('landing')} />
+    if (authView === 'signup') return <LoginPage initialMode="signup" onBack={() => setAuthView('landing')} />
+    return <LandingPage onNavigate={setAuthView} />
+  }
 
   return (
     <JourneyProvider>

@@ -11,7 +11,8 @@ import {
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
-  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, MapPin
+  CheckSquare, CalendarCheck, User, LogOut, Moon, Sun, MapPin,
+  Search
 } from 'lucide-react'
 
 // Icon lookup for nav items
@@ -35,19 +36,6 @@ const ICON_MAP = {
   'map-pin': MapPin,
 }
 
-// Paw logo SVG
-function LynxPaw({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <circle cx="7" cy="5" r="2.2" />
-      <circle cx="12" cy="3.5" r="2.2" />
-      <circle cx="17" cy="5" r="2.2" />
-      <ellipse cx="12" cy="13" rx="5.5" ry="6" />
-      <circle cx="5" cy="10" r="2" />
-      <circle cx="19" cy="10" r="2" />
-    </svg>
-  )
-}
 
 // =============================================================================
 // NavItem — single navigation row
@@ -62,7 +50,7 @@ function NavItem({ item, isActive, onNavigate, indented = false }) {
         relative w-full flex items-center gap-3 h-9 rounded-lg transition-colors duration-200
         ${isActive
           ? 'bg-lynx-sky/15 text-lynx-sky'
-          : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+          : 'text-slate-200 hover:text-white hover:bg-white/[0.04]'
         }
       `}
       title={item.label}
@@ -103,7 +91,7 @@ function CollapsibleGroupHeader({ label, icon, isExpanded, onToggle }) {
       <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" />
       </div>
-      <span className="flex-1 text-r-xs font-bold uppercase tracking-wider whitespace-nowrap text-left">
+      <span className="flex-1 text-r-sm font-bold uppercase tracking-wider whitespace-nowrap text-left">
         {label}
       </span>
       <ChevronRight
@@ -122,7 +110,7 @@ export default function LynxSidebar({
   profile = null, activeView = 'admin', availableViews = [], onSwitchRole,
   onToggleTheme, onSignOut, onNavigateToProfile, isDark = false,
   notificationCount = 0, onOpenNotifications,
-  isPlatformAdmin = false, onPlatformAnalytics, onPlatformSubscriptions, onPlatformAdmin,
+  isPlatformAdmin = false, onEnterPlatformMode,
 }) {
   const displayName = profile?.full_name || 'User'
   const avatarInitial = displayName.charAt(0).toUpperCase()
@@ -148,8 +136,9 @@ export default function LynxSidebar({
     return initialSet
   })
 
-  // Auto-expand group when active page changes
+  // Auto-expand only the group containing the active page, collapse all others
   useEffect(() => {
+    const activeGroup = new Set()
     for (const group of navGroups) {
       if (group.type !== 'single' && group.items) {
         const hasActive = group.items.some(item => {
@@ -157,15 +146,10 @@ export default function LynxSidebar({
           if (item.playerId) return activePage === `player-${item.playerId}`
           return activePage === item.id
         })
-        if (hasActive) {
-          setExpandedGroups(prev => {
-            if (prev.has(group.id)) return prev
-            return new Set([...prev, group.id])
-          })
-          break
-        }
+        if (hasActive) activeGroup.add(group.id)
       }
     }
+    setExpandedGroups(activeGroup)
   }, [activePage, directTeamWallId])
 
   const toggleGroup = (groupId) => {
@@ -180,18 +164,20 @@ export default function LynxSidebar({
   return (
     <div
       className="group fixed left-0 top-0 z-40 h-screen flex flex-col
-        w-16 hover:w-56 xl:hover:w-60 bg-[#0B1628]
+        w-16 hover:w-60 xl:hover:w-64 bg-[#0B1628]
         transition-[width] duration-[280ms] ease-[cubic-bezier(0.4,0,0.2,1)]
         border-r border-white/[0.06] overflow-hidden"
     >
       {/* ---- 1. Logo Row ---- */}
       <div className="flex items-center h-14 shrink-0">
         <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
-          <LynxPaw className="w-7 h-7 text-lynx-sky" />
+          <img src="/lynx-icon-logo.png" alt="Lynx" className="w-8 h-8" />
         </div>
-        <span className="text-r-lg font-extrabold text-white tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          Lynx
-        </span>
+        <img
+          src="/lynx-logo.png"
+          alt="Lynx"
+          className="h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        />
       </div>
 
       {/* ---- 2. Profile + Role Switcher (top, below logo) ---- */}
@@ -234,7 +220,33 @@ export default function LynxSidebar({
             ))}
           </div>
         )}
+
+        {/* Dark mode toggle — under role pills */}
+        <button
+          onClick={() => onToggleTheme?.()}
+          className="flex items-center gap-2 px-2 py-1.5 mt-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        >
+          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          <span className="text-r-xs font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
       </div>
+
+      {/* ---- Search Trigger ---- */}
+      <button
+        onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
+        className="mx-2 mb-1 flex items-center gap-3 h-9 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors duration-200"
+        title="Search (⌘K)"
+      >
+        <div className="w-12 min-w-[48px] flex items-center justify-center shrink-0">
+          <Search className="w-[18px] h-[18px]" />
+        </div>
+        <span className="flex-1 text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          Search
+        </span>
+        <kbd className="mr-3 text-[10px] font-bold text-slate-600 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          ⌘K
+        </kbd>
+      </button>
 
       {/* Divider */}
       <div className="border-b border-white/[0.08] mx-3 shrink-0" />
@@ -291,21 +303,18 @@ export default function LynxSidebar({
       <div className="border-t border-white/[0.06] shrink-0">
         {isPlatformAdmin && (
           <div className="py-1">
-            <NavItem
-              item={{ id: 'platform-analytics', label: 'Analytics', icon: 'reports' }}
-              isActive={activePage === 'platform-analytics'}
-              onNavigate={() => onPlatformAnalytics?.()}
-            />
-            <NavItem
-              item={{ id: 'platform-subscriptions', label: 'Subscriptions', icon: 'credit-card' }}
-              isActive={activePage === 'platform-subscriptions'}
-              onNavigate={() => onPlatformSubscriptions?.()}
-            />
-            <NavItem
-              item={{ id: 'platform-admin', label: 'Platform Admin', icon: 'shield' }}
-              isActive={activePage === 'platform-admin'}
-              onNavigate={() => onPlatformAdmin?.()}
-            />
+            <button
+              onClick={() => onEnterPlatformMode?.()}
+              className="relative w-full flex items-center gap-3 h-9 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors duration-200"
+              title="Platform Mode"
+            >
+              <div className="w-16 min-w-[64px] flex items-center justify-center shrink-0">
+                <Shield className="w-[18px] h-[18px]" />
+              </div>
+              <span className="text-r-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Platform Mode
+              </span>
+            </button>
           </div>
         )}
 
@@ -336,15 +345,8 @@ export default function LynxSidebar({
 
       {/* ---- 5. Bottom Utility Section ---- */}
       <div className="border-t border-white/[0.06] shrink-0">
-        {/* Expanded: theme + sign out */}
-        <div className="max-h-0 group-hover:max-h-[120px] overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-200">
-          <button
-            onClick={() => onToggleTheme?.()}
-            className="w-full flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] transition-colors"
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span className="text-r-sm font-semibold">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
+        {/* Expanded: sign out */}
+        <div className="max-h-0 group-hover:max-h-[60px] overflow-hidden opacity-0 group-hover:opacity-100 transition-all duration-200">
           <button
             onClick={() => onSignOut?.()}
             className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
@@ -354,14 +356,14 @@ export default function LynxSidebar({
           </button>
         </div>
 
-        {/* Collapsed: settings gear icon */}
+        {/* Collapsed: sign out icon */}
         <div className="flex group-hover:hidden items-center h-10 shrink-0">
           <button
-            onClick={() => onToggleTheme?.()}
-            className="w-16 min-w-[64px] flex items-center justify-center shrink-0 text-slate-500 hover:text-slate-300 transition-colors"
-            title="Toggle Theme"
+            onClick={() => onSignOut?.()}
+            className="w-16 min-w-[64px] flex items-center justify-center shrink-0 text-red-400/60 hover:text-red-400 transition-colors"
+            title="Sign Out"
           >
-            {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            <LogOut className="w-[18px] h-[18px]" />
           </button>
         </div>
       </div>

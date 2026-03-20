@@ -35,15 +35,15 @@ export default function PlayerHeroCard({
           <h2 className="text-[40px] font-black leading-[0.92] tracking-wide text-white">{firstName}</h2>
           <h2 className="text-[40px] font-black leading-[0.92] tracking-wide text-white">{lastName}</h2>
         </div>
-        {overallRating > 0 && (
-          <div
-            className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center shrink-0 animate-gold-glow"
-            style={{ background: 'rgba(255,215,0,0.10)', border: '2px solid rgba(255,215,0,0.40)' }}
-          >
-            <span className="text-[28px] font-black leading-none" style={{ color: '#FFD700' }}>{overallRating}</span>
-            <span className="text-[8px] font-bold uppercase tracking-[1.5px]" style={{ color: 'rgba(255,215,0,0.60)' }}>OVR</span>
-          </div>
-        )}
+        <div
+          className="w-20 h-20 rounded-full flex flex-col items-center justify-center shrink-0 animate-gold-glow"
+          style={{ background: overallRating > 0 ? 'rgba(75,185,236,0.15)' : 'rgba(255,255,255,0.05)', border: overallRating > 0 ? '2px solid rgba(75,185,236,0.40)' : '2px solid rgba(255,255,255,0.10)' }}
+        >
+          <span className="text-4xl font-extrabold leading-none text-white">{overallRating > 0 ? overallRating : '—'}</span>
+          <span className="text-[8px] font-bold uppercase tracking-[1.5px]" style={{ color: overallRating > 0 ? '#4BB9EC' : 'rgba(255,255,255,0.30)' }}>
+            {overallRating > 0 ? 'OVR' : 'NEW'}
+          </span>
+        </div>
       </div>
 
       {/* Info row */}
@@ -53,11 +53,12 @@ export default function PlayerHeroCard({
 
       {/* Photo + pills */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0" style={{ border: '2px solid rgba(75,185,236,0.30)' }}>
+        <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0" style={{ border: '2px solid rgba(75,185,236,0.30)' }}>
           {viewingPlayer?.photo_url ? (
             <img src={viewingPlayer.photo_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-sm font-bold" style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.30)' }}>
+            <div className="w-full h-full flex items-center justify-center text-2xl font-black"
+              style={{ background: primaryTeam?.color ? `linear-gradient(135deg, ${primaryTeam.color}40, ${primaryTeam.color}20)` : 'rgba(75,185,236,0.10)', color: 'rgba(255,255,255,0.40)' }}>
               {firstName[0]}{lastName[0]}
             </div>
           )}

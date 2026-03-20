@@ -315,8 +315,8 @@ export function PaymentsPage({ showToast }) {
   // ------ Main render ------
   return (
     <PageShell
-      breadcrumb="Payments"
-      title="Payments"
+      breadcrumb="Registration & Payments"
+      title="Payment Admin"
       subtitle={`Track and manage payment status · ${selectedSeason.name}`}
       actions={
         <>

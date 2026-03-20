@@ -10,6 +10,7 @@ import {
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext';
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // =====================================================
 // NOTIFICATIONS ADMIN PAGE
@@ -158,6 +159,7 @@ export function NotificationsPage({ showToast }) {
         </div>
       }
     >
+      <SeasonFilterBar />
       {/* Tabs */}
       <div className={`flex gap-1 rounded-xl p-1 border mb-6 w-fit ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
         {tabs.map(tab => {

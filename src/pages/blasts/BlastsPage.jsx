@@ -9,6 +9,7 @@ import {
 } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 function BlastsPage({ showToast, activeView, roleContext }) {
   const { organization, profile, user } = useAuth()
@@ -132,6 +133,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         </button>
       }
     >
+      <SeasonFilterBar />
       {/* Stats */}
       <InnerStatRow stats={[
         { value: blasts.length, label: 'TOTAL SENT', icon: '📢' },

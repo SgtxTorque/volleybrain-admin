@@ -5,9 +5,11 @@ export const ROUTES = {
   // Dashboards (role-based)
   'dashboard': '/dashboard',
 
-  // People
+  // Club Management
   'teams': '/teams',
   'coaches': '/coaches',
+  'staff': '/staff',
+  'team-hubs': '/team-hubs',
 
   // Operations
   'registrations': '/registrations',
@@ -58,10 +60,16 @@ export const ROUTES = {
   // Profile
   'my-profile': '/profile',
 
-  // Platform Admin
-  'platform-admin': '/platform/admin',
-  'platform-analytics': '/platform/analytics',
+  // Platform Mode
+  'platform-overview': '/platform/overview',
+  'platform-organizations': '/platform/organizations',
+  'platform-users': '/platform/users',
   'platform-subscriptions': '/platform/subscriptions',
+  'platform-analytics': '/platform/analytics',
+  'platform-support': '/platform/support',
+  'platform-audit': '/platform/audit',
+  'platform-settings': '/platform/settings',
+  'platform-admin': '/platform/admin',
 
   // Parent-specific
   'messages': '/messages',
@@ -128,14 +136,16 @@ export function getPageIdFromPath(pathname) {
 // Document titles per route
 export const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
-  '/teams': 'Teams & Rosters',
-  '/coaches': 'Coaches',
+  '/teams': 'Team Management',
+  '/coaches': 'Coach Directory',
+  '/staff': 'Staff & Volunteers',
+  '/team-hubs': 'Team Hubs',
   '/registrations': 'Registrations',
   '/jerseys': 'Jerseys',
   '/schedule': 'Schedule',
   '/schedule/availability': 'Coach Availability',
   '/attendance': 'Attendance & RSVP',
-  '/payments': 'Payments',
+  '/payments': 'Payment Admin',
   '/roster': 'Roster Manager',
   '/gameprep': 'Game Prep',
   '/standings': 'Standings',
@@ -148,7 +158,7 @@ export const PAGE_TITLES = {
   '/archives': 'Season Archives',
   '/directory': 'Org Directory',
   '/admin/seasons': 'Season Management',
-  '/settings/seasons': 'Season Settings',
+  '/settings/seasons': 'Season Management',
   '/settings/templates': 'Registration Forms',
   '/settings/waivers': 'Waivers',
   '/settings/payment-setup': 'Payment Setup',
@@ -159,9 +169,15 @@ export const PAGE_TITLES = {
   '/stats': 'My Stats',
   '/achievements': 'Achievements',
   '/profile': 'My Profile',
-  '/platform/admin': 'Platform Admin',
-  '/platform/analytics': 'Platform Analytics',
+  '/platform/overview': 'Platform Overview',
+  '/platform/organizations': 'Platform Organizations',
+  '/platform/users': 'Platform Users',
   '/platform/subscriptions': 'Platform Subscriptions',
+  '/platform/analytics': 'Platform Analytics',
+  '/platform/support': 'Platform Support',
+  '/platform/audit': 'Platform Audit Log',
+  '/platform/settings': 'Platform Settings',
+  '/platform/admin': 'Platform Admin',
   '/messages': 'Messages',
   '/invite': 'Invite Friends',
   '/my-stuff': 'My Stuff',

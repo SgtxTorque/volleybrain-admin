@@ -37,6 +37,8 @@ import {
   JourneyCelebrations
 } from './components/layout'
 import LynxSidebar from './components/layout/LynxSidebar'
+import FloatingChatButton from './components/layout/FloatingChatButton'
+import SetupHelper from './components/SetupHelper'
 
 // Parent Onboarding Components
 import { SpotlightOverlay, ParentChecklistWidget, FloatingHelpButton } from './components/parent/ParentOnboarding'
@@ -57,12 +59,14 @@ import { OrgDirectoryPage } from './pages/public'
 
 // Team Wall (authenticated — has lightbox, shared FeedPost, photo grid)
 import { TeamWallPage } from './pages/teams/TeamWallPage'
+import TeamHubSelectorPage from './pages/teams/TeamHubSelectorPage'
 
 // Core Admin Pages
 import { RegistrationsPage } from './pages/registrations'
 import { PaymentsPage } from './pages/payments'
 import { TeamsPage } from './pages/teams'
 import { CoachesPage } from './pages/coaches'
+import { StaffPage } from './pages/staff/StaffPage'
 import { JerseysPage } from './pages/jerseys'
 import { SchedulePage, CoachAvailabilityPage } from './pages/schedule'
 import { AttendancePage } from './pages/attendance'
@@ -91,6 +95,14 @@ import { NotificationsPage } from './pages/notifications/NotificationsPage'
 import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
 import { PlatformAnalyticsPage } from './pages/platform/PlatformAnalyticsPage'
 import { PlatformSubscriptionsPage } from './pages/platform/PlatformSubscriptionsPage'
+import PlatformOverview from './pages/platform/PlatformOverview'
+import PlatformOrganizations from './pages/platform/PlatformOrganizations'
+import PlatformOrgDetail from './pages/platform/PlatformOrgDetail'
+import PlatformUsersPage from './pages/platform/PlatformUsers'
+import PlatformSupport from './pages/platform/PlatformSupport'
+import PlatformAuditLog from './pages/platform/PlatformAuditLog'
+import PlatformSettings from './pages/platform/PlatformSettings'
+import PlatformShell from './components/platform/PlatformShell'
 
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
@@ -510,137 +522,6 @@ function UserProfileDropdown({
 
 
 // ============================================
-// HORIZONTAL NAV BAR COMPONENT
-// ============================================
-function HorizontalNavBar({
-  activeView, profile, showRoleSwitcher, setShowRoleSwitcher,
-  getAvailableViews, setActiveView, signOut,
-  tc, accent, accentColor, changeAccent, accentColors, isDark, toggleTheme,
-  roleContext, organization, isPlatformAdmin,
-  // Phase 2: nav groups + handler passed from MainApp
-  navGroups: navGroupsProp, handleNavigation: handleNavigateProp
-}) {
-  const navigate = useNavigate()
-  const page = useCurrentPageId()
-  const location = useLocation()
-  const directTeamWallId = location.pathname.match(/^\/teams\/([^/]+)$/)?.[1] || null
-
-  // Use nav groups and handler from props (from MainApp)
-  const navItems = navGroupsProp || []
-  const handleNavigate = handleNavigateProp || ((id) => navigate(getPathForPage(id)))
-
-  const isGroupActive = (group) => {
-    if (group.type === 'single') return page === group.id && !directTeamWallId
-    if (group.items) {
-      return group.items.some(item => {
-        if (item.teamId) return directTeamWallId === item.teamId
-        if (item.playerId) return page === `player-${item.playerId}`
-        return item.id === page
-      })
-    }
-    return false
-  }
-
-  return (
-    <header className="h-16 flex items-center justify-between px-6 sticky top-0 z-50 w-full shadow-lg"
-      style={{
-        background: isDark
-          ? 'linear-gradient(135deg, #10284C 0%, #153050 50%, #1B3A5C 100%)'
-          : 'linear-gradient(to right, #F5F7FA 0%, #F5F7FA 55%, #E8F4FD 65%, #4BB9EC 80%, #10284C 100%)'
-      }}>
-
-      {/* LEFT: Logo */}
-      <div className="flex items-center gap-3">
-        <img src="/lynx-logo.png" alt="Lynx" className="h-8" />
-      </div>
-
-      {/* CENTER: Navigation */}
-      <nav className="flex items-center gap-1">
-        {navItems.map((item, idx) => {
-          // In light mode: all nav buttons use navy text to stay readable on the gradient
-          const navPosition = 'light'
-          const onDarkBg = isDark || navPosition === 'dark'
-
-          if (item.type === 'single') {
-            const isActive = page === item.id && !directTeamWallId
-            return (
-              <button key={item.id} onClick={() => handleNavigate(item.id)}
-                className={`px-5 py-2 text-lg rounded-full transition-all duration-200 whitespace-nowrap font-bold ${
-                  isActive
-                    ? onDarkBg
-                      ? 'bg-white/15 text-white'
-                      : 'bg-[#10284C]/10 text-[#10284C]'
-                    : onDarkBg
-                      ? 'text-white/80 hover:text-white hover:bg-white/10'
-                      : 'text-[#10284C]/70 hover:text-[#10284C] hover:bg-[#10284C]/[0.06]'
-                }`}>
-                {item.label}
-              </button>
-            )
-          } else if (item.items && item.items.length > 0) {
-            return (
-              <NavDropdown key={item.id} label={item.label} items={item.items} currentPage={page}
-                onNavigate={(id, navItem) => handleNavigate(id, navItem)}
-                isActive={isGroupActive(item)} directTeamWallId={directTeamWallId}
-                navPosition={navPosition} />
-            )
-          }
-          return null
-        })}
-      </nav>
-
-      {/* RIGHT: Platform Admin + Notifications + Profile */}
-      <div className="flex items-center gap-3">
-        {isPlatformAdmin && (
-          <>
-            <button
-              onClick={() => navigate('/platform/analytics')}
-              title="Platform Analytics"
-              className={`relative p-2 rounded-full transition ${
-                page === 'platform-analytics'
-                  ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/80'
-              }`}
-            >
-              <BarChart3 className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/platform/subscriptions')}
-              title="Platform Subscriptions"
-              className={`relative p-2 rounded-full transition ${
-                page === 'platform-subscriptions'
-                  ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/80'
-              }`}
-            >
-              <CreditCard className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => navigate('/platform/admin')}
-              title="Platform Admin"
-              className={`relative p-2 rounded-full transition ${
-                page === 'platform-admin'
-                  ? 'bg-white/15 text-white'
-                  : 'hover:bg-white/10 text-white/80'
-              }`}
-            >
-              <Shield className="w-5 h-5" />
-            </button>
-          </>
-        )}
-        <NotificationDropdown tc={tc} organization={organization} isDark={isDark} />
-        <UserProfileDropdown
-          profile={profile} activeView={activeView} showRoleSwitcher={showRoleSwitcher}
-          setShowRoleSwitcher={setShowRoleSwitcher} getAvailableViews={getAvailableViews}
-          setActiveView={setActiveView} signOut={signOut} tc={tc}
-          accent={accent} accentColor={accentColor} changeAccent={changeAccent}
-          accentColors={accentColors} isDark={isDark} toggleTheme={toggleTheme} />
-      </div>
-    </header>
-  )
-}
-
-// ============================================
 // MAIN APP COMPONENT
 // ============================================
 // ── Background Layer ─────────────────────────────────────────────────
@@ -791,6 +672,13 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Team Wall — /teams/:teamId */}
       <Route path="/teams/:teamId" element={<TeamWallRoute showToast={showToast} activeView={activeView} />} />
 
+      {/* Team Hubs — admin selector */}
+      <Route path="/team-hubs" element={
+        <RouteGuard allow={['admin']} activeView={activeView}>
+          <TeamHubSelectorPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} />
+        </RouteGuard>
+      } />
+
       {/* Parent-specific routes */}
       <Route path="/parent/player/:playerId/profile" element={<PlayerProfileRoute roleContext={roleContext} showToast={showToast} />} />
       <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
@@ -806,6 +694,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Core pages */}
       <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
       <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachesPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/staff" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPage showToast={showToast} /></RouteGuard>} />
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
@@ -892,6 +781,16 @@ function MainApp() {
   // Document title updates
   useDocumentTitle()
 
+  const [appMode, setAppMode] = useState(() =>
+    window.location.pathname.startsWith('/platform') ? 'platform' : 'org'
+  ) // 'org' | 'platform'
+
+  // Sync appMode with URL changes (browser back/forward)
+  useEffect(() => {
+    const isPlatformUrl = mainLocation.pathname.startsWith('/platform')
+    if (isPlatformUrl && appMode !== 'platform') setAppMode('platform')
+    else if (!isPlatformUrl && appMode === 'platform') setAppMode('org')
+  }, [mainLocation.pathname])
   const [activeView, setActiveView] = useState('admin')
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)
@@ -992,36 +891,53 @@ function MainApp() {
 
   const adminNavGroups = [
     { id: 'dashboard', label: 'Dashboard', type: 'single' },
-    { id: 'people', label: 'People', type: 'group', icon: 'users', items: [
-      { id: 'teams', label: 'Teams & Rosters', icon: 'users' },
-      { id: 'coaches', label: 'Coaches', icon: 'user-cog' },
+
+    // --- CLUB MANAGEMENT (people + teams + staff) ---
+    { id: 'club', label: 'Club Management', type: 'group', icon: 'shield', items: [
+      { id: 'teams', label: 'Team Management', icon: 'shield' },
+      { id: 'coaches', label: 'Coach Directory', icon: 'user-cog' },
+      { id: 'staff', label: 'Staff & Volunteers', icon: 'users' },
     ]},
-    { id: 'operations', label: 'Operations', type: 'group', icon: 'settings', items: [
+
+    // --- REGISTRATION & PAYMENTS (the money stuff) ---
+    { id: 'registration', label: 'Registration & Payments', type: 'group', icon: 'clipboard', items: [
       { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
-      { id: 'jerseys', label: 'Jerseys', icon: 'shirt', hasBadge: true },
+      { id: 'payments', label: 'Payment Admin', icon: 'dollar' },
+      { id: 'jerseys', label: 'Jersey Management', icon: 'shirt', hasBadge: true },
+    ]},
+
+    // --- SCHEDULING & ATTENDANCE ---
+    { id: 'scheduling', label: 'Scheduling', type: 'group', icon: 'calendar', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
-      { id: 'payments', label: 'Payments', icon: 'dollar' },
       { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
     ]},
+
+    // --- GAME DAY (unchanged, this group is solid) ---
     { id: 'game', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
     ]},
+
+    // --- COMMUNICATION (unchanged) ---
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chats', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
       { id: 'notifications', label: 'Push Notifications', icon: 'bell' },
     ]},
-    { id: 'insights', label: 'Insights', type: 'group', icon: 'reports', items: [
+
+    // --- INSIGHTS & REPORTS ---
+    { id: 'insights', label: 'Reports & Insights', type: 'group', icon: 'reports', items: [
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
       { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
       { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
-    { id: 'setup', label: 'Setup', type: 'group', icon: 'settings', items: [
-      { id: 'seasons', label: 'Seasons', icon: 'calendar' },
+
+    // --- SETUP & SETTINGS ---
+    { id: 'setup', label: 'Settings', type: 'group', icon: 'settings', items: [
+      { id: 'seasons', label: 'Season Management', icon: 'calendar' },
       { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
       { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
@@ -1168,6 +1084,55 @@ function MainApp() {
     navigate(getPathForPage(itemId))
   }
 
+  const orgName = organization?.name || 'My Club'
+  const orgInitials = (organization?.name || 'MC').substring(0, 2).toUpperCase()
+
+  const handleExitPlatformMode = () => {
+    setAppMode('org')
+    navigate('/dashboard')
+  }
+
+  const handleEnterPlatformMode = () => {
+    setAppMode('platform')
+    navigate('/platform/overview')
+  }
+
+  // ── Platform Mode ──
+  if (appMode === 'platform') {
+    return (
+      <>
+        <PlatformShell
+          profile={profile}
+          orgName={orgName}
+          orgInitials={orgInitials}
+          platformStats={{}}
+          onExitPlatformMode={handleExitPlatformMode}
+          onSignOut={signOut}
+        >
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/platform/overview" element={<PlatformOverview showToast={showToast} />} />
+              <Route path="/platform/organizations/:orgId" element={<PlatformOrgDetail showToast={showToast} />} />
+              <Route path="/platform/organizations" element={<PlatformOrganizations showToast={showToast} />} />
+              <Route path="/platform/users" element={<PlatformUsersPage showToast={showToast} />} />
+              <Route path="/platform/subscriptions" element={<PlatformSubscriptionsPage showToast={showToast} />} />
+              <Route path="/platform/analytics" element={<PlatformAnalyticsPage showToast={showToast} />} />
+              <Route path="/platform/support" element={<PlatformSupport showToast={showToast} />} />
+              <Route path="/platform/audit" element={<PlatformAuditLog showToast={showToast} />} />
+              <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
+              <Route path="/platform/admin" element={<PlatformAdminPage showToast={showToast} />} />
+              <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
+              <Route path="*" element={<Navigate to="/platform/overview" replace />} />
+            </Routes>
+          </ErrorBoundary>
+        </PlatformShell>
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+        <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
+      </>
+    )
+  }
+
+  // ── Org Mode (default) ──
   return (
     <OrgBrandingProvider>
     <SportProvider>
@@ -1188,8 +1153,8 @@ function MainApp() {
           activePathname={mainLocation.pathname}
           directTeamWallId={directTeamWallId}
           onNavigate={handleNavigation}
-          orgName={organization?.name || 'My Club'}
-          orgInitials={(organization?.name || 'MC').substring(0, 2).toUpperCase()}
+          orgName={orgName}
+          orgInitials={orgInitials}
           orgLogo={organization?.logo_url}
           profile={profile}
           activeView={activeView}
@@ -1202,14 +1167,12 @@ function MainApp() {
           notificationCount={0}
           onOpenNotifications={() => navigate('/notifications')}
           isPlatformAdmin={isPlatformAdmin}
-          onPlatformAnalytics={() => navigate('/platform/analytics')}
-          onPlatformSubscriptions={() => navigate('/platform/subscriptions')}
-          onPlatformAdmin={() => navigate('/platform/admin')}
+          onEnterPlatformMode={handleEnterPlatformMode}
         />
 
-        {/* Main Content — offset by sidebar width (64px) */}
-        <div className="flex-1 min-h-screen pl-16 relative z-10">
-          <div className={`w-full h-full ${
+        {/* Main Content — offset by sidebar width (64px), capped at 2400px on ultrawide */}
+        <div className="flex-1 min-h-screen pl-16 relative z-10 min-w-[480px] overflow-x-auto">
+          <div className={`w-full h-full 3xl:max-w-[2400px] 3xl:mx-auto ${
             mainLocation.pathname === '/dashboard' || mainLocation.pathname.startsWith('/teams/')
               ? 'overflow-hidden'
               : 'overflow-auto animate-slide-up'
@@ -1231,8 +1194,10 @@ function MainApp() {
         <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
         <BlastAlertChecker />
 
-        {/* Parent Floating Help Button */}
+        {/* Floating buttons */}
         {activeView === 'parent' && <FloatingHelpButton />}
+        <SetupHelper onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
+        <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />
       </div>
     </ParentTutorialProvider>
     </SeasonProvider>

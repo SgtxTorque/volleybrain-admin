@@ -20,6 +20,7 @@ import {
   ReRegisterModal, AlertDetailModal,
 } from './ParentModals'
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
+import ParentTopBanner from '../../components/parent/ParentTopBanner'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import DashboardGridLayout from '../../components/layout/DashboardGrid'
 import EditLayoutButton from '../../components/layout/EditLayoutButton'
@@ -325,10 +326,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 0, y: 0, w: 11, h: 4 }, minW: 4, minH: 2, maxH: 8,
         component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={activeChild?.first_name} isDark={isDark} /> },
 
-      // 2. Parent Journey (11×4 at 11,0)
+      // 2. Parent Top Banner — alerts > open registrations > onboarding (11×4 at 11,0)
       { id: 'parent-journey', label: 'Season Onboarding',
         defaultLayout: { x: 11, y: 0, w: 11, h: 4 }, minW: 8, minH: 3,
-        componentKey: 'ParentJourneyCard' },
+        component: <ParentTopBanner onNavigate={onNavigate} registrationData={registrationData} openSeasons={openSeasons} alerts={alerts} /> },
 
       // 3. Spacer Divider (1×1 at 0,4)
       { id: 'spacer-divider', label: 'Spacer',
@@ -340,8 +341,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         defaultLayout: { x: 3, y: 4, w: 17, h: 1 }, minW: 1, minH: 1,
         componentKey: 'SpacerWidget' },
 
-      // 4. Action Required (9×7 at 0,5) — always present, empty state when no items
-      { id: 'action-required', label: 'Action Required',
+      // 4. Action Required (9×7 at 0,5) — only present when items exist (progressive disclosure)
+      ...(actionItems.length > 0 ? [{ id: 'action-required', label: 'Action Required',
         defaultLayout: { x: 0, y: 5, w: 9, h: 7 }, minW: 4, minH: 4, maxH: 20,
         component: (
           <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-amber-500/[0.06] border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
@@ -350,10 +351,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
                 <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>Action Required</h3>
               </div>
-              {actionItems.length > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-xs font-extrabold">{actionItems.length}</span>}
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-xs font-extrabold">{actionItems.length}</span>
             </div>
             <div className={`border-t overflow-y-auto ${isDark ? 'border-amber-500/10' : 'border-amber-200'}`} style={{ maxHeight: 'calc(100% - 36px)' }}>
-              {actionItems.length > 0 ? actionItems.slice(0, 4).map((item, idx) => (
+              {actionItems.slice(0, 4).map((item, idx) => (
                 <button key={idx} onClick={() => handlePriorityAction(item)} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-amber-100/50'} ${idx > 0 ? (isDark ? 'border-t border-amber-500/10' : 'border-t border-amber-100') : ''}`}>
                   <span className="text-base">{item.icon || '⚠️'}</span>
                   <div className="flex-1 min-w-0">
@@ -362,21 +363,15 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   </div>
                   <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
                 </button>
-              )) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <span className="text-2xl mb-1">✅</span>
-                  <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>All caught up!</p>
-                  <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No action items right now</p>
-                </div>
-              )}
+              ))}
             </div>
           </div>
-        ) },
+        ) }] : []),
 
       // 5. Athlete Cards (8×7 at 10,5)
       { id: 'athlete-cards', label: 'My Athletes',
         defaultLayout: { x: 10, y: 5, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 16,
-        component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} isDark={isDark} /> },
+        component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} onViewProfile={(child) => onNavigate?.(`/parent/player/${child.id}/profile`)} isDark={isDark} parentName={profile?.full_name} /> },
 
       // 6. Engagement Progress (4×6 at 19,5)
       { id: 'engagement-progress', label: 'Engagement Progress',

@@ -163,10 +163,13 @@ export default function ParentHeroCard({
               {playerPhoto ? (
                 <img src={playerPhoto} alt={firstName} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center relative">
                   <span className="text-lg font-black" style={{ color: teamColor }}>
                     {firstName?.[0]}{lastName?.[0]}
                   </span>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-lynx-sky flex items-center justify-center shadow-sm">
+                    <span className="text-[8px] text-white">📷</span>
+                  </div>
                 </div>
               )}
             </div>

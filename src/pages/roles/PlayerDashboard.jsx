@@ -85,7 +85,9 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   const [badges, setBadges] = useState([])
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [rankings, setRankings] = useState({})
+  const [skillRatings, setSkillRatings] = useState(null)
   const [editMode, setEditMode] = useState(false)
+  const [selectedTeamIdx, setSelectedTeamIdx] = useState(0)
 
   // Admin preview
   const [isAdminPreview, setIsAdminPreview] = useState(false)
@@ -140,6 +142,12 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
         const { data: gameData } = await supabase.from('game_player_stats').select('*, event:event_id(*)').eq('player_id', player.id).order('created_at', { ascending: false }).limit(5)
         setGameStats(gameData || [])
         await loadRankings(player.id)
+
+        // Load coach-evaluated skill ratings (mobile parity: player_skill_ratings table)
+        try {
+          const { data: ratings } = await supabase.from('player_skill_ratings').select('*').eq('player_id', player.id).eq('season_id', selectedSeason.id).order('rated_at', { ascending: false }).limit(1).maybeSingle()
+          setSkillRatings(ratings)
+        } catch { setSkillRatings(null) }
       }
 
       const teamIds = teamData?.map(tp => tp.team_id).filter(Boolean) || []
@@ -150,7 +158,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       }
 
       try {
-        const { data: badgeData } = await supabase.from('player_achievements').select('*, achievement:achievement_id(id, name, icon, rarity, color_primary)').eq('player_id', player.id).order('awarded_at', { ascending: false })
+        const { data: badgeData } = await supabase.from('player_achievements').select('id, earned_at, achievement:achievement_id(id, name, icon, rarity, color_primary, description)').eq('player_id', player.id).order('earned_at', { ascending: false })
         setBadges(badgeData || [])
       } catch { setBadges([]) }
     } catch (err) { console.error('Error loading player dashboard:', err) }
@@ -175,7 +183,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   // ── Computed ──
   const displayName = viewingPlayer ? `${viewingPlayer.first_name} ${viewingPlayer.last_name}` : 'Player'
   const teams = playerData?.teams || []
-  const primaryTeam = teams[0]
+  const primaryTeam = teams[selectedTeamIdx] || teams[0]
   const gamesPlayed = seasonStats?.games_played || 0
   const streak = gamesPlayed > 0 ? Math.min(gamesPlayed * 2 + 3, 30) : 0
   const nextEvent = upcomingEvents[0] || null
@@ -320,6 +328,23 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
         </div>
       )}
 
+      {/* Multi-team selector */}
+      {teams.length > 1 && (
+        <div className="flex items-center gap-2 px-6 py-2.5" style={{ borderBottom: '1px solid rgba(75,185,236,0.10)' }}>
+          <span className="text-[10px] font-bold uppercase tracking-wider mr-1" style={{ color: 'rgba(255,255,255,0.30)' }}>Team</span>
+          {teams.map((t, idx) => (
+            <button key={t.id} onClick={() => setSelectedTeamIdx(idx)}
+              className="px-3 py-1 rounded-full text-xs font-bold transition-all"
+              style={idx === selectedTeamIdx
+                ? { background: t.color || '#4BB9EC', color: '#fff', boxShadow: `0 0 8px ${t.color || '#4BB9EC'}40` }
+                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.50)', border: '1px solid rgba(255,255,255,0.08)' }
+              }>
+              {t.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <DashboardContainer className="!bg-transparent">
         <DashboardGridLayout
           widgets={playerWidgets}
@@ -330,7 +355,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
             role: 'player', onNavigate, navigateToTeamWall,
             viewingPlayer, displayName, primaryTeam,
             level, xp, xpProgress, xpToNext, overallRating, gamesPlayed,
-            seasonStats, gameStats, badges, rankings, upcomingEvents,
+            seasonStats, gameStats, badges, rankings, upcomingEvents, skillRatings,
             selectedTeam: primaryTeam,
           }}
         />

@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
-  Shield, Building2, Users, DollarSign, TrendingUp, Calendar, Activity,
+  Building2, Users, DollarSign, TrendingUp, Calendar, Activity,
   BarChart3, PieChart, Clock, ChevronDown, RefreshCw, AlertTriangle,
   Star, Target, LineChart
 } from '../../constants/icons'
@@ -22,10 +21,10 @@ const AN_STYLES = `
   .an-au{animation:fadeUp .4s ease-out both}
   .an-ai{animation:fadeIn .3s ease-out both}
   .an-as{animation:scaleIn .25s ease-out both}
-  .an-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
-  .an-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
-  .an-light .an-glass{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.06);box-shadow:0 4px 24px rgba(0,0,0,.06)}
-  .an-light .an-glass-solid{background:rgba(255,255,255,.72);border-color:rgba(0,0,0,.06)}
+  .an-glass{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+  .an-glass-solid{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08)}
+  .an-light .an-glass{background:#fff;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .an-light .an-glass-solid{background:#fff;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .an-bar{animation:growHeight .6s ease-out both}
   .an-hbar{animation:growWidth .6s ease-out both}
 `
@@ -307,7 +306,6 @@ function DataTable({ columns, rows, isDark, emptyMessage = 'No data' }) {
 
 // ═══════ MAIN PAGE ═══════
 function PlatformAnalyticsPage({ showToast }) {
-  const { isPlatformAdmin } = useAuth()
   const tc = useThemeClasses()
   const { isDark, accent } = useTheme()
 
@@ -328,7 +326,7 @@ function PlatformAnalyticsPage({ showToast }) {
   const [inactiveOrgs, setInactiveOrgs] = useState([])
   const [registrationsByMonth, setRegistrationsByMonth] = useState([])
 
-  useEffect(() => { if (isPlatformAdmin) loadAll() }, [dateRange])
+  useEffect(() => { loadAll() }, [dateRange])
 
   async function loadAll() {
     setLoading(true)
@@ -522,54 +520,29 @@ function PlatformAnalyticsPage({ showToast }) {
     setRegistrationsByMonth(grouped.map(g => ({ label: g.label, value: g.items.length })))
   }
 
-  // ── Access Gate ──
-  if (!isPlatformAdmin) {
-    return (
-      <div className={`${isDark ? '' : 'an-light'}`}>
-        <style>{AN_STYLES}</style>
-        <div className="flex flex-col items-center justify-center py-20 an-au">
-          <Shield className="w-16 h-16 text-red-400 mb-4" />
-          <h1 className={`text-3xl ${tc.text} mb-2`}>Access Denied</h1>
-          <p className={tc.textMuted}>Platform super-admin access required.</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={`${isDark ? '' : 'an-light'}`}>
       <style>{AN_STYLES}</style>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 an-au">
-        <div>
-          <h1 className={`text-4xl ${tc.text} flex items-center gap-3`}>
-            <BarChart3 className="w-8 h-8" style={{ color: accent.primary }} />
-            Platform Analytics
-          </h1>
-          <p className={`text-sm uppercase ${tc.textMuted} mt-1`}>Deep insights across all organizations</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Date Range */}
-          <div className="relative">
-            <select
-              value={dateRange}
-              onChange={e => setDateRange(e.target.value)}
-              className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300' : 'bg-white border-lynx-silver text-slate-700'} border focus:outline-none cursor-pointer`}
-            >
-              {DATE_RANGES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
-            </select>
-            <Calendar className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`} />
-          </div>
-          {/* Refresh */}
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className={`p-2.5 rounded-xl transition ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400' : 'bg-white hover:bg-lynx-cloud text-slate-500'} border ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`}
+      {/* Controls bar — date range + refresh */}
+      <div className="flex items-center justify-end gap-3 mb-6 an-au">
+        <div className="relative">
+          <select
+            value={dateRange}
+            onChange={e => setDateRange(e.target.value)}
+            className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300' : 'bg-white border-slate-200 text-slate-700'} border focus:outline-none cursor-pointer`}
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
+            {DATE_RANGES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+          </select>
+          <Calendar className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
         </div>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className={`p-2.5 rounded-xl transition ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400' : 'bg-white hover:bg-slate-50 text-slate-500'} border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}
+        >
+          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
       {loading ? (

@@ -18,7 +18,7 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
         <div className="w-8 h-8 rounded-full bg-lynx-sky/10 flex items-center justify-center">
           <CheckCircle2 className="w-4 h-4 text-lynx-sky" />
         </div>
-        Waivers and Agreements
+        Almost there — review and sign
       </h2>
       <div className="space-y-4">
         {Object.entries(waivers).map(([key, waiver]) => {
@@ -158,12 +158,12 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 className="w-10 h-10 text-green-500" />
         </div>
-        <h1 className="text-r-2xl font-bold text-slate-900">Registration Submitted!</h1>
+        <h1 className="text-r-2xl font-bold text-slate-900">Welcome to the Den!</h1>
         <p className="mt-3 text-r-sm text-slate-600 leading-relaxed">
-          Thank you for registering {count} {count === 1 ? 'child' : 'children'} for {seasonName}!
+          {count} {count === 1 ? 'player' : 'players'} signed up for {seasonName} — you're all set!
         </p>
         <p className="text-r-xs text-slate-400 mt-4">
-          You will receive a confirmation email once your registration is reviewed.
+          We'll send a confirmation email once your registration is reviewed. Hang tight!
         </p>
         {totalFee > 0 && (
           <div className="mt-6 p-5 rounded-[14px] bg-lynx-cloud border border-slate-200">
@@ -230,8 +230,9 @@ function ErrorScreen({ message }) {
         <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="w-10 h-10 text-red-400" />
         </div>
-        <h1 className="text-r-2xl font-bold text-slate-900">Registration Not Found</h1>
+        <h1 className="text-r-2xl font-bold text-slate-900">Hmm, we can't find that</h1>
         <p className="mt-3 text-r-sm text-slate-600">{message}</p>
+        <p className="text-r-xs text-slate-400 mt-3">Double-check the link and try again, or reach out to your league admin.</p>
       </div>
     </div>
   )

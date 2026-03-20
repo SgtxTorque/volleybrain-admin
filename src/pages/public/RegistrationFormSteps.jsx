@@ -1,7 +1,7 @@
 // Registration form field renderers, section renderers, and step components
 // Extracted from PublicRegistrationPage for the file-split refactor
 
-import { Check, Edit, Plus, Trash2, Users, CheckCircle2, AlertCircle } from '../../constants/icons'
+import { Check, Edit, Plus, Trash2, Users, CheckCircle2, AlertCircle, Camera } from '../../constants/icons'
 import { sortFieldsByOrder } from './registrationConstants'
 
 // ─── Tailwind class constants ─────────────────────────────────────────────
@@ -246,6 +246,40 @@ function PlayerInfoCard({
         setFormState={setCurrentChild}
         trackFormStart={trackFormStart}
       />
+
+      {/* Optional player photo upload */}
+      <div className="mt-4 mb-2">
+        <label className={LABEL_CLASSES}>Player Photo <span className="text-slate-400 font-normal">(optional)</span></label>
+        <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-slate-200 cursor-pointer hover:border-lynx-sky hover:bg-lynx-cloud/50 transition-colors">
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) {
+              const reader = new FileReader()
+              reader.onload = (ev) => setCurrentChild({ ...currentChild, _photoFile: file, _photoPreview: ev.target.result })
+              reader.readAsDataURL(file)
+            }
+          }} />
+          {currentChild._photoPreview ? (
+            <>
+              <img src={currentChild._photoPreview} alt="" className="w-12 h-12 rounded-lg object-cover border border-slate-200" />
+              <div>
+                <p className="text-r-sm font-semibold text-slate-700">Photo added</p>
+                <p className="text-r-xs text-slate-400">Tap to change</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-12 h-12 rounded-lg bg-lynx-sky/10 flex items-center justify-center">
+                <Camera className="w-5 h-5 text-lynx-sky" />
+              </div>
+              <div>
+                <p className="text-r-sm font-semibold text-slate-700">Add a photo so coaches can identify your player!</p>
+                <p className="text-r-xs text-slate-400">JPG, PNG — you can always add one later</p>
+              </div>
+            </>
+          )}
+        </label>
+      </div>
 
       <div className="mt-6">
         <button
