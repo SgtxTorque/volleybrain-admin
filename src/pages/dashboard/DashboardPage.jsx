@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { VolleyballIcon } from '../../constants/icons'
 import { SkeletonDashboard } from '../../components/ui'
-import { DashboardGrid } from '../../components/widgets/dashboard/DashboardGrid'
 // LynxSidebar now rendered by MainApp — no longer needed here
 import WelcomeBanner from '../../components/shared/WelcomeBanner'
 import OrgHealthHero from '../../components/dashboard/OrgHealthHero'
