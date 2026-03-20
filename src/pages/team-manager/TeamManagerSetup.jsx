@@ -138,10 +138,11 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
       }
 
       // ── Step 3: Update profiles.current_organization_id (required for RLS) ──
-      await supabase
+      const { error: profileOrgError } = await supabase
         .from('profiles')
         .update({ current_organization_id: orgId })
         .eq('id', profile.id)
+      if (profileOrgError) throw profileOrgError
 
       // ── Step 4: Create season (use `sport` text column, not sport_id) ──
       const { data: newSeason, error: seasonError } = await supabase
