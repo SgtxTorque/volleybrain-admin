@@ -1,5 +1,5 @@
 // =============================================================================
-// PlayerDashboard — Dark theme widget grid, always bg-lynx-navy
+// PlayerDashboard — v2 dark theme layout, gold accent system
 // Preserves all Supabase data loading + admin preview from original
 // =============================================================================
 
@@ -7,10 +7,20 @@ import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
-import { Users, X, Eye, Shield, ChevronRight, MapPin, Clock } from '../../constants/icons'
-import DashboardContainer from '../../components/layout/DashboardContainer'
-import DashboardGridLayout from '../../components/layout/DashboardGrid'
-import EditLayoutButton from '../../components/layout/EditLayoutButton'
+import { Users, X, Eye, Shield } from '../../constants/icons'
+// V2 shared components
+import {
+  HeroCard, BodyTabs, WeeklyLoad, ThePlaybook,
+  MascotNudge, MilestoneCard, V2DashboardLayout,
+} from '../../components/v2'
+// V2 player-specific components
+import PlayerBadgesTab from '../../components/v2/player/PlayerBadgesTab'
+import PlayerChallengesTab from '../../components/v2/player/PlayerChallengesTab'
+import PlayerStatsTab from '../../components/v2/player/PlayerStatsTab'
+import PlayerSkillsTab from '../../components/v2/player/PlayerSkillsTab'
+import LeaderboardCard from '../../components/v2/player/LeaderboardCard'
+import ChallengesSidebar from '../../components/v2/player/ChallengesSidebar'
+import ShoutoutFeed from '../../components/v2/player/ShoutoutFeed'
 
 function formatTime12(t) {
   if (!t) return ''
@@ -86,7 +96,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [rankings, setRankings] = useState({})
   const [skillRatings, setSkillRatings] = useState(null)
-  const [editMode, setEditMode] = useState(false)
+  const [activeTab, setActiveTab] = useState('badges')
   const [selectedTeamIdx, setSelectedTeamIdx] = useState(0)
 
   // Admin preview
@@ -209,120 +219,75 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
     return Math.min(99, Math.max(40, Math.round(raw + 35)))
   }, [seasonStats, gamesPlayed])
 
-  // ── Build widget array ──
-  const playerWidgets = useMemo(() => {
-    let y = 0
-    const w = []
+  // ── Derived values for v2 ──
+  const tierLabel = level >= 10 ? 'Diamond' : level >= 7 ? 'Platinum' : level >= 4 ? 'Gold' : 'Silver'
 
-    // Row 1: Hero (left) + Trophy Case (right)
-    w.push({ id: 'player-hero', label: 'Player Hero', defaultLayout: { x: 0, y, w: 14, h: 10 }, minW: 6, minH: 6, maxH: 14, componentKey: 'PlayerHeroCard' })
-    w.push({ id: 'trophy-case', label: 'Trophy Case', defaultLayout: { x: 14, y, w: 10, h: 10 }, minW: 6, minH: 6, maxH: 14, componentKey: 'TrophyCaseCard' })
-    y += 10
+  const getPlayerGreeting = () => {
+    const firstName = viewingPlayer?.first_name || 'Player'
+    if (streak >= 5) return `What's up, ${firstName}. You're on fire.`
+    if (gamesPlayed > 0) return `What's up, ${firstName}. Let's get after it.`
+    return `What's up, ${firstName}.`
+  }
 
-    // Row 2: Streak (left) + Scouting Report (right, tall)
-    if (streak >= 2) {
-      w.push({ id: 'streak', label: 'Streak', defaultLayout: { x: 0, y, w: 14, h: 3 }, minW: 4, minH: 2, maxH: 5, component: (
-        <div className="rounded-2xl px-5 py-3 flex items-center gap-3 h-full" style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.15)' }}>
-          <span className="text-xl">🔥</span>
-          <div className="flex-1">
-            <p className="text-sm font-bold" style={{ color: '#FFD700' }}>{streak}-Day Streak</p>
-            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.30)' }}>Keep it going — you're locked in</p>
-          </div>
-        </div>
-      ) })
-    }
-    w.push({ id: 'scouting-report', label: 'Scouting Report', defaultLayout: { x: 14, y, w: 10, h: 14 }, minW: 6, minH: 8, maxH: 18, componentKey: 'ScoutingReportCard' })
-    y += streak >= 2 ? 3 : 0
+  const heroSubLine = [
+    seasonStats?.total_kills ? `${seasonStats.total_kills} kills` : null,
+    seasonStats?.total_assists ? `${seasonStats.total_assists} assists` : null,
+    seasonStats?.total_aces ? `${seasonStats.total_aces} aces` : null,
+  ].filter(Boolean).join(' · ') || 'No stats yet this season'
 
-    // Row 3: Next Up (left)
-    if (nextEvent) {
-      const isGame = nextEvent.event_type === 'game'
-      const evDate = new Date(nextEvent.event_date + 'T00:00:00')
-      w.push({ id: 'next-event-player', label: 'Next Up', defaultLayout: { x: 0, y, w: 14, h: 6 }, minW: 4, minH: 4, maxH: 10, component: (
-        <div className="rounded-2xl p-4 h-full relative" style={{ background: '#10284C', border: '1px solid rgba(75,185,236,0.15)' }}>
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-dot-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[1.2px]" style={{ color: '#4BB9EC' }}>Next Up</span>
-            <span className="flex-1" />
-            <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,255,255,0.30)' }}>{countdownText(nextEvent.event_date)}</span>
-          </div>
-          <h3 className="text-xl font-extrabold text-white mb-1">{isGame ? `vs ${nextEvent.opponent_name || 'TBD'}` : nextEvent.title || 'Practice'}</h3>
-          <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.30)' }}>
-            {evDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}{nextEvent.event_time ? ` · ${formatTime12(nextEvent.event_time)}` : ''}
-          </p>
-          {nextEvent.venue_name && <p className="text-[11px] flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.15)' }}><MapPin className="w-3 h-3" />{nextEvent.venue_name}</p>}
-        </div>
-      ) })
-      y += 6
-    }
+  // Map badges for tab
+  const badgesForTab = badges.map(b => ({
+    id: b.id,
+    name: b.achievement?.name || 'Badge',
+    icon: b.achievement?.icon || '🏅',
+    rarity: b.achievement?.rarity || 'common',
+  }))
 
-    // Row 4: Shoutout (left)
-    w.push({ id: 'shoutout', label: 'Shoutout', defaultLayout: { x: 0, y, w: 14, h: 4 }, minW: 4, minH: 3, maxH: 6, component: (
-      <div className="rounded-2xl p-3.5 flex items-start gap-3 h-full" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}>
-        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(75,185,236,0.12)' }}>
-          <span className="text-lg">💪</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold leading-tight" style={{ color: 'rgba(255,255,255,0.80)' }}>Coach gave you a <strong className="text-white">Clutch Player</strong> shoutout!</p>
-          <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>Recent</p>
-        </div>
-      </div>
-    ) })
-    y += 4
+  // Player tabs
+  const playerTabs = [
+    { key: 'badges', label: 'Badges' },
+    { key: 'challenges', label: 'Challenges' },
+    { key: 'stats', label: 'Season Stats' },
+    { key: 'skills', label: 'Skills' },
+  ]
 
-    // Row 5: Today XP (left) + Last Game (right of left)
-    w.push({ id: 'today-xp', label: 'Today XP', defaultLayout: { x: 0, y, w: 7, h: 5 }, minW: 4, minH: 3, maxH: 8, component: (
-      <div className="rounded-2xl p-4 h-full flex flex-col items-center justify-center" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <p className="text-[10px] font-bold uppercase tracking-[1.2px] mb-2" style={{ color: '#22C55E' }}>Today</p>
-        <p className="text-3xl font-black animate-shimmer" style={{ color: '#22C55E' }}>+{Math.min(gamesPlayed * 50, 200)} XP</p>
-        <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.30)' }}>Practice attendance</p>
-      </div>
-    ) })
-    w.push({ id: 'last-game', label: 'Last Game', defaultLayout: { x: 7, y, w: 7, h: 5 }, minW: 4, minH: 4, maxH: 8, componentKey: 'LastGameCard' })
-    y += 5
-
-    // Row 6: Chat (left) + Daily Challenge (right)
-    w.push({ id: 'team-chat-player', label: 'Team Chat', defaultLayout: { x: 0, y, w: 7, h: 3 }, minW: 4, minH: 2, maxH: 6, component: (
-      <button onClick={() => onNavigate?.('chats')} className="w-full rounded-2xl p-3.5 flex items-center gap-2.5 h-full transition hover:brightness-110" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <span className="text-lg opacity-60">💬</span>
-        <span className="text-xs font-semibold flex-1 text-left" style={{ color: 'rgba(255,255,255,0.60)' }}>Team Chat</span>
-        <ChevronRight className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.15)' }} />
-      </button>
-    ) })
-    w.push({ id: 'daily-challenge', label: 'Daily Challenge', defaultLayout: { x: 7, y, w: 7, h: 5 }, minW: 4, minH: 3, maxH: 8, componentKey: 'DailyChallengeCard' })
-
-    return w
-  }, [viewingPlayer, primaryTeam, level, xp, xpProgress, xpToNext, overallRating, gamesPlayed, badges, seasonStats, gameStats, streak, nextEvent, upcomingEvents])
+  // Playbook actions
+  const playbookItems = [
+    { icon: '📅', label: 'RSVP', onClick: () => onNavigate?.('schedule') },
+    { icon: '🏋️', label: 'Start Drill', onClick: () => {} },
+    { icon: '📊', label: 'My Stats', onClick: () => setActiveTab('stats') },
+    { icon: '🏆', label: 'Leaderboard', onClick: () => onNavigate?.('leaderboards') },
+  ]
 
   // ── Loading & empty states ──
   if (loading) return (
-    <div className="flex items-center justify-center" style={{ background: '#0D1B3E', minHeight: 'calc(100vh - 4rem)' }}>
-      <div className="text-center">
-        <div className="w-14 h-14 mx-auto rounded-full animate-spin" style={{ border: '3px solid rgba(255,255,255,0.06)', borderTopColor: '#4BB9EC' }} />
-        <p className="mt-4 text-sm tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.30)' }}>Loading player data...</p>
+    <div className="v2-player-dark" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#060E1A', minHeight: 'calc(100vh - 4rem)' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ width: 56, height: 56, margin: '0 auto', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.06)', borderTopColor: '#FFD700', animation: 'spin 1s linear infinite' }} />
+        <p style={{ marginTop: 16, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.30)' }}>Loading player data...</p>
       </div>
     </div>
   )
 
   if (!viewingPlayer && !isAdmin) return (
-    <div className="flex flex-col items-center justify-center text-center" style={{ background: '#0D1B3E', minHeight: 'calc(100vh - 4rem)' }}>
+    <div className="v2-player-dark" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: '#060E1A', minHeight: 'calc(100vh - 4rem)' }}>
       <Shield className="w-16 h-16 mb-4" style={{ color: 'rgba(255,255,255,0.15)' }} />
-      <h2 className="text-xl font-bold mb-2 text-white">Player Dashboard</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: '#FFFFFF', marginBottom: 8 }}>Player Dashboard</h2>
       <p style={{ color: 'rgba(255,255,255,0.30)' }}>Player account not linked yet.</p>
     </div>
   )
 
   // ── Render ──
   return (
-    <div style={{ background: '#0D1B3E', minHeight: 'calc(100vh - 4rem)' }}>
+    <div className="v2-player-dark" style={{ background: '#060E1A', minHeight: 'calc(100vh - 4rem)' }}>
       {/* Admin Preview Banner */}
       {isAdminPreview && (
-        <div className="flex items-center gap-3 px-6 py-2" style={{ background: 'linear-gradient(90deg, rgba(75,185,236,0.12), rgba(75,185,236,0.04))', borderBottom: '1px solid rgba(75,185,236,0.15)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 24px', background: 'linear-gradient(90deg, rgba(75,185,236,0.12), rgba(75,185,236,0.04))', borderBottom: '1px solid rgba(75,185,236,0.15)' }}>
           <Eye className="w-4 h-4" style={{ color: '#4BB9EC' }} />
-          <p className="text-xs flex-1" style={{ color: 'rgba(255,255,255,0.60)' }}>
-            Viewing as <span className="font-bold" style={{ color: '#4BB9EC' }}>{displayName}</span>
+          <p style={{ fontSize: 12, flex: 1, color: 'rgba(255,255,255,0.60)' }}>
+            Viewing as <span style={{ fontWeight: 700, color: '#4BB9EC' }}>{displayName}</span>
           </p>
-          <button onClick={() => setShowPlayerSelector(true)} className="text-xs px-3 py-1 rounded-lg font-medium" style={{ background: 'rgba(75,185,236,0.15)', color: '#4BB9EC', border: '1px solid #4BB9EC' }}>
+          <button onClick={() => setShowPlayerSelector(true)} style={{ fontSize: 12, padding: '4px 12px', borderRadius: 8, fontWeight: 500, background: 'rgba(75,185,236,0.15)', color: '#4BB9EC', border: '1px solid #4BB9EC', cursor: 'pointer' }}>
             Switch Player
           </button>
         </div>
@@ -330,37 +295,141 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
 
       {/* Multi-team selector */}
       {teams.length > 1 && (
-        <div className="flex items-center gap-2 px-6 py-2.5" style={{ borderBottom: '1px solid rgba(75,185,236,0.10)' }}>
-          <span className="text-[10px] font-bold uppercase tracking-wider mr-1" style={{ color: 'rgba(255,255,255,0.30)' }}>Team</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', borderBottom: '1px solid rgba(75,185,236,0.10)' }}>
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.30)', marginRight: 4 }}>Team</span>
           {teams.map((t, idx) => (
             <button key={t.id} onClick={() => setSelectedTeamIdx(idx)}
-              className="px-3 py-1 rounded-full text-xs font-bold transition-all"
-              style={idx === selectedTeamIdx
-                ? { background: t.color || '#4BB9EC', color: '#fff', boxShadow: `0 0 8px ${t.color || '#4BB9EC'}40` }
-                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.50)', border: '1px solid rgba(255,255,255,0.08)' }
-              }>
+              style={{
+                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', border: 'none', transition: 'all 0.15s ease',
+                ...(idx === selectedTeamIdx
+                  ? { background: t.color || '#4BB9EC', color: '#fff', boxShadow: `0 0 8px ${t.color || '#4BB9EC'}40` }
+                  : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.50)' }
+                ),
+              }}>
               {t.name}
             </button>
           ))}
         </div>
       )}
 
-      <DashboardContainer className="!bg-transparent">
-        <DashboardGridLayout
-          widgets={playerWidgets}
-          editMode={editMode}
-          onLayoutChange={(layouts) => console.log('Player layout changed:', layouts)}
-          role="player"
-          sharedProps={{
-            role: 'player', onNavigate, navigateToTeamWall,
-            viewingPlayer, displayName, primaryTeam,
-            level, xp, xpProgress, xpToNext, overallRating, gamesPlayed,
-            seasonStats, gameStats, badges, rankings, upcomingEvents, skillRatings,
-            selectedTeam: primaryTeam,
-          }}
-        />
-        <EditLayoutButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
-      </DashboardContainer>
+      <V2DashboardLayout
+        variant="dark"
+        mainContent={
+          <>
+            {/* Hero Card — player variant */}
+            <HeroCard
+              variant="player"
+              orgLine={`${primaryTeam?.name || 'Team'} · ${tierLabel} Tier`}
+              greeting={getPlayerGreeting()}
+              subLine={heroSubLine}
+              levelBadge={
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(255,215,0,0.12)', border: '1px solid rgba(255,215,0,0.25)',
+                  borderRadius: 8, padding: '4px 10px',
+                  fontSize: 12, fontWeight: 800, color: '#FFD700',
+                }}>
+                  LVL {level}
+                </span>
+              }
+              xpBar={
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'rgba(255,255,255,0.40)', marginBottom: 4 }}>
+                    <span>{xp.toLocaleString()} XP</span>
+                    <span>{xpToNext} to next level</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 3, background: '#FFD700', width: `${xpProgress}%`, transition: 'width 0.5s ease' }} />
+                  </div>
+                </div>
+              }
+              streakBadge={streak >= 2 ? (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.15)',
+                  borderRadius: 8, padding: '4px 10px',
+                  fontSize: 12, fontWeight: 700, color: '#FFD700',
+                }}>
+                  🔥 {streak}-Day Streak
+                </span>
+              ) : null}
+            />
+
+            {/* Body Tabs */}
+            <BodyTabs
+              tabs={playerTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              variant="dark"
+            >
+              {activeTab === 'badges' && (
+                <PlayerBadgesTab badges={badgesForTab} />
+              )}
+              {activeTab === 'challenges' && (
+                <PlayerChallengesTab challenges={[]} />
+              )}
+              {activeTab === 'stats' && (
+                <PlayerStatsTab
+                  seasonStats={seasonStats || {}}
+                  gameStats={gameStats}
+                  rankings={rankings}
+                />
+              )}
+              {activeTab === 'skills' && (
+                <PlayerSkillsTab
+                  skillRatings={skillRatings}
+                  overallRating={overallRating}
+                />
+              )}
+            </BodyTabs>
+
+            {/* Mascot Nudge */}
+            <MascotNudge
+              variant="dark"
+              message={
+                badges.length > 0
+                  ? `You've earned ${badges.length} badge${badges.length > 1 ? 's' : ''}! Keep grinding for more.`
+                  : 'Keep putting in the work — your first badge is within reach!'
+              }
+            />
+          </>
+        }
+        sideContent={
+          <>
+            {/* Leaderboard */}
+            <LeaderboardCard
+              teamName={primaryTeam?.name}
+              entries={[]}
+            />
+
+            {/* Active Challenges */}
+            <ChallengesSidebar challenges={[]} />
+
+            {/* Upcoming Events */}
+            <WeeklyLoad
+              variant="dark"
+              title="Upcoming"
+              events={upcomingEvents.slice(0, 5).map(e => ({
+                label: e.title || e.event_type,
+                date: e.event_date,
+                time: e.event_time,
+                type: e.event_type,
+              }))}
+            />
+
+            {/* Shoutout Feed */}
+            <ShoutoutFeed shoutouts={[]} />
+
+            {/* The Playbook */}
+            <ThePlaybook
+              variant="dark"
+              columns={2}
+              actions={playbookItems}
+            />
+          </>
+        }
+      />
 
       {showPlayerSelector && (
         <AdminPlayerSelector players={allPlayers} selectedPlayerId={previewPlayer?.id}
