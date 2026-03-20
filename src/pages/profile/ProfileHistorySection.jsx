@@ -21,10 +21,22 @@ export function OrgMembershipsSection({ profile, isDark, tc }) {
     try {
       const { data } = await supabase
         .from('user_roles')
-        .select('id, role, is_active, created_at, organization_id, organizations(id, name, slug, logo_url)')
+        .select('id, role, is_active, created_at, organization_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
+
+      // Fetch org details separately (user_roles lacks FK to organizations in PostgREST)
+      if (data?.length) {
+        const orgIds = [...new Set(data.map(d => d.organization_id).filter(Boolean))]
+        const { data: orgs } = await supabase
+          .from('organizations')
+          .select('id, name, slug, logo_url')
+          .in('id', orgIds)
+        const orgMap = {}
+        for (const o of (orgs || [])) orgMap[o.id] = o
+        for (const m of data) m.organizations = orgMap[m.organization_id] || null
+      }
 
       setMemberships(data || [])
     } catch (err) {
@@ -206,9 +218,21 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
       // Get admin participation via user_roles
       const { data: roleRecords } = await supabase
         .from('user_roles')
-        .select('role, organization_id, organizations(id, name)')
+        .select('role, organization_id')
         .eq('user_id', profile.id)
         .eq('is_active', true)
+
+      // Fetch org names separately (user_roles lacks FK to organizations in PostgREST)
+      if (roleRecords?.length) {
+        const rOrgIds = [...new Set(roleRecords.map(r => r.organization_id).filter(Boolean))]
+        const { data: rOrgs } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .in('id', rOrgIds)
+        const rOrgMap = {}
+        for (const o of (rOrgs || [])) rOrgMap[o.id] = o
+        for (const r of roleRecords) r.organizations = rOrgMap[r.organization_id] || null
+      }
 
       if (roleRecords) {
         for (const r of roleRecords) {

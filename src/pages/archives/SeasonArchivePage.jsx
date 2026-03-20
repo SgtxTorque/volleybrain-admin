@@ -103,17 +103,31 @@ function SeasonArchivePage({ showToast, onNavigate }) {
       // Get all orgs this user has ever been part of
       const { data: roles } = await supabase
         .from('user_roles')
-        .select('organization_id, role, organizations(id, name, slug)')
+        .select('organization_id, role')
         .eq('user_id', profile.id)
+
+      // Fetch org details separately (user_roles lacks FK to organizations in PostgREST)
+      const roleOrgIds = [...new Set((roles || []).map(r => r.organization_id).filter(Boolean))]
+      let orgDetails = []
+      if (roleOrgIds.length) {
+        const { data } = await supabase
+          .from('organizations')
+          .select('id, name, slug')
+          .in('id', roleOrgIds)
+        orgDetails = data || []
+      }
+      const orgLookup = {}
+      for (const o of orgDetails) orgLookup[o.id] = o
 
       // Dedupe orgs
       const orgMap = {}
       ;(roles || []).forEach(r => {
-        if (r.organizations?.id && !orgMap[r.organizations.id]) {
-          orgMap[r.organizations.id] = { ...r.organizations, roles: [] }
+        const org = orgLookup[r.organization_id]
+        if (org?.id && !orgMap[org.id]) {
+          orgMap[org.id] = { ...org, roles: [] }
         }
-        if (r.organizations?.id) {
-          orgMap[r.organizations.id].roles.push(r.role)
+        if (org?.id) {
+          orgMap[org.id].roles.push(r.role)
         }
       })
 
