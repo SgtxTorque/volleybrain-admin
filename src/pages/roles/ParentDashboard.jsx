@@ -1,5 +1,5 @@
 // =============================================================================
-// ParentDashboard — single-column vertical scroll, Lynx design language
+// ParentDashboard — v2 fixed layout, props-only components
 // Preserves ALL Supabase queries and data logic from the original
 // =============================================================================
 
@@ -10,20 +10,25 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
-import { ChevronRight, DollarSign, AlertTriangle, Award } from '../../constants/icons'
 import { OrphanPlayerBanner } from '../parent/ClaimAccountPage'
 import { usePriorityItems } from '../../components/parent/PriorityCardsEngine'
 import { ActionItemsSidebar, QuickRsvpModal } from '../../components/parent/ActionItemsSidebar'
-import ParentChildHero from './ParentChildHero'
 import {
   EventDetailModal, PaymentOptionsModal, AddChildModal,
   ReRegisterModal, AlertDetailModal,
 } from './ParentModals'
-import WelcomeBanner from '../../components/shared/WelcomeBanner'
-import ParentTopBanner from '../../components/parent/ParentTopBanner'
-import DashboardContainer from '../../components/layout/DashboardContainer'
-import DashboardGridLayout from '../../components/layout/DashboardGrid'
-import EditLayoutButton from '../../components/layout/EditLayoutButton'
+// V2 shared components
+import {
+  HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
+  ThePlaybook, MilestoneCard, MascotNudge, V2DashboardLayout,
+} from '../../components/v2'
+// V2 parent-specific components
+import KidCards from '../../components/v2/parent/KidCards'
+import ParentScheduleTab from '../../components/v2/parent/ParentScheduleTab'
+import ParentPaymentsTab from '../../components/v2/parent/ParentPaymentsTab'
+import ParentFormsTab from '../../components/v2/parent/ParentFormsTab'
+import ParentReportCardTab from '../../components/v2/parent/ParentReportCardTab'
+import BadgeShowcase from '../../components/v2/parent/BadgeShowcase'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -66,7 +71,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [showReRegisterModal, setShowReRegisterModal] = useState(null)
   const [showActionSidebar, setShowActionSidebar] = useState(false)
   const [quickRsvpEvent, setQuickRsvpEvent] = useState(null)
-  const [editMode, setEditMode] = useState(false)
+  const [activeTab, setActiveTab] = useState('schedule')
 
   const initialLoadDone = useRef(false)
 
@@ -77,12 +82,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   })
 
   const primarySport = registrationData[0]?.season?.sports || selectedSport || { name: 'Volleyball', icon: '🏐' }
-
-  const activeChildIdForEffect = (registrationData[activeChildIdx] || registrationData[0])?.id
-  const activeChildForWidget = useMemo(() => {
-    const child = registrationData[activeChildIdx] || registrationData[0]
-    return child ? [child] : []
-  }, [activeChildIdForEffect])
 
   // ═══ DATA LOADING (preserved exactly) ═══
   useEffect(() => {
@@ -313,188 +312,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const actionItems = (priorityEngine?.items || []).filter(i => !i.playerId || i.playerId === activeChild?.id)
   const visibleAlerts = alerts.filter(a => a.priority === 'urgent' || a.priority === 'high')
 
-  // ═══ BUILD WIDGET ARRAY (hardcoded layout — Carlos's export) ═══
-  const parentWidgets = useMemo(() => {
-    const enrichedChildren = registrationData.map((child, idx) => {
-      if (idx === activeChildIdx) return { ...child, _level: xpData.level, _xpPct: xpData.xpToNext > 0 ? (xpData.currentXp / xpData.xpToNext) * 100 : 0 }
-      return { ...child, _level: 1, _xpPct: 0 }
-    })
-
-    return [
-      // 1. Welcome Banner (11×4 at 0,0)
-      { id: 'welcome-banner', label: 'Welcome Banner',
-        defaultLayout: { x: 0, y: 0, w: 11, h: 4 }, minW: 4, minH: 2, maxH: 8,
-        component: <WelcomeBanner role="parent" userName={profile?.full_name} seasonName={registrationData[0]?.season?.name} childName={activeChild?.first_name} isDark={isDark} /> },
-
-      // 2. Parent Top Banner — alerts > open registrations > onboarding (11×4 at 11,0)
-      { id: 'parent-journey', label: 'Season Onboarding',
-        defaultLayout: { x: 11, y: 0, w: 11, h: 4 }, minW: 8, minH: 3,
-        component: <ParentTopBanner onNavigate={onNavigate} registrationData={registrationData} openSeasons={openSeasons} alerts={alerts} /> },
-
-      // 3. Spacer Divider (1×1 at 0,4)
-      { id: 'spacer-divider', label: 'Spacer',
-        defaultLayout: { x: 0, y: 4, w: 1, h: 1 }, minW: 1, minH: 1,
-        componentKey: 'SpacerWidget' },
-
-      // 3b. Spacer Divider 2 (17×1 at 3,4)
-      { id: 'spacer-divider-2', label: 'Spacer',
-        defaultLayout: { x: 3, y: 4, w: 17, h: 1 }, minW: 1, minH: 1,
-        componentKey: 'SpacerWidget' },
-
-      // 4. Action Required (9×7 at 0,5) — only present when items exist (progressive disclosure)
-      ...(actionItems.length > 0 ? [{ id: 'action-required', label: 'Action Required',
-        defaultLayout: { x: 0, y: 5, w: 9, h: 7 }, minW: 4, minH: 4, maxH: 20,
-        component: (
-          <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-amber-500/[0.06] border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
-            <div className="px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-                <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>Action Required</h3>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-xs font-extrabold">{actionItems.length}</span>
-            </div>
-            <div className={`border-t overflow-y-auto ${isDark ? 'border-amber-500/10' : 'border-amber-200'}`} style={{ maxHeight: 'calc(100% - 36px)' }}>
-              {actionItems.slice(0, 4).map((item, idx) => (
-                <button key={idx} onClick={() => handlePriorityAction(item)} className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-amber-100/50'} ${idx > 0 ? (isDark ? 'border-t border-amber-500/10' : 'border-t border-amber-100') : ''}`}>
-                  <span className="text-base">{item.icon || '⚠️'}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-r-sm font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</p>
-                    <p className={`text-r-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
-                  </div>
-                  <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-                </button>
-              ))}
-            </div>
-          </div>
-        ) }] : []),
-
-      // 5. Athlete Cards (8×7 at 10,5)
-      { id: 'athlete-cards', label: 'My Athletes',
-        defaultLayout: { x: 10, y: 5, w: 8, h: 7 }, minW: 4, minH: 4, maxH: 16,
-        component: <ParentChildHero children={enrichedChildren} activeChildIdx={activeChildIdx} onSelectChild={setActiveChildIdx} onAddChild={() => setShowAddChildModal(true)} onViewProfile={(child) => onNavigate?.(`/parent/player/${child.id}/profile`)} isDark={isDark} parentName={profile?.full_name} /> },
-
-      // 6. Engagement Progress (4×6 at 19,5)
-      { id: 'engagement-progress', label: 'Engagement Progress',
-        defaultLayout: { x: 19, y: 5, w: 4, h: 6 }, minW: 4, minH: 3, maxH: 10,
-        componentKey: 'EngagementProgressCard' },
-
-      // 7. Achievements (4×6 at 19,11) — always present, empty state when none
-      { id: 'achievements', label: 'Achievements',
-        defaultLayout: { x: 19, y: 11, w: 4, h: 6 }, minW: 4, minH: 3, maxH: 16,
-        component: (
-          <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-            <div className="px-3 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Award className={`w-3.5 h-3.5 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
-                <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Achievements</h3>
-              </div>
-              <button onClick={() => onNavigate?.('achievements')} className="text-[10px] font-bold uppercase tracking-wider text-lynx-sky hover:underline">All</button>
-            </div>
-            <div className={`px-3 pb-2 overflow-y-auto ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`} style={{ maxHeight: 'calc(100% - 32px)' }}>
-              {childAchievements.length > 0 ? (
-                <div className="grid grid-cols-3 gap-1 pt-2">
-                  {childAchievements.slice(0, 6).map(ach => {
-                    const badge = ach.achievements
-                    return (<div key={ach.id} className={`flex flex-col items-center gap-0.5 py-1.5 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}><span className="w-8 h-8 flex items-center justify-center text-lg">{badge?.icon || '🏅'}</span><span className={`text-[9px] font-bold truncate w-full text-center px-0.5 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{badge?.name || 'Badge'}</span></div>)
-                  })}
-                  {childAchievements.length > 6 && (
-                    <div className={`flex flex-col items-center justify-center py-1.5 rounded-lg ${isDark ? 'bg-white/[0.04] text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
-                      <span className="text-r-xs font-bold">+{childAchievements.length - 6}</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-3 text-center">
-                  <span className="text-xl mb-1">🏅</span>
-                  <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No badges yet</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) },
-
-      // 8. Next Event (9×9 at 0,12)
-      { id: 'next-event', label: 'Next Event',
-        defaultLayout: { x: 0, y: 12, w: 9, h: 9 }, minW: 4, minH: 4, maxH: 12,
-        componentKey: 'NextEventCard' },
-
-      // 9. Calendar Strip (8×9 at 10,12)
-      { id: 'calendar-strip', label: 'Calendar Strip',
-        defaultLayout: { x: 10, y: 12, w: 8, h: 9 }, minW: 6, minH: 4, maxH: 16,
-        componentKey: 'CalendarStripCard' },
-
-      // 10. Team Hub (4×9 at 19,17) — always present, empty state when no team
-      { id: 'team-hub', label: 'Team Hub',
-        defaultLayout: { x: 19, y: 17, w: 4, h: 9 }, minW: 4, minH: 4, maxH: 12,
-        component: activeTeam ? (
-          <button onClick={() => navigateToTeamWall?.(activeTeam.id)} className={`w-full rounded-2xl border p-3 flex flex-col justify-center gap-3 text-left transition h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06] hover:bg-white/[0.04]' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-r-sm" style={{ backgroundColor: activeTeam.color || '#6366F1' }}>{activeTeam.name?.[0] || 'T'}</div>
-            <p className={`font-semibold text-r-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeTeam.name}</p>
-            <p className={`text-r-xs line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>View team wall, photos & updates</p>
-            <span className="text-lynx-sky text-[10px] font-bold uppercase tracking-wider mt-auto">View Hub →</span>
-          </button>
-        ) : (
-          <div className={`rounded-2xl border p-3 flex flex-col items-center justify-center gap-2 h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-            <span className="text-xl">🏠</span>
-            <p className={`text-r-sm font-semibold text-center ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{activeChild?.first_name || 'Player'}</p>
-            <p className={`text-r-xs text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Not assigned to a team yet</p>
-          </div>
-        ) },
-
-      // 11. Quick Links (4×9 at 0,21)
-      { id: 'quick-links', label: 'Quick Links',
-        defaultLayout: { x: 0, y: 21, w: 4, h: 9 }, minW: 4, minH: 4, maxH: 10,
-        componentKey: 'QuickLinksCard' },
-
-      // 12. Balance Due (4×8 at 5,21) — always present, empty state when $0
-      { id: 'balance-due', label: 'Balance Due',
-        defaultLayout: { x: 5, y: 21, w: 4, h: 8 }, minW: 4, minH: 4, maxH: 12,
-        component: (
-          <div className={`rounded-2xl border overflow-hidden h-full ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-            <div className="px-3 py-2 flex items-center justify-between">
-              <h3 className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Balance Due</h3>
-              <DollarSign className={`w-3.5 h-3.5 ${totalChildDue > 0 ? (isDark ? 'text-red-400' : 'text-red-500') : (isDark ? 'text-green-400' : 'text-green-500')}`} />
-            </div>
-            <div className={`px-3 pb-3 ${isDark ? 'border-t border-white/[0.06]' : 'border-t border-slate-200'}`}>
-              {totalChildDue > 0 ? (
-                <>
-                  <p className="text-r-2xl font-extrabold text-red-500 mt-2 whitespace-nowrap">${totalChildDue.toFixed(2)}</p>
-                  <p className={`text-r-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{activeChildUnpaid.length} unpaid</p>
-                  <button onClick={() => setShowPaymentModal(true)} className="w-full py-2 rounded-xl bg-lynx-sky text-lynx-navy font-bold text-r-sm transition hover:brightness-110">Pay Now</button>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-3 text-center">
-                  <span className="text-xl mb-1">✅</span>
-                  <p className={`text-r-sm font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>Paid Up</p>
-                  <p className={`text-r-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No balance due</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) },
-
-      // 13. Season Record (4×8 at 10,21)
-      { id: 'season-record', label: 'Season Record',
-        defaultLayout: { x: 10, y: 21, w: 4, h: 8 }, minW: 4, minH: 4, maxH: 10,
-        componentKey: 'SeasonRecordCard' },
-
-      // 14. Give Shoutout (4×8 at 14,21)
-      { id: 'give-shoutout', label: 'Give Shoutout',
-        defaultLayout: { x: 14, y: 21, w: 4, h: 8 }, minW: 4, minH: 4,
-        componentKey: 'GiveShoutoutCard' },
-
-      // 15. Spacer Bottom (1×1 at 0,30)
-      { id: 'spacer-bottom', label: 'Spacer',
-        defaultLayout: { x: 0, y: 30, w: 1, h: 1 }, minW: 1, minH: 1,
-        componentKey: 'SpacerWidget' },
-
-      // 16. Team Chat (4×8 at 19,26)
-      { id: 'team-chat', label: 'Team Chat',
-        defaultLayout: { x: 19, y: 26, w: 4, h: 8 }, minW: 4, minH: 3, maxH: 12,
-        componentKey: 'ChatPreviewCard' },
-    ]
-  }, [registrationData, activeChildIdx, actionItems, activeChildEvents, activeTeam, childAchievements, totalChildDue, isDark, profile?.full_name, paymentSummary, teamRecord, xpData])
-
   // Derive unique seasons from children registrations for the season switcher
   // (must be before conditional returns to maintain hook order)
   const parentSeasons = useMemo(() => {
@@ -517,110 +334,234 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
   if (registrationData.length === 0) {
     return (
-      <DashboardContainer className={`space-y-6 py-12 px-6 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
-        <div className="text-center">
-          <span className="text-r-5xl block mb-4">🏐</span>
-          <h2 className={`text-r-4xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Welcome to Lynx!</h2>
-          <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'}`}>You haven't registered any players yet.</p>
-          <p className={`${isDark ? 'text-slate-500' : 'text-slate-400'} mb-r-4`}>Get started by registering for an open season below.</p>
+      <div style={{ padding: '48px 24px', fontFamily: 'var(--v2-font, inherit)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <span style={{ fontSize: 48, display: 'block', marginBottom: 16 }}>🏐</span>
+          <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--v2-navy)', marginBottom: 8 }}>Welcome!</h2>
+          <p style={{ color: 'var(--v2-text-secondary)' }}>You haven't registered any players yet.</p>
+          <p style={{ color: 'var(--v2-text-muted)', marginBottom: 16 }}>Get started by registering for an open season below.</p>
         </div>
         {openSeasons.length > 0 && (
-          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6`}>
-            <h2 className={`text-r-2xl font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4`}>Open Registrations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ background: '#FFFFFF', border: '1px solid var(--v2-border-subtle)', borderRadius: 14, padding: 24 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--v2-text-primary)', marginBottom: 16 }}>Open Registrations</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
               {openSeasons.map(season => (
                 <a key={season.id} href={getRegistrationUrl(season)} target="_blank" rel="noopener noreferrer"
-                  className={`${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-slate-50 hover:bg-slate-100'} rounded-xl p-4 flex items-center gap-4 transition`}>
-                  <div className="w-14 h-14 rounded-xl bg-lynx-sky/20 flex items-center justify-center text-r-3xl">{season.sports?.icon || '🏐'}</div>
-                  <div className="flex-1">
-                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{season.name}</p>
-                    <p className={`text-r-base ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{season.organizations?.name}</p>
+                  style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, borderRadius: 12, background: 'var(--v2-surface)', textDecoration: 'none' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 12, background: 'rgba(75,185,236,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>{season.sports?.icon || '🏐'}</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontWeight: 600, color: 'var(--v2-text-primary)' }}>{season.name}</p>
+                    <p style={{ fontSize: 14, color: 'var(--v2-text-muted)' }}>{season.organizations?.name}</p>
                   </div>
-                  <span className="text-lynx-sky font-semibold">Register →</span>
+                  <span style={{ color: 'var(--v2-sky)', fontWeight: 600 }}>Register →</span>
                 </a>
               ))}
             </div>
           </div>
         )}
-      </DashboardContainer>
+      </div>
     )
   }
 
-  // ═══ RENDER — WIDGET GRID ═══
-  return (
-    <DashboardContainer className={`space-y-5 ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`}>
+  // ═══ DERIVED VALUES FOR V2 ═══
+  const familyName = profile?.last_name
+    ? `The ${profile.last_name} Family`
+    : profile?.full_name || 'Your Family'
 
-      {/* ── Orphan Player Banner — claim unclaimed children ── */}
-      <div className="px-6">
+  const eventsThisWeek = (() => {
+    const now = new Date()
+    const endOfWeek = new Date(now)
+    endOfWeek.setDate(now.getDate() + (7 - now.getDay()))
+    return upcomingEvents.filter(e => new Date(e.event_date) <= endOfWeek).length
+  })()
+
+  const getParentGreeting = () => {
+    const hour = new Date().getHours()
+    const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+    const firstName = profile?.full_name?.split(' ')[0] || ''
+    if (paymentSummary.totalDue > 0) return `${timeGreeting}, ${firstName}. You have a balance due.`
+    if (eventsThisWeek > 0) return `${timeGreeting}, ${firstName}. ${eventsThisWeek} event${eventsThisWeek > 1 ? 's' : ''} this week!`
+    return `${timeGreeting}, ${firstName}.`
+  }
+
+  const heroStats = [
+    { label: 'Kids', value: registrationData.length },
+    { label: 'This Week', value: eventsThisWeek },
+    { label: 'Due', value: paymentSummary.totalDue > 0 ? `$${paymentSummary.totalDue.toLocaleString()}` : '$0' },
+    { label: 'Badges', value: childAchievements.length },
+  ]
+
+  // Map registrationData to KidCards format
+  const kidCardsData = registrationData.map((child, idx) => ({
+    id: child.id,
+    firstName: child.first_name || '',
+    lastName: child.last_name || '',
+    teamName: child.team?.name || child.team_players?.[0]?.teams?.name || '',
+    avatarGradient: `linear-gradient(135deg, ${child.team?.color || '#4BB9EC'}, ${child.team?.color || '#4BB9EC'}88)`,
+    initials: `${(child.first_name || '')[0] || ''}${(child.last_name || '')[0] || ''}`.toUpperCase(),
+    attendance: '—',
+    record: idx === activeChildIdx ? `${teamRecord.wins}-${teamRecord.losses}` : '—',
+    nextEvent: activeChildEvents[0] ? new Date(activeChildEvents[0].event_date).toLocaleDateString('en-US', { weekday: 'short' }) : '—',
+    badgeOrStreak: childAchievements.length > 0 && idx === activeChildIdx
+      ? `🏅 ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}`
+      : null,
+  }))
+
+  // Map childAchievements for BadgeShowcase
+  const showcaseBadges = childAchievements.map(ach => ({
+    name: ach.achievements?.name || 'Badge',
+    emoji: ach.achievements?.icon || '🏅',
+    tier: ach.achievements?.rarity || 'common',
+    childName: activeChild?.first_name,
+    earnedDate: ach.earned_at ? new Date(ach.earned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
+  }))
+
+  // Map priority items for attention strip
+  const attentionItems = actionItems.map(item => ({
+    icon: item.icon || '⚠️',
+    label: item.title,
+    type: item.actionType === 'payment' ? 'coral' : item.actionType === 'waiver' ? 'amber' : 'sky',
+    onClick: () => handlePriorityAction(item),
+  }))
+
+  // Playbook actions for parent
+  const playbookItems = [
+    { icon: '📅', label: 'RSVP', onClick: () => onNavigate?.('schedule') },
+    { icon: '💳', label: 'Pay Now', onClick: () => setShowPaymentModal(true) },
+    { icon: '📝', label: 'Forms', onClick: () => onNavigate?.('waivers') },
+    { icon: '💬', label: 'Message', onClick: () => onNavigate?.('chats') },
+    { icon: '📊', label: 'Report Card', onClick: () => setActiveTab('report-card') },
+    { icon: '🏅', label: 'Badges', onClick: () => onNavigate?.('achievements') },
+  ]
+
+  // Tab definitions
+  const parentTabs = [
+    { key: 'schedule', label: 'Schedule' },
+    { key: 'payments', label: 'Payments' },
+    { key: 'forms', label: 'Forms & Waivers' },
+    { key: 'report-card', label: 'Report Card' },
+  ]
+
+  // ═══ RENDER — V2 LAYOUT ═══
+  return (
+    <>
+      {/* Orphan Player Banner */}
+      <div style={{ padding: '0 24px' }}>
         <OrphanPlayerBanner onNavigate={onNavigate} />
       </div>
 
-      {/* ── Season + Child Switcher — fixed UI above grid ── */}
-      {(parentSeasons.length > 1 || registrationData.length > 1) && (
-        <div className="flex items-center gap-4 flex-wrap px-6">
-          {/* Season filter — only when children span multiple seasons */}
-          {parentSeasons.length > 1 && (
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Season</span>
-              {parentSeasons.map(s => (
-                <button key={s.id} onClick={() => setSeasonId(s.id)}
-                  className={`px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors ${
-                    seasonId === s.id
-                      ? 'bg-lynx-sky text-white'
-                      : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}>{s.name}</button>
-              ))}
-            </div>
-          )}
-          {/* Child switcher — only when multiple children */}
-          {registrationData.length > 1 && (
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-[1.2px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Player</span>
-              {registrationData.map((child, idx) => (
-                <button
-                  key={child.id}
-                  onClick={() => setActiveChildIdx(idx)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-r-sm font-semibold transition-colors whitespace-nowrap ${
-                    idx === activeChildIdx
-                      ? 'bg-lynx-sky text-white'
-                      : isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {child.first_name}
-                  {child.team_players?.[0]?.teams?.name && (
-                    <span className={`text-[10px] ${idx === activeChildIdx ? 'text-white/70' : isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {child.team_players[0].teams.name}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <V2DashboardLayout
+        mainContent={
+          <>
+            {/* Hero Card */}
+            <HeroCard
+              orgLine={familyName}
+              greeting={getParentGreeting()}
+              subLine={`${orgName || organization?.name || ''} ${registrationData[0]?.season?.name ? '· ' + registrationData[0].season.name : ''}`}
+              stats={heroStats}
+            />
 
-      {/* Widget Grid */}
-      <DashboardGridLayout
-        widgets={parentWidgets}
-        editMode={editMode}
-        onLayoutChange={(layouts) => console.log('Parent layout changed:', layouts)}
-        role="parent"
-        sharedProps={{
-          role: 'parent', isDark, onNavigate, profile, registrationData, activeChildIdx,
-          actionItems, activeChildEvents, events: activeChildEvents, activeTeam,
-          childAchievements, totalChildDue, paymentSummary, teams,
-          userName: profile?.full_name, seasonName: registrationData[0]?.season?.name,
-          // For componentKey-resolved widgets
-          event: activeChildEvents[0],
-          selectedTeam: activeTeamWithRecord,
-          xpData,
-          childName: activeChild?.first_name,
-          onRsvp: (evt) => setQuickRsvpEvent(evt),
-        }}
+            {/* Kid Cards */}
+            <KidCards
+              children={kidCardsData}
+              selectedChildId={activeChild?.id}
+              onChildSelect={(childId) => {
+                const idx = registrationData.findIndex(c => c.id === childId)
+                if (idx >= 0) setActiveChildIdx(idx)
+              }}
+            />
+
+            {/* Attention Strip */}
+            {attentionItems.length > 0 && (
+              <AttentionStrip items={attentionItems} />
+            )}
+
+            {/* Body Tabs */}
+            <BodyTabs
+              tabs={parentTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            >
+              {activeTab === 'schedule' && (
+                <ParentScheduleTab
+                  events={upcomingEvents}
+                  children={registrationData.map(c => ({
+                    ...c,
+                    team: c.team || c.team_players?.[0]?.teams,
+                  }))}
+                  onRsvp={(evt) => setQuickRsvpEvent(evt)}
+                  onEventClick={(evt) => setSelectedEventDetail(evt)}
+                />
+              )}
+              {activeTab === 'payments' && (
+                <ParentPaymentsTab
+                  paymentSummary={paymentSummary}
+                  onPayNow={() => setShowPaymentModal(true)}
+                  onViewAll={() => onNavigate?.('payments')}
+                />
+              )}
+              {activeTab === 'forms' && (
+                <ParentFormsTab
+                  priorityItems={priorityEngine?.items || []}
+                  onAction={handlePriorityAction}
+                  onNavigate={onNavigate}
+                />
+              )}
+              {activeTab === 'report-card' && (
+                <ParentReportCardTab
+                  achievements={childAchievements}
+                  xpData={xpData}
+                  teamRecord={teamRecord}
+                  childName={activeChild?.first_name}
+                  onViewAll={() => onNavigate?.('achievements')}
+                />
+              )}
+            </BodyTabs>
+
+            {/* Mascot Nudge */}
+            <MascotNudge
+              message={
+                childAchievements.length > 0
+                  ? `${activeChild?.first_name || 'Your player'} earned ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}! Check them out.`
+                  : paymentSummary.totalDue > 0
+                    ? `You have $${paymentSummary.totalDue.toLocaleString()} due. Tap Pay Now to settle up.`
+                    : 'Everything looks great! Enjoy the season.'
+              }
+            />
+          </>
+        }
+        sideContent={
+          <>
+            {/* Family Balance */}
+            <FinancialSnapshot
+              title="Family Balance"
+              collected={paymentSummary.totalPaid}
+              outstanding={paymentSummary.totalDue}
+              breakdown={[
+                { label: 'Paid', amount: paymentSummary.totalPaid },
+                { label: 'Due', amount: paymentSummary.totalDue },
+              ]}
+              ctaLabel={paymentSummary.totalDue > 0 ? 'Pay Balance Now' : undefined}
+              onCta={paymentSummary.totalDue > 0 ? () => setShowPaymentModal(true) : undefined}
+            />
+
+            {/* Badge Showcase */}
+            <BadgeShowcase badges={showcaseBadges} />
+
+            {/* The Playbook */}
+            <ThePlaybook actions={playbookItems} />
+
+            {/* Milestone Card */}
+            <MilestoneCard
+              variant="gold"
+              title={`${activeChild?.first_name || 'Player'}'s Progress`}
+              xpCurrent={xpData.currentXp}
+              xpGoal={xpData.xpToNext}
+              level={xpData.level}
+            />
+          </>
+        }
       />
-
-      {/* Edit Layout FAB */}
-      <EditLayoutButton editMode={editMode} onToggle={() => setEditMode(!editMode)} />
 
       {/* ═══ MODALS ═══ */}
       {selectedEventDetail && (
@@ -651,7 +592,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           onRsvp={() => { priorityEngine.refresh(); setQuickRsvpEvent(null) }}
           showToast={showToast} />
       )}
-    </DashboardContainer>
+    </>
   )
 }
 
