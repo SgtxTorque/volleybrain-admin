@@ -95,11 +95,11 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
     setError(null)
 
     try {
+      // ── Step 1: Create org if needed ──
       let orgId = organization?.id
 
-      // Step 3: Create org if needed
       if (!orgId) {
-        const slug = (teamName.trim() + ' Club').toLowerCase()
+        const slug = teamName.trim().toLowerCase()
           .replace(/[^a-z0-9\s]/g, '')
           .replace(/\s+/g, '-')
           .substring(0, 50) + '-' + Date.now().toString(36)
@@ -107,10 +107,9 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
         const { data: newOrg, error: orgError } = await supabase
           .from('organizations')
           .insert({
-            name: teamName.trim() + ' Club',
+            name: teamName.trim(),
             slug,
-            type: 'club',
-            settings: {},
+            is_active: true,
           })
           .select()
           .single()
@@ -119,35 +118,37 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
         orgId = newOrg.id
       }
 
-      // Find or create sport
-      let sportId = null
-      const { data: existingSport } = await supabase
-        .from('sports')
+      // ── Step 2: Create user_roles BEFORE season/team (required for RLS) ──
+      const { data: existingRole } = await supabase
+        .from('user_roles')
         .select('id')
-        .eq('name', SPORT_OPTIONS.find(s => s.value === sport)?.label || 'Volleyball')
+        .eq('user_id', profile.id)
+        .eq('organization_id', orgId)
+        .eq('role', 'team_manager')
         .maybeSingle()
 
-      if (existingSport) {
-        sportId = existingSport.id
-      } else {
-        const { data: newSport, error: sportError } = await supabase
-          .from('sports')
-          .insert({
-            name: SPORT_OPTIONS.find(s => s.value === sport)?.label || 'Volleyball',
-            icon: SPORT_OPTIONS.find(s => s.value === sport)?.icon || '🏐',
-          })
-          .select()
-          .single()
-        if (sportError) throw sportError
-        sportId = newSport.id
+      if (!existingRole) {
+        const { error: roleError } = await supabase.from('user_roles').insert({
+          user_id: profile.id,
+          organization_id: orgId,
+          role: 'team_manager',
+          is_active: true,
+        })
+        if (roleError) throw roleError
       }
 
-      // Create season
+      // ── Step 3: Update profiles.current_organization_id (required for RLS) ──
+      await supabase
+        .from('profiles')
+        .update({ current_organization_id: orgId })
+        .eq('id', profile.id)
+
+      // ── Step 4: Create season (use `sport` text column, not sport_id) ──
       const { data: newSeason, error: seasonError } = await supabase
         .from('seasons')
         .insert({
           organization_id: orgId,
-          sport_id: sportId,
+          sport: sport.toLowerCase(),
           name: seasonName.trim(),
           start_date: startDate,
           end_date: endDate,
@@ -158,7 +159,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
 
       if (seasonError) throw seasonError
 
-      // Create team
+      // ── Step 5: Create team ──
       const { data: newTeam, error: teamError } = await supabase
         .from('teams')
         .insert({
@@ -166,14 +167,14 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
           name: teamName.trim(),
           color: teamColor,
           age_group: ageGroup,
-          is_active: true,
+          max_players: 20,
         })
         .select()
         .single()
 
       if (teamError) throw teamError
 
-      // Create team_staff assignment
+      // ── Step 6: Create team_staff assignment ──
       const { error: staffError } = await supabase
         .from('team_staff')
         .insert({
@@ -185,25 +186,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
 
       if (staffError) throw staffError
 
-      // Create user_role if not exists
-      const { data: existingRole } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('user_id', profile.id)
-        .eq('organization_id', orgId)
-        .eq('role', 'team_manager')
-        .maybeSingle()
-
-      if (!existingRole) {
-        await supabase.from('user_roles').insert({
-          user_id: profile.id,
-          organization_id: orgId,
-          role: 'team_manager',
-          is_active: true,
-        })
-      }
-
-      // Generate invite code (graceful if table missing)
+      // ── Step 7: Generate invite code (graceful if table missing) ──
       let code = null
       try {
         code = generateCode()
@@ -211,7 +194,9 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
           team_id: newTeam.id,
           code,
           is_active: true,
-          created_at: new Date().toISOString(),
+          max_uses: 30,
+          current_uses: 0,
+          created_by: profile.id,
         })
       } catch (codeErr) {
         console.warn('Could not create invite code:', codeErr)
