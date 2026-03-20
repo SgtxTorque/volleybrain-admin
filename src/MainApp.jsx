@@ -47,6 +47,7 @@ import { DashboardPage } from './pages/dashboard'
 // Role-specific Dashboards
 import { ParentDashboard, CoachDashboard, PlayerDashboard } from './pages/roles'
 import { TeamManagerDashboard } from './pages/roles/TeamManagerDashboard'
+import TeamManagerSetup from './pages/team-manager/TeamManagerSetup'
 
 // Parent Portal Pages
 import { PlayerProfilePage, ParentPlayerCardPage, ParentMessagesPage, InviteFriendsPage, ParentPaymentsPage, MyStuffPage, ParentRegistrationHub, ClaimAccountPage } from './pages/parent'
@@ -777,7 +778,11 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/dashboard" element={
         activeView === 'admin' ? <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
-        activeView === 'team_manager' ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
+        activeView === 'team_manager' ? (
+          roleContext?.teamManagerInfo?.length > 0
+            ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
+            : <TeamManagerSetup roleContext={roleContext} showToast={showToast} onComplete={() => loadRoleContext()} />
+        ) :
         activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /> :
         activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} /> :
         <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
@@ -930,7 +935,7 @@ function MainApp() {
         isAdmin: roles?.some(r => r.role === 'league_admin' || r.role === 'admin'),
         isCoach: !!coachLink,
         coachInfo: coachLink,
-        isTeamManager: teamManagerStaff && teamManagerStaff.length > 0,
+        isTeamManager: (teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager'),
         teamManagerInfo: teamManagerStaff || [],
         isParent: roles?.some(r => r.role === 'parent') && children?.length > 0,
         children: children || [],
@@ -942,7 +947,7 @@ function MainApp() {
         setActiveView('admin')
       } else if (coachLink) {
         setActiveView('coach')
-      } else if (teamManagerStaff && teamManagerStaff.length > 0) {
+      } else if ((teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager')) {
         setActiveView('team_manager')
       } else if (children?.length > 0) {
         setActiveView('parent')
