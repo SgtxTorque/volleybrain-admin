@@ -96,6 +96,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [teamsData, setTeamsData] = useState([])
   const [teamStats, setTeamStats] = useState({})
   const [recentPaymentsNamed, setRecentPaymentsNamed] = useState([])
+  const [paymentFamilies, setPaymentFamilies] = useState([])
   const [topPlayers, setTopPlayers] = useState([])
   const [coachesData, setCoachesData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -230,10 +231,10 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
       const seasonCapacity = selectedSeason.capacity || selectedSeason.registration_capacity || 0
       const totalCapacity = seasonCapacity || (teamCount || 0) * 12
 
-      // Fetch payments for this season
+      // Fetch payments for this season (with player + parent info for family rollup)
       const { data: allPayments } = await supabase
         .from('payments')
-        .select('amount, paid, payment_method, fee_type, created_at, due_date, player_id')
+        .select('id, amount, paid, payment_method, fee_type, created_at, due_date, paid_at, player_id, players(id, first_name, last_name, parent_name, parent_phone, parent_email)')
         .eq('season_id', seasonId)
 
       // Scope payments to team's players if filtered
@@ -536,6 +537,102 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
 
       setMonthlyPayments(monthlyData)
 
+      // Build family-level payment rollups for collections worklist
+      try {
+        const familyMap = {}
+        for (const payment of payments) {
+          const parentKey = payment.players?.parent_name || payment.players?.parent_email || `player-${payment.player_id}`
+          const parentName = payment.players?.parent_name || 'Unknown'
+
+          if (!familyMap[parentKey]) {
+            familyMap[parentKey] = {
+              parentKey,
+              parentName,
+              parentEmail: payment.players?.parent_email || '',
+              parentPhone: payment.players?.parent_phone || '',
+              children: [],
+              lineItems: [],
+              totalDue: 0,
+              totalPaid: 0,
+              earliestDueDate: null,
+              lastPaymentDate: null,
+              needsApproval: false,
+            }
+          }
+
+          const family = familyMap[parentKey]
+
+          // Track children
+          const childName = payment.players ? `${payment.players.first_name || ''} ${payment.players.last_name || ''}`.trim() : ''
+          if (childName && !family.children.includes(childName)) {
+            family.children.push(childName)
+          }
+
+          // Track line items
+          family.lineItems.push({
+            id: payment.id,
+            feeType: payment.fee_type || 'Other',
+            amount: parseFloat(payment.amount) || 0,
+            paid: payment.paid,
+            method: payment.payment_method,
+            dueDate: payment.due_date,
+            paidAt: payment.paid_at,
+          })
+
+          // Aggregate totals
+          if (payment.paid) {
+            family.totalPaid += (parseFloat(payment.amount) || 0)
+            if (payment.paid_at) {
+              const paidDate = new Date(payment.paid_at)
+              if (!family.lastPaymentDate || paidDate > new Date(family.lastPaymentDate)) {
+                family.lastPaymentDate = payment.paid_at
+              }
+            }
+          } else {
+            family.totalDue += (parseFloat(payment.amount) || 0)
+            if (payment.due_date) {
+              const dueDate = new Date(payment.due_date)
+              if (!family.earliestDueDate || dueDate < new Date(family.earliestDueDate)) {
+                family.earliestDueDate = payment.due_date
+              }
+            }
+          }
+
+          // Check for manual payments needing approval
+          if (payment.payment_method === 'manual' && !payment.paid) {
+            family.needsApproval = true
+          }
+        }
+
+        // Filter and sort families
+        const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000)
+        const families = Object.values(familyMap)
+          .filter(family => {
+            if (family.totalDue > 0) return true
+            if (family.needsApproval) return true
+            // Keep recently-paid Stripe for 24h
+            const recentStripe = family.lineItems.some(item =>
+              item.method === 'stripe' && item.paidAt && new Date(item.paidAt) > twentyFourHoursAgo
+            )
+            if (recentStripe) return true
+            return false
+          })
+          .sort((a, b) => {
+            const aOverdue = a.earliestDueDate && new Date(a.earliestDueDate) < now
+            const bOverdue = b.earliestDueDate && new Date(b.earliestDueDate) < now
+            if (aOverdue && !bOverdue) return -1
+            if (!aOverdue && bOverdue) return 1
+            if (a.needsApproval && !b.needsApproval) return -1
+            if (!a.needsApproval && b.needsApproval) return 1
+            return (b.totalDue || 0) - (a.totalDue || 0)
+          })
+
+        setPaymentFamilies(families)
+      } catch (err) {
+        console.warn('Payment family rollup failed:', err)
+        setPaymentFamilies([])
+      }
+
     } catch (err) {
       console.error('Dashboard load error:', err)
     }
@@ -772,7 +869,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   <AdminRegistrationsTab stats={stats} registrationPlayers={registrationPlayers} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'payments' && (
-                  <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
+                  <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} paymentFamilies={paymentFamilies} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'schedules' && (
                   <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
