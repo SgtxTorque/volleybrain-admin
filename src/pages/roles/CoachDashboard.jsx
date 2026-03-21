@@ -19,9 +19,10 @@ import TeamSwitcher from '../../components/v2/coach/TeamSwitcher'
 import GameDayCard from '../../components/v2/coach/GameDayCard'
 import ShoutoutCard from '../../components/v2/coach/ShoutoutCard'
 import CoachRosterTab from '../../components/v2/coach/CoachRosterTab'
-import CoachAttendanceTab from '../../components/v2/coach/CoachAttendanceTab'
+import CoachScheduleTab from '../../components/v2/coach/CoachScheduleTab'
 import CoachStatsTab from '../../components/v2/coach/CoachStatsTab'
 import CoachGamePrepTab from '../../components/v2/coach/CoachGamePrepTab'
+import CoachEngagementTab from '../../components/v2/coach/CoachEngagementTab'
 
 // ── Event Detail Modal ──
 function EventDetailModal({ event, team, onClose }) {
@@ -833,9 +834,10 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             <BodyTabs
               tabs={[
                 { id: 'roster', label: 'Roster' },
-                { id: 'attendance', label: 'Attendance' },
-                { id: 'stats', label: 'Stats' },
+                { id: 'schedule', label: 'Schedule' },
+                { id: 'stats', label: 'Stats & Evals' },
                 { id: 'gameprep', label: 'Game Prep' },
+                { id: 'engagement', label: 'Engagement' },
               ]}
               activeTabId={activeTab}
               onTabChange={setActiveTab}
@@ -844,14 +846,24 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               {activeTab === 'roster' && (
                 <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
               )}
-              {activeTab === 'attendance' && (
-                <CoachAttendanceTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} />
+              {activeTab === 'schedule' && (
+                <CoachScheduleTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} onNavigate={onNavigate} />
               )}
               {activeTab === 'stats' && (
                 <CoachStatsTab topPlayers={topPlayers} roster={roster} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
               )}
               {activeTab === 'gameprep' && (
                 <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />
+              )}
+              {activeTab === 'engagement' && (
+                <CoachEngagementTab
+                  activeChallenges={activeChallenges}
+                  weeklyShoutouts={weeklyShoutouts}
+                  weeklyEngagement={weeklyEngagement}
+                  onGiveShoutout={() => setShowShoutoutModal(true)}
+                  onCreateChallenge={() => onNavigate?.('teams')}
+                  onNavigate={onNavigate}
+                />
               )}
             </BodyTabs>
 
