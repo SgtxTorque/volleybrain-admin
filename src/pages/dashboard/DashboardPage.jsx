@@ -716,7 +716,7 @@ export function DashboardPage({ onNavigate }) {
                 footerLink={activeTab === 'teams' ? { label: `View all ${teamsData?.length || 0} teams →`, onClick: () => onNavigate?.('teams') } : undefined}
               >
                 {activeTab === 'teams' && (
-                  <AdminTeamsTab teamsData={teamsData} teamStats={teamStats} onTeamClick={(id) => onNavigate?.('teamwall', { id })} onViewAll={() => onNavigate?.('teams')} />
+                  <AdminTeamsTab teamsData={teamsData} teamStats={teamStats} onTeamClick={(teamId) => onNavigate?.('teamwall', { teamId })} onViewAll={() => onNavigate?.('teams')} />
                 )}
                 {activeTab === 'registrations' && (
                   <AdminRegistrationsTab stats={stats} onNavigate={onNavigate} />
@@ -795,7 +795,7 @@ export function DashboardPage({ onNavigate }) {
                   { emoji: '👤', label: 'Add Player', onClick: () => onNavigate?.('registrations') },
                   { emoji: '✅', label: 'Approve Regs', onClick: () => onNavigate?.('registrations') },
                   { emoji: '📊', label: 'Reports', onClick: () => onNavigate?.('reports') },
-                  { emoji: '🔗', label: 'Reg Link', onClick: () => onNavigate?.('registration-templates') },
+                  { emoji: '🔗', label: 'Reg Link', onClick: () => onNavigate?.('templates') },
                 ]}
               />
 
