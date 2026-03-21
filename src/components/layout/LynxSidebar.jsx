@@ -166,9 +166,9 @@ function RoleSwitcher({ activeView, availableViews, onSwitchRole, isPlayer }) {
 
 
 // =============================================================================
-// NavItem — single icon button
+// NavItem — icon button with optional label on hover-expand
 // =============================================================================
-function NavItem({ item, isActive, onNavigate, isPlayer }) {
+function NavItem({ item, isActive, onNavigate, isPlayer, expanded }) {
   const Icon = ICON_MAP[item.icon] || ICON_MAP[item.id] || LayoutDashboard
 
   return (
@@ -177,13 +177,25 @@ function NavItem({ item, isActive, onNavigate, isPlayer }) {
       className="v2-sidebar-btn"
       data-active={isActive || undefined}
       data-player={isPlayer || undefined}
-      title={item.label}
-      style={isActive ? {
-        background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
-        color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
-      } : undefined}
+      data-expanded={expanded || undefined}
+      title={expanded ? undefined : item.label}
+      style={{
+        ...(expanded ? { width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10 } : {}),
+        ...(isActive ? {
+          background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+          color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+        } : {}),
+      }}
     >
-      <Icon style={{ width: 18, height: 18 }} />
+      <Icon style={{ width: 18, height: 18, flexShrink: 0 }} />
+      {expanded && (
+        <span style={{
+          fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+          overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>
+          {item.label}
+        </span>
+      )}
       {item.badge > 0 && (
         <span className="v2-sidebar-badge">{item.badge > 9 ? '9+' : item.badge}</span>
       )}
@@ -207,6 +219,7 @@ export default function LynxSidebar({
   isPlatformAdmin = false, onEnterPlatformMode,
 }) {
   const isPlayer = activeView === 'player'
+  const [expanded, setExpanded] = useState(false)
 
   const isItemActive = (item) => {
     if (item.teamId) return directTeamWallId === item.teamId
@@ -232,33 +245,49 @@ export default function LynxSidebar({
     <div
       className="v2-sidebar"
       data-player={isPlayer || undefined}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
       style={{
         position: 'fixed', top: 0, left: 0,
-        width: 'var(--v2-sidebar-width)', height: '100vh',
+        width: expanded ? 180 : 'var(--v2-sidebar-width)',
+        height: '100vh',
         background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
         borderRight: isPlayer
           ? '1px solid rgba(255,255,255,0.06)'
           : '1px solid var(--v2-border-subtle)',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        padding: '14px 0 20px',
+        display: 'flex', flexDirection: 'column',
+        alignItems: expanded ? 'stretch' : 'center',
+        padding: expanded ? '14px 10px 20px' : '14px 0 20px',
         zIndex: 200,
         overflowY: 'auto',
         overflowX: 'hidden',
+        transition: 'width 0.2s ease, padding 0.2s ease',
+        boxShadow: expanded ? '4px 0 24px rgba(0,0,0,0.08)' : 'none',
       }}
     >
       {/* ---- Logo ---- */}
-      <div
-        style={{
-          width: 34, height: 34, borderRadius: 10,
-          background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
-          color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontWeight: 800, fontSize: 17,
-          flexShrink: 0,
-          marginBottom: 16,
-        }}
-      >
-        L
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginBottom: 16, ...(expanded ? { paddingLeft: 2 } : {}) }}>
+        <div
+          style={{
+            width: 34, height: 34, borderRadius: 10,
+            background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+            color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 800, fontSize: 17,
+            flexShrink: 0,
+          }}
+        >
+          L
+        </div>
+        {expanded && (
+          <span style={{
+            fontSize: 15, fontWeight: 800,
+            color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+            whiteSpace: 'nowrap', overflow: 'hidden',
+          }}>
+            Lynx
+          </span>
+        )}
       </div>
 
       {/* ---- Role Switcher ---- */}
@@ -270,14 +299,14 @@ export default function LynxSidebar({
       />
 
       {/* ---- Nav Items ---- */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: expanded ? 'stretch' : 'center', gap: 2, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
         {flatItems.map((item, idx) => {
           if (item._separator) {
             return (
               <div
                 key={item.id}
                 style={{
-                  width: 24, height: 1, margin: '6px 0',
+                  width: expanded ? '100%' : 24, height: 1, margin: '6px 0',
                   background: isPlayer ? 'rgba(255,255,255,0.08)' : 'var(--v2-border-subtle)',
                   flexShrink: 0,
                 }}
@@ -296,16 +325,17 @@ export default function LynxSidebar({
               isActive={active}
               onNavigate={onNavigate}
               isPlayer={isPlayer}
+              expanded={expanded}
             />
           )
         })}
       </nav>
 
       {/* ---- Bottom Utilities ---- */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0, paddingTop: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: expanded ? 'stretch' : 'center', gap: 2, flexShrink: 0, paddingTop: 8 }}>
         {/* Separator */}
         <div style={{
-          width: 24, height: 1, marginBottom: 4,
+          width: expanded ? '100%' : 24, height: 1, marginBottom: 4,
           background: isPlayer ? 'rgba(255,255,255,0.08)' : 'var(--v2-border-subtle)',
         }} />
 
@@ -313,36 +343,45 @@ export default function LynxSidebar({
         {isPlatformAdmin && (
           <button
             onClick={() => onEnterPlatformMode?.()}
-            title="Platform Mode"
+            title={expanded ? undefined : 'Platform Mode'}
             className="v2-sidebar-btn"
+            data-expanded={expanded || undefined}
             style={{
               color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-amber)',
+              ...(expanded ? { width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10 } : {}),
             }}
           >
-            <Shield style={{ width: 18, height: 18 }} />
+            <Shield style={{ width: 18, height: 18, flexShrink: 0 }} />
+            {expanded && <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>Platform Mode</span>}
           </button>
         )}
 
         {/* Settings */}
         <button
           onClick={() => onNavigate?.('organization')}
-          title="Settings"
+          title={expanded ? undefined : 'Settings'}
           className="v2-sidebar-btn"
           data-player={isPlayer || undefined}
+          data-expanded={expanded || undefined}
+          style={expanded ? { width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10 } : undefined}
         >
-          <Settings style={{ width: 18, height: 18 }} />
+          <Settings style={{ width: 18, height: 18, flexShrink: 0 }} />
+          {expanded && <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>Settings</span>}
         </button>
 
         {/* Sign Out */}
         <button
           onClick={() => onSignOut?.()}
-          title="Sign Out"
+          title={expanded ? undefined : 'Sign Out'}
           className="v2-sidebar-btn"
+          data-expanded={expanded || undefined}
           style={{
             color: isPlayer ? 'rgba(239,68,68,0.6)' : 'rgba(239,68,68,0.5)',
+            ...(expanded ? { width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10 } : {}),
           }}
         >
-          <LogOut style={{ width: 18, height: 18 }} />
+          <LogOut style={{ width: 18, height: 18, flexShrink: 0 }} />
+          {expanded && <span style={{ fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap' }}>Sign Out</span>}
         </button>
       </div>
 
