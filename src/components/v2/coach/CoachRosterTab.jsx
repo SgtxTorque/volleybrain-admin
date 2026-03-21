@@ -1,6 +1,6 @@
 // =============================================================================
 // CoachRosterTab — V2 roster table for coach dashboard body tabs
-// Props-only.
+// Props-only. Enriched columns: Avatar, Player, Parent, Contact, Pos, RSVP.
 // =============================================================================
 
 export default function CoachRosterTab({
@@ -23,27 +23,21 @@ export default function CoachRosterTab({
     'linear-gradient(135deg, #F43F5E, #E11D48)',
   ]
 
-  // Get RSVP status for next event per player
-  const getPlayerRsvp = (playerId) => {
-    // Simplified: would need per-player RSVP data
-    return null
-  }
-
   return (
     <div style={{ fontFamily: 'var(--v2-font)' }}>
       {/* Table header */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '40px 1fr 70px 70px 80px',
+        gridTemplateColumns: '40px 1fr 140px 120px 50px 70px 80px',
         gap: 8, padding: '10px 24px',
         background: 'var(--v2-surface)',
         borderBottom: '1px solid var(--v2-border-subtle)',
       }}>
-        {['', 'Player', 'Pos', '#', 'RSVP'].map((h, i) => (
+        {['', 'Player', 'Parent', 'Contact', 'Pos', '#', 'RSVP'].map((h, i) => (
           <span key={i} style={{
             fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
             color: 'var(--v2-text-muted)', letterSpacing: '0.05em',
-            textAlign: i >= 2 ? 'center' : 'left',
+            textAlign: i >= 4 ? 'center' : 'left',
           }}>
             {h}
           </span>
@@ -57,9 +51,9 @@ export default function CoachRosterTab({
           onClick={() => onPlayerClick?.(player)}
           style={{
             display: 'grid',
-            gridTemplateColumns: '40px 1fr 70px 70px 80px',
+            gridTemplateColumns: '40px 1fr 140px 120px 50px 70px 80px',
             gap: 8, padding: '10px 24px',
-            borderBottom: i < roster.length - 1 ? '1px solid var(--v2-border-subtle)' : 'none',
+            borderBottom: i < Math.min(roster.length, 15) - 1 ? '1px solid var(--v2-border-subtle)' : 'none',
             cursor: 'pointer',
             transition: 'background 0.15s ease',
             alignItems: 'center',
@@ -81,11 +75,26 @@ export default function CoachRosterTab({
             )}
           </div>
 
-          {/* Name */}
+          {/* Player name + jersey */}
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--v2-text-primary)' }}>
               {player.first_name} {player.last_name}
             </div>
+            {player.jersey_number && (
+              <div style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>
+                #{player.jersey_number}
+              </div>
+            )}
+          </div>
+
+          {/* Parent */}
+          <div style={{ fontSize: 13, color: 'var(--v2-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {player.parent_name || '—'}
+          </div>
+
+          {/* Contact */}
+          <div style={{ fontSize: 12, color: 'var(--v2-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {player.parent_phone || player.parent_email || '—'}
           </div>
 
           {/* Position */}
@@ -98,7 +107,7 @@ export default function CoachRosterTab({
             {player.jersey_number || '—'}
           </div>
 
-          {/* RSVP status placeholder */}
+          {/* RSVP status */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <span style={{
               fontSize: 10, fontWeight: 700,
