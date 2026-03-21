@@ -189,7 +189,7 @@ export default function LynxSidebar({
 
         {/* Settings */}
         <button
-          onClick={() => onNavigate?.('settings', { id: 'settings' })}
+          onClick={() => onNavigate?.('organization')}
           title="Settings"
           className="v2-sidebar-btn"
           data-player={isPlayer || undefined}
