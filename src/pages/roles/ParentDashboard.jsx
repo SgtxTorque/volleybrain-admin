@@ -438,12 +438,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     { icon: '🏅', label: 'Badges', onClick: () => onNavigate?.('achievements') },
   ]
 
-  // Tab definitions
+  // Tab definitions (BodyTabs expects `id` not `key`)
   const parentTabs = [
-    { key: 'schedule', label: 'Schedule' },
-    { key: 'payments', label: 'Payments' },
-    { key: 'forms', label: 'Forms & Waivers' },
-    { key: 'report-card', label: 'Report Card' },
+    { id: 'schedule', label: 'Schedule' },
+    { id: 'payments', label: 'Payments' },
+    { id: 'forms', label: 'Forms & Waivers' },
+    { id: 'report-card', label: 'Report Card' },
   ]
 
   // ═══ RENDER — V2 LAYOUT ═══
@@ -502,7 +502,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             {/* Body Tabs */}
             <BodyTabs
               tabs={parentTabs}
-              activeTab={activeTab}
+              activeTabId={activeTab}
               onTabChange={setActiveTab}
             >
               {activeTab === 'schedule' && (
