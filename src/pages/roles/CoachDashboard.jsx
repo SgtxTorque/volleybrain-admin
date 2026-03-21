@@ -347,7 +347,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   async function loadTeamData(team) {
     if (!team) return
     try {
-      const { data: players } = await supabase.from('team_players').select('*, players (id, first_name, last_name, photo_url, jersey_number, position)').eq('team_id', team.id)
+      const { data: players } = await supabase.from('team_players').select('*, players (id, first_name, last_name, photo_url, jersey_number, position, parent_name, parent_phone, parent_email)').eq('team_id', team.id)
       const rosterData = players?.map(p => p.players).filter(Boolean) || []
       setRoster(rosterData)
 
