@@ -787,7 +787,7 @@ export function DashboardPage({ onNavigate }) {
               <FinancialSnapshot
                 overline="Financial Snapshot"
                 heading={selectedSeason?.name || 'Current Season'}
-                headingSub="Revenue Overview"
+                headingSub="Season Revenue"
                 projectedRevenue={stats.totalExpected || null}
                 collectedPct={stats.totalExpected ? Math.round((stats.totalCollected / stats.totalExpected) * 100) : 0}
                 receivedAmount={`$${(stats.totalCollected || 0).toLocaleString()}`}
