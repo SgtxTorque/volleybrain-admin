@@ -821,6 +821,7 @@ export function DashboardPage({ onNavigate }) {
 
               {/* ORG HEALTH */}
               <OrgHealthCard
+                subtitle={`Season: ${selectedSeason?.name || 'Current'}`}
                 metrics={[
                   { label: 'Roster Fill', value: `${stats.rosteredPlayers || 0}/${totalPlayers}`, percentage: rosterPct, color: 'sky' },
                   { label: 'Payments', value: `${paymentPct}%`, percentage: paymentPct, color: 'green' },

@@ -5,6 +5,7 @@
 
 export default function OrgHealthCard({
   title = 'Org Health',
+  subtitle,
   metrics = [],
 }) {
   const colorMap = {
@@ -25,12 +26,18 @@ export default function OrgHealthCard({
       fontFamily: 'var(--v2-font)',
     }}>
       {/* Header */}
-      <div style={{
-        fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
-        textTransform: 'uppercase', color: 'var(--v2-text-muted)',
-        marginBottom: 14,
-      }}>
-        {title}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
+          textTransform: 'uppercase', color: 'var(--v2-text-muted)',
+        }}>
+          {title}
+        </div>
+        {subtitle && (
+          <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginTop: 2 }}>
+            {subtitle}
+          </div>
+        )}
       </div>
 
       {/* Metric rows */}
