@@ -103,6 +103,7 @@ export function DashboardPage({ onNavigate }) {
   const [perSeasonTeamCounts, setPerSeasonTeamCounts] = useState({})
   const [perSeasonPlayerCounts, setPerSeasonPlayerCounts] = useState({})
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
+  const [attentionExpanded, setAttentionExpanded] = useState(false)
 
   // Fetch per-season team & player counts for Season Journey (runs once per org)
   useEffect(() => {
@@ -606,8 +607,24 @@ export function DashboardPage({ onNavigate }) {
   if (firstNonDone >= 0 && setupSteps[firstNonDone].status === 'upcoming') setupSteps[firstNonDone].status = 'current'
   const setupComplete = setupSteps.filter(s => s.status === 'done').length
 
-  // Compute items needing action for attention strip
-  const actionCount = (stats.pending || 0) + overdueCount
+  // Compute categorized items for attention strip
+  const attentionItems = []
+  if (overdueCount > 0) {
+    attentionItems.push({ category: 'Overdue Payments', count: overdueCount, icon: '\uD83D\uDCB0', onClick: () => onNavigate?.('payments') })
+  }
+  if ((stats.pending || 0) > 0) {
+    attentionItems.push({ category: 'Pending Registrations', count: stats.pending, icon: '\uD83D\uDCCB', onClick: () => onNavigate?.('registrations') })
+  }
+  if ((stats.unsignedWaivers || 0) > 0) {
+    attentionItems.push({ category: 'Unsigned Waivers', count: stats.unsignedWaivers, icon: '\uD83D\uDCDD', onClick: () => onNavigate?.('waivers') })
+  }
+  if (unrosteredCount > 0) {
+    attentionItems.push({ category: 'Unrostered Players', count: unrosteredCount, icon: '\uD83D\uDC65', onClick: () => onNavigate?.('teams') })
+  }
+  if (teamsNoSchedule > 0) {
+    attentionItems.push({ category: 'Teams Without Schedule', count: teamsNoSchedule, icon: '\uD83D\uDCC5', onClick: () => onNavigate?.('schedule') })
+  }
+  const actionCount = attentionItems.reduce((sum, item) => sum + item.count, 0)
 
   return (
     <>
@@ -676,8 +693,31 @@ export function DashboardPage({ onNavigate }) {
               {actionCount > 0 && (
                 <AttentionStrip
                   message={`${actionCount} item${actionCount !== 1 ? 's' : ''} need${actionCount === 1 ? 's' : ''} action`}
-                  ctaLabel="REVIEW NOW →"
-                  onClick={() => onNavigate?.(overdueCount > 0 ? 'payments' : 'registrations')}
+                  ctaLabel={attentionExpanded ? 'COLLAPSE' : 'REVIEW NOW \u2192'}
+                  onClick={() => setAttentionExpanded(!attentionExpanded)}
+                  isExpanded={attentionExpanded}
+                  expandedContent={
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {attentionItems.map((item, i) => (
+                        <div
+                          key={i}
+                          onClick={(e) => { e.stopPropagation(); item.onClick() }}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                            background: 'rgba(255,255,255,0.6)', transition: 'background 0.15s',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.9)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.6)'}
+                        >
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--v2-text-primary)' }}>
+                            <span>{item.icon}</span> {item.category}
+                          </span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--v2-red)' }}>{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  }
                 />
               )}
 
