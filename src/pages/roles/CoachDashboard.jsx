@@ -295,6 +295,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // V2.1 Workflow button badges
   const [newPlayersCount, setNewPlayersCount] = useState(0)
+  const [evalData, setEvalData] = useState([])
   const [activeTab, setActiveTab] = useState('roster')
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
@@ -645,6 +646,23 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         } catch { setLineupsSet(0) }
       } else { setLineupsSet(0) }
 
+      // 11. Player skill evaluations (Stats & Evals tab)
+      try {
+        if (playerIds.length > 0) {
+          const { data: ratings } = await supabase
+            .from('player_skill_ratings')
+            .select('player_id, overall_rating, serve, pass, attack, block, dig, set_skill, created_at')
+            .in('player_id', playerIds)
+            .order('created_at', { ascending: false })
+          // Group by player_id, keep most recent eval per player
+          const latestByPlayer = {}
+          for (const r of (ratings || [])) {
+            if (!latestByPlayer[r.player_id]) latestByPlayer[r.player_id] = r
+          }
+          setEvalData(Object.values(latestByPlayer))
+        } else { setEvalData([]) }
+      } catch { setEvalData([]) }
+
     } catch (err) { console.error('Error loading team data:', err) }
   }
 
@@ -850,7 +868,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 <CoachScheduleTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} onNavigate={onNavigate} />
               )}
               {activeTab === 'stats' && (
-                <CoachStatsTab topPlayers={topPlayers} roster={roster} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
+                <CoachStatsTab topPlayers={topPlayers} roster={roster} evalData={evalData} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
               )}
               {activeTab === 'gameprep' && (
                 <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />
