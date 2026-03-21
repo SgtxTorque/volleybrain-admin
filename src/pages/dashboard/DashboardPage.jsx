@@ -89,6 +89,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
     unsignedWaivers: 0,
     totalExpected: 0,
   })
+  const [registrationPlayers, setRegistrationPlayers] = useState([])
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [monthlyPayments, setMonthlyPayments] = useState([])
   const [recentActivity, setRecentActivity] = useState([])
@@ -206,6 +207,9 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         created_at: p.registrations?.[0]?.created_at || p.created_at,
         player_id: p.id
       })) || []
+
+      // Store player data for registration list
+      setRegistrationPlayers(scopedPlayers)
 
       // Calculate registration stats correctly (include 'active' as rostered)
       const regStats = {
@@ -765,7 +769,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   <AdminTeamsTab teamsData={teamsData} teamStats={teamStats} onTeamClick={(teamId) => onNavigate?.('teamwall', { teamId })} onViewAll={() => onNavigate?.('teams')} />
                 )}
                 {activeTab === 'registrations' && (
-                  <AdminRegistrationsTab stats={stats} onNavigate={onNavigate} />
+                  <AdminRegistrationsTab stats={stats} registrationPlayers={registrationPlayers} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'payments' && (
                   <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
