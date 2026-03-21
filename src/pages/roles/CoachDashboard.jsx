@@ -887,13 +887,21 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
             <WeeklyLoad
               title="This Week"
               dateRange={selectedTeam?.name || 'Team Schedule'}
-              events={(upcomingEvents || []).slice(0, 5).map(evt => ({
-                dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
-                dayNum: new Date(evt.event_date).getDate(),
-                isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
-                title: evt.title || evt.event_type || 'Event',
-                meta: `${evt.location || 'TBD'} · ${evt.event_time ? formatTime12(evt.event_time) : ''}`,
-              }))}
+              events={(() => {
+                const now = new Date()
+                const endOfWeek = new Date(now)
+                endOfWeek.setDate(now.getDate() + (7 - now.getDay()))
+                return (upcomingEvents || [])
+                  .filter(evt => new Date(evt.event_date) <= endOfWeek)
+                  .slice(0, 7)
+                  .map(evt => ({
+                    dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
+                    dayNum: new Date(evt.event_date).getDate(),
+                    isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
+                    title: evt.title || evt.event_type?.replace('_', ' ') || 'Event',
+                    meta: `${evt.location || 'TBD'} · ${evt.event_time ? formatTime12(evt.event_time) : ''}`,
+                  }))
+              })()}
             />
 
             {/* THE PLAYBOOK */}
