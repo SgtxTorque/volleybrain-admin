@@ -647,7 +647,7 @@ function PlayerProfileRoute({ roleContext, showToast }) {
 // ============================================
 // ROUTED CONTENT — renders the correct page based on URL
 // ============================================
-function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView }) {
+function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView, getAvailableViews, setActiveView }) {
   const navigate = useNavigate()
   const location = useLocation()
   const navigateToTeamWall = (teamId) => navigate(`/teams/${teamId}`)
@@ -1185,6 +1185,8 @@ function MainApp() {
                 showToast={showToast}
                 selectedPlayerForView={selectedPlayerForView}
                 setSelectedPlayerForView={setSelectedPlayerForView}
+                getAvailableViews={getAvailableViews}
+                setActiveView={setActiveView}
               />
             </ErrorBoundary>
           </div>
