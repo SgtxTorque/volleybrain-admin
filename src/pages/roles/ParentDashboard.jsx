@@ -557,15 +557,35 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           <>
             {/* Family Balance */}
             <FinancialSnapshot
-              title="Family Balance"
-              collected={paymentSummary.totalPaid}
-              outstanding={paymentSummary.totalDue}
-              breakdown={[
-                { label: 'Paid', amount: paymentSummary.totalPaid },
-                { label: 'Due', amount: paymentSummary.totalDue },
-              ]}
-              ctaLabel={paymentSummary.totalDue > 0 ? 'Pay Balance Now' : undefined}
-              onCta={paymentSummary.totalDue > 0 ? () => setShowPaymentModal(true) : undefined}
+              overline="Family Balance"
+              heading={registrationData[0]?.season?.name || 'Current Season'}
+              headingSub="Season Fees"
+              collectedPct={
+                (paymentSummary.totalPaid + paymentSummary.totalDue) > 0
+                  ? Math.round((paymentSummary.totalPaid / (paymentSummary.totalPaid + paymentSummary.totalDue)) * 100)
+                  : 100
+              }
+              receivedAmount={`$${Number(paymentSummary.totalPaid || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              receivedLabel="Paid"
+              outstandingAmount={paymentSummary.totalDue > 0 ? `$${Number(paymentSummary.totalDue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : undefined}
+              outstandingLabel="Outstanding"
+              dueDateText={
+                paymentSummary.totalDue === 0 && paymentSummary.totalPaid > 0
+                  ? '✓ All Paid'
+                  : paymentSummary.totalDue > 0
+                    ? 'Balance due — tap below to pay'
+                    : null
+              }
+              primaryAction={
+                paymentSummary.totalDue > 0
+                  ? { label: 'Pay Balance Now →', onClick: () => setShowPaymentModal(true), variant: 'success' }
+                  : null
+              }
+              secondaryAction={
+                paymentSummary.totalDue > 0
+                  ? { label: 'View Details', onClick: () => onNavigate?.('payments') }
+                  : null
+              }
             />
 
             {/* Badge Showcase */}
