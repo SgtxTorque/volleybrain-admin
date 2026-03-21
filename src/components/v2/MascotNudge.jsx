@@ -4,7 +4,7 @@
 // =============================================================================
 
 export default function MascotNudge({
-  emoji = '🐱',
+  emoji = '/images/mascots/lightbulb.png',
   message,
   primaryAction,
   secondaryAction,
@@ -33,8 +33,17 @@ export default function MascotNudge({
           border: isDark ? '1px solid rgba(255,215,0,0.1)' : 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 24,
+          overflow: 'hidden',
         }}>
-          {emoji}
+          {emoji && (emoji.startsWith('/') || emoji.startsWith('http')) ? (
+            <img
+              src={emoji}
+              alt="Lynx"
+              style={{ width: 48, height: 48, borderRadius: 14, objectFit: 'cover' }}
+            />
+          ) : (
+            emoji
+          )}
         </div>
         {/* Green dot */}
         <div style={{

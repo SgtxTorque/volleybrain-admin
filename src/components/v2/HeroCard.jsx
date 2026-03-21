@@ -7,7 +7,7 @@ export default function HeroCard({
   orgLine,
   greeting = '',
   subLine,
-  mascotEmoji = '🐱',
+  mascotEmoji = '/images/mascots/waving.png',
   stats,
   levelBadge,
   xpBar,
@@ -97,8 +97,17 @@ export default function HeroCard({
           border: isPlayer ? '1px solid rgba(255,215,0,0.1)' : '1px solid rgba(255,255,255,0.06)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 36, flexShrink: 0, marginLeft: 16,
+          overflow: 'hidden',
         }}>
-          {mascotEmoji}
+          {mascotEmoji && (mascotEmoji.startsWith('/') || mascotEmoji.startsWith('http')) ? (
+            <img
+              src={mascotEmoji}
+              alt="Lynx mascot"
+              style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover' }}
+            />
+          ) : (
+            mascotEmoji
+          )}
         </div>
       </div>
 
