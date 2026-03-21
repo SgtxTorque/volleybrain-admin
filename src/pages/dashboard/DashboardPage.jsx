@@ -357,7 +357,7 @@ export function DashboardPage({ onNavigate }) {
           try {
             const { data: coachProfiles } = await supabase
               .from('coaches')
-              .select('id, profiles(first_name, last_name)')
+              .select('id, profile_id, profiles:profile_id(first_name, last_name)')
               .in('id', uniqueCoachIds)
             setCoachesData((coachProfiles || []).map(c => ({
               id: c.id,

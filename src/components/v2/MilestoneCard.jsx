@@ -8,11 +8,15 @@ export default function MilestoneCard({
   trophy = '🏆',
   title,
   subtitle,
-  xpCurrent,
-  xpTarget,
+  xpCurrent: xpCurrentProp,
+  xpTarget: xpTargetProp,
+  xpGoal,
   variant = 'gold',
   onClick,
 }) {
+  // Accept both xpTarget and xpGoal for backward compat, default to 0
+  const xpCurrent = xpCurrentProp ?? 0
+  const xpTarget = xpTargetProp ?? xpGoal ?? 0
   const pct = xpTarget > 0 ? Math.min((xpCurrent / xpTarget) * 100, 100) : 0
 
   const themes = {
