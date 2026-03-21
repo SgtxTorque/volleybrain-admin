@@ -5,14 +5,16 @@
 // Backward-compatible: same props interface, same onNavigate callback.
 // =============================================================================
 
+import { useState, useRef, useEffect } from 'react'
 import {
   LayoutDashboard, Users, UserCog, Shield, DollarSign,
   ClipboardList, Megaphone, Settings, Calendar, BarChart3,
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
+  ChevronDown, Check,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
   CheckSquare, CalendarCheck, User, LogOut, MapPin,
-  Search
+  Search, Heart
 } from 'lucide-react'
 
 // Icon lookup for nav items
@@ -34,6 +36,132 @@ const ICON_MAP = {
   megaphone: Megaphone, calendar: Calendar, target: Target, star: Star,
   bell: Bell, shirt: Shirt, shield: Shield, volleyball: Star, users: Users,
   'map-pin': MapPin,
+}
+
+
+// Role icon mapping for the role switcher
+const ROLE_ICON_MAP = {
+  admin: Shield,
+  coach: UserCog,
+  parent: Heart,
+  player: Star,
+  team_manager: ClipboardList,
+}
+
+// Role colors for the indicator dot
+const ROLE_COLORS = {
+  admin: 'var(--v2-navy)',
+  coach: '#2563EB',
+  parent: '#EC4899',
+  player: 'var(--v2-gold)',
+  team_manager: '#8B5CF6',
+}
+
+
+// =============================================================================
+// RoleSwitcher — compact role indicator + popover
+// =============================================================================
+function RoleSwitcher({ activeView, availableViews, onSwitchRole, isPlayer }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open])
+
+  // Hide if 1 or fewer roles
+  if (!availableViews || availableViews.length <= 1) return null
+
+  const ActiveIcon = ROLE_ICON_MAP[activeView] || Shield
+  const activeColor = ROLE_COLORS[activeView] || 'var(--v2-navy)'
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0, marginBottom: 8 }}>
+      {/* Indicator button */}
+      <button
+        onClick={() => setOpen(!open)}
+        title="Switch Role"
+        style={{
+          width: 34, height: 26, borderRadius: 8,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 2,
+          border: 'none', cursor: 'pointer',
+          background: isPlayer ? 'rgba(255,255,255,0.08)' : 'var(--v2-surface)',
+          color: isPlayer ? 'var(--v2-gold)' : activeColor,
+          transition: 'background 0.15s ease',
+        }}
+      >
+        <ActiveIcon style={{ width: 14, height: 14 }} />
+        <ChevronDown style={{ width: 10, height: 10, opacity: 0.5 }} />
+      </button>
+
+      {/* Popover */}
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            left: 'calc(100% + 12px)',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 220,
+            background: '#FFFFFF',
+            borderRadius: 14,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid var(--v2-border-subtle)',
+            padding: 6,
+            zIndex: 300,
+          }}
+        >
+          <div style={{ padding: '6px 10px 4px', fontSize: 11, fontWeight: 700, color: 'var(--v2-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Switch Role
+          </div>
+          {availableViews.map(view => {
+            const RoleIcon = ROLE_ICON_MAP[view.id] || Shield
+            const isActive = view.id === activeView
+            return (
+              <button
+                key={view.id}
+                onClick={() => { onSwitchRole?.(view.id); setOpen(false) }}
+                style={{
+                  width: '100%',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  border: 'none', cursor: 'pointer',
+                  background: isActive ? 'var(--v2-navy)' : 'transparent',
+                  color: isActive ? '#FFFFFF' : 'var(--v2-text-primary)',
+                  transition: 'background 0.12s ease',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--v2-surface)' }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+              >
+                <RoleIcon style={{ width: 16, height: 16, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{view.label}</div>
+                  {view.description && (
+                    <div style={{
+                      fontSize: 11, fontWeight: 500, lineHeight: 1.2, marginTop: 1,
+                      color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--v2-text-muted)',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {view.description}
+                    </div>
+                  )}
+                </div>
+                {isActive && <Check style={{ width: 14, height: 14, flexShrink: 0, opacity: 0.7 }} />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
 }
 
 
@@ -132,6 +260,14 @@ export default function LynxSidebar({
       >
         L
       </div>
+
+      {/* ---- Role Switcher ---- */}
+      <RoleSwitcher
+        activeView={activeView}
+        availableViews={availableViews}
+        onSwitchRole={onSwitchRole}
+        isPlayer={isPlayer}
+      />
 
       {/* ---- Nav Items ---- */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
