@@ -851,6 +851,7 @@ export function DashboardPage({ onNavigate }) {
                 xpCurrent={healthScore * 50}
                 xpTarget={5200}
                 variant="gold"
+                onClick={() => onNavigate?.('achievements')}
               />
             </>
           }

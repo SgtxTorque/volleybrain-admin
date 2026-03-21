@@ -11,6 +11,7 @@ export default function MilestoneCard({
   xpCurrent,
   xpTarget,
   variant = 'gold',
+  onClick,
 }) {
   const pct = xpTarget > 0 ? Math.min((xpCurrent / xpTarget) * 100, 100) : 0
 
@@ -41,14 +42,21 @@ export default function MilestoneCard({
   const t = themes[variant] || themes.gold
 
   return (
-    <div style={{
-      background: t.bg,
-      borderRadius: 'var(--v2-radius)',
-      padding: '18px 20px',
-      border: t.border,
-      boxShadow: t.shadow,
-      fontFamily: 'var(--v2-font)',
-    }}>
+    <div
+      onClick={onClick}
+      style={{
+        background: t.bg,
+        borderRadius: 'var(--v2-radius)',
+        padding: '18px 20px',
+        border: t.border,
+        boxShadow: t.shadow,
+        fontFamily: 'var(--v2-font)',
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+      }}
+      onMouseEnter={e => { if (onClick) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)' } }}
+      onMouseLeave={e => { if (onClick) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = t.shadow } }}
+    >
       {/* Top row */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12,
