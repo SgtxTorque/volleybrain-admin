@@ -674,18 +674,18 @@ export function DashboardPage({ onNavigate }) {
         <V2DashboardLayout
           mainContent={
             <>
-              {/* HERO CARD */}
+              {/* HERO CARD — org-wide stats */}
               <HeroCard
                 orgLine={orgName || organization?.name || 'Your Organization'}
                 greeting={`${getGreeting()}, ${profile?.first_name || 'Admin'}. ${actionCount > 0 ? `You've got ${actionCount} items to knock out.` : 'Everything looks good.'}`}
-                subLine={`${selectedSeason?.name || 'Current Season'} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
+                subLine={`${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 stats={[
-                  { value: stats.teams || 0, label: 'Teams' },
-                  { value: totalPlayers, label: 'Players' },
+                  { value: Object.values(perSeasonTeamCounts || {}).reduce((s, c) => s + c, 0) || stats.teams || 0, label: 'Teams' },
+                  { value: Object.values(perSeasonPlayerCounts || {}).reduce((s, c) => s + c, 0) || totalPlayers, label: 'Players' },
                   { value: stats.coachCount || 0, label: 'Coaches' },
-                  { value: overdueCount || 0, label: 'Overdue', color: overdueCount > 0 ? 'red' : undefined },
+                  { value: (allSeasons || seasons || []).length, label: 'Seasons' },
                   { value: stats.totalCollected ? `$${(stats.totalCollected / 1000).toFixed(1)}k` : '$0', label: 'Collected', color: 'green' },
-                  { value: stats.pending || 0, label: 'Pending', color: (stats.pending || 0) > 0 ? 'sky' : undefined },
+                  { value: actionCount || 0, label: 'Action Items', color: actionCount > 0 ? 'red' : undefined },
                 ]}
               />
 
