@@ -387,7 +387,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const heroStats = [
     { label: 'Kids', value: registrationData.length },
     { label: 'This Week', value: eventsThisWeek },
-    { label: 'Due', value: paymentSummary.totalDue > 0 ? `$${paymentSummary.totalDue.toLocaleString()}` : '$0' },
+    { label: 'Due', value: paymentSummary.totalDue > 0 ? `$${Number(paymentSummary.totalDue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0' },
     { label: 'Badges', value: childAchievements.length },
   ]
 
@@ -543,7 +543,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 childAchievements.length > 0
                   ? `${activeChild?.first_name || 'Your player'} earned ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}! Check them out.`
                   : paymentSummary.totalDue > 0
-                    ? `You have $${paymentSummary.totalDue.toLocaleString()} due. Tap Pay Now to settle up.`
+                    ? `You have $${Number(paymentSummary.totalDue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} due. Tap Pay Now to settle up.`
                     : 'Everything looks great! Enjoy the season.'
               }
             />

@@ -19,6 +19,10 @@ export default function FinancialSnapshot({
   primaryAction,
   secondaryAction,
 }) {
+  const fmtDollar = (val) => {
+    const n = Number(val || 0)
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  }
   return (
     <div style={{
       background: 'linear-gradient(160deg, #0f2847 0%, var(--v2-midnight) 100%)',
@@ -69,7 +73,7 @@ export default function FinancialSnapshot({
             display: 'flex', justifyContent: 'space-between',
             fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 6,
           }}>
-            <span>Target: ${projectedRevenue.toLocaleString()}</span>
+            <span>Target: ${fmtDollar(projectedRevenue)}</span>
             <span>{collectedPct != null ? `${collectedPct}%` : ''}</span>
           </div>
           <div style={{
@@ -137,7 +141,7 @@ export default function FinancialSnapshot({
                 {row.label}
               </span>
               <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>
-                {row.amount}
+                {typeof row.amount === 'number' ? `$${fmtDollar(row.amount)}` : row.amount}
               </span>
             </div>
           ))}
