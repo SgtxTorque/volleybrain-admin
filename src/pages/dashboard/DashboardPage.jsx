@@ -582,7 +582,7 @@ export function DashboardPage({ onNavigate }) {
     return <GettingStartedGuide onNavigate={onNavigate} />
   }
 
-  if (seasonLoading) {
+  if (seasonLoading || loading) {
     return <SkeletonDashboard />
   }
 
@@ -606,7 +606,7 @@ export function DashboardPage({ onNavigate }) {
   return (
     <>
       {/* ─── Empty state for brand new orgs ──── */}
-      {totalTeams === 0 && !loading && (
+      {totalTeams === 0 && (
         <div style={{ padding: '64px 32px', textAlign: 'center', fontFamily: 'var(--v2-font)' }}>
           <img src="/images/laptoplynx.png" alt="Lynx" style={{ width: 128, height: 128, margin: '0 auto 24px', opacity: 0.8 }} />
           <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--v2-text-primary)', marginBottom: 8 }}>Your dashboard is waiting!</h3>
@@ -627,7 +627,7 @@ export function DashboardPage({ onNavigate }) {
       )}
 
       {/* ─── V2 Dashboard Layout ──── */}
-      {(totalTeams > 0 || loading) && (
+      {totalTeams > 0 && (
         <V2DashboardLayout
           mainContent={
             <>
