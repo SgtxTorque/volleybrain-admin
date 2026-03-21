@@ -1,7 +1,10 @@
 // =============================================================================
 // SeasonCarousel — Horizontal scrollable season cards for admin dashboard
-// Props-only.
+// Props-only. Includes scroll arrows and richer card data.
 // =============================================================================
+
+import { useRef, useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function SeasonCarousel({
   seasons = [],
@@ -11,6 +14,30 @@ export default function SeasonCarousel({
   onSeasonSelect,
   onViewAll,
 }) {
+  const scrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 2)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2)
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const el = scrollRef.current
+    if (!el) return
+    const observer = new ResizeObserver(checkScroll)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [seasons.length])
+
+  const scrollBy = (dir) => {
+    scrollRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' })
+  }
+
   if (seasons.length === 0) return null
 
   const getStatusBadge = (season) => {
@@ -22,8 +49,17 @@ export default function SeasonCarousel({
     return { label: s || 'Active', bg: 'rgba(75,185,236,0.12)', color: '#0284C7', barColor: 'var(--v2-sky)' }
   }
 
+  const formatDateRange = (season) => {
+    const fmt = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null
+    const start = fmt(season.start_date)
+    const end = fmt(season.end_date)
+    if (start && end) return `${start} – ${end}`
+    if (start) return `Starts ${start}`
+    return null
+  }
+
   return (
-    <div style={{ fontFamily: 'var(--v2-font)' }}>
+    <div style={{ fontFamily: 'var(--v2-font)', position: 'relative' }}>
       {/* Section header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <span style={{
@@ -45,100 +81,158 @@ export default function SeasonCarousel({
         )}
       </div>
 
-      {/* Scrollable container */}
-      <div
-        className="v2-season-carousel"
-        style={{
-          display: 'flex', gap: 14, overflowX: 'auto',
-          paddingBottom: 4,
-        }}
-      >
-        {seasons.map(season => {
-          const badge = getStatusBadge(season)
-          const teamCount = perSeasonTeamCounts[season.id] || 0
-          const playerCount = perSeasonPlayerCounts[season.id] || 0
-          const isSelected = season.id === selectedSeasonId
+      {/* Scroll container with arrows */}
+      <div style={{ position: 'relative' }}>
+        {/* Left arrow */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scrollBy(-1)}
+            style={{
+              position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)',
+              width: 32, height: 32, borderRadius: '50%',
+              background: '#FFFFFF', border: '1px solid var(--v2-border-subtle)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 10,
+            }}
+          >
+            <ChevronLeft style={{ width: 16, height: 16, color: 'var(--v2-text-secondary)' }} />
+          </button>
+        )}
 
-          return (
-            <div
-              key={season.id}
-              onClick={() => onSeasonSelect?.(season.id)}
-              style={{
-                minWidth: 240, flex: '1 0 240px',
-                background: 'var(--v2-white)',
-                borderRadius: 'var(--v2-radius)',
-                boxShadow: isSelected ? '0 0 0 2px var(--v2-sky)' : 'var(--v2-card-shadow)',
-                border: '1px solid var(--v2-border-subtle)',
-                padding: '18px 20px',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.boxShadow = isSelected
-                  ? '0 0 0 2px var(--v2-sky), 0 4px 16px rgba(0,0,0,0.1)'
-                  : '0 4px 16px rgba(0,0,0,0.1)'
-                e.currentTarget.style.transform = 'translateY(-1px)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px var(--v2-sky)' : 'var(--v2-card-shadow)'
-                e.currentTarget.style.transform = 'none'
-              }}
-            >
-              {/* Status badge */}
-              <span style={{
-                display: 'inline-block',
-                fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-                background: badge.bg, color: badge.color,
-                padding: '3px 8px', borderRadius: 6,
-                marginBottom: 10,
-              }}>
-                {badge.label}
-              </span>
+        {/* Right arrow */}
+        {canScrollRight && (
+          <button
+            onClick={() => scrollBy(1)}
+            style={{
+              position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)',
+              width: 32, height: 32, borderRadius: '50%',
+              background: '#FFFFFF', border: '1px solid var(--v2-border-subtle)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 10,
+            }}
+          >
+            <ChevronRight style={{ width: 16, height: 16, color: 'var(--v2-text-secondary)' }} />
+          </button>
+        )}
 
-              {/* Season name */}
-              <div style={{
-                fontSize: 15, fontWeight: 700, color: 'var(--v2-navy)',
-                marginBottom: 4,
-              }}>
-                {season.name}
-              </div>
+        {/* Scrollable container */}
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="v2-season-carousel"
+          style={{
+            display: 'flex', gap: 14, overflowX: 'auto',
+            paddingBottom: 4,
+          }}
+        >
+          {seasons.map(season => {
+            const badge = getStatusBadge(season)
+            const teamCount = perSeasonTeamCounts[season.id] || 0
+            const playerCount = perSeasonPlayerCounts[season.id] || 0
+            const isSelected = season.id === selectedSeasonId
+            const dateRange = formatDateRange(season)
 
-              {/* Meta */}
-              <div style={{
-                fontSize: 12, color: 'var(--v2-text-secondary)',
-                marginBottom: 12,
-              }}>
-                {teamCount} team{teamCount !== 1 ? 's' : ''} · {playerCount} player{playerCount !== 1 ? 's' : ''}
-              </div>
+            return (
+              <div
+                key={season.id}
+                onClick={() => onSeasonSelect?.(season.id)}
+                style={{
+                  minWidth: 240, flex: '1 0 240px',
+                  background: 'var(--v2-white)',
+                  borderRadius: 'var(--v2-radius)',
+                  boxShadow: isSelected ? '0 0 0 2px var(--v2-sky)' : 'var(--v2-card-shadow)',
+                  border: '1px solid var(--v2-border-subtle)',
+                  padding: '18px 20px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.boxShadow = isSelected
+                    ? '0 0 0 2px var(--v2-sky), 0 4px 16px rgba(0,0,0,0.1)'
+                    : '0 4px 16px rgba(0,0,0,0.1)'
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px var(--v2-sky)' : 'var(--v2-card-shadow)'
+                  e.currentTarget.style.transform = 'none'
+                }}
+              >
+                {/* Status badge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span style={{
+                    display: 'inline-block',
+                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                    background: badge.bg, color: badge.color,
+                    padding: '3px 8px', borderRadius: 6,
+                  }}>
+                    {badge.label}
+                  </span>
+                  {isSelected && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 600, color: 'var(--v2-sky)',
+                    }}>
+                      Selected
+                    </span>
+                  )}
+                </div>
 
-              {/* Progress bar */}
-              <div style={{ marginBottom: 10 }}>
+                {/* Season name */}
                 <div style={{
-                  height: 4, borderRadius: 2,
-                  background: 'var(--v2-surface)',
-                  overflow: 'hidden',
+                  fontSize: 15, fontWeight: 700, color: 'var(--v2-navy)',
+                  marginBottom: 2,
                 }}>
+                  {season.name}
+                </div>
+
+                {/* Date range */}
+                {dateRange && (
+                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginBottom: 6 }}>
+                    {dateRange}
+                  </div>
+                )}
+
+                {/* Sport name (if available) */}
+                {season.sport_name && (
+                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginBottom: 6 }}>
+                    {season.sport_name}
+                  </div>
+                )}
+
+                {/* Stats row */}
+                <div style={{
+                  display: 'flex', gap: 16, marginBottom: 12,
+                  fontSize: 12, color: 'var(--v2-text-secondary)',
+                }}>
+                  <span><strong style={{ color: 'var(--v2-navy)' }}>{teamCount}</strong> team{teamCount !== 1 ? 's' : ''}</span>
+                  <span><strong style={{ color: 'var(--v2-navy)' }}>{playerCount}</strong> player{playerCount !== 1 ? 's' : ''}</span>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ marginBottom: 8 }}>
                   <div style={{
-                    height: '100%', borderRadius: 2,
-                    background: badge.barColor,
-                    width: `${Math.min(Math.max(teamCount * 10 + playerCount * 2, 10), 100)}%`,
-                    transition: 'width 0.5s ease',
-                  }} />
+                    height: 4, borderRadius: 2,
+                    background: 'var(--v2-surface)',
+                    overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      height: '100%', borderRadius: 2,
+                      background: badge.barColor,
+                      width: `${Math.min(Math.max(teamCount * 10 + playerCount * 2, 10), 100)}%`,
+                      transition: 'width 0.5s ease',
+                    }} />
+                  </div>
+                </div>
+
+                {/* Footer arrow */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: 14, color: 'var(--v2-sky)' }}>→</span>
                 </div>
               </div>
-
-              {/* Footer */}
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <span style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>
-                  {teamCount > 0 && <><span style={{ fontWeight: 600, color: 'var(--v2-text-secondary)' }}>{teamCount}</span> teams</>}
-                </span>
-                <span style={{ fontSize: 14, color: 'var(--v2-sky)' }}>→</span>
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
 
       <style>{`

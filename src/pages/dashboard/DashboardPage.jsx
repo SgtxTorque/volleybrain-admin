@@ -104,6 +104,7 @@ export function DashboardPage({ onNavigate }) {
   const [perSeasonPlayerCounts, setPerSeasonPlayerCounts] = useState({})
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [attentionExpanded, setAttentionExpanded] = useState(false)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
 
   // Fetch per-season team & player counts for Season Journey (runs once per org)
   useEffect(() => {
@@ -535,6 +536,7 @@ export function DashboardPage({ onNavigate }) {
       console.error('Dashboard load error:', err)
     }
     setLoading(false)
+    setInitialLoadComplete(true)
   }
 
   // Calculate season week
@@ -589,7 +591,7 @@ export function DashboardPage({ onNavigate }) {
     return <GettingStartedGuide onNavigate={onNavigate} />
   }
 
-  if (seasonLoading || loading) {
+  if ((seasonLoading || loading) && !initialLoadComplete) {
     return <SkeletonDashboard />
   }
 
