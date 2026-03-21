@@ -597,10 +597,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             {/* Milestone Card */}
             <MilestoneCard
               variant="gold"
+              trophy="🏅"
               title={`${activeChild?.first_name || 'Player'}'s Progress`}
+              subtitle={xpData.level > 1 ? `Level ${xpData.level}` : 'Getting started'}
               xpCurrent={xpData.currentXp}
               xpGoal={xpData.xpToNext}
-              level={xpData.level}
+              onClick={() => onNavigate?.('achievements')}
             />
           </>
         }
