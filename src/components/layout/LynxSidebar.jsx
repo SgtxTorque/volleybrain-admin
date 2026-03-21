@@ -63,16 +63,34 @@ const ROLE_COLORS = {
 // =============================================================================
 function RoleSwitcher({ activeView, availableViews, onSwitchRole, isPlayer }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef(null)
+  const btnRef = useRef(null)
+  const popoverRef = useRef(null)
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
 
   useEffect(() => {
     if (!open) return
     function handleClickOutside(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+      if (
+        btnRef.current && !btnRef.current.contains(e.target) &&
+        popoverRef.current && !popoverRef.current.contains(e.target)
+      ) {
+        setOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open])
+
+  const handleToggle = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPopoverPos({
+        top: rect.top + rect.height / 2,
+        left: rect.right + 12,
+      })
+    }
+    setOpen(!open)
+  }
 
   // Hide if 1 or fewer roles
   if (!availableViews || availableViews.length <= 1) return null
@@ -81,10 +99,11 @@ function RoleSwitcher({ activeView, availableViews, onSwitchRole, isPlayer }) {
   const activeColor = ROLE_COLORS[activeView] || 'var(--v2-navy)'
 
   return (
-    <div ref={ref} style={{ position: 'relative', flexShrink: 0, marginBottom: 8 }}>
+    <div style={{ flexShrink: 0, marginBottom: 8 }}>
       {/* Indicator button */}
       <button
-        onClick={() => setOpen(!open)}
+        ref={btnRef}
+        onClick={handleToggle}
         title="Switch Role"
         style={{
           width: 34, height: 26, borderRadius: 8,
@@ -100,21 +119,22 @@ function RoleSwitcher({ activeView, availableViews, onSwitchRole, isPlayer }) {
         <ChevronDown style={{ width: 10, height: 10, opacity: 0.5 }} />
       </button>
 
-      {/* Popover */}
+      {/* Popover — rendered with position:fixed to escape sidebar overflow clipping */}
       {open && (
         <div
+          ref={popoverRef}
           style={{
-            position: 'absolute',
-            left: 'calc(100% + 12px)',
-            top: '50%',
+            position: 'fixed',
+            top: popoverPos.top,
+            left: popoverPos.left,
             transform: 'translateY(-50%)',
-            width: 220,
+            width: 240,
             background: '#FFFFFF',
             borderRadius: 14,
             boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
             border: '1px solid var(--v2-border-subtle)',
             padding: 6,
-            zIndex: 300,
+            zIndex: 9999,
           }}
         >
           <div style={{ padding: '6px 10px 4px', fontSize: 11, fontWeight: 700, color: 'var(--v2-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -191,7 +211,6 @@ function NavItem({ item, isActive, onNavigate, isPlayer, expanded }) {
       {expanded && (
         <span style={{
           fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
-          overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {item.label}
         </span>
@@ -249,7 +268,7 @@ export default function LynxSidebar({
       onMouseLeave={() => setExpanded(false)}
       style={{
         position: 'fixed', top: 0, left: 0,
-        width: expanded ? 180 : 'var(--v2-sidebar-width)',
+        width: expanded ? 220 : 'var(--v2-sidebar-width)',
         height: '100vh',
         background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
         borderRight: isPlayer
