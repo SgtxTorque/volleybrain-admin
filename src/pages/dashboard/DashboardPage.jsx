@@ -102,6 +102,7 @@ export function DashboardPage({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('teams')
   const [perSeasonTeamCounts, setPerSeasonTeamCounts] = useState({})
   const [perSeasonPlayerCounts, setPerSeasonPlayerCounts] = useState({})
+  const [nudgeDismissed, setNudgeDismissed] = useState(false)
 
   // Fetch per-season team & player counts for Season Journey (runs once per org)
   useEffect(() => {
@@ -676,7 +677,7 @@ export function DashboardPage({ onNavigate }) {
                 <AttentionStrip
                   message={`${actionCount} item${actionCount !== 1 ? 's' : ''} need${actionCount === 1 ? 's' : ''} action`}
                   ctaLabel="REVIEW NOW →"
-                  onClick={() => onNavigate?.('registrations')}
+                  onClick={() => onNavigate?.(overdueCount > 0 ? 'payments' : 'registrations')}
                 />
               )}
 
@@ -730,11 +731,11 @@ export function DashboardPage({ onNavigate }) {
               </BodyTabs>
 
               {/* MASCOT NUDGE */}
-              {(stats.unsignedWaivers || 0) > 0 && (
+              {(stats.unsignedWaivers || 0) > 0 && !nudgeDismissed && (
                 <MascotNudge
                   message={<>Hey {profile?.first_name || 'there'}! I noticed <strong>{stats.unsignedWaivers} player{stats.unsignedWaivers !== 1 ? 's' : ''}</strong> haven&apos;t turned in their forms. Want me to ping their parents?</>}
                   primaryAction={{ label: 'Yes, send reminders', onClick: () => onNavigate?.('waivers') }}
-                  secondaryAction={{ label: 'Not now', onClick: () => {} }}
+                  secondaryAction={{ label: 'Not now', onClick: () => setNudgeDismissed(true) }}
                 />
               )}
             </>
