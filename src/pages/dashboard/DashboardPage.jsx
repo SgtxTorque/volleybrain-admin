@@ -765,7 +765,7 @@ export function DashboardPage({ onNavigate }) {
                   <AdminRegistrationsTab stats={stats} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'payments' && (
-                  <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} onNavigate={onNavigate} />
+                  <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} recentPayments={recentPaymentsNamed} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'schedules' && (
                   <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
