@@ -842,13 +842,13 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               footerLink={activeTab === 'roster' ? { label: `View full roster (${roster.length}) →`, onClick: () => onNavigate?.('teams') } : undefined}
             >
               {activeTab === 'roster' && (
-                <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={setSelectedPlayer} />
+                <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
               )}
               {activeTab === 'attendance' && (
                 <CoachAttendanceTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} />
               )}
               {activeTab === 'stats' && (
-                <CoachStatsTab topPlayers={topPlayers} roster={roster} onPlayerClick={setSelectedPlayer} />
+                <CoachStatsTab topPlayers={topPlayers} roster={roster} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
               )}
               {activeTab === 'gameprep' && (
                 <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />
