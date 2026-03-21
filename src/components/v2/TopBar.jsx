@@ -1,9 +1,11 @@
 // =============================================================================
 // TopBar — V2 sticky top navigation bar
 // Props-only: receives all data from parent dashboard page.
+// Brand label doubles as role switcher dropdown trigger.
 // =============================================================================
 
-import { Search, Bell, Settings, Moon, Sun } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Search, Bell, Settings, Moon, Sun, ChevronDown, Check } from 'lucide-react'
 
 export default function TopBar({
   roleLabel = 'Lynx Admin',
@@ -19,8 +21,28 @@ export default function TopBar({
   onAvatarClick,
   onThemeToggle,
   isDark = false,
+  // Role switcher props
+  availableRoles = [],
+  activeRoleId,
+  onRoleSwitch,
 }) {
   const isPlayerDark = isDark
+  const [roleOpen, setRoleOpen] = useState(false)
+  const roleRef = useRef(null)
+
+  const hasMultipleRoles = availableRoles.length > 1 && onRoleSwitch
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!roleOpen) return
+    function handleClickOutside(e) {
+      if (roleRef.current && !roleRef.current.contains(e.target)) {
+        setRoleOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [roleOpen])
 
   return (
     <header
@@ -41,20 +63,103 @@ export default function TopBar({
         fontFamily: 'var(--v2-font)',
       }}
     >
-      {/* ---- Brand Label ---- */}
-      <span
-        className="v2-topbar-brand"
-        style={{
-          fontSize: 17,
-          fontWeight: 800,
-          color: isPlayerDark ? 'var(--v2-gold)' : 'var(--v2-navy)',
-          paddingLeft: 72,
-          whiteSpace: 'nowrap',
-          flexShrink: 0,
-        }}
-      >
-        {roleLabel}
-      </span>
+      {/* ---- Brand Label / Role Switcher ---- */}
+      <div ref={roleRef} style={{ position: 'relative', flexShrink: 0 }}>
+        <button
+          className="v2-topbar-brand"
+          onClick={hasMultipleRoles ? () => setRoleOpen(!roleOpen) : undefined}
+          style={{
+            fontSize: 17,
+            fontWeight: 800,
+            color: isPlayerDark ? 'var(--v2-gold)' : 'var(--v2-navy)',
+            paddingLeft: 72,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            background: 'none',
+            border: 'none',
+            cursor: hasMultipleRoles ? 'pointer' : 'default',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontFamily: 'inherit',
+          }}
+        >
+          {roleLabel}
+          {hasMultipleRoles && (
+            <ChevronDown style={{
+              width: 14, height: 14,
+              transition: 'transform 0.15s ease',
+              transform: roleOpen ? 'rotate(180deg)' : 'none',
+              opacity: 0.6,
+            }} />
+          )}
+        </button>
+
+        {/* Role Dropdown */}
+        {roleOpen && hasMultipleRoles && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: 72,
+            marginTop: 6,
+            width: 240,
+            background: '#FFFFFF',
+            borderRadius: 14,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+            border: '1px solid var(--v2-border-subtle)',
+            padding: 6,
+            zIndex: 300,
+          }}>
+            <div style={{
+              padding: '6px 10px 4px',
+              fontSize: 11, fontWeight: 700,
+              color: 'var(--v2-text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              Switch Role
+            </div>
+            {availableRoles.map(role => {
+              const isActive = role.id === activeRoleId
+              return (
+                <button
+                  key={role.id}
+                  onClick={() => { onRoleSwitch(role.id); setRoleOpen(false) }}
+                  style={{
+                    width: '100%',
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    border: 'none', cursor: 'pointer',
+                    background: isActive ? 'var(--v2-navy)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--v2-text-primary)',
+                    transition: 'background 0.12s ease',
+                    textAlign: 'left',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--v2-surface)' }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = isActive ? 'var(--v2-navy)' : 'transparent' }}
+                >
+                  {role.icon && <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>{role.icon}</span>}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{role.label}</div>
+                    {role.subtitle && (
+                      <div style={{
+                        fontSize: 11, fontWeight: 500, lineHeight: 1.2, marginTop: 1,
+                        color: isActive ? 'rgba(255,255,255,0.7)' : 'var(--v2-text-muted)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {role.subtitle}
+                      </div>
+                    )}
+                  </div>
+                  {isActive && <Check style={{ width: 14, height: 14, flexShrink: 0, opacity: 0.7 }} />}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       {/* ---- Nav Links ---- */}
       <nav className="v2-topbar-nav" style={{ display: 'flex', gap: 4, marginLeft: 16, flexShrink: 0 }}>

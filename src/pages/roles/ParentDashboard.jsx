@@ -19,7 +19,7 @@ import {
 } from './ParentModals'
 // V2 shared components
 import {
-  HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
+  TopBar, HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
   ThePlaybook, MilestoneCard, MascotNudge, V2DashboardLayout,
 } from '../../components/v2'
 // V2 parent-specific components
@@ -40,11 +40,11 @@ function formatTime12(timeStr) {
 }
 
 // ═══ MAIN COMPONENT ═══
-function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate }) {
+function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate, activeView, availableViews = [], onSwitchRole }) {
   const { profile } = useAuth()
   const { orgName } = useOrgBranding()
   const { selectedSport } = useSport()
-  const { isDark } = useTheme()
+  const { isDark, toggleTheme } = useTheme()
   const parentTutorial = useParentTutorial()
 
   // Core state
@@ -445,6 +445,25 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   // ═══ RENDER — V2 LAYOUT ═══
   return (
     <>
+      <TopBar
+        roleLabel="Lynx Parent"
+        navLinks={[
+          { label: 'Home', pageId: 'dashboard', isActive: true, onClick: () => onNavigate?.('dashboard') },
+          { label: 'Schedule', pageId: 'schedule', onClick: () => onNavigate?.('schedule') },
+          { label: 'Payments', pageId: 'payments', onClick: () => onNavigate?.('payments') },
+        ]}
+        searchPlaceholder="Search..."
+        onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
+        avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
+        onSettingsClick={() => onNavigate?.('organization')}
+        onNotificationClick={() => onNavigate?.('notifications')}
+        onThemeToggle={toggleTheme}
+        isDark={isDark}
+        availableRoles={availableViews.map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
+        activeRoleId={activeView}
+        onRoleSwitch={onSwitchRole}
+      />
+
       {/* Orphan Player Banner */}
       <div style={{ padding: '0 24px' }}>
         <OrphanPlayerBanner onNavigate={onNavigate} />

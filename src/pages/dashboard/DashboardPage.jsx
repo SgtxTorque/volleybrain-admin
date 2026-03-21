@@ -55,7 +55,7 @@ export function GettingStartedGuide({ onNavigate }) {
 // ============================================
 // MAIN DASHBOARD PAGE
 // ============================================
-export function DashboardPage({ onNavigate }) {
+export function DashboardPage({ onNavigate, activeView, availableViews = [], onSwitchRole }) {
   const { organization, profile } = useAuth()
   const { seasons, allSeasons, selectedSeason, selectSeason, loading: seasonLoading } = useSeason()
   const { sports, selectedSport, selectSport } = useSport()
@@ -648,6 +648,9 @@ export function DashboardPage({ onNavigate }) {
         onSettingsClick={() => onNavigate?.('organization')}
         onThemeToggle={toggleTheme}
         isDark={isDark}
+        availableRoles={availableViews.map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
+        activeRoleId={activeView}
+        onRoleSwitch={onSwitchRole}
       />
 
       {/* ─── Empty state for brand new orgs ──── */}

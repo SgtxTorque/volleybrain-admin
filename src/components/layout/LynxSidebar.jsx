@@ -309,14 +309,6 @@ export default function LynxSidebar({
         )}
       </div>
 
-      {/* ---- Role Switcher ---- */}
-      <RoleSwitcher
-        activeView={activeView}
-        availableViews={availableViews}
-        onSwitchRole={onSwitchRole}
-        isPlayer={isPlayer}
-      />
-
       {/* ---- Nav Items ---- */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: expanded ? 'stretch' : 'center', gap: 2, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
         {flatItems.map((item, idx) => {

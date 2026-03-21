@@ -12,7 +12,7 @@ import {
 import { formatTime12, countdownText } from '../../lib/date-helpers'
 import GiveShoutoutModal from '../../components/engagement/GiveShoutoutModal'
 import {
-  HeroCard, AttentionStrip, BodyTabs, WeeklyLoad, ThePlaybook,
+  TopBar, HeroCard, AttentionStrip, BodyTabs, WeeklyLoad, ThePlaybook,
   MilestoneCard, MascotNudge, V2DashboardLayout,
 } from '../../components/v2'
 import TeamSwitcher from '../../components/v2/coach/TeamSwitcher'
@@ -245,11 +245,11 @@ function WarmupTimerModal({ onClose }) {
 // ============================================
 // MAIN COACH DASHBOARD — Thin Shell
 // ============================================
-function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate, onPlayerSelect }) {
+function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate, onPlayerSelect, activeView, availableViews = [], onSwitchRole }) {
   const { profile, user } = useAuth()
   const { selectedSeason, seasons: availableSeasons, selectSeason } = useSeason()
   const { selectedSport } = useSport()
-  const { isDark } = useTheme()
+  const { isDark, toggleTheme } = useTheme()
 
   const [loading, setLoading] = useState(true)
   const [teams, setTeams] = useState([])
@@ -779,6 +779,24 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // ── Main Render ──
   return (
     <>
+      <TopBar
+        roleLabel="Lynx Coach"
+        navLinks={[
+          { label: 'Dashboard', pageId: 'dashboard', isActive: true, onClick: () => onNavigate?.('dashboard') },
+          { label: 'Schedule', pageId: 'schedule', onClick: () => onNavigate?.('schedule') },
+          { label: 'Attendance', pageId: 'attendance', onClick: () => onNavigate?.('attendance') },
+        ]}
+        searchPlaceholder="Search roster..."
+        onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
+        avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
+        onSettingsClick={() => onNavigate?.('organization')}
+        onNotificationClick={() => onNavigate?.('notifications')}
+        onThemeToggle={toggleTheme}
+        isDark={isDark}
+        availableRoles={availableViews.map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
+        activeRoleId={activeView}
+        onRoleSwitch={onSwitchRole}
+      />
       <V2DashboardLayout
         mainContent={
           <>
