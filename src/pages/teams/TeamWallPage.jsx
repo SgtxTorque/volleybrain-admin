@@ -77,7 +77,7 @@ function VolleyballIcon({ className, style }) {
 // TEAM WALL PAGE — Instagram/Facebook-inspired 3-column layout
 // ═══════════════════════════════════════════════════════════
 function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
-  const { profile, user } = useAuth()
+  const { profile, user, isAdmin } = useAuth()
   const { completeStep } = useParentTutorial?.() || {}
   const { isDark } = useTheme()
 
@@ -147,8 +147,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [activePlayerPopup])
 
-  const isAdminOrCoach = profile?.role === 'admin' || profile?.role === 'coach'
-  const canPost = isAdminOrCoach || profile?.role === 'parent'
+  const isAdminOrCoach = isAdmin || activeView === 'coach'
+  const canPost = isAdminOrCoach || activeView === 'parent'
 
   const [galleryImages, setGalleryImages] = useState([])
 
@@ -811,7 +811,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           onClose={() => setSelectedPlayer(null)}
           onBack={() => setSelectedPlayer(null)}
           context="roster"
-          viewerRole={profile?.role === 'parent' ? 'parent' : profile?.role === 'coach' ? 'coach' : 'admin'}
+          viewerRole={activeView === 'parent' ? 'parent' : activeView === 'coach' ? 'coach' : 'admin'}
           seasonId={team?.season_id}
           sport={team?.seasons?.sports?.name?.toLowerCase() || 'volleyball'}
           isOwnChild={false}
