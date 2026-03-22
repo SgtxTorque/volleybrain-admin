@@ -114,7 +114,7 @@ export function useParentTutorial() {
   return useContext(ParentTutorialContext)
 }
 
-export function ParentTutorialProvider({ children }) {
+export function ParentTutorialProvider({ children, activeView }) {
   const { user, profile } = useAuth()
   const [tutorialState, setTutorialState] = useState({
     isActive: false,
@@ -125,12 +125,14 @@ export function ParentTutorialProvider({ children }) {
   })
   const [loading, setLoading] = useState(true)
 
-  // Load tutorial state from profile
+  // Load tutorial state from profile — only for parent role
   useEffect(() => {
-    if (profile?.id) {
+    if (profile?.id && activeView === 'parent') {
       loadTutorialState()
+    } else {
+      setLoading(false)
     }
-  }, [profile?.id])
+  }, [profile?.id, activeView])
 
   async function loadTutorialState() {
     try {

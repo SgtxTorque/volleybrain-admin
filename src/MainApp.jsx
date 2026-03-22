@@ -647,7 +647,7 @@ function PlayerProfileRoute({ roleContext, showToast }) {
 // ============================================
 // ROUTED CONTENT — renders the correct page based on URL
 // ============================================
-function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView, getAvailableViews, setActiveView }) {
+function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForView, setSelectedPlayerForView, getAvailableViews, setActiveView, onRefreshRoles }) {
   const navigate = useNavigate()
   const location = useLocation()
   const navigateToTeamWall = (teamId) => navigate(`/teams/${teamId}`)
@@ -662,7 +662,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
         activeView === 'team_manager' ? (
           roleContext?.teamManagerInfo?.length > 0
             ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} />
-            : <TeamManagerSetup roleContext={roleContext} showToast={showToast} onComplete={() => loadRoleContext()} />
+            : <TeamManagerSetup roleContext={roleContext} showToast={showToast} onComplete={() => onRefreshRoles?.()} />
         ) :
         activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
         activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
@@ -1144,7 +1144,7 @@ function MainApp() {
     <OrgBrandingProvider>
     <SportProvider>
     <SeasonProvider>
-    <ParentTutorialProvider>
+    <ParentTutorialProvider activeView={activeView}>
       <div className={`flex min-h-screen transition-colors duration-500 ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
@@ -1191,6 +1191,7 @@ function MainApp() {
                 setSelectedPlayerForView={setSelectedPlayerForView}
                 getAvailableViews={getAvailableViews}
                 setActiveView={setActiveView}
+                onRefreshRoles={loadRoleContext}
               />
             </ErrorBoundary>
           </div>

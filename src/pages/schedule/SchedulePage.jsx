@@ -85,7 +85,25 @@ function SchedulePage({ showToast, activeView, roleContext }) {
 
     if (error) console.error('Error loading events:', error)
 
-    const transformedData = (data || []).map(event => ({
+    // Filter events to user's teams for parent/player roles
+    let filteredData = data || []
+    if (activeView === 'parent' && roleContext?.children?.length > 0) {
+      const childTeamIds = new Set()
+      roleContext.children.forEach(child => {
+        child.team_players?.forEach(tp => { if (tp.team_id) childTeamIds.add(tp.team_id) })
+      })
+      if (childTeamIds.size > 0) {
+        filteredData = filteredData.filter(event => !event.team_id || childTeamIds.has(event.team_id))
+      }
+    }
+    if (activeView === 'player' && roleContext?.playerInfo?.team_players?.length > 0) {
+      const playerTeamIds = new Set(roleContext.playerInfo.team_players.map(tp => tp.team_id).filter(Boolean))
+      if (playerTeamIds.size > 0) {
+        filteredData = filteredData.filter(event => !event.team_id || playerTeamIds.has(event.team_id))
+      }
+    }
+
+    const transformedData = filteredData.map(event => ({
       ...event,
       start_time: event.event_date && event.event_time
         ? `${event.event_date}T${event.event_time}` : event.event_date,
