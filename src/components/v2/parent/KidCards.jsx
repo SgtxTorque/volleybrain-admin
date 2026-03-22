@@ -1,6 +1,6 @@
 // =============================================================================
 // KidCards — V2 horizontal scrolling child player cards for parent dashboard
-// Props-only.
+// Props-only. Fixed-size cards with OVR, navy action buttons.
 // =============================================================================
 
 import { useRef, useState, useEffect } from 'react'
@@ -10,6 +10,7 @@ export default function KidCards({
   selectedChildId,
   onChildSelect,
   onViewProfile,
+  onViewPlayerCard,
 }) {
   const scrollRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -47,20 +48,18 @@ export default function KidCards({
 
   const statusBadge = (status) => {
     const map = {
-      active: { label: 'Active', bg: 'rgba(16,185,129,0.1)', color: '#059669' },
-      rostered: { label: 'Active', bg: 'rgba(16,185,129,0.1)', color: '#059669' },
-      pending: { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
-      approved: { label: 'Approved', bg: 'rgba(59,130,246,0.1)', color: '#2563EB' },
+      active: { label: 'Active', bg: '#DCFCE7', color: '#166534' },
+      rostered: { label: 'Active', bg: '#DCFCE7', color: '#166534' },
+      pending: { label: 'Pending', bg: '#FEF3C7', color: '#92400E' },
+      approved: { label: 'Approved', bg: '#DBEAFE', color: '#1E40AF' },
       waitlisted: { label: 'Waitlisted', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED' },
     }
     const s = map[status] || map.active
     return s
   }
 
-  const isSingle = children.length === 1
-
   return (
-    <div style={{ padding: '16px 24px', fontFamily: 'var(--v2-font)', position: 'relative' }}>
+    <div style={{ fontFamily: 'var(--v2-font)', position: 'relative' }}>
       {/* Section header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div style={{
@@ -69,20 +68,19 @@ export default function KidCards({
         }}>
           My Players
         </div>
-        {!isSingle && (canScrollLeft || canScrollRight) && (
+        {(canScrollLeft || canScrollRight) && (
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => scrollBy(-1)}
               disabled={!canScrollLeft}
               style={{
                 width: 28, height: 28, borderRadius: '50%',
-                background: canScrollLeft ? '#FFFFFF' : 'var(--v2-surface)',
-                border: '1px solid var(--v2-border-subtle)',
+                background: canScrollLeft ? 'var(--v2-navy)' : 'var(--v2-surface)',
+                border: 'none',
                 cursor: canScrollLeft ? 'pointer' : 'default',
                 opacity: canScrollLeft ? 1 : 0.4,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, color: 'var(--v2-text-muted)',
-                boxShadow: canScrollLeft ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                fontSize: 14, color: canScrollLeft ? '#FFFFFF' : 'var(--v2-text-muted)',
               }}
             >
               ‹
@@ -92,13 +90,12 @@ export default function KidCards({
               disabled={!canScrollRight}
               style={{
                 width: 28, height: 28, borderRadius: '50%',
-                background: canScrollRight ? '#FFFFFF' : 'var(--v2-surface)',
-                border: '1px solid var(--v2-border-subtle)',
+                background: canScrollRight ? 'var(--v2-navy)' : 'var(--v2-surface)',
+                border: 'none',
                 cursor: canScrollRight ? 'pointer' : 'default',
                 opacity: canScrollRight ? 1 : 0.4,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, color: 'var(--v2-text-muted)',
-                boxShadow: canScrollRight ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                fontSize: 14, color: canScrollRight ? '#FFFFFF' : 'var(--v2-text-muted)',
               }}
             >
               ›
@@ -113,7 +110,7 @@ export default function KidCards({
         style={{
           display: 'flex',
           gap: 14,
-          overflowX: isSingle ? 'visible' : 'auto',
+          overflowX: 'auto',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           scrollSnapType: 'x mandatory',
@@ -131,11 +128,11 @@ export default function KidCards({
               key={child.id}
               onClick={() => onChildSelect?.(child.id)}
               style={{
-                minWidth: isSingle ? '100%' : 280,
-                maxWidth: isSingle ? '100%' : 320,
+                minWidth: 260,
+                maxWidth: 300,
                 flexShrink: 0,
                 scrollSnapAlign: 'start',
-                background: isSelected ? 'rgba(75,185,236,0.04)' : '#FFFFFF',
+                background: isSelected ? 'rgba(75,185,236,0.03)' : '#FFFFFF',
                 borderRadius: 14,
                 padding: 20,
                 border: isSelected ? '2px solid var(--v2-sky)' : '1px solid var(--v2-border-subtle)',
@@ -159,7 +156,7 @@ export default function KidCards({
               {/* Top — avatar + name */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
                 <div style={{
-                  width: 44, height: 44, borderRadius: '50%',
+                  width: 44, height: 44, borderRadius: child.photoUrl ? 12 : '50%',
                   background: gradient,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 16, fontWeight: 800, color: '#FFFFFF',
@@ -167,18 +164,13 @@ export default function KidCards({
                   overflow: 'hidden',
                 }}>
                   {child.photoUrl ? (
-                    <img src={child.photoUrl} alt="" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={child.photoUrl} alt="" style={{ width: 44, height: 44, borderRadius: 12, objectFit: 'cover' }} />
                   ) : (
                     initials
                   )}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div
-                    onClick={(e) => { e.stopPropagation(); onViewProfile?.(child.id) }}
-                    style={{ fontSize: 15, fontWeight: 700, color: 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
-                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
-                  >
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {child.firstName} {child.lastName}
                   </div>
                   {child.teamName && (
@@ -194,17 +186,17 @@ export default function KidCards({
                 </div>
               </div>
 
-              {/* Stats grid */}
+              {/* Stats grid — OVR, Record, Next */}
               <div style={{
                 display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 8, marginBottom: child.badgeOrStreak ? 12 : 0,
+                gap: 8, marginBottom: child.badgeOrStreak ? 12 : 12,
               }}>
                 <div style={{ textAlign: 'center', background: 'var(--v2-surface)', borderRadius: 8, padding: '8px 4px' }}>
                   <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--v2-green)' }}>
-                    {child.attendance || '—'}
+                    {child.overallRating || '—'}
                   </div>
                   <div style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)' }}>
-                    Attend
+                    OVR
                   </div>
                 </div>
                 <div style={{ textAlign: 'center', background: 'var(--v2-surface)', borderRadius: 8, padding: '8px 4px' }}>
@@ -230,24 +222,41 @@ export default function KidCards({
                 <div style={{
                   fontSize: 11, fontWeight: 600, color: 'var(--v2-text-secondary)',
                   padding: '4px 8px', background: 'rgba(245,158,11,0.08)',
-                  borderRadius: 6, display: 'inline-block',
+                  borderRadius: 6, display: 'inline-block', marginBottom: 12,
                 }}>
                   {child.badgeOrStreak}
                 </div>
               )}
 
-              {/* View Profile link */}
-              {onViewProfile && (
-                <div
-                  onClick={(e) => { e.stopPropagation(); onViewProfile(child.id) }}
+              {/* Action buttons — both navy */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onViewProfile?.(child.id) }}
                   style={{
-                    marginTop: 10, fontSize: 11, fontWeight: 700,
-                    color: 'var(--v2-sky)', cursor: 'pointer',
+                    flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none',
+                    background: 'var(--v2-navy)', color: 'white',
+                    fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'background 0.15s ease',
                   }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
                 >
-                  View Profile &rarr;
-                </div>
-              )}
+                  Profile
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onViewPlayerCard?.(child.id) }}
+                  style={{
+                    flex: 1, padding: '8px 12px', borderRadius: 8, border: 'none',
+                    background: 'var(--v2-navy)', color: 'white',
+                    fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
+                >
+                  Player Card
+                </button>
+              </div>
             </div>
           )
         })}
