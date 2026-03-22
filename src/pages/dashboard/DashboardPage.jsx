@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
@@ -107,14 +107,26 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [attentionExpanded, setAttentionExpanded] = useState(false)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [perSeasonActionCounts, setPerSeasonActionCounts] = useState({})
+  const [globalStats, setGlobalStats] = useState({
+    totalCollected: 0,
+    totalExpected: 0,
+    pastDue: 0,
+    coachCount: 0,
+    actionCount: 0,
+    paymentsByType: null,
+  })
+  // Stable random seed for contextual message rotation (one pick per mount)
+  const msgSeed = useMemo(() => Math.random(), [])
 
-  // Fetch per-season team & player counts for Season Journey (runs once per org)
+  // Fetch per-season counts + global stats (runs once per org, not on season change)
   useEffect(() => {
     const seasonList = allSeasons || seasons || []
     if (seasonList.length === 0) return
     const seasonIds = seasonList.map(s => s.id)
     ;(async () => {
       try {
+        // Teams per season
         const { data: allTeams } = await supabase
           .from('teams')
           .select('id, season_id')
@@ -123,13 +135,77 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         ;(allTeams || []).forEach(t => { tMap[t.season_id] = (tMap[t.season_id] || 0) + 1 })
         setPerSeasonTeamCounts(tMap)
 
+        // Players per season (include registration status for action counts)
         const { data: allPlayers } = await supabase
           .from('players')
-          .select('id, season_id')
+          .select('id, season_id, registrations(status)')
           .in('season_id', seasonIds)
         const pMap = {}
-        ;(allPlayers || []).forEach(p => { pMap[p.season_id] = (pMap[p.season_id] || 0) + 1 })
+        const pendingRegsBySeason = {}
+        ;(allPlayers || []).forEach(p => {
+          pMap[p.season_id] = (pMap[p.season_id] || 0) + 1
+          const status = p.registrations?.[0]?.status
+          if (['pending', 'submitted', 'new'].includes(status)) {
+            pendingRegsBySeason[p.season_id] = (pendingRegsBySeason[p.season_id] || 0) + 1
+          }
+        })
         setPerSeasonPlayerCounts(pMap)
+
+        // All payments across all seasons (for global financial + per-season action counts)
+        const { data: globalPaymentsRaw } = await supabase
+          .from('payments')
+          .select('id, season_id, amount, paid, fee_type')
+          .in('season_id', seasonIds)
+
+        const gPaid = (globalPaymentsRaw || []).filter(p => p.paid)
+        const gUnpaid = (globalPaymentsRaw || []).filter(p => !p.paid)
+        const globalCollected = gPaid.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        const globalOutstanding = gUnpaid.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+        const globalExpected = globalCollected + globalOutstanding
+
+        // Per-season unpaid payment counts
+        const unpaidBySeason = {}
+        gUnpaid.forEach(p => {
+          unpaidBySeason[p.season_id] = (unpaidBySeason[p.season_id] || 0) + 1
+        })
+
+        // Per-season action item counts (pending regs + unpaid payments)
+        const actionMap = {}
+        let totalGlobalActions = 0
+        seasonIds.forEach(sid => {
+          const count = (pendingRegsBySeason[sid] || 0) + (unpaidBySeason[sid] || 0)
+          if (count > 0) actionMap[sid] = count
+          totalGlobalActions += count
+        })
+        setPerSeasonActionCounts(actionMap)
+
+        // Global payment breakdown by type
+        const globalPaymentsByType = {
+          registration: (globalPaymentsRaw || []).filter(p => p.fee_type === 'registration'),
+          uniform: (globalPaymentsRaw || []).filter(p => p.fee_type === 'uniform'),
+          monthly: (globalPaymentsRaw || []).filter(p => p.fee_type === 'monthly'),
+          other: (globalPaymentsRaw || []).filter(p => !['registration', 'uniform', 'monthly'].includes(p.fee_type)),
+        }
+
+        // Global coach count
+        const allTeamIds = (allTeams || []).map(t => t.id)
+        let globalCoachCount = 0
+        if (allTeamIds.length > 0) {
+          const { data: allTc } = await supabase
+            .from('team_coaches')
+            .select('coach_id')
+            .in('team_id', allTeamIds)
+          globalCoachCount = new Set((allTc || []).map(tc => tc.coach_id)).size
+        }
+
+        setGlobalStats({
+          totalCollected: globalCollected,
+          totalExpected: globalExpected,
+          pastDue: globalOutstanding,
+          coachCount: globalCoachCount,
+          actionCount: totalGlobalActions,
+          paymentsByType: globalPaymentsByType,
+        })
       } catch (err) {
         console.error('Per-season counts error:', err)
       }
@@ -729,6 +805,30 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   }
   const actionCount = attentionItems.reduce((sum, item) => sum + item.count, 0)
 
+  // Dynamic contextual messages — rotates per session (Tweak 1)
+  const globalTotalTeams = Object.values(perSeasonTeamCounts || {}).reduce((s, c) => s + c, 0)
+  const globalTotalPlayers = Object.values(perSeasonPlayerCounts || {}).reduce((s, c) => s + c, 0)
+  const contextMessages = (() => {
+    const msgs = []
+    if (globalStats.actionCount > 0) {
+      msgs.push(`${globalStats.actionCount} item${globalStats.actionCount !== 1 ? 's' : ''} need your attention.`)
+      msgs.push(`You've got ${globalStats.actionCount} to knock out.`)
+    }
+    if (globalStats.actionCount === 0) {
+      msgs.push("Everything's looking good.")
+      msgs.push("All systems running smooth.")
+      msgs.push("Your club is humming.")
+    }
+    if (upcomingEvents.length > 0) {
+      msgs.push(`${upcomingEvents.length} event${upcomingEvents.length !== 1 ? 's' : ''} coming up.`)
+    }
+    if (globalTotalPlayers > 0 && globalTotalTeams > 0) {
+      msgs.push(`${globalTotalPlayers} players across ${globalTotalTeams} team${globalTotalTeams !== 1 ? 's' : ''}.`)
+    }
+    return msgs.length > 0 ? msgs : ["Let's see how things are going."]
+  })()
+  const ctxMsg = contextMessages[Math.floor(msgSeed * contextMessages.length)] || "Let's see how things are going."
+
   return (
     <>
       {/* ─── TopBar ──── */}
@@ -783,15 +883,15 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               {/* HERO CARD — org-wide stats */}
               <HeroCard
                 orgLine={orgName || organization?.name || 'Your Organization'}
-                greeting={`${getGreeting()}, ${profile?.first_name || 'Admin'}. ${actionCount > 0 ? `You've got ${actionCount} items to knock out.` : 'Everything looks good.'}`}
+                greeting={`${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`}
                 subLine={`${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 stats={[
-                  { value: Object.values(perSeasonTeamCounts || {}).reduce((s, c) => s + c, 0) || stats.teams || 0, label: 'Teams' },
-                  { value: Object.values(perSeasonPlayerCounts || {}).reduce((s, c) => s + c, 0) || totalPlayers, label: 'Players' },
-                  { value: stats.coachCount || 0, label: 'Coaches' },
+                  { value: globalTotalTeams || stats.teams || 0, label: 'Teams' },
+                  { value: globalTotalPlayers || totalPlayers, label: 'Players' },
+                  { value: globalStats.coachCount || stats.coachCount || 0, label: 'Coaches' },
                   { value: (allSeasons || seasons || []).length, label: 'Seasons' },
-                  { value: stats.totalCollected ? `$${(stats.totalCollected / 1000).toFixed(1)}k` : '$0', label: 'Collected', color: 'green' },
-                  { value: actionCount || 0, label: 'Action Items', color: actionCount > 0 ? 'red' : undefined },
+                  { value: globalStats.totalCollected ? `$${(globalStats.totalCollected / 1000).toFixed(1)}k` : '$0', label: 'Collected', color: 'green' },
+                  { value: globalStats.actionCount || 0, label: 'Action Items', color: globalStats.actionCount > 0 ? 'red' : undefined },
                 ]}
               />
 
@@ -832,6 +932,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 seasons={allSeasons || seasons || []}
                 perSeasonTeamCounts={perSeasonTeamCounts}
                 perSeasonPlayerCounts={perSeasonPlayerCounts}
+                perSeasonActionCounts={perSeasonActionCounts}
                 selectedSeasonId={selectedSeason?.id}
                 onSeasonSelect={(id) => {
                   const season = (allSeasons || seasons || []).find(s => s.id === id)
@@ -892,19 +993,19 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               {/* FINANCIAL SNAPSHOT */}
               <FinancialSnapshot
                 overline="Financial Snapshot"
-                heading={selectedSeason?.name || 'Current Season'}
-                headingSub="Season Revenue"
-                projectedRevenue={stats.totalExpected || null}
-                collectedPct={stats.totalExpected ? Math.round((stats.totalCollected / stats.totalExpected) * 100) : 0}
-                receivedAmount={`$${(stats.totalCollected || 0).toLocaleString()}`}
+                heading="All Seasons"
+                headingSub="Organization Revenue"
+                projectedRevenue={globalStats.totalExpected || null}
+                collectedPct={globalStats.totalExpected ? Math.round((globalStats.totalCollected / globalStats.totalExpected) * 100) : 0}
+                receivedAmount={`$${(globalStats.totalCollected || 0).toLocaleString()}`}
                 receivedLabel="Received"
-                outstandingAmount={`$${(stats.pastDue || 0).toLocaleString()}`}
+                outstandingAmount={`$${(globalStats.pastDue || 0).toLocaleString()}`}
                 outstandingLabel="Outstanding"
-                breakdown={stats.paymentsByType ? [
-                  { label: 'Registration', amount: `$${(stats.paymentsByType.registration?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-green)' },
-                  { label: 'Uniforms', amount: `$${(stats.paymentsByType.uniform?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-sky)' },
-                  { label: 'Monthly Dues', amount: `$${(stats.paymentsByType.monthly?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-purple)' },
-                  { label: 'Other', amount: `$${(stats.paymentsByType.other?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-amber)' },
+                breakdown={globalStats.paymentsByType ? [
+                  { label: 'Registration', amount: `$${(globalStats.paymentsByType.registration?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-green)' },
+                  { label: 'Uniforms', amount: `$${(globalStats.paymentsByType.uniform?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-sky)' },
+                  { label: 'Monthly Dues', amount: `$${(globalStats.paymentsByType.monthly?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-purple)' },
+                  { label: 'Other', amount: `$${(globalStats.paymentsByType.other?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-amber)' },
                 ] : null}
                 primaryAction={{ label: 'Send Reminders', onClick: () => onNavigate?.('payments'), variant: 'danger' }}
                 secondaryAction={{ label: 'View Ledger', onClick: () => onNavigate?.('payments') }}

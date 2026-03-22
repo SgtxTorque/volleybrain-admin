@@ -73,8 +73,9 @@ export default function HeroCard({
 
           {/* Greeting */}
           <div style={{
-            fontSize: 26, fontWeight: 800, lineHeight: 1.15,
-            letterSpacing: '-0.03em', maxWidth: 460,
+            fontSize: 22, fontWeight: 800, lineHeight: 1.15,
+            letterSpacing: '-0.03em',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {greeting}
           </div>

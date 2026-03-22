@@ -10,6 +10,7 @@ export default function SeasonCarousel({
   seasons = [],
   perSeasonTeamCounts = {},
   perSeasonPlayerCounts = {},
+  perSeasonActionCounts = {},
   selectedSeasonId,
   onSeasonSelect,
   onViewAll,
@@ -131,6 +132,7 @@ export default function SeasonCarousel({
             const badge = getStatusBadge(season)
             const teamCount = perSeasonTeamCounts[season.id] || 0
             const playerCount = perSeasonPlayerCounts[season.id] || 0
+            const actionCount = perSeasonActionCounts[season.id] || 0
             const isSelected = season.id === selectedSeasonId
             const dateRange = formatDateRange(season)
 
@@ -159,7 +161,7 @@ export default function SeasonCarousel({
                   e.currentTarget.style.transform = 'none'
                 }}
               >
-                {/* Status badge */}
+                {/* Status badge + attention pill */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                   <span style={{
                     display: 'inline-block',
@@ -174,6 +176,21 @@ export default function SeasonCarousel({
                       fontSize: 10, fontWeight: 600, color: 'var(--v2-sky)',
                     }}>
                       Selected
+                    </span>
+                  )}
+                  <span style={{ flex: 1 }} />
+                  {actionCount > 0 && (
+                    <span style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      padding: '2px 8px', borderRadius: 99,
+                      fontSize: 11, fontWeight: 700,
+                      background: 'rgba(239,68,68,0.12)', color: '#EF4444',
+                    }}>
+                      <span style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: '#EF4444',
+                      }} />
+                      {actionCount}
                     </span>
                   )}
                 </div>
