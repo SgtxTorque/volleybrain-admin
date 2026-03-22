@@ -171,6 +171,9 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         })
 
         // Per-season action item counts + details (pending regs + unpaid payments)
+        // Note: Action Items tab also includes waivers, unrostered players, and
+        // teams without schedule, but those require per-season queries that are
+        // only loaded for the currently selected season.
         const actionMap = {}
         const detailsMap = {}
         let totalGlobalActions = 0
@@ -182,7 +185,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
             actionMap[sid] = count
             const details = []
             if (pending > 0) details.push({ label: 'Pending Registrations', count: pending })
-            if (unpaid > 0) details.push({ label: 'Unpaid Payments', count: unpaid })
+            if (unpaid > 0) details.push({ label: 'Overdue Payments', count: unpaid })
             detailsMap[sid] = details
           }
           totalGlobalActions += count
@@ -600,6 +603,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         unsignedWaivers,
         teamsWithCoach: teamsWithCoachCount,
         openSpots,
+        unpaidCount: unpaidPayments.length,
       })
 
       // Generate monthly payment data for chart (real data based on payments)
@@ -769,7 +773,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1)
   const monthEnd = new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 0)
   const eventsThisMonth = upcomingEvents.filter(e => { const d = new Date(e.event_date); return d >= monthStart && d <= monthEnd }).length
-  const overdueCount = (stats.pastDue || 0) > 0 ? Math.ceil(stats.pastDue / 100) : 0
+  const overdueCount = stats.unpaidCount || 0
   const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
   const teamsNoSchedule = Math.max(0, totalTeams - teamsWithSchedule)
 
