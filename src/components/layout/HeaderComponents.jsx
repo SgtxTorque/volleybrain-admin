@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useSport } from '../../contexts/SportContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, ALL_SEASONS, isAllSeasons } from '../../contexts/SeasonContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { 
   Globe, Calendar, Users, User, ChevronDown, Check, ArrowRight
 } from '../../constants/icons'
@@ -80,51 +81,69 @@ export function HeaderSeasonSelector() {
   const { seasons, selectedSeason, selectSeason, loading } = useSeason()
   const { selectedSport } = useSport()
   const { isDark, colors } = useTheme()
+  const { profile } = useAuth()
   const [open, setOpen] = useState(false)
+  const isAdmin = profile?.role === 'admin'
+  const isAll = isAllSeasons(selectedSeason)
 
   if (loading || seasons.length === 0) return null
 
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition hover:bg-black/10 dark:hover:bg-white/10"
         style={{ color: colors.textSecondary }}
       >
         <Calendar className="w-4 h-4" />
         <span className="text-sm font-medium" style={{ color: colors.text }}>
-          {selectedSeason?.name || 'Select Season'}
+          {isAll ? 'All Seasons' : (selectedSeason?.name || 'Select Season')}
         </span>
-        {selectedSeason?.status === 'active' && (
+        {!isAll && selectedSeason?.status === 'active' && (
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
         )}
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      
+
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div 
+          <div
             className="absolute top-full left-0 mt-1 w-56 rounded-lg shadow-xl border overflow-hidden z-50 max-h-80 overflow-y-auto"
             style={{ backgroundColor: colors.cardBg, borderColor: colors.border }}
           >
+            {isAdmin && (
+              <button
+                onClick={() => { selectSeason(ALL_SEASONS); setOpen(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition ${
+                  isAll ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
+                }`}
+                style={{ color: isAll ? undefined : colors.text }}
+                onMouseEnter={e => !isAll && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
+                onMouseLeave={e => !isAll && (e.currentTarget.style.backgroundColor = '')}
+              >
+                <Globe className="w-4 h-4" />
+                <span className="flex-1 text-left">All Seasons</span>
+                {isAll && <Check className="w-4 h-4" />}
+              </button>
+            )}
             {seasons.map(s => (
               <button
                 key={s.id}
                 onClick={() => { selectSeason(s); setOpen(false); }}
                 className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition ${
-                  selectedSeason?.id === s.id ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
+                  !isAll && selectedSeason?.id === s.id ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
                 }`}
-                style={{ color: selectedSeason?.id === s.id ? undefined : colors.text }}
-                onMouseEnter={e => selectedSeason?.id !== s.id && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
-                onMouseLeave={e => selectedSeason?.id !== s.id && (e.currentTarget.style.backgroundColor = '')}
+                style={{ color: !isAll && selectedSeason?.id === s.id ? undefined : colors.text }}
+                onMouseEnter={e => (isAll || selectedSeason?.id !== s.id) && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
+                onMouseLeave={e => (isAll || selectedSeason?.id !== s.id) && (e.currentTarget.style.backgroundColor = '')}
               >
                 {!selectedSport && s.sports?.icon && <span>{s.sports.icon}</span>}
                 <span className="flex-1 text-left">{s.name}</span>
                 {s.status === 'active' && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active" />
                 )}
-                {selectedSeason?.id === s.id && <Check className="w-4 h-4" />}
+                {!isAll && selectedSeason?.id === s.id && <Check className="w-4 h-4" />}
               </button>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, ALL_SEASONS, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { Search } from 'lucide-react'
@@ -18,13 +18,19 @@ export default function SeasonFilterBar({ role }) {
   return (
     <div className="flex gap-3 items-center mb-5 flex-wrap">
       <select
-        value={selectedSeason?.id || ''}
+        value={isAllSeasons(selectedSeason) ? 'all' : (selectedSeason?.id || '')}
         onChange={e => {
-          const season = allSeasons.find(s => s.id === e.target.value) || null
-          selectSeason(season)
+          const value = e.target.value
+          if (value === 'all') {
+            selectSeason(ALL_SEASONS)
+            return
+          }
+          const season = allSeasons.find(s => s.id === value)
+          selectSeason(season || null)
         }}
         className={selectCls}
       >
+        {role === 'admin' && <option value="all">All Seasons</option>}
         {(seasons || []).map(s => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}
