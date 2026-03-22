@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { BarChart3 } from '../../constants/icons'
@@ -21,7 +22,8 @@ import QuickScoreModal from './QuickScoreModal'
 // MAIN GAME PREP PAGE
 // ============================================
 function GamePrepPage({ showToast }) {
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
 
@@ -51,7 +53,7 @@ function GamePrepPage({ showToast }) {
 
   useEffect(() => {
     if (selectedSeason?.id) loadTeams()
-  }, [selectedSeason])
+  }, [selectedSeason, selectedSport?.id])
 
   useEffect(() => {
     if (selectedTeam) {
@@ -60,32 +62,22 @@ function GamePrepPage({ showToast }) {
     }
   }, [selectedTeam])
 
-  // "All Seasons" sentinel — game prep is season-scoped
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <div className={`min-h-screen ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
-        <DashboardContainer className="space-y-6 animate-page-in px-6">
-          <div>
-            <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Game Prep</p>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>Game Prep</h1>
-          </div>
-          <SeasonFilterBar />
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-            <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view game prep.</p>
-          </div>
-        </DashboardContainer>
-      </div>
-    )
-  }
-
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
     try {
-      const { data } = await supabase
+      let query = supabase
         .from('teams')
         .select('id, name, color')
-        .eq('season_id', selectedSeason.id)
-        .order('name')
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      } else if (selectedSport?.id) {
+        const sportSeasonIds = (allSeasons || [])
+          .filter(s => s.sport_id === selectedSport.id)
+          .map(s => s.id)
+        if (sportSeasonIds.length > 0) {
+          query = query.in('season_id', sportSeasonIds)
+        }
+      }
+      const { data } = await query.order('name')
 
       setTeams(data || [])
       if (data?.length > 0) setSelectedTeam(data[0])
@@ -95,7 +87,6 @@ function GamePrepPage({ showToast }) {
   }
 
   async function loadGames() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedTeam?.id) return
     setLoading(true)
 
@@ -179,7 +170,6 @@ function GamePrepPage({ showToast }) {
   }
 
   async function loadRoster() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedTeam?.id) return
 
     const { data } = await supabase

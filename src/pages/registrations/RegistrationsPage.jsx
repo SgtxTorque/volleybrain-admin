@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -43,7 +44,8 @@ const csvColumns = [
 
 export function RegistrationsPage({ showToast }) {
   const journey = useJourney()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const { organization } = useAuth()
   const { isDark } = useTheme()
 
@@ -65,7 +67,7 @@ export function RegistrationsPage({ showToast }) {
 
   useEffect(() => {
     loadRegistrations()
-  }, [selectedSeason?.id, statusFilter])
+  }, [selectedSeason?.id, statusFilter, selectedSport?.id])
 
   useEffect(() => {
     setSelectedIds(new Set())
@@ -82,6 +84,14 @@ export function RegistrationsPage({ showToast }) {
 
     if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
+    } else if (isAllSeasons(selectedSeason) && selectedSport?.id) {
+      // Filter by sport: only include players from seasons matching the selected sport
+      const sportSeasonIds = (allSeasons || [])
+        .filter(s => s.sport_id === selectedSport.id)
+        .map(s => s.id)
+      if (sportSeasonIds.length > 0) {
+        query = query.in('season_id', sportSeasonIds)
+      }
     }
 
     const { data, error } = await query

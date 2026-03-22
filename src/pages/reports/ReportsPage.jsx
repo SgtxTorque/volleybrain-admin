@@ -437,7 +437,7 @@ function ReportsPage({ showToast }) {
             <label className="block text-r-xs font-bold tracking-wider mb-1 text-slate-400">SEASON</label>
             <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`min-w-[180px] ${inputCls}`}>
               <option value="">Select Season</option>
-              {seasons.map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '\u25CF' : s.status === 'upcoming' ? '\u25CB' : '\u25CC'}</option>)}
+              {seasons.filter(s => selectedSportId === 'all' || s.sport_id === selectedSportId).map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '\u25CF' : s.status === 'upcoming' ? '\u25CB' : '\u25CC'}</option>)}
             </select>
           </div>
         </div>

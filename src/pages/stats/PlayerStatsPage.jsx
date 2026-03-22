@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSeason } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
 import { useTheme } from '../../contexts/ThemeContext'
 import PageShell from '../../components/pages/PageShell'
@@ -334,7 +334,6 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
   }, [playerId, teamId, selectedSeason?.id])
 
   async function loadPlayerData() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
 
     try {

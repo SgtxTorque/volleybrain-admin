@@ -121,14 +121,15 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }, [viewingPlayer?.id, selectedSeason?.id])
 
   async function loadAllPlayers() {
-    if (isAllSeasons(selectedSeason)) return
-    if (!selectedSeason?.id) return
     try {
-      const { data } = await supabase.from('players')
+      let query = supabase.from('players')
         .select('id, first_name, last_name, jersey_number, photo_url, position, team_players(team_id, teams(id, name, season_id, color))')
-        .eq('team_players.teams.season_id', selectedSeason.id)
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('team_players.teams.season_id', selectedSeason.id)
+      }
+      const { data } = await query
       if (data) {
-        const seasonPlayers = data.filter(p => p.team_players?.length > 0)
+        const seasonPlayers = !isAllSeasons(selectedSeason) ? data.filter(p => p.team_players?.length > 0) : data
         setAllPlayers(seasonPlayers)
         if (!previewPlayer && seasonPlayers.length > 0) {
           setPreviewPlayer(seasonPlayers[0])
@@ -144,7 +145,6 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }
 
   async function loadPlayerDashboard(player) {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const { data: teamData } = await supabase.from('team_players').select('*, teams(*)').eq('player_id', player.id)
@@ -180,10 +180,12 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }
 
   async function loadRankings(playerId) {
-    if (isAllSeasons(selectedSeason)) return
-    if (!selectedSeason?.id) return
     try {
-      const { data: allStats } = await supabase.from('player_season_stats').select('player_id, total_kills, total_aces, total_digs, total_blocks, total_assists, total_points').eq('season_id', selectedSeason.id)
+      let query = supabase.from('player_season_stats').select('player_id, total_kills, total_aces, total_digs, total_blocks, total_assists, total_points')
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      }
+      const { data: allStats } = await query
       if (!allStats) return
       const nr = {}
       ;['kills', 'aces', 'digs', 'blocks', 'assists', 'points'].forEach(stat => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import PageShell from '../../components/pages/PageShell'
@@ -320,7 +321,8 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
 // ============================================
 function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const { isDark } = useTheme()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
 
   const [leaderboardData, setLeaderboardData] = useState({})
   const [loading, setLoading] = useState(true)
@@ -329,56 +331,58 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const [filterTeam, setFilterTeam] = useState(null)
   const [teams, setTeams] = useState([])
 
+  // Helper: get season IDs filtered by sport
+  function getSportSeasonIds() {
+    if (!selectedSport?.id) return null
+    return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+  }
+
   useEffect(() => {
     loadLeaderboards()
     loadTeams()
-  }, [selectedSeason?.id])
-
-  // "All Seasons" sentinel — leaderboards are season-scoped
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell title="Season Leaderboards" breadcrumb="Game Day">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view leaderboards.</p>
-        </div>
-      </PageShell>
-    )
-  }
+  }, [selectedSeason?.id, selectedSport?.id])
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
-    if (!selectedSeason?.id) return
-
-    const { data } = await supabase
+    let query = supabase
       .from('teams')
       .select('id, name')
-      .eq('season_id', selectedSeason.id)
-      .order('name')
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
+    }
+    query = query.order('name')
 
+    const { data } = await query
     setTeams(data || [])
   }
 
   async function loadLeaderboards() {
-    if (isAllSeasons(selectedSeason)) return
-    if (!selectedSeason?.id) {
-      setLoading(false)
-      return
-    }
-
     setLoading(true)
 
     try {
       // Load all player season stats with player info
-      const { data: stats } = await supabase
+      let query = supabase
         .from('player_season_stats')
         .select(`
           *,
           player:players(id, first_name, last_name, jersey_number, photo_url, position),
           team:teams(id, name)
         `)
-        .eq('season_id', selectedSeason.id)
-        .gt('games_played', 0)
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      } else {
+        const sportIds = getSportSeasonIds()
+        if (sportIds && sportIds.length > 0) {
+          query = query.in('season_id', sportIds)
+        }
+      }
+      query = query.gt('games_played', 0)
+
+      const { data: stats } = await query
 
       // Process stats for each category
       const processed = {}

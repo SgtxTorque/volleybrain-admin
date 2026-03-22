@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { supabase } from '../../lib/supabase'
 import { ChevronDown, Check, AlertTriangle } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
@@ -18,7 +19,8 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
   const { profile, user, organization } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
 
   // Calendar state
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
@@ -128,27 +130,14 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
   // ── DATA LOADING ──
   useEffect(() => {
     if (isAdmin) loadCoaches()
-  }, [isAdmin, selectedSeason?.id])
+  }, [isAdmin, selectedSeason?.id, selectedSport?.id])
 
   useEffect(() => {
     if (viewingCoachId) loadData()
     else { setAvailability([]); setRecurringPatterns([]); setEvents([]); setLoading(false) }
   }, [viewingCoachId, currentYear, currentMonth])
 
-  // "All Seasons" sentinel — coach availability is season-scoped
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell title="Coach Availability" breadcrumb="Operations">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage coach availability.</p>
-        </div>
-      </PageShell>
-    )
-  }
-
   async function loadCoaches() {
-    if (isAllSeasons(selectedSeason)) return
     try {
       let query = supabase
         .from('coaches')
@@ -156,8 +145,15 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
         .eq('status', 'active')
         .order('last_name', { ascending: true })
 
-      if (selectedSeason?.id) {
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         query = query.eq('season_id', selectedSeason.id)
+      } else if (selectedSport?.id) {
+        const sportSeasonIds = (allSeasons || [])
+          .filter(s => s.sport_id === selectedSport.id)
+          .map(s => s.id)
+        if (sportSeasonIds.length > 0) {
+          query = query.in('season_id', sportSeasonIds)
+        }
       }
 
       const { data } = await query
@@ -171,7 +167,6 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
   }
 
   async function loadData() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const firstOfMonth = toDateStr(currentYear, currentMonth, 1)

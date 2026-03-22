@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { calculateFeesForPlayer } from '../../lib/fee-calculator'
@@ -125,7 +126,8 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
 // MAIN PAYMENTS PAGE
 // ============================================
 export function PaymentsPage({ showToast }) {
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const { isDark } = useTheme()
   const [payments, setPayments] = useState([])
   const [players, setPlayers] = useState([])
@@ -141,9 +143,15 @@ export function PaymentsPage({ showToast }) {
   const [showReminderModal, setShowReminderModal] = useState(null)
   const [showBlastModal, setShowBlastModal] = useState(false)
 
+  // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
+  function getSportSeasonIds() {
+    if (!selectedSport?.id) return null
+    return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+  }
+
   useEffect(() => {
     if (selectedSeason?.id) { loadPayments(); loadPlayers() }
-  }, [selectedSeason?.id])
+  }, [selectedSeason?.id, selectedSport?.id])
 
   async function loadPlayers() {
     let query = supabase
@@ -151,6 +159,11 @@ export function PaymentsPage({ showToast }) {
       .select('id, first_name, last_name, photo_url, position, grade, jersey_number, parent_email, parent_name')
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
     }
     const { data } = await query
     setPlayers(data || [])
@@ -164,6 +177,11 @@ export function PaymentsPage({ showToast }) {
       .select('*, players(id, first_name, last_name, parent_name, parent_email, photo_url, position, grade, jersey_number)')
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
     }
     const { data } = await query.order('created_at', { ascending: false })
     setPayments(data || [])

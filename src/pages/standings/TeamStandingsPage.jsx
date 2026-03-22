@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
@@ -17,7 +18,8 @@ import InnerStatRow from '../../components/pages/InnerStatRow'
 export default function TeamStandingsPage() {
   const { isDark } = useTheme()
   const { user, profile } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
 
   const [loading, setLoading] = useState(true)
   const [standings, setStandings] = useState(null)
@@ -35,39 +37,35 @@ export default function TeamStandingsPage() {
 
   // Load teams when season changes
   useEffect(() => {
-    if (selectedSeason?.id) {
+    if (selectedSeason) {
       loadTeams()
     }
-  }, [selectedSeason?.id])
+  }, [selectedSeason?.id, selectedSport?.id])
 
   // Load standings when team changes
   useEffect(() => {
-    if (selectedTeam?.id && selectedSeason?.id) {
+    if (selectedTeam?.id && selectedSeason) {
       loadStandings()
       loadRecentGames()
     }
   }, [selectedTeam?.id, selectedSeason?.id])
 
-  // "All Seasons" sentinel — standings are season-scoped
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell title="Team Standings" breadcrumb="Game Day">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view standings.</p>
-        </div>
-      </PageShell>
-    )
-  }
-
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
     try {
-      const { data } = await supabase
+      let query = supabase
         .from('teams')
         .select('id, name, color')
-        .eq('season_id', selectedSeason.id)
-        .order('name')
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      } else if (selectedSport?.id) {
+        const sportSeasonIds = (allSeasons || [])
+          .filter(s => s.sport_id === selectedSport.id)
+          .map(s => s.id)
+        if (sportSeasonIds.length > 0) {
+          query = query.in('season_id', sportSeasonIds)
+        }
+      }
+      const { data } = await query.order('name')
 
       setTeams(data || [])
       if (data?.length > 0) {
@@ -82,26 +80,30 @@ export default function TeamStandingsPage() {
   }
 
   async function loadStandings() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       // Get standings from team_standings table
-      const { data: standingsData } = await supabase
+      let standingsQuery = supabase
         .from('team_standings')
         .select('*')
         .eq('team_id', selectedTeam.id)
-        .eq('season_id', selectedSeason.id)
-        .single()
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        standingsQuery = standingsQuery.eq('season_id', selectedSeason.id)
+      }
+      const { data: standingsData } = await standingsQuery.single()
 
       if (standingsData) {
         setStandings(standingsData)
       } else {
         // Calculate from games if no standings record exists
-        const { data: games } = await supabase
+        let gamesQuery = supabase
           .from('schedule_events')
           .select('*')
           .eq('team_id', selectedTeam.id)
-          .eq('season_id', selectedSeason.id)
+        if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+          gamesQuery = gamesQuery.eq('season_id', selectedSeason.id)
+        }
+        const { data: games } = await gamesQuery
           .eq('event_type', 'game')
           .eq('game_status', 'completed')
 
@@ -142,13 +144,15 @@ export default function TeamStandingsPage() {
   }
 
   async function loadRecentGames() {
-    if (isAllSeasons(selectedSeason)) return
     try {
-      const { data: games } = await supabase
+      let query = supabase
         .from('schedule_events')
         .select('*')
         .eq('team_id', selectedTeam.id)
-        .eq('season_id', selectedSeason.id)
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      }
+      const { data: games } = await query
         .eq('event_type', 'game')
         .eq('game_status', 'completed')
         .order('event_date', { ascending: false })

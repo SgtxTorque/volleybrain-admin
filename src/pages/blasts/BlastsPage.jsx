@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { sanitizeText } from '../../lib/validation'
@@ -13,7 +14,8 @@ import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 function BlastsPage({ showToast, activeView, roleContext }) {
   const { organization, profile, user } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   
@@ -24,10 +26,16 @@ function BlastsPage({ showToast, activeView, roleContext }) {
   const [selectedBlast, setSelectedBlast] = useState(null)
   const [filterType, setFilterType] = useState('all')
   
+  // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
+  function getSportSeasonIds() {
+    if (!selectedSport?.id) return null
+    return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+  }
+
   useEffect(() => {
     if (selectedSeason?.id) loadBlasts()
-  }, [selectedSeason?.id])
-  
+  }, [selectedSeason?.id, selectedSport?.id])
+
   const isCoach = activeView === 'coach'
   const isTeamManager = activeView === 'team_manager'
   const coachTeamIds = isCoach
@@ -39,10 +47,14 @@ function BlastsPage({ showToast, activeView, roleContext }) {
   async function loadBlasts() {
     setLoading(true)
     try {
+      const sportIds = getSportSeasonIds()
+
       // Load teams (scoped to coach's teams if coach role)
       let teamsQuery = supabase.from('teams').select('*')
       if (!isAllSeasons(selectedSeason)) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)
+      } else if (sportIds && sportIds.length > 0) {
+        teamsQuery = teamsQuery.in('season_id', sportIds)
       }
       if ((isCoach || isTeamManager) && coachTeamIds.length > 0) {
         teamsQuery = teamsQuery.in('id', coachTeamIds)
@@ -61,6 +73,8 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         `)
       if (!isAllSeasons(selectedSeason)) {
         blastsQuery = blastsQuery.eq('season_id', selectedSeason.id)
+      } else if (sportIds && sportIds.length > 0) {
+        blastsQuery = blastsQuery.in('season_id', sportIds)
       }
       const { data: blastsData } = await blastsQuery
         .order('created_at', { ascending: false })
@@ -299,16 +313,18 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   }, [form.target_type, form.target_team_id])
 
   async function calculateRecipients() {
-    if (isAllSeasons(selectedSeason)) return
     try {
       let count = 0
-      
+
       if (form.target_type === 'all') {
         // All parents in the season
-        const { count: parentCount } = await supabase
+        let query = supabase
           .from('players')
           .select('*', { count: 'exact', head: true })
-          .eq('season_id', selectedSeason.id)
+        if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+          query = query.eq('season_id', selectedSeason.id)
+        }
+        const { count: parentCount } = await query
         count = parentCount || 0
       } else if (form.target_type === 'team' && form.target_team_id) {
         // Parents of players on specific team
@@ -331,7 +347,6 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   }
 
   async function handleSend() {
-    if (isAllSeasons(selectedSeason)) return
     const cleanTitle = sanitizeText(form.title)
     const cleanBody = sanitizeText(form.body)
     if (!cleanTitle || !cleanBody) {
@@ -346,31 +361,37 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
     setSending(true)
     try {
       // Create the message/blast
+      const insertData = {
+        sender_id: user?.id,
+        title: cleanTitle,
+        body: cleanBody,
+        message_type: form.message_type,
+        priority: form.priority,
+        target_type: form.target_type,
+        target_team_id: form.target_team_id
+      }
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        insertData.season_id = selectedSeason.id
+      }
       const { data: blast, error } = await supabase
         .from('messages')
-        .insert({
-          season_id: selectedSeason.id,
-          sender_id: user?.id,
-          title: cleanTitle,
-          body: cleanBody,
-          message_type: form.message_type,
-          priority: form.priority,
-          target_type: form.target_type,
-          target_team_id: form.target_team_id
-        })
+        .insert(insertData)
         .select()
         .single()
-      
+
       if (error) throw error
-      
+
       // Get recipients based on target
       let recipients = []
-      
+
       if (form.target_type === 'all' || form.target_type === 'parents') {
-        const { data: players } = await supabase
+        let playersQuery = supabase
           .from('players')
           .select('id, first_name, last_name, parent_name, parent_email')
-          .eq('season_id', selectedSeason.id)
+        if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+          playersQuery = playersQuery.eq('season_id', selectedSeason.id)
+        }
+        const { data: players } = await playersQuery
         
         recipients = (players || []).map(p => ({
           message_id: blast.id,

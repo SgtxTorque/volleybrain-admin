@@ -120,10 +120,15 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   // Stable random seed for contextual message rotation (one pick per mount)
   const msgSeed = useMemo(() => Math.random(), [])
 
-  // Fetch per-season counts + global stats (runs once per org, not on season change)
+  // Fetch per-season counts + global stats (re-runs when sport filter changes)
   useEffect(() => {
-    const seasonList = allSeasons || seasons || []
+    let seasonList = allSeasons || seasons || []
     if (seasonList.length === 0) return
+    // Filter seasons by sport if a sport is selected
+    if (selectedSport?.id) {
+      seasonList = seasonList.filter(s => s.sport_id === selectedSport.id)
+      if (seasonList.length === 0) return
+    }
     const seasonIds = seasonList.map(s => s.id)
     ;(async () => {
       try {
@@ -224,7 +229,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         console.error('Per-season counts error:', err)
       }
     })()
-  }, [allSeasons, seasons])
+  }, [allSeasons, seasons, selectedSport?.id])
 
   // Reset team filter when season changes
   useEffect(() => {

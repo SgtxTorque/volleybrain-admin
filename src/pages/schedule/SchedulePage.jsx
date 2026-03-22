@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -29,7 +30,8 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
   const parentTutorial = useParentTutorial()
   const { organization } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const { isDark } = useTheme()
   const [events, setEvents] = useState([])
   const [teams, setTeams] = useState([])
@@ -62,12 +64,17 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showGameDayCard, setShowGameDayCard] = useState(null)
   const [allUpcomingGames, setAllUpcomingGames] = useState([])
 
+  // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
+  function getSportSeasonIds() {
+    if (!selectedSport?.id) return null
+    return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+  }
+
   useEffect(() => {
     if (selectedSeason?.id) { loadEvents(); loadTeams(); loadVenues() }
-  }, [selectedSeason?.id, currentDate])
+  }, [selectedSeason?.id, currentDate, selectedSport?.id])
 
   async function loadEvents() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     setLoading(true)
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -75,10 +82,18 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     const startDate = startOfMonth.toISOString().split('T')[0]
     const endDate = endOfMonth.toISOString().split('T')[0]
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('schedule_events')
       .select('*, teams!schedule_events_team_id_fkey(id, name, color, logo_url)')
-      .eq('season_id', selectedSeason.id)
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
+    }
+    const { data, error } = await query
       .gte('event_date', startDate)
       .lte('event_date', endDate)
       .order('event_date', { ascending: true })
@@ -116,10 +131,17 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   }
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
-    const { data } = await supabase.from('teams').select('id, name, color, logo_url')
-      .eq('season_id', selectedSeason.id).order('name')
+    let query = supabase.from('teams').select('id, name, color, logo_url')
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
+    }
+    const { data } = await query.order('name')
     setTeams(data || [])
   }
 
@@ -240,29 +262,20 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   }, [selectedSeason?.id, selectedTeam])
 
   async function loadAllUpcoming() {
-    if (isAllSeasons(selectedSeason)) return
     const today = new Date().toISOString().split('T')[0]
-    const { data } = await supabase
+    let query = supabase
       .from('schedule_events')
       .select('*, teams!schedule_events_team_id_fkey(id, name, color, logo_url)')
-      .eq('season_id', selectedSeason.id)
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    }
+    const { data } = await query
       .eq('event_type', 'game')
       .gte('event_date', today)
       .order('event_date', { ascending: true })
       .order('event_time', { ascending: true })
       .limit(6)
     setAllUpcomingGames(data || [])
-  }
-
-  if (!selectedSeason || isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell breadcrumb="Schedule" title="Schedule">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view the schedule.</p>
-        </div>
-      </PageShell>
-    )
   }
 
   const upcomingGames = filteredEvents.filter(e => e.event_type === 'game' && new Date(e.event_date) >= new Date())
@@ -273,7 +286,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     <PageShell
       breadcrumb="Schedule"
       title="Schedule"
-      subtitle={`${selectedSeason.name} · ${filteredEvents.length} events`}
+      subtitle={`${selectedSeason?.name || 'Schedule'} · ${filteredEvents.length} events`}
       actions={
         <div className="flex gap-2">
           {/* Share & Export */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext';
+import { useSport } from '../../contexts/SportContext';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   Bell, Send, Clock, CheckCircle, XCircle, AlertTriangle, Users,
@@ -26,7 +27,8 @@ import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 export function NotificationsPage({ showToast }) {
   const tc = useThemeClasses();
   const { isDark } = useTheme();
-  const { selectedSeason } = useSeason();
+  const { selectedSeason, allSeasons } = useSeason();
+  const { selectedSport } = useSport();
   const { profile, organization } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifications, setNotifications] = useState([]);
@@ -41,7 +43,6 @@ export function NotificationsPage({ showToast }) {
 
   // ---- Load Data ----
   const loadData = useCallback(async () => {
-    if (isAllSeasons(selectedSeason)) return;
     setLoading(true);
     try {
       // Load notifications (last 100, scoped to organization)
@@ -74,34 +75,29 @@ export function NotificationsPage({ showToast }) {
       setTemplates(tmplData || []);
 
       // Load teams for send modal
-      if (selectedSeason?.id) {
-        const { data: teamData } = await supabase
-          .from('teams')
-          .select('id, name, color')
-          .eq('season_id', selectedSeason.id);
-
-        setTeams(teamData || []);
+      let teamsQuery = supabase
+        .from('teams')
+        .select('id, name, color');
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        teamsQuery = teamsQuery.eq('season_id', selectedSeason.id);
+      } else if (selectedSport?.id) {
+        const sportSeasonIds = (allSeasons || [])
+          .filter(s => s.sport_id === selectedSport.id)
+          .map(s => s.id);
+        if (sportSeasonIds.length > 0) {
+          teamsQuery = teamsQuery.in('season_id', sportSeasonIds);
+        }
       }
+      const { data: teamData } = await teamsQuery;
+      setTeams(teamData || []);
     } catch (err) {
       console.error('Error loading notifications data:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedSeason]);
+  }, [selectedSeason, selectedSport?.id]);
 
   useEffect(() => { loadData(); }, [loadData]);
-
-  // "All Seasons" sentinel — notifications are season-scoped
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell title="Push Notifications" breadcrumb="Communication">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage notifications.</p>
-        </div>
-      </PageShell>
-    )
-  }
 
   // ---- Filter notifications ----
   const filtered = notifications.filter(n => {

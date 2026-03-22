@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSeason } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -240,7 +240,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   useEffect(() => { loadCoachData() }, [coachTeamAssignments?.length, selectedSeason?.id])
 
   async function loadCoachData() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const teamIds = coachTeamAssignments.map(tc => tc.team_id).filter(Boolean)
@@ -269,7 +268,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   }
 
   async function loadTeamData(team) {
-    if (isAllSeasons(selectedSeason)) return
     if (!team) return
     try {
       const { data: players } = await supabase.from('team_players').select('*, players (id, first_name, last_name, photo_url, jersey_number, position, parent_name, parent_phone, parent_email)').eq('team_id', team.id)

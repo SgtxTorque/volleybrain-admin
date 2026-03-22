@@ -17,8 +17,12 @@ export default function NewChatModal({ onClose, onCreated, showToast, isDark }) 
   useEffect(() => { loadTeams() }, [])
 
   async function loadTeams() {
-    if (!selectedSeason?.id || selectedSeason.id === 'all') return
-    const { data } = await supabase.from('teams').select('*').eq('season_id', selectedSeason?.id).order('name')
+    if (!selectedSeason?.id) return
+    let query = supabase.from('teams').select('*')
+    if (selectedSeason.id !== 'all') {
+      query = query.eq('season_id', selectedSeason.id)
+    }
+    const { data } = await query.order('name')
     setTeams(data || [])
     setLoading(false)
   }

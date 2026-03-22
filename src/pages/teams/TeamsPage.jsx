@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -31,7 +32,8 @@ import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 // ============================================
 export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const journey = useJourney()
-  const { selectedSeason, seasons, loading: seasonLoading, selectSeason } = useSeason()
+  const { selectedSeason, allSeasons, seasons, loading: seasonLoading, selectSeason } = useSeason()
+  const { selectedSport } = useSport()
   const { user } = useAuth()
   const { isDark } = useTheme()
   const [teams, setTeams] = useState([])
@@ -53,19 +55,27 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       loadUnrosteredPlayers()
       loadCoaches()
     }
-  }, [selectedSeason?.id])
+  }, [selectedSeason?.id, selectedSport?.id])
 
   // ------ Supabase queries (preserved from original) ------
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     setLoading(true)
-    const { data } = await supabase
+    let query = supabase
       .from('teams')
       .select('*, team_players(*, players(id, first_name, last_name, jersey_number, position, photo_url, grade, status, uniform_size_jersey))')
-      .eq('season_id', selectedSeason.id)
-      .order('name')
+    if (!isAllSeasons(selectedSeason)) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else if (selectedSport?.id) {
+      const sportSeasonIds = (allSeasons || [])
+        .filter(s => s.sport_id === selectedSport.id)
+        .map(s => s.id)
+      if (sportSeasonIds.length > 0) {
+        query = query.in('season_id', sportSeasonIds)
+      }
+    }
+    const { data } = await query.order('name')
     setTeams(data || [])
     setLoading(false)
     await syncRosteredStatus(data || [])
@@ -97,20 +107,30 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   }
 
   async function loadUnrosteredPlayers() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
-    const { data: allPlayers } = await supabase
+    const sportSeasonIds = (isAllSeasons(selectedSeason) && selectedSport?.id)
+      ? (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+      : null
+    let playersQuery = supabase
       .from('players')
       .select('id, first_name, last_name, position, jersey_number, photo_url, grade, registrations(status)')
-      .eq('season_id', selectedSeason.id)
+    if (!isAllSeasons(selectedSeason)) {
+      playersQuery = playersQuery.eq('season_id', selectedSeason.id)
+    } else if (sportSeasonIds && sportSeasonIds.length > 0) {
+      playersQuery = playersQuery.in('season_id', sportSeasonIds)
+    }
+    const { data: allPlayers } = await playersQuery
     const approvedPlayers = (allPlayers || []).filter(p => {
       const status = p.registrations?.[0]?.status
       return ['approved', 'rostered', 'active'].includes(status)
     })
-    const { data: rostered } = await supabase
+    let rosteredQuery = supabase
       .from('team_players')
       .select('player_id, teams!inner(season_id)')
-      .eq('teams.season_id', selectedSeason.id)
+    if (!isAllSeasons(selectedSeason)) {
+      rosteredQuery = rosteredQuery.eq('teams.season_id', selectedSeason.id)
+    }
+    const { data: rostered } = await rosteredQuery
     const rosteredIds = new Set(rostered?.map(r => r.player_id) || [])
     setUnrosteredPlayers(approvedPlayers.filter(p => !rosteredIds.has(p.id)))
   }
@@ -273,13 +293,22 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   }
 
   async function loadCoaches() {
-    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
-    const { data } = await supabase
+    let query = supabase
       .from('coaches')
       .select('*, team_coaches(*, teams(id, name))')
-      .eq('season_id', selectedSeason.id)
       .eq('status', 'active')
+    if (!isAllSeasons(selectedSeason)) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else if (selectedSport?.id) {
+      const sportSeasonIds = (allSeasons || [])
+        .filter(s => s.sport_id === selectedSport.id)
+        .map(s => s.id)
+      if (sportSeasonIds.length > 0) {
+        query = query.in('season_id', sportSeasonIds)
+      }
+    }
+    const { data } = await query
     setCoaches(data || [])
   }
 
@@ -300,16 +329,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const totalRegistered = teams.reduce((sum, t) => sum + (t.team_players?.length || 0), 0) + unrosteredPlayers.length
 
   // ------ Season guards ------
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell breadcrumb="Club Management" title="Team Management">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage teams and rosters.</p>
-        </div>
-      </PageShell>
-    )
-  }
   if (!selectedSeason) {
     if (seasonLoading) return <SkeletonTeamsPage />
     if (!seasons || seasons.length === 0) {

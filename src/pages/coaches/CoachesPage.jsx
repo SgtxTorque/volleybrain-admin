@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useThemeClasses, useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -32,7 +33,8 @@ const bgCheckLabels = {
 export function CoachesPage({ showToast }) {
   const journey = useJourney()
   const { organization, profile } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [coaches, setCoaches] = useState([])
@@ -49,7 +51,7 @@ export function CoachesPage({ showToast }) {
 
   useEffect(() => {
     if (selectedSeason?.id) { loadCoaches(); loadTeams() }
-  }, [selectedSeason?.id])
+  }, [selectedSeason?.id, selectedSport?.id])
 
   async function loadCoaches() {
     setLoading(true)
@@ -57,6 +59,13 @@ export function CoachesPage({ showToast }) {
       let coachQuery = supabase.from('coaches').select('*')
       if (!isAllSeasons(selectedSeason)) {
         coachQuery = coachQuery.eq('season_id', selectedSeason.id)
+      } else if (selectedSport?.id) {
+        const sportSeasonIds = (allSeasons || [])
+          .filter(s => s.sport_id === selectedSport.id)
+          .map(s => s.id)
+        if (sportSeasonIds.length > 0) {
+          coachQuery = coachQuery.in('season_id', sportSeasonIds)
+        }
       }
       const { data: coachesData, error } = await coachQuery
         .order('last_name', { ascending: true })
@@ -78,8 +87,11 @@ export function CoachesPage({ showToast }) {
   }
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) { setTeams([]); return }
-    const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeason.id)
+    let query = supabase.from('teams').select('id, name, color')
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    }
+    const { data } = await query
     setTeams(data || [])
   }
 

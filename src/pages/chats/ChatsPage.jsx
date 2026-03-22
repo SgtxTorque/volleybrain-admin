@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Search, Plus } from '../../constants/icons'
@@ -15,7 +16,8 @@ import CoppaConsentModal from '../../components/compliance/CoppaConsentModal'
 // ---------------------------------------------------------------
 function ChatsPage({ showToast, activeView, roleContext }) {
   const { organization, profile, user, isAdmin } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const tc = useThemeClasses()
   const { isDark, accent } = useTheme()
 
@@ -48,27 +50,14 @@ function ChatsPage({ showToast, activeView, roleContext }) {
   }, [activeView, profile])
 
   useEffect(() => {
-    if (selectedSeason?.id) loadChats()
-  }, [selectedSeason?.id, roleContext])
-
-  // "All Seasons" sentinel — chats are season-scoped
-  if (isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell title="Chats" breadcrumb="Communication">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view team chats.</p>
-        </div>
-      </PageShell>
-    )
-  }
+    loadChats()
+  }, [selectedSeason?.id, roleContext, selectedSport?.id])
 
   // ---------------------------------------------------------------
   // DATA LOADING -- Preserved exactly
   // ---------------------------------------------------------------
 
   async function loadChats() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       let userTeamIds = []
@@ -99,14 +88,23 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       // Primary query with joins (same as working pattern)
       let channelsData = null
 
-      const { data: d1, error: e1 } = await supabase
+      const sportSeasonIds = (isAllSeasons(selectedSeason) && selectedSport?.id)
+        ? (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+        : null
+
+      let q1 = supabase
         .from('chat_channels')
         .select(`
           *,
           teams (id, name, color, logo_url),
           channel_members (id, user_id, display_name, last_read_at)
         `)
-        .eq('season_id', selectedSeason.id)
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        q1 = q1.eq('season_id', selectedSeason.id)
+      } else if (sportSeasonIds && sportSeasonIds.length > 0) {
+        q1 = q1.in('season_id', sportSeasonIds)
+      }
+      const { data: d1, error: e1 } = await q1
         .eq('is_archived', false)
         .order('updated_at', { ascending: false })
 
@@ -115,10 +113,15 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       } else {
         // Fallback: query without joins if relationship is missing
         console.warn('ChatsPage: joined query failed, trying without joins:', e1.message)
-        const { data: d2, error: e2 } = await supabase
+        let q2 = supabase
           .from('chat_channels')
           .select('*')
-          .eq('season_id', selectedSeason.id)
+        if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+          q2 = q2.eq('season_id', selectedSeason.id)
+        } else if (sportSeasonIds && sportSeasonIds.length > 0) {
+          q2 = q2.in('season_id', sportSeasonIds)
+        }
+        const { data: d2, error: e2 } = await q2
           .eq('is_archived', false)
           .order('updated_at', { ascending: false })
 

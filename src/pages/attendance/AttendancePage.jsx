@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Calendar, X } from '../../constants/icons'
@@ -21,7 +22,8 @@ function formatTime12(timeStr) {
 
 function AttendancePage({ showToast }) {
   const { organization, user } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const { isDark } = useTheme()
   const [teams, setTeams] = useState([])
   const [selectedTeam, setSelectedTeam] = useState('all')
@@ -37,25 +39,44 @@ function AttendancePage({ showToast }) {
   const [availableParents, setAvailableParents] = useState([])
   const [volunteerAssignModal, setVolunteerAssignModal] = useState(null)
 
+  // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
+  function getSportSeasonIds() {
+    if (!selectedSport?.id) return null
+    return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+  }
+
   useEffect(() => {
     if (selectedSeason?.id) { loadTeams(); loadEvents() }
-  }, [selectedSeason?.id, selectedTeam, viewMode])
+  }, [selectedSeason?.id, selectedTeam, viewMode, selectedSport?.id])
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
-    const { data } = await supabase.from('teams').select('id, name, color')
-      .eq('season_id', selectedSeason.id).order('name')
+    let query = supabase.from('teams').select('id, name, color')
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
+    }
+    const { data } = await query.order('name')
     setTeams(data || [])
   }
 
   async function loadEvents() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       let query = supabase.from('schedule_events')
         .select('*, teams!schedule_events_team_id_fkey(id, name, color)')
-        .eq('season_id', selectedSeason.id)
-        .order('event_date', { ascending: viewMode !== 'past' })
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      } else {
+        const sportIds = getSportSeasonIds()
+        if (sportIds && sportIds.length > 0) {
+          query = query.in('season_id', sportIds)
+        }
+      }
+      query = query.order('event_date', { ascending: viewMode !== 'past' })
         .order('event_time', { ascending: true })
 
       if (selectedTeam !== 'all') query = query.eq('team_id', selectedTeam)
@@ -176,22 +197,11 @@ function AttendancePage({ showToast }) {
     { icon: '⚠️', value: events.filter(e => e.event_type === 'game' && (!e.volunteer_info?.line_judge || !e.volunteer_info?.scorekeeper)).length, label: 'Need Volunteers', color: 'text-red-600' },
   ]
 
-  if (!selectedSeason || isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell breadcrumb="Attendance & RSVP" title="Attendance & RSVP">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to track attendance.</p>
-        </div>
-      </PageShell>
-    )
-  }
-
   return (
     <PageShell
       breadcrumb="Attendance & RSVP"
       title="Attendance & RSVP"
-      subtitle={`Track RSVPs and manage volunteers · ${selectedSeason.name}`}
+      subtitle={`Track RSVPs and manage volunteers${selectedSeason?.name ? ` · ${selectedSeason.name}` : ''}`}
     >
       <SeasonFilterBar />
       <InnerStatRow stats={stats} />

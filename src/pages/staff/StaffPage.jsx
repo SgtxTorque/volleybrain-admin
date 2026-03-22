@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
+import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
@@ -29,7 +30,8 @@ const bgCheckLabels = {
 
 export function StaffPage({ showToast }) {
   const { organization } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
+  const { selectedSport } = useSport()
   const { isDark } = useTheme()
   const [staff, setStaff] = useState([])
   const [teams, setTeams] = useState([])
@@ -39,23 +41,35 @@ export function StaffPage({ showToast }) {
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingStaff, setEditingStaff] = useState(null)
 
+  // Helper: get season IDs filtered by sport
+  function getSportSeasonIds() {
+    if (!selectedSport?.id) return null
+    return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
+  }
+
   useEffect(() => {
     if (selectedSeason?.id && organization?.id) {
       loadStaff()
       loadTeams()
     }
-  }, [selectedSeason?.id, organization?.id])
+  }, [selectedSeason?.id, organization?.id, selectedSport?.id])
 
   async function loadStaff() {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('staff_members')
         .select('*, teams(id, name, color)')
         .eq('organization_id', organization.id)
-        .eq('season_id', selectedSeason.id)
-        .order('last_name')
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      } else {
+        const sportIds = getSportSeasonIds()
+        if (sportIds && sportIds.length > 0) {
+          query = query.in('season_id', sportIds)
+        }
+      }
+      const { data, error } = await query.order('last_name')
       if (error) throw error
       setStaff(data || [])
     } catch (err) {
@@ -67,8 +81,16 @@ export function StaffPage({ showToast }) {
   }
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
-    const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeason.id)
+    let query = supabase.from('teams').select('id, name, color')
+    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      query = query.eq('season_id', selectedSeason.id)
+    } else {
+      const sportIds = getSportSeasonIds()
+      if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
+      }
+    }
+    const { data } = await query
     setTeams(data || [])
   }
 
@@ -124,17 +146,6 @@ export function StaffPage({ showToast }) {
 
   const activeCount = staff.filter(s => s.status === 'active').length
   const bgCleared = staff.filter(s => s.background_check_status === 'cleared').length
-
-  if (!selectedSeason || isAllSeasons(selectedSeason)) {
-    return (
-      <PageShell title="Staff & Volunteers" breadcrumb="Club Management">
-        <SeasonFilterBar />
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage staff assignments.</p>
-        </div>
-      </PageShell>
-    )
-  }
 
   return (
     <PageShell

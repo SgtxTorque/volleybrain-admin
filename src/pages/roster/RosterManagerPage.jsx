@@ -58,7 +58,6 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   // ========== DATA LOADING ==========
 
   async function loadTeams() {
-    if (isAllSeasons(selectedSeason)) return
     if (!user?.id) { setLoading(false); return }
     try {
       let teamIds = coachTeamAssignments.map(tc => tc.team_id).filter(Boolean)
@@ -69,7 +68,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
       }
       const { data: teamData } = await supabase.from('teams').select('id, name, color, season_id, seasons(id, name)').in('id', teamIds)
       let filtered = teamData || []
-      if (selectedSeason?.id) filtered = filtered.filter(t => t.season_id === selectedSeason.id)
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) filtered = filtered.filter(t => t.season_id === selectedSeason.id)
       const teamsWithRole = filtered.map(t => ({ ...t, coachRole: coachTeamAssignments.find(tc => tc.team_id === t.id)?.role || 'coach' }))
       setTeams(teamsWithRole)
       if (teamsWithRole.length > 0 && !selectedTeam) setSelectedTeam(teamsWithRole[0])
@@ -79,7 +78,6 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   }
 
   async function loadRoster(team) {
-    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const { data: teamPlayers, error: tpError } = await supabase
@@ -91,7 +89,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
       const playerIds = (teamPlayers || []).map(tp => tp.player_id).filter(Boolean)
       let skillRatings = {}, evalCounts = {}, waiverStatus = {}, positionData = {}
 
-      if (playerIds.length > 0 && selectedSeason?.id) {
+      if (playerIds.length > 0 && !isAllSeasons(selectedSeason) && selectedSeason?.id) {
         try {
           const { data: ratings } = await supabase.from('player_skill_ratings').select('*').in('player_id', playerIds).eq('season_id', selectedSeason.id).order('rated_at', { ascending: false })
           for (const r of (ratings || [])) { if (!skillRatings[r.player_id]) skillRatings[r.player_id] = r }
@@ -220,8 +218,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   }
 
   async function loadPreviousEval(playerId) {
-    if (isAllSeasons(selectedSeason)) return
-    if (!playerId || !selectedSeason?.id) { setEvalPrevious(null); return }
+    if (!playerId || isAllSeasons(selectedSeason) || !selectedSeason?.id) { setEvalPrevious(null); return }
     try {
       const { data } = await supabase.from('player_evaluations').select('*').eq('player_id', playerId).eq('season_id', selectedSeason.id).order('evaluation_date', { ascending: false }).limit(1).maybeSingle()
       setEvalPrevious(data || null)
@@ -229,7 +226,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   }
 
   async function saveEvaluation(playerId, ratings, notes, evalTypeVal) {
-    if (isAllSeasons(selectedSeason)) return
+    if (isAllSeasons(selectedSeason) || !selectedSeason?.id) { showToast?.('Please select a specific season to save evaluations', 'error'); return }
     setEvalSaving(true)
     try {
       const ratedSkills = Object.values(ratings).filter(v => v > 0)
