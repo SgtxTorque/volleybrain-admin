@@ -91,8 +91,7 @@ function CommentItem({ comment, isDark, g, canDelete, onDelete, onReply, isReply
 }
 
 export function CommentSection({ postId, commentCount = 0, isDark, g, onCountChange }) {
-  const { user, profile } = useAuth()
-  const isAdmin = profile?.role === 'admin'
+  const { user, profile, isAdmin } = useAuth()
 
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(false)
