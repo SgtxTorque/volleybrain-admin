@@ -43,7 +43,7 @@ const EMOJIS = ['🏐', '🔥', '💪', '🏆', '⭐', '❤️', '💯', '🐝',
 // TEAM WALL PAGE — v0 3-panel layout
 // ═══════════════════════════════════════════════════════════
 function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
-  const { profile, user } = useAuth()
+  const { profile, user, isAdmin } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const { orgLogo, orgName, hasCustomBranding } = useOrgBranding()
@@ -319,9 +319,8 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
   const teamInitials = (team.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   const seasonLabel = team.seasons?.name || ''
   const sportIcon = team.seasons?.sports?.icon || '🏐'
-  const isAdmin = profile?.role === 'admin'
-  const isCoach = profile?.role === 'coach'
-  const canPost = isAdmin || isCoach || profile?.role === 'parent'
+  const isCoach = false // coach detection requires activeView prop (not available here)
+  const canPost = isAdmin || isCoach
   const totalGames = gameRecord.wins + gameRecord.losses
   const winRate = totalGames > 0 ? Math.round((gameRecord.wins / totalGames) * 100) : 0
 
@@ -891,7 +890,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
           visible={!!selectedPlayer}
           onClose={() => setSelectedPlayer(null)}
           context="roster"
-          viewerRole={profile?.role === 'parent' ? 'parent' : profile?.role === 'coach' ? 'coach' : 'admin'}
+          viewerRole={isAdmin ? 'admin' : 'parent'}
           seasonId={team?.season_id}
           sport={team?.seasons?.sports?.name?.toLowerCase() || 'volleyball'}
           isOwnChild={false}
@@ -928,8 +927,8 @@ function FeedPost({ post, isDark, g, profile, user, teamId, onReact, onDelete, o
   const [localCommentCount, setLocalCommentCount] = useState(post.comment_count || 0)
   const menuRef = useRef(null)
   const isAuthor = post.author_id === user?.id
-  const isAdmin = profile?.role === 'admin'
-  const isCoach = profile?.role === 'coach'
+  const { isAdmin } = useAuth()
+  const isCoach = false // coach detection requires activeView prop
   const canManage = isAuthor || isAdmin || isCoach
 
   const badgeMap = {
