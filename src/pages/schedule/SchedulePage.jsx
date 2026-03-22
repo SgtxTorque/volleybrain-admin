@@ -67,6 +67,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   }, [selectedSeason?.id, currentDate])
 
   async function loadEvents() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     setLoading(true)
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -115,6 +116,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   }
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     const { data } = await supabase.from('teams').select('id, name, color, logo_url')
       .eq('season_id', selectedSeason.id).order('name')
@@ -238,6 +240,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   }, [selectedSeason?.id, selectedTeam])
 
   async function loadAllUpcoming() {
+    if (isAllSeasons(selectedSeason)) return
     const today = new Date().toISOString().split('T')[0]
     const { data } = await supabase
       .from('schedule_events')
@@ -253,10 +256,12 @@ function SchedulePage({ showToast, activeView, roleContext }) {
 
   if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to view the schedule.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell breadcrumb="Schedule" title="Schedule">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view the schedule.</p>
+        </div>
+      </PageShell>
     )
   }
 

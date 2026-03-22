@@ -79,6 +79,7 @@ export function JerseysPage({ showToast }) {
   }, [selectedTeam?.id, selectedSeason?.id])
 
   async function checkUnrosteredRegistrations() {
+    if (isAllSeasons(selectedSeason)) return
     try {
       const { data: registrations } = await supabase
         .from('registrations')
@@ -115,6 +116,7 @@ export function JerseysPage({ showToast }) {
   }
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const { data } = await supabase
@@ -130,6 +132,7 @@ export function JerseysPage({ showToast }) {
   }
 
   async function loadPlayers() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     setLoading(true)
     
@@ -396,10 +399,12 @@ export function JerseysPage({ showToast }) {
 
   if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage jersey assignments.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell breadcrumb="Jersey Management" title="Jersey Management">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage jersey assignments.</p>
+        </div>
+      </PageShell>
     )
   }
 

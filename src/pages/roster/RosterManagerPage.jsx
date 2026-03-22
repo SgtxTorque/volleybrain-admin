@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Users, ChevronDown, Check, ClipboardList } from 'lucide-react'
@@ -58,6 +58,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   // ========== DATA LOADING ==========
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     if (!user?.id) { setLoading(false); return }
     try {
       let teamIds = coachTeamAssignments.map(tc => tc.team_id).filter(Boolean)
@@ -78,6 +79,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   }
 
   async function loadRoster(team) {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const { data: teamPlayers, error: tpError } = await supabase
@@ -218,6 +220,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   }
 
   async function loadPreviousEval(playerId) {
+    if (isAllSeasons(selectedSeason)) return
     if (!playerId || !selectedSeason?.id) { setEvalPrevious(null); return }
     try {
       const { data } = await supabase.from('player_evaluations').select('*').eq('player_id', playerId).eq('season_id', selectedSeason.id).order('evaluation_date', { ascending: false }).limit(1).maybeSingle()
@@ -226,6 +229,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
   }
 
   async function saveEvaluation(playerId, ratings, notes, evalTypeVal) {
+    if (isAllSeasons(selectedSeason)) return
     setEvalSaving(true)
     try {
       const ratedSkills = Object.values(ratings).filter(v => v > 0)

@@ -47,6 +47,7 @@ export function StaffPage({ showToast }) {
   }, [selectedSeason?.id, organization?.id])
 
   async function loadStaff() {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -66,6 +67,7 @@ export function StaffPage({ showToast }) {
   }
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeason.id)
     setTeams(data || [])
   }
@@ -125,10 +127,12 @@ export function StaffPage({ showToast }) {
 
   if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage staff assignments.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell title="Staff & Volunteers" breadcrumb="Club Management">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage staff assignments.</p>
+        </div>
+      </PageShell>
     )
   }
 

@@ -299,6 +299,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   }, [form.target_type, form.target_team_id])
 
   async function calculateRecipients() {
+    if (isAllSeasons(selectedSeason)) return
     try {
       let count = 0
       
@@ -330,6 +331,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   }
 
   async function handleSend() {
+    if (isAllSeasons(selectedSeason)) return
     const cleanTitle = sanitizeText(form.title)
     const cleanBody = sanitizeText(form.body)
     if (!cleanTitle || !cleanBody) {

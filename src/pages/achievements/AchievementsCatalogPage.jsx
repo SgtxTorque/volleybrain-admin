@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
 import { Search, Filter, Trophy, Star, Target, Shield, Zap, Heart, ChevronDown } from '../../constants/icons'
 import { AchievementCard, CallingCardPreview } from './AchievementCard'
@@ -62,6 +62,7 @@ export function AchievementsCatalogPage({
   }, [playerId, selectedSeason?.id])
 
   async function loadData() {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     setError(null)
 

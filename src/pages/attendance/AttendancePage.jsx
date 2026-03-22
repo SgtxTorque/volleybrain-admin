@@ -42,12 +42,14 @@ function AttendancePage({ showToast }) {
   }, [selectedSeason?.id, selectedTeam, viewMode])
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     const { data } = await supabase.from('teams').select('id, name, color')
       .eq('season_id', selectedSeason.id).order('name')
     setTeams(data || [])
   }
 
   async function loadEvents() {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       let query = supabase.from('schedule_events')
@@ -176,10 +178,12 @@ function AttendancePage({ showToast }) {
 
   if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to track attendance.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell breadcrumb="Attendance & RSVP" title="Attendance & RSVP">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to track attendance.</p>
+        </div>
+      </PageShell>
     )
   }
 

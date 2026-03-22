@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
 import { Users, X, Eye, Shield } from '../../constants/icons'
 // V2 shared components
@@ -121,6 +121,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }, [viewingPlayer?.id, selectedSeason?.id])
 
   async function loadAllPlayers() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     try {
       const { data } = await supabase.from('players')
@@ -143,6 +144,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }
 
   async function loadPlayerDashboard(player) {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const { data: teamData } = await supabase.from('team_players').select('*, teams(*)').eq('player_id', player.id)
@@ -178,6 +180,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }
 
   async function loadRankings(playerId) {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     try {
       const { data: allStats } = await supabase.from('player_season_stats').select('player_id, total_kills, total_aces, total_digs, total_blocks, total_assists, total_points').eq('season_id', selectedSeason.id)

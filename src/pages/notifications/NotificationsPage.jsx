@@ -41,6 +41,7 @@ export function NotificationsPage({ showToast }) {
 
   // ---- Load Data ----
   const loadData = useCallback(async () => {
+    if (isAllSeasons(selectedSeason)) return;
     setLoading(true);
     try {
       // Load notifications (last 100, scoped to organization)
@@ -93,10 +94,12 @@ export function NotificationsPage({ showToast }) {
   // "All Seasons" sentinel — notifications are season-scoped
   if (isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage notifications.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell title="Push Notifications" breadcrumb="Communication">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage notifications.</p>
+        </div>
+      </PageShell>
     )
   }
 

@@ -5,6 +5,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
 import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 
 // ============================================
@@ -50,14 +51,17 @@ export default function TeamStandingsPage() {
   // "All Seasons" sentinel — standings are season-scoped
   if (isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to view standings.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell title="Team Standings" breadcrumb="Game Day">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view standings.</p>
+        </div>
+      </PageShell>
     )
   }
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     try {
       const { data } = await supabase
         .from('teams')
@@ -78,6 +82,7 @@ export default function TeamStandingsPage() {
   }
 
   async function loadStandings() {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       // Get standings from team_standings table
@@ -137,6 +142,7 @@ export default function TeamStandingsPage() {
   }
 
   async function loadRecentGames() {
+    if (isAllSeasons(selectedSeason)) return
     try {
       const { data: games } = await supabase
         .from('schedule_events')

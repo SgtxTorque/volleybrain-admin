@@ -4,6 +4,7 @@ import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // ============================================
 // INLINE ICONS
@@ -336,14 +337,17 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   // "All Seasons" sentinel — leaderboards are season-scoped
   if (isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to view leaderboards.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell title="Season Leaderboards" breadcrumb="Game Day">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to view leaderboards.</p>
+        </div>
+      </PageShell>
     )
   }
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
 
     const { data } = await supabase
@@ -356,6 +360,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   }
 
   async function loadLeaderboards() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) {
       setLoading(false)
       return

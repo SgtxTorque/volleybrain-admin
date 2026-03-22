@@ -22,7 +22,7 @@ export function SignaturesView({ tc, isDark, organization, selectedSeason }) {
       .eq('organization_id', organization.id)
       .order('signed_at', { ascending: false })
       .limit(100)
-    if (selectedSeason?.id) q = q.eq('season_id', selectedSeason.id)
+    if (selectedSeason?.id && selectedSeason.id !== 'all') q = q.eq('season_id', selectedSeason.id)
     const { data } = await q
     setSignatures(data || [])
     setLoading(false)

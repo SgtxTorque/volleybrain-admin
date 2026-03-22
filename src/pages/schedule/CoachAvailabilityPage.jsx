@@ -5,6 +5,7 @@ import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
 import { ChevronDown, Check, AlertTriangle } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import AvailabilityModal from './AvailabilityModal'
 import AvailabilityCalendar from './AvailabilityCalendar'
@@ -137,14 +138,17 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
   // "All Seasons" sentinel — coach availability is season-scoped
   if (isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage coach availability.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell title="Coach Availability" breadcrumb="Operations">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage coach availability.</p>
+        </div>
+      </PageShell>
     )
   }
 
   async function loadCoaches() {
+    if (isAllSeasons(selectedSeason)) return
     try {
       let query = supabase
         .from('coaches')
@@ -167,6 +171,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
   }
 
   async function loadData() {
+    if (isAllSeasons(selectedSeason)) return
     setLoading(true)
     try {
       const firstOfMonth = toDateStr(currentYear, currentMonth, 1)

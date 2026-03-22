@@ -58,6 +58,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   // ------ Supabase queries (preserved from original) ------
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     setLoading(true)
     const { data } = await supabase
@@ -96,6 +97,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   }
 
   async function loadUnrosteredPlayers() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     const { data: allPlayers } = await supabase
       .from('players')
@@ -271,6 +273,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   }
 
   async function loadCoaches() {
+    if (isAllSeasons(selectedSeason)) return
     if (!selectedSeason?.id) return
     const { data } = await supabase
       .from('coaches')
@@ -299,10 +302,12 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   // ------ Season guards ------
   if (isAllSeasons(selectedSeason)) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
-        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage teams and rosters.</p>
-        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
-      </div>
+      <PageShell breadcrumb="Club Management" title="Team Management">
+        <SeasonFilterBar />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+          <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a specific season above to manage teams and rosters.</p>
+        </div>
+      </PageShell>
     )
   }
   if (!selectedSeason) {
