@@ -692,7 +692,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/roster" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><RosterManagerPage showToast={showToast} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
 
       {/* Core pages */}
-      <Route path="/teams" element={<TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />} />
+      <Route path="/teams" element={<RouteGuard allow={['admin']} activeView={activeView}><TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
       <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachesPage showToast={showToast} /></RouteGuard>} />
       <Route path="/staff" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPage showToast={showToast} /></RouteGuard>} />
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
@@ -703,7 +703,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/payments" element={
         activeView === 'parent'
           ? <ParentPaymentsPage roleContext={roleContext} showToast={showToast} />
-          : <PaymentsPage showToast={showToast} />
+          : <RouteGuard allow={['admin', 'team_manager']} activeView={activeView}><PaymentsPage showToast={showToast} /></RouteGuard>
       } />
       <Route path="/gameprep" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><GamePrepPage showToast={showToast} /></RouteGuard>} />
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
@@ -752,10 +752,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       {/* Profile */}
       <Route path="/profile" element={<MyProfilePage showToast={showToast} />} />
 
-      {/* Platform Admin — admin only */}
-      <Route path="/platform/admin" element={<RouteGuard allow={['admin']} activeView={activeView}><PlatformAdminPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/platform/analytics" element={<RouteGuard allow={['admin']} activeView={activeView}><PlatformAnalyticsPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/platform/subscriptions" element={<RouteGuard allow={['admin']} activeView={activeView}><PlatformSubscriptionsPage showToast={showToast} /></RouteGuard>} />
+      {/* Platform Admin routes handled by PlatformShell in platform appMode */}
 
       {/* Default: redirect / to /dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -782,15 +779,16 @@ function MainApp() {
   useDocumentTitle()
 
   const [appMode, setAppMode] = useState(() =>
-    window.location.pathname.startsWith('/platform') ? 'platform' : 'org'
+    (window.location.pathname.startsWith('/platform') && isPlatformAdmin) ? 'platform' : 'org'
   ) // 'org' | 'platform'
 
   // Sync appMode with URL changes (browser back/forward)
   useEffect(() => {
     const isPlatformUrl = mainLocation.pathname.startsWith('/platform')
-    if (isPlatformUrl && appMode !== 'platform') setAppMode('platform')
+    if (isPlatformUrl && isPlatformAdmin && appMode !== 'platform') setAppMode('platform')
+    else if (isPlatformUrl && !isPlatformAdmin) navigate('/dashboard', { replace: true })
     else if (!isPlatformUrl && appMode === 'platform') setAppMode('org')
-  }, [mainLocation.pathname])
+  }, [mainLocation.pathname, isPlatformAdmin])
   const [activeView, setActiveView] = useState('admin')
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)

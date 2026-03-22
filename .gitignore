@@ -27,4 +27,10 @@ supabase/supabase.exe
 supabase/*.exe
 
 # Legacy backup
-src_backup/NUL
+src_backup/
+
+# Dead code archives
+src/_archive/
+
+# Reference materials (90MB, contains credentials)
+reference/
