@@ -9,6 +9,7 @@ export default function KidCards({
   children = [],
   selectedChildId,
   onChildSelect,
+  onViewProfile,
 }) {
   const scrollRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -172,7 +173,12 @@ export default function KidCards({
                   )}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div
+                    onClick={(e) => { e.stopPropagation(); onViewProfile?.(child.id) }}
+                    style={{ fontSize: 15, fontWeight: 700, color: 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                  >
                     {child.firstName} {child.lastName}
                   </div>
                   {child.teamName && (
@@ -227,6 +233,19 @@ export default function KidCards({
                   borderRadius: 6, display: 'inline-block',
                 }}>
                   {child.badgeOrStreak}
+                </div>
+              )}
+
+              {/* View Profile link */}
+              {onViewProfile && (
+                <div
+                  onClick={(e) => { e.stopPropagation(); onViewProfile(child.id) }}
+                  style={{
+                    marginTop: 10, fontSize: 11, fontWeight: 700,
+                    color: 'var(--v2-sky)', cursor: 'pointer',
+                  }}
+                >
+                  View Profile &rarr;
                 </div>
               )}
             </div>
