@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { 
@@ -394,14 +394,11 @@ export function JerseysPage({ showToast }) {
     needsOrder: allPlayersAllTeams.filter(p => p.needsOrder).length
   }
 
-  if (!selectedSeason) {
+  if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Shirt className="w-16 h-16 mx-auto mb-4 text-slate-400" />
-          <h2 className={`text-xl font-medium ${tc.text} mt-4`}>No Season Selected</h2>
-          <p className={tc.textMuted}>Select a season to manage jerseys</p>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage jersey assignments.</p>
+        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
       </div>
     )
   }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import PageShell from '../../components/pages/PageShell'
@@ -332,6 +332,16 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
     loadLeaderboards()
     loadTeams()
   }, [selectedSeason?.id])
+
+  // "All Seasons" sentinel — leaderboards are season-scoped
+  if (isAllSeasons(selectedSeason)) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to view leaderboards.</p>
+        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
+      </div>
+    )
+  }
 
   async function loadTeams() {
     if (!selectedSeason?.id) return

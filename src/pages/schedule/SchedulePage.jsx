@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -251,10 +251,11 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     setAllUpcomingGames(data || [])
   }
 
-  if (!selectedSeason) {
+  if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400">Please select a season to view the schedule.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to view the schedule.</p>
+        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
       </div>
     )
   }

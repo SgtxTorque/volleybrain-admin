@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
@@ -123,16 +123,12 @@ export function StaffPage({ showToast }) {
   const activeCount = staff.filter(s => s.status === 'active').length
   const bgCleared = staff.filter(s => s.background_check_status === 'cleared').length
 
-  if (!selectedSeason) {
+  if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <PageShell title="Staff & Volunteers" subtitle="Select a season" breadcrumb="Club Management">
-        <div className={`${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-lynx-silver'} border rounded-[14px] p-12 text-center`}>
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
-            <Users className="w-8 h-8 text-slate-400" />
-          </div>
-          <p className="text-slate-500">Please select a season to manage staff</p>
-        </div>
-      </PageShell>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to manage staff assignments.</p>
+        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
+      </div>
     )
   }
 

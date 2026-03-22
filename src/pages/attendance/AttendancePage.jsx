@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Calendar, X } from '../../constants/icons'
@@ -174,12 +174,11 @@ function AttendancePage({ showToast }) {
     { icon: '⚠️', value: events.filter(e => e.event_type === 'game' && (!e.volunteer_info?.line_judge || !e.volunteer_info?.scorekeeper)).length, label: 'Need Volunteers', color: 'text-red-600' },
   ]
 
-  if (!selectedSeason) {
+  if (!selectedSeason || isAllSeasons(selectedSeason)) {
     return (
-      <div className="p-8 text-center">
-        <Calendar className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-slate-900 mb-2">No Season Selected</h2>
-        <p className="text-slate-500">Please select a season to manage attendance</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', color: 'var(--v2-text-secondary, #64748B)' }}>
+        <p style={{ fontSize: 16, fontWeight: 500, marginBottom: 4 }}>Select a season to track attendance.</p>
+        <p style={{ fontSize: 13, color: 'var(--v2-text-tertiary, #94A3B8)' }}>Use the season selector in the header to choose a specific season.</p>
       </div>
     )
   }
