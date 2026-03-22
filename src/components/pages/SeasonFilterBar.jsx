@@ -1,12 +1,15 @@
 import { useSeason, ALL_SEASONS, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { Search } from 'lucide-react'
 
-export default function SeasonFilterBar({ role }) {
+export default function SeasonFilterBar({ role: roleProp }) {
   const { seasons, allSeasons, selectedSeason, selectSeason } = useSeason()
   const { sports, selectedSport, selectSport } = useSport()
   const { isDark } = useTheme()
+  const { profile } = useAuth()
+  const role = roleProp || profile?.role
 
   // Only render for admin and coach
   if (role && role !== 'admin' && role !== 'coach') return null
