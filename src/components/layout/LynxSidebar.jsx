@@ -230,8 +230,8 @@ function NavItem({ item, isActive, onNavigate, isPlayer, expanded }) {
 // LynxSidebar — V2
 // =============================================================================
 export default function LynxSidebar({
-  navGroups = [], activePage = '', activePathname = '', directTeamWallId = null, onNavigate,
-  orgName = '', orgInitials = '', orgLogo = null, teamName = '', teamSub = '',
+  navGroups = [], activePage = '', directTeamWallId = null, onNavigate,
+  orgName = '',
   profile = null, activeView = 'admin', availableViews = [], onSwitchRole,
   onToggleTheme, onSignOut, onNavigateToProfile, isDark = false,
   notificationCount = 0, onOpenNotifications,

@@ -427,9 +427,9 @@ export function FloatingHelpButton() {
             🎓 Take the Tour
           </button>
           <button
-            onClick={() => setShowMenu(false)}
+            onClick={() => { window.open('https://thelynxapp.com', '_blank'); setShowMenu(false) }}
             className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
-            style={{ 
+            style={{
               color: isDark ? '#e2e8f0' : '#1e293b',
               backgroundColor: 'transparent',
             }}
@@ -439,9 +439,9 @@ export function FloatingHelpButton() {
             ❓ Help Center
           </button>
           <button
-            onClick={() => setShowMenu(false)}
+            onClick={() => { window.location.href = 'mailto:support@thelynxapp.com?subject=Lynx Support Request'; setShowMenu(false) }}
             className="w-full px-4 py-3.5 text-left text-sm font-medium flex items-center gap-3 transition"
-            style={{ 
+            style={{
               color: isDark ? '#e2e8f0' : '#1e293b',
               backgroundColor: 'transparent',
             }}

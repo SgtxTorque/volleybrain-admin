@@ -41,7 +41,7 @@ import FloatingChatButton from './components/layout/FloatingChatButton'
 import SetupHelper from './components/SetupHelper'
 
 // Parent Onboarding Components
-import { SpotlightOverlay, ParentChecklistWidget, FloatingHelpButton } from './components/parent/ParentOnboarding'
+import { SpotlightOverlay, FloatingHelpButton } from './components/parent/ParentOnboarding'
 
 // Dashboard Pages
 import { DashboardPage } from './pages/dashboard'
@@ -1157,12 +1157,9 @@ function MainApp() {
         <LynxSidebar
           navGroups={currentNavGroups}
           activePage={page}
-          activePathname={mainLocation.pathname}
           directTeamWallId={directTeamWallId}
           onNavigate={handleNavigation}
           orgName={orgName}
-          orgInitials={orgInitials}
-          orgLogo={organization?.logo_url}
           profile={profile}
           activeView={activeView}
           availableViews={getAvailableViews()}
