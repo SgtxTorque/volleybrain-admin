@@ -401,9 +401,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     seasonName: child.season?.name || '',
     photoUrl: child.photo_url || null,
     registrationStatus: child.registrationStatus || 'active',
+    teamId: child.team?.id || child.team_players?.[0]?.team_id || null,
     avatarGradient: `linear-gradient(135deg, ${child.team?.color || '#4BB9EC'}, ${child.team?.color || '#4BB9EC'}88)`,
     initials: `${(child.first_name || '')[0] || ''}${(child.last_name || '')[0] || ''}`.toUpperCase(),
-    attendance: '—',
+    overallRating: child.overallRating || null,
     record: idx === activeChildIdx ? `${teamRecord.wins}-${teamRecord.losses}` : '—',
     nextEvent: activeChildEvents[0] ? new Date(activeChildEvents[0].event_date).toLocaleDateString('en-US', { weekday: 'short' }) : '—',
     badgeOrStreak: childAchievements.length > 0 && idx === activeChildIdx
@@ -484,16 +485,149 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               stats={heroStats}
             />
 
-            {/* Kid Cards */}
-            <KidCards
-              children={kidCardsData}
-              selectedChildId={activeChild?.id}
-              onChildSelect={(childId) => {
-                const idx = registrationData.findIndex(c => c.id === childId)
-                if (idx >= 0) setActiveChildIdx(idx)
-              }}
-              onViewProfile={(playerId) => onNavigate?.(`player-${playerId}`)}
-            />
+            {/* MY PLAYERS + TEAM ACTIONS + TROPHY CASE — 3-column row */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 160px 220px',
+              gap: 16,
+              alignItems: 'stretch',
+            }}>
+              {/* Column 1: Kid Cards */}
+              <KidCards
+                children={kidCardsData}
+                selectedChildId={activeChild?.id}
+                onChildSelect={(childId) => {
+                  const idx = registrationData.findIndex(c => c.id === childId)
+                  if (idx >= 0) setActiveChildIdx(idx)
+                }}
+                onViewProfile={(playerId) => onNavigate?.(`player-${playerId}`)}
+                onViewPlayerCard={(playerId) => onNavigate?.(`player-card-${playerId}`)}
+              />
+
+              {/* Column 2: Team Action Buttons — contextual to selected child */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <button
+                  onClick={() => {
+                    const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
+                    if (child?.teamId) onNavigate?.('chats')
+                  }}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    gap: 10, padding: '16px 20px', borderRadius: 'var(--v2-radius)', border: 'none',
+                    background: 'var(--v2-navy)', color: 'white',
+                    fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    letterSpacing: '-0.01em', transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
+                >
+                  💬 Team Chat
+                </button>
+
+                <button
+                  onClick={() => {
+                    const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
+                    if (child?.teamId) onNavigate?.('teamwall')
+                  }}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    gap: 10, padding: '16px 20px', borderRadius: 'var(--v2-radius)', border: 'none',
+                    background: 'var(--v2-navy)', color: 'white',
+                    fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    letterSpacing: '-0.01em', transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
+                >
+                  🏟️ Team Hub
+                </button>
+              </div>
+
+              {/* Column 3: Parent Trophy Case & XP Preview */}
+              <div
+                onClick={() => onNavigate?.('achievements')}
+                style={{
+                  background: 'linear-gradient(145deg, var(--v2-navy) 0%, var(--v2-midnight) 100%)',
+                  borderRadius: 'var(--v2-radius)', padding: 20, color: 'white',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                  position: 'relative', overflow: 'hidden', cursor: 'pointer',
+                }}
+              >
+                {/* Ambient glow */}
+                <div style={{
+                  position: 'absolute', top: -40, right: -40, width: 160, height: 160,
+                  background: 'radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%)',
+                  pointerEvents: 'none',
+                }} />
+
+                {/* Title */}
+                <div>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>🏆</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 2 }}>
+                    {xpData?.tierName || 'Bronze'} Tier
+                  </div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
+                    Level {xpData?.level || 1} · Family Progress
+                  </div>
+                </div>
+
+                {/* Badge preview (up to 3) */}
+                <div style={{ display: 'flex', gap: 6, margin: '12px 0' }}>
+                  {(childAchievements || []).slice(0, 3).map((badge, i) => (
+                    <div key={i} style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      background: 'rgba(255,255,255,0.08)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18, border: '1px solid rgba(255,255,255,0.06)',
+                    }}>
+                      {badge.achievements?.icon || '🏅'}
+                    </div>
+                  ))}
+                  {(childAchievements?.length || 0) > 3 && (
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      background: 'rgba(255,255,255,0.06)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)',
+                    }}>
+                      +{childAchievements.length - 3}
+                    </div>
+                  )}
+                </div>
+
+                {/* XP bar */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>XP Progress</span>
+                    <span style={{ color: 'var(--v2-gold)', fontWeight: 700 }}>
+                      {(xpData?.currentXp || 0).toLocaleString()} / {(xpData?.xpToNext || 1000).toLocaleString()}
+                    </span>
+                  </div>
+                  <div style={{ width: '100%', height: 6, background: 'rgba(255,215,0,0.15)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${Math.min(((xpData?.currentXp || 0) / (xpData?.xpToNext || 1000)) * 100, 100)}%`,
+                      background: 'linear-gradient(90deg, var(--v2-gold), #FFA500)',
+                      borderRadius: 3, transition: 'width 0.8s ease',
+                    }} />
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--v2-gold)', marginTop: 12, letterSpacing: '0.02em' }}>
+                  VIEW TROPHY CASE →
+                </div>
+              </div>
+            </div>
+
+            {/* Responsive: collapse to single column below 900px */}
+            <style>{`
+              @media (max-width: 900px) {
+                div[style*="grid-template-columns: 1fr 160px 220px"] {
+                  grid-template-columns: 1fr !important;
+                }
+              }
+            `}</style>
 
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
