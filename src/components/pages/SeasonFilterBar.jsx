@@ -25,7 +25,6 @@ export default function SeasonFilterBar({ role }) {
         }}
         className={selectCls}
       >
-        <option value="">All Seasons</option>
         {(seasons || []).map(s => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}

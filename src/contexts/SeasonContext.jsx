@@ -69,6 +69,11 @@ export function SeasonProvider({ children }) {
   }
 
   function selectSeason(season) {
+    // Guard: if null is passed but seasons exist, keep current selection
+    if (!season && allSeasons.length > 0) {
+      console.warn('[SeasonContext] Attempted to set season to null while seasons exist. Ignoring.')
+      return
+    }
     setSelectedSeason(season)
     if (season?.id) {
       localStorage.setItem('vb_selected_season', season.id)
