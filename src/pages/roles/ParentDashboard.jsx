@@ -496,7 +496,11 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
-              <AttentionStrip items={attentionItems} />
+              <AttentionStrip
+                message={`${attentionItems.length} item${attentionItems.length !== 1 ? 's' : ''} need${attentionItems.length === 1 ? 's' : ''} attention`}
+                ctaLabel="REVIEW NOW →"
+                onClick={() => setShowActionSidebar(true)}
+              />
             )}
 
             {/* Body Tabs */}
