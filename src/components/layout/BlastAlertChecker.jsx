@@ -108,9 +108,7 @@ export function BlastAlertChecker() {
   async function checkForPendingBlasts() {
     try {
       // Get unacknowledged blasts for this user
-      // NOTE: Schema shows column as 'player_id' not 'profile_id'.
-      // This query may silently return empty if profile_id column doesn't exist.
-      // TODO: Verify actual column name in Supabase and fix if needed.
+      // profile_id column confirmed in message_recipients table (SUPABASE_SCHEMA.md)
       const { data: unacknowledged } = await supabase
         .from('message_recipients')
         .select(`
