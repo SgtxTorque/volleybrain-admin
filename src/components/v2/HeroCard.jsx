@@ -131,34 +131,45 @@ export default function HeroCard({
             overflow: 'hidden',
           }}
         >
-          {stats.map((stat, i) => (
-            <div
-              key={i}
-              style={{
-                padding: '12px 8px',
-                textAlign: 'center',
-                background: 'rgba(255,255,255,0.02)',
-                transition: 'background 0.15s ease',
-                cursor: 'default',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-            >
-              <div style={{
-                fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em',
-                color: stat.color ? (colorMap[stat.color] || '#FFFFFF') : '#FFFFFF',
-              }}>
-                {stat.value}
-              </div>
-              <div style={{
-                fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
-                textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)',
-                marginTop: 2,
-              }}>
-                {stat.label}
-              </div>
-            </div>
-          ))}
+          {stats.map((stat, i) => {
+            const Tag = stat.onClick ? 'button' : 'div'
+            return (
+              <Tag
+                key={i}
+                onClick={stat.onClick || undefined}
+                style={{
+                  padding: '12px 8px',
+                  textAlign: 'center',
+                  background: 'rgba(255,255,255,0.02)',
+                  transition: 'all 0.15s ease',
+                  cursor: stat.onClick ? 'pointer' : 'default',
+                  border: 'none', color: 'inherit', font: 'inherit',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                  if (stat.onClick) e.currentTarget.style.transform = 'scale(1.04)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+                  e.currentTarget.style.transform = 'none'
+                }}
+              >
+                <div style={{
+                  fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em',
+                  color: stat.color ? (colorMap[stat.color] || '#FFFFFF') : '#FFFFFF',
+                }}>
+                  {stat.value}
+                </div>
+                <div style={{
+                  fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
+                  textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)',
+                  marginTop: 2,
+                }}>
+                  {stat.label}
+                </div>
+              </Tag>
+            )
+          })}
         </div>
       )}
 

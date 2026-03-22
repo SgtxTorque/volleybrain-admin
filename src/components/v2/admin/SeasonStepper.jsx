@@ -8,6 +8,7 @@ export default function SeasonStepper({
   steps = [],
   completedCount = 0,
   totalCount = 0,
+  onNavigate,
 }) {
   if (steps.length === 0) return null
 
@@ -38,12 +39,19 @@ export default function SeasonStepper({
         {steps.map((step, i) => {
           const isDone = step.status === 'done'
           const isCurrent = step.status === 'current'
+          const isClickable = !isDone && step.page && onNavigate
 
           return (
-            <div key={i} style={{
-              flex: 1, display: 'flex', flexDirection: 'column',
-              alignItems: 'center', position: 'relative',
-            }}>
+            <div
+              key={i}
+              onClick={() => isClickable && onNavigate?.(step.page)}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', position: 'relative',
+                cursor: isClickable ? 'pointer' : 'default',
+              }}
+              title={isDone ? `${step.label} — Complete` : step.page ? `Go to ${step.label}` : step.label}
+            >
               {/* Connecting line */}
               {i < steps.length - 1 && (
                 <div style={{
@@ -68,7 +76,12 @@ export default function SeasonStepper({
                     : 'var(--v2-surface)',
                 border: !isDone && !isCurrent ? '2px solid #E2E8F0' : 'none',
                 boxShadow: isCurrent ? '0 0 0 4px rgba(75,185,236,0.2)' : 'none',
-              }}>
+                transition: 'transform 0.15s ease',
+                ...(isClickable ? {} : {}),
+              }}
+              onMouseEnter={e => { if (isClickable) e.currentTarget.style.transform = 'scale(1.15)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
+              >
                 {isDone ? '✓' : isCurrent ? '▸' : ''}
               </div>
 

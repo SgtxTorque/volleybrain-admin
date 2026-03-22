@@ -108,6 +108,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [attentionExpanded, setAttentionExpanded] = useState(false)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [perSeasonActionCounts, setPerSeasonActionCounts] = useState({})
+  const [perSeasonActionDetails, setPerSeasonActionDetails] = useState({})
   const [globalStats, setGlobalStats] = useState({
     totalCollected: 0,
     totalExpected: 0,
@@ -169,15 +170,25 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
           unpaidBySeason[p.season_id] = (unpaidBySeason[p.season_id] || 0) + 1
         })
 
-        // Per-season action item counts (pending regs + unpaid payments)
+        // Per-season action item counts + details (pending regs + unpaid payments)
         const actionMap = {}
+        const detailsMap = {}
         let totalGlobalActions = 0
         seasonIds.forEach(sid => {
-          const count = (pendingRegsBySeason[sid] || 0) + (unpaidBySeason[sid] || 0)
-          if (count > 0) actionMap[sid] = count
+          const pending = pendingRegsBySeason[sid] || 0
+          const unpaid = unpaidBySeason[sid] || 0
+          const count = pending + unpaid
+          if (count > 0) {
+            actionMap[sid] = count
+            const details = []
+            if (pending > 0) details.push({ label: 'Pending Registrations', count: pending })
+            if (unpaid > 0) details.push({ label: 'Unpaid Payments', count: unpaid })
+            detailsMap[sid] = details
+          }
           totalGlobalActions += count
         })
         setPerSeasonActionCounts(actionMap)
+        setPerSeasonActionDetails(detailsMap)
 
         // Global payment breakdown by type
         const globalPaymentsByType = {
@@ -774,12 +785,12 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
 
   // Build stepper steps from setup tracker logic
   const setupSteps = [
-    { label: 'Org Profile', status: organization?.name ? 'done' : 'upcoming' },
-    { label: 'Season', status: selectedSeason ? 'done' : 'upcoming' },
-    { label: 'Open Reg', status: (selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0) ? 'done' : (selectedSeason ? 'current' : 'upcoming') },
-    { label: 'Teams', status: (stats.teams || 0) > 0 ? 'done' : (selectedSeason ? 'current' : 'upcoming') },
-    { label: 'Coaches', status: (stats.coachCount || 0) > 0 ? 'done' : 'upcoming' },
-    { label: 'Schedule', status: upcomingEvents.length > 0 ? 'done' : 'upcoming' },
+    { label: 'Org Profile', page: 'organization', status: organization?.name ? 'done' : 'upcoming' },
+    { label: 'Season', page: 'seasons', status: selectedSeason ? 'done' : 'upcoming' },
+    { label: 'Open Reg', page: 'registrations', status: (selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0) ? 'done' : (selectedSeason ? 'current' : 'upcoming') },
+    { label: 'Teams', page: 'teams', status: (stats.teams || 0) > 0 ? 'done' : (selectedSeason ? 'current' : 'upcoming') },
+    { label: 'Coaches', page: 'coaches', status: (stats.coachCount || 0) > 0 ? 'done' : 'upcoming' },
+    { label: 'Schedule', page: 'schedule', status: upcomingEvents.length > 0 ? 'done' : 'upcoming' },
   ]
   // Mark the first non-done step as current
   const firstNonDone = setupSteps.findIndex(s => s.status !== 'done')
@@ -886,12 +897,12 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 greeting={`${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`}
                 subLine={`${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 stats={[
-                  { value: globalTotalTeams || stats.teams || 0, label: 'Teams' },
-                  { value: globalTotalPlayers || totalPlayers, label: 'Players' },
-                  { value: globalStats.coachCount || stats.coachCount || 0, label: 'Coaches' },
-                  { value: (allSeasons || seasons || []).length, label: 'Seasons' },
-                  { value: globalStats.totalCollected ? `$${(globalStats.totalCollected / 1000).toFixed(1)}k` : '$0', label: 'Collected', color: 'green' },
-                  { value: globalStats.actionCount || 0, label: 'Action Items', color: globalStats.actionCount > 0 ? 'red' : undefined },
+                  { value: globalTotalTeams || stats.teams || 0, label: 'Teams', onClick: () => onNavigate?.('teams') },
+                  { value: globalTotalPlayers || totalPlayers, label: 'Players', onClick: () => onNavigate?.('registrations') },
+                  { value: globalStats.coachCount || stats.coachCount || 0, label: 'Coaches', onClick: () => onNavigate?.('coaches') },
+                  { value: (allSeasons || seasons || []).length, label: 'Seasons', onClick: () => onNavigate?.('seasons') },
+                  { value: globalStats.totalCollected ? `$${(globalStats.totalCollected / 1000).toFixed(1)}k` : '$0', label: 'Collected', color: 'green', onClick: () => onNavigate?.('payments') },
+                  { value: globalStats.actionCount || 0, label: 'Action Items', color: globalStats.actionCount > 0 ? 'red' : undefined, onClick: () => setActiveTab('action-items') },
                 ]}
               />
 
@@ -899,8 +910,8 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               {actionCount > 0 && (
                 <AttentionStrip
                   message={`${actionCount} item${actionCount !== 1 ? 's' : ''} need${actionCount === 1 ? 's' : ''} action`}
-                  ctaLabel={attentionExpanded ? 'COLLAPSE' : 'REVIEW NOW \u2192'}
-                  onClick={() => setAttentionExpanded(!attentionExpanded)}
+                  ctaLabel={attentionExpanded ? 'COLLAPSE' : 'REVIEW NOW →'}
+                  onClick={() => { setAttentionExpanded(!attentionExpanded); setActiveTab('action-items') }}
                   isExpanded={attentionExpanded}
                   expandedContent={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -933,6 +944,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 perSeasonTeamCounts={perSeasonTeamCounts}
                 perSeasonPlayerCounts={perSeasonPlayerCounts}
                 perSeasonActionCounts={perSeasonActionCounts}
+                perSeasonActionDetails={perSeasonActionDetails}
                 selectedSeasonId={selectedSeason?.id}
                 onSeasonSelect={(id) => {
                   const season = (allSeasons || seasons || []).find(s => s.id === id)
@@ -948,12 +960,14 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   steps={setupSteps}
                   completedCount={setupComplete}
                   totalCount={6}
+                  onNavigate={onNavigate}
                 />
               )}
 
               {/* BODY TABS */}
               <BodyTabs
                 tabs={[
+                  { id: 'action-items', label: 'Action Items', badge: actionCount || 0 },
                   { id: 'teams', label: 'Teams & Health' },
                   { id: 'registrations', label: 'Registrations', badge: stats.pending || 0 },
                   { id: 'payments', label: 'Payments' },
@@ -963,6 +977,61 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 onTabChange={setActiveTab}
                 footerLink={activeTab === 'teams' ? { label: `View all ${teamsData?.length || 0} teams →`, onClick: () => onNavigate?.('teams') } : undefined}
               >
+                {activeTab === 'action-items' && (
+                  <div style={{ padding: 24, fontFamily: 'var(--v2-font)' }}>
+                    {attentionItems.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                        <div style={{ fontSize: 36, marginBottom: 8 }}>✅</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--v2-text-primary)', marginBottom: 4 }}>All clear!</div>
+                        <div style={{ fontSize: 13, color: 'var(--v2-text-muted)' }}>No items need your attention right now.</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {attentionItems.map((item, idx) => {
+                          const severity = item.category.includes('Overdue') ? 'critical'
+                            : item.category.includes('Pending') ? 'warning' : 'info'
+                          const detail = item.category.includes('Overdue') ? `$${(stats.pastDue || 0).toLocaleString()} outstanding`
+                            : item.category.includes('Pending') ? 'Review and approve or deny'
+                            : item.category.includes('Waiver') ? 'Send reminders to parents'
+                            : item.category.includes('Unrostered') ? 'Assign players to teams'
+                            : item.category.includes('Schedule') ? 'Create events for these teams'
+                            : ''
+                          return (
+                            <button
+                              key={idx}
+                              onClick={item.onClick}
+                              style={{
+                                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                                padding: '14px 16px', borderRadius: 12, textAlign: 'left',
+                                background: 'transparent', border: 'none', cursor: 'pointer',
+                                transition: 'background 0.15s ease', fontFamily: 'var(--v2-font)',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-surface)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <span style={{
+                                width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                                background: severity === 'critical' ? '#EF4444'
+                                  : severity === 'warning' ? '#F59E0B' : '#3B82F6',
+                              }} />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--v2-text-primary)' }}>
+                                  {item.icon} {item.count} {item.category.toLowerCase()}
+                                </div>
+                                {detail && (
+                                  <div style={{ fontSize: 12, color: 'var(--v2-text-muted)', marginTop: 2 }}>
+                                    {detail}
+                                  </div>
+                                )}
+                              </div>
+                              <span style={{ fontSize: 16, color: 'var(--v2-text-muted)', flexShrink: 0 }}>›</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {activeTab === 'teams' && (
                   <AdminTeamsTab teamsData={teamsData} teamStats={teamStats} onTeamClick={(teamId) => onNavigate?.('teamwall', { teamId })} onViewAll={() => onNavigate?.('teams')} />
                 )}
@@ -1001,12 +1070,24 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 receivedLabel="Received"
                 outstandingAmount={`$${(globalStats.pastDue || 0).toLocaleString()}`}
                 outstandingLabel="Outstanding"
-                breakdown={globalStats.paymentsByType ? [
-                  { label: 'Registration', amount: `$${(globalStats.paymentsByType.registration?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-green)' },
-                  { label: 'Uniforms', amount: `$${(globalStats.paymentsByType.uniform?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-sky)' },
-                  { label: 'Monthly Dues', amount: `$${(globalStats.paymentsByType.monthly?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-purple)' },
-                  { label: 'Other', amount: `$${(globalStats.paymentsByType.other?.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) || 0).toLocaleString()}`, color: 'var(--v2-amber)' },
-                ] : null}
+                breakdown={globalStats.paymentsByType ? (() => {
+                  const byType = globalStats.paymentsByType
+                  const calcType = (arr) => {
+                    const total = (arr || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+                    const collected = (arr || []).filter(p => p.paid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+                    return { collected, total }
+                  }
+                  const reg = calcType(byType.registration)
+                  const uni = calcType(byType.uniform)
+                  const mo = calcType(byType.monthly)
+                  const oth = calcType(byType.other)
+                  return [
+                    { label: 'Registration', collected: reg.collected, total: reg.total, color: 'var(--v2-green)' },
+                    { label: 'Uniforms', collected: uni.collected, total: uni.total, color: 'var(--v2-sky)' },
+                    { label: 'Monthly Dues', collected: mo.collected, total: mo.total, color: 'var(--v2-purple)' },
+                    { label: 'Other', collected: oth.collected, total: oth.total, color: 'var(--v2-amber)' },
+                  ]
+                })() : null}
                 primaryAction={{ label: 'Send Reminders', onClick: () => onNavigate?.('payments'), variant: 'danger' }}
                 secondaryAction={{ label: 'View Ledger', onClick: () => onNavigate?.('payments') }}
               />

@@ -131,20 +131,45 @@ export default function FinancialSnapshot({
           }}>
             Breakdown
           </div>
-          {breakdown.map((row, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between',
-              padding: '5px 0', alignItems: 'center',
-            }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: row.color, flexShrink: 0 }} />
-                {row.label}
-              </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>
-                {typeof row.amount === 'number' ? `$${fmtDollar(row.amount)}` : row.amount}
-              </span>
-            </div>
-          ))}
+          {breakdown.map((row, i) => {
+            const hasCollectedTotal = row.collected != null && row.total != null
+            const pct = hasCollectedTotal && row.total > 0 ? Math.round((row.collected / row.total) * 100) : 0
+            return (
+              <div key={i} style={{ padding: '6px 0' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: row.color, flexShrink: 0 }} />
+                    {row.label}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.8)' }}>
+                    {hasCollectedTotal ? (
+                      <>
+                        ${fmtDollar(row.collected)}
+                        <span style={{ fontWeight: 500, color: 'rgba(255,255,255,0.4)' }}> / ${fmtDollar(row.total)}</span>
+                      </>
+                    ) : (
+                      typeof row.amount === 'number' ? `$${fmtDollar(row.amount)}` : row.amount
+                    )}
+                  </span>
+                </div>
+                {hasCollectedTotal && (
+                  <div style={{
+                    height: 3, borderRadius: 2, marginTop: 5,
+                    background: 'rgba(255,255,255,0.06)', overflow: 'hidden',
+                  }}>
+                    <div style={{
+                      height: '100%', borderRadius: 2,
+                      width: `${Math.min(pct, 100)}%`,
+                      background: pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444',
+                      transition: 'width 0.5s ease',
+                    }} />
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

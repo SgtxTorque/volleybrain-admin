@@ -11,6 +11,7 @@ export default function SeasonCarousel({
   perSeasonTeamCounts = {},
   perSeasonPlayerCounts = {},
   perSeasonActionCounts = {},
+  perSeasonActionDetails = {},
   selectedSeasonId,
   onSeasonSelect,
   onViewAll,
@@ -133,6 +134,7 @@ export default function SeasonCarousel({
             const teamCount = perSeasonTeamCounts[season.id] || 0
             const playerCount = perSeasonPlayerCounts[season.id] || 0
             const actionCount = perSeasonActionCounts[season.id] || 0
+            const actionDetails = perSeasonActionDetails[season.id] || []
             const isSelected = season.id === selectedSeasonId
             const dateRange = formatDateRange(season)
 
@@ -180,18 +182,41 @@ export default function SeasonCarousel({
                   )}
                   <span style={{ flex: 1 }} />
                   {actionCount > 0 && (
-                    <span style={{
-                      display: 'flex', alignItems: 'center', gap: 4,
-                      padding: '2px 8px', borderRadius: 99,
-                      fontSize: 11, fontWeight: 700,
-                      background: 'rgba(239,68,68,0.12)', color: '#EF4444',
-                    }}>
+                    <div style={{ position: 'relative' }} className="v2-action-pill-wrap">
                       <span style={{
-                        width: 6, height: 6, borderRadius: '50%',
-                        background: '#EF4444',
-                      }} />
-                      {actionCount}
-                    </span>
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '3px 10px', borderRadius: 8,
+                        fontSize: 11, fontWeight: 700,
+                        background: '#EF4444', color: '#FFFFFF',
+                        boxShadow: '0 1px 4px rgba(239,68,68,0.3)',
+                        cursor: 'default',
+                      }}>
+                        ⚠ {actionCount}
+                      </span>
+                      {actionDetails.length > 0 && (
+                        <div className="v2-action-pill-tooltip" style={{
+                          position: 'absolute', right: 0, top: '100%', marginTop: 6,
+                          width: 200, borderRadius: 10,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                          border: '1px solid var(--v2-border-subtle)',
+                          background: 'var(--v2-white)',
+                          padding: '8px 10px',
+                          zIndex: 50,
+                          opacity: 0, pointerEvents: 'none',
+                          transition: 'opacity 0.15s ease',
+                        }}>
+                          {actionDetails.map((item, idx) => (
+                            <div key={idx} style={{
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                              padding: '4px 2px', fontSize: 11, color: 'var(--v2-text-secondary)',
+                            }}>
+                              <span>{item.label}</span>
+                              <span style={{ fontWeight: 700, color: '#EF4444' }}>{item.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -255,6 +280,10 @@ export default function SeasonCarousel({
       <style>{`
         .v2-season-carousel::-webkit-scrollbar { display: none; }
         .v2-season-carousel { -ms-overflow-style: none; scrollbar-width: none; }
+        .v2-action-pill-wrap:hover .v2-action-pill-tooltip {
+          opacity: 1 !important;
+          pointer-events: auto !important;
+        }
       `}</style>
     </div>
   )
