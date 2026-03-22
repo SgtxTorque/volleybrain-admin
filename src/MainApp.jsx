@@ -666,7 +666,12 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
         ) :
         activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
         activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
-        <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} />
+        <div className="flex items-center justify-center h-[50vh] text-center">
+          <div>
+            <p className="text-lg font-semibold">No dashboard available for this role.</p>
+            <p className="text-sm text-gray-500 mt-2">Try switching to a different role using the sidebar.</p>
+          </div>
+        </div>
       } />
 
       {/* Team Wall — /teams/:teamId */}
@@ -680,11 +685,11 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       } />
 
       {/* Parent-specific routes */}
-      <Route path="/parent/player/:playerId/profile" element={<PlayerProfileRoute roleContext={roleContext} showToast={showToast} />} />
-      <Route path="/parent/player/:playerId" element={<ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} />} />
+      <Route path="/parent/player/:playerId/profile" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><PlayerProfileRoute roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/parent/player/:playerId" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/messages" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentMessagesPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/invite" element={<RouteGuard allow={['parent']} activeView={activeView}><InviteFriendsPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
-      <Route path="/my-stuff" element={<RouteGuard allow={['parent']} activeView={activeView}><MyStuffPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/my-stuff" element={<RouteGuard allow={['parent', 'player']} activeView={activeView}><MyStuffPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/parent/register" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentRegistrationHub roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/claim-account" element={<ClaimAccountPage showToast={showToast} />} />
 
@@ -719,7 +724,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
         <AchievementsCatalogPage
           playerId={activeView === 'player' ? selectedPlayerForView?.id : roleContext?.children?.[0]?.id}
           showToast={showToast}
-          playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : `${roleContext?.children?.[0]?.first_name}'s`}
+          playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : (roleContext?.children?.[0]?.first_name ? `${roleContext.children[0].first_name}'s` : 'Player')}
           isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
         />
       } />
@@ -732,7 +737,9 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
         />
       } />
       <Route path="/stats/:playerId" element={
-        <PlayerStatsPage showToast={showToast} />
+        <RouteGuard allow={['admin', 'coach', 'parent']} activeView={activeView}>
+          <PlayerStatsPage showToast={showToast} />
+        </RouteGuard>
       } />
 
       {/* Admin — Season Management */}
@@ -1078,6 +1085,8 @@ function MainApp() {
         navigate(`/teams/${firstTeamId}`)
         return
       }
+      showToast?.('No team found. Your child may not be assigned to a team yet.', 'info')
+      return
     }
     navigate(getPathForPage(itemId))
   }

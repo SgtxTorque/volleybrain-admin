@@ -75,6 +75,12 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         userTeamIds = roleContext.teamManagerInfo.map(ts => ts.team_id).filter(Boolean)
       }
 
+      // Player: filter by player's team membership
+      if (activeView === 'player' && roleContext?.playerInfo?.team_players?.length > 0) {
+        userTeamIds = roleContext.playerInfo.team_players.map(tp => tp.team_id).filter(Boolean)
+      }
+      // Admin sees all channels (no team filtering) — intentional
+
       // Primary query with joins (same as working pattern)
       let channelsData = null
 
