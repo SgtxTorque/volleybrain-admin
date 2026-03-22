@@ -144,22 +144,22 @@ export default function SeasonCarousel({
                 onClick={() => onSeasonSelect?.(season.id)}
                 style={{
                   minWidth: 240, flex: '1 0 240px',
-                  background: 'var(--v2-white)',
+                  background: isSelected ? 'rgba(75, 185, 236, 0.04)' : 'var(--v2-white)',
                   borderRadius: 'var(--v2-radius)',
-                  boxShadow: isSelected ? '0 0 0 2px var(--v2-sky)' : 'var(--v2-card-shadow)',
-                  border: '1px solid var(--v2-border-subtle)',
-                  padding: '18px 20px',
+                  boxShadow: isSelected ? '0 0 0 2px rgba(75, 185, 236, 0.15), 0 2px 8px rgba(75, 185, 236, 0.12)' : 'var(--v2-card-shadow)',
+                  border: isSelected ? '2px solid var(--v2-sky)' : '1px solid var(--v2-border-subtle)',
+                  padding: isSelected ? '17px 19px' : '18px 20px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.boxShadow = isSelected
-                    ? '0 0 0 2px var(--v2-sky), 0 4px 16px rgba(0,0,0,0.1)'
+                    ? '0 0 0 2px rgba(75, 185, 236, 0.15), 0 4px 16px rgba(75, 185, 236, 0.18)'
                     : '0 4px 16px rgba(0,0,0,0.1)'
                   e.currentTarget.style.transform = 'translateY(-1px)'
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px var(--v2-sky)' : 'var(--v2-card-shadow)'
+                  e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px rgba(75, 185, 236, 0.15), 0 2px 8px rgba(75, 185, 236, 0.12)' : 'var(--v2-card-shadow)'
                   e.currentTarget.style.transform = 'none'
                 }}
               >
@@ -175,7 +175,18 @@ export default function SeasonCarousel({
                   </span>
                   {isSelected && (
                     <span style={{
-                      fontSize: 10, fontWeight: 600, color: 'var(--v2-sky)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      background: 'rgba(75, 185, 236, 0.15)',
+                      color: '#0284C7',
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                      lineHeight: 1,
                     }}>
                       Selected
                     </span>
