@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { sanitizeText } from '../../lib/validation'
@@ -40,7 +40,10 @@ function BlastsPage({ showToast, activeView, roleContext }) {
     setLoading(true)
     try {
       // Load teams (scoped to coach's teams if coach role)
-      let teamsQuery = supabase.from('teams').select('*').eq('season_id', selectedSeason.id)
+      let teamsQuery = supabase.from('teams').select('*')
+      if (!isAllSeasons(selectedSeason)) {
+        teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)
+      }
       if ((isCoach || isTeamManager) && coachTeamIds.length > 0) {
         teamsQuery = teamsQuery.in('id', coachTeamIds)
       }
@@ -48,7 +51,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       setTeams(teamsData || [])
 
       // Load blasts/announcements
-      const { data: blastsData } = await supabase
+      let blastsQuery = supabase
         .from('messages')
         .select(`
           *,
@@ -56,7 +59,10 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           teams:target_team_id (name, color),
           message_recipients (id, acknowledged, acknowledged_at, recipient_name)
         `)
-        .eq('season_id', selectedSeason.id)
+      if (!isAllSeasons(selectedSeason)) {
+        blastsQuery = blastsQuery.eq('season_id', selectedSeason.id)
+      }
+      const { data: blastsData } = await blastsQuery
         .order('created_at', { ascending: false })
 
       // If coach or TM, filter to only relevant blasts

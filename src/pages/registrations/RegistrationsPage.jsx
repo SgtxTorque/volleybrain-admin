@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -80,7 +80,7 @@ export function RegistrationsPage({ showToast }) {
       .select('*, registrations(*), seasons:season_id(id, name)')
       .order('created_at', { ascending: false })
 
-    if (selectedSeason?.id) {
+    if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
     }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -79,7 +79,7 @@ function ReportsPage({ showToast }) {
 
   // ====== LIFECYCLE ======
   useEffect(() => { loadSeasonsAndSports(); loadSavedPresets() }, [organization?.id])
-  useEffect(() => { if (globalSeason?.id && !selectedSeasonId) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
+  useEffect(() => { if (globalSeason?.id && !selectedSeasonId && !isAllSeasons(globalSeason)) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
   useEffect(() => { if (globalSport?.id && selectedSportId === 'all') setSelectedSportId(globalSport.id) }, [globalSport?.id])
   useEffect(() => { if (selectedSeasonId) loadTeams() }, [selectedSeasonId])
   useEffect(() => { if (selectedSeasonId) loadReportData() }, [selectedSeasonId, selectedSportId, activeReport, filters])

@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { useState, useEffect } from 'react'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { calculateFeesForPlayer } from '../../lib/fee-calculator'
@@ -146,21 +146,26 @@ export function PaymentsPage({ showToast }) {
   }, [selectedSeason?.id])
 
   async function loadPlayers() {
-    const { data } = await supabase
+    let query = supabase
       .from('players')
       .select('id, first_name, last_name, photo_url, position, grade, jersey_number, parent_email, parent_name')
-      .eq('season_id', selectedSeason.id)
+    if (!isAllSeasons(selectedSeason)) {
+      query = query.eq('season_id', selectedSeason.id)
+    }
+    const { data } = await query
     setPlayers(data || [])
   }
 
   async function loadPayments() {
     if (!selectedSeason?.id) return
     setLoading(true)
-    const { data } = await supabase
+    let query = supabase
       .from('payments')
       .select('*, players(id, first_name, last_name, parent_name, parent_email, photo_url, position, grade, jersey_number)')
-      .eq('season_id', selectedSeason.id)
-      .order('created_at', { ascending: false })
+    if (!isAllSeasons(selectedSeason)) {
+      query = query.eq('season_id', selectedSeason.id)
+    }
+    const { data } = await query.order('created_at', { ascending: false })
     setPayments(data || [])
     setLoading(false)
   }

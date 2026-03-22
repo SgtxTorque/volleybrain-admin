@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useThemeClasses, useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -54,9 +54,11 @@ export function CoachesPage({ showToast }) {
   async function loadCoaches() {
     setLoading(true)
     try {
-      const { data: coachesData, error } = await supabase
-        .from('coaches').select('*')
-        .eq('season_id', selectedSeason.id)
+      let coachQuery = supabase.from('coaches').select('*')
+      if (!isAllSeasons(selectedSeason)) {
+        coachQuery = coachQuery.eq('season_id', selectedSeason.id)
+      }
+      const { data: coachesData, error } = await coachQuery
         .order('last_name', { ascending: true })
       if (error) throw error
 
@@ -76,6 +78,7 @@ export function CoachesPage({ showToast }) {
   }
 
   async function loadTeams() {
+    if (isAllSeasons(selectedSeason)) { setTeams([]); return }
     const { data } = await supabase.from('teams').select('id, name, color').eq('season_id', selectedSeason.id)
     setTeams(data || [])
   }
