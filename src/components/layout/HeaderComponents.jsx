@@ -81,9 +81,8 @@ export function HeaderSeasonSelector() {
   const { seasons, selectedSeason, selectSeason, loading } = useSeason()
   const { selectedSport } = useSport()
   const { isDark, colors } = useTheme()
-  const { profile } = useAuth()
+  const { isAdmin } = useAuth()
   const [open, setOpen] = useState(false)
-  const isAdmin = profile?.role === 'admin'
   const isAll = isAllSeasons(selectedSeason)
 
   if (loading || seasons.length === 0) return null

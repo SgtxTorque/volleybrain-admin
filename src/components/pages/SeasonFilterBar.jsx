@@ -8,11 +8,10 @@ export default function SeasonFilterBar({ role: roleProp }) {
   const { seasons, allSeasons, selectedSeason, selectSeason } = useSeason()
   const { sports, selectedSport, selectSport } = useSport()
   const { isDark } = useTheme()
-  const { profile } = useAuth()
-  const role = roleProp || profile?.role
+  const { isAdmin } = useAuth()
 
-  // Only render for admin and coach
-  if (role && role !== 'admin' && role !== 'coach') return null
+  // Only hide when an explicit role prop is passed that isn't admin/coach
+  if (roleProp && roleProp !== 'admin' && roleProp !== 'coach') return null
 
   const selectCls = isDark
     ? 'px-3 py-2 rounded-lg border border-white/10 text-r-sm font-medium bg-lynx-charcoal text-slate-200 focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20'
@@ -33,7 +32,7 @@ export default function SeasonFilterBar({ role: roleProp }) {
         }}
         className={selectCls}
       >
-        {role === 'admin' && <option value="all">All Seasons</option>}
+        {isAdmin && <option value="all">All Seasons</option>}
         {(seasons || []).map(s => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}
