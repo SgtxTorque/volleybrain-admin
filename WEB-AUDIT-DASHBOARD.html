@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lynx Web Admin — Full Audit Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #10284C;
+  --navy-light: #1a3a66;
+  --navy-dark: #0a1a33;
+  --sky: #4BB9EC;
+  --sky-light: #7dd0f4;
+  --gold: #FFD700;
+  --gold-dim: #b89b00;
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.12);
+  --orange: #f97316;
+  --orange-bg: rgba(249,115,22,0.12);
+  --yellow: #eab308;
+  --yellow-bg: rgba(234,179,8,0.12);
+  --green: #22c55e;
+  --green-bg: rgba(34,197,94,0.12);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59,130,246,0.12);
+  --bg: #0d1b2a;
+  --surface: #142236;
+  --surface2: #1a2d44;
+  --border: rgba(75,185,236,0.15);
+  --text: #e8edf3;
+  --text-dim: #8a9bb5;
+  --text-muted: #5a6f8a;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+code, .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 24px 32px;
+  display: flex; align-items: center; gap: 20px;
+}
+.header-logo {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--sky), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700; color: var(--navy);
+}
+.header-title { font-size: 22px; font-weight: 700; color: var(--text); }
+.header-sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+.header-badge {
+  margin-left: auto; background: var(--red-bg); color: var(--red);
+  padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+}
+
+/* Tab Bar */
+.tab-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; overflow-x: auto; padding: 0 24px;
+}
+.tab {
+  padding: 14px 20px; font-size: 13px; font-weight: 500;
+  color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all 0.2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--sky); border-bottom-color: var(--sky); }
+
+/* Content */
+.content { max-width: 1440px; margin: 0 auto; padding: 24px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+}
+.card-header { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+/* Stat Grid */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; text-align: center;
+}
+.stat-value { font-size: 36px; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--text-dim); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Severity badges */
+.sev { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.sev-critical { background: var(--red-bg); color: var(--red); }
+.sev-high { background: var(--orange-bg); color: var(--orange); }
+.sev-medium { background: var(--yellow-bg); color: var(--yellow); }
+.sev-low { background: var(--blue-bg); color: var(--blue); }
+.sev-info { background: rgba(139,92,246,0.12); color: #a78bfa; }
+
+/* Category badges */
+.cat { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-left: 6px; }
+.cat-security { background: rgba(239,68,68,0.1); color: #f87171; }
+.cat-navigation { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.cat-orphan { background: rgba(168,85,247,0.1); color: #c084fc; }
+.cat-dead { background: rgba(107,114,128,0.1); color: #9ca3af; }
+.cat-arch { background: rgba(34,197,94,0.1); color: #4ade80; }
+.cat-ux { background: rgba(234,179,8,0.1); color: #facc15; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 10px 12px; color: var(--text-dim); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid rgba(75,185,236,0.07); vertical-align: top; }
+tr:hover td { background: rgba(75,185,236,0.04); }
+.file-path { color: var(--sky); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.status-ok { color: var(--green); }
+.status-broken { color: var(--red); font-weight: 600; }
+.status-warn { color: var(--orange); }
+.status-dead { color: var(--text-muted); text-decoration: line-through; }
+
+/* Issue list */
+.issue { padding: 14px 16px; border-left: 3px solid var(--border); margin-bottom: 10px; background: var(--surface2); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.issue-critical { border-left-color: var(--red); }
+.issue-high { border-left-color: var(--orange); }
+.issue-medium { border-left-color: var(--yellow); }
+.issue-low { border-left-color: var(--blue); }
+.issue-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.issue-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.issue-file { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--sky); margin-top: 4px; }
+.issue-fix { font-size: 12px; color: var(--green); margin-top: 4px; }
+
+/* Role matrix */
+.matrix-cell { text-align: center; font-size: 12px; min-width: 70px; }
+.mx-nav { color: var(--green); font-weight: 600; }
+.mx-url { color: var(--yellow); }
+.mx-blocked { color: var(--red); }
+.mx-none { color: var(--text-muted); }
+.mx-risk { background: rgba(239,68,68,0.08); color: var(--red); font-weight: 600; }
+
+/* Fix plan */
+.phase-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; margin-top: 24px; }
+.phase-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+.phase-0 .phase-num { background: var(--red-bg); color: var(--red); }
+.phase-1 .phase-num { background: var(--orange-bg); color: var(--orange); }
+.phase-2 .phase-num { background: var(--yellow-bg); color: var(--yellow); }
+.phase-3 .phase-num { background: var(--blue-bg); color: var(--blue); }
+.phase-4 .phase-num { background: var(--green-bg); color: var(--green); }
+.fix-item { padding: 10px 14px; background: var(--surface2); border-radius: var(--radius-sm); margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+.fix-check { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+
+/* Donut chart */
+.donut-container { display: flex; align-items: center; gap: 24px; }
+.donut { width: 160px; height: 160px; position: relative; }
+.donut svg { transform: rotate(-90deg); }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut-number { font-size: 32px; font-weight: 700; }
+.donut-label { font-size: 11px; color: var(--text-dim); }
+.legend { display: flex; flex-direction: column; gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header { padding: 16px; flex-wrap: wrap; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .content { padding: 16px; }
+  .tab { padding: 12px 14px; font-size: 12px; }
+  table { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">L</div>
+  <div>
+    <div class="header-title">Lynx Web Admin — Full Audit Dashboard</div>
+    <div class="header-sub">volleybrain-admin &middot; 169 pages &middot; 148 components &middot; 65 routes &middot; Audited 2026-03-22</div>
+  </div>
+  <div class="header-badge">59 Issues Found</div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('overview')">Overview</div>
+  <div class="tab" onclick="switchTab('security')">Security</div>
+  <div class="tab" onclick="switchTab('nav')">Nav Audit</div>
+  <div class="tab" onclick="switchTab('orphans')">Duplicates & Orphans</div>
+  <div class="tab" onclick="switchTab('arch')">Architecture</div>
+  <div class="tab" onclick="switchTab('matrix')">Role Matrix</div>
+  <div class="tab" onclick="switchTab('fix')">Fix Plan</div>
+</div>
+
+<div class="content">
+
+<!-- ===== TAB 1: OVERVIEW ===== -->
+<div id="tab-overview" class="tab-content active">
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--red)">4</div>
+    <div class="stat-label">Critical</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--orange)">18</div>
+    <div class="stat-label">High</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--yellow)">16</div>
+    <div class="stat-label">Medium</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--blue)">13</div>
+    <div class="stat-label">Low</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:#a78bfa">8</div>
+    <div class="stat-label">Info</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--gold)">59</div>
+    <div class="stat-label">Total Issues</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <div class="card">
+    <div class="card-header">Severity Breakdown</div>
+    <div class="donut-container">
+      <div class="donut">
+        <svg viewBox="0 0 160 160" width="160" height="160">
+          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--surface2)" stroke-width="20"/>
+          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--red)" stroke-width="20" stroke-dasharray="25.4 351.9" stroke-dashoffset="0"/>
+          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--orange)" stroke-width="20" stroke-dasharray="114.6 262.7" stroke-dashoffset="-25.4"/>
+          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--yellow)" stroke-width="20" stroke-dasharray="101.6 275.7" stroke-dashoffset="-140"/>
+          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--blue)" stroke-width="20" stroke-dasharray="82.6 294.7" stroke-dashoffset="-241.6"/>
+          <circle cx="80" cy="80" r="60" fill="none" stroke="#a78bfa" stroke-width="20" stroke-dasharray="52.8 324.5" stroke-dashoffset="-324.2"/>
+        </svg>
+        <div class="donut-center">
+          <div class="donut-number">59</div>
+          <div class="donut-label">issues</div>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Critical (4)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> High (18)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Medium (16)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Low (13)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> Info (8)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Category Breakdown</div>
+    <div class="legend" style="gap:12px; margin-top:8px;">
+      <div class="legend-item"><span class="cat cat-security">SECURITY</span> 8 issues — unguarded routes, leaked credentials, platform mode exposure</div>
+      <div class="legend-item"><span class="cat cat-navigation">NAVIGATION</span> 11 issues — broken nav items, route mismatches, orphaned routes</div>
+      <div class="legend-item"><span class="cat cat-orphan">ORPHAN</span> 6 issues — orphaned files/directories, ~70+ dead files</div>
+      <div class="legend-item"><span class="cat cat-dead">DEAD-CODE</span> 8 issues — unreachable code, unused imports, dead routes</div>
+      <div class="legend-item"><span class="cat cat-arch">ARCHITECTURE</span> 11 issues — repo bloat, spec files, contexts, gitignore</div>
+      <div class="legend-item"><span class="cat cat-ux">UX</span> 15 issues — prop mismatches, no-ops, overlaps, inflated counts</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Critical Issues</div>
+  <div class="issue issue-critical">
+    <div class="issue-title"><span class="sev sev-critical">CRITICAL</span> <span class="cat cat-security">SECURITY</span> Platform mode has no auth protection</div>
+    <div class="issue-desc">Any authenticated user can access all 10 /platform/* routes by navigating directly to the URL. The appMode state auto-switches with no isPlatformAdmin check. Parents, coaches, players can see all platform admin pages.</div>
+    <div class="issue-file">src/MainApp.jsx:784-793, 1100-1132</div>
+  </div>
+  <div class="issue issue-critical">
+    <div class="issue-title"><span class="sev sev-critical">CRITICAL</span> <span class="cat cat-arch">ARCHITECTURE</span> playerSelf hardcoded to null</div>
+    <div class="issue-desc">The entire player role is non-functional for real users. roleContext.isPlayer is always false, playerInfo is always null. Player view is only available as admin/coach preview.</div>
+    <div class="issue-file">src/MainApp.jsx:830</div>
+  </div>
+  <div class="issue issue-critical">
+    <div class="issue-title"><span class="sev sev-critical">CRITICAL</span> <span class="cat cat-security">SECURITY</span> .env with Supabase credentials committed to git</div>
+    <div class="issue-desc">Live Supabase anon key and project URL committed in plaintext inside the reference/mobile-app/.env file tracked by git.</div>
+    <div class="issue-file">reference/mobile-app/.env</div>
+  </div>
+  <div class="issue issue-critical">
+    <div class="issue-title"><span class="sev sev-critical">CRITICAL</span> <span class="cat cat-arch">ARCHITECTURE</span> Nested git repo (entire mobile app) tracked in web repo</div>
+    <div class="issue-desc">The reference/ directory contains the complete mobile app repository including .git/ with packfile (~90MB). This bloats the web repo and includes sensitive files.</div>
+    <div class="issue-file">reference/mobile-app/.git/</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Dead Code Summary</div>
+  <div class="stat-grid" style="margin-bottom:0">
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--orange)">~70+</div>
+      <div class="stat-label">Orphaned Files</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--orange)">~10K</div>
+      <div class="stat-label">Dead Code Lines</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--orange)">~140</div>
+      <div class="stat-label">Archive Files</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--orange)">110+</div>
+      <div class="stat-label">Root Spec Files</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== TAB 2: SECURITY ===== -->
+<div id="tab-security" class="tab-content">
+
+<div class="card">
+  <div class="card-header">RouteGuard Audit — Unguarded Routes That Should Be Protected</div>
+  <table>
+    <tr><th>Route</th><th>Component</th><th>Current Guard</th><th>Risk</th><th>Recommendation</th></tr>
+    <tr><td><code>/platform/*</code> (10 routes)</td><td>Platform admin pages</td><td class="status-broken">NONE</td><td><span class="sev sev-critical">CRITICAL</span></td><td>Add isPlatformAdmin check to appMode switch</td></tr>
+    <tr><td><code>/teams</code></td><td>TeamsPage</td><td class="status-broken">NONE</td><td><span class="sev sev-medium">MEDIUM</span></td><td>Add RouteGuard allow={['admin']}</td></tr>
+    <tr><td><code>/payments</code></td><td>PaymentsPage / ParentPaymentsPage</td><td class="status-broken">NONE</td><td><span class="sev sev-medium">MEDIUM</span></td><td>Add role-conditional guard; scope for TM/coach</td></tr>
+    <tr><td><code>/claim-account</code></td><td>ClaimAccountPage</td><td class="status-warn">NONE</td><td><span class="sev sev-low">LOW</span></td><td>Consider adding guard or internal validation</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">RouteGuard Component Analysis</div>
+  <div class="issue-desc" style="margin-bottom:12px">
+    <code class="file-path">src/components/auth/RouteGuard.jsx</code> (22 lines)
+  </div>
+  <div class="issue-desc">
+    <strong>Behavior when denied:</strong> Redirects to <code>/dashboard</code> via <code>&lt;Navigate to="/dashboard" replace /&gt;</code>. No error message, no toast, no logging. The user is silently bounced with zero feedback.
+  </div>
+  <div style="margin-top:12px">
+    <strong>Routes with correct guards (24):</strong> /registrations, /jerseys, /staff, /coaches, /roster, /attendance, /gameprep, /blasts, /notifications, /reports, /reports/funnel, /my-stuff, /parent/register, /messages, /invite, /admin/seasons, /settings/* (8 routes), /schedule/availability
+  </div>
+  <div style="margin-top:12px">
+    <strong>Routes intentionally unguarded (12):</strong> /dashboard, /schedule, /standings, /leaderboards, /chats, /archives, /directory, /achievements, /stats, /profile, /teams/:teamId, /parent/player/*
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Cross-Role Data Exposure</div>
+  <div class="issue issue-high">
+    <div class="issue-title"><span class="sev sev-high">HIGH</span> Coach/TM/Player see full admin PaymentsPage</div>
+    <div class="issue-desc">/payments only switches for parent role. All other roles see admin financial data with full payment controls.</div>
+    <div class="issue-file">src/MainApp.jsx:703-707</div>
+  </div>
+  <div class="issue issue-high">
+    <div class="issue-title"><span class="sev sev-high">HIGH</span> Player sees ALL chat channels</div>
+    <div class="issue-desc">ChatsPage channel filtering handles parent/coach/team_manager but NOT player. Player sees all channels like admin.</div>
+    <div class="issue-file">src/pages/chats/ChatsPage.jsx:167</div>
+  </div>
+  <div class="issue issue-medium">
+    <div class="issue-title"><span class="sev sev-medium">MEDIUM</span> SchedulePage loads all events for all roles</div>
+    <div class="issue-desc">No team-based filtering in loadEvents(). Parents and players see events for teams they're not on.</div>
+    <div class="issue-file">src/pages/schedule/SchedulePage.jsx:77-84</div>
+  </div>
+  <div class="issue issue-medium">
+    <div class="issue-title"><span class="sev sev-medium">MEDIUM</span> Unknown activeView renders admin dashboard</div>
+    <div class="issue-desc">Final else branch in /dashboard rendering shows DashboardPage for any unrecognized role value.</div>
+    <div class="issue-file">src/MainApp.jsx:669</div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== TAB 3: NAV AUDIT ===== -->
+<div id="tab-nav" class="tab-content">
+
+<div class="card">
+  <div class="card-header">Admin Nav (28 items) — All OK</div>
+  <div class="issue-desc" style="color:var(--green)">All 28 admin nav items resolve to valid routes with correct guards. No issues found.</div>
+</div>
+
+<div class="card">
+  <div class="card-header">Coach Nav (13 items) — All OK</div>
+  <div class="issue-desc" style="color:var(--green)">All 13 coach nav items resolve correctly. Dynamic teamwall-{id} items work via getPathForPage pattern matching.</div>
+</div>
+
+<div class="card">
+  <div class="card-header">Parent Nav (9 items) — 1 Issue</div>
+  <table>
+    <tr><th>Nav Item</th><th>Nav ID</th><th>Resolves To</th><th>Route?</th><th>Guard</th><th>Status</th></tr>
+    <tr><td>Home</td><td><code>dashboard</code></td><td>/dashboard</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>(children)</td><td><code>player-{id}</code></td><td>/parent/player/{id}</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>Chat</td><td><code>chats</code></td><td>/chats</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr style="background:rgba(239,68,68,0.06)"><td>Team Hub</td><td><code>team-hub</code></td><td><strong>Not in ROUTES</strong></td><td class="status-broken">NO</td><td>N/A</td><td class="status-broken">BROKEN</td></tr>
+    <tr><td>Payments</td><td><code>payments</code></td><td>/payments</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>My Stuff</td><td><code>my-stuff</code></td><td>/my-stuff</td><td class="status-ok">Yes</td><td>parent</td><td class="status-ok">OK</td></tr>
+    <tr><td>Registration</td><td><code>parent-register</code></td><td>/parent/register</td><td class="status-ok">Yes</td><td>parent</td><td class="status-ok">OK</td></tr>
+    <tr><td>Archives</td><td><code>season-archives</code></td><td>/archives</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>Directory</td><td><code>org-directory</code></td><td>/directory</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Player Nav (7 items) — 2 Issues</div>
+  <table>
+    <tr><th>Nav Item</th><th>Nav ID</th><th>Resolves To</th><th>Route?</th><th>Guard</th><th>Status</th></tr>
+    <tr><td>Home</td><td><code>dashboard</code></td><td>/dashboard</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr style="background:rgba(239,68,68,0.06)"><td>My Team (group)</td><td><code>teamwall-{id}</code></td><td>/teams/{id}</td><td class="status-ok">Yes</td><td>None</td><td class="status-broken">EMPTY (playerInfo null)</td></tr>
+    <tr><td>Schedule</td><td><code>schedule</code></td><td>/schedule</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>Achievements</td><td><code>achievements</code></td><td>/achievements</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>My Stats</td><td><code>stats</code></td><td>/stats</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr><td>Leaderboards</td><td><code>leaderboards</code></td><td>/leaderboards</td><td class="status-ok">Yes</td><td>None</td><td class="status-ok">OK</td></tr>
+    <tr style="background:rgba(239,68,68,0.06)"><td>Profile & Stats</td><td><code>my-stuff</code></td><td>/my-stuff</td><td class="status-ok">Yes</td><td><strong>parent only</strong></td><td class="status-broken">BLOCKED</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Team Manager Nav (12 items) — All OK</div>
+  <div class="issue-desc" style="color:var(--green)">All 12 team manager nav items resolve correctly. Note: TM sees full admin PaymentsPage at /payments (security concern, not a nav issue).</div>
+</div>
+
+<div class="card">
+  <div class="card-header">Orphaned Routes (exist but no nav points to them)</div>
+  <table>
+    <tr><th>Route</th><th>Component</th><th>Guard</th><th>How Accessible</th></tr>
+    <tr><td><code>/team-hubs</code></td><td>TeamHubSelectorPage</td><td>admin</td><td>Direct URL only</td></tr>
+    <tr><td><code>/messages</code></td><td>ParentMessagesPage</td><td>parent</td><td>Direct URL only</td></tr>
+    <tr><td><code>/invite</code></td><td>InviteFriendsPage</td><td>parent</td><td>Direct URL only</td></tr>
+    <tr><td><code>/claim-account</code></td><td>ClaimAccountPage</td><td>None</td><td>Direct URL only</td></tr>
+    <tr><td><code>/admin/seasons</code></td><td>SeasonManagementPage</td><td>admin</td><td>Programmatic only</td></tr>
+    <tr style="background:rgba(239,68,68,0.06)"><td><code>/platform/*</code> (10)</td><td>Platform pages</td><td><strong>NONE</strong></td><td class="status-broken">Direct URL (security risk)</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Broken Dashboard Button Navigation</div>
+  <table>
+    <tr><th>Dashboard</th><th>Button/Action</th><th>Call</th><th>Result</th><th>Severity</th></tr>
+    <tr><td>Admin</td><td>Team click in AdminTeamsTab</td><td><code>onNavigate('teamwall', {teamId})</code></td><td>Falls to /dashboard</td><td><span class="sev sev-medium">MEDIUM</span></td></tr>
+    <tr><td>Parent</td><td>"View Player Card" in KidCards</td><td><code>onNavigate('player-card-{id}')</code></td><td>Generates /parent/player/card-{id} (invalid)</td><td><span class="sev sev-high">HIGH</span></td></tr>
+    <tr><td>Parent</td><td>"Team Hub" button</td><td><code>onNavigate('teamwall')</code></td><td>Falls to /dashboard (no team ID)</td><td><span class="sev sev-medium">MEDIUM</span></td></tr>
+    <tr><td>Player</td><td>"Start Drill" in Playbook</td><td><code>() => {}</code></td><td>No-op</td><td><span class="sev sev-medium">MEDIUM</span></td></tr>
+    <tr><td>Coach</td><td>"Not now" in MascotNudge</td><td><code>() => {}</code></td><td>No-op</td><td><span class="sev sev-low">LOW</span></td></tr>
+  </table>
+</div>
+
+</div>
+
+<!-- ===== TAB 4: DUPLICATES & ORPHANS ===== -->
+<div id="tab-orphans" class="tab-content">
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--orange)">3</div>
+    <div class="stat-label">Dead Directories</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--orange)">~70</div>
+    <div class="stat-label">Orphaned Files</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--orange)">~10K</div>
+    <div class="stat-label">Dead Lines</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--green)">3</div>
+    <div class="stat-label">Dupe Clusters Resolved</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">Dead Component Directories</div>
+  <table>
+    <tr><th>Directory</th><th>Files</th><th>Reason</th><th>Action</th></tr>
+    <tr><td><code>src/components/dashboard/</code></td><td>~19</td><td>Superseded by components/v2/ — zero live imports</td><td><span class="sev sev-high">DELETE</span></td></tr>
+    <tr><td><code>src/components/coach/</code></td><td>~26</td><td>Superseded by components/v2/coach/ — zero live imports</td><td><span class="sev sev-high">DELETE</span></td></tr>
+    <tr><td><code>src/components/player/</code></td><td>~6</td><td>Superseded by components/v2/player/ — zero live imports</td><td><span class="sev sev-high">DELETE</span></td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Orphaned Widget System Chain (~1,500 lines)</div>
+  <table>
+    <tr><th>File</th><th>Lines</th><th>Purpose</th></tr>
+    <tr><td class="file-path">src/components/layout/DashboardGrid.jsx</td><td>518</td><td>Old drag-drop widget grid</td></tr>
+    <tr><td class="file-path">src/components/layout/widgetRegistry.js</td><td>638</td><td>Widget definitions</td></tr>
+    <tr><td class="file-path">src/components/layout/widgetComponents.jsx</td><td>167</td><td>Widget component map</td></tr>
+    <tr><td class="file-path">src/components/layout/WidgetLibraryPanel.jsx</td><td>~120</td><td>Widget picker UI</td></tr>
+    <tr><td class="file-path">src/components/layout/DashboardGrids.jsx</td><td>49</td><td>CSS grid utilities</td></tr>
+    <tr><td class="file-path">src/components/layout/DashboardLayout.jsx</td><td>35</td><td>Layout wrapper</td></tr>
+    <tr><td class="file-path">src/components/layout/SpacerWidget.jsx</td><td>~20</td><td>Spacer component</td></tr>
+    <tr><td class="file-path">src/components/layout/EditLayoutButton.jsx</td><td>~30</td><td>Edit layout toggle</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Notable Individual Orphans</div>
+  <table>
+    <tr><th>File</th><th>Lines</th><th>Notes</th></tr>
+    <tr><td class="file-path">src/pages/public/TeamWallPage.jsx</td><td>1,132</td><td>Superseded by pages/teams/ version</td></tr>
+    <tr><td class="file-path">src/components/games/GameScoringModal.jsx</td><td>847</td><td>Exported but never imported</td></tr>
+    <tr><td class="file-path">src/components/games/GameStatsEntryModal.jsx</td><td>541</td><td>Exported but never imported</td></tr>
+    <tr><td class="file-path">src/pages/achievements/TrackedAchievementsWidget.jsx</td><td>387</td><td>Exported but never imported</td></tr>
+    <tr><td class="file-path">src/components/journey/JourneyTimeline.jsx</td><td>334</td><td>Archive-only imports</td></tr>
+    <tr><td class="file-path">src/components/engagement/ChallengeDetailModal.jsx</td><td>241</td><td>Zero imports</td></tr>
+    <tr><td class="file-path">src/components/engagement/AchievementCelebrationModal.jsx</td><td>181</td><td>Zero imports</td></tr>
+    <tr><td class="file-path">src/components/engagement/ChallengeCard.jsx</td><td>166</td><td>Zero imports</td></tr>
+    <tr><td class="file-path">src/components/layout/LiveActivitySidebar.jsx</td><td>183</td><td>Zero imports</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Duplicate Cluster Analysis</div>
+  <table>
+    <tr><th>Cluster</th><th>Files</th><th>Verdict</th></tr>
+    <tr><td>DashboardGrid</td><td>layout/DashboardGrid (518L) + DashboardGrids (49L)</td><td><span class="sev sev-high">DELETE BOTH</span> — replaced by V2</td></tr>
+    <tr><td>TeamWallPage</td><td>teams/ (840L, active) vs public/ (1,132L, dead)</td><td><span class="sev sev-high">DELETE public/</span></td></tr>
+    <tr><td>LineupBuilder</td><td>games/Advanced (1,207L) vs schedule/ (302L)</td><td><span style="color:var(--green)">KEEP BOTH</span> — different contexts</td></tr>
+    <tr><td>VenueManager</td><td>settings/Page (298L) vs schedule/Modal (79L)</td><td><span style="color:var(--green)">KEEP BOTH</span> — page vs inline modal</td></tr>
+    <tr><td>Seasons</td><td>settings/SeasonsPage (311L) vs admin/SeasonMgmt (430L)</td><td><span style="color:var(--green)">KEEP BOTH</span> — list vs detail</td></tr>
+    <tr><td>Coach Dashboard</td><td>roles/CoachDashboard (997L) — no actual duplicate found</td><td><span style="color:var(--green)">NO ACTION</span></td></tr>
+  </table>
+</div>
+
+</div>
+
+<!-- ===== TAB 5: ARCHITECTURE ===== -->
+<div id="tab-arch" class="tab-content">
+
+<div class="card">
+  <div class="card-header">Repository Bloat</div>
+  <table>
+    <tr><th>Item</th><th>Size</th><th>In .gitignore?</th><th>Severity</th><th>Action</th></tr>
+    <tr><td><code>reference/</code> (mobile app + mockups)</td><td>~90MB</td><td class="status-broken">NO</td><td><span class="sev sev-critical">CRITICAL</span></td><td>Add to .gitignore, git rm --cached</td></tr>
+    <tr><td><code>src/_archive/</code> (17 subdirs, ~140 files)</td><td>~3.3MB</td><td class="status-broken">NO</td><td><span class="sev sev-high">HIGH</span></td><td>Delete entirely, add to .gitignore</td></tr>
+    <tr><td><code>src_backup/</code> (11 legacy files)</td><td>~1.3MB</td><td class="status-warn">Broken entry</td><td><span class="sev sev-medium">MEDIUM</span></td><td>Fix .gitignore, delete</td></tr>
+    <tr><td>Root .md spec files (~110+)</td><td>~1.4MB</td><td class="status-broken">NO</td><td><span class="sev sev-high">HIGH</span></td><td>Move to docs/ or delete</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Monster Files (500+ lines, non-orphaned)</div>
+  <table>
+    <tr><th>File</th><th>Lines</th><th>Split Priority</th></tr>
+    <tr><td class="file-path">src/pages/settings/SetupSectionContent.jsx</td><td>1,525</td><td><span class="sev sev-high">HIGH</span> — 16 form sections</td></tr>
+    <tr><td class="file-path">src/pages/jerseys/JerseysPage.jsx</td><td>1,396</td><td><span class="sev sev-high">HIGH</span></td></tr>
+    <tr><td class="file-path">src/components/games/GameComponents.jsx</td><td>1,341</td><td><span class="sev sev-high">HIGH</span></td></tr>
+    <tr><td class="file-path">src/MainApp.jsx</td><td>1,209</td><td><span class="sev sev-medium">MEDIUM</span></td></tr>
+    <tr><td class="file-path">src/components/games/AdvancedLineupBuilder.jsx</td><td>1,207</td><td><span class="sev sev-medium">MEDIUM</span></td></tr>
+    <tr><td class="file-path">src/pages/schedule/EventDetailModal.jsx</td><td>1,198</td><td><span class="sev sev-medium">MEDIUM</span></td></tr>
+    <tr><td class="file-path">src/pages/roles/CoachDashboard.jsx</td><td>997</td><td><span class="sev sev-low">LOW</span></td></tr>
+    <tr><td class="file-path">src/pages/coaches/CoachesPage.jsx</td><td>974</td><td><span class="sev sev-low">LOW</span></td></tr>
+    <tr><td class="file-path">src/pages/dashboard/DashboardPage.jsx</td><td>966</td><td><span class="sev sev-low">LOW</span></td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header">Context Provider Efficiency</div>
+  <table>
+    <tr><th>Context</th><th>Provided In</th><th>Consumers</th><th>Issue</th></tr>
+    <tr><td>AuthContext</td><td>App.jsx (global)</td><td>158+</td><td class="status-ok">Core — no issue</td></tr>
+    <tr><td>ThemeContext</td><td>App.jsx (global)</td><td>158+</td><td class="status-ok">Core — no issue</td></tr>
+    <tr><td>SeasonContext</td><td>MainApp.jsx</td><td>35+</td><td class="status-ok">Working</td></tr>
+    <tr><td>SportContext</td><td>MainApp.jsx</td><td>10+</td><td class="status-ok">Working</td></tr>
+    <tr><td>JourneyContext</td><td>App.jsx (global)</td><td>~10</td><td class="status-warn">Global but sparse; DB calls for all users</td></tr>
+    <tr><td>ParentTutorialContext</td><td>MainApp.jsx</td><td>5</td><td class="status-warn">Runs for all roles, only parents use it</td></tr>
+    <tr><td>OrgBrandingContext</td><td>MainApp.jsx</td><td>4</td><td class="status-warn">Wraps entire app for 4 consumers</td></tr>
+  </table>
+</div>
+
+</div>
+
+<!-- ===== TAB 6: ROLE MATRIX ===== -->
+<div id="tab-matrix" class="tab-content">
+
+<div class="card">
+  <div class="card-header">Page Access by Role</div>
+  <div style="overflow-x:auto">
+  <table>
+    <tr><th style="min-width:180px">Page</th><th class="matrix-cell">Admin</th><th class="matrix-cell">Coach</th><th class="matrix-cell">TM</th><th class="matrix-cell">Parent</th><th class="matrix-cell">Player</th></tr>
+    <tr><td>Dashboard</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td></tr>
+    <tr><td>Teams</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-url">URL*</td><td class="matrix-cell mx-url">URL*</td><td class="matrix-cell mx-url">URL*</td><td class="matrix-cell mx-url">URL*</td></tr>
+    <tr><td>Team Wall</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-url">URL</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Coaches</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Staff</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Registrations</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Jerseys</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Schedule</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td></tr>
+    <tr><td>Attendance</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Payments</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-risk">URL**</td><td class="matrix-cell mx-risk">Nav**</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-risk">URL**</td></tr>
+    <tr><td>Game Prep</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Standings</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td></tr>
+    <tr><td>Leaderboards</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-nav">Nav</td></tr>
+    <tr><td>Chats</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-risk">URL***</td></tr>
+    <tr><td>Blasts</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Notifications</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Reports</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Archives</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Directory</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Achievements</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td></tr>
+    <tr><td>Stats</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-nav">Nav</td></tr>
+    <tr><td>My Stuff</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-blocked">Blocked</td></tr>
+    <tr><td>Profile</td><td class="matrix-cell mx-url">Sidebar</td><td class="matrix-cell mx-url">Sidebar</td><td class="matrix-cell mx-url">Sidebar</td><td class="matrix-cell mx-url">Sidebar</td><td class="matrix-cell mx-url">Sidebar</td></tr>
+    <tr><td>Roster</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr><td>Settings (8)</td><td class="matrix-cell mx-nav">Nav</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td><td class="matrix-cell mx-none">—</td></tr>
+    <tr style="background:rgba(239,68,68,0.06)"><td>Platform (10)</td><td class="matrix-cell mx-risk">URL****</td><td class="matrix-cell mx-risk">URL****</td><td class="matrix-cell mx-risk">URL****</td><td class="matrix-cell mx-risk">URL****</td><td class="matrix-cell mx-risk">URL****</td></tr>
+  </table>
+  </div>
+  <div style="margin-top:12px; font-size:12px; color:var(--text-dim)">
+    <strong>Legend:</strong>
+    <span class="mx-nav" style="margin:0 8px">Nav</span> = Reachable via sidebar &nbsp;
+    <span class="mx-url" style="margin:0 8px">URL</span> = Direct URL only &nbsp;
+    <span class="mx-blocked" style="margin:0 8px">Blocked</span> = Guard prevents access &nbsp;
+    <span class="mx-none" style="margin:0 8px">—</span> = Not accessible<br>
+    <span class="mx-risk" style="margin:0 8px">*</span> = Unguarded admin page &nbsp;
+    <span class="mx-risk" style="margin:0 8px">**</span> = Sees full admin PaymentsPage &nbsp;
+    <span class="mx-risk" style="margin:0 8px">***</span> = Sees ALL chat channels &nbsp;
+    <span class="mx-risk" style="margin:0 8px">****</span> = No platform admin check (CRITICAL)
+  </div>
+</div>
+
+</div>
+
+<!-- ===== TAB 7: FIX PLAN ===== -->
+<div id="tab-fix" class="tab-content">
+
+<div class="card">
+  <div class="card-header">Prioritized Fix Plan — 5 Phases</div>
+  <div class="issue-desc">Each phase can be executed as a separate Claude Code session with a CC-WEB-AUDIT-FIX spec. Phases are ordered by severity and dependency.</div>
+</div>
+
+<div class="phase-0">
+  <div class="phase-header"><div class="phase-num">0</div><div><strong style="font-size:16px">Emergency Security</strong><br><span style="font-size:12px;color:var(--text-dim)">4 items &middot; IMMEDIATE</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Add reference/ to .gitignore</strong> and run <code>git rm -r --cached reference/</code> to remove from tracking. Contains .env with live Supabase credentials and nested git repo. <span class="sev sev-critical">CRITICAL</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Add isPlatformAdmin guard</strong> to the appMode switching logic in MainApp.jsx. Any user can currently access /platform/* routes. <span class="sev sev-critical">CRITICAL</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Add RouteGuard to /teams</strong> — admin team management page exposed to all roles. Add <code>allow={['admin']}</code>. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Add role-conditional rendering to /payments</strong> — coach/TM/player see full admin PaymentsPage. Fix the role switch. <span class="sev sev-medium">MEDIUM</span></div></div>
+</div>
+
+<div class="phase-1">
+  <div class="phase-header"><div class="phase-num">1</div><div><strong style="font-size:16px">Dead Code Cleanup</strong><br><span style="font-size:12px;color:var(--text-dim)">8 items &middot; ~10,000 lines removed</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Delete src/_archive/</strong> — 140 files, zero live imports. Add to .gitignore. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Delete src/components/dashboard/</strong> — entire directory superseded by components/v2/. ~19 orphaned files. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Delete src/components/coach/</strong> — entire directory superseded by components/v2/coach/. ~26 orphaned files. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Delete src/components/player/</strong> — entire directory superseded by components/v2/player/. ~6 orphaned files. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Delete widget system chain</strong> — DashboardGrid, widgetRegistry, widgetComponents, WidgetLibraryPanel, etc. ~1,500 lines. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Delete individual orphaned files</strong> — public/TeamWallPage (1,132L), GameScoringModal (847L), GameStatsEntryModal (541L), TrackedAchievementsWidget (387L), engagement components (5 files), parent components (6 files). <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Clean root .md files</strong> — Move 110+ CC-*.md / TEAMWALL_*.md / INVESTIGATION-*.md to docs/specs/ or delete. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix src_backup/ gitignore</strong> — Change <code>src_backup/NUL</code> to <code>src_backup/</code>. Delete directory. <span class="sev sev-medium">MEDIUM</span></div></div>
+</div>
+
+<div class="phase-2">
+  <div class="phase-header"><div class="phase-num">2</div><div><strong style="font-size:16px">Navigation Fixes</strong><br><span style="font-size:12px;color:var(--text-dim)">7 items</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix team-hub vs team-hubs</strong> — Change parent nav ID from 'team-hub' to 'team-hubs' or add 'team-hub' to ROUTES map. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix player-card-{id} route</strong> — Change KidCards onViewPlayerCard to use 'player-profile-{id}' pattern. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix onNavigate('teamwall') calls</strong> — AdminTeamsTab and ParentDashboard must use 'teamwall-{teamId}' pattern. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix loadRoleContext() scope</strong> — Move function or pass as prop to RoutedContent for TeamManagerSetup callback. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Remove dead platform routes from RoutedContent</strong> — 3 routes that never render. <span class="sev sev-low">LOW</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix player my-stuff guard</strong> — Either add 'player' to RouteGuard or create /player/profile route. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix /stats/:playerId</strong> — Either use useParams() or remove dynamic variant. <span class="sev sev-low">LOW</span></div></div>
+</div>
+
+<div class="phase-3">
+  <div class="phase-header"><div class="phase-num">3</div><div><strong style="font-size:16px">Prop & Component Fixes</strong><br><span style="font-size:12px;color:var(--text-dim)">8 items</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix BodyTabs props in PlayerDashboard</strong> — Change tab `key` to `id` and `activeTab` to `activeTabId`. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix BodyTabs props in TeamManagerDashboard</strong> — Same fix. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix GiveShoutoutModal in CoachDashboard</strong> — Pass visible prop and onSuccess callback. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix FloatingHelpButton no-ops</strong> — Implement Help Center link and Contact Support, or remove buttons. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix button overlap</strong> — Offset FloatingHelpButton from FloatingChatButton for parent view. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix FloatingChatButton unread count</strong> — Filter by user's channel membership. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Remove ParentChecklistWidget import</strong> — Imported in MainApp but never rendered. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Remove WarmupTimerModal</strong> — Dead code in CoachDashboard. <span class="sev sev-low">LOW</span></div></div>
+</div>
+
+<div class="phase-4">
+  <div class="phase-header"><div class="phase-num">4</div><div><strong style="font-size:16px">Role Behavior & Architecture</strong><br><span style="font-size:12px;color:var(--text-dim)">7 items</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Add player channel filtering in ChatsPage</strong> — Player role currently sees all channels. Add to the filter condition. <span class="sev sev-high">HIGH</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Add team-based event filtering in SchedulePage</strong> — Parents/players see all teams' events. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix playerName "undefined's"</strong> — Add null check with fallback text. <span class="sev sev-low">LOW</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Fix activeView fallback</strong> — Unknown role renders admin dashboard. Add error state. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Conditionally load contexts</strong> — JourneyContext, ParentTutorialContext, OrgBrandingContext run for all roles unnecessarily. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Verify BlastAlertChecker column name</strong> — Check if profile_id vs recipient_id mismatch prevents blast alerts. <span class="sev sev-medium">MEDIUM</span></div></div>
+  <div class="fix-item"><div class="fix-check"></div><div><strong>Implement playerSelf lookup</strong> — Add profile_id column to players table. This enables the entire player role for real users. <span class="sev sev-critical">CRITICAL</span> (deferred — requires DB schema change affecting both web and mobile)</div></div>
+</div>
+
+</div>
+
+</div><!-- /content -->
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  const tabs = document.querySelectorAll('.tab');
+  const tabNames = ['overview','security','nav','orphans','arch','matrix','fix'];
+  tabs[tabNames.indexOf(tabId)].classList.add('active');
+}
+</script>
+
+</body>
+</html>
