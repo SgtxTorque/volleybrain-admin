@@ -118,6 +118,28 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     else setXpData({ level: 1, currentXp: 0, xpToNext: 1000 })
   }, [activeChildIdx, registrationData.length])
 
+  async function loadChildEvals(regData) {
+    try {
+      const childIds = regData.map(c => c.id).filter(Boolean)
+      if (childIds.length === 0) return regData
+      const { data: evals } = await supabase
+        .from('player_skill_ratings')
+        .select('player_id, overall_rating, created_at')
+        .in('player_id', childIds)
+        .order('created_at', { ascending: false })
+      const childEvals = {}
+      ;(evals || []).forEach(ev => {
+        if (!childEvals[ev.player_id]) childEvals[ev.player_id] = ev.overall_rating
+      })
+      const updated = regData.map(c => ({ ...c, overallRating: childEvals[c.id] || null }))
+      setRegistrationData(updated)
+      return updated
+    } catch (err) {
+      console.warn('Child eval query failed:', err)
+      return regData
+    }
+  }
+
   async function loadParentDataFromProfile() {
     if (!profile?.id) { setLoading(false); return }
     try {
@@ -134,6 +156,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             registrationStatus: teamPlayer ? 'active' : 'pending' }
         })
         setRegistrationData(regData)
+        await loadChildEvals(regData)
         const tIds = [...new Set(regData.map(p => p.team?.id).filter(Boolean))]
         setTeamIds(tIds)
         const currentSeasonId = regData[0]?.season?.id
@@ -161,6 +184,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         registrationStatus: c.team_players?.[0] ? 'active' : 'pending',
       }))
       setRegistrationData(regData)
+      await loadChildEvals(regData)
       const tIds = [...new Set(children.flatMap(c => c.team_players?.map(tp => tp.team_id) || []).filter(Boolean))]
       setTeamIds(tIds)
       if (tIds.length > 0) {
