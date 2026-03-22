@@ -43,6 +43,21 @@
   --v2-font: 'Inter Variable', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* ---- Parent Players Row ---- */
+.v2-parent-players-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 200px;
+  gap: 14px;
+  align-items: stretch;
+  min-height: 220px;
+}
+
+@media (max-width: 900px) {
+  .v2-parent-players-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- Player Dark Mode Override ---- */
 /* Applied via .v2-player-dark parent class on player dashboard only */
 .v2-player-dark {

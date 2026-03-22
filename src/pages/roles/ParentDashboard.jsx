@@ -20,7 +20,7 @@ import {
 // V2 shared components
 import {
   TopBar, HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
-  ThePlaybook, MilestoneCard, MascotNudge, V2DashboardLayout,
+  ThePlaybook, MascotNudge, V2DashboardLayout,
 } from '../../components/v2'
 // V2 parent-specific components
 import KidCards from '../../components/v2/parent/KidCards'
@@ -509,26 +509,23 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               stats={heroStats}
             />
 
-            {/* MY PLAYERS + TEAM ACTIONS + TROPHY CASE — 3-column row */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 160px 220px',
-              gap: 16,
-              alignItems: 'stretch',
-            }}>
-              {/* Column 1: Kid Cards */}
-              <KidCards
-                children={kidCardsData}
-                selectedChildId={activeChild?.id}
-                onChildSelect={(childId) => {
-                  const idx = registrationData.findIndex(c => c.id === childId)
-                  if (idx >= 0) setActiveChildIdx(idx)
-                }}
-                onViewProfile={(playerId) => onNavigate?.(`player-${playerId}`)}
-                onViewPlayerCard={(playerId) => onNavigate?.(`player-card-${playerId}`)}
-              />
+            {/* MY PLAYERS ROW — 3 columns: cards | team buttons | trophy case */}
+            <div className="v2-parent-players-row">
+              {/* Column 1: Kid Cards horizontal scroll */}
+              <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                <KidCards
+                  children={kidCardsData}
+                  selectedChildId={activeChild?.id}
+                  onChildSelect={(childId) => {
+                    const idx = registrationData.findIndex(c => c.id === childId)
+                    if (idx >= 0) setActiveChildIdx(idx)
+                  }}
+                  onViewProfile={(playerId) => onNavigate?.(`player-${playerId}`)}
+                  onViewPlayerCard={(playerId) => onNavigate?.(`player-card-${playerId}`)}
+                />
+              </div>
 
-              {/* Column 2: Team Action Buttons — contextual to selected child */}
+              {/* Column 2: Team Action Buttons — stacked, fill height */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={() => {
@@ -537,15 +534,17 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   }}
                   style={{
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: 10, padding: '16px 20px', borderRadius: 'var(--v2-radius)', border: 'none',
+                    flexDirection: 'column', gap: 6,
+                    padding: '16px 12px', borderRadius: 14, border: 'none',
                     background: 'var(--v2-navy)', color: 'white',
-                    fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
-                    letterSpacing: '-0.01em', transition: 'all 0.15s ease',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
                 >
-                  💬 Team Chat
+                  <span style={{ fontSize: 22 }}>💬</span>
+                  Team Chat
                 </button>
 
                 <button
@@ -555,103 +554,84 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   }}
                   style={{
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: 10, padding: '16px 20px', borderRadius: 'var(--v2-radius)', border: 'none',
+                    flexDirection: 'column', gap: 6,
+                    padding: '16px 12px', borderRadius: 14, border: 'none',
                     background: 'var(--v2-navy)', color: 'white',
-                    fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
-                    letterSpacing: '-0.01em', transition: 'all 0.15s ease',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
                 >
-                  🏟️ Team Hub
+                  <span style={{ fontSize: 22 }}>🏟️</span>
+                  Team Hub
                 </button>
               </div>
 
-              {/* Column 3: Parent Trophy Case & XP Preview */}
+              {/* Column 3: Trophy Case & XP Preview */}
               <div
                 onClick={() => onNavigate?.('achievements')}
                 style={{
                   background: 'linear-gradient(145deg, var(--v2-navy) 0%, var(--v2-midnight) 100%)',
-                  borderRadius: 'var(--v2-radius)', padding: 20, color: 'white',
+                  borderRadius: 14, padding: 18, color: 'white',
                   display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                   position: 'relative', overflow: 'hidden', cursor: 'pointer',
                 }}
               >
                 {/* Ambient glow */}
                 <div style={{
-                  position: 'absolute', top: -40, right: -40, width: 160, height: 160,
+                  position: 'absolute', top: -30, right: -30, width: 120, height: 120,
                   background: 'radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%)',
                   pointerEvents: 'none',
                 }} />
 
-                {/* Title */}
                 <div>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>🏆</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 2 }}>
+                  <div style={{ fontSize: 24, marginBottom: 6 }}>🏆</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>
                     {xpData?.tierName || 'Bronze'} Tier
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>
-                    Level {xpData?.level || 1} · Family Progress
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
+                    Level {xpData?.level || 1}
                   </div>
                 </div>
 
-                {/* Badge preview (up to 3) */}
-                <div style={{ display: 'flex', gap: 6, margin: '12px 0' }}>
+                {/* Badge preview */}
+                <div style={{ display: 'flex', gap: 5, margin: '10px 0' }}>
                   {(childAchievements || []).slice(0, 3).map((badge, i) => (
                     <div key={i} style={{
-                      width: 36, height: 36, borderRadius: 10,
+                      width: 30, height: 30, borderRadius: 8,
                       background: 'rgba(255,255,255,0.08)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 18, border: '1px solid rgba(255,255,255,0.06)',
+                      fontSize: 15, border: '1px solid rgba(255,255,255,0.06)',
                     }}>
                       {badge.achievements?.icon || '🏅'}
                     </div>
                   ))}
-                  {(childAchievements?.length || 0) > 3 && (
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 10,
-                      background: 'rgba(255,255,255,0.06)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)',
-                    }}>
-                      +{childAchievements.length - 3}
-                    </div>
-                  )}
                 </div>
 
                 {/* XP bar */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>XP Progress</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 3 }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>XP</span>
                     <span style={{ color: 'var(--v2-gold)', fontWeight: 700 }}>
                       {(xpData?.currentXp || 0).toLocaleString()} / {(xpData?.xpToNext || 1000).toLocaleString()}
                     </span>
                   </div>
-                  <div style={{ width: '100%', height: 6, background: 'rgba(255,215,0,0.15)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: 5, background: 'rgba(255,215,0,0.15)', borderRadius: 3 }}>
                     <div style={{
                       height: '100%',
                       width: `${Math.min(((xpData?.currentXp || 0) / (xpData?.xpToNext || 1000)) * 100, 100)}%`,
                       background: 'linear-gradient(90deg, var(--v2-gold), #FFA500)',
-                      borderRadius: 3, transition: 'width 0.8s ease',
+                      borderRadius: 3,
                     }} />
                   </div>
                 </div>
 
-                {/* CTA */}
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--v2-gold)', marginTop: 12, letterSpacing: '0.02em' }}>
-                  VIEW TROPHY CASE →
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--v2-gold)', marginTop: 8, letterSpacing: '0.02em' }}>
+                  TROPHY CASE →
                 </div>
               </div>
             </div>
-
-            {/* Responsive: collapse to single column below 900px */}
-            <style>{`
-              @media (max-width: 900px) {
-                div[style*="grid-template-columns: 1fr 160px 220px"] {
-                  grid-template-columns: 1fr !important;
-                }
-              }
-            `}</style>
 
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
@@ -756,17 +736,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
             {/* The Playbook */}
             <ThePlaybook actions={playbookItems} />
-
-            {/* Milestone Card */}
-            <MilestoneCard
-              variant="gold"
-              trophy="🏅"
-              title={`${activeChild?.first_name || 'Player'}'s Progress`}
-              subtitle={xpData.level > 1 ? `Level ${xpData.level}` : 'Getting started'}
-              xpCurrent={xpData.currentXp}
-              xpGoal={xpData.xpToNext}
-              onClick={() => onNavigate?.('achievements')}
-            />
           </>
         }
       />
