@@ -84,9 +84,13 @@ export function NotificationsPage({ showToast }) {
         const sportSeasonIds = (allSeasons || [])
           .filter(s => s.sport_id === selectedSport.id)
           .map(s => s.id);
-        if (sportSeasonIds.length > 0) {
-          teamsQuery = teamsQuery.in('season_id', sportSeasonIds);
+        if (sportSeasonIds.length === 0) {
+          setTeams([]);
+          setNotifications([]);
+          setLoading(false);
+          return;
         }
+        teamsQuery = teamsQuery.in('season_id', sportSeasonIds);
       }
       const { data: teamData } = await teamsQuery;
       setTeams(teamData || []);

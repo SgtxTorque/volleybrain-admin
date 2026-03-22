@@ -89,6 +89,11 @@ export function JerseysPage({ showToast }) {
   async function checkUnrosteredRegistrations() {
     try {
       const sportIds = getSportSeasonIds()
+      // If sport is selected but has no seasons, no data to show
+      if (sportIds && sportIds.length === 0) {
+        setUnrosteredCount(0)
+        return
+      }
       let regQuery = supabase
         .from('registrations')
         .select('player_id')
@@ -135,6 +140,12 @@ export function JerseysPage({ showToast }) {
     setLoading(true)
     try {
       const sportIds = getSportSeasonIds()
+      // If sport is selected but has no seasons, no data to show
+      if (sportIds && sportIds.length === 0) {
+        setTeams([])
+        setLoading(false)
+        return
+      }
       let query = supabase.from('teams').select('id, name, color')
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         query = query.eq('season_id', selectedSeason.id)
@@ -155,6 +166,13 @@ export function JerseysPage({ showToast }) {
 
     try {
       const sportIds = getSportSeasonIds()
+      // If sport is selected but has no seasons, no data to show
+      if (sportIds && sportIds.length === 0) {
+        setPlayers([])
+        setAllPlayersAllTeams([])
+        setLoading(false)
+        return
+      }
       let teamsQuery = supabase.from('teams').select('id, name, color, season_id')
       if (!isAllSeasons(selectedSeason)) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)

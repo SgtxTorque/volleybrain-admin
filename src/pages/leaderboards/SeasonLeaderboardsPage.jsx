@@ -343,16 +343,19 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   }, [selectedSeason?.id, selectedSport?.id])
 
   async function loadTeams() {
+    const sportIds = getSportSeasonIds()
+    // If sport is selected but has no seasons, no data to show
+    if (sportIds && sportIds.length === 0) {
+      setTeams([])
+      return
+    }
     let query = supabase
       .from('teams')
       .select('id, name')
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
-    } else {
-      const sportIds = getSportSeasonIds()
-      if (sportIds && sportIds.length > 0) {
-        query = query.in('season_id', sportIds)
-      }
+    } else if (sportIds && sportIds.length > 0) {
+      query = query.in('season_id', sportIds)
     }
     query = query.order('name')
 
@@ -364,6 +367,13 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
     setLoading(true)
 
     try {
+      const sportIds = getSportSeasonIds()
+      // If sport is selected but has no seasons, no data to show
+      if (sportIds && sportIds.length === 0) {
+        setLeaderboardData({})
+        setLoading(false)
+        return
+      }
       // Load all player season stats with player info
       let query = supabase
         .from('player_season_stats')
@@ -374,11 +384,8 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
         `)
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         query = query.eq('season_id', selectedSeason.id)
-      } else {
-        const sportIds = getSportSeasonIds()
-        if (sportIds && sportIds.length > 0) {
-          query = query.in('season_id', sportIds)
-        }
+      } else if (sportIds && sportIds.length > 0) {
+        query = query.in('season_id', sportIds)
       }
       query = query.gt('games_played', 0)
 

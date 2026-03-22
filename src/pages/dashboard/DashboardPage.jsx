@@ -127,7 +127,22 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
     // Filter seasons by sport if a sport is selected
     if (selectedSport?.id) {
       seasonList = seasonList.filter(s => s.sport_id === selectedSport.id)
-      if (seasonList.length === 0) return
+      if (seasonList.length === 0) {
+        // Sport has no seasons — clear all stats so stale data doesn't show
+        setPerSeasonTeamCounts({})
+        setPerSeasonPlayerCounts({})
+        setPerSeasonActionCounts({})
+        setPerSeasonActionDetails({})
+        setGlobalStats({
+          totalCollected: 0,
+          totalExpected: 0,
+          pastDue: 0,
+          coachCount: 0,
+          actionCount: 0,
+          paymentsByType: null,
+        })
+        return
+      }
     }
     const seasonIds = seasonList.map(s => s.id)
     ;(async () => {

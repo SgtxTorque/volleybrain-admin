@@ -57,6 +57,9 @@ function AttendancePage({ showToast }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (sportIds && sportIds.length === 0) {
+        setTeams([])
+        return
       }
     }
     const { data } = await query.order('name')
@@ -74,6 +77,10 @@ function AttendancePage({ showToast }) {
         const sportIds = getSportSeasonIds()
         if (sportIds && sportIds.length > 0) {
           query = query.in('season_id', sportIds)
+        } else if (sportIds && sportIds.length === 0) {
+          setEvents([])
+          setLoading(false)
+          return
         }
       }
       query = query.order('event_date', { ascending: viewMode !== 'past' })

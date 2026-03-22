@@ -63,9 +63,12 @@ export function CoachesPage({ showToast }) {
         const sportSeasonIds = (allSeasons || [])
           .filter(s => s.sport_id === selectedSport.id)
           .map(s => s.id)
-        if (sportSeasonIds.length > 0) {
-          coachQuery = coachQuery.in('season_id', sportSeasonIds)
+        if (sportSeasonIds.length === 0) {
+          setCoaches([])
+          setLoading(false)
+          return
         }
+        coachQuery = coachQuery.in('season_id', sportSeasonIds)
       }
       const { data: coachesData, error } = await coachQuery
         .order('last_name', { ascending: true })

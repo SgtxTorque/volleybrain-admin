@@ -67,6 +67,10 @@ export function StaffPage({ showToast }) {
         const sportIds = getSportSeasonIds()
         if (sportIds && sportIds.length > 0) {
           query = query.in('season_id', sportIds)
+        } else if (sportIds && sportIds.length === 0) {
+          setStaff([])
+          setLoading(false)
+          return
         }
       }
       const { data, error } = await query.order('last_name')
@@ -88,6 +92,9 @@ export function StaffPage({ showToast }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (sportIds && sportIds.length === 0) {
+        setTeams([])
+        return
       }
     }
     const { data } = await query

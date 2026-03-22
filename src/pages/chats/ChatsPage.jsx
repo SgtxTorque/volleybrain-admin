@@ -92,6 +92,13 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         ? (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
         : null
 
+      // If sport is selected but has no seasons, show empty results
+      if (sportSeasonIds && sportSeasonIds.length === 0) {
+        setChannels([])
+        setLoading(false)
+        return
+      }
+
       let q1 = supabase
         .from('chat_channels')
         .select(`

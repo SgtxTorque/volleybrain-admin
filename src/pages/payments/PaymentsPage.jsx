@@ -163,6 +163,9 @@ export function PaymentsPage({ showToast }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (sportIds && sportIds.length === 0) {
+        setPlayers([])
+        return
       }
     }
     const { data } = await query
@@ -181,6 +184,10 @@ export function PaymentsPage({ showToast }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (sportIds && sportIds.length === 0) {
+        setPayments([])
+        setLoading(false)
+        return
       }
     }
     const { data } = await query.order('created_at', { ascending: false })

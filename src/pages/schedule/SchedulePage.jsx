@@ -91,6 +91,10 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (sportIds && sportIds.length === 0) {
+        setEvents([])
+        setLoading(false)
+        return
       }
     }
     const { data, error } = await query
@@ -139,6 +143,9 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (sportIds && sportIds.length === 0) {
+        setTeams([])
+        return
       }
     }
     const { data } = await query.order('name')
