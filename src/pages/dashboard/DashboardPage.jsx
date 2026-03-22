@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useSeason } from '../../contexts/SeasonContext'
+import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
@@ -233,12 +233,18 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
 
   // Immediately show loading state when season changes (prevents stale data flash)
   useEffect(() => {
-    if (selectedSeason?.id) {
+    if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
       setLoading(true)
     }
   }, [selectedSeason?.id])
 
   useEffect(() => {
+    // Don't load per-season data when "All Seasons" is active — use globalStats instead
+    if (isAllSeasons(selectedSeason)) {
+      setLoading(false)
+      setInitialLoadComplete(true)
+      return
+    }
     if (selectedSeason?.id) {
       loadDashboardData()
     }
@@ -802,23 +808,41 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const setupComplete = setupSteps.filter(s => s.status === 'done').length
 
   // Compute categorized items for attention strip
+  const isAll = isAllSeasons(selectedSeason)
   const attentionItems = []
-  if (overdueCount > 0) {
-    attentionItems.push({ category: 'Overdue Payments', count: overdueCount, icon: '\uD83D\uDCB0', onClick: () => onNavigate?.('payments') })
+  if (isAll) {
+    // In "All Seasons" mode, use aggregated perSeasonActionDetails
+    const allDetails = Object.values(perSeasonActionDetails || {}).flat()
+    const grouped = {}
+    allDetails.forEach(d => {
+      grouped[d.label] = (grouped[d.label] || 0) + d.count
+    })
+    if (grouped['Pending Registrations'] > 0) {
+      attentionItems.push({ category: 'Pending Registrations', count: grouped['Pending Registrations'], icon: '\uD83D\uDCCB', onClick: () => onNavigate?.('registrations') })
+    }
+    if (grouped['Overdue Payments'] > 0) {
+      attentionItems.push({ category: 'Overdue Payments', count: grouped['Overdue Payments'], icon: '\uD83D\uDCB0', onClick: () => onNavigate?.('payments') })
+    }
+  } else {
+    if (overdueCount > 0) {
+      attentionItems.push({ category: 'Overdue Payments', count: overdueCount, icon: '\uD83D\uDCB0', onClick: () => onNavigate?.('payments') })
+    }
+    if ((stats.pending || 0) > 0) {
+      attentionItems.push({ category: 'Pending Registrations', count: stats.pending, icon: '\uD83D\uDCCB', onClick: () => onNavigate?.('registrations') })
+    }
+    if ((stats.unsignedWaivers || 0) > 0) {
+      attentionItems.push({ category: 'Unsigned Waivers', count: stats.unsignedWaivers, icon: '\uD83D\uDCDD', onClick: () => onNavigate?.('waivers') })
+    }
+    if (unrosteredCount > 0) {
+      attentionItems.push({ category: 'Unrostered Players', count: unrosteredCount, icon: '\uD83D\uDC65', onClick: () => onNavigate?.('teams') })
+    }
+    if (teamsNoSchedule > 0) {
+      attentionItems.push({ category: 'Teams Without Schedule', count: teamsNoSchedule, icon: '\uD83D\uDCC5', onClick: () => onNavigate?.('schedule') })
+    }
   }
-  if ((stats.pending || 0) > 0) {
-    attentionItems.push({ category: 'Pending Registrations', count: stats.pending, icon: '\uD83D\uDCCB', onClick: () => onNavigate?.('registrations') })
-  }
-  if ((stats.unsignedWaivers || 0) > 0) {
-    attentionItems.push({ category: 'Unsigned Waivers', count: stats.unsignedWaivers, icon: '\uD83D\uDCDD', onClick: () => onNavigate?.('waivers') })
-  }
-  if (unrosteredCount > 0) {
-    attentionItems.push({ category: 'Unrostered Players', count: unrosteredCount, icon: '\uD83D\uDC65', onClick: () => onNavigate?.('teams') })
-  }
-  if (teamsNoSchedule > 0) {
-    attentionItems.push({ category: 'Teams Without Schedule', count: teamsNoSchedule, icon: '\uD83D\uDCC5', onClick: () => onNavigate?.('schedule') })
-  }
-  const actionCount = attentionItems.reduce((sum, item) => sum + item.count, 0)
+  const actionCount = isAll
+    ? Object.values(perSeasonActionCounts || {}).reduce((sum, n) => sum + n, 0)
+    : attentionItems.reduce((sum, item) => sum + item.count, 0)
 
   // Dynamic contextual messages — rotates per session (Tweak 1)
   const globalTotalTeams = Object.values(perSeasonTeamCounts || {}).reduce((s, c) => s + c, 0)
@@ -949,7 +973,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 perSeasonPlayerCounts={perSeasonPlayerCounts}
                 perSeasonActionCounts={perSeasonActionCounts}
                 perSeasonActionDetails={perSeasonActionDetails}
-                selectedSeasonId={selectedSeason?.id}
+                selectedSeasonId={isAll ? null : selectedSeason?.id}
                 onSeasonSelect={(id) => {
                   const season = (allSeasons || seasons || []).find(s => s.id === id)
                   if (season) selectSeason(season)
@@ -957,8 +981,8 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 onViewAll={() => onNavigate?.('season-management')}
               />
 
-              {/* SEASON STEPPER */}
-              {setupComplete < 6 && (
+              {/* SEASON STEPPER — hidden in "All Seasons" mode */}
+              {!isAll && setupComplete < 6 && (
                 <SeasonStepper
                   seasonName={selectedSeason?.name || ''}
                   steps={setupSteps}
