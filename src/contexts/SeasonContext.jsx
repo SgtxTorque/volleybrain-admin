@@ -6,6 +6,15 @@ import { supabase } from '../lib/supabase'
 // ============================================
 // GLOBAL SEASON CONTEXT
 // ============================================
+
+/** Sentinel object representing "All Seasons" org-wide view. Admin only. */
+export const ALL_SEASONS = Object.freeze({ id: 'all', name: 'All Seasons', isSentinel: true })
+
+/** Check if a season value is the "All Seasons" sentinel */
+export function isAllSeasons(season) {
+  return season?.id === 'all'
+}
+
 const SeasonContext = createContext(null)
 
 export function useSeason() { 
@@ -25,6 +34,8 @@ export function SeasonProvider({ children }) {
 
   // Re-filter when sport changes
   useEffect(() => {
+    // Don't reset if user is in "All Seasons" mode
+    if (isAllSeasons(selectedSeason)) return
     if (allSeasons.length > 0) {
       const filtered = filteredSeasons()
       // If current season isn't in filtered list, switch to first available
@@ -48,10 +59,13 @@ export function SeasonProvider({ children }) {
       
       // Try to restore from localStorage, otherwise use active or first season
       const savedSeasonId = localStorage.getItem('vb_selected_season')
-      const savedSeason = data?.find(s => s.id === savedSeasonId)
-      const activeSeason = data?.find(s => s.status === 'active')
-      
-      setSelectedSeason(savedSeason || activeSeason || data?.[0] || null)
+      if (savedSeasonId === 'all') {
+        setSelectedSeason(ALL_SEASONS)
+      } else {
+        const savedSeason = data?.find(s => s.id === savedSeasonId)
+        const activeSeason = data?.find(s => s.status === 'active')
+        setSelectedSeason(savedSeason || activeSeason || data?.[0] || null)
+      }
     } catch (err) {
       console.error('Load seasons error:', err)
     }
@@ -69,6 +83,12 @@ export function SeasonProvider({ children }) {
   }
 
   function selectSeason(season) {
+    // Accept the "All Seasons" sentinel
+    if (season?.id === 'all') {
+      setSelectedSeason(ALL_SEASONS)
+      localStorage.setItem('vb_selected_season', 'all')
+      return
+    }
     // Guard: if null is passed but seasons exist, keep current selection
     if (!season && allSeasons.length > 0) {
       console.warn('[SeasonContext] Attempted to set season to null while seasons exist. Ignoring.')
@@ -104,11 +124,12 @@ export function SeasonProvider({ children }) {
       
       // Otherwise, try to restore from localStorage, or use active/first season
       const savedSeasonId = localStorage.getItem('vb_selected_season')
-      const savedSeason = data?.find(s => s.id === savedSeasonId)
-      const activeSeason = data?.find(s => s.status === 'active')
-      
-      // If no season currently selected, auto-select the best option
-      if (!selectedSeason) {
+      if (savedSeasonId === 'all') {
+        setSelectedSeason(ALL_SEASONS)
+      } else if (!selectedSeason || isAllSeasons(selectedSeason)) {
+        const savedSeason = data?.find(s => s.id === savedSeasonId)
+        const activeSeason = data?.find(s => s.status === 'active')
+        // Auto-select the best option
         const newSelection = savedSeason || activeSeason || data?.[0] || null
         setSelectedSeason(newSelection)
         if (newSelection?.id) {
