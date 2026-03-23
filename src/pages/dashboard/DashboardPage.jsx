@@ -1255,7 +1255,17 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                     : <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} paymentFamilies={paymentFamilies} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'schedules' && (
-                  <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
+                  (upcomingEvents || []).length === 0
+                    ? <div className="p-8 text-center">
+                        <div className="text-3xl mb-3">{'\uD83D\uDCC5'}</div>
+                        <h3 className="font-extrabold text-lg mb-1" style={{ color: 'var(--v2-text-primary)' }}>No Upcoming Events</h3>
+                        <p className="text-sm text-slate-400 mb-4">Add practices, games, and events to your schedule</p>
+                        <button onClick={() => onNavigate?.('schedule')}
+                          className="px-6 py-2.5 bg-[#10284C] text-white font-bold rounded-xl hover:brightness-110 transition">
+                          Go to Schedule {'\u2192'}
+                        </button>
+                      </div>
+                    : <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
                 )}
               </BodyTabs>
 
@@ -1306,17 +1316,30 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               />
 
               {/* WEEKLY LOAD */}
-              <WeeklyLoad
-                title="Weekly Load"
-                dateRange="This Week"
-                events={(upcomingEvents || []).slice(0, 5).map(evt => ({
-                  dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
-                  dayNum: new Date(evt.event_date).getDate(),
-                  isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
-                  title: evt.title || evt.event_type || 'Event',
-                  meta: `${evt.location || 'TBD'} · ${evt.event_time || evt.start_time || ''}`,
-                }))}
-              />
+              {(upcomingEvents || []).length === 0 ? (
+                <div className={`rounded-[14px] p-5 text-center ${isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Weekly Load</div>
+                  <div className="text-2xl mb-2">{'\uD83D\uDCC5'}</div>
+                  <p className={`text-sm font-bold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>No Events This Week</p>
+                  <p className="text-xs text-slate-400 mb-3">Create practices and games for your teams</p>
+                  <button onClick={() => onNavigate?.('schedule')}
+                    className="w-full py-2 bg-[#10284C] text-white font-bold rounded-lg text-xs hover:brightness-110 transition">
+                    + Create Event
+                  </button>
+                </div>
+              ) : (
+                <WeeklyLoad
+                  title="Weekly Load"
+                  dateRange="This Week"
+                  events={(upcomingEvents || []).slice(0, 5).map(evt => ({
+                    dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
+                    dayNum: new Date(evt.event_date).getDate(),
+                    isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
+                    title: evt.title || evt.event_type || 'Event',
+                    meta: `${evt.location || 'TBD'} · ${evt.event_time || evt.start_time || ''}`,
+                  }))}
+                />
+              )}
 
               {/* ORG HEALTH */}
               <OrgHealthCard
