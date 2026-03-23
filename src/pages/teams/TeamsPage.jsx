@@ -383,17 +383,19 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
         <>
           <button
             onClick={() => exportToCSV(teams, 'teams', csvColumns)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
               isDark
-                ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky'
-                : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
+                ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]'
+                : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <Download className="w-4 h-4" /> Export
           </button>
           <button
             onClick={() => setShowNewTeamModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-lynx-navy text-white font-bold hover:brightness-110 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-[#10284C] text-white font-semibold hover:bg-[#1a3a6b] shadow-sm transition-all"
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <Plus className="w-4 h-4" /> New Team
           </button>
