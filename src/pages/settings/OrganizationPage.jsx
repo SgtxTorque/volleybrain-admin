@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Settings } from '../../constants/icons'
-import { SetupSectionCard } from './SetupSectionCard'
+import { SetupSectionContent } from './SetupSectionContent'
 import PageShell from '../../components/pages/PageShell'
 
 const CATEGORY_META = {
@@ -682,51 +682,77 @@ function OrganizationPage({ showToast }) {
   const inProgressCount = sections.filter(s => getSectionStatus(s.key).status === 'partial').length
   const notStartedCount = sections.filter(s => getSectionStatus(s.key).status === 'not_started').length
 
-  // Render a category group
-  function renderCategory(catKey, categorySections) {
-    const catMeta = CATEGORY_META[catKey]
-    const catComplete = categorySections.filter(s => getSectionStatus(s.key).status === 'complete').length
+  // Active section metadata
+  const activeSection = sections.find(s => s.key === expandedSection)
+  const activeSectionStatus = expandedSection ? getSectionStatus(expandedSection) : null
+
+  // Ref for right panel scroll-to-top on section change
+  const rightPanelRef = useRef(null)
+
+  // Auto-select first incomplete section on mount / return from waivers
+  useEffect(() => {
+    const returnSection = localStorage.getItem('returnToOrgSetup')
+    if (returnSection) {
+      setExpandedSection(returnSection)
+      localStorage.removeItem('returnToOrgSetup')
+      return
+    }
+    if (!expandedSection && setupData) {
+      const firstIncomplete = sections.find(s => getSectionStatus(s.key).status !== 'complete')
+      setExpandedSection(firstIncomplete ? firstIncomplete.key : sections[0]?.key)
+    }
+  }, [setupData])
+
+  // Scroll right panel to top when section changes
+  useEffect(() => {
+    if (rightPanelRef.current) rightPanelRef.current.scrollTop = 0
+  }, [expandedSection])
+
+  // Category groupings for the left nav
+  const categories = [
+    { name: 'Foundation', sections: foundationSections },
+    { name: 'Operational', sections: operationalSections },
+    { name: 'Configuration', sections: configSections },
+  ]
+
+  // Left nav section button renderer
+  function renderNavSection(section) {
+    const status = getSectionStatus(section.key)
+    const isActive = expandedSection === section.key
     return (
-      <div key={catKey} className="space-y-3">
-        <div className="flex items-center gap-3 mt-8 mb-4">
-          <span className="text-xs font-black uppercase tracking-widest text-[#4BB9EC]" style={{ fontFamily: 'var(--v2-font)' }}>
-            {catMeta.label}
+      <button
+        key={section.key}
+        onClick={() => setExpandedSection(section.key)}
+        className={`w-full text-left px-3 py-2 flex items-center gap-2.5 transition-all rounded-lg ${
+          isActive
+            ? isDark ? 'bg-[#4BB9EC]/[0.12] border-l-[3px] border-l-[#4BB9EC]' : 'bg-[#4BB9EC]/[0.08] border-l-[3px] border-l-[#10284C]'
+            : isDark ? 'hover:bg-white/[0.04] border-l-[3px] border-l-transparent' : 'hover:bg-[#F5F6F8] border-l-[3px] border-l-transparent'
+        }`}
+      >
+        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${
+          status.status === 'complete' ? 'bg-[#22C55E] text-white' :
+          status.status === 'partial' ? 'bg-amber-500 text-white' :
+          isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-200 text-slate-400'
+        }`}>
+          {status.status === 'complete' ? '\u2713' : status.status === 'partial' ? '!' : ''}
+        </span>
+        <span className={`text-xs font-bold truncate flex-1 ${
+          isActive ? (isDark ? 'text-white' : 'text-[#10284C]') : (isDark ? 'text-slate-400' : 'text-slate-600')
+        }`}>
+          {section.title}
+        </span>
+        {section.required && (
+          <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/15 text-red-500 shrink-0">
+            Req
           </span>
-          <div className={`flex-1 h-px ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`} />
-          <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            {catComplete}/{categorySections.length}
-          </span>
-        </div>
-        {categorySections.map(section => (
-          <SetupSectionCard
-            key={section.key}
-            section={section}
-            status={getSectionStatus(section.key)}
-            expanded={expandedSection === section.key}
-            onToggle={() => setExpandedSection(expandedSection === section.key ? null : section.key)}
-            setupData={setupData}
-            setSetupData={setSetupData}
-            onSave={(data) => saveSection(section.key, data)}
-            saving={saving}
-            showToast={showToast}
-            organization={organization}
-            waivers={waivers}
-            setWaivers={setWaivers}
-            venues={venues}
-            setVenues={setVenues}
-            adminUsers={adminUsers}
-            tc={tc}
-            accent={accent}
-            isDark={isDark}
-          />
-        ))}
-      </div>
+        )}
+      </button>
     )
   }
 
   return (
     <PageShell title="Organization Setup" subtitle="Configure your organization before creating seasons and opening registration" breadcrumb="Setup > Organization">
-     <div className="space-y-2">
+     <div>
       {/* Navy Progress Header */}
       <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -765,10 +791,149 @@ function OrganizationPage({ showToast }) {
         </div>
       </div>
 
-      {/* Sections by Category */}
-      {renderCategory('foundation', foundationSections)}
-      {renderCategory('operational', operationalSections)}
-      {renderCategory('configuration', configSections)}
+      {/* 2-Column Layout — desktop */}
+      <div className="hidden md:flex gap-0" style={{ minHeight: 'calc(100vh - 300px)' }}>
+        {/* LEFT NAV PANEL */}
+        <div className={`w-[260px] shrink-0 rounded-l-[14px] overflow-y-auto py-3 ${
+          isDark ? 'bg-white/[0.02] border-r border-white/[0.06]' : 'bg-white border-r border-[#E8ECF2]'
+        }`} style={{ maxHeight: 'calc(100vh - 300px)' }}>
+          {categories.map(cat => (
+            <div key={cat.name}>
+              <div className={`text-[9px] font-black uppercase tracking-[0.15em] px-4 pt-4 pb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                {cat.name}
+              </div>
+              {cat.sections.map(section => renderNavSection(section))}
+            </div>
+          ))}
+        </div>
+
+        {/* RIGHT FORM PANEL */}
+        <div
+          ref={rightPanelRef}
+          className={`flex-1 min-w-0 overflow-y-auto rounded-r-[14px] px-8 py-6 ${
+            isDark ? 'bg-white/[0.01]' : 'bg-[#FAFBFC]'
+          }`}
+          style={{ maxHeight: 'calc(100vh - 300px)' }}
+        >
+          {activeSection ? (
+            <>
+              {/* Section header */}
+              <div className="mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">{activeSection.icon}</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                        {activeSection.title}
+                      </h2>
+                      {activeSection.required && (
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-red-500/15 text-red-500">Required</span>
+                      )}
+                    </div>
+                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeSection.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-slate-400">
+                  <span>Est. time: {activeSection.estTime}</span>
+                  <span className={`font-bold ${
+                    activeSectionStatus?.status === 'complete' ? 'text-[#22C55E]' :
+                    activeSectionStatus?.status === 'partial' ? 'text-amber-500' : 'text-slate-400'
+                  }`}>
+                    {activeSectionStatus?.status === 'complete' ? '\u2705 Complete' : activeSectionStatus?.status === 'partial' ? '\u26A0\uFE0F In Progress' : '\u25CB Not Started'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Section form content */}
+              <SetupSectionContent
+                sectionKey={expandedSection}
+                setupData={setupData}
+                setSetupData={setSetupData}
+                onSave={(data) => saveSection(expandedSection, data)}
+                saving={saving}
+                showToast={showToast}
+                organization={organization}
+                waivers={waivers}
+                setWaivers={setWaivers}
+                venues={venues}
+                setVenues={setVenues}
+                adminUsers={adminUsers}
+                tc={tc}
+                accent={accent}
+              />
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <div className="text-4xl mb-4">{'\uD83C\uDFE2'}</div>
+              <h2 className={`text-xl font-extrabold mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>Select a Section to Configure</h2>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Start with the Foundation sections — they're required before you can create seasons</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Layout — single column with horizontal nav strip */}
+      <div className="md:hidden">
+        {/* Horizontal scrollable section strip */}
+        <div className={`flex gap-2 overflow-x-auto pb-3 mb-4 -mx-2 px-2 ${isDark ? '' : ''}`} style={{ scrollbarWidth: 'none' }}>
+          {sections.map(section => {
+            const status = getSectionStatus(section.key)
+            const isActive = expandedSection === section.key
+            return (
+              <button
+                key={section.key}
+                onClick={() => setExpandedSection(section.key)}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition ${
+                  isActive
+                    ? isDark ? 'bg-[#4BB9EC]/20 text-white' : 'bg-[#10284C] text-white'
+                    : isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-white text-slate-600 border border-[#E8ECF2]'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] ${
+                  status.status === 'complete' ? 'bg-[#22C55E] text-white' :
+                  status.status === 'partial' ? 'bg-amber-500 text-white' :
+                  'bg-slate-300 text-slate-500'
+                }`}>
+                  {status.status === 'complete' ? '\u2713' : ''}
+                </span>
+                {section.title}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Mobile form content */}
+        {activeSection && (
+          <div className={`rounded-[14px] p-5 ${isDark ? 'bg-white/[0.02] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl">{activeSection.icon}</span>
+                <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{activeSection.title}</h2>
+                {activeSection.required && (
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/15 text-red-500">Req</span>
+                )}
+              </div>
+              <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeSection.description}</p>
+            </div>
+            <SetupSectionContent
+              sectionKey={expandedSection}
+              setupData={setupData}
+              setSetupData={setSetupData}
+              onSave={(data) => saveSection(expandedSection, data)}
+              saving={saving}
+              showToast={showToast}
+              organization={organization}
+              waivers={waivers}
+              setWaivers={setWaivers}
+              venues={venues}
+              setVenues={setVenues}
+              adminUsers={adminUsers}
+              tc={tc}
+              accent={accent}
+            />
+          </div>
+        )}
+      </div>
      </div>
     </PageShell>
   )
