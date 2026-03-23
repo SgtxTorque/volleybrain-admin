@@ -1,19 +1,41 @@
-export default function PageShell({ breadcrumb, title, subtitle, actions, children }) {
+import { useTheme } from '../../contexts/ThemeContext'
+
+export default function PageShell({ breadcrumb, title, subtitle, actions, children, className = '' }) {
+  const { isDark } = useTheme()
+
   return (
-    <div className="w-full px-6 py-6">
+    <div className={`w-full px-8 py-6 ${className}`} style={{ fontFamily: 'var(--v2-font)' }}>
+      {/* Breadcrumb */}
       {breadcrumb && (
-        <div className="text-r-xs font-medium text-lynx-sky mb-1 flex items-center gap-1.5">
-          <span>🏠</span> <span className="text-slate-400">›</span> {breadcrumb}
+        <div className={`text-xs font-semibold mb-2 flex items-center gap-1.5 ${
+          isDark ? 'text-lynx-sky/70' : 'text-lynx-sky'
+        }`}>
+          <span>🏠</span>
+          <span className={isDark ? 'text-slate-600' : 'text-slate-300'}>›</span>
+          {breadcrumb}
         </div>
       )}
+
+      {/* Header row */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-r-3xl font-extrabold tracking-tight text-slate-900">{title}</h1>
-          {subtitle && <p className="text-r-sm text-slate-500 mt-1">{subtitle}</p>}
+          <h1 className={`text-2xl font-extrabold tracking-tight ${
+            isDark ? 'text-white' : 'text-[#10284C]'
+          }`} style={{ letterSpacing: '-0.03em' }}>
+            {title}
+          </h1>
+          {subtitle && (
+            <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {subtitle}
+            </p>
+          )}
         </div>
-        {actions && <div className="flex gap-2 items-center">{actions}</div>}
+        {actions && (
+          <div className="flex gap-2 items-center shrink-0">{actions}</div>
+        )}
       </div>
+
       {children}
     </div>
-  );
+  )
 }
