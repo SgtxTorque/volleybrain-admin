@@ -197,36 +197,40 @@ export function CoachesPage({ showToast }) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => exportCoachesCSV()}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-medium border transition ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
               isDark
-                ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky'
-                : 'bg-white border-lynx-silver text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
+                ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]'
+                : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <Download className="w-4 h-4" /> Export
           </button>
           <button
             onClick={() => setShowEmailBlast(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-medium border transition ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
               isDark
-                ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky'
-                : 'bg-white border-lynx-silver text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
+                ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]'
+                : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <Mail className="w-4 h-4" /> Email All
           </button>
           <button
             onClick={() => setShowInviteCoach(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-medium border transition ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
               isDark
-                ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky'
-                : 'bg-white border-lynx-silver text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
+                ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]'
+                : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <UserPlus className="w-4 h-4" /> Invite
           </button>
           <button onClick={() => { setEditingCoach(null); setShowAddModal(true) }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-lynx-navy text-white font-bold rounded-lg hover:brightness-110 transition text-r-sm">
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#10284C] text-white font-semibold rounded-xl hover:bg-[#1a3a6b] shadow-sm transition-all text-sm"
+            style={{ fontFamily: 'var(--v2-font)' }}>
             <Plus className="w-4 h-4" /> Add Coach
           </button>
         </div>
@@ -270,7 +274,7 @@ export function CoachesPage({ showToast }) {
           <h3 className="text-xl font-semibold text-slate-900 mb-2">No coaches found</h3>
           <p className="text-slate-500 mb-6">{searchTerm ? 'Try a different search term' : 'Add your first coach to get started'}</p>
           {!searchTerm && (
-            <button onClick={() => setShowAddModal(true)} className="px-6 py-2.5 bg-lynx-navy text-white font-bold rounded-lg hover:brightness-110 transition">Add First Coach</button>
+            <button onClick={() => setShowAddModal(true)} className="px-6 py-2.5 bg-[#10284C] text-white font-semibold rounded-xl hover:bg-[#1a3a6b] shadow-sm transition-all" style={{ fontFamily: 'var(--v2-font)' }}>Add First Coach</button>
           )}
         </div>
       ) : (
