@@ -491,7 +491,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
               {meta.time && (
                 <p className="text-center mt-4 text-xs" style={{ color: BRAND.textMuted }}>
-                  \u23f1\ufe0f {meta.time}
+                  {'\u23f1\ufe0f'} {meta.time}
                 </p>
               )}
             </>
