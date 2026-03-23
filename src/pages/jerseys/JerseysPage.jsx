@@ -4,13 +4,15 @@ import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { 
-  Users, User, Edit, Shirt, Clock, Package, CheckCircle2, 
-  AlertTriangle, Sparkles, UserPlus, HelpCircle, BarChart3, Check
+import {
+  Users, User, Edit, Shirt, Clock, Package, CheckCircle2,
+  AlertTriangle, Sparkles, UserPlus, HelpCircle, BarChart3, Check,
+  ChevronRight, X, Bell
 } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
+import JerseyActionPanel from './JerseyActionPanel'
 
 // Standard jersey sizes
 const JERSEY_SIZES = [
@@ -418,12 +420,53 @@ export function JerseysPage({ showToast }) {
     }
   }
 
+  // New UI state for accordion + action panel
+  const [expandedTeams, setExpandedTeams] = useState(new Set())
+  const [teamStageFilters, setTeamStageFilters] = useState({})
+  const [selectedPlayer, setSelectedPlayer] = useState(null)
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState(new Set())
+
+  function toggleTeamExpand(teamId) {
+    setExpandedTeams(prev => {
+      const next = new Set(prev)
+      if (next.has(teamId)) next.delete(teamId)
+      else next.add(teamId)
+      return next
+    })
+  }
+
+  function setTeamStageFilter(teamId, stage) {
+    setTeamStageFilters(prev => ({ ...prev, [teamId]: stage }))
+  }
+
+  function toggleBulkPlayer(playerId) {
+    setSelectedPlayerIds(prev => {
+      const next = new Set(prev)
+      if (next.has(playerId)) next.delete(playerId)
+      else next.add(playerId)
+      return next
+    })
+  }
+
+  function toggleBulkTeam(teamPlayerIds) {
+    setSelectedPlayerIds(prev => {
+      const next = new Set(prev)
+      const allSelected = teamPlayerIds.every(id => next.has(id))
+      if (allSelected) {
+        teamPlayerIds.forEach(id => next.delete(id))
+      } else {
+        teamPlayerIds.forEach(id => next.add(id))
+      }
+      return next
+    })
+  }
+
   // Computed values
   const needsJersey = players.filter(p => p.needsJersey)
   const needsOrder = players.filter(p => p.needsOrder)
   const ordered = players.filter(p => p.isOrdered)
   const takenNumbers = new Set(players.filter(p => p.jersey_number).map(p => p.jersey_number))
-  
+
   const stats = {
     total: players.length,
     needsJersey: needsJersey.length,
@@ -432,15 +475,90 @@ export function JerseysPage({ showToast }) {
     missingSize: players.filter(p => !p.player?.uniform_size_jersey).length
   }
 
-  const leagueStats = {
-    needsOrder: allPlayersAllTeams.filter(p => p.needsOrder).length
+  // Pipeline stage classifier for each player
+  function getPlayerStage(p) {
+    if (p.isOrdered) return 'ordered'
+    if (!p.jersey_number) return 'needs_number'
+    if (!p.player?.uniform_size_jersey) return 'needs_size'
+    return 'ready'
   }
+
+  // Group all players by team
+  const playersByTeam = {}
+  players.forEach(p => {
+    const tid = p.team_id
+    if (!playersByTeam[tid]) playersByTeam[tid] = []
+    playersByTeam[tid].push(p)
+  })
+
+  // Compute team stats for accordion headers
+  function getTeamPipelineStats(teamId) {
+    const tp = playersByTeam[teamId] || []
+    const needsNum = tp.filter(p => !p.jersey_number).length
+    const needsSize = tp.filter(p => p.jersey_number && !p.player?.uniform_size_jersey).length
+    const ready = tp.filter(p => p.jersey_number && p.player?.uniform_size_jersey && !p.isOrdered).length
+    const orderedCount = tp.filter(p => p.isOrdered).length
+    return { total: tp.length, needsNum, needsSize, ready, ordered: orderedCount }
+  }
+
+  // Club-wide readiness: players with number + size assigned (or ordered)
+  const readyPlayers = players.filter(p => p.jersey_number && p.player?.uniform_size_jersey)
+  const readyPercent = players.length > 0 ? Math.round((readyPlayers.length / players.length) * 100) : 0
+  const conflictCount = (() => {
+    let conflicts = 0
+    const teamPrefs = {}
+    players.forEach(p => {
+      if (!p.player) return
+      const tid = p.team_id
+      if (!teamPrefs[tid]) teamPrefs[tid] = {}
+      const prefs = [p.player.jersey_pref_1, p.player.jersey_pref_2, p.player.jersey_pref_3].filter(Boolean)
+      prefs.forEach(pref => {
+        if (!teamPrefs[tid][pref]) teamPrefs[tid][pref] = 0
+        teamPrefs[tid][pref]++
+      })
+    })
+    Object.values(teamPrefs).forEach(prefMap => {
+      Object.values(prefMap).forEach(count => {
+        if (count > 1) conflicts++
+      })
+    })
+    return conflicts
+  })()
+  const pendingSizeCount = players.filter(p => !p.player?.uniform_size_jersey).length
+
+  // Pipeline stages config
+  const PIPELINE_STAGES = [
+    { key: 'all', label: 'All' },
+    { key: 'needs_number', label: 'Needs #', color: 'text-red-500' },
+    { key: 'needs_size', label: 'Needs Size', color: 'text-amber-500' },
+    { key: 'ready', label: 'Ready', color: 'text-[#4BB9EC]' },
+    { key: 'ordered', label: 'Ordered', color: 'text-[#22C55E]' },
+  ]
+
+  // Status badge renderer
+  function StatusBadge({ stage }) {
+    const badges = {
+      needs_number: { label: 'NEEDS NUMBER', cls: 'bg-red-500/15 text-red-500' },
+      needs_size: { label: 'NEEDS SIZE', cls: 'bg-amber-500/15 text-amber-500' },
+      ready: { label: 'READY TO ORDER', cls: 'bg-[#4BB9EC]/15 text-[#4BB9EC]' },
+      ordered: { label: 'ORDERED', cls: 'bg-[#22C55E]/15 text-[#22C55E]' },
+    }
+    const b = badges[stage] || badges.needs_number
+    return (
+      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${b.cls}`}>
+        {b.label}
+      </span>
+    )
+  }
+
+  // Determine visible teams (filter by selectedTeam if set)
+  const visibleTeams = selectedTeam ? teams.filter(t => t.id === selectedTeam.id) : teams
 
   return (
     <PageShell
       breadcrumb="Jersey Management"
       title="Jersey Management"
-      subtitle={`${selectedTeam ? selectedTeam.name : 'All Teams'} · ${selectedSeason.name}`}
+      subtitle={`${selectedSeason?.name || 'Season'}`}
       actions={
         <div className="flex gap-3 flex-wrap">
           <button
@@ -450,7 +568,6 @@ export function JerseysPage({ showToast }) {
           >
             <Clock className="w-4 h-4" /> History
           </button>
-
           <button
             onClick={() => setShowFullReport(true)}
             className={`px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${tc.cardBg} border ${tc.border} ${tc.text} ${tc.hoverBg}`}
@@ -458,27 +575,19 @@ export function JerseysPage({ showToast }) {
           >
             <BarChart3 className="w-4 h-4" /> Full League Report
           </button>
-
           {needsJersey.length > 0 && (
             <button
               onClick={handleAutoAssign}
               disabled={autoAssigning}
               className={`px-4 py-2.5 rounded-xl font-semibold text-sm text-white transition-all shadow-sm flex items-center gap-2 ${
-                autoAssigning
-                  ? 'bg-slate-400 cursor-wait'
-                  : 'bg-[#4BB9EC] hover:brightness-110'
+                autoAssigning ? 'bg-slate-400 cursor-wait' : 'bg-[#4BB9EC] hover:brightness-110'
               }`}
               style={{ fontFamily: 'var(--v2-font)' }}
             >
               {autoAssigning ? (
-                <>
-                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                  Assigning...
-                </>
+                <><div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Assigning...</>
               ) : (
-                <>
-                  <Sparkles className="w-4 h-4" /> Auto-Assign ({needsJersey.length})
-                </>
+                <><Sparkles className="w-4 h-4" /> Auto-Assign ({needsJersey.length})</>
               )}
             </button>
           )}
@@ -486,139 +595,408 @@ export function JerseysPage({ showToast }) {
       }
     >
       <div className="space-y-6">
-      <SeasonFilterBar />
-      {/* Team Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        <button
-          onClick={() => setSelectedTeam(null)}
-          className={`px-4 py-2.5 rounded-xl whitespace-nowrap flex items-center gap-2 transition font-medium ${
-            !selectedTeam
-              ? 'bg-[var(--accent-primary)] text-white shadow-lg'
-              : `${tc.cardBg} border ${tc.border} ${tc.textSecondary} ${tc.hoverBg}`
-          }`}
-        >
-          🏆 All Teams
-        </button>
-        {teams.map(team => (
+        <SeasonFilterBar />
+
+        {/* Team Filter Pills (kept for quick filtering) */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
           <button
-            key={team.id}
-            onClick={() => setSelectedTeam(team)}
+            onClick={() => setSelectedTeam(null)}
             className={`px-4 py-2.5 rounded-xl whitespace-nowrap flex items-center gap-2 transition font-medium ${
-              selectedTeam?.id === team.id
-                ? 'text-white shadow-lg'
+              !selectedTeam
+                ? 'bg-[#10284C] text-white shadow-lg'
                 : `${tc.cardBg} border ${tc.border} ${tc.textSecondary} ${tc.hoverBg}`
             }`}
-            style={selectedTeam?.id === team.id ? { backgroundColor: team.color || 'var(--accent-primary)' } : {}}
           >
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color || '#888' }} />
-            {team.name}
+            All Teams
           </button>
-        ))}
-      </div>
-
-      {/* Unrostered Alert */}
-      {unrosteredCount > 0 && (
-        <div className="bg-amber-50/80 border border-amber-200 rounded-[14px] p-5">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-100">
-              <Users className="w-6 h-6 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-amber-800">
-                {unrosteredCount} Approved Registration{unrosteredCount !== 1 ? 's' : ''} Not Yet Rostered
-              </h3>
-              <p className="mt-1 text-amber-700">
-                Go to <strong>Teams & Rosters</strong> to add them to teams before managing jerseys.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Stats */}
-      <InnerStatRow stats={[
-        { icon: '👥', value: stats.total, label: 'Total Rostered', color: 'text-slate-900' },
-        { icon: '❓', value: stats.needsJersey, label: 'Needs Jersey', color: stats.needsJersey > 0 ? 'text-red-600' : 'text-slate-900' },
-        { icon: '📦', value: stats.needsOrder, label: 'Ready to Order', color: stats.needsOrder > 0 ? 'text-amber-600' : 'text-slate-900' },
-        { icon: '✅', value: stats.ordered, label: 'Ordered', color: 'text-emerald-600' },
-      ]} />
-
-      {/* Tabs */}
-      <div className={`${tc.cardBg} border ${tc.border} rounded-xl overflow-hidden`}>
-        <div className={`flex border-b ${tc.border}`}>
-          {[
-            { id: 'needs', label: 'Needs Jersey', count: stats.needsJersey, color: 'red' },
-            { id: 'assigned', label: 'Ready to Order', count: stats.needsOrder, color: 'amber' },
-            { id: 'ordered', label: 'Ordered', count: stats.ordered, color: 'emerald' },
-          ].map(tab => (
+          {teams.map(team => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-4 font-medium transition flex items-center justify-center gap-2 ${
-                activeTab === tab.id
-                  ? `border-b-2 border-[var(--accent-primary)] text-[var(--accent-primary)]`
-                  : `${tc.textMuted} ${tc.hoverBg}`
+              key={team.id}
+              onClick={() => setSelectedTeam(team)}
+              className={`px-4 py-2.5 rounded-xl whitespace-nowrap flex items-center gap-2 transition font-medium ${
+                selectedTeam?.id === team.id
+                  ? 'text-white shadow-lg'
+                  : `${tc.cardBg} border ${tc.border} ${tc.textSecondary} ${tc.hoverBg}`
               }`}
+              style={selectedTeam?.id === team.id ? { backgroundColor: team.color || 'var(--accent-primary)' } : {}}
             >
-              {tab.label}
-              {tab.count > 0 && (
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                  tab.color === 'red' ? 'bg-red-500/20 text-red-500' :
-                  tab.color === 'amber' ? 'bg-amber-500/20 text-amber-500' :
-                  'bg-emerald-500/20 text-emerald-500'
-                }`}>
-                  {tab.count}
-                </span>
-              )}
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color || '#888' }} />
+              {team.name}
             </button>
           ))}
         </div>
 
-        {/* Tab Content */}
-        <div className="p-6">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto" />
+        {/* Unrostered Alert */}
+        {unrosteredCount > 0 && (
+          <div className={`rounded-[14px] p-5 ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50/80 border border-amber-200'}`}>
+            <div className="flex items-start gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-amber-500/20' : 'bg-amber-100'}`}>
+                <Users className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className={`font-bold text-lg ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+                  {unrosteredCount} Approved Registration{unrosteredCount !== 1 ? 's' : ''} Not Yet Rostered
+                </h3>
+                <p className={isDark ? 'text-amber-400/70 mt-1' : 'text-amber-700 mt-1'}>
+                  Go to <strong>Teams & Rosters</strong> to add them to teams before managing jerseys.
+                </p>
+              </div>
             </div>
-          ) : activeTab === 'needs' ? (
-            <NeedsJerseyList
-              players={needsJersey}
-              totalRostered={players.length}
-              unrosteredCount={unrosteredCount}
-              takenNumbers={takenNumbers}
-              selectedTeam={selectedTeam}
-              onAssign={(player) => setAssigningPlayer(player)}
-              onAutoAssign={handleAutoAssign}
-              autoAssigning={autoAssigning}
-              showToast={showToast}
-              tc={tc}
-              isDark={isDark}
-            />
-          ) : activeTab === 'assigned' ? (
-            <PlayerList
-              players={needsOrder}
-              selectedTeam={selectedTeam}
-              onEdit={(player) => setEditingPlayer(player)}
-              emptyIcon={<Package className="w-16 h-16 mx-auto mb-4 text-slate-400" />}
-              emptyTitle="Nothing to Order"
-              emptyText="All assigned jerseys have been ordered."
-              tc={tc}
-              isDark={isDark}
-            />
-          ) : (
-            <PlayerList
-              players={ordered}
-              selectedTeam={selectedTeam}
-              onEdit={(player) => setEditingPlayer(player)}
-              emptyIcon={<CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-slate-400" />}
-              emptyTitle="No Ordered Jerseys"
-              emptyText="Mark jerseys as ordered to see them here."
-              showCheck
-              tc={tc}
-              isDark={isDark}
-            />
-          )}
+          </div>
+        )}
+
+        {/* ── CLUB READINESS STATUS BAR ── */}
+        <div className={`rounded-2xl p-6 ${isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'}`}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`}
+                style={{ fontFamily: 'var(--v2-font)' }}>
+                Club Readiness Status
+              </h2>
+              <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                {organization?.name || 'Organization'} · {selectedSeason?.name}
+              </p>
+            </div>
+            <div className="text-right">
+              <span className={`text-4xl font-black italic ${
+                readyPercent > 90 ? 'text-[#22C55E]' : readyPercent > 60 ? 'text-[#4BB9EC]' : 'text-amber-500'
+              }`}>
+                {readyPercent}%
+              </span>
+              <div className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                Ready to Order
+              </div>
+            </div>
+          </div>
+          {/* Full-width progress bar */}
+          <div className={`h-3 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`}>
+            <div className="h-full rounded-full bg-gradient-to-r from-[#4BB9EC] to-[#22C55E] transition-all"
+              style={{ width: `${readyPercent}%` }} />
+          </div>
+          {/* Summary dots */}
+          <div className={`flex items-center gap-6 mt-3 text-xs font-bold flex-wrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#22C55E]" /> {readyPlayers.length} Players Validated
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500" /> {conflictCount} Conflicts Found
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500" /> {pendingSizeCount} Pending Sizes
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#4BB9EC]" /> {needsJersey.length} Need Numbers
+            </span>
+          </div>
         </div>
+
+        {/* ── 2-COLUMN: TEAM ACCORDIONS + ACTION PANEL ── */}
+        <div className="flex gap-6 items-start">
+          {/* Left: Team Accordions */}
+          <div className="flex-1 min-w-0 space-y-3">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto" />
+              </div>
+            ) : visibleTeams.length === 0 ? (
+              <div className="text-center py-12">
+                <Shirt className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <h3 className={`text-lg font-semibold ${tc.text} mt-4`}>No Teams Found</h3>
+                <p className={tc.textMuted}>Create teams and add players to start managing jerseys.</p>
+              </div>
+            ) : (
+              visibleTeams.map(team => {
+                const isExpanded = expandedTeams.has(team.id)
+                const tStats = getTeamPipelineStats(team.id)
+                const teamReady = tStats.ready + tStats.ordered
+                const teamTotal = tStats.total
+                const teamReadyPercent = teamTotal > 0 ? Math.round((teamReady / teamTotal) * 100) : 0
+                const isComplete = teamReady === teamTotal && teamTotal > 0
+                const activeStage = teamStageFilters[team.id] || 'all'
+                const teamPlayersList = playersByTeam[team.id] || []
+
+                // Filter players by active pipeline stage
+                const filteredPlayers = activeStage === 'all'
+                  ? teamPlayersList
+                  : teamPlayersList.filter(p => getPlayerStage(p) === activeStage)
+
+                const teamPlayerIds = teamPlayersList.map(p => p.id)
+                const allTeamSelected = teamPlayerIds.length > 0 && teamPlayerIds.every(id => selectedPlayerIds.has(id))
+
+                return (
+                  <div key={team.id} className={`rounded-[14px] overflow-hidden ${
+                    isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
+                  }`}>
+                    {/* Accordion header */}
+                    <button
+                      onClick={() => toggleTeamExpand(team.id)}
+                      className={`w-full px-5 py-4 flex items-center gap-4 transition ${
+                        isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <ChevronRight className={`w-4 h-4 transition-transform shrink-0 ${
+                        isDark ? 'text-slate-400' : 'text-slate-500'
+                      } ${isExpanded ? 'rotate-90' : ''}`} />
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: team.color || '#888' }} />
+                      <div className="text-left flex-1 min-w-0">
+                        <div className={`font-extrabold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}
+                          style={{ fontFamily: 'var(--v2-font)' }}>
+                          {team.name}
+                        </div>
+                        <div className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          {tStats.total} Player{tStats.total !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      {/* Pipeline mini-counts */}
+                      <div className="hidden sm:flex items-center gap-1.5">
+                        {tStats.needsNum > 0 && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/15 text-red-500">
+                            {tStats.needsNum} Need #
+                          </span>
+                        )}
+                        {tStats.needsSize > 0 && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-500">
+                            {tStats.needsSize} Need Size
+                          </span>
+                        )}
+                        {tStats.ready > 0 && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#4BB9EC]/15 text-[#4BB9EC]">
+                            {tStats.ready} Ready
+                          </span>
+                        )}
+                      </div>
+                      {/* Readiness badge */}
+                      <span className={`text-sm font-black shrink-0 ${isComplete ? 'text-[#22C55E]' : isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {teamTotal === 0 ? '—' : isComplete ? '100%' : `${teamReady}/${teamTotal}`}
+                      </span>
+                      {/* Mini progress bar */}
+                      <div className={`w-20 h-1.5 rounded-full overflow-hidden shrink-0 ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`}>
+                        <div className={`h-full rounded-full transition-all ${isComplete ? 'bg-[#22C55E]' : 'bg-[#4BB9EC]'}`}
+                          style={{ width: `${teamReadyPercent}%` }} />
+                      </div>
+                    </button>
+
+                    {/* Expanded content: pipeline stages + player rows */}
+                    {isExpanded && (
+                      <div className={`border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+                        {/* Pipeline stage bar */}
+                        <div className={`flex items-center gap-1 px-5 py-3 overflow-x-auto ${
+                          isDark ? 'bg-white/[0.02]' : 'bg-[#F5F6F8]'
+                        }`}>
+                          {PIPELINE_STAGES.map(stage => {
+                            const count = stage.key === 'all' ? teamPlayersList.length
+                              : stage.key === 'needs_number' ? tStats.needsNum
+                              : stage.key === 'needs_size' ? tStats.needsSize
+                              : stage.key === 'ready' ? tStats.ready
+                              : tStats.ordered
+                            return (
+                              <button key={stage.key}
+                                onClick={() => setTeamStageFilter(team.id, stage.key)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition ${
+                                  activeStage === stage.key
+                                    ? 'bg-[#10284C] text-white'
+                                    : isDark
+                                      ? 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]'
+                                      : 'text-slate-400 hover:text-slate-600 hover:bg-white'
+                                }`}>
+                                {stage.label} ({count})
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        {/* Player rows table */}
+                        {filteredPlayers.length === 0 ? (
+                          <div className={`text-center py-8 ${tc.textMuted}`}>
+                            <p className="text-sm">No players in this stage</p>
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                  <th className="w-10 px-3 py-2">
+                                    <input type="checkbox" checked={allTeamSelected}
+                                      onChange={() => toggleBulkTeam(teamPlayerIds)}
+                                      className="rounded" />
+                                  </th>
+                                  <th className="text-left px-3 py-2">Player</th>
+                                  <th className="text-left px-3 py-2 hidden md:table-cell">Preferred</th>
+                                  <th className="text-left px-3 py-2">Assigned</th>
+                                  <th className="text-left px-3 py-2 hidden sm:table-cell">Size</th>
+                                  <th className="text-left px-3 py-2">Status</th>
+                                  <th className="text-left px-3 py-2">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {filteredPlayers.map((p, idx) => {
+                                  const player = p.player
+                                  if (!player) return null
+                                  const stage = getPlayerStage(p)
+                                  const prefs = [player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean)
+                                  const isRowSelected = selectedPlayer?.id === p.id
+                                  const isBulkSelected = selectedPlayerIds.has(p.id)
+                                  const teamTakenSet = new Set(
+                                    teamPlayersList.filter(x => x.jersey_number && x.id !== p.id).map(x => x.jersey_number)
+                                  )
+
+                                  return (
+                                    <tr key={p.id}
+                                      onClick={() => setSelectedPlayer(isRowSelected ? null : p)}
+                                      className={`transition cursor-pointer ${
+                                        isRowSelected
+                                          ? isDark ? 'bg-[#4BB9EC]/10' : 'bg-[#4BB9EC]/[0.06]'
+                                          : idx % 2 === 1
+                                            ? isDark ? 'bg-white/[0.02]' : 'bg-slate-50/50'
+                                            : ''
+                                      } ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}
+                                    >
+                                      <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                                        <input type="checkbox" checked={isBulkSelected}
+                                          onChange={() => toggleBulkPlayer(p.id)}
+                                          className="rounded" />
+                                      </td>
+                                      <td className="px-3 py-2.5">
+                                        <div className="flex items-center gap-2.5 min-w-[140px]">
+                                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                                            style={{ backgroundColor: `${team.color || '#888'}25`, color: team.color || '#888' }}>
+                                            {player.photo_url ? (
+                                              <img src={player.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                                            ) : (
+                                              `${player.first_name?.[0] || ''}${player.last_name?.[0] || ''}`
+                                            )}
+                                          </div>
+                                          <span className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                                            {player.first_name} {player.last_name}
+                                          </span>
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2.5 hidden md:table-cell">
+                                        <div className="flex items-center gap-1">
+                                          {prefs.length > 0 ? prefs.map((n, i) => {
+                                            const taken = teamTakenSet.has(n)
+                                            return (
+                                              <span key={i} className={`px-1.5 py-0.5 rounded text-[11px] font-bold ${
+                                                taken ? 'bg-red-500/15 text-red-500 line-through' : 'bg-[#22C55E]/15 text-[#22C55E]'
+                                              }`}>#{n}</span>
+                                            )
+                                          }) : (
+                                            <span className={`text-xs italic ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>None</span>
+                                          )}
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2.5">
+                                        {p.jersey_number ? (
+                                          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold text-white`}
+                                            style={{ backgroundColor: team.color || '#10284C' }}>
+                                            {p.jersey_number}
+                                          </span>
+                                        ) : (
+                                          <span className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>—</span>
+                                        )}
+                                      </td>
+                                      <td className="px-3 py-2.5 hidden sm:table-cell">
+                                        {player.uniform_size_jersey ? (
+                                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                                            isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
+                                          }`}>{player.uniform_size_jersey}</span>
+                                        ) : (
+                                          <span className="text-xs px-2 py-0.5 rounded font-medium bg-red-500/15 text-red-500 flex items-center gap-1 w-fit">
+                                            <AlertTriangle className="w-3 h-3" /> No size
+                                          </span>
+                                        )}
+                                      </td>
+                                      <td className="px-3 py-2.5">
+                                        <StatusBadge stage={stage} />
+                                      </td>
+                                      <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                                        <div className="flex items-center gap-1">
+                                          {stage === 'needs_number' && (
+                                            <button onClick={() => setAssigningPlayer(p)}
+                                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#4BB9EC]/15 text-[#4BB9EC] hover:bg-[#4BB9EC]/25 transition">
+                                              Assign
+                                            </button>
+                                          )}
+                                          {(stage === 'ready' || stage === 'needs_size') && (
+                                            <button onClick={() => setEditingPlayer(p)}
+                                              className={`p-1.5 rounded-lg transition ${isDark ? 'hover:bg-white/[0.06] text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+                                              title="Edit">
+                                              <Edit className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
+                                          {stage === 'needs_size' && (
+                                            <button onClick={() => {
+                                              const msg = `Hi, we need ${player.first_name}'s jersey size to place the order. Please update it in the app.`
+                                              navigator.clipboard?.writeText(msg)
+                                              showToast?.(`Message copied for ${player.first_name}'s parent`, 'success')
+                                            }}
+                                              className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition"
+                                              title="Copy size request message">
+                                              <Bell className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Right: Action Panel */}
+          <div className="hidden xl:block w-[340px] shrink-0">
+            <JerseyActionPanel
+              selectedPlayer={selectedPlayer}
+              allPlayers={players}
+              conflicts={conflictCount}
+              onAssign={(playerId, teamPlayerId, teamId, number, prefResult) => assignJersey(playerId, teamPlayerId, teamId, number, prefResult)}
+              onUpdateSize={(playerId, size) => updateJerseySize(playerId, size)}
+              onAutoAssign={handleAutoAssign}
+              onClose={() => setSelectedPlayer(null)}
+              showToast={showToast}
+              autoAssigning={autoAssigning}
+            />
+          </div>
+        </div>
+
+        {/* Bulk Action Bar */}
+        {selectedPlayerIds.size > 0 && (
+          <div className={`sticky bottom-4 z-30 rounded-2xl px-6 py-3 flex items-center justify-between shadow-xl ${
+            isDark ? 'bg-[#10284C] border border-white/[0.1]' : 'bg-[#10284C]'
+          }`}>
+            <span className="text-white text-sm font-bold">
+              {selectedPlayerIds.size} Player{selectedPlayerIds.size !== 1 ? 's' : ''} Selected
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const unassigned = players.filter(p => selectedPlayerIds.has(p.id) && !p.jersey_number)
+                  if (unassigned.length === 0) {
+                    showToast('All selected players already have numbers', 'info')
+                    return
+                  }
+                  handleAutoAssign()
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4BB9EC] text-white hover:brightness-110 transition flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> Bulk Assign Numbers
+              </button>
+              <button
+                onClick={() => setSelectedPlayerIds(new Set())}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-white/[0.1] text-white hover:bg-white/[0.15] transition">
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Assignment Modal */}
@@ -685,7 +1063,6 @@ export function JerseysPage({ showToast }) {
           isDark={isDark}
         />
       )}
-      </div>
     </PageShell>
   )
 }
