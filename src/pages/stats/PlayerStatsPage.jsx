@@ -194,38 +194,38 @@ function StatCard({ label, value, trend, trendValue, color, icon, size = 'normal
 
   if (size === 'large') {
     return (
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
+      <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6`}>
         <div className="flex items-start justify-between mb-2">
           <span className="text-r-2xl">{icon}</span>
           {trend && (
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-r-xs font-medium ${
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-r-xs font-bold ${
               isPositive ? 'bg-emerald-100 text-emerald-700' :
               isNegative ? 'bg-red-100 text-red-700' :
-              `${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'} text-slate-400`
+              `${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'} text-slate-400`
             }`}>
               {isPositive ? <TrendingUpIcon className="w-3 h-3" /> : isNegative ? <TrendingDownIcon className="w-3 h-3" /> : null}
               {trendValue}
             </div>
           )}
         </div>
-        <p className={`text-r-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ color }}>{value}</p>
-        <p className="text-slate-400 mt-1 text-r-sm">{label}</p>
+        <p className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ color }}>{value}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">{label}</p>
       </div>
     )
   }
 
   return (
-    <div className={`${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'} rounded-[14px] p-4`}>
+    <div className={`${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'} rounded-[14px] p-4`}>
       <div className="flex items-center justify-between mb-1">
         <span className="text-r-lg">{icon}</span>
         {trend && (
-          <span className={`text-r-xs ${isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-slate-400'}`}>
+          <span className={`text-r-xs font-bold ${isPositive ? 'text-emerald-600' : isNegative ? 'text-red-600' : 'text-slate-400'}`}>
             {isPositive ? '↑' : isNegative ? '↓' : '-'} {trendValue}
           </span>
         )}
       </div>
-      <p className={`text-r-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-      <p className="text-r-xs text-slate-400">{label}</p>
+      <p className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
     </div>
   )
 }
@@ -242,12 +242,12 @@ function GameHistoryRow({ game, stats, onClick }) {
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-4 p-4 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-100'} hover:border-lynx-sky/50 hover:shadow-md transition cursor-pointer`}
+      className={`flex items-center gap-4 p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]'} hover:border-[#4BB9EC]/50 hover:shadow-md transition cursor-pointer`}
     >
       {/* Date */}
       <div className="text-center min-w-[60px]">
-        <p className="text-r-xs text-slate-400 uppercase">{gameDate.toLocaleDateString('en-US', { month: 'short' })}</p>
-        <p className={`text-r-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{gameDate.getDate()}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{gameDate.toLocaleDateString('en-US', { month: 'short' })}</p>
+        <p className={`text-2xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{gameDate.getDate()}</p>
       </div>
 
       {/* Result badge */}
@@ -261,7 +261,7 @@ function GameHistoryRow({ game, stats, onClick }) {
 
       {/* Opponent */}
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} truncate text-r-sm`}>vs {game.opponent_name || 'Unknown'}</p>
+        <p className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} truncate text-sm`}>vs {game.opponent_name || 'Unknown'}</p>
         <p className="text-r-xs text-slate-400">
           {game.our_score !== null ? `${game.our_score} - ${game.opponent_score}` : 'No score'}
         </p>
@@ -299,11 +299,11 @@ function SkillRatingBar({ label, value, color, maxValue = 100 }) {
 
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-r-sm">
-        <span className="text-slate-400">{label}</span>
-        <span className="font-semibold" style={{ color }}>{value}</span>
+      <div className="flex justify-between text-sm">
+        <span className={`font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label}</span>
+        <span className="font-extrabold" style={{ color }}>{value}</span>
       </div>
-      <div className={`h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
+      <div className={`h-2.5 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'} overflow-hidden`}>
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${percentage}%`, backgroundColor: color }}
@@ -473,39 +473,40 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           {player.photo_url ? (
             <img src={player.photo_url} className="w-12 h-12 rounded-xl object-cover shadow" />
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-lynx-navy to-lynx-charcoal flex items-center justify-center text-white text-r-lg font-bold shadow">
+            <div className="w-12 h-12 rounded-xl bg-[#10284C] flex items-center justify-center text-white text-lg font-extrabold shadow">
               {player.jersey_number || '?'}
             </div>
           )}
           {/* Quick stats */}
           <div className="flex gap-6">
             <div className="text-center">
-              <p className="text-r-2xl font-bold text-lynx-sky">{seasonStats?.games_played || 0}</p>
-              <p className="text-r-xs text-slate-400">Games</p>
+              <p className="text-xl font-extrabold text-[#4BB9EC]">{seasonStats?.games_played || 0}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Games</p>
             </div>
             <div className="text-center">
-              <p className="text-r-2xl font-bold text-emerald-600">{seasonStats?.total_points || 0}</p>
-              <p className="text-r-xs text-slate-400">Points</p>
+              <p className="text-xl font-extrabold text-emerald-500">{seasonStats?.total_points || 0}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Points</p>
             </div>
             <div className="text-center">
-              <p className="text-r-2xl font-bold text-amber-600">{seasonStats?.total_aces || 0}</p>
-              <p className="text-r-xs text-slate-400">Aces</p>
+              <p className="text-xl font-extrabold text-amber-500">{seasonStats?.total_aces || 0}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Aces</p>
             </div>
           </div>
         </div>
       }
     >
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-1 mb-6">
         {['overview', 'game-log', 'skills'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-xl text-r-sm font-medium transition ${
+            className={`px-4 py-2.5 rounded-xl text-sm font-bold transition ${
               activeTab === tab
-                ? 'bg-lynx-sky/20 text-lynx-sky'
-                : `${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'} text-slate-400 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-100'}`
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                : `text-slate-400 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]'}`
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             {tab === 'overview' ? '📊 Overview' :
              tab === 'game-log' ? '📅 Game Log' :
@@ -518,8 +519,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Season Totals */}
-          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2`}>
+          <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2`} style={{ fontFamily: 'var(--v2-font)' }}>
               <CalendarIcon className="w-5 h-5 text-lynx-sky" />
               Season Totals
             </h2>
@@ -546,8 +547,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           </div>
 
           {/* Per Game Averages */}
-          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2`}>
+          <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2`} style={{ fontFamily: 'var(--v2-font)' }}>
               <TargetIcon className="w-5 h-5 text-emerald-500" />
               Per Game Averages
             </h2>
@@ -565,8 +566,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           {/* Progress Charts */}
           <div className="grid md:grid-cols-2 gap-6">
             {/* Aces Trend */}
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2 text-r-sm`}>
+            <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2 text-sm`}>
                 🏐 Aces Progress
               </h3>
               <MiniLineChart data={getStatHistory('aces')} color="#10B981" height={100} />
@@ -574,8 +575,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             </div>
 
             {/* Kills Trend */}
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2 text-r-sm`}>
+            <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2 text-sm`}>
                 💥 Kills Progress
               </h3>
               <MiniLineChart data={getStatHistory('kills')} color="#EF4444" height={100} />
@@ -583,8 +584,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             </div>
 
             {/* Digs Trend */}
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2 text-r-sm`}>
+            <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2 text-sm`}>
                 🏃 Digs Progress
               </h3>
               <MiniLineChart data={getStatHistory('digs')} color="#F59E0B" height={100} />
@@ -592,8 +593,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             </div>
 
             {/* Blocks Trend */}
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2 text-r-sm`}>
+            <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2 text-sm`}>
                 🛡️ Blocks Progress
               </h3>
               <MiniLineChart data={getStatHistory('blocks')} color="#6366F1" height={100} />
@@ -602,8 +603,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           </div>
 
           {/* Percentages */}
-          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2`}>
+          <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2`} style={{ fontFamily: 'var(--v2-font)' }}>
               <AwardIcon className="w-5 h-5 text-amber-500" />
               Efficiency Ratings
             </h2>
@@ -612,11 +613,11 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-slate-400 text-r-sm">Hitting Percentage</span>
-                  <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-r-sm`}>
+                  <span className={`font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'} text-sm`}>
                     {((seasonStats?.hitting_percentage || 0) * 100).toFixed(1)}%
                   </span>
                 </div>
-                <div className={`h-4 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
+                <div className={`h-3 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'} overflow-hidden`}>
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-red-400 to-red-600"
                     style={{ width: `${Math.max(0, (seasonStats?.hitting_percentage || 0) * 100 + 50)}%` }}
@@ -628,11 +629,11 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
               <div>
                 <div className="flex justify-between mb-2">
                   <span className="text-slate-400 text-r-sm">Serve Percentage</span>
-                  <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-r-sm`}>
+                  <span className={`font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'} text-sm`}>
                     {((seasonStats?.serve_percentage || 0) * 100).toFixed(1)}%
                   </span>
                 </div>
-                <div className={`h-4 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-100'} overflow-hidden`}>
+                <div className={`h-3 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'} overflow-hidden`}>
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
                     style={{ width: `${(seasonStats?.serve_percentage || 0) * 100}%` }}
@@ -649,12 +650,12 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
       {activeTab === 'game-log' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Game History</h2>
+            <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Game History</h2>
             <span className="text-r-sm text-slate-400">{gameHistory.length} games</span>
           </div>
 
           {gameHistory.length === 0 ? (
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-12 text-center`}>
+            <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-12 text-center`}>
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                 <CalendarIcon className="w-8 h-8 text-slate-400" />
               </div>
@@ -679,8 +680,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
       {activeTab === 'skills' && (
         <div className="space-y-6">
           {/* Coach Ratings */}
-          <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-4 flex items-center gap-2`}>
+          <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+            <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-4 flex items-center gap-2`} style={{ fontFamily: 'var(--v2-font)' }}>
               <StarIcon className="w-5 h-5 text-amber-500" />
               Coach Skill Ratings
             </h2>
@@ -688,7 +689,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
             {skillRatings ? (
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} text-r-sm`}>Technical Skills</h4>
+                  <h4 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} text-sm`}>Technical Skills</h4>
                   <SkillRatingBar label="Serving" value={skillRatings.serving_rating || 50} color="#10B981" />
                   <SkillRatingBar label="Passing" value={skillRatings.passing_rating || 50} color="#3B82F6" />
                   <SkillRatingBar label="Setting" value={skillRatings.setting_rating || 50} color="#8B5CF6" />
@@ -698,16 +699,16 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} text-r-sm`}>Intangibles</h4>
+                  <h4 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} text-sm`}>Intangibles</h4>
                   <SkillRatingBar label="Hustle" value={skillRatings.hustle_rating || 50} color="#EC4899" />
                   <SkillRatingBar label="Coachability" value={skillRatings.coachability_rating || 50} color="#14B8A6" />
                   <SkillRatingBar label="Teamwork" value={skillRatings.teamwork_rating || 50} color="#4BB9EC" />
 
                   {/* Overall */}
-                  <div className={`mt-6 p-4 ${isDark ? 'bg-white/5' : 'bg-gradient-to-r from-lynx-sky/10 to-lynx-navy/10'} rounded-xl`}>
+                  <div className={`mt-6 p-4 ${isDark ? 'bg-[#4BB9EC]/10' : 'bg-[#4BB9EC]/10'} rounded-xl`}>
                     <div className="flex items-center justify-between">
-                      <span className={`font-semibold ${isDark ? 'text-lynx-sky' : 'text-lynx-navy'} text-r-sm`}>Overall Rating</span>
-                      <span className="text-r-3xl font-bold text-lynx-sky">{skillRatings.overall_rating || 50}</span>
+                      <span className={`font-bold ${isDark ? 'text-[#4BB9EC]' : 'text-[#10284C]'} text-sm`}>Overall Rating</span>
+                      <span className="text-3xl font-extrabold text-[#4BB9EC]">{skillRatings.overall_rating || 50}</span>
                     </div>
                   </div>
                 </div>
@@ -725,8 +726,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
 
           {/* Coach Notes */}
           {skillRatings?.coach_notes && (
-            <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} mb-3 text-r-sm`}>📝 Coach Notes</h3>
+            <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-6 shadow-sm`}>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'} mb-3 text-sm`}>📝 Coach Notes</h3>
               <p className="text-slate-400 whitespace-pre-wrap text-r-sm">{skillRatings.coach_notes}</p>
             </div>
           )}
