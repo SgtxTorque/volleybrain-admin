@@ -3,9 +3,9 @@
 
 import { Edit, ChevronDown, ChevronUp, CheckCircle2, AlertCircle } from '../../constants/icons'
 
-const CARD_CLASSES = 'bg-white rounded-[14px] border border-slate-200 shadow-soft-sm'
-const INPUT_CLASSES = 'w-full px-4 py-3 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-lynx-sky focus:ring-2 focus:ring-lynx-sky/20 transition-colors'
-const LABEL_CLASSES = 'block text-r-sm font-semibold text-slate-700 mb-1.5'
+const CARD_CLASSES = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
+const INPUT_CLASSES = 'w-full px-4 py-3 rounded-xl border border-[#E8ECF2] text-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 transition-colors'
+const LABEL_CLASSES = 'block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5'
 
 // ─── Waivers and signature card ───────────────────────────────────────────
 function WaiversCard({ config, waiverState, setWaiverState, signature, setSignature }) {
@@ -15,8 +15,8 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
   return (
     <div className={`${CARD_CLASSES} p-6 mb-6`}>
       <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-lynx-sky/10 flex items-center justify-center">
-          <CheckCircle2 className="w-4 h-4 text-lynx-sky" />
+        <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
+          <CheckCircle2 className="w-4 h-4 text-[#4BB9EC]" />
         </div>
         Almost there — review and sign
       </h2>
@@ -26,14 +26,14 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
           return (
             <div
               key={key}
-              className="p-4 rounded-lg bg-lynx-cloud border border-slate-200"
+              className="p-4 rounded-lg bg-[#F5F6F8] border border-slate-200"
             >
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={waiverState[key] || false}
                   onChange={e => setWaiverState({ ...waiverState, [key]: e.target.checked })}
-                  className="w-5 h-5 rounded mt-0.5 accent-lynx-sky"
+                  className="w-5 h-5 rounded mt-0.5 accent-[#4BB9EC]"
                 />
                 <div>
                   <p className="font-semibold text-r-sm text-slate-900">
@@ -52,7 +52,7 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
       {/* Electronic Signature */}
       <div className="mt-6 pt-6 border-t border-slate-200">
         <h3 className="font-bold text-r-sm text-slate-900 mb-3 flex items-center gap-2">
-          <Edit className="w-4 h-4 text-lynx-sky" />
+          <Edit className="w-4 h-4 text-[#4BB9EC]" />
           Electronic Signature <span className="text-red-500">*</span>
         </h3>
         <p className="text-r-xs text-slate-500 mb-4 leading-relaxed">
@@ -68,7 +68,7 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
             value={signature}
             onChange={e => setSignature(e.target.value)}
             placeholder="e.g., John Smith"
-            className={`${INPUT_CLASSES} text-lg font-[cursive,serif] ${signature.trim() ? 'border-lynx-sky ring-2 ring-lynx-sky/20' : ''}`}
+            className={`${INPUT_CLASSES} text-lg font-[cursive,serif] ${signature.trim() ? 'border-[#4BB9EC] ring-2 ring-[#4BB9EC]/20' : ''}`}
           />
         </div>
         {signature.trim() && (
@@ -104,11 +104,11 @@ function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onT
           <p className="text-r-xs font-medium text-slate-500">
             {childrenCount > 0 ? `Total for ${childrenCount} ${childrenCount === 1 ? 'child' : 'children'}` : 'Fee per child'}
           </p>
-          <p className="text-r-3xl font-bold text-lynx-navy mt-0.5">
+          <p className="text-r-3xl font-bold text-[#10284C] mt-0.5">
             ${displayTotal.toFixed(2)}
           </p>
         </div>
-        <div className="p-2 rounded-lg bg-lynx-cloud border border-slate-200">
+        <div className="p-2 rounded-lg bg-[#F5F6F8] border border-slate-200">
           {showBreakdown
             ? <ChevronUp className="w-5 h-5 text-slate-500" />
             : <ChevronDown className="w-5 h-5 text-slate-500" />
@@ -153,12 +153,12 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
   const count = childrenCount + (currentChildName ? 1 : 0)
 
   return (
-    <div className="min-h-screen bg-lynx-cloud flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-6">
       <div className={`${CARD_CLASSES} p-10 max-w-md text-center animate-fade-in`}>
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
           <CheckCircle2 className="w-10 h-10 text-green-500" />
         </div>
-        <h1 className="text-r-2xl font-bold text-slate-900">Welcome to the Den!</h1>
+        <h1 className="text-2xl font-black text-[#10284C]" style={{ fontFamily: 'var(--v2-font)' }}>Welcome to the Den!</h1>
         <p className="mt-3 text-r-sm text-slate-600 leading-relaxed">
           {count} {count === 1 ? 'player' : 'players'} signed up for {seasonName} — you're all set!
         </p>
@@ -166,9 +166,9 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
           We'll send a confirmation email once your registration is reviewed. Hang tight!
         </p>
         {totalFee > 0 && (
-          <div className="mt-6 p-5 rounded-[14px] bg-lynx-cloud border border-slate-200">
+          <div className="mt-6 p-5 rounded-[14px] bg-[#F5F6F8] border border-slate-200">
             <p className="text-r-xs text-slate-500">Estimated total fees</p>
-            <p className="text-r-2xl font-bold text-lynx-navy mt-1">${totalFee.toFixed(2)}</p>
+            <p className="text-r-2xl font-bold text-[#10284C] mt-1">${totalFee.toFixed(2)}</p>
             <p className="text-r-xs text-slate-400 mt-1">Payment details will be sent after approval</p>
           </div>
         )}
@@ -181,7 +181,8 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
           </p>
           <a
             href="/"
-            className="inline-block mt-4 bg-lynx-sky text-white font-semibold py-3 px-8 rounded-[14px] hover:brightness-110 transition"
+            className="inline-block mt-4 bg-[#10284C] text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             Create Account
           </a>
@@ -203,7 +204,7 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
             <p className="text-r-xs text-slate-400">
               Questions? Contact {organization.name}
               {organization.email && (
-                <> at <a href={`mailto:${organization.email}`} className="text-lynx-sky hover:underline">{organization.email}</a></>
+                <> at <a href={`mailto:${organization.email}`} className="text-[#4BB9EC] hover:underline">{organization.email}</a></>
               )}
             </p>
           </div>
@@ -216,8 +217,8 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
 // ─── Loading spinner ──────────────────────────────────────────────────────
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-lynx-cloud flex items-center justify-center">
-      <div className="w-10 h-10 border-3 border-lynx-sky border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center">
+      <div className="w-10 h-10 border-3 border-[#4BB9EC] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }
@@ -225,7 +226,7 @@ function LoadingScreen() {
 // ─── Error screen (no season / org found) ─────────────────────────────────
 function ErrorScreen({ message }) {
   return (
-    <div className="min-h-screen bg-lynx-cloud flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-6">
       <div className={`${CARD_CLASSES} p-10 max-w-md text-center`}>
         <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="w-10 h-10 text-red-400" />

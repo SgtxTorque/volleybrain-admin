@@ -365,18 +365,18 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
   // ─── Main render ───────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-lynx-cloud">
+    <div className="min-h-screen bg-[#F5F6F8]">
       {/* Branded header */}
-      <div className="bg-lynx-navy">
-        <div className="px-4 py-8 text-center">
+      <div className="bg-gradient-to-br from-[#0B1628] to-[#10284C]">
+        <div className="px-4 py-10 text-center max-w-2xl mx-auto">
           {organization?.logo_url && (
             <img
               src={organization.logo_url}
               alt={organization.name}
-              className="w-20 h-20 mx-auto rounded-xl mb-4 object-cover border-2 border-white/20 shadow-soft-md"
+              className="w-20 h-20 mx-auto rounded-2xl mb-4 object-cover border-2 border-white/20 shadow-lg"
             />
           )}
-          <h1 className="text-r-2xl font-bold text-white">
+          <h1 className="text-2xl font-black text-white" style={{ fontFamily: 'var(--v2-font)' }}>
             {organization?.name || 'Join the Den'}
           </h1>
           {orgTagline && (
@@ -401,7 +401,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       )}
 
       {/* Form body */}
-      <div className="px-4 py-8">
+      <div className="px-4 py-8 max-w-2xl mx-auto">
         {/* Fee Preview */}
         <FeePreviewCard
           season={season}
@@ -471,7 +471,8 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           <button
             type="submit"
             disabled={submitting || (children.length === 0 && !currentChild.first_name)}
-            className="w-full py-4 rounded-lg font-bold text-r-lg transition-all bg-lynx-navy text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-soft-sm"
+            className="w-full py-4 rounded-xl font-bold text-lg transition-all bg-[#10284C] text-white hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             {submitting ? 'Submitting...' : `Let's Get Started${children.length > 1 ? ` (${children.length} children)` : ''}`}
           </button>

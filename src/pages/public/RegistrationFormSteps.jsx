@@ -5,11 +5,11 @@ import { Check, Edit, Plus, Trash2, Users, CheckCircle2, AlertCircle, Camera } f
 import { sortFieldsByOrder } from './registrationConstants'
 
 // ─── Tailwind class constants ─────────────────────────────────────────────
-const INPUT_CLASSES = 'w-full px-4 py-3 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-lynx-sky focus:ring-2 focus:ring-lynx-sky/20 transition-colors'
+const INPUT_CLASSES = 'w-full px-4 py-3 rounded-xl border border-[#E8ECF2] text-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 transition-colors'
 const SELECT_CLASSES = INPUT_CLASSES
 const TEXTAREA_CLASSES = `${INPUT_CLASSES} resize-none`
-const LABEL_CLASSES = 'block text-r-sm font-semibold text-slate-700 mb-1.5'
-const CARD_CLASSES = 'bg-white rounded-[14px] border border-slate-200 shadow-soft-sm'
+const LABEL_CLASSES = 'block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5'
+const CARD_CLASSES = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
 
 // ─── Individual field renderer ────────────────────────────────────────────
 function renderField(key, fieldConfig, formState, setFormState, trackFormStart) {
@@ -148,7 +148,7 @@ function FormSection({ title, fields, sectionKey, formState, setFormState, track
     <div>
       {title && (
         <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-          {IconComponent && <IconComponent className="w-5 h-5 text-lynx-sky" />}
+          {IconComponent && <IconComponent className="w-5 h-5 text-[#4BB9EC]" />}
           {title}
         </h2>
       )}
@@ -168,14 +168,14 @@ function ChildrenListCard({ children, onEdit, onRemove }) {
   return (
     <div className={`${CARD_CLASSES} p-6 mb-6`}>
       <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-        <Users className="w-5 h-5 text-lynx-sky" />
+        <Users className="w-5 h-5 text-[#4BB9EC]" />
         Children to Register ({children.length})
       </h2>
       <div className="space-y-3">
         {children.map((child, index) => (
           <div
             key={index}
-            className="flex items-center justify-between p-3 rounded-lg bg-lynx-cloud border border-slate-100"
+            className="flex items-center justify-between p-3 rounded-lg bg-[#F5F6F8] border border-slate-100"
           >
             <div>
               <p className="font-semibold text-r-sm text-slate-900">
@@ -191,7 +191,7 @@ function ChildrenListCard({ children, onEdit, onRemove }) {
               <button
                 type="button"
                 onClick={() => onEdit(index)}
-                className="p-2 rounded-lg hover:bg-white transition-colors text-slate-500 hover:text-lynx-navy"
+                className="p-2 rounded-lg hover:bg-white transition-colors text-slate-500 hover:text-[#10284C]"
               >
                 <Edit className="w-4 h-4" />
               </button>
@@ -223,8 +223,8 @@ function PlayerInfoCard({
     <div className={`${CARD_CLASSES} p-6 mb-6`}>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-r-lg font-bold text-slate-900 flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-lynx-sky/10 flex items-center justify-center">
-            <Users className="w-4 h-4 text-lynx-sky" />
+          <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
+            <Users className="w-4 h-4 text-[#4BB9EC]" />
           </div>
           {isEditing ? 'Edit Child' : childrenCount > 0 ? 'Add Another Child' : 'Child Information'}
         </h2>
@@ -250,7 +250,7 @@ function PlayerInfoCard({
       {/* Optional player photo upload */}
       <div className="mt-4 mb-2">
         <label className={LABEL_CLASSES}>Player Photo <span className="text-slate-400 font-normal">(optional)</span></label>
-        <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-slate-200 cursor-pointer hover:border-lynx-sky hover:bg-lynx-cloud/50 transition-colors">
+        <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-slate-200 cursor-pointer hover:border-[#4BB9EC] hover:bg-[#F5F6F8]/50 transition-colors">
           <input type="file" accept="image/*" className="hidden" onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) {
@@ -269,8 +269,8 @@ function PlayerInfoCard({
             </>
           ) : (
             <>
-              <div className="w-12 h-12 rounded-lg bg-lynx-sky/10 flex items-center justify-center">
-                <Camera className="w-5 h-5 text-lynx-sky" />
+              <div className="w-12 h-12 rounded-lg bg-[#4BB9EC]/10 flex items-center justify-center">
+                <Camera className="w-5 h-5 text-[#4BB9EC]" />
               </div>
               <div>
                 <p className="text-r-sm font-semibold text-slate-700">Add a photo so coaches can identify your player!</p>
@@ -285,7 +285,7 @@ function PlayerInfoCard({
         <button
           type="button"
           onClick={onSaveChild}
-          className="w-full py-3 rounded-lg font-bold text-r-sm flex items-center justify-center gap-2 transition-all bg-lynx-navy text-white hover:brightness-110"
+          className="w-full py-3 rounded-lg font-bold text-r-sm flex items-center justify-center gap-2 transition-all bg-[#10284C] text-white hover:brightness-110"
         >
           <Check className="w-5 h-5" />
           {isEditing ? 'Save Changes' : 'Save Child'}
@@ -309,7 +309,7 @@ function AddChildButton({ visible, onClick }) {
       <button
         type="button"
         onClick={onClick}
-        className="w-full py-3 rounded-lg font-semibold text-r-sm flex items-center justify-center gap-2 transition-colors border-2 border-dashed border-slate-300 text-slate-600 bg-white hover:border-lynx-sky hover:text-lynx-navy hover:bg-lynx-cloud"
+        className="w-full py-3 rounded-lg font-semibold text-r-sm flex items-center justify-center gap-2 transition-colors border-2 border-dashed border-slate-300 text-slate-600 bg-white hover:border-[#4BB9EC] hover:text-[#10284C] hover:bg-[#F5F6F8]"
       >
         <Plus className="w-5 h-5" /> Add Another Child
       </button>
@@ -331,8 +331,8 @@ function SharedInfoCard({ config, sharedInfo, setSharedInfo, trackFormStart }) {
       {hasParentFields && (
         <div>
           <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-lynx-sky/10 flex items-center justify-center">
-              <Users className="w-4 h-4 text-lynx-sky" />
+            <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
+              <Users className="w-4 h-4 text-[#4BB9EC]" />
             </div>
             Parent/Guardian Information
           </h2>
@@ -421,8 +421,8 @@ function CustomQuestionsCard({ config, customAnswers, setCustomAnswers }) {
   return (
     <div className={`${CARD_CLASSES} p-6 mb-6`}>
       <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-lynx-sky/10 flex items-center justify-center">
-          <AlertCircle className="w-4 h-4 text-lynx-sky" />
+        <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
+          <AlertCircle className="w-4 h-4 text-[#4BB9EC]" />
         </div>
         Additional Questions
       </h2>
@@ -458,7 +458,7 @@ function CustomQuestionsCard({ config, customAnswers, setCustomAnswers }) {
                   type="checkbox"
                   checked={customAnswers[q.id] || false}
                   onChange={e => setCustomAnswers({ ...customAnswers, [q.id]: e.target.checked })}
-                  className="w-5 h-5 rounded accent-lynx-sky"
+                  className="w-5 h-5 rounded accent-[#4BB9EC]"
                 />
                 <span className="text-r-sm text-slate-700">Yes</span>
               </label>
