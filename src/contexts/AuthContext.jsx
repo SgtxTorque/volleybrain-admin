@@ -147,6 +147,12 @@ export function AuthProvider({ children }) {
   }
 
   async function signOut() {
+    // Clear persisted navigation/filter state to prevent session bleed
+    localStorage.removeItem('vb_selected_season')
+    localStorage.removeItem('vb_selected_sport')
+    localStorage.removeItem('returnToOrgSetup')
+    localStorage.removeItem('lynx-recent-searches')
+
     await supabase.auth.signOut()
     setUser(null)
     setProfile(null)
@@ -154,6 +160,9 @@ export function AuthProvider({ children }) {
     setIsAdmin(false)
     setIsPlatformAdmin(false)
     setNeedsOnboarding(false)
+
+    // Reset URL to root so next login lands on dashboard (not previous user's page)
+    window.history.replaceState(null, '', '/')
   }
 
   async function completeOnboarding() {
