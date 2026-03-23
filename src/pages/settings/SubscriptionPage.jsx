@@ -266,25 +266,27 @@ function SubscriptionPage({ showToast }) {
       <style>{SUB_STYLES}</style>
       <div className="space-y-6 w-full">
 
-        {/* HEADER */}
+        {/* NAVY HERO HEADER */}
         <div className="sb-au" style={{ animationDelay: '.05s' }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className={`text-3xl sm:text-4xl ${tc.text}`}>SUBSCRIPTION & BILLING</h1>
-              <p className={`text-sm ${tc.textMuted} mt-1`}>
-                Manage your plan, billing, and invoices
-              </p>
+          <div className="bg-[#10284C] rounded-2xl p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>Subscription & Billing</h1>
+                <p className="text-sm text-white/50 mt-1">
+                  Manage your plan, billing, and invoices
+                </p>
+              </div>
+              <button onClick={loadSubscription} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition bg-white/[0.08] hover:bg-white/[0.14] text-white border border-white/[0.1]">
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </button>
             </div>
-            <button onClick={loadSubscription} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'}`}>
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
           </div>
         </div>
 
         {/* CURRENT PLAN BANNER */}
         <div className="sb-au" style={{ animationDelay: '.1s' }}>
-          <div className={`sb-glass rounded-xl p-5 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <div className={`rounded-[14px] p-5 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${currentPlan.color}15` }}>
                 <currentPlan.icon className="w-6 h-6" style={{ color: currentPlan.color }} />
@@ -382,8 +384,8 @@ function SubscriptionPage({ showToast }) {
                 style={{ animationDelay: `${0.2 + i * 0.06}s` }}
               >
                 <div
-                  className={`sb-glass rounded-xl p-5 h-full flex flex-col relative transition ${
-                    isDark ? 'hover:bg-white/[.06]' : 'bg-white/80 border-slate-200 hover:bg-white'
+                  className={`rounded-[14px] p-5 h-full flex flex-col relative transition ${
+                    isDark ? 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]' : 'bg-white border border-[#E8ECF2] hover:shadow-lg'
                   } ${plan.popular ? 'ring-2' : ''}`}
                   style={plan.popular ? { '--tw-ring-color': plan.color, borderColor: `${plan.color}40` } : {}}
                 >
@@ -471,8 +473,8 @@ function SubscriptionPage({ showToast }) {
 
         {/* PAYMENT METHOD */}
         <div className="sb-au" style={{ animationDelay: '.5s' }}>
-          <h2 className={`text-lg ${tc.text} mb-3`}>PAYMENT METHOD</h2>
-          <div className={`sb-glass rounded-xl p-5 ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <h2 className={`text-xs font-black uppercase tracking-widest mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={{ fontFamily: 'var(--v2-font)' }}>Payment Method</h2>
+          <div className={`rounded-[14px] p-5 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
                 <CreditCard className="w-6 h-6" style={{ color: accentColor }} />
@@ -491,8 +493,8 @@ function SubscriptionPage({ showToast }) {
 
         {/* BILLING HISTORY */}
         <div className="sb-au" style={{ animationDelay: '.55s' }}>
-          <h2 className={`text-lg ${tc.text} mb-3`}>BILLING HISTORY</h2>
-          <div className={`sb-glass rounded-xl overflow-hidden ${isDark ? '' : 'bg-white/80 border-slate-200'}`}>
+          <h2 className={`text-xs font-black uppercase tracking-widest mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={{ fontFamily: 'var(--v2-font)' }}>Billing History</h2>
+          <div className={`rounded-[14px] overflow-hidden ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             {invoices.length === 0 ? (
               <div className="p-8 text-center">
                 <Receipt className="w-8 h-8 mx-auto mb-2" style={{ color: `${accentColor}50` }} />
