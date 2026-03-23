@@ -293,7 +293,7 @@ function SetupSectionContent({
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
+              <SectionSelect {...fp}
                 label="Organization Type"
                 field="orgType"
                 options={[
@@ -340,7 +340,7 @@ function SetupSectionContent({
               <div className="col-span-2">
                 <SectionInput {...fp} label="City" field="city" placeholder="Dallas" required />
               </div>
-              <Select
+              <SectionSelect {...fp}
                 label="State"
                 field="state"
                 required
@@ -355,7 +355,7 @@ function SetupSectionContent({
               <SectionInput {...fp} label="ZIP" field="zip" placeholder="75001" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
+              <SectionSelect {...fp}
                 label="Time Zone"
                 field="timezone"
                 options={[
@@ -602,7 +602,7 @@ function SetupSectionContent({
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SectionInput {...fp} label="Legal Entity Name" field="legalName" placeholder="Black Hornets Volleyball LLC" helpText="If different from org name" />
-              <Select
+              <SectionSelect {...fp}
                 label="Entity Type"
                 field="entityType"
                 options={[
@@ -727,7 +727,7 @@ function SetupSectionContent({
             <div className={`p-4 rounded-xl border ${tc.border}`}>
               <p className={`font-medium ${tc.text} mb-4`}>⚙️ Payment Settings</p>
               <div className="space-y-4">
-                <Toggle
+                <SectionToggle {...fp}
                   label="Allow Payment Plans"
                   field="allowPaymentPlans"
                   helpText="Let families split payments into installments"
@@ -1129,7 +1129,7 @@ function SetupSectionContent({
                 <span>📧</span> Email Notifications
               </h4>
 
-              <Toggle
+              <SectionToggle {...fp}
                 label="Enable Email Notifications"
                 field="emailNotificationsEnabled"
                 helpText="Send automated emails for registration events"
