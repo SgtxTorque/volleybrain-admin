@@ -4,10 +4,10 @@ import { useSeason, isAllSeasons } from '../../contexts/SeasonContext';
 import { useSport } from '../../contexts/SportContext';
 import { useAuth } from '../../contexts/AuthContext';
 import {
-  Bell, Send, Clock, CheckCircle, XCircle, AlertTriangle, Users,
+  Bell, Send, Clock, CheckCircle2, XCircle, AlertTriangle, Users,
   RefreshCw, Settings, ChevronDown, ChevronRight, Eye, Trash2,
-  Smartphone, Mail, Filter, Search, BarChart3, Zap, MessageSquare
-} from 'lucide-react';
+  Mail, Filter, Search, BarChart3, Zap, MessageSquare
+} from '../../constants/icons';
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext';
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
@@ -135,8 +135,8 @@ export function NotificationsPage({ showToast }) {
 
   const statusConfig = {
     pending: { icon: Clock, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' },
-    sent: { icon: CheckCircle, color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
-    delivered: { icon: CheckCircle, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
+    sent: { icon: CheckCircle2, color: '#10B981', bg: 'rgba(16,185,129,0.1)' },
+    delivered: { icon: CheckCircle2, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)' },
     failed: { icon: XCircle, color: '#EF4444', bg: 'rgba(239,68,68,0.1)' },
     skipped: { icon: AlertTriangle, color: '#6B7280', bg: 'rgba(107,114,128,0.1)' },
   };
@@ -157,14 +157,14 @@ export function NotificationsPage({ showToast }) {
         <div className="flex gap-3">
           <button
             onClick={loadData}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-medium transition ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-white hover:bg-white/[0.04]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}`}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition ${isDark ? 'bg-white/[0.03] border border-white/[0.06] text-white hover:bg-white/[0.06]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             Refresh
           </button>
           <button
             onClick={() => setShowSendModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-bold bg-lynx-navy text-white hover:brightness-110 transition"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#10284C] text-white hover:brightness-110 transition"
           >
             <Send size={16} />
             Send Notification
@@ -174,18 +174,19 @@ export function NotificationsPage({ showToast }) {
     >
       <SeasonFilterBar />
       {/* Tabs */}
-      <div className={`flex gap-1 rounded-xl p-1 border mb-6 w-fit ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+      <div className="flex flex-wrap gap-1 mb-6">
         {tabs.map(tab => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-bold transition ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition ${
                 activeTab === tab.id
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                  : `text-slate-400 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]'}`
               }`}
+              style={{ fontFamily: 'var(--v2-font)' }}
             >
               <Icon size={16} />
               {tab.label}
@@ -255,19 +256,19 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
       ]} />
 
       {/* Type Breakdown */}
-      <div className={`p-6 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-r-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      <div className={`p-6 rounded-[14px] ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
           Notifications by Type
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).map(([type, count]) => {
             const config = typeConfig[type] || typeConfig.general;
             return (
-              <div key={type} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+              <div key={type} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
                 <span className="text-xl">{config.icon}</span>
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{config.label}</div>
-                  <div className={`text-r-lg font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>{count}</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{config.label}</div>
+                  <div className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{count}</div>
                 </div>
               </div>
             );
@@ -279,8 +280,8 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
       </div>
 
       {/* Recent Activity */}
-      <div className={`p-6 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <h3 className={`text-r-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      <div className={`p-6 rounded-[14px] ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
           Recent Activity
         </h3>
         <div className="space-y-2">
@@ -289,11 +290,11 @@ function DashboardView({ stats, notifications, typeConfig, statusConfig }) {
             const sConfig = statusConfig[n.push_status] || statusConfig.pending;
             const StatusIcon = sConfig.icon;
             return (
-              <div key={n.id} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
+              <div key={n.id} className={`flex items-center gap-3 p-3 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
                 <span className="text-lg">{tConfig.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-r-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{n.title}</div>
-                  <div className="text-r-xs truncate text-slate-400">{n.profiles?.full_name || 'Unknown user'}</div>
+                  <div className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{n.title}</div>
+                  <div className="text-xs truncate text-slate-400">{n.profiles?.full_name || 'Unknown user'}</div>
                 </div>
                 <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold" style={{ background: sConfig.bg, color: sConfig.color }}>
                   <StatusIcon size={12} />
@@ -331,13 +332,13 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
             placeholder="Search notifications..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`w-full pl-10 pr-4 px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+            className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-medium outline-none transition focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400'}`}
           />
         </div>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+          className={`px-4 py-2.5 rounded-xl border text-sm font-medium outline-none transition focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C]'}`}
         >
           <option value="all">All Types</option>
           {Object.entries(typeConfig).map(([key, cfg]) => (
@@ -347,7 +348,7 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+          className={`px-4 py-2.5 rounded-xl border text-sm font-medium outline-none transition focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C]'}`}
         >
           <option value="all">All Status</option>
           <option value="sent">Sent</option>
@@ -368,7 +369,7 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
           return (
             <div
               key={n.id}
-              className={`rounded-[14px] overflow-hidden transition-all ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}
+              className={`rounded-[14px] overflow-hidden transition-all ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}
             >
               <div
                 className={`flex items-center gap-3 p-4 cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'}`}
@@ -376,8 +377,8 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
               >
                 <span className="text-lg">{tConfig.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-r-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{n.title}</div>
-                  <div className="text-r-xs text-slate-400">{n.body?.substring(0, 80)}{n.body?.length > 80 ? '...' : ''}</div>
+                  <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>{n.title}</div>
+                  <div className="text-xs text-slate-400">{n.body?.substring(0, 80)}{n.body?.length > 80 ? '...' : ''}</div>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold" style={{ background: sConfig.bg, color: sConfig.color }}>
@@ -390,7 +391,7 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
               </div>
 
               {isExpanded && (
-                <div className={`px-4 pb-4 pt-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+                <div className={`px-4 pb-4 pt-2 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
                   <div className="grid grid-cols-2 gap-4 text-r-sm">
                     <div>
                       <span className="text-r-xs block text-slate-400">Recipient</span>
@@ -431,8 +432,8 @@ function HistoryView({ notifications, typeConfig, statusConfig, filterType, setF
             <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
               <Bell size={24} className="text-slate-400" />
             </div>
-            <p className={`text-r-sm mt-4 ${isDark ? 'text-white' : 'text-slate-900'} font-bold`}>No notifications match your filters</p>
-            <p className="text-r-xs text-slate-400 mt-1">Try adjusting your search or filter criteria</p>
+            <p className={`text-sm mt-4 ${isDark ? 'text-white' : 'text-[#10284C]'} font-bold`} style={{ fontFamily: 'var(--v2-font)' }}>No notifications match your filters</p>
+            <p className="text-xs text-slate-400 mt-1">Try adjusting your search or filter criteria</p>
           </div>
         )}
       </div>
@@ -472,12 +473,12 @@ function TemplatesView({ templates, typeConfig, showToast, onRefresh }) {
           return (
             <div
               key={tmpl.id}
-              className={`flex items-center gap-4 p-4 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}
+              className={`flex items-center gap-4 p-4 rounded-[14px] ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}
               style={{ opacity: tmpl.is_active ? 1 : 0.5 }}
             >
               <span className="text-2xl">{config.icon}</span>
               <div className="flex-1">
-                <div className={`text-r-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{tmpl.name}</div>
+                <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>{tmpl.name}</div>
                 <div className="text-r-xs mt-1 text-slate-400">
                   <span className="font-medium">Title:</span> {tmpl.title_template}
                 </div>
@@ -485,12 +486,12 @@ function TemplatesView({ templates, typeConfig, showToast, onRefresh }) {
                   <span className="font-medium">Body:</span> {tmpl.body_template}
                 </div>
                 <div className="text-r-xs mt-1 text-slate-400">
-                  Trigger: <code className="text-lynx-sky">{tmpl.trigger_event}</code>
+                  Trigger: <code className="text-[#4BB9EC]">{tmpl.trigger_event}</code>
                 </div>
               </div>
               <button
                 onClick={() => toggleTemplate(tmpl.id, tmpl.is_active)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${tmpl.is_active ? 'bg-lynx-sky' : isDark ? 'bg-white/15' : 'bg-slate-300'}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${tmpl.is_active ? 'bg-[#4BB9EC]' : isDark ? 'bg-white/15' : 'bg-slate-300'}`}
               >
                 <div
                   className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
@@ -505,8 +506,8 @@ function TemplatesView({ templates, typeConfig, showToast, onRefresh }) {
             <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
               <Settings size={24} className="text-slate-400" />
             </div>
-            <p className={`text-r-sm font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No templates configured</p>
-            <p className="text-r-xs text-slate-400 mt-1">Run the SQL migration to seed default templates.</p>
+            <p className={`text-sm font-bold mt-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>No templates configured</p>
+            <p className="text-xs text-slate-400 mt-1">Run the SQL migration to seed default templates.</p>
           </div>
         )}
       </div>
@@ -593,17 +594,17 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
     }
   };
 
-  const inputCls = `w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
+  const inputCls = `w-full px-4 py-2.5 rounded-xl border text-sm font-medium outline-none transition focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400'}`
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className={`w-full max-w-lg rounded-[14px] overflow-hidden ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}
+        className={`w-full max-w-lg rounded-[14px] overflow-hidden ${isDark ? 'bg-[#0B1D35] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2]'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
-          <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <div className={`p-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+          <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
             Send Push Notification
           </h2>
         </div>
@@ -612,7 +613,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
         <div className="p-5 space-y-4">
           {/* Target */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">SEND TO</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">SEND TO</label>
             <div className="flex gap-2">
               {[
                 { id: 'team', label: 'Team', icon: Users },
@@ -623,10 +624,10 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
                   <button
                     key={opt.id}
                     onClick={() => setTarget(opt.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-r-sm font-bold transition ${
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition ${
                       target === opt.id
-                        ? 'bg-lynx-sky/20 text-lynx-sky'
-                        : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'}`
+                        ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                        : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-[#F5F6F8]'}`
                     }`}
                   >
                     <Icon size={14} />
@@ -640,7 +641,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
           {/* Team selector */}
           {target === 'team' && (
             <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">SELECT TEAM</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">SELECT TEAM</label>
               <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className={inputCls}>
                 <option value="">Choose a team...</option>
                 {teams.map(t => (
@@ -652,7 +653,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
 
           {/* Type */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">TYPE</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">TYPE</label>
             <select value={type} onChange={(e) => setType(e.target.value)} className={inputCls}>
               <option value="announcement">Announcement</option>
               <option value="game_reminder">Game Reminder</option>
@@ -663,29 +664,29 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
 
           {/* Title */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">TITLE</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">TITLE</label>
             <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Notification title..." className={inputCls} />
           </div>
 
           {/* Body */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">MESSAGE</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">MESSAGE</label>
             <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Notification message..." rows={3} className={`${inputCls} resize-none`} />
           </div>
         </div>
 
         {/* Footer */}
-        <div className={`p-5 border-t flex justify-end gap-3 ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+        <div className={`p-5 border-t flex justify-end gap-3 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
           <button
             onClick={onClose}
-            className={`px-5 py-2 rounded-lg text-r-sm font-medium border ${isDark ? 'border-white/[0.06] text-white hover:bg-white/[0.04]' : 'border-slate-200 text-slate-700 hover:bg-slate-100'}`}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold border ${isDark ? 'border-white/[0.08] text-white hover:bg-white/[0.04]' : 'border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
           >
             Cancel
           </button>
           <button
             onClick={handleSend}
             disabled={sending || !title.trim() || !body.trim()}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-r-sm font-bold bg-lynx-navy text-white hover:brightness-110 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#10284C] text-white hover:brightness-110 transition disabled:opacity-50"
           >
             <Send size={14} />
             {sending ? 'Sending...' : 'Send'}
