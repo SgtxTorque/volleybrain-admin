@@ -36,7 +36,7 @@ function OrganizationPage({ showToast }) {
     try {
       // Load waivers
       const { data: waiverData } = await supabase
-        .from('waivers')
+        .from('waiver_templates')
         .select('*')
         .eq('organization_id', organization.id)
       setWaivers(waiverData || [])
