@@ -173,6 +173,11 @@ function WaiversPage({ showToast }) {
     return true
   })
 
+  // Stat counts for header
+  const totalWaivers = templates.length
+  const activeWaivers = templates.filter(t => t.is_active).length
+  const requiredWaivers = templates.filter(t => t.is_required).length
+
   return (
     <PageShell
       title="Waiver Management"
@@ -180,11 +185,41 @@ function WaiversPage({ showToast }) {
       breadcrumb="Setup > Waivers"
       actions={<div className="flex items-center gap-3">
         {dbReady && (<button onClick={() => setShowSendModal(true)}
-          className="px-4 py-2.5 rounded-lg border border-slate-200 text-slate-800 font-medium text-r-sm hover:bg-slate-100 transition">Send Ad-Hoc</button>)}
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm transition ${isDark ? 'bg-white/[0.06] border border-white/[0.1] text-white hover:bg-white/[0.1]' : 'bg-[#F5F6F8] border border-[#E8ECF2] text-[#10284C] hover:bg-[#E8ECF2]'}`}>Send Ad-Hoc</button>)}
         <button onClick={() => dbReady ? setShowCreateModal(true) : showToast('Run the migration first', 'error')}
-          className="bg-lynx-navy text-white font-bold px-4 py-2.5 rounded-lg text-r-sm hover:brightness-110">+ New Waiver</button>
+          className="bg-[#10284C] text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:brightness-110" style={{ fontFamily: 'var(--v2-font)' }}>+ New Waiver</button>
       </div>}
     >
+      {/* Navy Stat Header */}
+      <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+              Waiver Templates
+            </h2>
+            <p className="text-sm text-white/50">Manage liability, photo, and custom waivers</p>
+          </div>
+          <div className="text-right">
+            <span className="text-4xl font-black italic text-[#4BB9EC]">{totalWaivers}</span>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Templates</div>
+          </div>
+        </div>
+        <div className="flex gap-6 text-xs font-bold text-white/50">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#22C55E] inline-block" />
+            {activeWaivers} Active
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+            {requiredWaivers} Required
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
+            {totalWaivers - activeWaivers} Inactive
+          </span>
+        </div>
+      </div>
+
       {/* DB Warning */}
       {!dbReady && (
         <div className={`flex items-center gap-3 px-5 py-3 rounded-[14px] mb-6 ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
@@ -198,13 +233,16 @@ function WaiversPage({ showToast }) {
         </div>
       )}
 
-      {/* View Tabs (pill style) */}
+      {/* View Tabs (V2 pill style) */}
       {dbReady && (
-        <div className="flex items-center gap-1 rounded-xl p-1 border border-slate-200 w-fit mb-6">
+        <div className={`flex items-center gap-1 rounded-xl p-1 w-fit mb-6 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'border border-[#E8ECF2]'}`}>
           {VIEW_TABS.map(tab => (
             <button key={tab.id} onClick={() => setView(tab.id)}
-              className={`px-4 py-2 rounded-lg text-r-sm font-medium transition ${
-                view === tab.id ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-500 hover:bg-slate-100'}`}>
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition ${
+                view === tab.id
+                  ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                  : isDark ? 'text-slate-500 hover:bg-white/[0.06]' : 'text-slate-400 hover:bg-[#F5F6F8]'
+              }`} style={{ fontFamily: 'var(--v2-font)' }}>
               {tab.icon} {tab.label}
             </button>
           ))}
@@ -217,32 +255,37 @@ function WaiversPage({ showToast }) {
           {/* LEFT: Filters + List */}
           <div className="space-y-3">
             {templates.length > 3 && (
-              <div className={`${tc.cardBg} border border-slate-200 rounded-[14px] p-3 space-y-2`}>
-                <p className={`text-[10px] font-bold uppercase tracking-wider ${tc.textMuted}`}>Filters</p>
-                <select value={filterType} onChange={e => setFilterType(e.target.value)} className={selectCls}>
+              <div className={`rounded-[14px] p-3 space-y-2 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+                <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={{ fontFamily: 'var(--v2-font)' }}>Filters</p>
+                <select value={filterType} onChange={e => setFilterType(e.target.value)}
+                  className={`w-full text-xs px-3 py-2 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'} focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10`}>
                   <option value="all">All Types</option><option value="standard">Standard</option>
                   <option value="sport_specific">Sport-Specific</option><option value="adhoc">Ad-Hoc</option>
                 </select>
                 {enabledSports.length > 1 && (
-                  <select value={filterSport} onChange={e => setFilterSport(e.target.value)} className={selectCls}>
+                  <select value={filterSport} onChange={e => setFilterSport(e.target.value)}
+                    className={`w-full text-xs px-3 py-2 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'} focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10`}>
                     <option value="all">All Sports</option>
                     {enabledSports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
                   </select>
                 )}
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className={selectCls}>
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                  className={`w-full text-xs px-3 py-2 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'} focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10`}>
                   <option value="all">Active & Inactive</option><option value="active">Active Only</option><option value="inactive">Inactive Only</option>
                 </select>
               </div>
             )}
 
             {loading ? (
-              <div className={`p-8 text-center ${tc.textMuted}`}>Loading...</div>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-[#4BB9EC] border-t-transparent rounded-full animate-spin" />
+              </div>
             ) : filtered.length === 0 ? (
-              <div className={`${tc.cardBg} border border-slate-200 rounded-[14px] p-6 text-center`}>
+              <div className={`rounded-[14px] p-6 text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
                 <p className="text-4xl mb-3">📋</p>
-                <p className={`font-semibold ${tc.text}`}>{templates.length === 0 ? 'No waivers yet' : 'No matches'}</p>
+                <p className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{templates.length === 0 ? 'No waivers yet' : 'No matches'}</p>
                 {templates.length === 0 && (
-                  <button onClick={() => setShowCreateModal(true)} className="mt-4 px-4 py-2 rounded-[14px] bg-lynx-navy text-white text-sm font-medium">+ Create Waiver</button>
+                  <button onClick={() => setShowCreateModal(true)} className="mt-4 px-4 py-2.5 rounded-xl bg-[#10284C] text-white text-sm font-bold hover:brightness-110">+ Create Waiver</button>
                 )}
               </div>
             ) : filtered.map((t, idx) => {
@@ -251,25 +294,28 @@ function WaiversPage({ showToast }) {
               const isSelected = selectedTemplate?.id === t.id
               return (
                 <div key={t.id} onClick={() => setSelectedTemplate(t)}
-                  className={`w-full text-left p-3 rounded-[14px] border transition cursor-pointer group ${
-                    isSelected ? 'bg-lynx-sky/10 border-lynx-sky/50' : `${tc.cardBg} border-slate-200 hover:border-lynx-sky/30`}`}>
+                  className={`w-full text-left p-3.5 rounded-[14px] border transition cursor-pointer group ${
+                    isSelected
+                      ? 'bg-[#4BB9EC]/10 border-[#4BB9EC]/40 ring-2 ring-[#4BB9EC]/20'
+                      : isDark ? 'bg-white/[0.03] border-white/[0.06] hover:border-[#4BB9EC]/30' : 'bg-white border-[#E8ECF2] hover:border-[#4BB9EC]/30'
+                  }`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className={`font-medium text-sm truncate ${isSelected ? tc.text : tc.textSecondary}`}>{t.name}</p>
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                      <p className={`font-bold text-sm truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>{t.name}</p>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full ${isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-[#F5F6F8] text-slate-500'}`}>
                           {typeMeta.icon} {typeMeta.label}
                         </span>
-                        {sport && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-50 text-purple-700'}`}>{sport.icon} {sport.name}</span>}
-                        {t.is_required && <span className="text-[9px] font-bold uppercase text-red-500">Required</span>}
-                        {!t.is_active && <span className="text-[9px] font-bold uppercase text-amber-500">Inactive</span>}
-                        {t._legacy && <span className="text-[9px] font-bold uppercase text-orange-500">Legacy</span>}
+                        {sport && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isDark ? 'bg-purple-500/15 text-purple-300' : 'bg-purple-50 text-purple-700'}`}>{sport.icon} {sport.name}</span>}
+                        {t.is_required && <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400">Required</span>}
+                        {!t.is_active && <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500">Inactive</span>}
+                        {t._legacy && <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400">Legacy</span>}
                         {t.pdf_url && <span className="text-[9px]">📎</span>}
                       </div>
                     </div>
                     <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                      {idx > 0 && <button onClick={e => { e.stopPropagation(); moveTemplate(idx, -1) }} className={`text-xs ${tc.textMuted}`}>▲</button>}
-                      {idx < filtered.length - 1 && <button onClick={e => { e.stopPropagation(); moveTemplate(idx, 1) }} className={`text-xs ${tc.textMuted}`}>▼</button>}
+                      {idx > 0 && <button onClick={e => { e.stopPropagation(); moveTemplate(idx, -1) }} className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>▲</button>}
+                      {idx < filtered.length - 1 && <button onClick={e => { e.stopPropagation(); moveTemplate(idx, 1) }} className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>▼</button>}
                     </div>
                   </div>
                 </div>
@@ -284,9 +330,9 @@ function WaiversPage({ showToast }) {
               onSave={saveTemplate} onDelete={deleteTemplate} onDuplicate={duplicateTemplate}
               onPreview={() => setShowPreview(true)} showToast={showToast} />
           ) : templates.length > 0 ? (
-            <div className={`lg:col-span-3 ${tc.cardBg} border border-slate-200 rounded-[14px] p-10 text-center`}>
+            <div className={`lg:col-span-3 rounded-[14px] p-10 text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
               <p className="text-4xl mb-3">👈</p>
-              <p className={`font-medium ${tc.text}`}>Select a waiver to edit</p>
+              <p className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>Select a waiver to edit</p>
             </div>
           ) : null}
         </div>
