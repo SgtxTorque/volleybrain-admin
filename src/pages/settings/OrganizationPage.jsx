@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -715,6 +715,26 @@ function OrganizationPage({ showToast }) {
     { name: 'Configuration', sections: configSections },
   ]
 
+  // Keyboard navigation for left nav panel
+  const navRef = useRef(null)
+  const handleNavKeyDown = useCallback((e) => {
+    if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) return
+    e.preventDefault()
+    const allKeys = sections.map(s => s.key)
+    const currentIdx = allKeys.indexOf(expandedSection)
+    if (e.key === 'ArrowDown') {
+      const next = currentIdx < allKeys.length - 1 ? currentIdx + 1 : 0
+      setExpandedSection(allKeys[next])
+      // Focus the next button
+      navRef.current?.querySelectorAll('[data-nav-section]')?.[next]?.focus()
+    } else if (e.key === 'ArrowUp') {
+      const prev = currentIdx > 0 ? currentIdx - 1 : allKeys.length - 1
+      setExpandedSection(allKeys[prev])
+      navRef.current?.querySelectorAll('[data-nav-section]')?.[prev]?.focus()
+    }
+    // Enter and Space already handled by <button> default behavior (onClick)
+  }, [expandedSection, sections])
+
   // Left nav section button renderer
   function renderNavSection(section) {
     const status = getSectionStatus(section.key)
@@ -722,7 +742,9 @@ function OrganizationPage({ showToast }) {
     return (
       <button
         key={section.key}
+        data-nav-section={section.key}
         onClick={() => setExpandedSection(section.key)}
+        onKeyDown={handleNavKeyDown}
         className={`w-full text-left px-3 py-2 flex items-center gap-2.5 transition-all rounded-lg ${
           isActive
             ? isDark ? 'bg-[#4BB9EC]/[0.12] border-l-[3px] border-l-[#4BB9EC]' : 'bg-[#4BB9EC]/[0.08] border-l-[3px] border-l-[#10284C]'
@@ -794,7 +816,7 @@ function OrganizationPage({ showToast }) {
       {/* 2-Column Layout — desktop */}
       <div className="hidden md:flex gap-0" style={{ minHeight: 'calc(100vh - 300px)' }}>
         {/* LEFT NAV PANEL */}
-        <div className={`w-[260px] shrink-0 rounded-l-[14px] overflow-y-auto py-3 ${
+        <div ref={navRef} role="listbox" aria-label="Setup sections" className={`w-[260px] shrink-0 rounded-l-[14px] overflow-y-auto py-3 ${
           isDark ? 'bg-white/[0.02] border-r border-white/[0.06]' : 'bg-white border-r border-[#E8ECF2]'
         }`} style={{ maxHeight: 'calc(100vh - 300px)' }}>
           {categories.map(cat => (
