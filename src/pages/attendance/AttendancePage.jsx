@@ -216,16 +216,16 @@ function AttendancePage({ showToast }) {
       {/* Filters */}
       <div className="flex gap-3 items-center mb-5 flex-wrap">
         <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700">
+          className={`px-4 py-2.5 rounded-xl border text-sm font-medium outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`}>
           <option value="all">All Teams</option>
           {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
 
-        <div className="flex rounded-xl p-1 border border-slate-200 bg-white">
+        <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
           {['upcoming', 'past', 'all'].map(mode => (
             <button key={mode} onClick={() => setViewMode(mode)}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${
-                viewMode === mode ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-500 hover:text-slate-800'
+                viewMode === mode ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]' : `text-slate-400 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-100'}`
               }`}>
               {mode}
             </button>
@@ -237,10 +237,10 @@ function AttendancePage({ showToast }) {
       {loading ? (
         <div className="text-center py-12 text-slate-400">Loading events...</div>
       ) : events.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-[14px] p-12 text-center">
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-12 text-center`}>
           <Calendar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">No Events Found</h3>
-          <p className="text-slate-500">No {viewMode} events match your filters</p>
+          <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>No Events Found</h3>
+          <p className="text-sm text-slate-400">No {viewMode} events match your filters</p>
         </div>
       ) : (
         <div>
@@ -390,13 +390,13 @@ function AttendancePage({ showToast }) {
                     )}
 
                     {/* Send Reminders Button */}
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div className={`flex items-center justify-between pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
                       <button onClick={(e) => { e.stopPropagation(); showToast('Reminder sent to pending players', 'success') }}
-                        className="bg-lynx-navy text-white font-bold px-4 py-2 rounded-xl text-sm hover:bg-lynx-navy/90 transition">
+                        className="bg-[#10284C] text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:brightness-110 transition">
                         📩 Send RSVP Reminders
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); setExpandedEventId(null) }}
-                        className="text-sm text-slate-400 hover:text-slate-600 font-semibold">
+                        className="text-sm text-slate-400 hover:text-[#4BB9EC] font-bold transition">
                         Collapse ▲
                       </button>
                     </div>
