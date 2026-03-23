@@ -110,10 +110,10 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
   ]
 
   const tmTabs = [
-    { key: 'roster', label: 'Roster' },
-    { key: 'payments', label: 'Payments' },
-    { key: 'schedule', label: 'Schedule' },
-    { key: 'attendance', label: 'Attendance' },
+    { id: 'roster', label: 'Roster' },
+    { id: 'payments', label: 'Payments' },
+    { id: 'schedule', label: 'Schedule' },
+    { id: 'attendance', label: 'Attendance' },
   ]
 
   return (
@@ -201,7 +201,7 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
             {/* Body Tabs */}
             <BodyTabs
               tabs={tmTabs}
-              activeTab={activeTab}
+              activeTabId={activeTab}
               onTabChange={setActiveTab}
             >
               {activeTab === 'roster' && (
