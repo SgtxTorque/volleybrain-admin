@@ -289,7 +289,7 @@ function ReportsPage({ showToast }) {
   }
 
   async function loadCoachesReport() {
-    const { data, error } = await supabase.from('coaches').select('id, profile_id, profiles:profile_id(full_name, email)').eq('organization_id', organization?.id)
+    const { data, error } = await supabase.from('coaches').select('id, profile_id, profiles:profile_id(full_name, email)')
     if (error) { console.error('Coaches error:', error); setData([]); setStats({ total: 0, assigned: 0, unassigned: 0, totalTeams: 0, labels: ['Total Coaches', 'Assigned', 'Unassigned', 'Teams Covered'] }); return }
     const coachIds = (data || []).map(c => c.id)
     let assignMap = {}

@@ -343,7 +343,6 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
         .from('players')
         .select('*')
         .eq('id', playerId)
-        .eq('organization_id', organization.id)
         .single()
 
       setPlayer(playerData)
@@ -378,7 +377,6 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           our_score, opponent_score, game_result,
           game_player_stats!inner(*)
         `)
-        .eq('organization_id', organization.id)
         .eq('game_player_stats.player_id', playerId)
         .eq('event_type', 'game')
         .order('event_date', { ascending: false })

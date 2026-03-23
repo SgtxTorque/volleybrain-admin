@@ -66,7 +66,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     let query = supabase
       .from('teams')
       .select('*, team_players(*, players(id, first_name, last_name, jersey_number, position, photo_url, grade, status, uniform_size_jersey))')
-      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
     } else if (selectedSport?.id) {
@@ -119,7 +118,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
     let playersQuery = supabase
       .from('players')
       .select('id, first_name, last_name, position, jersey_number, photo_url, grade, registrations(status)')
-      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason)) {
       playersQuery = playersQuery.eq('season_id', selectedSeason.id)
     } else if (sportSeasonIds && sportSeasonIds.length === 0) {
@@ -307,7 +305,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       .from('coaches')
       .select('*, team_coaches(*, teams(id, name))')
       .eq('status', 'active')
-      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
     } else if (selectedSport?.id) {

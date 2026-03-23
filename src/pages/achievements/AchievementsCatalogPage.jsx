@@ -94,7 +94,6 @@ export function AchievementsCatalogPage({
         .from('player_achievements')
         .select('*, achievement:achievements(*)')
         .eq('player_id', playerId)
-        .eq('organization_id', organization.id)
 
       if (earnedErr) throw earnedErr
       setPlayerAchievements(earned || [])

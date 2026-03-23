@@ -162,7 +162,7 @@ export function SendAdhocModal({ tc, isDark, organization, templates, showToast,
 
   useEffect(() => {
     supabase.from('players').select('id, first_name, last_name, parent_email, parent_name')
-      .eq('organization_id', organization.id).order('last_name')
+      .order('last_name')
       .then(({ data }) => setPlayers(data || []))
   }, [])
 

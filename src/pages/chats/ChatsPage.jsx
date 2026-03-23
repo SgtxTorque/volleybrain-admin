@@ -117,7 +117,6 @@ function ChatsPage({ showToast, activeView, roleContext }) {
           teams (id, name, color, logo_url),
           channel_members (id, user_id, display_name, last_read_at)
         `)
-        .eq('organization_id', organization.id)
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         q1 = q1.eq('season_id', selectedSeason.id)
       } else if (sportSeasonIds && sportSeasonIds.length > 0) {
@@ -135,7 +134,6 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         let q2 = supabase
           .from('chat_channels')
           .select('*')
-          .eq('organization_id', organization.id)
         if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
           q2 = q2.eq('season_id', selectedSeason.id)
         } else if (sportSeasonIds && sportSeasonIds.length > 0) {

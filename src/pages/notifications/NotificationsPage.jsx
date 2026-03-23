@@ -49,7 +49,6 @@ export function NotificationsPage({ showToast }) {
       const { data: notifData } = await supabase
         .from('notifications')
         .select('*, profiles:user_id(full_name, email)')
-        .eq('organization_id', organization?.id)
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -77,8 +76,7 @@ export function NotificationsPage({ showToast }) {
       // Load teams for send modal
       let teamsQuery = supabase
         .from('teams')
-        .select('id, name, color')
-        .eq('organization_id', organization?.id);
+        .select('id, name, color');
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id);
       } else if (selectedSport?.id) {

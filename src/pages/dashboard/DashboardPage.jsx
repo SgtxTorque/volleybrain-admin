@@ -432,7 +432,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
       const { data: teams, count: teamCount } = await supabase
         .from('teams')
         .select('id, name, color, max_players', { count: 'exact' })
-        .eq('organization_id', orgId)
         .eq('season_id', seasonId)
 
       // Apply team filter — use all teams for teamsData display, but filter stats

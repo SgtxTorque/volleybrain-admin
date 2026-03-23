@@ -32,7 +32,6 @@ export default function TeamHubSelectorPage({ showToast, navigateToTeamWall }) {
           team_players(count),
           team_coaches(count)
         `)
-        .eq('organization_id', organization.id)
         .order('name')
 
       if (workingSeason?.id && workingSeason.id !== 'all') {

@@ -62,7 +62,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
     try {
       let teamIds = coachTeamAssignments.map(tc => tc.team_id).filter(Boolean)
       if (teamIds.length === 0) {
-        const { data: coachRecord } = await supabase.from('coaches').select('id, team_coaches(team_id, role)').eq('profile_id', user.id).eq('organization_id', organization.id).maybeSingle()
+        const { data: coachRecord } = await supabase.from('coaches').select('id, team_coaches(team_id, role)').eq('profile_id', user.id).maybeSingle()
         teamIds = (coachRecord?.team_coaches || []).map(tc => tc.team_id).filter(Boolean)
         if (teamIds.length === 0) { setTeams([]); setLoading(false); return }
       }

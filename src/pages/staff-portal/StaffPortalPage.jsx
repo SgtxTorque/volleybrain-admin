@@ -87,7 +87,7 @@ export function StaffPortalPage({ showToast }) {
 
   async function loadCoaches() {
     try {
-      let coachQuery = supabase.from('coaches').select('*').eq('organization_id', organization.id)
+      let coachQuery = supabase.from('coaches').select('*')
       if (!isAllSeasons(selectedSeason)) {
         coachQuery = coachQuery.eq('season_id', selectedSeason.id)
       } else if (selectedSport?.id) {
@@ -138,7 +138,7 @@ export function StaffPortalPage({ showToast }) {
   }
 
   async function loadTeams() {
-    let query = supabase.from('teams').select('id, name, color').eq('organization_id', organization.id)
+    let query = supabase.from('teams').select('id, name, color')
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else {

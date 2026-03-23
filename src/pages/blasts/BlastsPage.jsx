@@ -50,7 +50,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       const sportIds = getSportSeasonIds()
 
       // Load teams (scoped to coach's teams if coach role)
-      let teamsQuery = supabase.from('teams').select('*').eq('organization_id', organization.id)
+      let teamsQuery = supabase.from('teams').select('*')
       if (!isAllSeasons(selectedSeason)) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {

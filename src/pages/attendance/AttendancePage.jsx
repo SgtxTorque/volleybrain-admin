@@ -50,7 +50,7 @@ function AttendancePage({ showToast }) {
   }, [selectedSeason?.id, selectedTeam, viewMode, selectedSport?.id])
 
   async function loadTeams() {
-    let query = supabase.from('teams').select('id, name, color').eq('organization_id', organization.id)
+    let query = supabase.from('teams').select('id, name, color')
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else {
@@ -71,7 +71,6 @@ function AttendancePage({ showToast }) {
     try {
       let query = supabase.from('schedule_events')
         .select('*, teams!schedule_events_team_id_fkey(id, name, color)')
-        .eq('organization_id', organization.id)
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         query = query.eq('season_id', selectedSeason.id)
       } else {

@@ -81,7 +81,6 @@ export function RegistrationsPage({ showToast }) {
     let query = supabase
       .from('players')
       .select('*, registrations(*), seasons:season_id(id, name)')
-      .eq('organization_id', organization.id)
       .order('created_at', { ascending: false })
 
     if (selectedSeason?.id && !isAllSeasons(selectedSeason)) {
@@ -134,7 +133,6 @@ export function RegistrationsPage({ showToast }) {
           .from('players')
           .select('*, registrations(*)')
           .eq('id', playerId)
-          .eq('organization_id', organization.id)
           .single()
 
         if (playerData) {

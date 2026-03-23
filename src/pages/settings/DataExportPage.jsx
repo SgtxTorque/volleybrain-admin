@@ -108,7 +108,7 @@ function DataExportPage({ showToast }) {
       const [players, coaches, payments, teams, registrations, events] =
         await Promise.all([
           supabase.from('players').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
-          supabase.from('coaches').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
+          supabase.from('coaches').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
           supabase.from('payments').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
           supabase.from('teams').select('id', { count: 'exact', head: true }).in('season_id', seasonIds),
           supabase.from('registrations').select('id', { count: 'exact', head: true }).in(

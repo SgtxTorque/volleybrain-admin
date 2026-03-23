@@ -114,7 +114,7 @@ export function JerseysPage({ showToast }) {
 
       const approvedPlayerIds = registrations.map(r => r.player_id)
 
-      let seasonTeamsQuery = supabase.from('teams').select('id').eq('organization_id', organization.id)
+      let seasonTeamsQuery = supabase.from('teams').select('id')
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         seasonTeamsQuery = seasonTeamsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
@@ -148,7 +148,7 @@ export function JerseysPage({ showToast }) {
         setLoading(false)
         return
       }
-      let query = supabase.from('teams').select('id, name, color').eq('organization_id', organization.id)
+      let query = supabase.from('teams').select('id, name, color')
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         query = query.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
@@ -175,7 +175,7 @@ export function JerseysPage({ showToast }) {
         setLoading(false)
         return
       }
-      let teamsQuery = supabase.from('teams').select('id, name, color, season_id').eq('organization_id', organization.id)
+      let teamsQuery = supabase.from('teams').select('id, name, color, season_id')
       if (!isAllSeasons(selectedSeason)) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
