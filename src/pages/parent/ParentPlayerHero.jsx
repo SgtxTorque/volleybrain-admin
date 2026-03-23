@@ -44,11 +44,11 @@ export default function ParentPlayerHero({
   const p = player
 
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
-    : 'bg-white border border-slate-200'
+    ? 'bg-[#132240] border border-white/[0.06]'
+    : 'bg-white border border-[#E8ECF2]'
 
   return (
-    <div className={`${cardCls} rounded-t-[14px] overflow-hidden`}>
+    <div className={`${cardCls} rounded-t-[14px] overflow-hidden`} style={{ fontFamily: 'var(--v2-font)' }}>
       <div className="relative flex" style={{ minHeight: '280px' }}>
         {/* Player photo or fallback */}
         <div className="w-[280px] shrink-0 relative overflow-hidden">
@@ -96,30 +96,33 @@ export default function ParentPlayerHero({
           <div className="relative">
             <div className="flex items-start justify-between mb-4">
               <span
-                className="px-4 py-1.5 rounded-full text-r-xs font-bold uppercase tracking-wider"
+                className="px-4 py-1.5 rounded-full text-[10.5px] font-bold uppercase tracking-[0.08em]"
                 style={{ backgroundColor: teamColor, color: '#fff' }}
               >
                 {seasonName ? `${seasonName} ` : ''}{teamName}
               </span>
-              {overallRating !== null && (
-                <div
-                  className="w-16 h-16 rounded-xl border-2 flex items-center justify-center"
-                  style={{ borderColor: posColor }}
-                >
-                  <span className={`text-r-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {overallRating}
-                  </span>
-                </div>
-              )}
+              {overallRating !== null && (() => {
+                const ovrColor = overallRating >= 80 ? '#22C55E' : overallRating >= 50 ? '#F59E0B' : '#EF4444'
+                return (
+                  <div
+                    className="w-16 h-16 rounded-full border-[3px] flex items-center justify-center shadow-lg"
+                    style={{ borderColor: ovrColor, boxShadow: `0 0 16px ${ovrColor}30` }}
+                  >
+                    <span className="text-2xl font-extrabold" style={{ color: ovrColor, letterSpacing: '-0.03em' }}>
+                      {overallRating}
+                    </span>
+                  </div>
+                )
+              })()}
             </div>
 
-            <h1 className="text-r-3xl font-black text-amber-400 uppercase tracking-tight">
+            <h1 className="text-3xl font-extrabold uppercase" style={{ color: '#FFD700', letterSpacing: '-0.03em' }}>
               {p.first_name || 'Player'}
             </h1>
-            <h2 className={`text-r-3xl font-black uppercase tracking-tight -mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <h2 className={`text-3xl font-extrabold uppercase -mt-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
               {p.last_name || ''}
             </h2>
-            <p className="text-slate-400 mt-2">
+            <p className={`mt-2 text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               {posInfo.full} <span className="mx-2">&bull;</span> #{jerseyNumber || '-'}
             </p>
 
@@ -145,13 +148,14 @@ export default function ParentPlayerHero({
 
       {/* Per-game stats bar */}
       {perGameStats && (
-        <div className={`flex justify-around py-3 border-t ${isDark ? 'border-white/[0.06] bg-slate-800/30' : 'border-slate-200 bg-slate-50/80'}`}>
-          {perGameStats.map(stat => (
-            <div key={stat.key} className="text-center">
-              <span className={`text-r-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <div className={`flex items-center justify-around py-3.5 border-t ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-[#E8ECF2] bg-[#F8F9FB]'}`}>
+          {perGameStats.map((stat, i) => (
+            <div key={stat.key} className="text-center flex-1 relative">
+              {i > 0 && <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-px h-8 ${isDark ? 'bg-white/[0.06]' : 'bg-[#E8ECF2]'}`} />}
+              <span className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
                 {stat.value}
               </span>
-              <p className="text-r-xs uppercase font-semibold text-slate-400">{stat.label}/G</p>
+              <p className={`text-[10.5px] font-bold uppercase tracking-[0.08em] mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}/G</p>
             </div>
           ))}
         </div>

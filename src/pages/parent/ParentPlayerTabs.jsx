@@ -9,11 +9,11 @@ function SkillBar({ label, value, maxValue = 100, isDark }) {
   const pct = Math.min((value / maxValue) * 100, 100)
   return (
     <div className="flex items-center gap-3">
-      <span className={`text-r-sm uppercase w-20 font-semibold truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{label.replace(/_/g, ' ')}</span>
-      <div className={`flex-1 h-2.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+      <span className={`text-[10.5px] uppercase w-20 font-bold tracking-[0.08em] truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label.replace(/_/g, ' ')}</span>
+      <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-[#E8ECF2]'}`}>
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: '#4BB9EC' }} />
       </div>
-      <span className={`text-r-lg font-bold w-8 text-right ${isDark ? 'text-white' : 'text-slate-900'}`}>{value || 0}</span>
+      <span className={`text-sm font-extrabold w-8 text-right ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>{value || 0}</span>
     </div>
   )
 }
@@ -78,15 +78,15 @@ const TABS = [
 export default function ParentPlayerTabs({ sc, skills, getSkillValue, seasonStats, gamesPlayed, transformedGames, perGameStats, trends, badges, badgesInProgress, evalHistory, coachFeedback, playerGoals }) {
   const { isDark } = useTheme()
   const [activeTab, setActiveTab] = useState('overview')
-  const cardCls = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
-  const bdr = isDark ? 'border-white/[0.06]' : 'border-slate-200'
+  const cardCls = isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-[#F8F9FB]'
+  const bdr = isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'
 
   return (
-    <div className={`${cardCls} border-t-0 rounded-b-[14px] overflow-hidden`}>
+    <div className={`${cardCls} border-t-0 rounded-b-[14px] overflow-hidden`} style={{ fontFamily: 'var(--v2-font)' }}>
       <div className={`flex border-b ${bdr}`}>
         {TABS.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-3.5 text-r-lg font-semibold transition ${activeTab === tab.id ? 'bg-lynx-sky/20 text-lynx-sky border-b-2 border-lynx-sky' : 'text-slate-400'}`}>{tab.label}</button>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-3.5 text-sm font-semibold transition-all duration-200 ${activeTab === tab.id ? 'bg-[#4BB9EC]/10 text-[#4BB9EC] border-b-2 border-[#4BB9EC]' : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}>{tab.label}</button>
         ))}
       </div>
       <div className="p-6">
