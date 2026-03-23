@@ -113,38 +113,40 @@ export function LoginPage({ initialMode, onBack }) {
         )}
 
         <div className="text-center mb-8">
-          <img src="/lynx-icon-logo.png" alt="Lynx" className="w-16 h-16 mx-auto mb-4" style={{ filter: 'drop-shadow(0 4px 12px rgba(91,203,250,0.3))' }} />
-          <h1 className="text-3xl font-bold text-white">Lynx</h1>
+          <img src="/lynx-icon-logo.png" alt="Lynx" className="w-16 h-16 mx-auto mb-4 drop-shadow-[0_4px_12px_rgba(75,185,236,0.3)]" />
+          <h1 className="text-3xl font-bold text-white" style={{ fontFamily: 'var(--v2-font)' }}>Lynx</h1>
           <p className="text-slate-400 mt-2">
             {mode === 'login' ? 'Sign in to continue' : 'Create your account'}
           </p>
         </div>
 
         {/* Toggle between Login and Sign Up */}
-        <div className="flex mb-6 bg-slate-800 rounded-xl p-1">
+        <div className="flex mb-6 bg-white/[0.06] rounded-xl p-1">
           <button
             onClick={() => { setMode('login'); setError(''); setMessage('') }}
-            className={`flex-1 py-2.5 rounded-lg font-medium transition ${
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition ${
               mode === 'login'
-                ? 'bg-[var(--accent-primary)] text-white'
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
                 : 'text-slate-400 hover:text-white'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             Sign In
           </button>
           <button
             onClick={() => { setMode('signup'); setError(''); setMessage('') }}
-            className={`flex-1 py-2.5 rounded-lg font-medium transition ${
+            className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition ${
               mode === 'signup'
-                ? 'bg-[var(--accent-primary)] text-white'
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
                 : 'text-slate-400 hover:text-white'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             Sign Up
           </button>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 backdrop-blur-sm">
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-red-400 text-sm">
               {error}
@@ -161,7 +163,7 @@ export function LoginPage({ initialMode, onBack }) {
             <button
               onClick={handleGoogleLogin}
               disabled={!!oauthLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white text-slate-800 font-semibold py-3 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 bg-white text-[#10284C] font-bold py-3 rounded-xl border border-[#E8ECF2] hover:bg-slate-50 transition disabled:opacity-50"
             >
               <GoogleLogo />
               {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
@@ -169,7 +171,7 @@ export function LoginPage({ initialMode, onBack }) {
             <button
               onClick={handleAppleLogin}
               disabled={!!oauthLoading}
-              className="w-full flex items-center justify-center gap-3 bg-black text-white font-semibold py-3 rounded-xl hover:bg-slate-950 transition border border-slate-600 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-3 bg-black text-white font-bold py-3 rounded-xl hover:bg-slate-950 transition border border-white/[0.12] disabled:opacity-50"
             >
               <AppleLogo />
               {oauthLoading === 'apple' ? 'Redirecting...' : 'Continue with Apple'}
@@ -178,33 +180,33 @@ export function LoginPage({ initialMode, onBack }) {
 
           {/* ─── Divider ─── */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-slate-700" />
+            <div className="flex-1 h-px bg-white/[0.08]" />
             <span className="text-xs text-slate-500 uppercase tracking-wider whitespace-nowrap">or continue with email</span>
-            <div className="flex-1 h-px bg-slate-700" />
+            <div className="flex-1 h-px bg-white/[0.08]" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="block text-sm text-slate-400 mb-2">First Name</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">First Name</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     required={mode === 'signup'}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[var(--accent-primary)]/50 focus:outline-none"
+                    className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 focus:outline-none transition"
                     placeholder="First"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm text-slate-400 mb-2">Last Name</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Last Name</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     required={mode === 'signup'}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[var(--accent-primary)]/50 focus:outline-none"
+                    className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 focus:outline-none transition"
                     placeholder="Last"
                   />
                 </div>
@@ -212,26 +214,26 @@ export function LoginPage({ initialMode, onBack }) {
             )}
 
             <div>
-              <label className="block text-sm text-slate-400 mb-2">Email</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[var(--accent-primary)]/50 focus:outline-none"
+                className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 focus:outline-none transition"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-slate-400 mb-2">Password</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={mode === 'signup' ? 6 : undefined}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-[var(--accent-primary)]/50 focus:outline-none"
+                className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 focus:outline-none transition"
                 placeholder="••••••••"
               />
               {mode === 'signup' && (
@@ -242,7 +244,7 @@ export function LoginPage({ initialMode, onBack }) {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={resetSending}
-                  className="text-sm text-slate-400 hover:text-[var(--accent-primary)] transition cursor-pointer mt-1 disabled:opacity-50"
+                  className="text-sm text-slate-400 hover:text-[#4BB9EC] transition cursor-pointer mt-1 disabled:opacity-50"
                 >
                   {resetSending ? 'Sending...' : 'Forgot password?'}
                 </button>
@@ -252,7 +254,8 @@ export function LoginPage({ initialMode, onBack }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[var(--accent-primary)] text-white font-semibold py-3 rounded-xl hover:brightness-110 transition disabled:opacity-50"
+              className="w-full bg-[#10284C] text-white font-bold py-3 rounded-xl hover:brightness-110 transition disabled:opacity-50"
+              style={{ fontFamily: 'var(--v2-font)' }}
             >
               {loading
                 ? (mode === 'login' ? 'Signing in...' : 'Creating account...')
@@ -269,7 +272,7 @@ export function LoginPage({ initialMode, onBack }) {
           }
           <button
             onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setMessage('') }}
-            className="text-[var(--accent-primary)] hover:underline"
+            className="text-[#4BB9EC] hover:underline font-semibold"
           >
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
@@ -279,8 +282,7 @@ export function LoginPage({ initialMode, onBack }) {
           <p className="text-slate-500 text-sm mb-2">Looking for a league?</p>
           <a
             href="/directory"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-            style={{ background: '#5BCBFA' }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#4BB9EC] transition hover:brightness-110"
           >
             Browse Organizations
           </a>
