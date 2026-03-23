@@ -6,10 +6,10 @@ import { Star, ChevronDown, ChevronUp, Search } from '../../constants/icons'
 // ============================================
 
 const cardCls = (isDark) =>
-  `${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px]`
+  `${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px]`
 
 const inputCls = (isDark) =>
-  `px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
+  `px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`
 
 // ---- Category Tab Bar ----
 export function CategoryTabBar({
@@ -23,11 +23,12 @@ export function CategoryTabBar({
         <div key={catId} className="relative">
           <button
             onClick={() => setOpenDropdown(openDropdown === catId ? null : catId)}
-            className={`px-4 py-2 rounded-lg font-bold text-r-sm transition flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${
               activeCategory === catId
-                ? 'bg-lynx-sky/20 text-lynx-sky'
-                : `${cardCls(isDark)} ${isDark ? 'text-white' : 'text-slate-900'}`
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                : `${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <span>{cat.icon}</span>
             <span>{cat.label}</span>
@@ -36,7 +37,7 @@ export function CategoryTabBar({
           {openDropdown === catId && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-              <div className={`absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+              <div className={`absolute left-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'}`}>
                 {cat.reports.map(report => (
                   <button
                     key={report.id}
@@ -49,16 +50,16 @@ export function CategoryTabBar({
                     }}
                     className={`w-full text-left px-4 py-3 transition flex items-center gap-3 ${
                       activeReport === report.id
-                        ? 'bg-lynx-sky/10'
-                        : isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
+                        ? 'bg-[#4BB9EC]/10'
+                        : isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]'
                     }`}
                   >
                     <span className="text-xl">{report.icon}</span>
                     <div className="flex-1">
-                      <p className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{report.label}</p>
-                      <p className="text-r-xs text-slate-400">{report.description}</p>
+                      <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>{report.label}</p>
+                      <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{report.description}</p>
                     </div>
-                    {activeReport === report.id && <span className="text-lynx-sky">&#10003;</span>}
+                    {activeReport === report.id && <span className="text-[#4BB9EC]">&#10003;</span>}
                   </button>
                 ))}
               </div>
@@ -71,12 +72,12 @@ export function CategoryTabBar({
       <div className="relative ml-auto">
         <button
           onClick={() => setOpenDropdown(openDropdown === 'presets' ? null : 'presets')}
-          className={`px-4 py-2 rounded-lg font-bold text-r-sm transition flex items-center gap-2 ${cardCls(isDark)} ${isDark ? 'text-white' : 'text-slate-900'}`}
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
         >
           <Star className="w-4 h-4 text-yellow-400" />
           <span>Saved</span>
           {savedPresets.length > 0 && (
-            <span className="px-1.5 py-0.5 text-r-xs font-bold rounded-full bg-lynx-navy text-white">
+            <span className="px-1.5 py-0.5 text-xs font-bold rounded-full bg-[#10284C] text-white">
               {savedPresets.length}
             </span>
           )}
@@ -84,9 +85,9 @@ export function CategoryTabBar({
         {openDropdown === 'presets' && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpenDropdown(null)} />
-            <div className={`absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-              <div className={`px-4 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
-                <p className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Saved Report Presets</p>
+            <div className={`absolute right-0 top-full mt-2 w-72 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'}`}>
+              <div className={`px-4 py-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+                <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Saved Report Presets</p>
               </div>
               {savedPresets.length === 0 ? (
                 <div className="px-4 py-6 text-center">
@@ -115,10 +116,10 @@ export function CategoryTabBar({
                   ))}
                 </div>
               )}
-              <div className={`px-4 py-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+              <div className={`px-4 py-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
                 <button
                   onClick={() => { setShowPresetModal(true); setOpenDropdown(null) }}
-                  className="w-full px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#10284C] text-white font-bold text-sm hover:brightness-110 transition"
                 >
                   + Save Current View
                 </button>
@@ -136,14 +137,14 @@ export function ColumnPicker({ allColumns, visibleColumns, setVisibleColumns, is
   return (
     <div className={`p-4 mb-4 ${cardCls(isDark)}`}>
       <div className="flex items-center justify-between mb-3">
-        <p className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Customize Columns</p>
+        <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Customize Columns</p>
         <button
           onClick={() => {
             const dv = {}
             allColumns.forEach(c => { dv[c.id] = c.defaultVisible !== false })
             setVisibleColumns(dv)
           }}
-          className="text-r-sm font-bold text-lynx-sky"
+          className="text-sm font-bold text-[#4BB9EC]"
         >
           Reset to Default
         </button>
@@ -152,10 +153,10 @@ export function ColumnPicker({ allColumns, visibleColumns, setVisibleColumns, is
         {allColumns.map(col => (
           <label
             key={col.id}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition text-r-sm font-medium ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition text-sm font-medium ${
               visibleColumns[col.id]
-                ? 'bg-lynx-sky/20 text-lynx-sky'
-                : `${cardCls(isDark)} text-slate-400`
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                : `${isDark ? 'bg-white/[0.04] border border-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2]'} text-slate-400`
             }`}
           >
             <input
@@ -285,14 +286,14 @@ export function ReportDataTable({
     <div className={`flex-1 overflow-hidden flex flex-col min-h-0 ${cardCls(isDark)}`}>
       <div className="flex-1 overflow-auto">
         <table className="w-full">
-          <thead className={`sticky top-0 ${isDark ? 'bg-lynx-charcoal' : 'bg-white'}`}>
+          <thead className={`sticky top-0 ${isDark ? 'bg-[#0B1D35]/95' : 'bg-[#F5F6F8]/95'}`} style={{ backdropFilter: 'blur(8px)' }}>
             <tr>
               {columns.map(col => (
                 <th
                   key={col.id}
                   onClick={() => col.sortable && handleSort(col.id)}
-                  className={`px-4 py-3 text-left text-r-xs font-bold tracking-wider whitespace-nowrap text-slate-400 ${
-                    col.sortable ? 'cursor-pointer hover:text-lynx-sky' : ''
+                  className={`px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest whitespace-nowrap text-slate-400 ${
+                    col.sortable ? 'cursor-pointer hover:text-[#4BB9EC]' : ''
                   }`}
                 >
                   {col.label}
@@ -321,11 +322,11 @@ export function ReportDataTable({
         </table>
       </div>
       {/* Footer */}
-      <div className={`px-4 py-3 flex items-center justify-between flex-shrink-0 border-t ${isDark ? 'border-white/[0.06] bg-white/[0.04]' : 'border-slate-200 bg-slate-50'}`}>
-        <p className="text-r-sm text-slate-400">
+      <div className={`px-4 py-3 flex items-center justify-between flex-shrink-0 border-t ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-[#E8ECF2] bg-[#F5F6F8]'}`}>
+        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           Showing {sortedData.length} records, {columns.length} columns
         </p>
-        <p className="text-r-xs text-slate-400">
+        <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
           {organization?.name} / {selectedSeason?.name}
         </p>
       </div>
@@ -398,7 +399,7 @@ export function ExportMenu({
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-      <div className={`absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+      <div className={`absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'}`}>
         {[
           { id: 'csv', label: 'Download CSV', icon: '\uD83D\uDCCA', action: exportCSV },
           { id: 'pdf', label: 'Download PDF', icon: '\uD83D\uDCC4', action: exportPDF },
@@ -409,7 +410,7 @@ export function ExportMenu({
             key={opt.id}
             onClick={opt.action}
             disabled={exporting}
-            className={`w-full text-left px-4 py-2.5 flex items-center gap-2 text-r-sm transition ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-900 hover:bg-slate-50'}`}
+            className={`w-full text-left px-4 py-2.5 flex items-center gap-2 text-sm font-medium transition ${isDark ? 'text-white hover:bg-white/[0.04]' : 'text-[#10284C] hover:bg-[#F5F6F8]'}`}
           >
             <span>{opt.icon}</span>
             <span>{opt.label}</span>
@@ -556,11 +557,11 @@ export function SavePresetModal({ showPresetModal, setShowPresetModal, presetNam
       onClick={() => { setShowPresetModal(false); setPresetName('') }}
     >
       <div
-        className={`w-full max-w-md p-6 rounded-[14px] border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}
+        className={`w-full max-w-md p-6 rounded-[14px] border ${isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'}`}
         onClick={e => e.stopPropagation()}
       >
-        <h3 className={`text-r-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Save Report Preset</h3>
-        <p className="text-r-sm mb-4 text-slate-400">
+        <h3 className={`text-lg font-extrabold mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Save Report Preset</h3>
+        <p className={`text-sm mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           Save your current view (report type, visible columns, filters) as a preset for quick access later.
         </p>
         <input
@@ -568,20 +569,20 @@ export function SavePresetModal({ showPresetModal, setShowPresetModal, presetNam
           value={presetName}
           onChange={e => setPresetName(e.target.value)}
           placeholder="Preset name (e.g., 'Contact List for Coaches')"
-          className={`w-full mb-4 ${inputCls(isDark)} px-4 py-3`}
+          className={`w-full mb-4 ${inputCls(isDark)}`}
           autoFocus
         />
         <div className="flex justify-end gap-3">
           <button
             onClick={() => { setShowPresetModal(false); setPresetName('') }}
-            className={`px-4 py-2 rounded-lg text-r-sm font-bold ${cardCls(isDark)} ${isDark ? 'text-white' : 'text-slate-900'}`}
+            className={`px-4 py-2.5 rounded-xl text-sm font-bold ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1] border border-white/[0.1]' : 'bg-[#F5F6F8] text-[#10284C] hover:bg-[#E8ECF2] border border-[#E8ECF2]'}`}
           >
             Cancel
           </button>
           <button
             onClick={savePreset}
             disabled={!presetName.trim()}
-            className="px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold text-r-sm disabled:opacity-50 hover:brightness-110 transition"
+            className="px-5 py-2.5 rounded-xl bg-[#10284C] text-white font-bold text-sm disabled:opacity-50 hover:brightness-110 transition"
           >
             Save Preset
           </button>

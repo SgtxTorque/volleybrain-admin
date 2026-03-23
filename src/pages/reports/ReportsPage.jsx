@@ -417,32 +417,58 @@ function ReportsPage({ showToast }) {
   // Season/sport selector inputs
   const inputCls = `px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
 
+  // V2 input style
+  const v2Select = `px-4 py-2.5 rounded-xl text-sm font-medium border focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`
+
+  // Total report count
+  const totalReportCount = Object.values(REPORT_CATEGORIES).reduce((sum, cat) => sum + cat.reports.length, 0)
+
   return (
     <PageShell
       title="Reports"
       breadcrumb="Insights"
       subtitle="Generate, customize, and export reports"
       actions={
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {sports.length > 0 && (
-            <div>
-              <label className="block text-r-xs font-bold tracking-wider mb-1 text-slate-400">SPORT</label>
-              <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className={`min-w-[140px] ${inputCls}`}>
-                <option value="all">All Sports</option>
-                {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
-              </select>
-            </div>
-          )}
-          <div>
-            <label className="block text-r-xs font-bold tracking-wider mb-1 text-slate-400">SEASON</label>
-            <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`min-w-[180px] ${inputCls}`}>
-              <option value="">Select Season</option>
-              {seasons.filter(s => selectedSportId === 'all' || s.sport_id === selectedSportId).map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '\u25CF' : s.status === 'upcoming' ? '\u25CB' : '\u25CC'}</option>)}
+            <select value={selectedSportId} onChange={e => setSelectedSportId(e.target.value)} className={`min-w-[140px] ${v2Select}`}>
+              <option value="all">All Sports</option>
+              {sports.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
             </select>
-          </div>
+          )}
+          <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`min-w-[180px] ${v2Select}`}>
+            <option value="">Select Season</option>
+            {seasons.filter(s => selectedSportId === 'all' || s.sport_id === selectedSportId).map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '\u25CF' : s.status === 'upcoming' ? '\u25CB' : '\u25CC'}</option>)}
+          </select>
         </div>
       }
     >
+      {/* Navy Overview Header */}
+      <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+              Reports Center
+            </h2>
+            <p className="text-sm text-white/50 mt-1">Generate, customize, and export data reports</p>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <span className="text-3xl font-black italic text-[#4BB9EC]">{totalReportCount}</span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Reports</div>
+            </div>
+            <div className="text-center">
+              <span className="text-3xl font-black italic text-[#22C55E]">{data.length}</span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Records</div>
+            </div>
+            <div className="text-center">
+              <span className="text-3xl font-black italic text-white/70">{savedPresets.length}</span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Presets</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Category Tabs */}
       <div className="mb-6">
         <CategoryTabBar
@@ -478,32 +504,32 @@ function ReportsPage({ showToast }) {
           {/* Report Header + Actions */}
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className={`text-r-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                <span className="text-r-2xl">{currentReport?.icon}</span>{currentReport?.label}
+              <h2 className={`text-lg font-extrabold flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                <span className="text-xl">{currentReport?.icon}</span>{currentReport?.label}
               </h2>
-              <p className="text-r-sm text-slate-400">{currentReport?.description} / {selectedSeason?.name}</p>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{currentReport?.description} / {selectedSeason?.name}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowColumnPicker(!showColumnPicker)}
-                className={`px-3 py-2 rounded-lg text-r-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-white' : 'bg-white border border-slate-200 text-slate-900'} rounded-[14px]`}
+                className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
               >
                 \u2699\uFE0F Columns
               </button>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`px-3 py-2 rounded-lg text-r-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-lynx-charcoal border border-white/[0.06] text-white' : 'bg-white border border-slate-200 text-slate-900'} rounded-[14px]`}
+                className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
               >
                 \uD83D\uDD0D Filters
                 {(filters.team !== 'all' || filters.status !== 'all' || filters.search) && (
-                  <span className="w-2 h-2 rounded-full bg-lynx-sky" />
+                  <span className="w-2 h-2 rounded-full bg-[#4BB9EC]" />
                 )}
               </button>
               <div className="relative">
                 <button
                   onClick={() => setShowExportMenu(!showExportMenu)}
                   disabled={loading || data.length === 0}
-                  className="px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold text-r-sm flex items-center gap-2 disabled:opacity-40 hover:brightness-110 transition"
+                  className="px-5 py-2.5 rounded-xl bg-[#10284C] text-white font-bold text-sm flex items-center gap-2 disabled:opacity-40 hover:brightness-110 transition"
                 >
                   \uD83D\uDCE4 Export \u25BC
                 </button>
