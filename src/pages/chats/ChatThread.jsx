@@ -29,7 +29,7 @@ const TYPING_TIMEOUT = 3000
 // ═══════════════════════════════════════════════════════════
 // CHAT THREAD — All logic preserved, visual upgrade
 // ═══════════════════════════════════════════════════════════
-function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, activeView, isMobile }) {
+function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, activeView, isMobile, onRegisterTemplateInput }) {
   const { user, profile } = useAuth()
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -56,6 +56,36 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
   const isPlayerChat = channel.channel_type === 'player_chat'
   const isParentView = activeView === 'parent'
   const canPost = !(isPlayerChat && isParentView)
+  const isTeamChat = channel.channel_type === 'team_chat' || channel.channel_type === 'player_chat'
+
+  // Register template input setter so parent can inject template text
+  useEffect(() => {
+    if (onRegisterTemplateInput) {
+      onRegisterTemplateInput((text) => {
+        setNewMessage(text)
+        inputRef.current?.focus()
+      })
+    }
+  }, [onRegisterTemplateInput])
+
+  // Quick send for reply chips
+  async function quickSend(text) {
+    if (sending) return
+    setSending(true)
+    const { error } = await supabase.from('chat_messages').insert({
+      channel_id: channel.id,
+      sender_id: user?.id,
+      content: text,
+      message_type: 'text'
+    })
+    if (error) {
+      showToast?.('Error sending message', 'error')
+    } else {
+      playSound('send')
+      await supabase.from('chat_channels').update({ updated_at: new Date().toISOString() }).eq('id', channel.id)
+    }
+    setSending(false)
+  }
 
   // ═══════════════════════════════════════════════════════════
   // ALL CHAT LOGIC — Preserved exactly
@@ -515,6 +545,23 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* ═══ Quick Reply Chips (team channels) ═══ */}
+      {canPost && isTeamChat && (
+        <div className="flex gap-2 px-5 py-2 overflow-x-auto"
+          style={{ borderTop: isDark ? '1px solid rgba(255,255,255,.04)' : '1px solid rgba(0,0,0,.03)' }}>
+          {["We'll be there", 'Running late', "Can't make it", 'Thanks coach!'].map(chip => (
+            <button key={chip} onClick={() => quickSend(chip)}
+              className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-all active:scale-95 ${
+                isDark
+                  ? 'border border-white/[0.08] text-white/50 hover:bg-white/[0.06] hover:text-white/70'
+                  : 'border border-[#E8ECF2] text-slate-500 hover:bg-[#F5F6F8] hover:text-slate-700'
+              }`}>
+              {chip}
+            </button>
+          ))}
         </div>
       )}
 

@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { Search, Plus } from '../../constants/icons'
-import PageShell from '../../components/pages/PageShell'
-import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
+import { Search, Plus, ChevronLeft } from '../../constants/icons'
 import ChatThread from './ChatThread'
+import ChatContextPanel from './ChatContextPanel'
 import NewChatModal from './NewChatModal'
 import CoppaConsentModal from '../../components/compliance/CoppaConsentModal'
 
@@ -28,10 +27,22 @@ function ChatsPage({ showToast, activeView, roleContext }) {
   const [filterType, setFilterType] = useState('all')
   const [showNewChat, setShowNewChat] = useState(false)
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
+  const [showRightPanel, setShowRightPanel] = useState(window.innerWidth >= 1100)
   const [coppaConsented, setCoppaConsented] = useState(null) // null = loading, true/false
+  const templateInputRef = useRef(null)
+
+  // Callback for quick template insertion from context panel
+  function handleTemplateInsert(text) {
+    if (templateInputRef.current) {
+      templateInputRef.current(text)
+    }
+  }
 
   useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth < 768)
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth < 768)
+      setShowRightPanel(window.innerWidth >= 1100)
+    }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -220,11 +231,14 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       ch.teams?.name?.toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesType = filterType === 'all' ||
+      (filterType === 'unread' && ch.unread_count > 0) ||
       (filterType === 'teams' && (ch.channel_type === 'team_chat' || ch.channel_type === 'player_chat')) ||
       (filterType === 'dms' && (ch.channel_type === 'dm' || ch.channel_type === 'group_dm'))
 
     return matchesSearch && matchesType
   })
+
+  const unreadCount = channels.reduce((sum, ch) => sum + (ch.unread_count || 0), 0)
 
   const formatLastMessageTime = (date) => {
     if (!date) return ''
@@ -260,60 +274,66 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       }`}
       style={{ fontFamily: 'var(--v2-font)' }}
     >
-      {/* === SIDEBAR -- Conversation List === */}
+      {/* === LEFT COLUMN — Channel List (Broadcast Desk style) === */}
       {(!isMobileView || !selectedChannel) && (
         <div
-          className={`${isMobileView ? 'w-full' : 'w-80'} flex flex-col border-r ${
-            isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'
+          className={`${isMobileView ? 'w-full' : 'w-[280px]'} shrink-0 flex flex-col border-r ${
+            isDark ? 'border-white/[0.06] bg-[#0D1B2F]' : 'border-[#E8ECF2] bg-white'
           }`}
         >
           {/* Header */}
-          <div className="p-5 space-y-4">
+          <div className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h1 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
+              <h1 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
                 Chats
               </h1>
               <button
                 onClick={() => setShowNewChat(true)}
-                className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#10284C] text-white font-bold hover:bg-[#1a3a6b] transition-all active:scale-95 shadow-sm"
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#4BB9EC] text-white hover:brightness-110 transition-all active:scale-95"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
 
             {/* Search */}
-            <div
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all focus-within:border-[#4BB9EC] focus-within:ring-2 focus-within:ring-[#4BB9EC]/20 ${
-                isDark
-                  ? 'bg-white/[0.04] border-white/[0.06]'
-                  : 'bg-white border-[#E8ECF2]'
-              }`}
-            >
-              <Search className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-white/25' : 'text-slate-400'}`} />
+            <div className={`relative`}>
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-white/25' : 'text-slate-400'}`} />
               <input
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className={`flex-1 bg-transparent outline-none text-sm font-medium ${
-                  isDark ? 'text-white placeholder:text-white/30' : 'text-[#10284C] placeholder:text-slate-400'
-                }`}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-sm font-medium ${
+                  isDark
+                    ? 'bg-white/[0.06] text-white placeholder:text-white/30 border border-white/[0.06] focus:border-[#4BB9EC]'
+                    : 'bg-[#F5F6F8] text-[#10284C] placeholder:text-slate-400 focus:ring-2 focus:ring-[#4BB9EC]/20'
+                } outline-none transition`}
               />
             </div>
 
             {/* Filter Tabs */}
             <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-[#F5F6F8]'}`}>
-              {['all', 'teams', 'dms'].map(type => (
+              {[
+                { key: 'all', label: 'All' },
+                { key: 'unread', label: 'Unread' },
+                { key: 'teams', label: 'Teams' },
+                { key: 'dms', label: 'DMs' },
+              ].map(({ key, label }) => (
                 <button
-                  key={type}
-                  onClick={() => setFilterType(type)}
-                  className={`flex-1 px-3 py-1.5 rounded-lg text-[10.5px] font-bold uppercase tracking-[0.08em] transition-all ${
-                    filterType === type
+                  key={key}
+                  onClick={() => setFilterType(key)}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all relative ${
+                    filterType === key
                       ? 'bg-[#10284C] text-white shadow-sm'
                       : isDark ? 'text-white/35 hover:text-white/60' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  {type === 'all' ? 'All' : type === 'teams' ? 'Teams' : 'DMs'}
+                  {label}
+                  {key === 'unread' && unreadCount > 0 && filterType !== 'unread' && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#4BB9EC] text-white text-[8px] font-bold flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -323,13 +343,13 @@ function ChatsPage({ showToast, activeView, roleContext }) {
           <div className="flex-1 overflow-y-auto px-2 pb-2">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 rounded-full border-2 border-lynx-sky border-t-transparent animate-spin" />
+                <div className="w-8 h-8 rounded-full border-2 border-[#4BB9EC] border-t-transparent animate-spin" />
               </div>
             ) : filteredChannels.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <div className="text-5xl mb-3">💬</div>
-                <p className={`text-r-sm font-semibold ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
-                  No conversations yet
+                <p className={`text-sm font-semibold ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+                  {filterType === 'unread' ? 'All caught up!' : 'No conversations yet'}
                 </p>
               </div>
             ) : (
@@ -349,7 +369,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         </div>
       )}
 
-      {/* === CHAT THREAD === */}
+      {/* === CENTER COLUMN — Chat Thread === */}
       {(!isMobileView || selectedChannel) && (
         <div className="flex-1 flex flex-col min-w-0">
           {selectedChannel ? (
@@ -362,17 +382,16 @@ function ChatsPage({ showToast, activeView, roleContext }) {
               accent={accent}
               activeView={activeView}
               isMobile={isMobileView}
+              onRegisterTemplateInput={(setter) => { templateInputRef.current = setter }}
             />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center animate-fade-in">
               <div
-                className={`w-24 h-24 rounded-[14px] flex items-center justify-center mb-5 border ${
-                  isDark
-                    ? 'bg-white/[0.04] border-white/[0.06]'
-                    : 'bg-[#F8F9FB] border-[#E8ECF2]'
+                className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 ${
+                  isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'
                 }`}
               >
-                <span className="text-5xl">💬</span>
+                <span className="text-4xl">💬</span>
               </div>
               <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
                 Select a Conversation
@@ -382,6 +401,19 @@ function ChatsPage({ showToast, activeView, roleContext }) {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* === RIGHT COLUMN — Context Panel (team channels only) === */}
+      {showRightPanel && selectedChannel && !isMobileView && (
+        <div className={`w-[300px] shrink-0 flex flex-col border-l overflow-y-auto ${
+          isDark ? 'border-white/[0.06] bg-[#0D1B2F]' : 'border-[#E8ECF2] bg-[#F5F6F8]'
+        }`}>
+          <ChatContextPanel
+            channel={selectedChannel}
+            onTemplateInsert={handleTemplateInsert}
+            showToast={showToast}
+          />
         </div>
       )}
 
@@ -463,13 +495,27 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
           <span className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
             {channel.name}
           </span>
-          <span className={`text-[10.5px] flex-shrink-0 font-medium ${isDark ? 'text-white/20' : 'text-slate-400'}`}>
+          <span className={`text-[10px] flex-shrink-0 font-medium ${isDark ? 'text-white/20' : 'text-slate-400'}`}>
             {formatTime(channel.last_message?.created_at)}
           </span>
         </div>
         <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-white/35' : 'text-slate-500'}`}>
           {getLastMessagePreview()}
         </p>
+        {/* Type + unread badges */}
+        <div className="flex items-center gap-1.5 mt-1">
+          {channel.channel_type === 'team_chat' && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#10284C] text-white">Team</span>
+          )}
+          {channel.channel_type === 'player_chat' && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#4BB9EC]/20 text-[#4BB9EC]">Player</span>
+          )}
+          {channel.unread_count > 0 && (
+            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-red-500/15 text-red-500">
+              {channel.unread_count} new
+            </span>
+          )}
+        </div>
       </div>
     </button>
   )
