@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useSeason } from '../../contexts/SeasonContext'
@@ -50,6 +51,8 @@ function WaiversPage({ showToast }) {
   const { selectedSeason } = useSeason()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const navigate = useNavigate()
+  const returnToOrgSetup = localStorage.getItem('returnToOrgSetup')
 
   const [templates, setTemplates] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState(null)
@@ -190,6 +193,19 @@ function WaiversPage({ showToast }) {
           className="bg-[#10284C] text-white font-bold px-4 py-2.5 rounded-xl text-sm hover:brightness-110" style={{ fontFamily: 'var(--v2-font)' }}>+ New Waiver</button>
       </div>}
     >
+      {/* Return to Org Setup link */}
+      {returnToOrgSetup && (
+        <button
+          onClick={() => {
+            // Don't clear the flag — OrganizationPage reads and clears it on mount
+            navigate('/settings/organization')
+          }}
+          className="flex items-center gap-2 text-sm font-bold text-[#4BB9EC] mb-4 hover:underline"
+        >
+          {'\u2190'} Back to Organization Setup
+        </button>
+      )}
+
       {/* Navy Stat Header */}
       <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between mb-3">

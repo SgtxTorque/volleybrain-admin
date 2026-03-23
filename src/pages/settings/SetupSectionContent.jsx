@@ -627,7 +627,7 @@ function SetupSectionContent({
                   className="px-4 py-2 rounded-lg text-white font-medium text-sm"
                   style={{ backgroundColor: accent.primary }}
                   onClick={() => {
-                    // Navigate to waivers - use window location since we may not have navigate
+                    localStorage.setItem('returnToOrgSetup', 'legal')
                     navigate('/settings/waivers')
                   }}
                 >
