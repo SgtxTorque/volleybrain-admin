@@ -2,7 +2,7 @@ import { useSeason, ALL_SEASONS, isAllSeasons } from '../../contexts/SeasonConte
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
-import { Search } from 'lucide-react'
+import { Search, ChevronDown } from 'lucide-react'
 
 export default function SeasonFilterBar({ role: roleProp }) {
   const { seasons, allSeasons, selectedSeason, selectSeason } = useSeason()
@@ -14,53 +14,62 @@ export default function SeasonFilterBar({ role: roleProp }) {
   if (roleProp && roleProp !== 'admin' && roleProp !== 'coach') return null
 
   const selectCls = isDark
-    ? 'px-3 py-2 rounded-lg border border-white/10 text-r-sm font-medium bg-lynx-charcoal text-slate-200 focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20'
-    : 'px-3 py-2 rounded-lg border border-slate-200 text-r-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20'
+    ? 'appearance-none rounded-lg px-4 pr-8 py-2 text-sm font-semibold cursor-pointer transition-all bg-white/[0.06] text-white border border-white/[0.06] hover:bg-white/[0.1] focus:outline-none focus:border-[#4BB9EC]/40 focus:ring-2 focus:ring-[#4BB9EC]/10'
+    : 'appearance-none rounded-lg px-4 pr-8 py-2 text-sm font-semibold cursor-pointer transition-all bg-white border border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'
 
   return (
-    <div className="flex gap-3 items-center mb-5 flex-wrap">
-      <select
-        value={isAllSeasons(selectedSeason) ? 'all' : (selectedSeason?.id || '')}
-        onChange={e => {
-          const value = e.target.value
-          if (value === 'all') {
-            selectSeason(ALL_SEASONS)
-            return
-          }
-          const season = allSeasons.find(s => s.id === value)
-          selectSeason(season || null)
-        }}
-        className={selectCls}
-      >
-        {isAdmin && <option value="all">All Seasons</option>}
-        {(seasons || []).map(s => (
-          <option key={s.id} value={s.id}>{s.name}</option>
-        ))}
-      </select>
-
-      {sports?.length > 1 && (
+    <div className="flex gap-3 items-center mb-5 flex-wrap" style={{ fontFamily: 'var(--v2-font)' }}>
+      <div className="relative">
         <select
-          value={selectedSport?.id || ''}
+          value={isAllSeasons(selectedSeason) ? 'all' : (selectedSeason?.id || '')}
           onChange={e => {
-            const sport = sports.find(s => s.id === e.target.value) || null
-            selectSport(sport)
+            const value = e.target.value
+            if (value === 'all') {
+              selectSeason(ALL_SEASONS)
+              return
+            }
+            const season = allSeasons.find(s => s.id === value)
+            selectSeason(season || null)
           }}
           className={selectCls}
+          style={{ fontFamily: 'var(--v2-font)' }}
         >
-          <option value="">All Sports</option>
-          {sports.map(s => (
-            <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
+          {isAdmin && <option value="all">All Seasons</option>}
+          {(seasons || []).map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
+        <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+      </div>
+
+      {sports?.length > 1 && (
+        <div className="relative">
+          <select
+            value={selectedSport?.id || ''}
+            onChange={e => {
+              const sport = sports.find(s => s.id === e.target.value) || null
+              selectSport(sport)
+            }}
+            className={selectCls}
+            style={{ fontFamily: 'var(--v2-font)' }}
+          >
+            <option value="">All Sports</option>
+            {sports.map(s => (
+              <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
+            ))}
+          </select>
+          <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+        </div>
       )}
 
       <button
         onClick={() => document.dispatchEvent(new CustomEvent('open-global-search'))}
-        className={`ml-auto flex items-center gap-2 px-3 py-2 rounded-lg border text-r-sm transition-colors ${
+        className={`ml-auto flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold transition-all ${
           isDark
-            ? 'border-white/10 text-slate-400 hover:border-sky-500/30 hover:text-slate-200 bg-lynx-charcoal'
-            : 'border-slate-200 text-slate-400 hover:border-sky-300 hover:text-slate-600 bg-white'
+            ? 'border-white/[0.06] text-slate-400 hover:border-[#4BB9EC]/30 hover:text-slate-200 bg-white/[0.06]'
+            : 'border-[#E8ECF2] text-slate-400 hover:border-[#4BB9EC]/30 hover:text-slate-600 bg-white'
         }`}
+        style={{ fontFamily: 'var(--v2-font)' }}
         title="Search (⌘K)"
       >
         <Search className="w-3.5 h-3.5" />
