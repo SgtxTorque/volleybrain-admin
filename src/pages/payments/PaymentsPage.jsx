@@ -11,14 +11,41 @@ import { supabase } from '../../lib/supabase'
 import { calculateFeesForPlayer } from '../../lib/fee-calculator'
 import { exportToCSV } from '../../lib/csv-export'
 import {
-  DollarSign, Search, Bell, User, Users, Download, Plus, X
+  DollarSign, Search, Bell, User, Users, Download, Plus, X, AlertTriangle, CheckCircle, Clock as ClockIcon
 } from 'lucide-react'
 import { SkeletonPaymentsPage } from '../../components/ui'
-import PaymentsStatRow from './PaymentsStatRow'
+// PaymentsStatRow replaced by navy financial overview header inline
 import { PlayerPaymentCard, FamilyPaymentCard } from './PaymentCards'
 import { MarkPaidModal, DeletePaymentModal, SendReminderModal, BlastReminderModal, AddFeeModal } from './PaymentsModals'
+import FamilyDetailPanel from './FamilyDetailPanel'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
+
+// ---------- Zone classification ----------
+const ZONES = [
+  { key: 'critical', label: 'ZONE 1: CRITICAL PRIORITY', color: 'text-red-500', dot: 'bg-red-500' },
+  { key: 'followup', label: 'ZONE 2: NEEDS FOLLOW-UP', color: 'text-amber-500', dot: 'bg-amber-500' },
+  { key: 'ontrack', label: 'ZONE 3: ON TRACK', color: 'text-[#22C55E]', dot: 'bg-[#22C55E]' },
+  { key: 'paid', label: 'ZONE 4: FULLY PAID', color: 'text-slate-400', dot: 'bg-slate-400' },
+]
+
+function daysSince(dateStr) {
+  if (!dateStr) return 0
+  const d = new Date(dateStr)
+  const now = new Date()
+  return Math.floor((now - d) / (1000 * 60 * 60 * 24))
+}
+
+function classifyFamily(family) {
+  const totalOwed = family.payments.filter(p => !p.paid).reduce((sum, p) => sum + parseFloat(p.amount || 0), 0)
+  if (totalOwed === 0 && family.payments.length > 0) return 'paid'
+  const hasOverdue30 = family.payments.some(p => !p.paid && p.due_date && daysSince(p.due_date) > 30)
+  if (hasOverdue30) return 'critical'
+  const hasPending = family.payments.some(p => !p.paid && p.payment_method === 'manual')
+  const hasOverdue = family.payments.some(p => !p.paid && p.due_date && daysSince(p.due_date) > 0)
+  if (hasPending || hasOverdue) return 'followup'
+  return 'ontrack'
+}
 
 // ============================================
 // GENERATE FEES FOR EXISTING PLAYERS (backfill) — exported utility
@@ -142,6 +169,10 @@ export function PaymentsPage({ showToast }) {
   const [showDeleteModal, setShowDeleteModal] = useState(null)
   const [showReminderModal, setShowReminderModal] = useState(null)
   const [showBlastModal, setShowBlastModal] = useState(false)
+  const [sortMode, setSortMode] = useState('balance')
+  const [selectedFamily, setSelectedFamily] = useState(null)
+  const [selectedFamilyIds, setSelectedFamilyIds] = useState(new Set())
+  const [showZone4All, setShowZone4All] = useState(false)
 
   // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
   function getSportSeasonIds() {
@@ -308,6 +339,16 @@ export function PaymentsPage({ showToast }) {
   }, {})
 
   const familyList = Object.values(familyGroups).sort((a, b) => {
+    if (sortMode === 'name') {
+      return (a.parentName || '').localeCompare(b.parentName || '')
+    }
+    if (sortMode === 'priority') {
+      const zoneOrder = { critical: 0, followup: 1, ontrack: 2, paid: 3 }
+      const az = zoneOrder[classifyFamily(a)] ?? 9
+      const bz = zoneOrder[classifyFamily(b)] ?? 9
+      if (az !== bz) return az - bz
+    }
+    // Default: highest balance first
     const aOwed = a.payments.filter(p => !p.paid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
     const bOwed = b.payments.filter(p => !p.paid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
     return bOwed - aOwed
@@ -320,6 +361,27 @@ export function PaymentsPage({ showToast }) {
   const uniqueFamilies = new Set(payments.map(p => p.family_email || p.players?.parent_email)).size
   const overdueFamilyCount = Object.values(familyGroups).filter(f => f.payments.some(p => !p.paid)).length
   const collectionRate = payments.length > 0 ? Math.round((payments.filter(p => p.paid).length / payments.length) * 100) : 0
+
+  // Avg days overdue
+  const overduePayments = payments.filter(p => !p.paid && p.due_date && daysSince(p.due_date) > 0)
+  const avgDaysOverdue = overduePayments.length > 0
+    ? Math.round(overduePayments.reduce((sum, p) => sum + daysSince(p.due_date), 0) / overduePayments.length)
+    : 0
+
+  // Zone groups for priority queue rendering
+  const zoneGroups = ZONES.map(zone => ({
+    ...zone,
+    families: familyList.filter(f => classifyFamily(f) === zone.key)
+  }))
+
+  // Bulk selection helpers
+  function toggleBulkSelect(email) {
+    setSelectedFamilyIds(prev => {
+      const next = new Set(prev)
+      next.has(email) ? next.delete(email) : next.add(email)
+      return next
+    })
+  }
 
   const csvColumns = [
     { label: 'Player First Name', accessor: p => p.players?.first_name },
@@ -377,19 +439,30 @@ export function PaymentsPage({ showToast }) {
       {/* Season filter */}
       <SeasonFilterBar />
 
-      {/* Stat row */}
-      <PaymentsStatRow
-        totalCollected={totalCollected}
-        totalOwed={totalOwed}
-        uniqueFamilies={uniqueFamilies}
-        collectionRate={collectionRate}
-        overdueFamilyCount={overdueFamilyCount}
-        totalBilled={totalBilled}
-      />
+      {/* Navy Financial Overview Header */}
+      <div className="bg-[#10284C] rounded-2xl p-6" style={{ fontFamily: 'var(--v2-font)' }}>
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-6">
+          {[
+            { label: 'Total Billed', value: `$${totalBilled.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: 'text-white' },
+            { label: 'Collected', value: `$${totalCollected.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: 'text-[#22C55E]' },
+            { label: 'Outstanding', value: `$${totalOwed.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: totalOwed > 0 ? 'text-red-400' : 'text-white' },
+            { label: 'Collection Rate', value: `${collectionRate}%`, color: collectionRate >= 80 ? 'text-[#22C55E]' : collectionRate >= 50 ? 'text-amber-400' : 'text-red-400' },
+            { label: 'Overdue', value: overdueFamilyCount, color: overdueFamilyCount > 0 ? 'text-red-400' : 'text-white' },
+            { label: 'Avg Days Overdue', value: avgDaysOverdue, color: avgDaysOverdue > 30 ? 'text-red-400' : avgDaysOverdue > 14 ? 'text-amber-400' : 'text-white' },
+          ].map(stat => (
+            <div key={stat.label} className="text-center">
+              <div className={`text-2xl font-black ${stat.color}`} style={{ letterSpacing: '-0.03em' }}>
+                {stat.value}
+              </div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/40 mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Search & filter bar */}
-      <div className={`rounded-[14px] px-5 py-3 flex items-center gap-3 ${isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-[0_1px_3px_rgba(16,40,76,0.04),0_4px_12px_rgba(16,40,76,0.03)]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
-        <div className="relative flex-1 max-w-sm">
+      <div className={`rounded-[14px] px-5 py-3 flex items-center gap-3 flex-wrap ${isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-[0_1px_3px_rgba(16,40,76,0.04),0_4px_12px_rgba(16,40,76,0.03)]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+        <div className="relative flex-1 max-w-sm min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" placeholder="Search by player or parent..." value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -416,6 +489,15 @@ export function PaymentsPage({ showToast }) {
           ))}
         </div>
 
+        {/* Sort mode */}
+        <select value={sortMode} onChange={e => setSortMode(e.target.value)}
+          className={`px-3 py-2 rounded-lg text-sm font-bold ${isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white' : 'bg-white border border-[#E8ECF2] text-[#10284C]'} focus:outline-none focus:border-[#4BB9EC]`}
+          style={{ fontFamily: 'var(--v2-font)' }}>
+          <option value="balance">Sort: Highest Balance</option>
+          <option value="priority">Sort: Priority Queue</option>
+          <option value="name">Sort: Family Name</option>
+        </select>
+
         <div className={`ml-auto flex gap-1 p-1 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`}>
           <button onClick={() => setViewMode('individual')}
             className={`px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1.5 transition ${
@@ -432,7 +514,7 @@ export function PaymentsPage({ showToast }) {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content — 2-column layout */}
       {loading ? (
         <SkeletonPaymentsPage />
       ) : payments.length === 0 ? (
@@ -446,33 +528,145 @@ export function PaymentsPage({ showToast }) {
             Generate Fees for Existing Players
           </button>
         </div>
-      ) : viewMode === 'individual' ? (
-        <div className="space-y-3">
-          {playerList.length === 0 ? (
-            <div className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No results found for "{searchQuery}"</div>
-          ) : (
-            playerList.map(({ id, player, payments }) => (
-              <PlayerPaymentCard key={id} player={player} payments={payments}
-                expanded={expandedCards.has(id)} onToggle={() => toggleCard(id)}
-                onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
-                onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={p => setShowReminderModal(p)}
+      ) : (
+        <div className="flex gap-6">
+          {/* Left: Payment list */}
+          <div className="flex-1 min-w-0">
+            {viewMode === 'individual' ? (
+              <div className="space-y-3">
+                {playerList.length === 0 ? (
+                  <div className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No results found for "{searchQuery}"</div>
+                ) : (
+                  playerList.map(({ id, player, payments: pPayments }) => (
+                    <PlayerPaymentCard key={id} player={player} payments={pPayments}
+                      expanded={expandedCards.has(id)} onToggle={() => toggleCard(id)}
+                      onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
+                      onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={p => setShowReminderModal(p)}
+                    />
+                  ))
+                )}
+              </div>
+            ) : sortMode === 'priority' ? (
+              /* Priority Queue — zone-grouped rendering */
+              <div className="space-y-1">
+                {zoneGroups.map(zone => {
+                  if (zone.families.length === 0) return null
+                  const isZone4 = zone.key === 'paid'
+                  const visibleFamilies = isZone4 && !showZone4All ? zone.families.slice(0, 3) : zone.families
+                  return (
+                    <div key={zone.key}>
+                      {/* Zone header */}
+                      <div className="flex items-center gap-2 mt-5 mb-3 first:mt-0">
+                        <div className={`w-2 h-2 rounded-full ${zone.dot}`} />
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${zone.color}`}
+                          style={{ fontFamily: 'var(--v2-font)' }}>{zone.label}</span>
+                        <span className={`text-xs font-bold ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>({zone.families.length})</span>
+                        <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`} />
+                        {isZone4 && zone.families.length > 3 && (
+                          <button onClick={() => setShowZone4All(!showZone4All)}
+                            className="text-xs font-bold text-[#4BB9EC] hover:underline">
+                            {showZone4All ? 'Collapse' : `Show All ${zone.families.length}`} {showZone4All ? '↑' : '↓'}
+                          </button>
+                        )}
+                      </div>
+                      {/* Zone families */}
+                      <div className="space-y-3">
+                        {visibleFamilies.map(family => (
+                          <FamilyPaymentCard key={family.email} family={family}
+                            expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
+                            onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
+                            onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
+                            isSelected={selectedFamily?.email === family.email}
+                            onSelect={() => setSelectedFamily(selectedFamily?.email === family.email ? null : family)}
+                            zone={zone.key}
+                            onBulkToggle={() => toggleBulkSelect(family.email)}
+                            bulkSelected={selectedFamilyIds.has(family.email)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              /* Flat list (balance/name sort) */
+              <div className="space-y-3">
+                {familyList.length === 0 ? (
+                  <div className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No results found for "{searchQuery}"</div>
+                ) : (
+                  familyList.map(family => (
+                    <FamilyPaymentCard key={family.email} family={family}
+                      expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
+                      onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
+                      onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
+                      isSelected={selectedFamily?.email === family.email}
+                      onSelect={() => setSelectedFamily(selectedFamily?.email === family.email ? null : family)}
+                      zone={classifyFamily(family)}
+                      onBulkToggle={() => toggleBulkSelect(family.email)}
+                      bulkSelected={selectedFamilyIds.has(family.email)}
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Family Detail Panel */}
+          {selectedFamily && viewMode === 'family' && (
+            <div className="w-[380px] shrink-0 hidden xl:block">
+              <FamilyDetailPanel
+                family={selectedFamily}
+                onClose={() => setSelectedFamily(null)}
+                onMarkPaid={p => setShowMarkPaidModal(p)}
+                onMarkUnpaid={handleMarkUnpaid}
+                onSendReminder={f => setShowReminderModal(f)}
+                onAddFee={() => setShowAddModal(true)}
               />
-            ))
+            </div>
           )}
         </div>
-      ) : (
-        <div className="space-y-3">
-          {familyList.length === 0 ? (
-            <div className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No results found for "{searchQuery}"</div>
-          ) : (
-            familyList.map(family => (
-              <FamilyPaymentCard key={family.email} family={family}
-                expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
-                onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
-                onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
-              />
-            ))
-          )}
+      )}
+
+      {/* Bulk Action Bar */}
+      {selectedFamilyIds.size > 0 && (
+        <div className={`sticky bottom-4 flex items-center gap-4 p-4 rounded-2xl shadow-lg z-30 ${
+          isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-xl'
+        }`} style={{ fontFamily: 'var(--v2-font)' }}>
+          <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+            {selectedFamilyIds.size} {selectedFamilyIds.size === 1 ? 'family' : 'families'} selected
+          </span>
+          <button onClick={() => setShowBlastModal(true)}
+            className="px-4 py-2 rounded-xl text-sm font-bold bg-[#4BB9EC] text-white hover:brightness-110 transition">
+            Send Reminder
+          </button>
+          <button onClick={() => {
+            const selectedPayments = payments.filter(p => selectedFamilyIds.has(p.family_email || p.players?.parent_email || 'unknown'))
+            exportToCSV(selectedPayments, 'selected-payments', csvColumns)
+          }}
+            className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`}>
+            Export Ledger
+          </button>
+          <button onClick={() => setSelectedFamilyIds(new Set())}
+            className="ml-auto text-xs font-bold text-slate-400 hover:text-slate-300">
+            Clear Selection
+          </button>
+        </div>
+      )}
+
+      {/* Detail panel overlay for smaller screens */}
+      {selectedFamily && viewMode === 'family' && (
+        <div className="xl:hidden">
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setSelectedFamily(null)} />
+          <div className={`fixed right-0 top-0 h-screen w-[400px] z-50 shadow-2xl overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-white'}`}>
+            <FamilyDetailPanel
+              family={selectedFamily}
+              onClose={() => setSelectedFamily(null)}
+              onMarkPaid={p => setShowMarkPaidModal(p)}
+              onMarkUnpaid={handleMarkUnpaid}
+              onSendReminder={f => setShowReminderModal(f)}
+              onAddFee={() => setShowAddModal(true)}
+            />
+          </div>
         </div>
       )}
 
