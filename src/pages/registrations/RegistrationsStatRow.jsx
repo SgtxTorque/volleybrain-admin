@@ -39,7 +39,7 @@ function StatCard({ icon: Icon, label, value, sub, pill, iconColor, valueColor }
   )
 }
 
-export default function RegistrationsStatRow({ statusCounts = {}, waiverStats = {}, returningCount = 0, newCount = 0 }) {
+export default function RegistrationsStatRow({ statusCounts = {}, waiverStats = {}, returningCount = 0, newCount = 0, compact = false }) {
   const pendingPill = statusCounts.pending > 0
     ? { label: 'Needs review', className: 'bg-amber-500/12 text-amber-500' }
     : null
@@ -48,7 +48,7 @@ export default function RegistrationsStatRow({ statusCounts = {}, waiverStats = 
   const waiverColor = waiverPct >= 80 ? 'text-emerald-500' : waiverPct >= 50 ? 'text-amber-500' : 'text-red-500'
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className={compact ? 'space-y-3' : 'grid grid-cols-2 lg:grid-cols-4 gap-3'}>
       <StatCard
         icon={ClipboardList}
         label="Total Registered"

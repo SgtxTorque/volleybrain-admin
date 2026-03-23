@@ -19,6 +19,7 @@ import RegistrationsStatRow from './RegistrationsStatRow'
 import RegistrationsTable from './RegistrationsTable'
 import RegistrationAnalytics from './RegistrationAnalytics'
 import PlayerDetailModal from './PlayerDetailModal'
+import PlayerDossierPanel from './PlayerDossierPanel'
 import { DenyRegistrationModal, BulkDenyModal } from './RegistrationModals'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
@@ -350,6 +351,9 @@ export function RegistrationsPage({ showToast }) {
   const returningCount = registrations.filter(p => p.is_returning).length
   const newCount = registrations.length - returningCount
 
+  // Dossier panel state
+  const [dossierPlayer, setDossierPlayer] = useState(null)
+
   // ========== RENDER ==========
 
   return (
@@ -357,101 +361,168 @@ export function RegistrationsPage({ showToast }) {
       breadcrumb="Registrations"
       title="Registrations"
       subtitle={selectedSeason?.name || 'All Seasons'}
-      actions={
-        <>
-          {/* View Toggle */}
-          <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+    >
+      <div className="space-y-5" style={{ fontFamily: 'var(--v2-font)' }}>
+      {/* Season filter */}
+      <SeasonFilterBar />
+
+      {/* 3-Column War Room Layout */}
+      <div className="flex gap-6">
+        {/* LEFT COLUMN — Stats & Actions */}
+        <div className="w-[220px] shrink-0 space-y-3 hidden xl:block">
+          {/* Compact stat cards (stacked vertical) */}
+          <RegistrationsStatRow
+            statusCounts={statusCounts}
+            waiverStats={waiverStats}
+            returningCount={returningCount}
+            newCount={newCount}
+            compact
+          />
+
+          {/* Action buttons */}
+          <div className={`rounded-[14px] p-4 space-y-2 border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}>
+            <div className={`text-[10px] font-black uppercase tracking-[0.15em] mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Actions</div>
             <button
               onClick={() => setViewMode('table')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
-                viewMode === 'table' ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400 hover:text-slate-300'
+              className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
+                viewMode === 'table'
+                  ? (isDark ? 'bg-white/[0.1] text-white' : 'bg-[#F5F6F8] text-[#10284C] shadow-sm')
+                  : (isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-50')
               }`}
             >
-              <Table className="w-4 h-4" /> Table
+              <Table className="w-4 h-4" /> Table View
             </button>
             <button
               onClick={() => setViewMode('analytics')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
-                viewMode === 'analytics' ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400 hover:text-slate-300'
+              className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${
+                viewMode === 'analytics'
+                  ? (isDark ? 'bg-white/[0.1] text-white' : 'bg-[#F5F6F8] text-[#10284C] shadow-sm')
+                  : (isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-50')
               }`}
             >
               <BarChart3 className="w-4 h-4" /> Analytics
             </button>
+            <div className={`border-t my-2 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`} />
+            {statusCounts.pending > 0 && (
+              <button
+                onClick={bulkApproveAllPending}
+                disabled={bulkProcessing}
+                className="w-full px-3 py-2 rounded-lg text-xs font-bold bg-[#22C55E] text-white hover:brightness-110 disabled:opacity-50 flex items-center gap-2 transition-all"
+              >
+                <Check className="w-4 h-4" /> Approve All ({statusCounts.pending})
+              </button>
+            )}
+            <button
+              onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
+              className={`w-full px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${
+                isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-[#F5F6F8] text-[#10284C] hover:bg-slate-200'
+              }`}
+            >
+              <FileDown className="w-4 h-4" /> Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* CENTER COLUMN — Table/Analytics */}
+        <div className="flex-1 min-w-0 space-y-5">
+          {/* Mobile-only stat row (hidden on xl) */}
+          <div className="xl:hidden">
+            <RegistrationsStatRow
+              statusCounts={statusCounts}
+              waiverStats={waiverStats}
+              returningCount={returningCount}
+              newCount={newCount}
+            />
           </div>
 
-          {viewMode === 'table' && statusCounts.pending > 0 && (
-            <button
-              onClick={bulkApproveAllPending}
-              disabled={bulkProcessing}
-              className="bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 shadow-sm flex items-center gap-2 font-semibold text-sm disabled:opacity-50 transition-all"
-              style={{ fontFamily: 'var(--v2-font)' }}
-            >
-              <Check className="w-4 h-4" /> Approve All ({statusCounts.pending})
+          {/* Mobile-only action buttons (hidden on xl) */}
+          <div className="xl:hidden flex gap-2 flex-wrap">
+            <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+              <button onClick={() => setViewMode('table')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${viewMode === 'table' ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400'}`}>
+                <Table className="w-4 h-4" /> Table
+              </button>
+              <button onClick={() => setViewMode('analytics')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${viewMode === 'analytics' ? 'bg-lynx-sky text-lynx-navy' : 'text-slate-400'}`}>
+                <BarChart3 className="w-4 h-4" /> Analytics
+              </button>
+            </div>
+            {statusCounts.pending > 0 && (
+              <button onClick={bulkApproveAllPending} disabled={bulkProcessing}
+                className="bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 shadow-sm flex items-center gap-2 font-semibold text-sm disabled:opacity-50">
+                <Check className="w-4 h-4" /> Approve All ({statusCounts.pending})
+              </button>
+            )}
+            <button onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 font-semibold text-sm ${isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06]' : 'bg-white text-[#10284C] border border-[#E8ECF2]'}`}>
+              <FileDown className="w-4 h-4" /> Export CSV
             </button>
+          </div>
+
+          {/* Analytics View */}
+          {viewMode === 'analytics' && (
+            <RegistrationAnalytics
+              registrations={registrations}
+              season={selectedSeason}
+              statusCounts={statusCounts}
+              showToast={showToast}
+            />
           )}
 
-          <button
-            onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 font-semibold text-sm transition-all ${
-              isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-white text-[#10284C] border border-[#E8ECF2] hover:border-[#4BB9EC]/30 hover:shadow-sm'
-            }`}
-            style={{ fontFamily: 'var(--v2-font)' }}
-          >
-            <FileDown className="w-4 h-4" /> Export CSV
-          </button>
-        </>
-      }
-    >
-      <div className="space-y-5">
-      {/* Season filter */}
-      <SeasonFilterBar />
+          {/* Table View */}
+          {viewMode === 'table' && (
+            <RegistrationsTable
+              registrations={registrations}
+              filteredRegs={filteredRegs}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              statusCounts={statusCounts}
+              selectedIds={selectedIds}
+              toggleSelectAll={toggleSelectAll}
+              toggleSelect={toggleSelect}
+              onPlayerSelect={(p) => { setSelectedPlayer(p); setEditMode(false) }}
+              onEditPlayer={(p) => { setSelectedPlayer(p); setEditMode(true) }}
+              onApprove={(playerId, regId) => updateStatus(playerId, regId, 'approved')}
+              onDeny={(player, reg) => setShowDenyModal({ player, reg })}
+              onPromote={(playerId, regId) => updateStatus(playerId, regId, 'approved')}
+              bulkApprove={bulkApprove}
+              bulkDeny={bulkDeny}
+              bulkMoveToWaitlist={bulkMoveToWaitlist}
+              bulkExport={bulkExport}
+              bulkProcessing={bulkProcessing}
+              setShowBulkDenyModal={setShowBulkDenyModal}
+              loading={loading}
+              selectedPendingCount={selectedPendingCount}
+              dossierPlayerId={dossierPlayer?.id}
+              onRowSelect={setDossierPlayer}
+            />
+          )}
+        </div>
 
-      {/* Stat Row */}
-      <RegistrationsStatRow
-        statusCounts={statusCounts}
-        waiverStats={waiverStats}
-        returningCount={returningCount}
-        newCount={newCount}
-      />
-
-      {/* Analytics View */}
-      {viewMode === 'analytics' && (
-        <RegistrationAnalytics
-          registrations={registrations}
-          season={selectedSeason}
-          statusCounts={statusCounts}
-          showToast={showToast}
-        />
-      )}
-
-      {/* Table View */}
-      {viewMode === 'table' && (
-        <RegistrationsTable
-          registrations={registrations}
-          filteredRegs={filteredRegs}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          statusCounts={statusCounts}
-          selectedIds={selectedIds}
-          toggleSelectAll={toggleSelectAll}
-          toggleSelect={toggleSelect}
-          onPlayerSelect={(p) => { setSelectedPlayer(p); setEditMode(false) }}
-          onEditPlayer={(p) => { setSelectedPlayer(p); setEditMode(true) }}
-          onApprove={(playerId, regId) => updateStatus(playerId, regId, 'approved')}
-          onDeny={(player, reg) => setShowDenyModal({ player, reg })}
-          onPromote={(playerId, regId) => updateStatus(playerId, regId, 'approved')}
-          bulkApprove={bulkApprove}
-          bulkDeny={bulkDeny}
-          bulkMoveToWaitlist={bulkMoveToWaitlist}
-          bulkExport={bulkExport}
-          bulkProcessing={bulkProcessing}
-          setShowBulkDenyModal={setShowBulkDenyModal}
-          loading={loading}
-          selectedPendingCount={selectedPendingCount}
-        />
-      )}
+        {/* RIGHT COLUMN — Player Dossier (conditional, hidden on small screens) */}
+        {dossierPlayer && viewMode === 'table' && (
+          <div className="w-[340px] shrink-0 hidden lg:block">
+            <PlayerDossierPanel
+              player={dossierPlayer}
+              registration={dossierPlayer.registrations?.[0]}
+              onClose={() => setDossierPlayer(null)}
+              onApprove={() => {
+                const reg = dossierPlayer.registrations?.[0]
+                if (reg) updateStatus(dossierPlayer.id, reg.id, 'approved')
+              }}
+              onDeny={() => {
+                const reg = dossierPlayer.registrations?.[0]
+                if (reg) setShowDenyModal({ player: dossierPlayer, reg })
+              }}
+              onEdit={() => { setSelectedPlayer(dossierPlayer); setEditMode(true) }}
+              onViewFull={() => { setSelectedPlayer(dossierPlayer); setEditMode(false) }}
+              isDark={isDark}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Player Detail/Edit Modal */}
       {selectedPlayer && (
