@@ -67,6 +67,7 @@ import { PaymentsPage } from './pages/payments'
 import { TeamsPage } from './pages/teams'
 import { CoachesPage } from './pages/coaches'
 import { StaffPage } from './pages/staff/StaffPage'
+import { StaffPortalPage } from './pages/staff-portal/StaffPortalPage'
 import { JerseysPage } from './pages/jerseys'
 import { SchedulePage, CoachAvailabilityPage } from './pages/schedule'
 import { AttendancePage } from './pages/attendance'
@@ -698,8 +699,8 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
 
       {/* Core pages */}
       <Route path="/teams" element={<RouteGuard allow={['admin']} activeView={activeView}><TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
-      <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachesPage showToast={showToast} /></RouteGuard>} />
-      <Route path="/staff" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><StaffPortalPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/staff" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPortalPage showToast={showToast} /></RouteGuard>} />
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
@@ -900,8 +901,7 @@ function MainApp() {
     // --- CLUB MANAGEMENT (people + teams + staff) ---
     { id: 'club', label: 'Club Management', type: 'group', icon: 'shield', items: [
       { id: 'teams', label: 'Team Management', icon: 'shield' },
-      { id: 'coaches', label: 'Coach Directory', icon: 'user-cog' },
-      { id: 'staff', label: 'Staff & Volunteers', icon: 'users' },
+      { id: 'coaches', label: 'Staff Portal', icon: 'users' },
     ]},
 
     // --- REGISTRATION & PAYMENTS (the money stuff) ---

@@ -137,8 +137,8 @@ export function getPageIdFromPath(pathname) {
 export const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
   '/teams': 'Team Management',
-  '/coaches': 'Coach Directory',
-  '/staff': 'Staff & Volunteers',
+  '/coaches': 'Staff Portal',
+  '/staff': 'Staff Portal',
   '/team-hubs': 'Team Hubs',
   '/registrations': 'Registrations',
   '/jerseys': 'Jerseys',
