@@ -13,7 +13,7 @@ import GameDayShareModal from './GameDayShareModal'
 import { getEventColor, formatTime, formatTime12, VolleyballIcon, exportEventsToICal } from './scheduleHelpers'
 import { MonthView, WeekView, DayView, ListView } from './CalendarViews'
 import ScheduleStatRow from './ScheduleStatRow'
-import ScheduleUpcomingStrip from './ScheduleUpcomingStrip'
+// ScheduleUpcomingStrip removed per schedule redesign
 import LineupBuilder from './LineupBuilder'
 import GameCompletionModal from './GameCompletionModal'
 import AddEventModal from './AddEventModal'
@@ -62,7 +62,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showPosterModal, setShowPosterModal] = useState(false)
   const [showGameDayCard, setShowGameDayCard] = useState(null)
-  const [allUpcomingGames, setAllUpcomingGames] = useState([])
+  // allUpcomingGames removed — upcoming strip removed per redesign
 
   // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
   function getSportSeasonIds() {
@@ -263,28 +263,6 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   function nextMonth() { setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)) }
   function goToToday() { setCurrentDate(new Date()) }
 
-  // Load upcoming games for the strip
-  useEffect(() => {
-    if (selectedSeason?.id) loadAllUpcoming()
-  }, [selectedSeason?.id, selectedTeam])
-
-  async function loadAllUpcoming() {
-    const today = new Date().toISOString().split('T')[0]
-    let query = supabase
-      .from('schedule_events')
-      .select('*, teams!schedule_events_team_id_fkey(id, name, color, logo_url)')
-    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
-      query = query.eq('season_id', selectedSeason.id)
-    }
-    const { data } = await query
-      .eq('event_type', 'game')
-      .gte('event_date', today)
-      .order('event_date', { ascending: true })
-      .order('event_time', { ascending: true })
-      .limit(6)
-    setAllUpcomingGames(data || [])
-  }
-
   const upcomingGames = filteredEvents.filter(e => e.event_type === 'game' && new Date(e.event_date) >= new Date())
   const dropdownCls = isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
   const dropdownItemCls = isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-800 hover:bg-slate-50'
@@ -292,7 +270,14 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   return (
     <PageShell
       breadcrumb="Schedule"
-      title="Schedule"
+      title={
+        <span className={`text-5xl font-black tracking-tighter uppercase italic ${isDark ? 'text-white' : 'text-[#10284C]'}`}
+          style={{ fontFamily: 'var(--v2-font)', letterSpacing: '-0.04em', lineHeight: 1 }}>
+          {currentDate.toLocaleString('en-US', { month: 'long' })}
+          {' '}
+          <span className={isDark ? 'text-slate-600' : 'text-slate-300'}>Schedule</span>
+        </span>
+      }
       subtitle={`${selectedSeason?.name || 'Schedule'} · ${filteredEvents.length} events`}
       actions={
         <div className="flex gap-2">
@@ -355,14 +340,6 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       <SeasonFilterBar />
       <ScheduleStatRow events={events} activeView={activeView} />
 
-      <ScheduleUpcomingStrip
-        allUpcomingGames={allUpcomingGames}
-        upcomingGames={upcomingGames}
-        teams={teams}
-        onSelectEvent={setSelectedEvent}
-        onShareGame={setShowGameDayCard}
-      />
-
       {/* Filters & View Toggle */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex gap-3 items-center">
@@ -397,12 +374,16 @@ function SchedulePage({ showToast, activeView, roleContext }) {
             ))}
           </div>
         </div>
-        <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+        <div className={`flex items-center p-1.5 rounded-xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}>
           {['list', 'month', 'week', 'day'].map(v => (
             <button key={v} onClick={() => setView(v)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all capitalize ${
-                view === v ? 'bg-lynx-sky text-lynx-navy' : isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-800'
-              }`}>{v}</button>
+              className={`px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                view === v
+                  ? (isDark ? 'bg-white/[0.1] text-white shadow-sm' : 'bg-[#F5F6F8] text-[#10284C] shadow-sm')
+                  : (isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-[#10284C]')
+              }`}>
+              {v.charAt(0).toUpperCase() + v.slice(1)}
+            </button>
           ))}
         </div>
       </div>

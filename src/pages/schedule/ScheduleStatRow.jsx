@@ -9,31 +9,22 @@ function StatCard({ icon: Icon, label, value, sub, pill, iconColor, valueColor }
   const { isDark } = useTheme()
 
   return (
-    <div className={`rounded-[14px] p-5 ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-    }`}>
-      <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${iconColor}15` }}
-        >
-          <Icon className="w-5 h-5" style={{ color: iconColor }} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className={`text-4xl font-extrabold tabular-nums leading-none ${valueColor || (isDark ? 'text-white' : 'text-slate-900')}`}>
-            {value}
-          </p>
-          <p className="text-sm font-bold uppercase tracking-wider mt-1 text-slate-400">
-            {label}
-          </p>
-          {(sub || pill) && (
-            <div className="flex items-center gap-2 mt-1.5">
-              {sub && <span className="text-sm text-slate-500">{sub}</span>}
-              {pill && <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${pill.className}`}>{pill.label}</span>}
-            </div>
-          )}
-        </div>
+    <div className={`relative overflow-hidden rounded-2xl p-5 border ${
+      isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'
+    } shadow-sm`}>
+      <div className="relative z-10">
+        <p className={`text-[10px] font-black uppercase tracking-[0.15em] mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
+        <h3 className={`text-3xl font-black italic tracking-tighter ${valueColor || (isDark ? 'text-white' : 'text-[#10284C]')}`}>{value}</h3>
+        {(sub || pill) && (
+          <div className="flex items-center gap-2 mt-1">
+            {sub && <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{sub}</span>}
+            {pill && <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pill.className}`}>{pill.label}</span>}
+          </div>
+        )}
       </div>
+      {Icon && (
+        <Icon className={`absolute -right-3 -bottom-3 w-20 h-20 ${isDark ? 'text-white/[0.03]' : 'text-slate-100'}`} />
+      )}
     </div>
   )
 }
