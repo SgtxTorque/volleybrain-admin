@@ -2,10 +2,10 @@
 // RegistrationsTable — filter bar + table with pending amber highlights
 // =============================================================================
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { ClickablePlayerName, calculateAge } from './PlayerDetailModal'
-import { Search, Check, X, MoreHorizontal, FileDown, List, ClipboardList } from 'lucide-react'
+import { Search, Check, X, MoreHorizontal, FileDown, List, ClipboardList, ChevronDown, ChevronRight, Mail } from 'lucide-react'
 
 // ============================================
 // STATUS CHIP
@@ -99,8 +99,11 @@ export default function RegistrationsTable({
   setShowBulkDenyModal,
   loading,
   selectedPendingCount,
+  dossierPlayerId,
+  onRowSelect,
 }) {
   const { isDark } = useTheme()
+  const [expandedRowId, setExpandedRowId] = useState(null)
 
   const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
 
@@ -233,86 +236,149 @@ export default function RegistrationsTable({
                 const reg = player.registrations?.[0]
                 const isSelected = selectedIds.has(player.id)
                 const isPending = ['submitted', 'pending', 'new'].includes(reg?.status)
+                const isSelectedForDossier = dossierPlayerId === player.id
+                const isExpanded = expandedRowId === player.id
 
                 return (
-                  <tr
-                    key={player.id}
-                    className={`border-b ${isDark ? 'border-white/[0.04]' : 'border-slate-100'} transition ${
-                      isSelected ? 'bg-lynx-sky/10' :
-                      isPending ? (isDark ? 'bg-amber-500/5' : 'bg-amber-50') :
-                      isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <td className="w-12 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleSelect(player.id)}
-                        className="w-4 h-4 rounded cursor-pointer"
-                      />
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                          {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
-                        </div>
-                        <div>
-                          <ClickablePlayerName
-                            player={player}
-                            onPlayerSelect={onPlayerSelect}
-                            className={`font-semibold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}
+                  <React.Fragment key={player.id}>
+                    <tr
+                      className={`border-b ${isDark ? 'border-white/[0.04]' : 'border-slate-100'} transition-colors cursor-pointer ${
+                        isSelectedForDossier
+                          ? (isDark ? 'bg-[#4BB9EC]/10 border-l-[3px] border-l-[#10284C]' : 'bg-[#4BB9EC]/[0.06] border-l-[3px] border-l-[#10284C]')
+                          : isSelected ? 'bg-lynx-sky/10'
+                          : isPending ? (isDark ? 'border-l-[3px] border-l-amber-400' : 'border-l-[3px] border-l-amber-400')
+                          : isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-[#4BB9EC]/[0.02]'
+                      }`}
+                      onClick={(e) => {
+                        // Don't trigger row select if clicking on checkbox, button, or link
+                        if (e.target.closest('input[type="checkbox"]') || e.target.closest('button')) return
+                        onRowSelect?.(player)
+                      }}
+                    >
+                      <td className="w-10 px-3 py-3">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(player.id)}
+                            className="w-4 h-4 rounded cursor-pointer"
                           />
-                          <p className="text-sm text-slate-400">
-                            {player.birth_date || player.dob ? `Age ${calculateAge(player.birth_date || player.dob)}` : ''}
-                            {player.grade ? ` · Gr ${player.grade}` : ''}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3">
-                      <p className={`text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{player.parent_name || '—'}</p>
-                    </td>
-                    <td className="px-5 py-3">
-                      <p className="text-sm text-slate-400">{player.parent_email}</p>
-                      <p className="text-sm text-slate-500">{player.parent_phone}</p>
-                    </td>
-                    <td className="px-5 py-3">
-                      <WaiverChip player={player} />
-                    </td>
-                    <td className="px-5 py-3">
-                      <StatusChip status={reg?.status} />
-                    </td>
-                    <td className="px-5 py-3">
-                      {isPending ? (
-                        <div className="flex gap-2">
                           <button
-                            onClick={() => onApprove(player.id, reg.id)}
-                            className="px-3 py-1.5 rounded-lg text-sm font-bold bg-lynx-sky text-lynx-navy hover:bg-lynx-sky/80"
+                            onClick={(e) => { e.stopPropagation(); setExpandedRowId(isExpanded ? null : player.id) }}
+                            className={`p-0.5 rounded transition ${isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-[#10284C]'}`}
                           >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => onDeny(player, reg)}
-                            className="px-3 py-1.5 rounded-lg text-sm font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20"
-                          >
-                            Deny
+                            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                           </button>
                         </div>
-                      ) : reg?.status === 'waitlist' ? (
-                        <button
-                          onClick={() => onPromote(player.id, reg.id)}
-                          className="px-3 py-1.5 rounded-lg text-sm font-bold bg-amber-500/12 text-amber-500 hover:bg-amber-500/20"
-                        >
-                          Promote
-                        </button>
-                      ) : (
-                        <OverflowMenu
-                          onView={() => onPlayerSelect(player)}
-                          onEdit={() => onEditPlayer(player)}
-                        />
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                            {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
+                          </div>
+                          <div>
+                            <ClickablePlayerName
+                              player={player}
+                              onPlayerSelect={onPlayerSelect}
+                              className={`font-semibold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}
+                            />
+                            <p className="text-sm text-slate-400">
+                              {player.birth_date || player.dob ? `Age ${calculateAge(player.birth_date || player.dob)}` : ''}
+                              {player.grade ? ` · Gr ${player.grade}` : ''}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <p className={`text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{player.parent_name || '—'}</p>
+                      </td>
+                      <td className="px-5 py-3">
+                        <p className="text-sm text-slate-400">{player.parent_email}</p>
+                        <p className="text-sm text-slate-500">{player.parent_phone}</p>
+                      </td>
+                      <td className="px-5 py-3">
+                        <WaiverChip player={player} />
+                      </td>
+                      <td className="px-5 py-3">
+                        <StatusChip status={reg?.status} />
+                      </td>
+                      <td className="px-5 py-3">
+                        {isPending ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => onApprove(player.id, reg.id)}
+                              className="px-3 py-1.5 rounded-lg text-sm font-bold bg-lynx-sky text-lynx-navy hover:bg-lynx-sky/80"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => onDeny(player, reg)}
+                              className="px-3 py-1.5 rounded-lg text-sm font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20"
+                            >
+                              Deny
+                            </button>
+                          </div>
+                        ) : reg?.status === 'waitlist' ? (
+                          <button
+                            onClick={() => onPromote(player.id, reg.id)}
+                            className="px-3 py-1.5 rounded-lg text-sm font-bold bg-amber-500/12 text-amber-500 hover:bg-amber-500/20"
+                          >
+                            Promote
+                          </button>
+                        ) : (
+                          <OverflowMenu
+                            onView={() => onPlayerSelect(player)}
+                            onEdit={() => onEditPlayer(player)}
+                          />
+                        )}
+                      </td>
+                    </tr>
+                    {/* Expandable detail row — Mission Control style */}
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={7}>
+                          <div className={`px-8 py-4 flex gap-8 ${isDark ? 'bg-[#0D1B2F] border-b border-white/[0.04]' : 'bg-[#F5F6F8] border-b border-[#E8ECF2]'}`}>
+                            {/* Financial Breakdown */}
+                            <div className="flex-1">
+                              <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Financial Breakdown</h4>
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Registration Fee</span>
+                                  <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{reg?.registration_fee ? `$${reg.registration_fee}` : '—'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Uniform Kit</span>
+                                  <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>—</span>
+                                </div>
+                                <div className={`border-t pt-2 flex justify-between ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+                                  <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>Total</span>
+                                  <span className={`text-sm font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{reg?.registration_fee ? `$${reg.registration_fee}` : '—'}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Quick Actions */}
+                            <div className="w-[200px] shrink-0">
+                              <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Quick Actions</h4>
+                              <div className="grid grid-cols-2 gap-2">
+                                {isPending && (
+                                  <>
+                                    <button onClick={() => onApprove(player.id, reg.id)}
+                                      className="px-2 py-1.5 rounded-lg text-[10px] font-bold bg-[#22C55E] text-white hover:brightness-110">Approve</button>
+                                    <button onClick={() => onDeny(player, reg)}
+                                      className="px-2 py-1.5 rounded-lg text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20">Deny</button>
+                                  </>
+                                )}
+                                <button onClick={() => onEditPlayer(player)}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-white text-[#10284C] border border-[#E8ECF2] hover:bg-slate-50'}`}>Edit</button>
+                                <button onClick={() => onPlayerSelect(player)}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-white text-[#10284C] border border-[#E8ECF2] hover:bg-slate-50'}`}>View</button>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 )
               })}
             </tbody>
