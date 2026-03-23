@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
@@ -34,6 +35,7 @@ export function AchievementsCatalogPage({
   playerName = 'Player',
   isAdminPreview = false,
 }) {
+  const { organization } = useAuth()
   const { colors, isDark } = useTheme()
   const { selectedSeason } = useSeason()
 
@@ -92,6 +94,7 @@ export function AchievementsCatalogPage({
         .from('player_achievements')
         .select('*, achievement:achievements(*)')
         .eq('player_id', playerId)
+        .eq('organization_id', organization.id)
 
       if (earnedErr) throw earnedErr
       setPlayerAchievements(earned || [])

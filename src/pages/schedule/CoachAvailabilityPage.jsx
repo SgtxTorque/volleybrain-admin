@@ -142,6 +142,7 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
       let query = supabase
         .from('coaches')
         .select('id, first_name, last_name, photo_url, status, team_coaches(team_id, role, teams(id, name, color))')
+        .eq('organization_id', organization.id)
         .eq('status', 'active')
         .order('last_name', { ascending: true })
 

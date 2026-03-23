@@ -666,28 +666,11 @@ function OrganizationPage({ showToast }) {
   const operationalSections = sections.filter(s => s.category === 'operational')
   const configSections = sections.filter(s => s.category === 'configuration')
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin"></div>
-          <span className={tc.textSecondary}>Loading organization setup...</span>
-        </div>
-      </div>
-    )
-  }
-
-  // Count statuses
-  const completedCount = sections.filter(s => getSectionStatus(s.key).status === 'complete').length
-  const inProgressCount = sections.filter(s => getSectionStatus(s.key).status === 'partial').length
-  const notStartedCount = sections.filter(s => getSectionStatus(s.key).status === 'not_started').length
-
-  // Active section metadata
-  const activeSection = sections.find(s => s.key === expandedSection)
-  const activeSectionStatus = expandedSection ? getSectionStatus(expandedSection) : null
-
   // Ref for right panel scroll-to-top on section change
   const rightPanelRef = useRef(null)
+
+  // Keyboard navigation ref
+  const navRef = useRef(null)
 
   // Auto-select first incomplete section on mount / return from waivers
   useEffect(() => {
@@ -708,15 +691,7 @@ function OrganizationPage({ showToast }) {
     if (rightPanelRef.current) rightPanelRef.current.scrollTop = 0
   }, [expandedSection])
 
-  // Category groupings for the left nav
-  const categories = [
-    { name: 'Foundation', sections: foundationSections },
-    { name: 'Operational', sections: operationalSections },
-    { name: 'Configuration', sections: configSections },
-  ]
-
   // Keyboard navigation for left nav panel
-  const navRef = useRef(null)
   const handleNavKeyDown = useCallback((e) => {
     if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) return
     e.preventDefault()
@@ -734,6 +709,33 @@ function OrganizationPage({ showToast }) {
     }
     // Enter and Space already handled by <button> default behavior (onClick)
   }, [expandedSection, sections])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin"></div>
+          <span className={tc.textSecondary}>Loading organization setup...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Count statuses
+  const completedCount = sections.filter(s => getSectionStatus(s.key).status === 'complete').length
+  const inProgressCount = sections.filter(s => getSectionStatus(s.key).status === 'partial').length
+  const notStartedCount = sections.filter(s => getSectionStatus(s.key).status === 'not_started').length
+
+  // Active section metadata
+  const activeSection = sections.find(s => s.key === expandedSection)
+  const activeSectionStatus = expandedSection ? getSectionStatus(expandedSection) : null
+
+  // Category groupings for the left nav
+  const categories = [
+    { name: 'Foundation', sections: foundationSections },
+    { name: 'Operational', sections: operationalSections },
+    { name: 'Configuration', sections: configSections },
+  ]
 
   // Left nav section button renderer
   function renderNavSection(section) {

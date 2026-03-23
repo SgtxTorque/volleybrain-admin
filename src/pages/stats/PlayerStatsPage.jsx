@@ -319,6 +319,7 @@ function SkillRatingBar({ label, value, color, maxValue = 100 }) {
 function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
   const { isDark } = useTheme()
   const { selectedSeason } = useSeason()
+  const { organization } = useAuth()
 
   const [player, setPlayer] = useState(null)
   const [seasonStats, setSeasonStats] = useState(null)
@@ -342,6 +343,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
         .from('players')
         .select('*')
         .eq('id', playerId)
+        .eq('organization_id', organization.id)
         .single()
 
       setPlayer(playerData)
@@ -376,6 +378,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           our_score, opponent_score, game_result,
           game_player_stats!inner(*)
         `)
+        .eq('organization_id', organization.id)
         .eq('game_player_stats.player_id', playerId)
         .eq('event_type', 'game')
         .order('event_date', { ascending: false })
