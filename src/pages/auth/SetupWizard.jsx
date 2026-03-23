@@ -14,12 +14,12 @@ import { supabase } from '../../lib/supabase'
 const BRAND = {
   navy: '#0B1628',
   navyMid: '#10284C',
-  sky: '#5BCBFA',
+  sky: '#4BB9EC',
   skyDark: '#4BB9EC',
   gold: '#FFD700',
   teal: '#2DD4A8',
   coral: '#FF6B6B',
-  pageBg: '#F4F7FA',
+  pageBg: '#F5F6F8',
   cardBg: '#FFFFFF',
   textPrimary: '#0B1628',
   textMuted: '#64748B',
@@ -403,7 +403,7 @@ export function SetupWizard({ onComplete, onBack }) {
   // RENDER
   // ============================================
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: BRAND.pageBg, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: BRAND.pageBg, fontFamily: "var(--v2-font, 'Plus Jakarta Sans'), sans-serif" }}>
       {/* Confetti canvas */}
       <canvas id="wizard-confetti" className="fixed inset-0 z-50 pointer-events-none" />
 
@@ -435,7 +435,7 @@ export function SetupWizard({ onComplete, onBack }) {
       {/* ─── Progress Bar ─── */}
       <div className="px-6 mb-6 max-w-[520px] w-full mx-auto">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: '#E2E8F0' }}>
+          <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: '#E8ECF2' }}>
             <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${meta.progress}%`, background: BRAND.sky }} />
           </div>
           <span className="ml-3 text-xs font-medium" style={{ color: BRAND.textMuted }}>Step {stepCount} of {totalSteps}</span>
@@ -444,7 +444,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
       {/* ─── Card Content ─── */}
       <div className="flex-1 flex items-start justify-center px-4 pb-12">
-        <div ref={cardRef} className={`w-full max-w-[520px] rounded-[24px] p-8 shadow-lg ${animating ? 'opacity-0' : 'wizard-card-enter'}`}
+        <div ref={cardRef} className={`w-full max-w-[520px] rounded-2xl p-8 shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-[#E8ECF2] ${animating ? 'opacity-0' : 'wizard-card-enter'}`}
           style={{ background: BRAND.cardBg, transition: 'opacity 150ms ease' }}>
 
           {/* ─── STEP: Role Selection ─── */}
@@ -468,7 +468,7 @@ export function SetupWizard({ onComplete, onBack }) {
                   <button key={role.id} onClick={() => setSelectedRole(role.id)}
                     className="p-4 rounded-[16px] text-left transition-all border-2"
                     style={{
-                      borderColor: selectedRole === role.id ? BRAND.sky : '#E2E8F0',
+                      borderColor: selectedRole === role.id ? BRAND.sky : '#E8ECF2',
                       background: selectedRole === role.id ? BRAND.sky + '10' : '#FAFBFC',
                       boxShadow: selectedRole === role.id ? `0 0 0 1px ${BRAND.sky}30` : 'none',
                     }}>
@@ -508,13 +508,11 @@ export function SetupWizard({ onComplete, onBack }) {
                 Just a name for now — you'll add all the details from your dashboard.
               </p>
 
-              <label className="block text-sm font-semibold mb-2" style={{ color: BRAND.textPrimary }}>Organization Name</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: BRAND.textMuted }}>Organization Name</label>
               <input type="text" value={orgName} onChange={e => setOrgName(e.target.value)} autoFocus
                 placeholder="e.g., Black Hornets Athletics"
-                className="w-full px-4 py-3 rounded-[14px] border-2 text-base font-medium outline-none transition-colors mb-6"
-                style={{ borderColor: '#E2E8F0', color: BRAND.textPrimary, background: '#FAFBFC' }}
-                onFocus={e => e.target.style.borderColor = BRAND.sky}
-                onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                className="w-full px-4 py-3 rounded-xl border-2 text-base font-medium outline-none transition-colors mb-6 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10"
+                style={{ borderColor: '#E8ECF2', color: BRAND.textPrimary, background: '#FAFBFC' }}
               />
 
               {error && <ErrorMessage message={error} />}
@@ -589,14 +587,12 @@ export function SetupWizard({ onComplete, onBack }) {
                 Check your email or text from the team admin.
               </p>
 
-              <label className="block text-sm font-semibold mb-2" style={{ color: BRAND.textPrimary }}>Invite Code</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: BRAND.textMuted }}>Invite Code</label>
               <input type="text" value={inviteCode}
                 onChange={e => setInviteCode(e.target.value.toUpperCase())} autoFocus
                 placeholder="XXXX-XXXX"
-                className="w-full px-4 py-3 rounded-[14px] border-2 text-center text-lg font-mono font-bold tracking-widest outline-none transition-colors mb-4"
-                style={{ borderColor: '#E2E8F0', color: BRAND.textPrimary, background: '#FAFBFC' }}
-                onFocus={e => e.target.style.borderColor = BRAND.sky}
-                onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                className="w-full px-4 py-3 rounded-xl border-2 text-center text-lg font-mono font-bold tracking-widest outline-none transition-colors mb-4 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10"
+                style={{ borderColor: '#E8ECF2', color: BRAND.textPrimary, background: '#FAFBFC' }}
               />
 
               {error && <ErrorMessage message={error} />}
@@ -696,8 +692,8 @@ export function SetupWizard({ onComplete, onBack }) {
 function PrimaryButton({ onClick, disabled, saving, children }) {
   return (
     <button onClick={onClick} disabled={disabled || saving}
-      className="w-full py-3.5 rounded-[14px] font-bold text-white text-base transition-all disabled:opacity-40"
-      style={{ background: BRAND.sky, boxShadow: '0 2px 8px rgba(75,185,236,0.3)' }}>
+      className="w-full py-3.5 rounded-xl font-bold text-white text-base transition-all disabled:opacity-40 hover:brightness-110"
+      style={{ background: BRAND.navyMid, fontFamily: "var(--v2-font, 'Plus Jakarta Sans'), sans-serif" }}>
       {saving ? (
         <span className="flex items-center justify-center gap-2">
           <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -714,10 +710,8 @@ function PrimaryButton({ onClick, disabled, saving, children }) {
 function OptionCard({ emoji, title, desc, onClick }) {
   return (
     <button onClick={onClick}
-      className="w-full flex items-center gap-4 p-4 rounded-[16px] border-2 text-left transition-all hover:shadow-md"
-      style={{ borderColor: '#E2E8F0', background: '#FAFBFC' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = BRAND.sky; e.currentTarget.style.background = BRAND.sky + '08' }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FAFBFC' }}>
+      className="w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all hover:shadow-md hover:border-[#4BB9EC] hover:bg-[#4BB9EC]/[0.04]"
+      style={{ borderColor: '#E8ECF2', background: '#FAFBFC' }}>
       <span className="text-2xl shrink-0">{emoji}</span>
       <div>
         <p className="font-bold text-sm" style={{ color: BRAND.textPrimary }}>{title}</p>
