@@ -4,6 +4,7 @@
 // =============================================================================
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -153,6 +154,7 @@ export async function generateFeesForExistingPlayers(supabase, seasonId, showToa
 // MAIN PAYMENTS PAGE
 // ============================================
 export function PaymentsPage({ showToast }) {
+  const { organization } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
   const { isDark } = useTheme()
@@ -188,6 +190,7 @@ export function PaymentsPage({ showToast }) {
     let query = supabase
       .from('players')
       .select('id, first_name, last_name, photo_url, position, grade, jersey_number, parent_email, parent_name')
+      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
     } else {
@@ -209,6 +212,7 @@ export function PaymentsPage({ showToast }) {
     let query = supabase
       .from('payments')
       .select('*, players(id, first_name, last_name, parent_name, parent_email, photo_url, position, grade, jersey_number)')
+      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason)) {
       query = query.eq('season_id', selectedSeason.id)
     } else {

@@ -50,7 +50,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       const sportIds = getSportSeasonIds()
 
       // Load teams (scoped to coach's teams if coach role)
-      let teamsQuery = supabase.from('teams').select('*')
+      let teamsQuery = supabase.from('teams').select('*').eq('organization_id', organization.id)
       if (!isAllSeasons(selectedSeason)) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
@@ -76,6 +76,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           teams:target_team_id (name, color),
           message_recipients (id, acknowledged, acknowledged_at, recipient_name)
         `)
+        .eq('organization_id', organization.id)
       if (!isAllSeasons(selectedSeason)) {
         blastsQuery = blastsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {

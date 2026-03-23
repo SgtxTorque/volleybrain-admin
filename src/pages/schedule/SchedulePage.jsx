@@ -85,6 +85,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     let query = supabase
       .from('schedule_events')
       .select('*, teams!schedule_events_team_id_fkey(id, name, color, logo_url)')
+      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else {
@@ -136,7 +137,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
 
   async function loadTeams() {
     if (!selectedSeason?.id) return
-    let query = supabase.from('teams').select('id, name, color, logo_url')
+    let query = supabase.from('teams').select('id, name, color, logo_url').eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else {
@@ -199,7 +200,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   async function updateEvent(eventId, eventData) {
     try {
       const { error } = await supabase.from('schedule_events')
-        .update({ ...eventData, updated_at: new Date().toISOString() }).eq('id', eventId)
+        .update({ ...eventData, updated_at: new Date().toISOString() }).eq('id', eventId).eq('organization_id', organization.id)
       if (error) throw error
       showToast('Event updated!', 'success')
       loadEvents()
@@ -210,7 +211,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   async function deleteEvent(eventId) {
     if (!confirm('Delete this event?')) return
     try {
-      const { error } = await supabase.from('schedule_events').delete().eq('id', eventId)
+      const { error } = await supabase.from('schedule_events').delete().eq('id', eventId).eq('organization_id', organization.id)
       if (error) throw error
       showToast('Event deleted', 'success')
       setSelectedEvent(null)
@@ -222,7 +223,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     try {
       const { error } = await supabase.from('schedule_events')
         .update({ ...eventData, updated_at: new Date().toISOString() })
-        .eq('series_id', seriesId)
+        .eq('series_id', seriesId).eq('organization_id', organization.id)
       if (error) throw error
       showToast('All events in series updated!', 'success')
       loadEvents()
@@ -236,7 +237,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       : 'Delete ALL events in this series?'
     if (!confirm(msg)) return
     try {
-      let query = supabase.from('schedule_events').delete().eq('series_id', seriesId)
+      let query = supabase.from('schedule_events').delete().eq('series_id', seriesId).eq('organization_id', organization.id)
       if (futureOnly && currentEventDate) {
         query = query.gte('event_date', currentEventDate)
       }
