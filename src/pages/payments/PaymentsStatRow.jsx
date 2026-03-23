@@ -9,21 +9,22 @@ function StatCard({ icon: Icon, label, value, sub, pill, iconColor, valueColor }
   const { isDark } = useTheme()
 
   return (
-    <div className={`rounded-[14px] p-5 ${
-      isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-    }`}>
+    <div className={`rounded-[14px] p-5 transition-all duration-200 ${
+      isDark ? 'bg-[#132240] border border-white/[0.06] hover:border-white/[0.12]' : 'bg-white border border-[#E8ECF2] hover:shadow-[0_2px_8px_rgba(16,40,76,0.06),0_8px_24px_rgba(16,40,76,0.05)]'
+    }`} style={{ fontFamily: 'var(--v2-font)' }}>
       <div className="flex items-start gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${iconColor}15` }}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-white/[0.06]' : ''}`}
+          style={{ backgroundColor: isDark ? undefined : `${iconColor}15` }}
         >
           <Icon className="w-5 h-5" style={{ color: iconColor }} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`text-4xl font-extrabold tabular-nums leading-none ${valueColor || (isDark ? 'text-white' : 'text-slate-900')}`}>
+          <p className={`text-2xl font-extrabold tabular-nums leading-none ${valueColor || (isDark ? 'text-white' : 'text-[#10284C]')}`}
+            style={{ letterSpacing: '-0.03em' }}>
             {value}
           </p>
-          <p className={`text-sm font-bold uppercase tracking-wider mt-1 ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>
+          <p className={`text-[10.5px] font-bold uppercase tracking-[0.08em] mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             {label}
           </p>
           {(sub || pill) && (

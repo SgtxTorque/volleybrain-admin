@@ -351,19 +351,23 @@ export function PaymentsPage({ showToast }) {
       actions={
         <>
           <button onClick={() => setShowBlastModal(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold border transition ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/15' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'}`}>
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-red-500 text-white hover:bg-red-600 shadow-sm transition-all"
+            style={{ fontFamily: 'var(--v2-font)' }}>
             <Bell className="w-4 h-4" /> Blast Overdue
           </button>
           <button onClick={handleBackfillFees} disabled={backfillLoading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'} ${backfillLoading ? 'opacity-50' : ''}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'} ${backfillLoading ? 'opacity-50' : ''}`}
+            style={{ fontFamily: 'var(--v2-font)' }}>
             {backfillLoading ? 'Generating...' : 'Backfill Fees'}
           </button>
           <button onClick={() => exportToCSV(payments, 'payments', csvColumns)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:border-lynx-sky hover:text-lynx-sky' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'}`}
+            style={{ fontFamily: 'var(--v2-font)' }}>
             <Download className="w-4 h-4" /> Export
           </button>
           <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-lynx-navy text-white font-bold hover:brightness-110 transition">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-[#10284C] text-white font-semibold hover:bg-[#1a3a6b] shadow-sm transition-all"
+            style={{ fontFamily: 'var(--v2-font)' }}>
             <Plus className="w-4 h-4" /> Add Fee
           </button>
         </>
@@ -384,12 +388,13 @@ export function PaymentsPage({ showToast }) {
       />
 
       {/* Search & filter bar */}
-      <div className={`rounded-[14px] px-5 py-3 flex items-center gap-3 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
+      <div className={`rounded-[14px] px-5 py-3 flex items-center gap-3 ${isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-[0_1px_3px_rgba(16,40,76,0.04),0_4px_12px_rgba(16,40,76,0.03)]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" placeholder="Search by player or parent..." value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className={`w-full pl-9 pr-8 py-2 rounded-lg text-base ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400'}`}
+            className={`w-full pl-9 pr-8 py-2 rounded-lg text-sm font-medium ${isDark ? 'bg-white/[0.04] border border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border border-[#E8ECF2] text-[#10284C] placeholder-slate-400 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'} focus:outline-none transition-all`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300">
