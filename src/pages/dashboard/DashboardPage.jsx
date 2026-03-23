@@ -175,6 +175,20 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [attentionExpanded, setAttentionExpanded] = useState(false)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+
+  // ── Org setup completion detection (onboarding priority) ──
+  const orgSetupComplete = Boolean(
+    organization?.name &&
+    organization?.contact_email &&
+    sports?.length > 0
+  )
+  const paymentSetupComplete = Boolean(
+    organization?.stripe_enabled ||
+    organization?.payment_venmo ||
+    organization?.payment_zelle ||
+    organization?.payment_cashapp
+  )
+  const foundationReady = orgSetupComplete && paymentSetupComplete
   const [perSeasonActionCounts, setPerSeasonActionCounts] = useState({})
   const [perSeasonActionDetails, setPerSeasonActionDetails] = useState({})
   const [globalStats, setGlobalStats] = useState({
