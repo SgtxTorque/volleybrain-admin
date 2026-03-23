@@ -8,8 +8,8 @@ import { supabase } from '../../lib/supabase'
 export default function TrendsTab({ metrics, hasFunnelTable, seasons, selectedSeasonId, organization }) {
   const { isDark } = useTheme()
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
-    : 'bg-white border border-slate-200'
+    ? 'bg-white/[0.03] border border-white/[0.06]'
+    : 'bg-white border border-[#E8ECF2]'
 
   return (
     <div className="space-y-6">

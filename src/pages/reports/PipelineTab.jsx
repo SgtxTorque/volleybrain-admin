@@ -20,11 +20,11 @@ const pipeStatusColors = {
 export default function PipelineTab({ metrics, organization, selectedSeason }) {
   const { isDark } = useTheme()
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
-    : 'bg-white border border-slate-200'
+    ? 'bg-white/[0.03] border border-white/[0.06]'
+    : 'bg-white border border-[#E8ECF2]'
   const inputCls = isDark
-    ? 'bg-white/[0.04] border border-white/[0.06] text-white placeholder-slate-500'
-    : 'bg-white border border-slate-200 text-slate-700 placeholder-slate-400'
+    ? 'bg-white/[0.04] border border-white/[0.08] text-white placeholder-slate-600'
+    : 'bg-white border-[#E8ECF2] text-[#10284C] placeholder-slate-400'
 
   const [pipelineFilter, setPipelineFilter] = useState('all')
   const [pipelineSearch, setPipelineSearch] = useState('')
@@ -58,12 +58,12 @@ export default function PipelineTab({ metrics, organization, selectedSeason }) {
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" value={pipelineSearch} onChange={e => setPipelineSearch(e.target.value)} placeholder="Search by name or email..."
-              className={`w-full pl-10 pr-4 py-2.5 text-r-sm rounded-lg outline-none focus:ring-1 focus:ring-lynx-sky/30 ${inputCls}`} />
+              className={`w-full pl-10 pr-4 py-2.5 text-sm font-medium rounded-xl border outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${inputCls}`} />
           </div>
         </div>
         <div>
           <select value={pipelineFilter} onChange={e => setPipelineFilter(e.target.value)}
-            className={`px-3 py-2.5 text-r-sm rounded-lg outline-none focus:ring-1 focus:ring-lynx-sky/30 ${inputCls}`}>
+            className={`px-4 py-2.5 text-sm font-medium rounded-xl border outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${inputCls}`}>
             <option value="all">All Status ({metrics.pipeline.length})</option>
             <option value="pending">Pending ({metrics.pipeline.filter(r => r.pipe_status === 'pending').length})</option>
             <option value="approved">Approved ({metrics.pipeline.filter(r => r.pipe_status === 'approved').length})</option>
@@ -116,7 +116,7 @@ export default function PipelineTab({ metrics, organization, selectedSeason }) {
         ) : (
           <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 380px)' }}>
             <table className="w-full">
-              <thead className={`sticky top-0 ${isDark ? 'bg-lynx-charcoal/95' : 'bg-slate-50/95'}`} style={{ backdropFilter: 'blur(8px)' }}>
+              <thead className={`sticky top-0 ${isDark ? 'bg-[#0B1D35]/95' : 'bg-[#F5F6F8]/95'}`} style={{ backdropFilter: 'blur(8px)' }}>
                 <tr>
                   {[
                     { id: 'name', label: 'Player' },
@@ -159,7 +159,7 @@ export default function PipelineTab({ metrics, organization, selectedSeason }) {
             </table>
           </div>
         )}
-        <div className={`px-4 py-3 flex items-center justify-between ${isDark ? 'border-t border-white/[0.06] bg-white/[0.02]' : 'border-t border-slate-200 bg-slate-50'}`}>
+        <div className={`px-4 py-3 flex items-center justify-between ${isDark ? 'border-t border-white/[0.06] bg-white/[0.02]' : 'border-t border-[#E8ECF2] bg-[#F5F6F8]'}`}>
           <p className="text-r-sm text-slate-400">Showing {filteredPipeline.length} of {metrics.pipeline.length} registrations</p>
           <p className="text-r-xs text-slate-400">{organization?.name} / {selectedSeason?.name}</p>
         </div>

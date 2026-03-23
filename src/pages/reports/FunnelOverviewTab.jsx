@@ -10,8 +10,8 @@ import {
 export default function FunnelOverviewTab({ metrics, funnelStages, maxFunnel, hasFunnelTable, formatTime }) {
   const { isDark } = useTheme()
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
-    : 'bg-white border border-slate-200'
+    ? 'bg-white/[0.03] border border-white/[0.06]'
+    : 'bg-white border border-[#E8ECF2]'
 
   return (
     <div className="space-y-6">
@@ -39,7 +39,7 @@ export default function FunnelOverviewTab({ metrics, funnelStages, maxFunnel, ha
 
       {/* Funnel Visualization */}
       <div className={`${cardCls} rounded-[14px] p-6`}>
-        <h2 className={`text-r-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>CONVERSION FUNNEL</h2>
+        <h2 className={`text-sm font-extrabold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>CONVERSION FUNNEL</h2>
         <p className="text-r-xs mb-6 text-slate-400">
           {hasFunnelTable ? 'Full funnel tracking active' : 'Based on existing registration and payment data. Run the SQL migration to enable full page view tracking.'}
         </p>

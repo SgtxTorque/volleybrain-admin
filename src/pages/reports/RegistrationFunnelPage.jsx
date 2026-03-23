@@ -29,9 +29,7 @@ function RegistrationFunnelPage({ showToast }) {
   const { selectedSeason: globalSeason } = useSeason()
   const { organization } = useAuth()
 
-  const inputCls = isDark
-    ? 'bg-white/[0.04] border border-white/[0.06] text-white placeholder-slate-500'
-    : 'bg-white border border-slate-200 text-slate-700 placeholder-slate-400'
+  const v2Select = `px-4 py-2.5 rounded-xl text-sm font-medium border focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`
 
   const [seasons, setSeasons] = useState([])
   const [selectedSeasonId, setSelectedSeasonId] = useState(null)
@@ -282,14 +280,14 @@ function RegistrationFunnelPage({ showToast }) {
     return (
       <PageShell title="Registration Funnel" subtitle="Select a season to view funnel analytics" breadcrumb="Insights">
         <style>{FNL_STYLES}</style>
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-12 text-center`}>
-          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-12 text-center`}>
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'}`}>
             <Calendar className="w-8 h-8 text-slate-400" />
           </div>
-          <p className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Select a Season</p>
-          <p className="text-r-sm text-slate-400 mt-2">Choose a season to view funnel analytics</p>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Select a Season</p>
+          <p className={`text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Choose a season to view funnel analytics</p>
           <select value="" onChange={e => setSelectedSeasonId(e.target.value)}
-            className={`mt-4 px-4 py-2.5 text-r-sm rounded-lg outline-none focus:ring-1 focus:ring-lynx-sky/30 ${inputCls}`}>
+            className={`mt-4 ${v2Select}`}>
             <option value="">Select Season</option>
             {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -308,48 +306,61 @@ function RegistrationFunnelPage({ showToast }) {
       breadcrumb="Insights"
       actions={
         <div className="flex items-center gap-3">
-          <div>
-            <label className="block text-[10px] font-bold tracking-wider mb-1 text-slate-400">DATE RANGE</label>
-            <select value={dateRange} onChange={e => setDateRange(e.target.value)}
-              className={`px-3 py-2 text-r-sm rounded-lg outline-none min-w-[140px] focus:ring-1 focus:ring-lynx-sky/30 ${inputCls}`}>
-              <option value="all">All Time</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="90d">Last 90 Days</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold tracking-wider mb-1 text-slate-400">SEASON</label>
-            <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)}
-              className={`px-3 py-2 text-r-sm rounded-lg outline-none min-w-[180px] focus:ring-1 focus:ring-lynx-sky/30 ${inputCls}`}>
-              <option value="">Select Season</option>
-              {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
+          <select value={dateRange} onChange={e => setDateRange(e.target.value)}
+            className={`min-w-[140px] ${v2Select}`}>
+            <option value="all">All Time</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+          </select>
+          <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)}
+            className={`min-w-[180px] ${v2Select}`}>
+            <option value="">Select Season</option>
+            {seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
       }
     >
       <style>{FNL_STYLES}</style>
 
-      {/* InnerStatRow */}
-      <InnerStatRow stats={[
-        { value: metrics.pageViews != null ? metrics.pageViews : '-', label: 'VIEWS', icon: '👁' },
-        { value: metrics.formStarts != null ? metrics.formStarts : '-', label: 'STARTS', icon: '📝' },
-        { value: metrics.submitted, label: 'COMPLETIONS', icon: '✅' },
-        { value: metrics.approved, label: 'APPROVED', icon: '🎯' },
-      ]} />
+      {/* Navy Overview Header */}
+      <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+              Registration Funnel
+            </h2>
+            <p className="text-sm text-white/50 mt-1">Pipeline from views to full payment</p>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <span className="text-3xl font-black italic text-[#4BB9EC]">{metrics.totalRegistrations}</span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Registered</div>
+            </div>
+            <div className="text-center">
+              <span className="text-3xl font-black italic text-[#22C55E]">{metrics.approved}</span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Approved</div>
+            </div>
+            <div className="text-center">
+              <span className="text-3xl font-black italic text-white/70">{metrics.paid}</span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Paid</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Tabs */}
+      {/* Tabs — V2 pill style */}
       <div className="flex gap-2 mb-5">
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg font-bold text-r-sm transition flex items-center gap-2 ${
+            className={`px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${
               activeTab === tab.id
-                ? 'bg-lynx-sky/20 text-lynx-sky'
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
                 : isDark
-                  ? 'bg-white/[0.04] border border-white/[0.06] text-white hover:bg-white/[0.06]'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}>
+                  ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
+                  : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'
+            }`}
+            style={{ fontFamily: 'var(--v2-font)' }}>
             <tab.icon className="w-4 h-4" />{tab.label}
           </button>
         ))}
