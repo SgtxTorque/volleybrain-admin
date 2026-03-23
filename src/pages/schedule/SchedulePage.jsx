@@ -6,7 +6,7 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { ChevronLeft, ChevronRight, BarChart3, Share2 } from '../../constants/icons'
+import { ChevronLeft, ChevronRight, ChevronDown, BarChart3, Share2 } from '../../constants/icons'
 import { SkeletonSchedulePage } from '../../components/ui'
 import SchedulePosterModal from './SchedulePosterModal'
 import GameDayShareModal from './GameDayShareModal'
@@ -299,9 +299,10 @@ function SchedulePage({ showToast, activeView, roleContext }) {
           {/* Share & Export */}
           <div className="relative">
             <button onClick={() => setShowShareMenu(!showShareMenu)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-semibold border transition ${
-                isDark ? 'bg-lynx-charcoal border-white/[0.06] text-slate-300 hover:bg-white/[0.04]' : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
-              }`}>
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                isDark ? 'bg-white/[0.06] border-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30 hover:shadow-sm'
+              }`}
+              style={{ fontFamily: 'var(--v2-font)' }}>
               <Share2 className="w-4 h-4" /> Share & Export ▾
             </button>
             {showShareMenu && (
@@ -333,7 +334,8 @@ function SchedulePage({ showToast, activeView, roleContext }) {
           {!isParentView && !isPlayerView && (
             <div className="relative">
               <button onClick={() => setShowQuickActions(!showQuickActions)}
-                className="bg-lynx-sky text-lynx-navy font-bold px-4 py-2.5 rounded-xl hover:bg-lynx-sky/80 flex items-center gap-2 text-base transition">
+                className="bg-[#4BB9EC] text-white font-semibold px-4 py-2.5 rounded-xl hover:brightness-110 shadow-sm flex items-center gap-2 text-sm transition-all"
+                style={{ fontFamily: 'var(--v2-font)' }}>
                 ➕ Add Events ▾
               </button>
               {showQuickActions && (
@@ -364,20 +366,28 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       {/* Filters & View Toggle */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex gap-3 items-center">
-          <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
-            className={`rounded-xl px-4 py-2.5 text-base font-medium border ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
-            <option value="all">All Teams</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-          <select value={selectedEventType} onChange={e => setSelectedEventType(e.target.value)}
-            className={`rounded-xl px-4 py-2.5 text-base font-medium border ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-800'}`}>
-            <option value="all">All Types</option>
-            <option value="practice">Practices</option>
-            <option value="game">Games</option>
-            <option value="tournament">Tournaments</option>
-            <option value="team_event">Team Events</option>
-            <option value="other">Other</option>
-          </select>
+          <div className="relative">
+            <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}
+              className={`appearance-none rounded-xl px-4 pr-9 py-2.5 text-sm font-semibold border cursor-pointer transition-all ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30'}`}
+              style={{ fontFamily: 'var(--v2-font)' }}>
+              <option value="all">All Teams</option>
+              {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+            <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+          </div>
+          <div className="relative">
+            <select value={selectedEventType} onChange={e => setSelectedEventType(e.target.value)}
+              className={`appearance-none rounded-xl px-4 pr-9 py-2.5 text-sm font-semibold border cursor-pointer transition-all ${isDark ? 'bg-white/[0.06] border-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]/30'}`}
+              style={{ fontFamily: 'var(--v2-font)' }}>
+              <option value="all">All Types</option>
+              <option value="practice">Practices</option>
+              <option value="game">Games</option>
+              <option value="tournament">Tournaments</option>
+              <option value="team_event">Team Events</option>
+              <option value="other">Other</option>
+            </select>
+            <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+          </div>
           <div className="hidden sm:flex items-center gap-3 ml-2">
             {[{ type: 'practice', label: 'Practice', color: '#10B981' }, { type: 'game', label: 'Game', color: '#F59E0B' }, { type: 'tournament', label: 'Tourney', color: '#8B5CF6' }].map(t => (
               <div key={t.type} className="flex items-center gap-1.5">
