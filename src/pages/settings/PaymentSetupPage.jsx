@@ -154,7 +154,8 @@ async function testStripeConnection() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-lynx-navy text-white font-bold px-5 py-2.5 rounded-lg hover:brightness-110 disabled:opacity-50 flex items-center gap-2 text-r-sm"
+          className="bg-[#10284C] text-white font-bold px-6 py-2.5 rounded-xl hover:brightness-110 disabled:opacity-50 flex items-center gap-2 text-sm"
+          style={{ fontFamily: 'var(--v2-font)' }}
         >
           {saving ? (
             <>
@@ -171,33 +172,61 @@ async function testStripeConnection() {
       }
     >
 
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-1 rounded-xl p-1 border border-slate-200 w-fit mb-6">
+      {/* Navy Overview Header */}
+      <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+              Payment Configuration
+            </h2>
+            <p className="text-sm text-white/50">Set up manual and online payment methods</p>
+          </div>
+          <div className="flex gap-4 text-xs font-bold text-white/50">
+            <span className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full inline-block ${settings.acceptManualPayments ? 'bg-[#22C55E]' : 'bg-slate-500'}`} />
+              Manual {settings.acceptManualPayments ? 'On' : 'Off'}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full inline-block ${stripeSettings.stripe_enabled ? 'bg-[#22C55E]' : 'bg-slate-500'}`} />
+              Stripe {stripeSettings.stripe_enabled ? 'On' : 'Off'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* V2 Tab Navigation */}
+      <div className={`flex items-center gap-1 rounded-xl p-1 w-fit mb-6 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'border border-[#E8ECF2]'}`}>
         <button
           onClick={() => setActiveTab('manual')}
-          className={`px-4 py-2 rounded-lg text-r-sm font-medium transition ${
-            activeTab === 'manual' ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-500 hover:bg-slate-100'
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition ${
+            activeTab === 'manual'
+              ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+              : isDark ? 'text-slate-500 hover:bg-white/[0.06]' : 'text-slate-400 hover:bg-[#F5F6F8]'
           }`}
+          style={{ fontFamily: 'var(--v2-font)' }}
         >
           Manual Payments
         </button>
         <button
           onClick={() => setActiveTab('stripe')}
-          className={`px-4 py-2 rounded-lg text-r-sm font-medium transition flex items-center gap-2 ${
-            activeTab === 'stripe' ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-500 hover:bg-slate-100'
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
+            activeTab === 'stripe'
+              ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+              : isDark ? 'text-slate-500 hover:bg-white/[0.06]' : 'text-slate-400 hover:bg-[#F5F6F8]'
           }`}
+          style={{ fontFamily: 'var(--v2-font)' }}
         >
           <CreditCard className="w-4 h-4" /> Online Payments
-          {stripeSettings.stripe_enabled && <span className="w-2 h-2 rounded-full bg-emerald-400" />}
+          {stripeSettings.stripe_enabled && <span className="w-2 h-2 rounded-full bg-[#22C55E]" />}
         </button>
       </div>
 
       {/* Manual Payments Tab */}
       {activeTab === 'manual' && (
         <div className="space-y-6">
-          <div className="rounded-[14px] border border-slate-200 bg-white p-6 space-y-4">
-            <h2 className={`text-lg font-semibold ${tc.text}`}>Manual Payment Methods</h2>
-            <p className={`${tc.textMuted} text-sm`}>
+          <div className={`rounded-[14px] p-6 space-y-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <h2 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Manual Payment Methods</h2>
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               Parents will see these options and send payment directly to you.
             </p>
 
@@ -206,39 +235,44 @@ async function testStripeConnection() {
               { key: 'zelleEmail', label: 'Zelle', placeholder: 'email@example.com', color: '#6D1ED4', icon: 'Z' },
               { key: 'cashappHandle', label: 'Cash App', placeholder: '$YourCashApp', color: '#00D632', icon: '$' },
             ].map(p => (
-              <div key={p.key} className={`p-4 ${tc.cardBgAlt} rounded-[14px]`}>
+              <div key={p.key} className={`p-4 rounded-[14px] ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
-                    style={{ backgroundColor: p.color + '30', color: p.color }}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold"
+                    style={{ backgroundColor: p.color + '20', color: p.color }}
                   >
                     {p.icon}
                   </div>
-                  <span className={`${tc.text} font-medium`}>{p.label}</span>
+                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{p.label}</span>
                 </div>
                 <input
                   type="text"
                   value={settings[p.key]}
                   onChange={e => setSettings({...settings, [p.key]: e.target.value})}
                   placeholder={p.placeholder}
-                  className={`w-full ${tc.input} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-lynx-sky`}
+                  className={`w-full rounded-xl px-4 py-2.5 text-sm font-medium border focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${
+                    isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-slate-600' : 'bg-white border-[#E8ECF2] text-[#10284C]'
+                  }`}
                 />
               </div>
             ))}
           </div>
 
-          <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+          <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <label className="flex items-center justify-between cursor-pointer">
               <div>
-                <p className={`font-medium ${tc.text}`}>Accept Manual Payments</p>
-                <p className={`text-sm ${tc.textMuted}`}>Show Venmo/Zelle/Cash App options during checkout</p>
+                <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`}>Accept Manual Payments</p>
+                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Show Venmo/Zelle/Cash App options during checkout</p>
               </div>
-              <input
-                type="checkbox"
-                checked={settings.acceptManualPayments}
-                onChange={e => setSettings({...settings, acceptManualPayments: e.target.checked})}
-                className="w-6 h-6 rounded accent-lynx-sky"
-              />
+              <div className="relative inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={settings.acceptManualPayments}
+                  onChange={e => setSettings({...settings, acceptManualPayments: e.target.checked})}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4BB9EC]" />
+              </div>
             </label>
           </div>
         </div>
@@ -248,12 +282,12 @@ async function testStripeConnection() {
       {activeTab === 'stripe' && (
         <div className="space-y-6">
           {/* Help Section - Show at top */}
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
-            <h3 className="text-blue-400 font-semibold mb-3 flex items-center gap-2">
+          <div className={`rounded-[14px] p-6 ${isDark ? 'bg-[#4BB9EC]/5 border border-[#4BB9EC]/15' : 'bg-[#4BB9EC]/5 border border-[#4BB9EC]/20'}`}>
+            <h3 className="text-[#4BB9EC] font-bold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--v2-font)' }}>
               <HelpCircle className="w-5 h-5" />
               Getting Started with Stripe
             </h3>
-            <div className="space-y-2 text-sm text-blue-300">
+            <div className={`space-y-2 text-sm ${isDark ? 'text-[#4BB9EC]/70' : 'text-[#4BB9EC]/80'}`}>
               <p>
                 <strong>1.</strong> Create a free{' '}
                 <a href="https://dashboard.stripe.com/register" target="_blank" rel="noopener noreferrer" className="underline">
@@ -270,31 +304,31 @@ async function testStripeConnection() {
                 <strong>3.</strong> Start with Test mode to try payments without real charges
               </p>
               <p>
-                <strong>4.</strong> Use test card: <code className="bg-blue-500/20 px-1 rounded">4242 4242 4242 4242</code>
+                <strong>4.</strong> Use test card: <code className="bg-[#4BB9EC]/15 px-1.5 py-0.5 rounded text-xs font-mono">4242 4242 4242 4242</code>
               </p>
             </div>
           </div>
 
           {/* Enable/Disable Toggle */}
-          <div className="rounded-[14px] border border-slate-200 bg-white p-6">
+          <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  stripeSettings.stripe_enabled ? 'bg-emerald-500/20' : isDark ? 'bg-slate-700' : 'bg-slate-100'
+                  stripeSettings.stripe_enabled ? 'bg-[#22C55E]/15' : isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'
                 }`}>
-                  <Zap className={`w-6 h-6 ${stripeSettings.stripe_enabled ? 'text-emerald-400' : tc.textMuted}`} />
+                  <Zap className={`w-6 h-6 ${stripeSettings.stripe_enabled ? 'text-[#22C55E]' : isDark ? 'text-slate-500' : 'text-slate-400'}`} />
                 </div>
                 <div>
-                  <h3 className={`${tc.text} font-semibold`}>Online Card Payments</h3>
-                  <p className={`${tc.textMuted} text-sm`}>
-                    {stripeSettings.stripe_enabled 
+                  <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Online Card Payments</h3>
+                  <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {stripeSettings.stripe_enabled
                       ? 'Parents can pay with credit/debit cards'
                       : 'Enable to accept card payments via Stripe'
                     }
                   </p>
                 </div>
               </div>
-              
+
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -302,7 +336,7 @@ async function testStripeConnection() {
                   onChange={e => setStripeSettings(prev => ({ ...prev, stripe_enabled: e.target.checked }))}
                   className="sr-only peer"
                 />
-                <div className="w-14 h-7 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500" />
+                <div className="w-14 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-[#4BB9EC]" />
               </label>
             </div>
           </div>
@@ -310,8 +344,8 @@ async function testStripeConnection() {
           {stripeSettings.stripe_enabled && (
             <>
               {/* Mode Selection */}
-              <div className="rounded-[14px] border border-slate-200 bg-white p-6">
-                <h3 className={`${tc.text} font-semibold mb-4 flex items-center gap-2`}>
+              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+                <h3 className={`font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
                   <Shield className="w-5 h-5" />
                   Environment Mode
                 </h3>
@@ -366,8 +400,8 @@ async function testStripeConnection() {
               </div>
 
               {/* API Keys */}
-              <div className="rounded-[14px] border border-slate-200 bg-white p-6">
-                <h3 className={`${tc.text} font-semibold mb-4 flex items-center gap-2`}>
+              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+                <h3 className={`font-bold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
                   <Key className="w-5 h-5" />
                   API Keys
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -462,8 +496,8 @@ async function testStripeConnection() {
               </div>
 
               {/* Payment Options */}
-              <div className="rounded-[14px] border border-slate-200 bg-white p-6">
-                <h3 className={`${tc.text} font-semibold mb-4`}>Payment Options</h3>
+              <div className={`rounded-[14px] p-6 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+                <h3 className={`font-bold mb-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Payment Options</h3>
                 
                 <div className="space-y-4">
                   {/* Processing Fee Mode */}
@@ -523,10 +557,10 @@ async function testStripeConnection() {
           )}
           
           {!stripeSettings.stripe_enabled && (
-            <div className="rounded-[14px] border border-slate-200 bg-white p-8 text-center">
-              <CreditCard className={`w-16 h-16 ${tc.textMuted} mx-auto mb-4`} />
-              <h3 className={`${tc.text} font-semibold text-lg mb-2`}>Online Payments Disabled</h3>
-              <p className={`${tc.textMuted} max-w-md mx-auto`}>
+            <div className={`rounded-[14px] p-8 text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+              <CreditCard className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+              <h3 className={`font-bold text-lg mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>Online Payments Disabled</h3>
+              <p className={`max-w-md mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 Enable online payments above to accept credit/debit card payments from parents via Stripe.
               </p>
             </div>
