@@ -4,7 +4,7 @@ import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { Trophy, TrendingUp, TrendingDown, Minus, Target, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
+import { Trophy, Calendar, ChevronRight, ChevronDown } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import InnerStatRow from '../../components/pages/InnerStatRow'
@@ -31,9 +31,9 @@ export default function TeamStandingsPage() {
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [showTeamDropdown, setShowTeamDropdown] = useState(false)
 
-  const cardCls = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-  const textPrimary = isDark ? 'text-white' : 'text-slate-900'
-  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
+  const cardCls = isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+  const textPrimary = isDark ? 'text-white' : 'text-[#10284C]'
+  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'
 
   // Load teams when season changes
   useEffect(() => {
@@ -190,18 +190,18 @@ export default function TeamStandingsPage() {
     <div className="relative">
       <button
         onClick={() => setShowTeamDropdown(!showTeamDropdown)}
-        className={`flex items-center gap-3 px-4 py-2 rounded-[14px] ${cardCls} hover:border-[var(--accent-primary)] transition`}
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white hover:border-[#4BB9EC]' : 'bg-white border-[#E8ECF2] text-[#10284C] hover:border-[#4BB9EC]'}`}
       >
         <span
           className="w-3 h-3 rounded-full"
           style={{ backgroundColor: selectedTeam?.color || '#888' }}
         />
-        <span className={`text-r-sm ${textPrimary}`}>{selectedTeam?.name}</span>
+        <span className="text-sm font-medium">{selectedTeam?.name}</span>
         <ChevronDown className="w-4 h-4 text-slate-400" />
       </button>
 
       {showTeamDropdown && (
-        <div className={`absolute right-0 mt-2 w-56 ${cardCls} rounded-[14px] shadow-2xl z-50 overflow-hidden`}>
+        <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-2xl z-50 overflow-hidden ${isDark ? 'bg-[#0B1D35] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2]'}`}>
           {teams.map(team => (
             <button
               key={team.id}
@@ -209,17 +209,17 @@ export default function TeamStandingsPage() {
                 setSelectedTeam(team)
                 setShowTeamDropdown(false)
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-100'} ${
-                team.id === selectedTeam?.id ? 'bg-[var(--accent-primary)]/20' : ''
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]'} ${
+                team.id === selectedTeam?.id ? (isDark ? 'bg-[#4BB9EC]/10' : 'bg-[#4BB9EC]/10') : ''
               }`}
             >
               <span
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: team.color || '#888' }}
               />
-              <span className={`text-r-sm ${textPrimary}`}>{team.name}</span>
+              <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{team.name}</span>
               {team.id === selectedTeam?.id && (
-                <span className="ml-auto text-[var(--accent-primary)]">✓</span>
+                <span className="ml-auto text-[#4BB9EC] font-bold">✓</span>
               )}
             </button>
           ))}
@@ -250,11 +250,11 @@ export default function TeamStandingsPage() {
       <PageShell title="Team Standings" breadcrumb="Game Day">
         <div>
           <div className={`${cardCls} rounded-[14px] p-12 text-center`}>
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <Trophy className="w-8 h-8 text-slate-400" />
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+              <Trophy className="w-8 h-8 text-amber-400" />
             </div>
-            <h2 className={`text-r-xl font-bold ${textPrimary} mt-4`}>No Team Selected</h2>
-            <p className="text-slate-400">Select a team to view standings</p>
+            <h2 className={`text-lg font-bold ${textPrimary} mt-4`} style={{ fontFamily: 'var(--v2-font)' }}>No Team Selected</h2>
+            <p className="text-sm text-slate-400">Select a team to view standings</p>
           </div>
         </div>
       </PageShell>
@@ -305,8 +305,8 @@ export default function TeamStandingsPage() {
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className={`text-r-lg font-semibold ${textPrimary}`}>Season Record</h2>
-                <p className="text-slate-400 text-r-sm">{standings?.games_played || 0} games played</p>
+                <h2 className={`text-lg font-extrabold ${textPrimary}`} style={{ fontFamily: 'var(--v2-font)' }}>Season Record</h2>
+                <p className="text-slate-400 text-sm">{standings?.games_played || 0} games played</p>
               </div>
               {streakInfo.type && streakInfo.count > 1 && (
                 <div className={`px-4 py-2 rounded-[14px] ${
@@ -343,7 +343,7 @@ export default function TeamStandingsPage() {
 
         {/* Recent Results */}
         <div className={`${cardCls} rounded-[14px] p-6`}>
-          <h3 className={`text-r-lg font-semibold ${textPrimary} mb-4`}>Recent Results</h3>
+          <h3 className={`text-lg font-extrabold ${textPrimary} mb-4`} style={{ fontFamily: 'var(--v2-font)' }}>Recent Results</h3>
 
           {recentGames.length > 0 ? (
             <div className="space-y-3">
@@ -368,7 +368,7 @@ export default function TeamStandingsPage() {
                       </div>
 
                       <div>
-                        <p className={`font-semibold text-r-sm ${textPrimary}`}>vs {game.opponent_name || 'TBD'}</p>
+                        <p className={`font-bold text-sm ${textPrimary}`}>vs {game.opponent_name || 'TBD'}</p>
                         <div className="flex items-center gap-2 text-r-xs">
                           <Calendar className="w-3 h-3" />
                           <span className="text-slate-400">{formatDate(game.event_date)}</span>
@@ -416,8 +416,8 @@ export default function TeamStandingsPage() {
               <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                 <Trophy className="w-8 h-8 text-slate-400" />
               </div>
-              <h3 className={`text-r-lg font-semibold ${textPrimary} mt-4`}>No Games Completed Yet</h3>
-              <p className="text-slate-400">Complete some games to see your standings!</p>
+              <h3 className={`text-lg font-bold ${textPrimary} mt-4`} style={{ fontFamily: 'var(--v2-font)' }}>No Games Completed Yet</h3>
+              <p className="text-sm text-slate-400">Complete some games to see your standings!</p>
             </div>
           )}
         </div>
@@ -425,12 +425,16 @@ export default function TeamStandingsPage() {
         {/* Form Guide (if enough games) */}
         {recentGames.length >= 3 && (
           <div className={`${cardCls} rounded-[14px] p-6`}>
-            <h3 className={`text-r-lg font-semibold ${textPrimary} mb-4`}>Form Guide</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-xs font-black uppercase tracking-widest text-[#4BB9EC]" style={{ fontFamily: 'var(--v2-font)' }}>Form Guide</span>
+              <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-[#E8ECF2]'}`} />
+              <span className="text-xs text-slate-400">Last 5 games</span>
+            </div>
             <div className="flex items-center gap-2">
               {recentGames.slice(0, 5).reverse().map((game, idx) => (
                 <div
                   key={idx}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white ${
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-white text-sm ${
                     game.game_result === 'win' ? 'bg-emerald-500' :
                     game.game_result === 'loss' ? 'bg-red-500' :
                     'bg-amber-500'
@@ -440,8 +444,8 @@ export default function TeamStandingsPage() {
                   {game.game_result === 'win' ? 'W' : game.game_result === 'loss' ? 'L' : 'T'}
                 </div>
               ))}
-              <ChevronRight className="w-5 h-5 text-slate-400" />
-              <span className="text-r-sm text-slate-400">Latest</span>
+              <ChevronRight className="w-5 h-5 text-slate-400 ml-1" />
+              <span className="text-xs font-bold text-slate-400">Latest</span>
             </div>
           </div>
         )}
@@ -458,9 +462,9 @@ export function StandingsWidget({ teamId, seasonId, teamName, teamColor }) {
   const [standings, setStandings] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const cardCls = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
-  const textPrimary = isDark ? 'text-white' : 'text-slate-900'
-  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
+  const cardCls = isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+  const textPrimary = isDark ? 'text-white' : 'text-[#10284C]'
+  const altBg = isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'
 
   useEffect(() => {
     if (teamId && seasonId) {
