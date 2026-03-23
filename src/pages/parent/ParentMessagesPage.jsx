@@ -23,7 +23,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
   const [actionCount, setActionCount] = useState(0)
 
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
+    ? 'bg-white/[0.03] border border-white/[0.06]'
     : 'bg-white border border-slate-200'
 
   useEffect(() => {
@@ -184,7 +184,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
       case 'announcement': return { label: 'Announcement', icon: <Megaphone className="w-3.5 h-3.5" />, cls: 'bg-red-500/10 text-red-500' }
       case 'schedule_change': return { label: 'Schedule', icon: <Calendar className="w-3.5 h-3.5" />, cls: 'bg-amber-500/10 text-amber-500' }
       case 'payment_reminder': return { label: 'Payment', icon: <CreditCard className="w-3.5 h-3.5" />, cls: 'bg-violet-500/10 text-violet-500' }
-      default: return { label: type || 'Update', icon: <Bell className="w-3.5 h-3.5" />, cls: 'bg-lynx-sky/10 text-lynx-sky' }
+      default: return { label: type || 'Update', icon: <Bell className="w-3.5 h-3.5" />, cls: 'bg-[#4BB9EC]/10 text-[#4BB9EC]' }
     }
   }
 
@@ -198,7 +198,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
     return (
       <PageShell breadcrumb="Messages" title="Messages" subtitle="Loading...">
         <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full animate-spin" />
         </div>
       </PageShell>
     )
@@ -210,7 +210,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
         breadcrumb="Messages"
         title={
           <span className="flex items-center gap-3">
-            <MessageCircle className="w-7 h-7 text-lynx-sky" />
+            <MessageCircle className="w-7 h-7 text-[#4BB9EC]" />
             Messages
           </span>
         }
@@ -232,7 +232,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
       breadcrumb="Messages"
       title={
         <span className="flex items-center gap-3">
-          <MessageCircle className="w-7 h-7 text-lynx-sky" />
+          <MessageCircle className="w-7 h-7 text-[#4BB9EC]" />
           Messages
         </span>
       }
@@ -242,8 +242,8 @@ function ParentMessagesPage({ roleContext, showToast }) {
           onClick={loadAllData}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition ${
             isDark
-              ? 'bg-lynx-charcoal border-white/[0.06] text-slate-300 hover:bg-white/[0.04]'
-              : 'bg-white border-slate-200 text-slate-500 hover:border-lynx-sky hover:text-lynx-sky'
+              ? 'bg-white/[0.03] border-white/[0.06] text-slate-300 hover:bg-white/[0.04]'
+              : 'bg-white border-slate-200 text-slate-500 hover:border-[#4BB9EC] hover:text-[#4BB9EC]'
           }`}
         >
           <RefreshCw className="w-4 h-4" /> Refresh
@@ -253,7 +253,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
       <div className="space-y-6">
         {/* Stat Row */}
         <InnerStatRow stats={[
-          { icon: <Bell className="w-5 h-5 text-lynx-sky" />, value: unreadCount, label: 'Unread', color: unreadCount > 0 ? 'text-lynx-sky' : 'text-slate-400' },
+          { icon: <Bell className="w-5 h-5 text-[#4BB9EC]" />, value: unreadCount, label: 'Unread', color: unreadCount > 0 ? 'text-[#4BB9EC]' : 'text-slate-400' },
           { icon: <Users className="w-5 h-5 text-emerald-500" />, value: teams.length, label: 'Teams', color: 'text-emerald-500' },
           { icon: <AlertCircle className="w-5 h-5 text-amber-500" />, value: actionCount, label: 'Action Required', color: actionCount > 0 ? 'text-amber-500' : 'text-slate-400' },
         ]} />
@@ -264,7 +264,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
             onClick={() => setSelectedTeam('all')}
             className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm font-bold transition ${
               selectedTeam === 'all'
-                ? 'bg-lynx-sky/20 text-lynx-sky'
+                ? 'bg-[#4BB9EC]/20 text-[#4BB9EC]'
                 : isDark
                   ? 'bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08]'
                   : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
@@ -278,7 +278,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
               onClick={() => setSelectedTeam(team.id)}
               className={`px-4 py-2 rounded-xl whitespace-nowrap flex items-center gap-2 text-sm font-bold transition ${
                 selectedTeam === team.id
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
+                  ? 'bg-[#4BB9EC]/20 text-[#4BB9EC]'
                   : isDark
                     ? 'bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08]'
                     : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
@@ -291,14 +291,14 @@ function ParentMessagesPage({ roleContext, showToast }) {
         </div>
 
         {/* Category Tabs */}
-        <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
+        <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-slate-200'}`}>
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-lynx-sky/15 text-lynx-sky'
+                  ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
                   : isDark
                     ? 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                     : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
@@ -307,7 +307,7 @@ function ParentMessagesPage({ roleContext, showToast }) {
               {tab.label}
               {tab.count > 0 && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  activeTab === tab.id ? 'bg-lynx-sky/20 text-lynx-sky' : isDark ? 'bg-white/[0.06] text-slate-500' : 'bg-slate-100 text-slate-400'
+                  activeTab === tab.id ? 'bg-[#4BB9EC]/20 text-[#4BB9EC]' : isDark ? 'bg-white/[0.06] text-slate-500' : 'bg-slate-100 text-slate-400'
                 }`}>
                   {tab.count}
                 </span>

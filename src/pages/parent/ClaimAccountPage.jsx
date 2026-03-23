@@ -75,7 +75,7 @@ function ClaimAccountPage({ showToast }) {
     return (
       <DashboardContainer className="px-6">
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-lynx-sky" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#4BB9EC]" />
         </div>
       </DashboardContainer>
     )
@@ -86,14 +86,14 @@ function ClaimAccountPage({ showToast }) {
     return (
       <DashboardContainer className="px-6">
         <div className="mx-auto mt-16">
-          <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
+          <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/[0.03]/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
             <Users className="w-12 h-12 mx-auto mb-4 text-slate-400" />
             <h2 className={`text-xl font-bold mb-2 ${tc.text}`}>No Unclaimed Players Found</h2>
             <p className={`text-sm mb-6 ${tc.textSecondary}`}>
               There are no player profiles waiting to be linked to your account.
             </p>
             <button onClick={() => navigate('/dashboard')}
-              className="px-6 py-2.5 bg-lynx-sky hover:bg-lynx-sky/90 text-white rounded-xl text-sm font-semibold transition-colors">
+              className="px-6 py-2.5 bg-[#4BB9EC] hover:bg-[#4BB9EC]/90 text-white rounded-xl text-sm font-semibold transition-colors">
               Go to Dashboard
             </button>
           </div>
@@ -105,11 +105,11 @@ function ClaimAccountPage({ showToast }) {
   return (
     <DashboardContainer className="px-6">
       <div className="mx-auto mt-12">
-        <div className={`rounded-2xl p-8 ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-lg'}`}>
+        <div className={`rounded-2xl p-8 ${isDark ? 'bg-white/[0.03]/40 border border-white/10' : 'bg-white border border-slate-200 shadow-lg'}`}>
           {/* Header */}
           <div className="flex justify-center mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-lynx-sky/20 flex items-center justify-center">
-              <UserPlus className="w-8 h-8 text-lynx-sky" />
+            <div className="w-16 h-16 rounded-2xl bg-[#4BB9EC]/20 flex items-center justify-center">
+              <UserPlus className="w-8 h-8 text-[#4BB9EC]" />
             </div>
           </div>
 
@@ -128,8 +128,8 @@ function ClaimAccountPage({ showToast }) {
                 className={`flex items-center gap-3 p-4 rounded-xl ${
                   isDark ? 'bg-white/[0.04] border border-white/10' : 'bg-slate-50 border border-slate-200'
                 }`}>
-                <div className="w-10 h-10 rounded-full bg-lynx-sky/20 flex items-center justify-center">
-                  <Check className="w-5 h-5 text-lynx-sky" />
+                <div className="w-10 h-10 rounded-full bg-[#4BB9EC]/20 flex items-center justify-center">
+                  <Check className="w-5 h-5 text-[#4BB9EC]" />
                 </div>
                 <div>
                   <p className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</p>
@@ -145,7 +145,7 @@ function ClaimAccountPage({ showToast }) {
           {/* Actions */}
           <div className="space-y-3">
             <button onClick={handleLink} disabled={linking}
-              className="w-full py-3.5 bg-lynx-sky hover:bg-lynx-sky/90 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              className="w-full py-3.5 bg-[#4BB9EC] hover:bg-[#4BB9EC]/90 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {linking ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Linking...</>
               ) : (
@@ -192,10 +192,10 @@ function OrphanPlayerBanner({ onNavigate }) {
 
   return (
     <div className={`rounded-2xl p-4 flex items-center justify-between ${
-      isDark ? 'bg-lynx-sky/10 border border-lynx-sky/30' : 'bg-blue-50 border border-blue-200'
+      isDark ? 'bg-[#4BB9EC]/10 border border-[#4BB9EC]/30' : 'bg-blue-50 border border-blue-200'
     }`}>
       <div className="flex items-center gap-3">
-        <UserPlus className="w-6 h-6 text-lynx-sky" />
+        <UserPlus className="w-6 h-6 text-[#4BB9EC]" />
         <div>
           <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {count} player profile{count > 1 ? 's' : ''} found for your family
@@ -204,7 +204,7 @@ function OrphanPlayerBanner({ onNavigate }) {
         </div>
       </div>
       <button onClick={() => onNavigate?.('claim-account')}
-        className="flex items-center gap-1 px-4 py-2 bg-lynx-sky hover:bg-lynx-sky/90 text-white rounded-xl text-sm font-semibold transition-colors">
+        className="flex items-center gap-1 px-4 py-2 bg-[#4BB9EC] hover:bg-[#4BB9EC]/90 text-white rounded-xl text-sm font-semibold transition-colors">
         Claim <ChevronRight className="w-4 h-4" />
       </button>
     </div>

@@ -180,7 +180,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
   }
 
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06] rounded-[14px]'
+    ? 'bg-white/[0.03] border border-white/[0.06] rounded-[14px]'
     : 'bg-white border border-slate-200 rounded-[14px]'
   const textPrimary = isDark ? 'text-white' : 'text-slate-900'
   const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
@@ -188,7 +188,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full" />
     </div>
   )
 
@@ -269,7 +269,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
 
         {/* Pay Selected Button */}
         {selectedPayments.size > 0 && (
-          <div className={`${cardCls} border-2 border-lynx-navy p-5`}>
+          <div className={`${cardCls} border-2 border-[#10284C] p-5`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className={`${textPrimary} text-r-sm`}>Ready to pay <span className="font-bold">${selectedTotal.toFixed(2)}</span></p>
@@ -285,7 +285,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                 <button
                   onClick={() => setShowPaymentOptions(true)}
                   disabled={processing}
-                  className="px-6 py-2 bg-lynx-navy text-white font-bold rounded-lg hover:brightness-110 transition disabled:opacity-50 text-r-sm"
+                  className="px-6 py-2 bg-[#10284C] text-white font-bold rounded-lg hover:brightness-110 transition disabled:opacity-50 text-r-sm"
                 >
                   {processing ? 'Processing...' : 'Pay Now'}
                 </button>
@@ -303,7 +303,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
               </h2>
               <button
                 onClick={selectedPayments.size === unpaidPayments.length ? clearSelection : selectAllUnpaid}
-                className="text-r-sm bg-lynx-sky/20 text-lynx-sky px-3 py-1 rounded-lg font-medium hover:bg-lynx-sky/30 transition"
+                className="text-r-sm bg-[#4BB9EC]/20 text-[#4BB9EC] px-3 py-1 rounded-lg font-medium hover:bg-[#4BB9EC]/30 transition"
               >
                 {selectedPayments.size === unpaidPayments.length ? 'Deselect All' : 'Select All'}
               </button>
@@ -315,9 +315,9 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                   <div
                     key={payment.id}
                     onClick={() => togglePaymentSelection(payment.id)}
-                    className={`${altBg} rounded-[14px] p-4 flex items-center gap-4 cursor-pointer transition ${isSelected ? 'ring-2 ring-lynx-sky' : isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}
+                    className={`${altBg} rounded-[14px] p-4 flex items-center gap-4 cursor-pointer transition ${isSelected ? 'ring-2 ring-[#4BB9EC]' : isDark ? 'hover:bg-white/[0.06]' : 'hover:bg-slate-100'}`}
                   >
-                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition ${isSelected ? 'bg-lynx-sky border-lynx-sky' : isDark ? 'border-slate-600' : 'border-slate-300'}`}>
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition ${isSelected ? 'bg-[#4BB9EC] border-[#4BB9EC]' : isDark ? 'border-slate-600' : 'border-slate-300'}`}>
                       {isSelected && <span className="text-white text-r-sm">✓</span>}
                     </div>
                     <div className="w-12 h-12 rounded-[14px] bg-red-500/20 flex items-center justify-center">
@@ -373,7 +373,7 @@ function ParentPaymentsPage({ roleContext, showToast }) {
                   )}
                   <div className={`flex justify-between font-bold pt-2 mt-2 border-t ${borderCls}`}>
                     <span className={textPrimary}>Total</span>
-                    <span className="text-lynx-sky">${selectedTotalWithFee.toFixed(2)}</span>
+                    <span className="text-[#4BB9EC]">${selectedTotalWithFee.toFixed(2)}</span>
                   </div>
                   {processingFee > 0 && (
                     <p className="text-r-xs text-slate-400 mt-1">Includes processing fee for online payment</p>

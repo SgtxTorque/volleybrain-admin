@@ -6,7 +6,7 @@ function MessageCard({ message, isDark, cardCls, expanded, onToggle, timeAgo, ge
     <button
       onClick={onToggle}
       className={`w-full text-left ${cardCls} rounded-[14px] p-5 transition hover:shadow-md ${
-        !message.isRead ? 'border-l-4 border-l-lynx-sky' : ''
+        !message.isRead ? 'border-l-4 border-l-[#4BB9EC]' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -16,7 +16,7 @@ function MessageCard({ message, isDark, cardCls, expanded, onToggle, timeAgo, ge
               {typeInfo.icon} {typeInfo.label}
             </span>
             {!message.isRead && (
-              <span className="w-2 h-2 rounded-full bg-lynx-sky flex-shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-[#4BB9EC] flex-shrink-0" />
             )}
           </div>
           <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -58,7 +58,7 @@ function TeamPostCard({ post, isDark, cardCls, expanded, onToggle, timeAgo }) {
               </span>
             )}
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-              post.post_type === 'announcement' ? 'bg-red-500/10 text-red-500' : 'bg-lynx-sky/10 text-lynx-sky'
+              post.post_type === 'announcement' ? 'bg-red-500/10 text-red-500' : 'bg-[#4BB9EC]/10 text-[#4BB9EC]'
             }`}>
               {post.post_type || 'Update'}
             </span>
@@ -114,7 +114,7 @@ function ActionCard({ item, isDark, cardCls, onAcknowledge, timeAgo, getTypeInfo
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onAcknowledge() }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold text-sm hover:brightness-110 transition flex-shrink-0"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#10284C] text-white font-bold text-sm hover:brightness-110 transition flex-shrink-0"
         >
           <Check className="w-4 h-4" /> Acknowledge
         </button>

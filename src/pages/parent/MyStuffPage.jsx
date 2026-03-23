@@ -30,7 +30,7 @@ function MyStuffPage({ roleContext, showToast }) {
   return (
     <PageShell title="My Stuff" breadcrumb="Account" subtitle="Manage your profile, payments, and preferences">
       {/* Tab Bar */}
-      <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-lynx-charcoal/60' : 'bg-slate-100'}`}>
+      <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.03]/60' : 'bg-slate-100'}`}>
         {TABS.map(tab => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -40,7 +40,7 @@ function MyStuffPage({ roleContext, showToast }) {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-r-sm font-semibold transition-all ${
                 isActive
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
+                  ? 'bg-[#4BB9EC]/20 text-[#4BB9EC]'
                   : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`
               }`}
             >
@@ -127,7 +127,7 @@ function ProfileTab({ showToast }) {
   }
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 space-y-6`}>
+    <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 space-y-6`}>
       <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Profile Information</h2>
 
       <div className="flex flex-col sm:flex-row gap-6">
@@ -168,7 +168,7 @@ function ProfileTab({ showToast }) {
               type="text"
               value={form.full_name}
               onChange={e => set('full_name', e.target.value)}
-              className={`w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+              className={`w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-1 focus:ring-[#4BB9EC]/20 ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
             />
           </div>
           <div>
@@ -188,14 +188,14 @@ function ProfileTab({ showToast }) {
               value={form.phone}
               onChange={e => set('phone', e.target.value)}
               placeholder="(555) 123-4567"
-              className={`w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+              className={`w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-1 focus:ring-[#4BB9EC]/20 ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
             />
           </div>
 
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#10284C] text-white font-bold text-r-sm hover:brightness-110 transition disabled:opacity-50"
           >
             {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving...' : 'Save Changes'}
@@ -254,7 +254,7 @@ function PaymentsTab({ roleContext, showToast }) {
 
       {/* Unpaid */}
       {unpaid.length > 0 && (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
           <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-3 flex items-center gap-2`}>
             <AlertTriangle className="w-4 h-4 text-red-500" />
             Outstanding ({unpaid.length})
@@ -280,7 +280,7 @@ function PaymentsTab({ roleContext, showToast }) {
       )}
 
       {/* Paid history */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
+      <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
         <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} mb-3`}>Payment History ({paid.length})</h3>
         {paid.length > 0 ? (
           <div className="space-y-2">
@@ -389,7 +389,7 @@ function WaiversTab({ roleContext, showToast }) {
   return (
     <div className="space-y-4">
       {waivers.length === 0 ? (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-8 text-center`}>
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-8 text-center`}>
           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
             <FileText className="w-8 h-8 text-slate-400" />
           </div>
@@ -398,7 +398,7 @@ function WaiversTab({ roleContext, showToast }) {
         </div>
       ) : (
         waivers.map(waiver => (
-          <div key={waiver.id} className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
+          <div key={waiver.id} className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{waiver.title}</h3>
@@ -429,7 +429,7 @@ function WaiversTab({ roleContext, showToast }) {
                     {!signed && !isSigningThis && (
                       <button
                         onClick={() => setSigningWaiver({ waiverId: waiver.id, playerId: child.id })}
-                        className="px-4 py-1.5 rounded-lg bg-lynx-navy text-white text-r-xs font-bold hover:brightness-110 transition"
+                        className="px-4 py-1.5 rounded-lg bg-[#10284C] text-white text-r-xs font-bold hover:brightness-110 transition"
                       >
                         Sign
                       </button>
@@ -441,7 +441,7 @@ function WaiversTab({ roleContext, showToast }) {
                           placeholder="Type full name to sign"
                           value={signatureName}
                           onChange={e => setSignatureName(e.target.value)}
-                          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
+                          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-1 focus:ring-[#4BB9EC]/20 ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
                           autoFocus
                         />
                         <button
@@ -517,7 +517,7 @@ function SettingsTab({ showToast }) {
   ]
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 space-y-5`}>
+    <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-6 space-y-5`}>
       <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Notification Preferences</h2>
 
       <div className="space-y-3">
@@ -536,7 +536,7 @@ function SettingsTab({ showToast }) {
                 onClick={() => toggle(item.key)}
                 className={`w-12 h-7 rounded-full transition-all relative ${
                   prefs[item.key]
-                    ? 'bg-lynx-sky'
+                    ? 'bg-[#4BB9EC]'
                     : isDark ? 'bg-slate-600' : 'bg-slate-300'
                 }`}
               >
@@ -552,7 +552,7 @@ function SettingsTab({ showToast }) {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition disabled:opacity-50"
+        className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#10284C] text-white font-bold text-r-sm hover:brightness-110 transition disabled:opacity-50"
       >
         {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         {saving ? 'Saving...' : 'Save Settings'}
@@ -571,7 +571,7 @@ function LinkedPlayersTab({ roleContext, showToast }) {
 
   if (!children.length) {
     return (
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-8 text-center`}>
+      <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-8 text-center`}>
         <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
           <Users className="w-8 h-8 text-slate-400" />
         </div>
@@ -588,7 +588,7 @@ function LinkedPlayersTab({ roleContext, showToast }) {
         const teamColor = team?.color || '#6366F1'
 
         return (
-          <div key={child.id} className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden`}>
+          <div key={child.id} className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden`}>
             <div className="h-2" style={{ backgroundColor: teamColor }} />
             <div className="p-5 flex items-center gap-4">
               {/* Photo */}
@@ -646,7 +646,7 @@ function LinkedPlayersTab({ roleContext, showToast }) {
 function LoadingSpinner() {
   return (
     <div className="flex items-center justify-center h-48">
-      <div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" />
+      <div className="animate-spin w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full" />
     </div>
   )
 }
@@ -655,7 +655,7 @@ function SummaryCard({ label, value, color }) {
   const { isDark } = useTheme()
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
+    <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-5`}>
       <p className="text-r-xs font-semibold uppercase text-slate-400">{label}</p>
       <p className="text-r-3xl font-bold mt-1" style={{ color }}>{value}</p>
     </div>

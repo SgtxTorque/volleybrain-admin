@@ -211,7 +211,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
     return (
       <DashboardContainer className="px-6">
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-lynx-sky" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#4BB9EC]" />
         </div>
       </DashboardContainer>
     )
@@ -227,7 +227,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
         </div>
 
         {/* Tab Bar */}
-        <div className={`flex gap-1 p-1 rounded-xl mb-6 ${isDark ? 'bg-lynx-charcoal/60' : 'bg-slate-100'}`}>
+        <div className={`flex gap-1 p-1 rounded-xl mb-6 ${isDark ? 'bg-white/[0.03]/60' : 'bg-slate-100'}`}>
           {TABS.map(tab => {
             const TabIcon = tab.icon
             const isActive = activeTab === tab.id
@@ -251,7 +251,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
           <div className="lg:col-span-3 space-y-4">
             {activeTab === 'open' && (
               seasons.length === 0 ? (
-                <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-lynx-charcoal/40' : 'bg-white border border-slate-200'}`}>
+                <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/[0.03]/40' : 'bg-white border border-slate-200'}`}>
                   <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-400" />
                   <p className={`text-lg font-semibold ${tc.text}`}>No Open Seasons</p>
                   <p className={tc.textSecondary}>Check back later for new registration periods.</p>
@@ -310,7 +310,7 @@ function ParentRegistrationHub({ roleContext, showToast }) {
 
             {/* No season selected hint */}
             {!expandedSeason && activeTab === 'open' && (
-              <div className={`rounded-2xl p-6 text-center ${isDark ? 'bg-lynx-charcoal/40' : 'bg-white border border-slate-200'}`}>
+              <div className={`rounded-2xl p-6 text-center ${isDark ? 'bg-white/[0.03]/40' : 'bg-white border border-slate-200'}`}>
                 <ChevronRight className="w-8 h-8 mx-auto mb-2 text-slate-400" />
                 <p className={`text-sm ${tc.textSecondary}`}>Select a season to see registration details</p>
               </div>
@@ -338,14 +338,14 @@ function SeasonCard({ season, isDark, tc, expanded, onToggle, form, set,
 
   return (
     <div className={`rounded-2xl overflow-hidden transition-all ${
-      isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'
+      isDark ? 'bg-white/[0.03]/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'
     }`}>
       {/* Season Header */}
       <button onClick={onToggle}
         className={`w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors`}>
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-lynx-sky/20 flex items-center justify-center">
-            <Shield className="w-6 h-6 text-lynx-sky" />
+          <div className="w-12 h-12 rounded-xl bg-[#4BB9EC]/20 flex items-center justify-center">
+            <Shield className="w-6 h-6 text-[#4BB9EC]" />
           </div>
           <div>
             <h3 className={`text-lg font-bold ${tc.text}`}>{season.name}</h3>
@@ -437,7 +437,7 @@ function SeasonCard({ season, isDark, tc, expanded, onToggle, form, set,
 
           {/* Submit */}
           <button onClick={onSubmit} disabled={submitting}
-            className="w-full py-3 bg-lynx-sky hover:bg-lynx-sky/90 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+            className="w-full py-3 bg-[#4BB9EC] hover:bg-[#4BB9EC]/90 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             {submitting ? 'Submitting...' : 'Submit Registration'}
           </button>
@@ -464,7 +464,7 @@ function WaiverBlock({ waiver, isDark, tc, alreadySigned, sigName, scrolled, onS
   }
 
   return (
-    <div className={`rounded-xl p-4 mb-3 ${isDark ? 'bg-lynx-charcoal/60 border border-white/10' : 'bg-slate-50 border border-slate-200'}`}>
+    <div className={`rounded-xl p-4 mb-3 ${isDark ? 'bg-white/[0.03]/60 border border-white/10' : 'bg-slate-50 border border-slate-200'}`}>
       <p className={`font-semibold text-sm mb-2 ${tc.text}`}>
         {waiver.title} {waiver.is_required && <span className="text-red-500">*</span>}
       </p>
@@ -503,7 +503,7 @@ function SummaryCard({ season, form, waivers, waiverSigs, signedWaivers, isDark,
     Object.keys(signedWaivers).length
 
   return (
-    <div className={`rounded-2xl p-5 ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
+    <div className={`rounded-2xl p-5 ${isDark ? 'bg-white/[0.03]/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
       <h3 className={`font-bold text-lg mb-4 ${tc.text}`}>Registration Summary</h3>
 
       <div className="space-y-3">
@@ -544,7 +544,7 @@ function SummaryRow({ label, value, tc, valueColor }) {
 function MyRegistrations({ players, isDark, tc }) {
   if (players.length === 0) {
     return (
-      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-lynx-charcoal/40' : 'bg-white border border-slate-200'}`}>
+      <div className={`rounded-2xl p-8 text-center ${isDark ? 'bg-white/[0.03]/40' : 'bg-white border border-slate-200'}`}>
         <ClipboardList className="w-12 h-12 mx-auto mb-3 text-slate-400" />
         <p className={`text-lg font-semibold ${tc.text}`}>No Registrations Yet</p>
         <p className={tc.textSecondary}>Switch to the Open Seasons tab to register.</p>
@@ -563,11 +563,11 @@ function MyRegistrations({ players, isDark, tc }) {
   return (
     <div className="space-y-3">
       {players.map(player => (
-        <div key={player.id} className={`rounded-2xl p-5 ${isDark ? 'bg-lynx-charcoal/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
+        <div key={player.id} className={`rounded-2xl p-5 ${isDark ? 'bg-white/[0.03]/40 border border-white/10' : 'bg-white border border-slate-200 shadow-sm'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-lynx-sky/20 flex items-center justify-center">
-                <User className="w-5 h-5 text-lynx-sky" />
+              <div className="w-10 h-10 rounded-full bg-[#4BB9EC]/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-[#4BB9EC]" />
               </div>
               <div>
                 <p className={`font-semibold ${tc.text}`}>{player.first_name} {player.last_name}</p>
@@ -602,7 +602,7 @@ function FormInput({ label, value, onChange, type = 'text', isDark }) {
       <input type={type} value={value} onChange={e => onChange(e.target.value)}
         className={`w-full px-3 py-2 rounded-lg text-sm border ${
           isDark ? 'bg-slate-800 border-white/10 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900'
-        } focus:ring-2 focus:ring-lynx-sky/50 focus:border-lynx-sky outline-none transition`} />
+        } focus:ring-2 focus:ring-[#4BB9EC]/50 focus:border-[#4BB9EC] outline-none transition`} />
     </div>
   )
 }
@@ -614,7 +614,7 @@ function FormSelect({ label, value, onChange, options, isDark }) {
       <select value={value} onChange={e => onChange(e.target.value)}
         className={`w-full px-3 py-2 rounded-lg text-sm border ${
           isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
-        } focus:ring-2 focus:ring-lynx-sky/50 focus:border-lynx-sky outline-none transition`}>
+        } focus:ring-2 focus:ring-[#4BB9EC]/50 focus:border-[#4BB9EC] outline-none transition`}>
         {options.map(opt => <option key={opt} value={opt}>{opt || 'Select...'}</option>)}
       </select>
     </div>

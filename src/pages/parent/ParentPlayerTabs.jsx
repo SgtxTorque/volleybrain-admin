@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import SpiderChart from '../../components/charts/SpiderChart'
-import { Target, TrendingUp } from 'lucide-react'
+import { Target, TrendingUp } from '../../constants/icons'
 import { badgeDefinitions, rarityColors } from './ParentPlayerHero'
 
 // ── Helper sub-components ──
@@ -114,8 +114,8 @@ function OverviewTab({ sc, isDark, altBg, bdr, skills, getSkillValue, seasonStat
             </div>
           ) : (
             <div className="flex flex-col items-center py-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3"><Target className="w-8 h-8 text-lynx-sky" /></div>
-              <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>Power Levels</p>
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3"><Target className="w-8 h-8 text-[#4BB9EC]" /></div>
+              <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>Power Levels</p>
               <p className="text-r-xs mt-1 text-slate-400">Your coach hasn't rated skills yet</p>
             </div>
           )}
@@ -250,7 +250,7 @@ function DevelopmentTab({ isDark, altBg, evalHistory, coachFeedback, playerGoals
             <div className="flex flex-col items-center">
               <SpiderChart data={latestData} compareData={earliestData.length === latestData.length ? earliestData : undefined} maxValue={10} size={280} color="#4BB9EC" compareColor="#94A3B8" isDark={isDark} />
               <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center gap-1.5"><div className="w-4 h-0.5 bg-lynx-sky rounded" /><span className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Latest ({new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-4 h-0.5 bg-[#4BB9EC] rounded" /><span className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Latest ({new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span></div>
                 <div className="flex items-center gap-1.5"><div className="w-4 h-0.5 bg-slate-400 rounded" style={{ borderBottom: '2px dashed #94A3B8' }} /><span className={`text-r-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>First ({new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span></div>
               </div>
             </div>
@@ -262,8 +262,8 @@ function DevelopmentTab({ isDark, altBg, evalHistory, coachFeedback, playerGoals
           </div>
         ) : (
           <div className="flex flex-col items-center py-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3"><TrendingUp className="w-8 h-8 text-lynx-sky" /></div>
-            <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>No evaluations yet</p>
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3"><TrendingUp className="w-8 h-8 text-[#4BB9EC]" /></div>
+            <p className={`text-r-sm font-semibold ${isDark ? 'text-slate-300' : 'text-[#10284C]'}`}>No evaluations yet</p>
             <p className="text-r-xs mt-1 text-slate-400">Skill progression will appear once your coach evaluates skills.</p>
           </div>
         )}
@@ -275,7 +275,7 @@ function DevelopmentTab({ isDark, altBg, evalHistory, coachFeedback, playerGoals
             {coachFeedback.map((note, i) => (
               <div key={i} className={`p-3 rounded-lg border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-r-xs px-1.5 py-0.5 rounded font-semibold uppercase ${note.note_type === 'skill' ? 'bg-lynx-sky/10 text-lynx-sky' : note.note_type === 'behavior' ? 'bg-purple-500/10 text-purple-500' : 'bg-slate-500/10 text-slate-500'}`}>{note.note_type}</span>
+                  <span className={`text-r-xs px-1.5 py-0.5 rounded font-semibold uppercase ${note.note_type === 'skill' ? 'bg-[#4BB9EC]/10 text-[#4BB9EC]' : note.note_type === 'behavior' ? 'bg-purple-500/10 text-purple-500' : 'bg-slate-500/10 text-slate-500'}`}>{note.note_type}</span>
                   <span className="text-r-xs text-slate-400">{note.created_at ? new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
                 </div>
                 <p className={`text-r-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{note.content}</p>
@@ -293,10 +293,10 @@ function DevelopmentTab({ isDark, altBg, evalHistory, coachFeedback, playerGoals
               return (
                 <div key={i} className={`p-3 rounded-lg border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`text-r-sm font-semibold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>{goal.title}</span>
+                    <span className={`text-r-sm font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{goal.title}</span>
                     {goal.status === 'completed' && <span className="text-r-xs bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-bold">DONE</span>}
                   </div>
-                  {goal.target_value && <div className="flex items-center gap-2 mt-1"><div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}><div className="h-full rounded-full bg-lynx-sky transition-all" style={{ width: `${progress}%` }} /></div><span className={`text-r-xs font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{goal.current_value || 0}/{goal.target_value}</span></div>}
+                  {goal.target_value && <div className="flex items-center gap-2 mt-1"><div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}><div className="h-full rounded-full bg-[#4BB9EC] transition-all" style={{ width: `${progress}%` }} /></div><span className={`text-r-xs font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{goal.current_value || 0}/{goal.target_value}</span></div>}
                   {goal.target_date && <p className="text-r-xs mt-1 text-slate-400">Target: {new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>}
                 </div>
               )
@@ -311,11 +311,11 @@ function DevelopmentTab({ isDark, altBg, evalHistory, coachFeedback, playerGoals
             <div className={`absolute left-2 top-1 bottom-1 w-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
             {evalHistory.map((ev, i) => (
               <div key={i} className="relative mb-4 last:mb-0">
-                <div className={`absolute -left-4 top-1 w-3 h-3 rounded-full border-2 ${i === evalHistory.length - 1 ? 'bg-lynx-sky border-lynx-sky' : isDark ? 'bg-slate-700 border-slate-600' : 'bg-slate-200 border-slate-300'}`} />
+                <div className={`absolute -left-4 top-1 w-3 h-3 rounded-full border-2 ${i === evalHistory.length - 1 ? 'bg-[#4BB9EC] border-[#4BB9EC]' : isDark ? 'bg-slate-700 border-slate-600' : 'bg-slate-200 border-slate-300'}`} />
                 <div className="flex items-center gap-3">
                   <span className="text-r-xs text-slate-400">{new Date(ev.evaluation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   <span className={`text-r-xs px-1.5 py-0.5 rounded font-semibold uppercase ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>{(ev.evaluation_type || 'eval').replace(/_/g, ' ')}</span>
-                  {ev.overall_score != null && <span className="text-r-sm font-bold text-lynx-sky">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/10</span>}
+                  {ev.overall_score != null && <span className="text-r-sm font-bold text-[#4BB9EC]">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/10</span>}
                 </div>
               </div>
             ))}

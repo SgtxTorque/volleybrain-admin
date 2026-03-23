@@ -17,7 +17,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
   const [editingMessage, setEditingMessage] = useState(false)
 
   const cardCls = isDark
-    ? 'bg-lynx-charcoal border border-white/[0.06]'
+    ? 'bg-white/[0.03] border border-white/[0.06]'
     : 'bg-white border border-slate-200'
   const inputCls = isDark
     ? 'bg-white/[0.04] border-white/[0.06] text-white placeholder-slate-500'
@@ -99,7 +99,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
       breadcrumb="Invite Friends"
       title={
         <span className="flex items-center gap-3">
-          <UserPlus className="w-7 h-7 text-lynx-sky" />
+          <UserPlus className="w-7 h-7 text-[#4BB9EC]" />
           Invite Friends
         </span>
       }
@@ -108,7 +108,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
       <div className="space-y-6">
         {/* Stat Row */}
         <InnerStatRow stats={[
-          { icon: <Send className="w-5 h-5 text-lynx-sky" />, value: inviteCount, label: 'Invites Sent', color: 'text-lynx-sky' },
+          { icon: <Send className="w-5 h-5 text-[#4BB9EC]" />, value: inviteCount, label: 'Invites Sent', color: 'text-[#4BB9EC]' },
           { icon: <UserPlus className="w-5 h-5 text-emerald-500" />, value: 'Coming Soon', label: 'Friends Joined', color: 'text-emerald-500' },
           { icon: <Trophy className="w-5 h-5 text-amber-500" />, value: `${tier.icon} ${tier.name}`, label: 'Referral Tier', color: 'text-amber-500' },
         ]} />
@@ -116,8 +116,8 @@ function InviteFriendsPage({ roleContext, showToast }) {
         {/* Registration Link Card */}
         <div className={`${cardCls} rounded-[14px] p-6`}>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-lynx-sky/10 flex items-center justify-center">
-              <Share2 className="w-5 h-5 text-lynx-sky" />
+            <div className="w-10 h-10 rounded-xl bg-[#4BB9EC]/10 flex items-center justify-center">
+              <Share2 className="w-5 h-5 text-[#4BB9EC]" />
             </div>
             <div>
               <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -141,7 +141,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition ${
                 copied
                   ? 'bg-emerald-500 text-white'
-                  : 'bg-lynx-navy text-white hover:brightness-110'
+                  : 'bg-[#10284C] text-white hover:brightness-110'
               }`}
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -177,13 +177,13 @@ function InviteFriendsPage({ roleContext, showToast }) {
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
               rows={3}
-              className={`w-full rounded-xl border p-4 text-sm resize-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 outline-none transition ${inputCls}`}
+              className={`w-full rounded-xl border p-4 text-sm resize-none focus:border-[#4BB9EC] focus:ring-1 focus:ring-[#4BB9EC]/20 outline-none transition ${inputCls}`}
               placeholder="Write your custom invite message..."
             />
           ) : (
             <div className={`rounded-xl border p-4 ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-slate-50 border-slate-200'}`}>
               <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                "{customMessage} <span className="text-lynx-sky font-medium">{registrationLink}</span>"
+                "{customMessage} <span className="text-[#4BB9EC] font-medium">{registrationLink}</span>"
               </p>
               <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 {profile?.full_name ? `From ${profile.full_name}` : 'From you'}
@@ -211,8 +211,8 @@ function InviteFriendsPage({ roleContext, showToast }) {
                 onClick={() => shareVia(p.id)}
                 className={`flex items-center gap-4 p-4 rounded-xl border transition group ${
                   isDark
-                    ? 'border-white/[0.06] hover:border-lynx-sky/30 hover:bg-white/[0.04]'
-                    : 'border-slate-200 hover:border-lynx-sky/30 hover:bg-slate-50'
+                    ? 'border-white/[0.06] hover:border-[#4BB9EC]/30 hover:bg-white/[0.04]'
+                    : 'border-slate-200 hover:border-[#4BB9EC]/30 hover:bg-slate-50'
                 }`}
               >
                 <div className={`w-10 h-10 rounded-xl ${p.color} text-white flex items-center justify-center flex-shrink-0`}>
@@ -257,7 +257,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
             </div>
             <div className={`h-3 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
               <div
-                className="h-full rounded-full bg-gradient-to-r from-lynx-sky to-emerald-400 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#4BB9EC] to-emerald-400 transition-all duration-500"
                 style={{ width: `${Math.min(tier.progress, 100)}%` }}
               />
             </div>
@@ -273,7 +273,7 @@ function InviteFriendsPage({ roleContext, showToast }) {
                   key={t.name}
                   className={`rounded-xl p-5 text-center transition ${
                     current
-                      ? isDark ? 'bg-lynx-sky/10 border-2 border-lynx-sky/30' : 'bg-lynx-sky/5 border-2 border-lynx-sky/20'
+                      ? isDark ? 'bg-[#4BB9EC]/10 border-2 border-[#4BB9EC]/30' : 'bg-[#4BB9EC]/5 border-2 border-[#4BB9EC]/20'
                       : achieved
                         ? isDark ? 'bg-white/[0.04] border border-white/[0.08]' : 'bg-slate-50 border border-slate-200'
                         : isDark ? 'bg-white/[0.02] border border-white/[0.04] opacity-60' : 'bg-slate-50/50 border border-slate-100 opacity-60'

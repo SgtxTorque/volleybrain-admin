@@ -12,7 +12,7 @@ export default function PlayerProfileUniformTab({
   const textCls = isDark ? 'text-white' : 'text-slate-900'
   const mutedCls = 'text-slate-400'
   const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
-  const inputCls = `w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
+  const inputCls = `w-full px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-1 focus:ring-[#4BB9EC]/20 ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`
 
   const uniformConfig = getUniformConfig(sportName)
   const topLabel = uniformConfig.top

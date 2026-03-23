@@ -225,7 +225,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
     return (
       <PageShell title="Player Profile" breadcrumb="My Players" subtitle="Loading player data...">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 border-lynx-sky border-t-transparent rounded-full" />
+          <div className="animate-spin w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full" />
         </div>
       </PageShell>
     )
@@ -279,7 +279,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
                 style={{ backgroundColor: teamColor }}>{player.first_name?.[0]}{player.last_name?.[0]}</div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-r-xs font-bold uppercase tracking-wider text-lynx-sky">{primaryTeam?.name || 'No Team'}</p>
+              <p className="text-r-xs font-bold uppercase tracking-wider text-[#4BB9EC]">{primaryTeam?.name || 'No Team'}</p>
               <h1 className="text-r-3xl font-extrabold text-white truncate">{player.first_name} {player.last_name}</h1>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                 {assignedJersey && <span className="text-r-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
@@ -293,12 +293,12 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
         </div>
 
         {/* Tabs + Content */}
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden`}>
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden`}>
           <div className={`flex border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} overflow-x-auto`}>
             {tabs.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-3 text-r-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
-                  activeTab === tab.id ? 'border-lynx-sky text-lynx-sky' : `border-transparent ${mutedCls} hover:${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`
+                  activeTab === tab.id ? 'border-[#4BB9EC] text-[#4BB9EC]' : `border-transparent ${mutedCls} hover:${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`
                 }`}>
                 <span>{tab.icon}</span><span>{tab.label}</span>
               </button>
