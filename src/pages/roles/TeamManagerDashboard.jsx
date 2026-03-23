@@ -75,21 +75,28 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
   const [activeTab, setActiveTab] = useState('roster')
   const firstName = profile?.full_name?.split(' ')[0] || 'Manager'
 
+  const totalPaymentAmount = (paymentHealth?.collectedAmount || 0) + (paymentHealth?.overdueAmount || 0) + (paymentHealth?.pendingAmount || 0)
+  const collectionPct = totalPaymentAmount > 0 ? `${Math.round((paymentHealth.collectedAmount / totalPaymentAmount) * 100)}%` : '—'
+
   const heroStats = [
-    { label: 'Roster', value: rosterCount },
+    { label: 'Players', value: rosterCount, color: rosterCount > 0 ? 'sky' : 'muted' },
     { label: 'Capacity', value: registrationStatus?.capacity || '—' },
-    { label: 'Overdue', value: paymentHealth?.overdueCount || 0 },
-    { label: 'RSVPs', value: nextEventRsvp?.confirmed || 0 },
+    { label: 'Events', value: upcomingEvents.length },
+    { label: 'Collection', value: collectionPct },
   ]
 
   const attentionItems = [
     ...(paymentHealth?.overdueCount > 0 ? [{
-      icon: '💰', label: `${paymentHealth.overdueCount} overdue payments`, type: 'coral',
-      onClick: () => onNavigate?.('payments'),
+      icon: '💰', label: `${paymentHealth.overdueCount} overdue payment${paymentHealth.overdueCount !== 1 ? 's' : ''}`,
+      type: 'coral', onClick: () => onNavigate?.('payments'),
     }] : []),
     ...(registrationStatus?.pendingCount > 0 ? [{
-      icon: '📋', label: `${registrationStatus.pendingCount} pending registrations`, type: 'amber',
-      onClick: () => onNavigate?.('registrations'),
+      icon: '📋', label: `${registrationStatus.pendingCount} pending registration${registrationStatus.pendingCount !== 1 ? 's' : ''}`,
+      type: 'amber', onClick: () => onNavigate?.('registrations'),
+    }] : []),
+    ...(!hasEvents ? [{
+      icon: '📅', label: 'No events scheduled yet',
+      type: 'sky', onClick: () => onNavigate?.('schedule'),
     }] : []),
   ]
 
@@ -215,10 +222,14 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
             <MascotNudge
               message={
                 paymentHealth?.overdueCount > 0
-                  ? `${paymentHealth.overdueCount} overdue payment${paymentHealth.overdueCount > 1 ? 's' : ''} — send reminders to keep things on track.`
-                  : rosterCount < 6
-                    ? 'Your roster is light — invite more players to fill out the team.'
-                    : 'Everything looks great! Your team is humming.'
+                  ? `Heads up — ${paymentHealth.overdueCount} payment${paymentHealth.overdueCount > 1 ? 's are' : ' is'} overdue ($${paymentHealth.overdueAmount?.toLocaleString()}). A quick reminder can go a long way.`
+                  : !hasEvents
+                    ? 'No events on the calendar yet. Add your first practice or game to get things rolling!'
+                    : rosterCount < 6
+                      ? `Only ${rosterCount} player${rosterCount !== 1 ? 's' : ''} on the roster. Share the invite code to fill up your team.`
+                      : upcomingEvents.length > 0
+                        ? `Next up: ${upcomingEvents[0]?.title || upcomingEvents[0]?.event_type}. Your team is locked in — keep it going!`
+                        : 'Everything looks great! Your team is humming along.'
               }
             />
           </>
