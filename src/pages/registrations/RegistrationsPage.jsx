@@ -360,7 +360,7 @@ export function RegistrationsPage({ showToast }) {
       actions={
         <>
           {/* View Toggle */}
-          <div className={`flex rounded-xl p-1 ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
+          <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <button
               onClick={() => setViewMode('table')}
               className={`px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
@@ -383,7 +383,8 @@ export function RegistrationsPage({ showToast }) {
             <button
               onClick={bulkApproveAllPending}
               disabled={bulkProcessing}
-              className="bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 flex items-center gap-2 font-bold text-sm disabled:opacity-50"
+              className="bg-emerald-500 text-white px-4 py-2 rounded-xl hover:bg-emerald-600 shadow-sm flex items-center gap-2 font-semibold text-sm disabled:opacity-50 transition-all"
+              style={{ fontFamily: 'var(--v2-font)' }}
             >
               <Check className="w-4 h-4" /> Approve All ({statusCounts.pending})
             </button>
@@ -391,9 +392,10 @@ export function RegistrationsPage({ showToast }) {
 
           <button
             onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
-            className={`px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm ${
-              isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06] hover:bg-white/[0.08]' : 'bg-white text-slate-500 border border-slate-200 hover:border-lynx-sky hover:text-lynx-sky'
+            className={`px-4 py-2 rounded-xl flex items-center gap-2 font-semibold text-sm transition-all ${
+              isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06] hover:bg-white/[0.1]' : 'bg-white text-[#10284C] border border-[#E8ECF2] hover:border-[#4BB9EC]/30 hover:shadow-sm'
             }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <FileDown className="w-4 h-4" /> Export CSV
           </button>

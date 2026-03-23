@@ -170,7 +170,8 @@ export default function RegistrationsTable({
               placeholder="Search players or parents..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 rounded-lg text-base ${isDark ? 'bg-lynx-midnight border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'} border`}
+              className={`w-full pl-9 pr-4 py-2 rounded-lg text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-[#E8ECF2] text-[#10284C] placeholder-slate-400 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'} border transition-all focus:outline-none`}
+              style={{ fontFamily: 'var(--v2-font)' }}
             />
           </div>
           <div className="flex gap-1.5">
