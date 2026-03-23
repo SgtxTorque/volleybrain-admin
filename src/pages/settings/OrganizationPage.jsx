@@ -6,10 +6,16 @@ import { Settings } from '../../constants/icons'
 import { SetupSectionCard } from './SetupSectionCard'
 import PageShell from '../../components/pages/PageShell'
 
+const CATEGORY_META = {
+  foundation: { label: 'Foundation', desc: 'Required before registration' },
+  operational: { label: 'Operational', desc: 'Required for day-to-day' },
+  configuration: { label: 'Configuration', desc: 'Optional customization' },
+}
+
 function OrganizationPage({ showToast }) {
   const { organization, setOrganization } = useAuth()
   const tc = useThemeClasses()
-  const { accent } = useTheme()
+  const { accent, isDark } = useTheme()
   
   // Track which sections are expanded
   const [expandedSection, setExpandedSection] = useState(null)
@@ -671,78 +677,28 @@ function OrganizationPage({ showToast }) {
     )
   }
 
-  return (
-    <PageShell title="Organization Setup" subtitle="Configure your organization before creating seasons and opening registration" breadcrumb="Setup > Organization">
-     <div className="space-y-6">
-      {/* Overall Progress Card */}
-      <div className={`p-6 rounded-[14px] border ${tc.card}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-lynx-sky/20">
-              🏢
-            </div>
-            <div>
-              <h2 className={`text-lg font-semibold ${tc.text}`}>{organization?.name || 'Your Organization'}</h2>
-              <p className={tc.textMuted}>Setup Progress</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-lynx-sky">{overallPercent}%</p>
-            <p className={`text-sm ${tc.textMuted}`}>{Math.round(overallProgress)} of {sections.length} sections</p>
-          </div>
-        </div>
-        <div className={`h-3 rounded-full ${tc.cardBgAlt}`}>
-          <div
-            className="h-full rounded-full transition-all duration-500 bg-lynx-sky"
-            style={{ width: `${overallPercent}%` }}
-          />
-        </div>
-        {overallPercent < 100 && (
-          <p className={`text-sm ${tc.textMuted} mt-3`}>
-            Complete the <span className="text-lynx-sky font-medium">Foundation</span> sections first to unlock registration
-          </p>
-        )}
-      </div>
+  // Count statuses
+  const completedCount = sections.filter(s => getSectionStatus(s.key).status === 'complete').length
+  const inProgressCount = sections.filter(s => getSectionStatus(s.key).status === 'partial').length
+  const notStartedCount = sections.filter(s => getSectionStatus(s.key).status === 'not_started').length
 
-      {/* Foundation Sections */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-lg">🏗️</span>
-          <h3 className={`font-semibold ${tc.text}`}>Foundation</h3>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${tc.cardBgAlt} ${tc.textMuted}`}>Required before registration</span>
+  // Render a category group
+  function renderCategory(catKey, categorySections) {
+    const catMeta = CATEGORY_META[catKey]
+    const catComplete = categorySections.filter(s => getSectionStatus(s.key).status === 'complete').length
+    return (
+      <div key={catKey} className="space-y-3">
+        <div className="flex items-center gap-3 mt-8 mb-4">
+          <span className="text-xs font-black uppercase tracking-widest text-[#4BB9EC]" style={{ fontFamily: 'var(--v2-font)' }}>
+            {catMeta.label}
+          </span>
+          <div className={`flex-1 h-px ${isDark ? 'bg-white/10' : 'bg-[#E8ECF2]'}`} />
+          <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            {catComplete}/{categorySections.length}
+          </span>
         </div>
-        {foundationSections.map(section => (
-          <SetupSectionCard 
-            key={section.key}
-            section={section}
-            status={getSectionStatus(section.key)}
-            expanded={expandedSection === section.key}
-            onToggle={() => setExpandedSection(expandedSection === section.key ? null : section.key)}
-            setupData={setupData}
-            setSetupData={setSetupData}
-            onSave={(data) => saveSection(section.key, data)}
-            saving={saving}
-            showToast={showToast}
-            organization={organization}
-            waivers={waivers}
-            setWaivers={setWaivers}
-            venues={venues}
-            setVenues={setVenues}
-            tc={tc}
-            accent={accent}
-          />
-        ))}
-      </div>
-
-      {/* Operational Sections */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-lg">⚡</span>
-          <h3 className={`font-semibold ${tc.text}`}>Operational</h3>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${tc.cardBgAlt} ${tc.textMuted}`}>Required for day-to-day</span>
-        </div>
-        {operationalSections.map(section => (
-          <SetupSectionCard 
+        {categorySections.map(section => (
+          <SetupSectionCard
             key={section.key}
             section={section}
             status={getSectionStatus(section.key)}
@@ -761,35 +717,58 @@ function OrganizationPage({ showToast }) {
             adminUsers={adminUsers}
             tc={tc}
             accent={accent}
+            isDark={isDark}
           />
         ))}
+      </div>
+    )
+  }
+
+  return (
+    <PageShell title="Organization Setup" subtitle="Configure your organization before creating seasons and opening registration" breadcrumb="Setup > Organization">
+     <div className="space-y-2">
+      {/* Navy Progress Header */}
+      <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+              Organization Setup
+            </h2>
+            <p className="text-sm text-white/50">Configure your organization before creating seasons</p>
+          </div>
+          <div className="text-right">
+            <span className={`text-4xl font-black italic ${overallPercent === 100 ? 'text-[#22C55E]' : 'text-[#4BB9EC]'}`}>
+              {overallPercent}%
+            </span>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Complete</div>
+          </div>
+        </div>
+        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#4BB9EC] to-[#22C55E] transition-all duration-500"
+            style={{ width: `${overallPercent}%` }}
+          />
+        </div>
+        <div className="flex gap-6 mt-3 text-xs font-bold text-white/50">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#22C55E] inline-block" />
+            {completedCount} Complete
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#F59E0B] inline-block" />
+            {inProgressCount} In Progress
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
+            {notStartedCount} Not Started
+          </span>
+        </div>
       </div>
 
-      {/* Configuration Sections */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 px-1">
-          <Settings className="w-5 h-5 text-slate-400" />
-          <h3 className={`font-semibold ${tc.text}`}>Configuration</h3>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${tc.cardBgAlt} ${tc.textMuted}`}>Optional customization</span>
-        </div>
-        {configSections.map(section => (
-          <SetupSectionCard 
-            key={section.key}
-            section={section}
-            status={getSectionStatus(section.key)}
-            expanded={expandedSection === section.key}
-            onToggle={() => setExpandedSection(expandedSection === section.key ? null : section.key)}
-            setupData={setupData}
-            setSetupData={setSetupData}
-            onSave={(data) => saveSection(section.key, data)}
-            saving={saving}
-            showToast={showToast}
-            organization={organization}
-            tc={tc}
-            accent={accent}
-          />
-        ))}
-      </div>
+      {/* Sections by Category */}
+      {renderCategory('foundation', foundationSections)}
+      {renderCategory('operational', operationalSections)}
+      {renderCategory('configuration', configSections)}
      </div>
     </PageShell>
   )

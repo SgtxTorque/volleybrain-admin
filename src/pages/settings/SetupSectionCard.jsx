@@ -1,7 +1,7 @@
 import { SetupSectionContent } from './SetupSectionContent'
 
 // ============================================
-// SETUP SECTION CARD COMPONENT
+// SETUP SECTION CARD COMPONENT — V2 Styled
 // ============================================
 
 function SetupSectionCard({
@@ -21,63 +21,75 @@ function SetupSectionCard({
   setVenues,
   adminUsers,
   tc,
-  accent
+  accent,
+  isDark
 }) {
   const statusConfig = {
-    complete: { icon: 'check-square', color: 'text-emerald-500', bg: 'bg-emerald-500/10', label: 'Complete' },
-    partial: { icon: '⚠️', color: 'text-amber-500', bg: 'bg-amber-500/10', label: 'In Progress' },
-    not_started: { icon: '⬜', color: tc.textMuted, bg: tc.cardBgAlt, label: 'Not Started' },
-    loading: { icon: '⏳', color: tc.textMuted, bg: tc.cardBgAlt, label: 'Loading' },
+    complete: { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-[#22C55E]', label: 'Complete' },
+    partial: { color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/30', dot: 'bg-[#F59E0B]', label: 'In Progress' },
+    not_started: { color: isDark ? 'text-slate-500' : 'text-slate-400', bg: isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]', border: isDark ? 'border-white/10' : 'border-slate-200', dot: 'bg-slate-400', label: 'Not Started' },
+    loading: { color: isDark ? 'text-slate-500' : 'text-slate-400', bg: isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]', border: isDark ? 'border-white/10' : 'border-slate-200', dot: 'bg-slate-400', label: 'Loading' },
   }
 
   const config = statusConfig[status.status]
 
   return (
-    <div className={`rounded-xl border overflow-hidden transition-all ${tc.card} ${expanded ? 'ring-2' : ''}`} style={{ ringColor: expanded ? accent.primary : 'transparent' }}>
-      {/* Section Header - Always visible */}
+    <div className={`rounded-[14px] overflow-hidden transition-all ${
+      isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+    } ${expanded ? 'ring-2 ring-[#4BB9EC]/20 shadow-md' : 'shadow-sm'}`}>
+      {/* Section Header */}
       <div
-        className={`p-4 cursor-pointer transition-colors ${tc.hoverBg}`}
+        className={`p-4 cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]/60'}`}
         onClick={onToggle}
       >
         <div className="flex items-center gap-4">
           {/* Icon */}
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${config.bg}`}>
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
+            isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'
+          }`}>
             {section.icon}
           </div>
 
           {/* Title & Description */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className={`font-semibold ${tc.text}`}>{section.title}</h3>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                {section.title}
+              </h3>
               {section.required && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">Required</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-bold uppercase tracking-wide">
+                  Required
+                </span>
               )}
             </div>
-            <p className={`text-sm ${tc.textMuted} truncate`}>{section.description}</p>
+            <p className={`text-sm truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{section.description}</p>
           </div>
 
           {/* Est Time */}
-          <div className={`text-right hidden sm:block`}>
-            <p className={`text-xs ${tc.textMuted}`}>Est. time</p>
-            <p className={`text-sm font-medium ${tc.textSecondary}`}>{section.estTime}</p>
+          <div className="text-right hidden sm:block">
+            <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>Est. time</p>
+            <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{section.estTime}</p>
           </div>
 
-          {/* Status Badge */}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg}`}>
-            <span>{config.icon}</span>
-            <span className={`text-sm font-medium ${config.color}`}>{config.label}</span>
+          {/* Status Badge - Pill */}
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${config.bg} ${config.border}`}>
+            <span className={`w-2 h-2 rounded-full ${config.dot} inline-block`} />
+            <span className={config.color}>{config.label}</span>
           </div>
 
-          {/* Expand Arrow */}
-          <span className={`text-lg ${tc.textMuted} transition-transform ${expanded ? 'rotate-180' : ''}`}>
-            ▼
-          </span>
+          {/* Chevron */}
+          <svg
+            className={`w-5 h-5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''} ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
 
       {/* Expanded Content */}
       {expanded && (
-        <div className={`border-t ${tc.border} p-6`}>
+        <div className={`border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} p-6`}>
           <SetupSectionContent
             sectionKey={section.key}
             setupData={setupData}
