@@ -77,7 +77,8 @@ export function NotificationsPage({ showToast }) {
       // Load teams for send modal
       let teamsQuery = supabase
         .from('teams')
-        .select('id, name, color');
+        .select('id, name, color')
+        .eq('organization_id', organization?.id);
       if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id);
       } else if (selectedSport?.id) {
@@ -554,8 +555,9 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
       } else if (target === 'all') {
         // Queue for all users in the org
         const { data: members, error: memErr } = await supabase
-          .from('profiles')
-          .select('id')
+          .from('user_roles')
+          .select('user_id')
+          .eq('organization_id', organization?.id)
           .limit(500);
 
         if (memErr) throw memErr;
@@ -563,7 +565,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
         let count = 0;
         for (const member of (members || [])) {
           await supabase.rpc('queue_notification', {
-            p_user_id: member.id,
+            p_user_id: member.user_id,
             p_title: title,
             p_body: body,
             p_type: type,

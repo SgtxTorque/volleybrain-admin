@@ -324,6 +324,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
 // ============================================
 function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const { isDark } = useTheme()
+  const { organization } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
 
@@ -355,6 +356,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
     let query = supabase
       .from('teams')
       .select('id, name')
+      .eq('organization_id', organization.id)
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
     } else if (sportIds && sportIds.length > 0) {
