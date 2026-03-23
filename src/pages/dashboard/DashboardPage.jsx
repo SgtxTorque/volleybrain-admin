@@ -46,16 +46,37 @@ function EmptyStateCTA({ emoji, title, description, buttonLabel, onClick, isDark
 export function GettingStartedGuide({ onNavigate }) {
   const { organization, profile } = useAuth()
   const { isDark } = useTheme()
+  const { sports } = useSport()
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Admin'
 
+  // Org setup completion detection
+  const orgSetupDone = Boolean(
+    organization?.name &&
+    organization?.contact_email &&
+    sports?.length > 0
+  )
+  const paymentSetupDone = Boolean(
+    organization?.stripe_enabled ||
+    organization?.payment_venmo ||
+    organization?.payment_zelle ||
+    organization?.payment_cashapp
+  )
+  const foundationDone = orgSetupDone && paymentSetupDone
+
   const setupSteps = [
-    { label: 'Org Profile', page: 'organization', done: !!organization?.name },
-    { label: 'Season', page: 'seasons', done: false },
-    { label: 'Teams', page: 'teams', done: false },
-    { label: 'Coaches', page: 'coaches', done: false },
-    { label: 'Registration', page: 'registration-templates', done: false },
-    { label: 'Schedule', page: 'schedule', done: false },
+    { label: 'Org Profile', page: 'organization', done: orgSetupDone },
+    { label: 'Payment Setup', page: 'payment-setup', done: paymentSetupDone },
+    { label: 'Create Season', page: 'seasons', done: false },
+    { label: 'Add Teams', page: 'teams', done: false },
+    { label: 'Add Coaches', page: 'coaches', done: false },
+    { label: 'Create Schedule', page: 'schedule', done: false },
+    { label: 'Open Registration', page: 'registration-templates', done: false },
   ]
+
+  // Greeting changes based on foundation readiness
+  const greeting = !foundationDone
+    ? `Welcome to Lynx, ${firstName}! Let's set up your club.`
+    : `Great start, ${firstName}. Now let's create your first season.`
 
   return (
     <div style={{ padding: '32px 32px 80px', fontFamily: 'var(--v2-font)', maxWidth: 900, margin: '0 auto' }}>
@@ -63,10 +84,12 @@ export function GettingStartedGuide({ onNavigate }) {
       <div className="text-center mb-8">
         <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
         <h1 className="text-2xl font-extrabold mb-2" style={{ color: 'var(--v2-text-primary)' }}>
-          Welcome to Lynx, {firstName}. Let's get your club set up.
+          {greeting}
         </h1>
         <p className="text-sm" style={{ color: 'var(--v2-text-muted)' }}>
-          Follow the steps below to launch your organization. Your dashboard will come alive as data flows in.
+          {!foundationDone
+            ? 'Complete your organization setup first — it feeds into seasons, registration, and payments.'
+            : 'Follow the steps below to launch your organization. Your dashboard will come alive as data flows in.'}
         </p>
       </div>
 
@@ -75,15 +98,19 @@ export function GettingStartedGuide({ onNavigate }) {
         <h2 className="text-sm font-extrabold uppercase tracking-widest mb-4" style={{ color: 'var(--v2-text-muted)' }}>Setup Progress</h2>
         <div className="flex items-center gap-2 flex-wrap">
           {setupSteps.map((step, i) => {
-            const isFirst = i === 0
             const isCurrent = !step.done && setupSteps.slice(0, i).every(s => s.done)
+            // Steps beyond prerequisites are grayed out and not clickable
+            const prerequisitesMet = setupSteps.slice(0, i).every(s => s.done)
+            const isLocked = !step.done && !isCurrent && !prerequisitesMet
             return (
-              <button key={step.label} onClick={() => onNavigate?.(step.page)}
+              <button key={step.label}
+                onClick={() => !isLocked && onNavigate?.(step.page)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg transition hover:brightness-95"
                 style={{
                   background: step.done ? '#22C55E20' : isCurrent ? '#4BB9EC20' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
                   border: isCurrent ? '2px solid #4BB9EC' : '2px solid transparent',
-                  cursor: 'pointer',
+                  cursor: isLocked ? 'not-allowed' : 'pointer',
+                  opacity: isLocked ? 0.4 : 1,
                 }}>
                 <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
                   style={{
@@ -101,21 +128,64 @@ export function GettingStartedGuide({ onNavigate }) {
         </div>
       </div>
 
-      {/* CTA Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <EmptyStateCTA emoji="📅" title="Create Your First Season"
-          description="Define your season dates, fees, and registration windows"
-          buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
-        <EmptyStateCTA emoji="💳" title="Set Up Payments"
-          description="Configure Stripe or manual payment methods"
-          buttonLabel="Configure Payments" onClick={() => onNavigate?.('payment-setup')} isDark={isDark} />
-        <EmptyStateCTA emoji="👥" title="Add Your First Team"
-          description="Create teams and start building your rosters"
-          buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
-        <EmptyStateCTA emoji="📋" title="Open Registration"
-          description="Create a season first, then open registration for families"
-          buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
-      </div>
+      {/* Primary CTA: Org Setup when foundation not ready */}
+      {!foundationDone && (
+        <div className={`rounded-2xl border-2 border-dashed border-[#4BB9EC]/40 p-8 mb-6 text-center ${isDark ? 'bg-[#4BB9EC]/[0.04]' : 'bg-[#4BB9EC]/[0.03]'}`}>
+          <div className="text-4xl mb-3">{'\uD83C\uDFE2'}</div>
+          <h3 className={`text-xl font-extrabold mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+            Complete Your Organization Setup
+          </h3>
+          <p className={`text-sm mb-4 max-w-md mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Set up your club's identity, contact info, sports, payment methods, and fees. This information feeds into seasons, registration, and payments.
+          </p>
+          <button onClick={() => onNavigate?.('organization')}
+            className="px-8 py-3 bg-[#10284C] text-white font-bold rounded-xl hover:brightness-110 transition text-sm">
+            Start Organization Setup {'\u2192'}
+          </button>
+          <p className={`text-xs mt-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            Takes about 5-10 minutes to complete the essentials
+          </p>
+        </div>
+      )}
+
+      {/* When foundation is NOT ready, show grayed-out preview of upcoming steps */}
+      {!foundationDone && (
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          <div className={`rounded-[14px] border border-dashed p-4 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ opacity: 0.5 }}>
+            <div className="text-xl mb-1">{'\uD83D\uDCC5'}</div>
+            <p className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create Season</p>
+            <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>After org setup</p>
+          </div>
+          <div className={`rounded-[14px] border border-dashed p-4 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ opacity: 0.5 }}>
+            <div className="text-xl mb-1">{'\uD83D\uDC65'}</div>
+            <p className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Add Teams</p>
+            <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>After creating a season</p>
+          </div>
+          <div className={`rounded-[14px] border border-dashed p-4 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ opacity: 0.5 }}>
+            <div className="text-xl mb-1">{'\uD83D\uDCCB'}</div>
+            <p className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Open Registration</p>
+            <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>After adding teams</p>
+          </div>
+        </div>
+      )}
+
+      {/* When foundation IS ready, show full CTA grid */}
+      {foundationDone && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <EmptyStateCTA emoji={'\uD83D\uDCC5'} title="Create Your First Season"
+            description="Define your season dates, fees, and registration windows"
+            buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
+          <EmptyStateCTA emoji={'\uD83D\uDC65'} title="Add Your First Team"
+            description="Create teams and start building your rosters"
+            buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
+          <EmptyStateCTA emoji={'\uD83D\uDCCB'} title="Open Registration"
+            description="Create a season first, then open registration for families"
+            buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
+          <EmptyStateCTA emoji={'\uD83D\uDCC6'} title="Create Schedule"
+            description="Add practices, games, and events for your teams"
+            buttonLabel="Go to Schedule" onClick={() => onNavigate?.('schedule')} isDark={isDark} />
+        </div>
+      )}
     </div>
   )
 }
@@ -895,14 +965,15 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
     return <SkeletonDashboard />
   }
 
-  // Build stepper steps from setup tracker logic
+  // Build stepper steps from setup tracker logic (7 steps with org setup priority)
   const setupSteps = [
-    { label: 'Org Profile', page: 'organization', status: organization?.name ? 'done' : 'upcoming' },
-    { label: 'Season', page: 'seasons', status: selectedSeason ? 'done' : 'upcoming' },
-    { label: 'Open Reg', page: 'registrations', status: (selectedSeason?.status === 'open' || (stats.totalRegistrations || 0) > 0) ? 'done' : (selectedSeason ? 'current' : 'upcoming') },
-    { label: 'Teams', page: 'teams', status: (stats.teams || 0) > 0 ? 'done' : (selectedSeason ? 'current' : 'upcoming') },
-    { label: 'Coaches', page: 'coaches', status: (stats.coachCount || 0) > 0 ? 'done' : 'upcoming' },
-    { label: 'Schedule', page: 'schedule', status: upcomingEvents.length > 0 ? 'done' : 'upcoming' },
+    { label: 'Org Profile', page: 'organization', status: orgSetupComplete ? 'done' : 'upcoming' },
+    { label: 'Payment Setup', page: 'payment-setup', status: paymentSetupComplete ? 'done' : 'upcoming' },
+    { label: 'Create Season', page: 'seasons', status: selectedSeason ? 'done' : 'upcoming' },
+    { label: 'Add Teams', page: 'teams', status: (stats.teams || 0) > 0 ? 'done' : 'upcoming' },
+    { label: 'Add Coaches', page: 'coaches', status: (stats.coachCount || 0) > 0 ? 'done' : 'upcoming' },
+    { label: 'Create Schedule', page: 'schedule', status: upcomingEvents.length > 0 ? 'done' : 'upcoming' },
+    { label: 'Open Registration', page: 'registration-templates', status: (stats.totalRegistrations || 0) > 0 ? 'done' : 'upcoming' },
   ]
   // Mark the first non-done step as current
   const firstNonDone = setupSteps.findIndex(s => s.status !== 'done')
@@ -1025,9 +1096,11 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               <HeroCard
                 orgLine={orgName || organization?.name || 'Your Organization'}
                 greeting={
-                  (globalTotalTeams || stats.teams || 0) === 0 && (globalTotalPlayers || totalPlayers) === 0
-                    ? `Welcome to Lynx, ${profile?.first_name || 'Admin'}. Let's get your club set up.`
-                    : `${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`
+                  !foundationReady
+                    ? `Welcome to Lynx, ${profile?.first_name || 'Admin'}! Let's set up your club.`
+                    : (allSeasons || seasons || []).length === 0
+                      ? `Great start, ${profile?.first_name || 'Admin'}. Now let's create your first season.`
+                      : `${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`
                 }
                 subLine={`${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 stats={[
@@ -1088,12 +1161,12 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               />
 
               {/* SEASON STEPPER — hidden in "All Seasons" mode */}
-              {!isAll && setupComplete < 6 && (
+              {!isAll && setupComplete < 7 && (
                 <SeasonStepper
                   seasonName={selectedSeason?.name || ''}
                   steps={setupSteps}
                   completedCount={setupComplete}
-                  totalCount={6}
+                  totalCount={7}
                   onNavigate={onNavigate}
                 />
               )}
