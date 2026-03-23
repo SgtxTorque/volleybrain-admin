@@ -300,7 +300,10 @@ function DataExportPage({ showToast }) {
         <button
           onClick={loadMetadata}
           disabled={loading}
-          className="px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium text-r-sm hover:bg-slate-100 flex items-center gap-2"
+          className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
+            isDark ? 'bg-white/[0.06] border border-white/[0.1] text-white hover:bg-white/[0.1]' : 'bg-[#F5F6F8] border border-[#E8ECF2] text-[#10284C] hover:bg-[#E8ECF2]'
+          }`}
+          style={{ fontFamily: 'var(--v2-font)' }}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh Counts
@@ -308,9 +311,27 @@ function DataExportPage({ showToast }) {
       }
     >
       <div className="space-y-6">
+        {/* Navy Header */}
+        <div className="bg-[#10284C] rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
+                Data Export
+              </h2>
+              <p className="text-sm text-white/50">Download your organization's data as CSV or JSON</p>
+            </div>
+            <div className="text-right">
+              <span className="text-4xl font-black italic text-[#4BB9EC]">
+                {loading ? '...' : Object.values(rowCounts).reduce((a, b) => a + b, 0).toLocaleString()}
+              </span>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">Total Records</div>
+            </div>
+          </div>
+        </div>
+
         {/* PLATFORM ADMIN ORG SELECTOR */}
         {isPlatformAdmin && (
-          <div className="bg-white rounded-[14px] border border-slate-200 p-4">
+          <div className={`rounded-[14px] p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-lynx-sky" />
               <span className={`text-sm ${tc.text}`}>Platform Admin - Export for:</span>
@@ -359,19 +380,19 @@ function DataExportPage({ showToast }) {
         )}
 
         {/* FILTERS */}
-        <div className="bg-white rounded-[14px] border border-slate-200 p-4">
+        <div className={`rounded-[14px] p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
           <div className="flex flex-wrap items-center gap-4">
             {/* Season Filter */}
             <div className="flex items-center gap-2">
-              <span className={`text-xs ${tc.textMuted}`}>SEASON</span>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={{ fontFamily: 'var(--v2-font)' }}>Season</span>
               <select
                 value={selectedSeasonId}
                 onChange={(e) => setSelectedSeasonId(e.target.value)}
-                className={`px-3 py-1.5 rounded-lg text-sm border transition ${
+                className={`px-3 py-2 rounded-xl text-sm font-medium border transition ${
                   isDark
-                    ? 'bg-white/5 border-white/10 text-white'
-                    : 'bg-white border-slate-200 text-slate-800'
-                }`}
+                    ? 'bg-white/[0.04] border-white/[0.08] text-white'
+                    : 'bg-white border-[#E8ECF2] text-[#10284C]'
+                } focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10`}
               >
                 <option value="all">All Seasons</option>
                 {seasons.map((s) => (
@@ -382,18 +403,18 @@ function DataExportPage({ showToast }) {
               </select>
             </div>
 
-            {/* Format Selector - Pill Style */}
+            {/* Format Selector - V2 Pill Style */}
             <div className="flex items-center gap-2">
-              <span className={`text-xs ${tc.textMuted}`}>FORMAT</span>
-              <div className="flex items-center gap-1 rounded-xl p-1 border border-slate-200">
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`} style={{ fontFamily: 'var(--v2-font)' }}>Format</span>
+              <div className={`flex items-center gap-1 rounded-xl p-1 ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'border border-[#E8ECF2]'}`}>
                 {['csv', 'json'].map((fmt) => (
                   <button
                     key={fmt}
                     onClick={() => setExportFormat(fmt)}
-                    className={`px-3 py-1.5 rounded-lg text-r-sm font-medium transition ${
+                    className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${
                       exportFormat === fmt
-                        ? 'bg-lynx-sky/20 text-lynx-sky'
-                        : 'text-slate-500 hover:bg-slate-100'
+                        ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                        : isDark ? 'text-slate-500 hover:bg-white/[0.06]' : 'text-slate-400 hover:bg-[#F5F6F8]'
                     }`}
                   >
                     {fmt.toUpperCase()}
@@ -403,7 +424,7 @@ function DataExportPage({ showToast }) {
             </div>
 
             {/* Info */}
-            <div className={`ml-auto flex items-center gap-2 text-xs ${tc.textMuted}`}>
+            <div className={`ml-auto flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               <FileText className="w-3.5 h-3.5" />
               <span>Data scoped to {activeOrg?.name || 'your organization'}</span>
             </div>
@@ -412,7 +433,7 @@ function DataExportPage({ showToast }) {
 
         {/* PROGRESS BAR */}
         {progress.active && (
-          <div className="bg-white rounded-[14px] border border-slate-200 p-4">
+          <div className={`rounded-[14px] p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
             <div className="flex items-center gap-3 mb-2">
               <RefreshCw className="w-4 h-4 animate-spin text-lynx-sky" />
               <span className={`text-sm ${tc.text}`}>{progress.step}</span>
@@ -439,9 +460,9 @@ function DataExportPage({ showToast }) {
             return (
               <div key={cat.id} className={isFullBackup ? 'md:col-span-2' : ''}>
                 <div
-                  className={`bg-white rounded-[14px] border p-5 hover:shadow-md transition group ${
-                    isFullBackup ? 'border-2' : 'border-slate-200'
-                  }`}
+                  className={`rounded-[14px] border p-5 hover:shadow-md transition group ${
+                    isFullBackup ? 'border-2' : ''
+                  } ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}
                   style={isFullBackup ? { borderColor: `${cat.color}30` } : {}}
                 >
                   <div className="flex items-start gap-4">
