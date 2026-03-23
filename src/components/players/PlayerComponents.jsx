@@ -627,10 +627,10 @@ export function PlayerCardExpanded({
       .select('*')
       .eq('player_id', player.id)
     
-    if (seasonId) {
+    if (seasonId && seasonId !== 'all') {
       query = query.eq('season_id', seasonId)
     }
-    
+
     const { data } = await query.order('updated_at', { ascending: false }).limit(1)
     
     if (data && data[0]) {
@@ -665,10 +665,10 @@ export function PlayerCardExpanded({
       .eq('player_id', player.id)
       .order('created_at', { ascending: false })
     
-    if (seasonId) {
+    if (seasonId && seasonId !== 'all') {
       query = query.eq('season_id', seasonId)
     }
-    
+
     const { data } = await query
     setGoals(data || [])
   }
@@ -702,6 +702,7 @@ export function PlayerCardExpanded({
   }
 
   async function saveSkills() {
+    if (!seasonId || seasonId === 'all') return
     try {
       // Check if record exists
       const { data: existing } = await supabase

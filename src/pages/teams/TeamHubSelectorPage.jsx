@@ -35,7 +35,7 @@ export default function TeamHubSelectorPage({ showToast, navigateToTeamWall }) {
         .eq('organization_id', organization.id)
         .order('name')
 
-      if (workingSeason?.id) {
+      if (workingSeason?.id && workingSeason.id !== 'all') {
         query = query.eq('season_id', workingSeason.id)
       }
 

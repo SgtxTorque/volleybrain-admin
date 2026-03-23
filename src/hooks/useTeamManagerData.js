@@ -19,7 +19,7 @@ export function useTeamManagerData(teamId) {
   })
 
   const fetchData = useCallback(async () => {
-    if (!teamId || !selectedSeason?.id) {
+    if (!teamId || !selectedSeason?.id || selectedSeason.id === 'all') {
       setLoading(false)
       return
     }

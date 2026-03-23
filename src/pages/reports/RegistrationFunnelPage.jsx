@@ -45,7 +45,7 @@ function RegistrationFunnelPage({ showToast }) {
   const [hasFunnelTable, setHasFunnelTable] = useState(false)
 
   useEffect(() => { loadSeasons() }, [organization?.id])
-  useEffect(() => { if (globalSeason?.id && !selectedSeasonId) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
+  useEffect(() => { if (globalSeason?.id && globalSeason.id !== 'all' && !selectedSeasonId) setSelectedSeasonId(globalSeason.id) }, [globalSeason?.id])
   useEffect(() => { if (selectedSeasonId) loadAllData() }, [selectedSeasonId, dateRange])
 
   async function loadSeasons() {

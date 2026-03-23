@@ -152,7 +152,7 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
             .order('event_date', { ascending: true })
             .order('event_time', { ascending: true })
 
-          if (seasonId) {
+          if (seasonId && seasonId !== 'all') {
             eventsQuery = eventsQuery.eq('season_id', seasonId)
           }
 

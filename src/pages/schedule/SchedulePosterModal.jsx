@@ -64,7 +64,7 @@ function SchedulePosterModal({ season, team, organization, events, onClose, show
   useEffect(() => { if (selectedTeam?.id) loadRoster() }, [selectedTeam?.id])
 
   async function loadTeams() {
-    if (!season?.id) return
+    if (!season?.id || season.id === 'all') return
     const { data } = await supabase.from('teams').select('id, name, color, logo_url').eq('season_id', season.id).order('name')
     setAllTeams(data || [])
     if (!selectedTeam && data?.length > 0) setSelectedTeam(data[0])

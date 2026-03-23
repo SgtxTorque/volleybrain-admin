@@ -315,7 +315,7 @@ export function PlayerCardExpanded({
   }
 
   async function loadSeasonStats() {
-    if (!seasonId) {
+    if (!seasonId || seasonId === 'all') {
       setSeasonStats(null)
       return
     }
