@@ -12,7 +12,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { exportToCSV } from '../../lib/csv-export'
 import {
-  Users, Calendar, Download, Plus, Shield
+  Users, Calendar, Download, Plus, Shield, TrendingUp
 } from 'lucide-react'
 import { PlayerCardExpanded } from '../../components/players'
 import { SkeletonTeamsPage } from '../../components/ui'
@@ -48,6 +48,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const [coachAssignTeam, setCoachAssignTeam] = useState(null)
   const [detailTeam, setDetailTeam] = useState(null)
   const [coaches, setCoaches] = useState([])
+  const [activeSportFilter, setActiveSportFilter] = useState('all')
 
   useEffect(() => {
     if (selectedSeason?.id) {
@@ -335,6 +336,44 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
 
   // ------ Derived stats ------
   const totalRegistered = teams.reduce((sum, t) => sum + (t.team_players?.length || 0), 0) + unrosteredPlayers.length
+  const rosteredPlayers = teams.reduce((sum, t) => sum + (t.team_players?.length || 0), 0)
+  const totalMaxRoster = teams.reduce((sum, t) => sum + (t.max_roster_size || 12), 0)
+  const avgHealth = teams.length > 0
+    ? Math.round(teams.reduce((sum, t) => {
+        const max = t.max_roster_size || 12
+        const current = t.team_players?.length || 0
+        return sum + (current / max) * 100
+      }, 0) / teams.length)
+    : 0
+  const regRate = totalRegistered > 0 ? Math.round((rosteredPlayers / totalRegistered) * 100) : 0
+
+  // Alert data
+  const teamsNeedingCoaches = teams.filter(t => {
+    // A team needs coaches if it has no coach assignments loaded
+    // We don't have coach assignments on team objects directly, so check if team has players but no coaches
+    return (t.team_players?.length || 0) > 0
+  }).length // Placeholder — will refine with actual coach data
+  const teamsOverCap = teams.filter(t => (t.team_players?.length || 0) > (t.max_roster_size || 12)).length
+
+  // Sport quick filters
+  const sportFilters = (() => {
+    const types = {}
+    teams.forEach(t => {
+      const type = (t.team_type || 'rec')
+      types[type] = (types[type] || 0) + 1
+    })
+    return [
+      { key: 'all', label: 'All Teams', count: teams.length },
+      ...Object.entries(types).map(([k, v]) => ({
+        key: k,
+        label: k.charAt(0).toUpperCase() + k.slice(1),
+        count: v,
+      }))
+    ]
+  })()
+  const sportFilteredTeams = activeSportFilter === 'all'
+    ? teams
+    : teams.filter(t => (t.team_type || 'rec') === activeSportFilter)
 
   // ------ Season guards ------
   if (!selectedSeason) {
@@ -422,21 +461,56 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           })()}
         </div>
 
-        {/* Stat row */}
-        <TeamsStatRow
-          teams={teams}
-          unrosteredCount={unrosteredPlayers.length}
-          totalRegistered={totalRegistered}
-        />
+        {/* Alert Pills Row */}
+        {(() => {
+          const alerts = [
+            unrosteredPlayers.length > 0 && { label: `${unrosteredPlayers.length} unrostered players`, color: 'amber', icon: '👥' },
+            teamsOverCap > 0 && { label: `${teamsOverCap} teams over cap`, color: 'red', icon: '⚠️' },
+          ].filter(Boolean)
+          if (alerts.length === 0) return null
+          return (
+            <div className="flex items-center gap-2 flex-wrap">
+              {alerts.map((alert, i) => (
+                <span
+                  key={i}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                    alert.color === 'red'
+                      ? isDark ? 'bg-red-500/15 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-600 border border-red-200'
+                      : isDark ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-200'
+                  }`}
+                  style={{ fontFamily: 'var(--v2-font)' }}
+                >
+                  <span>{alert.icon}</span> {alert.label}
+                </span>
+              ))}
+            </div>
+          )
+        })()}
 
-        {/* Unrostered alert (progressive disclosure) */}
-        <UnrosteredAlert
-          players={unrosteredPlayers}
-          teams={teams}
-          onAssign={addPlayerToTeam}
-        />
+        {/* Sport Quick Filter Pills */}
+        {sportFilters.length > 2 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Quick Filter:</span>
+            {sportFilters.map(sf => (
+              <button
+                key={sf.key}
+                onClick={() => setActiveSportFilter(sf.key)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                  activeSportFilter === sf.key
+                    ? 'bg-[#10284C] text-white shadow-sm'
+                    : isDark
+                      ? 'bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-white'
+                      : 'bg-white border border-[#E8ECF2] text-slate-500 hover:border-[#4BB9EC]/30'
+                }`}
+                style={{ fontFamily: 'var(--v2-font)' }}
+              >
+                {sf.label} <span className="ml-1 opacity-60">{sf.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Main content */}
+        {/* Main content — 2-column layout */}
         {loading ? (
           <div className={`text-center py-12 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Loading teams...</div>
         ) : teams.length === 0 ? (
@@ -451,24 +525,117 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
             </button>
           </div>
         ) : (
-          <TeamsTableView
-            teams={selectedAgeGroup ? teams.filter(t => t.age_group === selectedAgeGroup) : teams}
-            search={search}
-            onSearchChange={setSearch}
-            onDeleteTeam={deleteTeam}
-            onNavigateToWall={navigateToTeamWall}
-            onEditTeam={(team) => setEditingTeam(team)}
-            onManageRoster={(team) => setRosterTeam(team)}
-            onAssignCoaches={(team) => setCoachAssignTeam(team)}
-            onToggleRosterOpen={toggleRosterOpen}
-            onViewTeamDetail={(team) => setDetailTeam(team)}
-            unrosteredPlayers={unrosteredPlayers}
-            onAddPlayer={addPlayerToTeam}
-          />
+          <div className="flex gap-6">
+            {/* Left: Team Table */}
+            <div className="flex-1 min-w-0">
+              <TeamsTableView
+                teams={selectedAgeGroup ? sportFilteredTeams.filter(t => t.age_group === selectedAgeGroup) : sportFilteredTeams}
+                search={search}
+                onSearchChange={setSearch}
+                onDeleteTeam={deleteTeam}
+                onNavigateToWall={navigateToTeamWall}
+                onEditTeam={(team) => setEditingTeam(team)}
+                onManageRoster={(team) => setRosterTeam(team)}
+                onAssignCoaches={(team) => setCoachAssignTeam(team)}
+                onToggleRosterOpen={toggleRosterOpen}
+                onViewTeamDetail={(team) => setDetailTeam(detailTeam?.id === team.id ? null : team)}
+                selectedTeamId={detailTeam?.id}
+                unrosteredPlayers={unrosteredPlayers}
+                onAddPlayer={addPlayerToTeam}
+              />
+            </div>
+            {/* Right: Inline Detail Panel */}
+            {detailTeam && (
+              <div className="w-[360px] shrink-0 hidden xl:block">
+                <TeamDetailPanel
+                  team={detailTeam}
+                  onClose={() => setDetailTeam(null)}
+                  onEditTeam={(team) => { setDetailTeam(null); setEditingTeam(team) }}
+                  onManageRoster={(team) => { setDetailTeam(null); setRosterTeam(team) }}
+                  onAssignCoaches={(team) => { setDetailTeam(null); setCoachAssignTeam(team) }}
+                  onToggleRosterOpen={(team) => { toggleRosterOpen(team); setDetailTeam(null) }}
+                  onNavigateToWall={(teamId) => navigateToTeamWall(teamId)}
+                  onDeleteTeam={(teamId) => { setDetailTeam(null); deleteTeam(teamId) }}
+                  inline
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer Stats Strip */}
+        {teams.length > 0 && (
+          <div className={`flex items-center gap-8 p-5 rounded-2xl flex-wrap ${
+            isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'
+          }`} style={{ fontFamily: 'var(--v2-font)' }}>
+            <div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Total Players</span>
+              <div className={`text-2xl font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{rosteredPlayers}</div>
+            </div>
+            <div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Registration Rate</span>
+              <div className={`text-2xl font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{regRate}%</div>
+            </div>
+            <div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Club Health</span>
+              <div className={`text-2xl font-black ${avgHealth >= 75 ? 'text-emerald-500' : avgHealth >= 40 ? 'text-amber-500' : 'text-red-500'}`}>{avgHealth}%</div>
+            </div>
+            <div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Open Spots</span>
+              <div className={`text-2xl font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{Math.max(0, totalMaxRoster - rosteredPlayers)}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Unrostered Queue Strip */}
+        {unrosteredPlayers.length > 0 && (
+          <div className={`flex items-center gap-4 p-4 rounded-xl ${
+            isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
+          }`}>
+            <span className={`font-bold text-sm ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
+              Unrostered Queue: {unrosteredPlayers.length} athlete{unrosteredPlayers.length !== 1 ? 's' : ''} pending
+            </span>
+            <div className="flex -space-x-1.5">
+              {unrosteredPlayers.slice(0, 5).map(p => (
+                <div key={p.id} className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
+                  isDark ? 'border-[#132240] bg-white/[0.06] text-slate-300' : 'border-white bg-slate-100 text-slate-600'
+                }`}>
+                  {(p.first_name || '?').charAt(0)}{(p.last_name || '').charAt(0)}
+                </div>
+              ))}
+              {unrosteredPlayers.length > 5 && (
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
+                  isDark ? 'border-[#132240] bg-amber-500/20 text-amber-400' : 'border-white bg-amber-100 text-amber-600'
+                }`}>
+                  +{unrosteredPlayers.length - 5}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => onNavigate?.('registrations')}
+              className="ml-auto text-xs font-bold text-[#4BB9EC] hover:underline"
+            >
+              Manage All →
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Modals */}
+      {/* Modals — overlay detail panel for smaller screens */}
+      {detailTeam && (
+        <div className="xl:hidden">
+          <TeamDetailPanel
+            team={detailTeam}
+            onClose={() => setDetailTeam(null)}
+            onEditTeam={(team) => { setDetailTeam(null); setEditingTeam(team) }}
+            onManageRoster={(team) => { setDetailTeam(null); setRosterTeam(team) }}
+            onAssignCoaches={(team) => { setDetailTeam(null); setCoachAssignTeam(team) }}
+            onToggleRosterOpen={(team) => { toggleRosterOpen(team); setDetailTeam(null) }}
+            onNavigateToWall={(teamId) => navigateToTeamWall(teamId)}
+            onDeleteTeam={(teamId) => { setDetailTeam(null); deleteTeam(teamId) }}
+          />
+        </div>
+      )}
       {showNewTeamModal && (
         <NewTeamModal
           onClose={() => setShowNewTeamModal(false)}
@@ -545,18 +712,6 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
         />
       )}
 
-      {detailTeam && (
-        <TeamDetailPanel
-          team={detailTeam}
-          onClose={() => setDetailTeam(null)}
-          onEditTeam={(team) => { setDetailTeam(null); setEditingTeam(team) }}
-          onManageRoster={(team) => { setDetailTeam(null); setRosterTeam(team) }}
-          onAssignCoaches={(team) => { setDetailTeam(null); setCoachAssignTeam(team) }}
-          onToggleRosterOpen={(team) => { toggleRosterOpen(team); setDetailTeam(null) }}
-          onNavigateToWall={(teamId) => navigateToTeamWall(teamId)}
-          onDeleteTeam={(teamId) => { setDetailTeam(null); deleteTeam(teamId) }}
-        />
-      )}
     </PageShell>
   )
 }

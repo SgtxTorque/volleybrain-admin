@@ -1,76 +1,20 @@
 // =============================================================================
-// TeamsTableView — Table with health bars, avatar groups, status chips
-// Design system: bg-slate-50 header, border-b rows, hover states
+// TeamsTableView — Sport-grouped table with fill bars, health index, selected state
+// Design system: v2 tokens, sport section headers, roster fill bars, health index
 // =============================================================================
 
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
-import { Search, Trash2, MoreVertical, ExternalLink, Edit, Users, UserCog, Shield } from 'lucide-react'
-
-function AvatarGroup({ players = [], teamColor, max = 5 }) {
-  const { isDark } = useTheme()
-  const shown = players.slice(0, max)
-  const overflow = players.length - max
-
-  return (
-    <div className="flex items-center">
-      <div className="flex -space-x-2">
-        {shown.map((p, i) => (
-          p.photo_url ? (
-            <img key={p.id || i} src={p.photo_url} alt="" className="w-7 h-7 rounded-lg object-cover border-2 border-white dark:border-lynx-charcoal" />
-          ) : (
-            <div key={p.id || i}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border-2 ${
-                isDark ? 'border-lynx-charcoal bg-white/[0.06] text-slate-300' : 'border-white bg-slate-100 text-slate-600'
-              }`}
-            >
-              {(p.first_name || '?').charAt(0)}{(p.last_name || '').charAt(0)}
-            </div>
-          )
-        ))}
-        {overflow > 0 && (
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold border-2 ${
-            isDark ? 'border-lynx-charcoal bg-white/[0.08] text-slate-400' : 'border-white bg-slate-200 text-slate-600'
-          }`}>
-            +{overflow}
-          </div>
-        )}
-      </div>
-      <span className={`ml-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-        {players.length}
-      </span>
-    </div>
-  )
-}
-
-function HealthBar({ current, max }) {
-  const pct = max > 0 ? Math.round((current / max) * 100) : 0
-  // Brand gradient: sky-to-green for healthy, amber-to-red for critical
-  const barStyle = pct >= 75
-    ? 'bg-gradient-to-r from-lynx-sky to-emerald-500'
-    : pct >= 40
-      ? 'bg-gradient-to-r from-amber-400 to-amber-500'
-      : 'bg-gradient-to-r from-red-400 to-red-500'
-  const textColor = pct >= 75 ? 'text-emerald-500' : pct >= 40 ? 'text-amber-500' : 'text-red-500'
-
-  return (
-    <div className="flex items-center gap-2 min-w-[100px]">
-      <div className="flex-1 h-[6px] rounded-full bg-slate-200 dark:bg-white/[0.08]">
-        <div className={`h-full rounded-full ${barStyle} transition-all`} style={{ width: `${Math.min(pct, 100)}%` }} />
-      </div>
-      <span className={`text-sm font-bold tabular-nums ${textColor}`}>{pct}%</span>
-    </div>
-  )
-}
+import { Search, Trash2, MoreVertical, ExternalLink, Edit, Users, UserCog, Shield, TrendingUp, TrendingDown } from 'lucide-react'
 
 function StatusChip({ roster_open, playerCount, maxRoster }) {
   if (playerCount >= maxRoster) {
-    return <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/12 text-red-500">Full</span>
+    return <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/12 text-red-500">FULL</span>
   }
   if (roster_open) {
-    return <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-500">Open</span>
+    return <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/12 text-emerald-500">OPEN</span>
   }
-  return <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-amber-500/12 text-amber-500">Closed</span>
+  return <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/12 text-amber-500">CLOSED</span>
 }
 
 export default function TeamsTableView({
@@ -84,6 +28,7 @@ export default function TeamsTableView({
   onAssignCoaches,
   onToggleRosterOpen,
   onViewTeamDetail,
+  selectedTeamId,
   unrosteredPlayers = [],
   onAddPlayer,
 }) {
@@ -94,6 +39,23 @@ export default function TeamsTableView({
     if (!search) return true
     return t.name.toLowerCase().includes(search.toLowerCase())
   })
+
+  // Group teams by team_type for sport section headers
+  const grouped = (() => {
+    const groups = {}
+    filtered.forEach(t => {
+      const type = (t.team_type || 'recreational')
+      if (!groups[type]) groups[type] = []
+      groups[type].push(t)
+    })
+    // Sort groups: competitive first, then travel, then recreational
+    const order = ['competitive', 'travel', 'recreational', 'rec']
+    return Object.entries(groups).sort(([a], [b]) => {
+      const ai = order.indexOf(a)
+      const bi = order.indexOf(b)
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+    })
+  })()
 
   const cardBg = isDark
     ? 'bg-lynx-charcoal border border-white/[0.06]'
@@ -128,171 +90,210 @@ export default function TeamsTableView({
           <thead>
             <tr className={isDark ? 'bg-white/[0.02]' : 'bg-slate-50'}>
               {['Team', 'Roster', 'Health', 'Type', 'Status', 'Wall', ''].map(h => (
-                <th key={h} className={`px-5 py-3 text-left text-sm font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <th key={h} className={`px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                  style={{ fontFamily: 'var(--v2-font)' }}>
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.map((team, idx) => {
-              const players = (team.team_players || []).map(tp => tp.players).filter(Boolean)
-              const playerCount = players.length
-              const maxRoster = team.max_roster_size || 12
-
-              return (
-                <tr key={team.id}
-                  className={`${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'} transition ${
-                    idx < filtered.length - 1 ? `border-b ${isDark ? 'border-white/[0.04]' : 'border-slate-100'}` : ''
-                  }`}
-                >
-                  {/* Team name + color dot */}
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: team.color || '#888' }} />
-                      <div className="min-w-0">
-                        <button
-                          onClick={() => onViewTeamDetail?.(team)}
-                          className={`text-r-base font-semibold truncate ${isDark ? 'text-white hover:text-lynx-sky' : 'text-lynx-navy hover:text-lynx-sky'} transition cursor-pointer text-left block w-full`}
-                        >
-                          {team.name}
-                        </button>
-                        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                          {team.age_group || ''}{team.gender && team.gender !== 'coed' ? ` · ${team.gender}` : ''}
-                        </p>
+            {grouped.map(([groupType, groupTeams]) => (
+              <>
+                {/* Sport section header */}
+                {grouped.length > 1 && (
+                  <tr key={`header-${groupType}`}>
+                    <td colSpan={7}>
+                      <div className="flex items-center gap-2 px-5 py-2 mt-2 first:mt-0">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          style={{ fontFamily: 'var(--v2-font)' }}>
+                          {groupType.charAt(0).toUpperCase() + groupType.slice(1)} · {groupTeams.length} team{groupTeams.length !== 1 ? 's' : ''}
+                        </span>
+                        <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`} />
                       </div>
-                    </div>
-                  </td>
+                    </td>
+                  </tr>
+                )}
 
-                  {/* Roster avatars */}
-                  <td className="px-5 py-3">
-                    {playerCount > 0 ? (
-                      <AvatarGroup players={players} teamColor={team.color} />
-                    ) : (
-                      <span className={`text-sm ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>Empty</span>
-                    )}
-                  </td>
+                {groupTeams.map((team) => {
+                  const players = (team.team_players || []).map(tp => tp.players).filter(Boolean)
+                  const playerCount = players.length
+                  const maxRoster = team.max_roster_size || 12
+                  const fillPercent = maxRoster > 0 ? Math.round((playerCount / maxRoster) * 100) : 0
+                  const health = Math.min(fillPercent, 100)
+                  const isSelected = team.id === selectedTeamId
 
-                  {/* Health bar */}
-                  <td className="px-5 py-3">
-                    <HealthBar current={playerCount} max={maxRoster} />
-                  </td>
-
-                  {/* Type */}
-                  <td className="px-5 py-3">
-                    <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${
-                      team.team_type === 'competitive'
-                        ? 'bg-lynx-sky/15 text-lynx-sky'
-                        : team.team_type === 'travel'
-                          ? 'bg-purple-500/12 text-purple-500'
-                          : isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-emerald-50 text-emerald-600'
-                    }`}>
-                      {(team.team_type || 'rec').charAt(0).toUpperCase() + (team.team_type || 'rec').slice(1)}
-                    </span>
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-5 py-3">
-                    <StatusChip roster_open={team.roster_open} playerCount={playerCount} maxRoster={maxRoster} />
-                  </td>
-
-                  {/* Wall link */}
-                  <td className="px-5 py-3">
-                    <button
-                      onClick={() => onNavigateToWall?.(team.id)}
-                      className="text-sm font-semibold text-lynx-sky hover:brightness-110 flex items-center gap-1"
+                  return (
+                    <tr key={team.id}
+                      onClick={() => onViewTeamDetail?.(team)}
+                      className={`cursor-pointer transition-all border-l-[3px] ${
+                        isSelected
+                          ? (isDark ? 'bg-[#4BB9EC]/10 border-l-[#10284C]' : 'bg-[#4BB9EC]/[0.06] border-l-[#10284C]')
+                          : `border-l-transparent ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'}`
+                      } border-b ${isDark ? 'border-b-white/[0.04]' : 'border-b-slate-100'}`}
                     >
-                      View <ExternalLink className="w-3 h-3" />
-                    </button>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-5 py-3">
-                    <div className="relative">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setMenuOpen(menuOpen === team.id ? null : team.id)
-                        }}
-                        className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center ${
-                          isDark ? 'border-white/[0.06] text-slate-400 hover:bg-white/[0.04]' : 'border-slate-200 text-slate-400 hover:bg-slate-50'
-                        }`}
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                      {menuOpen === team.id && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(null)} />
-                          <div className={`absolute right-0 top-full mt-1 z-50 rounded-xl shadow-lg border py-1.5 min-w-[200px] ${
-                            isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-lynx-silver'
-                          }`}
-                            style={{ position: 'fixed', transform: 'translateX(-160px)' }}
-                            ref={el => {
-                              if (el) {
-                                const btn = el.previousElementSibling?.previousElementSibling
-                                if (btn) {
-                                  const rect = btn.getBoundingClientRect()
-                                  el.style.top = `${rect.bottom + 4}px`
-                                  el.style.left = `${rect.right - 200}px`
-                                  el.style.transform = 'none'
-                                }
-                              }
-                            }}
-                          >
-                            {/* View & Edit */}
-                            <button
-                              onClick={() => { onNavigateToWall?.(team.id); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
-                            >
-                              <ExternalLink className="w-4 h-4 opacity-60" /> View Team Wall
-                            </button>
-                            <button
-                              onClick={() => { onEditTeam?.(team); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
-                            >
-                              <Edit className="w-4 h-4 opacity-60" /> Edit Team Settings
-                            </button>
-
-                            {/* Roster */}
-                            <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
-                            <button
-                              onClick={() => { onManageRoster?.(team); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
-                            >
-                              <Users className="w-4 h-4 opacity-60" /> Manage Roster
-                            </button>
-                            <button
-                              onClick={() => { onAssignCoaches?.(team); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
-                            >
-                              <UserCog className="w-4 h-4 opacity-60" /> Assign Coaches
-                            </button>
-
-                            {/* Roster Status Toggle */}
-                            <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
-                            <button
-                              onClick={() => { onToggleRosterOpen?.(team); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
-                            >
-                              <Shield className="w-4 h-4 opacity-60" /> {team.roster_open ? 'Close Roster' : 'Open Roster'}
-                            </button>
-
-                            {/* Danger zone */}
-                            <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
-                            <button
-                              onClick={() => { onDeleteTeam(team.id); setMenuOpen(null) }}
-                              className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 text-red-500 ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
-                            >
-                              <Trash2 className="w-4 h-4" /> Delete Team
-                            </button>
+                      {/* Team name + color dot */}
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: team.color || '#888' }} />
+                          <div className="min-w-0">
+                            <span className={`text-sm font-bold truncate block ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                              {team.name}
+                            </span>
+                            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {team.age_group || ''}{team.gender && team.gender !== 'coed' ? ` · ${team.gender}` : ''}
+                            </p>
                           </div>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
+                        </div>
+                      </td>
+
+                      {/* Roster fill bar */}
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-bold tabular-nums ${
+                            fillPercent >= 100 ? 'text-[#22C55E]' : fillPercent < 50 ? 'text-red-500' : isDark ? 'text-white' : 'text-[#10284C]'
+                          }`}>
+                            {playerCount}/{maxRoster}
+                          </span>
+                          <div className={`w-16 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.08]' : 'bg-slate-200'}`}>
+                            <div className={`h-full rounded-full transition-all ${
+                              fillPercent >= 100 ? 'bg-[#22C55E]' : fillPercent < 50 ? 'bg-red-500' : 'bg-[#4BB9EC]'
+                            }`} style={{ width: `${Math.min(fillPercent, 100)}%` }} />
+                          </div>
+                          <span className={`text-xs tabular-nums ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{fillPercent}%</span>
+                        </div>
+                      </td>
+
+                      {/* Health index */}
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-lg font-black tabular-nums ${
+                            health > 80 ? 'text-[#22C55E]' : health > 50 ? 'text-amber-500' : 'text-red-500'
+                          }`}>
+                            {health}
+                          </span>
+                          {health > 80 && <TrendingUp className="w-3.5 h-3.5 text-[#22C55E]" />}
+                          {health <= 50 && <TrendingDown className="w-3.5 h-3.5 text-red-500" />}
+                        </div>
+                      </td>
+
+                      {/* Type */}
+                      <td className="px-5 py-3">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                          team.team_type === 'competitive'
+                            ? 'bg-lynx-sky/15 text-lynx-sky'
+                            : team.team_type === 'travel'
+                              ? 'bg-purple-500/12 text-purple-500'
+                              : isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-emerald-50 text-emerald-600'
+                        }`}>
+                          {(team.team_type || 'rec').charAt(0).toUpperCase() + (team.team_type || 'rec').slice(1)}
+                        </span>
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-5 py-3">
+                        <StatusChip roster_open={team.roster_open} playerCount={playerCount} maxRoster={maxRoster} />
+                      </td>
+
+                      {/* Wall link */}
+                      <td className="px-5 py-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onNavigateToWall?.(team.id) }}
+                          className="text-sm font-semibold text-lynx-sky hover:brightness-110 flex items-center gap-1"
+                        >
+                          View <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-5 py-3">
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMenuOpen(menuOpen === team.id ? null : team.id)
+                            }}
+                            className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center ${
+                              isDark ? 'border-white/[0.06] text-slate-400 hover:bg-white/[0.04]' : 'border-slate-200 text-slate-400 hover:bg-slate-50'
+                            }`}
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {menuOpen === team.id && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(null)} />
+                              <div className={`absolute right-0 top-full mt-1 z-50 rounded-xl shadow-lg border py-1.5 min-w-[200px] ${
+                                isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-lynx-silver'
+                              }`}
+                                style={{ position: 'fixed', transform: 'translateX(-160px)' }}
+                                ref={el => {
+                                  if (el) {
+                                    const btn = el.previousElementSibling?.previousElementSibling
+                                    if (btn) {
+                                      const rect = btn.getBoundingClientRect()
+                                      el.style.top = `${rect.bottom + 4}px`
+                                      el.style.left = `${rect.right - 200}px`
+                                      el.style.transform = 'none'
+                                    }
+                                  }
+                                }}
+                              >
+                                {/* View & Edit */}
+                                <button
+                                  onClick={() => { onNavigateToWall?.(team.id); setMenuOpen(null) }}
+                                  className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                                >
+                                  <ExternalLink className="w-4 h-4 opacity-60" /> View Team Wall
+                                </button>
+                                <button
+                                  onClick={() => { onEditTeam?.(team); setMenuOpen(null) }}
+                                  className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                                >
+                                  <Edit className="w-4 h-4 opacity-60" /> Edit Team Settings
+                                </button>
+
+                                {/* Roster */}
+                                <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
+                                <button
+                                  onClick={() => { onManageRoster?.(team); setMenuOpen(null) }}
+                                  className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                                >
+                                  <Users className="w-4 h-4 opacity-60" /> Manage Roster
+                                </button>
+                                <button
+                                  onClick={() => { onAssignCoaches?.(team); setMenuOpen(null) }}
+                                  className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                                >
+                                  <UserCog className="w-4 h-4 opacity-60" /> Assign Coaches
+                                </button>
+
+                                {/* Roster Status Toggle */}
+                                <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
+                                <button
+                                  onClick={() => { onToggleRosterOpen?.(team); setMenuOpen(null) }}
+                                  className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-slate-300 hover:bg-white/[0.04]' : 'text-slate-700 hover:bg-lynx-frost'}`}
+                                >
+                                  <Shield className="w-4 h-4 opacity-60" /> {team.roster_open ? 'Close Roster' : 'Open Roster'}
+                                </button>
+
+                                {/* Danger zone */}
+                                <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
+                                <button
+                                  onClick={() => { onDeleteTeam(team.id); setMenuOpen(null) }}
+                                  className={`w-full px-4 py-2.5 text-left text-r-sm flex items-center gap-2.5 text-red-500 ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
+                                >
+                                  <Trash2 className="w-4 h-4" /> Delete Team
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </>
+            ))}
 
             {filtered.length === 0 && (
               <tr>
