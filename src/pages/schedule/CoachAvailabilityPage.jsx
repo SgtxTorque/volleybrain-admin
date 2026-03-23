@@ -53,8 +53,8 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
   const viewingCoachId = isAdmin ? selectedCoachId : myCoachId
 
   const cardCls = isDark
-    ? 'bg-lynx-charcoal rounded-[14px] border border-white/[0.06]'
-    : 'bg-white rounded-[14px] border border-slate-200 shadow-sm'
+    ? 'bg-white/[0.03] rounded-[14px] border border-white/[0.06]'
+    : 'bg-white rounded-[14px] border border-[#E8ECF2]'
 
   // Get team IDs for the coach we're viewing
   const getCoachTeamIds = useCallback(() => {
@@ -388,30 +388,30 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
     <div className="relative">
       <button
         onClick={() => setCoachDropdownOpen(!coachDropdownOpen)}
-        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition ${
           isDark
-            ? 'bg-white/[0.06] border border-white/[0.08] hover:bg-white/10'
-            : 'bg-white border border-slate-200 hover:border-slate-300 shadow-sm'
+            ? 'bg-white/[0.04] border-white/[0.08] hover:border-[#4BB9EC]'
+            : 'bg-white border-[#E8ECF2] hover:border-[#4BB9EC]'
         }`}
       >
         {selectedCoach?.photo_url ? (
           <img src={selectedCoach.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
         ) : (
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-r-xs font-bold bg-lynx-navy">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-[#10284C]">
             {selectedCoach?.first_name?.[0]}{selectedCoach?.last_name?.[0]}
           </div>
         )}
-        <span className={`font-medium text-r-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>
+        <span className={`font-medium text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
           {selectedCoach ? `${selectedCoach.first_name} ${selectedCoach.last_name}` : 'Select Coach'}
         </span>
-        <ChevronDown className={`w-4 h-4 ${tc.textMuted} transition ${coachDropdownOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition ${coachDropdownOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {coachDropdownOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setCoachDropdownOpen(false)} />
-          <div className={`absolute right-0 top-full mt-2 w-72 rounded-[14px] overflow-hidden z-50 max-h-80 overflow-y-auto border shadow-2xl ${
-            isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'
+          <div className={`absolute right-0 top-full mt-2 w-72 rounded-xl overflow-hidden z-50 max-h-80 overflow-y-auto border shadow-2xl ${
+            isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'
           }`}>
             {coaches.map(c => (
               <button
@@ -419,20 +419,20 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
                 onClick={() => { setSelectedCoachId(c.id); setCoachDropdownOpen(false) }}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${
                   selectedCoachId === c.id
-                    ? isDark ? 'bg-lynx-sky/15 text-lynx-sky' : 'bg-lynx-sky/10 text-lynx-sky'
-                    : isDark ? 'text-white hover:bg-white/[0.04]' : 'text-slate-800 hover:bg-lynx-cloud'
+                    ? 'bg-[#4BB9EC]/10 text-[#4BB9EC]'
+                    : isDark ? 'text-white hover:bg-white/[0.04]' : 'text-[#10284C] hover:bg-[#F5F6F8]'
                 }`}
               >
                 {c.photo_url ? (
                   <img src={c.photo_url} alt="" className="w-8 h-8 rounded-full object-cover" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-r-xs font-bold bg-lynx-navy">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold bg-[#10284C]">
                     {c.first_name?.[0]}{c.last_name?.[0]}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-r-sm truncate">{c.first_name} {c.last_name}</p>
-                  <p className={`text-r-xs ${tc.textMuted} truncate`}>
+                  <p className="font-bold text-sm truncate">{c.first_name} {c.last_name}</p>
+                  <p className="text-xs text-slate-400 truncate">
                     {c.team_coaches?.map(t => t.teams?.name).filter(Boolean).join(', ') || 'No team'}
                   </p>
                 </div>
