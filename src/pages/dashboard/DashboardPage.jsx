@@ -23,31 +23,99 @@ import AdminScheduleTab from '../../components/v2/admin/AdminScheduleTab'
 // ============================================
 // GETTING STARTED GUIDE (No Season)
 // ============================================
+// ============================================
+// EMPTY STATE CTA CARD (reusable for onboarding)
+// ============================================
+function EmptyStateCTA({ emoji, title, description, buttonLabel, onClick, isDark }) {
+  return (
+    <div className={`rounded-[14px] border-2 border-dashed border-[#4BB9EC]/30 p-8 text-center ${isDark ? 'bg-[#132240]/50' : 'bg-[#4BB9EC]/[0.03]'}`}>
+      <div className="text-3xl mb-3">{emoji}</div>
+      <h3 className="font-extrabold text-lg mb-1" style={{ color: 'var(--v2-text-primary)' }}>{title}</h3>
+      <p className="text-sm text-slate-400 mb-4">{description}</p>
+      <button onClick={onClick}
+        className="px-6 py-2.5 bg-[#10284C] text-white font-bold rounded-xl hover:brightness-110 transition">
+        {buttonLabel}
+      </button>
+    </div>
+  )
+}
+
+// ============================================
+// GETTING STARTED GUIDE (No Season)
+// ============================================
 export function GettingStartedGuide({ onNavigate }) {
-  const { organization } = useAuth()
-  const { isDark, accent } = useTheme()
+  const { organization, profile } = useAuth()
+  const { isDark } = useTheme()
+  const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Admin'
+
+  const setupSteps = [
+    { label: 'Org Profile', page: 'organization', done: !!organization?.name },
+    { label: 'Season', page: 'seasons', done: false },
+    { label: 'Teams', page: 'teams', done: false },
+    { label: 'Coaches', page: 'coaches', done: false },
+    { label: 'Registration', page: 'registration-templates', done: false },
+    { label: 'Schedule', page: 'schedule', done: false },
+  ]
 
   return (
-    <div className="py-12 text-center">
-      <div
-        className="w-20 h-20 rounded-full mx-auto mb-r-4 flex items-center justify-center"
-        style={{ backgroundColor: accent.primary + '20' }}
-      >
-        <span className="text-r-4xl">🎉</span>
+    <div style={{ padding: '32px 32px 80px', fontFamily: 'var(--v2-font)', maxWidth: 900, margin: '0 auto' }}>
+      {/* Greeting */}
+      <div className="text-center mb-8">
+        <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
+        <h1 className="text-2xl font-extrabold mb-2" style={{ color: 'var(--v2-text-primary)' }}>
+          Welcome to Lynx, {firstName}. Let's get your club set up.
+        </h1>
+        <p className="text-sm" style={{ color: 'var(--v2-text-muted)' }}>
+          Follow the steps below to launch your organization. Your dashboard will come alive as data flows in.
+        </p>
       </div>
-      <h1 className={`text-r-4xl font-bold mb-2 ${isDark ? "text-white" : "text-slate-800"}`}>
-        Welcome to {organization?.name || 'Lynx'}!
-      </h1>
-      <p className={`mb-8 ${isDark ? "text-slate-400" : "text-lynx-slate"}`}>
-        Let's get your organization set up. Start by creating your first season.
-      </p>
-      <button
-        onClick={() => onNavigate('seasons')}
-        className="px-6 py-3 text-white font-semibold rounded-2xl transition hover:brightness-110"
-        style={{ backgroundColor: accent.primary }}
-      >
-        Create Your First Season
-      </button>
+
+      {/* Setup Journey Stepper */}
+      <div className={`rounded-[14px] p-6 mb-8 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
+        <h2 className="text-sm font-extrabold uppercase tracking-widest mb-4" style={{ color: 'var(--v2-text-muted)' }}>Setup Progress</h2>
+        <div className="flex items-center gap-2 flex-wrap">
+          {setupSteps.map((step, i) => {
+            const isFirst = i === 0
+            const isCurrent = !step.done && setupSteps.slice(0, i).every(s => s.done)
+            return (
+              <button key={step.label} onClick={() => onNavigate?.(step.page)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition hover:brightness-95"
+                style={{
+                  background: step.done ? '#22C55E20' : isCurrent ? '#4BB9EC20' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
+                  border: isCurrent ? '2px solid #4BB9EC' : '2px solid transparent',
+                  cursor: 'pointer',
+                }}>
+                <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                  style={{
+                    background: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1',
+                    color: step.done || isCurrent ? '#FFFFFF' : 'var(--v2-text-muted)',
+                  }}>
+                  {step.done ? '✓' : i + 1}
+                </span>
+                <span className="text-xs font-bold" style={{ color: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : 'var(--v2-text-muted)' }}>
+                  {step.label}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* CTA Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <EmptyStateCTA emoji="📅" title="Create Your First Season"
+          description="Define your season dates, fees, and registration windows"
+          buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
+        <EmptyStateCTA emoji="💳" title="Set Up Payments"
+          description="Configure Stripe or manual payment methods"
+          buttonLabel="Configure Payments" onClick={() => onNavigate?.('payment-setup')} isDark={isDark} />
+        <EmptyStateCTA emoji="👥" title="Add Your First Team"
+          description="Create teams and start building your rosters"
+          buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
+        <EmptyStateCTA emoji="📋" title="Open Registration"
+          description="Create a season first, then open registration for families"
+          buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
+      </div>
     </div>
   )
 }
@@ -942,7 +1010,11 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               {/* HERO CARD — org-wide stats */}
               <HeroCard
                 orgLine={orgName || organization?.name || 'Your Organization'}
-                greeting={`${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`}
+                greeting={
+                  (globalTotalTeams || stats.teams || 0) === 0 && (globalTotalPlayers || totalPlayers) === 0
+                    ? `Welcome to Lynx, ${profile?.first_name || 'Admin'}. Let's get your club set up.`
+                    : `${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`
+                }
                 subLine={`${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 stats={[
                   { value: globalTotalTeams || stats.teams || 0, label: 'Teams', onClick: () => onNavigate?.('teams') },
@@ -1081,13 +1153,19 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   </div>
                 )}
                 {activeTab === 'teams' && (
-                  <AdminTeamsTab teamsData={teamsData} teamStats={teamStats} onTeamClick={(teamId) => onNavigate?.('teamwall', { teamId })} onViewAll={() => onNavigate?.('teams')} />
+                  (teamsData || []).length === 0
+                    ? <div style={{ padding: 24 }}><EmptyStateCTA emoji="👥" title="Add Your First Team" description="Create teams and start building your rosters" buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} /></div>
+                    : <AdminTeamsTab teamsData={teamsData} teamStats={teamStats} onTeamClick={(teamId) => onNavigate?.('teamwall', { teamId })} onViewAll={() => onNavigate?.('teams')} />
                 )}
                 {activeTab === 'registrations' && (
-                  <AdminRegistrationsTab stats={stats} registrationPlayers={registrationPlayers} onNavigate={onNavigate} />
+                  (stats.totalRegistrations || 0) === 0
+                    ? <div style={{ padding: 24 }}><EmptyStateCTA emoji="📋" title="Open Registration" description="Create a season first, then open registration for families" buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} /></div>
+                    : <AdminRegistrationsTab stats={stats} registrationPlayers={registrationPlayers} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'payments' && (
-                  <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} paymentFamilies={paymentFamilies} onNavigate={onNavigate} />
+                  (stats.totalExpected || 0) === 0
+                    ? <div style={{ padding: 24 }}><EmptyStateCTA emoji="💳" title="Set Up Payments" description="Configure Stripe or manual payment methods" buttonLabel="Configure Payments" onClick={() => onNavigate?.('payment-setup')} isDark={isDark} /></div>
+                    : <AdminPaymentsTab stats={stats} monthlyPayments={monthlyPayments} paymentFamilies={paymentFamilies} onNavigate={onNavigate} />
                 )}
                 {activeTab === 'schedules' && (
                   <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
