@@ -14,7 +14,6 @@ import { VolleyballIcon } from '../../constants/icons'
 // ═══════════════════════════════════════════════════════════
 
 const OD_STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Rajdhani:wght@400;500;600;700&display=swap');
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
@@ -24,9 +23,9 @@ const OD_STYLES = `
   .od-ai{animation:fadeIn .3s ease-out both}
   .od-as{animation:scaleIn .25s ease-out both}
   .od-float{animation:float 3s ease-in-out infinite}
-  .od-display{font-family:'Bebas Neue',sans-serif;letter-spacing:.05em}
-  .od-heading{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.04em}
-  .od-label{font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.03em}
+  .od-display{font-family:var(--v2-font,'Plus Jakarta Sans'),system-ui,sans-serif;font-weight:900;letter-spacing:-.01em}
+  .od-heading{font-family:var(--v2-font,'Plus Jakarta Sans'),system-ui,sans-serif;font-weight:700;letter-spacing:-.005em}
+  .od-label{font-family:var(--v2-font,'Plus Jakarta Sans'),system-ui,sans-serif;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
   .od-glass{background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
   .od-glass-solid{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08)}
   .od-glass-hover:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
@@ -37,7 +36,7 @@ const OD_STYLES = `
   .od-light .od-skeleton{background:linear-gradient(90deg,rgba(0,0,0,.04) 25%,rgba(0,0,0,.08) 50%,rgba(0,0,0,.04) 75%);background-size:200% 100%}
 `
 
-const ACCENT = '#EAB308' // Lynx yellow
+const ACCENT = '#4BB9EC' // Lynx sky blue
 
 const SPORT_ICONS = {
   volleyball: '🏐',
@@ -184,8 +183,7 @@ function OrgCard({ org, onSelect, isDark, index }) {
           )}
         </div>
         <div
-          className="flex items-center gap-1 text-xs font-bold"
-          style={{ color: ACCENT }}
+          className="flex items-center gap-1 text-xs font-bold text-[#4BB9EC]"
         >
           View Details
           <ChevronRight className="w-3.5 h-3.5" />
@@ -312,8 +310,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
                     <Mail className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
                     <a
                       href={`mailto:${s.contact_email || s.secondary_email}`}
-                      className="text-sm hover:underline"
-                      style={{ color: ACCENT }}
+                      className="text-sm text-[#4BB9EC] hover:underline"
                     >
                       {s.contact_email || s.secondary_email}
                     </a>
@@ -332,8 +329,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
                       href={s.website.startsWith('http') ? s.website : `https://${s.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm hover:underline flex items-center gap-1"
-                      style={{ color: ACCENT }}
+                      className="text-sm text-[#4BB9EC] hover:underline flex items-center gap-1"
                     >
                       {s.website.replace(/^https?:\/\//, '')}
                       <ExternalLink className="w-3 h-3" />
@@ -409,8 +405,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
                       {org.slug && (
                         <a
                           href={`/register/${org.slug}/${season.id}`}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-black transition hover:opacity-90"
-                          style={{ background: ACCENT }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#10284C] transition hover:brightness-110"
                         >
                           Register
                           <ChevronRight className="w-3 h-3" />
@@ -438,8 +433,8 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
             <div className="od-au" style={{ animationDelay: '320ms' }}>
               <button
                 onClick={() => onJoin(org)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-bold text-black transition hover:opacity-90 hover:scale-[1.01]"
-                style={{ background: `linear-gradient(135deg, ${ACCENT}, #F59E0B)` }}
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-bold text-white transition hover:brightness-110 hover:scale-[1.01]"
+                style={{ background: `linear-gradient(135deg, #10284C, #163A6A)` }}
               >
                 <Building2 className="w-5 h-5" />
                 Join This Organization
@@ -669,15 +664,13 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
             <div className="flex items-center gap-3">
               <a
                 href="/"
-                className="px-4 py-2 rounded-xl text-sm font-medium transition"
-                style={{ color: ACCENT }}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-[#4BB9EC] transition hover:opacity-80"
               >
                 Sign In
               </a>
               <a
                 href="/"
-                className="px-4 py-2 rounded-xl text-sm font-bold text-black transition hover:opacity-90"
-                style={{ background: ACCENT }}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-[#10284C] transition hover:brightness-110"
               >
                 Get Started
               </a>
@@ -714,7 +707,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-white placeholder:text-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'} border focus:outline-none focus:ring-2`}
-                style={{ '--tw-ring-color': `${ACCENT}40` }}
+                style={{ '--tw-ring-color': 'rgba(75,185,236,0.25)' }}
               />
               {searchQuery && (
                 <button onClick={() => setSearchQuery('')} className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/[0.05] text-slate-400'}`}>
@@ -726,8 +719,7 @@ function OrgDirectoryPage({ isEmbedded, onNavigateToLogin }) {
             {/* Filter Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition ${showFilters ? 'text-black' : isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'} border`}
-              style={showFilters ? { background: ACCENT } : {}}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition ${showFilters ? 'text-white bg-[#10284C]' : isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'} border`}
             >
               <Filter className="w-4 h-4" />
               Filters
@@ -838,7 +830,7 @@ CREATE POLICY "Public read teams"
           <div className="od-glass rounded-xl p-8 text-center od-au max-w-md mx-auto">
             <p className={`text-lg ${isDark ? 'text-white' : 'text-slate-900'} mb-2`}>Something went wrong</p>
             <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-4`}>Could not load organizations. Please try again.</p>
-            <button onClick={loadOrgs} className="px-5 py-2.5 rounded-xl text-sm font-bold text-black transition hover:opacity-90" style={{ background: ACCENT }}>
+            <button onClick={loadOrgs} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10284C] transition hover:brightness-110">
               Retry
             </button>
           </div>
@@ -878,8 +870,7 @@ CREATE POLICY "Public read teams"
             </p>
             <button
               onClick={() => { setSearchQuery(''); setStateFilter(''); setSportFilter('') }}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-black transition hover:opacity-90"
-              style={{ background: ACCENT }}
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-[#10284C] transition hover:brightness-110"
             >
               Clear All Filters
             </button>
