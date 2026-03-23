@@ -269,23 +269,8 @@ export function AchievementsCatalogPage({
   // Category order for display
   const categoryOrder = ['offensive', 'defensive', 'playmaker', 'heart', 'elite']
 
-  // Stats summary pills for PageShell actions
-  const statsPills = (
-    <div className="flex gap-3">
-      <div className={`px-4 py-2 rounded-[14px] text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <p className="text-r-xl font-bold text-emerald-400">{stats.earned}</p>
-        <p className="text-r-xs text-slate-400">Earned</p>
-      </div>
-      <div className={`px-4 py-2 rounded-[14px] text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <p className="text-r-xl font-bold text-amber-400">{stats.inProgress}</p>
-        <p className="text-r-xs text-slate-400">In Progress</p>
-      </div>
-      <div className={`px-4 py-2 rounded-[14px] text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-        <p className={`text-r-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{stats.total}</p>
-        <p className="text-r-xs text-slate-400">Total</p>
-      </div>
-    </div>
-  )
+  // Stats summary pills for PageShell actions (kept simple)
+  const statsPills = null
 
   if (loading) {
     return (
@@ -321,8 +306,34 @@ export function AchievementsCatalogPage({
       actions={statsPills}
     >
       <div className="space-y-6">
-        {/* Filters */}
-        <div className={`p-4 rounded-[14px] ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
+        {/* Navy Hero Header */}
+        <div className="bg-[#10284C] rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-extrabold text-white italic" style={{ fontFamily: 'var(--v2-font)' }}>
+                ACHIEVEMENTS
+              </h2>
+              <p className="text-sm text-white/50 mt-1">{stats.total} total badges across {CATEGORIES.length - 1} categories</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="px-4 py-2 rounded-xl bg-[#22C55E]/15 text-center">
+                <span className="text-2xl font-black text-[#22C55E]">{stats.earned}</span>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[#22C55E]/70">Earned</div>
+              </div>
+              <div className="px-4 py-2 rounded-xl bg-[#F59E0B]/15 text-center">
+                <span className="text-2xl font-black text-[#F59E0B]">{stats.inProgress}</span>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[#F59E0B]/70">In Progress</div>
+              </div>
+              <div className="px-4 py-2 rounded-xl bg-white/[0.06] text-center">
+                <span className="text-2xl font-black text-white/60">{stats.total - stats.earned - stats.inProgress}</span>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-white/30">Locked</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters — V2 styled */}
+        <div className={`p-4 rounded-[14px] ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
           <div className="flex flex-wrap gap-4 items-center">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
@@ -332,29 +343,21 @@ export function AchievementsCatalogPage({
                 placeholder="Search achievements..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`
-                  w-full pl-10 pr-4 px-3 py-2 rounded-lg border text-r-sm font-medium
-                  focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20
-                  ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}
-                  placeholder:text-slate-400
-                `}
+                className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-slate-600' : 'bg-white border-[#E8ECF2] text-[#10284C] placeholder-slate-400'}`}
               />
             </div>
 
-            {/* Category pills */}
+            {/* Category pills — V2 */}
             <div className="flex gap-2 flex-wrap">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`
-                    px-3 py-1.5 rounded-full text-r-sm font-medium
-                    transition-all flex items-center gap-1.5
-                    ${selectedCategory === cat.id
-                      ? 'bg-lynx-sky/20 text-lynx-sky'
-                      : `${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'} border hover:border-lynx-sky`
-                    }
-                  `}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${
+                    selectedCategory === cat.id
+                      ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                      : `${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2] text-[#10284C] hover:bg-[#E8ECF2]'}`
+                  }`}
                 >
                   <span>{cat.icon}</span>
                   <span className="hidden sm:inline">{cat.label}</span>
@@ -362,44 +365,36 @@ export function AchievementsCatalogPage({
               ))}
             </div>
 
-            {/* Type dropdown */}
+            {/* Type dropdown — V2 */}
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className={`
-                px-3 py-2 rounded-lg border text-r-sm font-medium
-                focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20
-                ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}
-              `}
+              className={`px-4 py-2.5 rounded-xl border text-sm font-medium focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`}
             >
               {TYPES.map(type => (
                 <option key={type.id} value={type.id}>{type.label}</option>
               ))}
             </select>
 
-            {/* Toggle filters */}
+            {/* Toggle filters — V2 */}
             <div className="flex gap-2">
               <button
                 onClick={() => setShowEarnedOnly(!showEarnedOnly)}
-                className={`
-                  px-3 py-1.5 rounded-full text-r-xs font-medium transition-all
-                  ${showEarnedOnly
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
-                    : `${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'} text-slate-400 border`
-                  }
-                `}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  showEarnedOnly
+                    ? 'bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30'
+                    : `${isDark ? 'bg-white/[0.04] border border-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2]'} text-slate-400`
+                }`}
               >
                 Earned Only
               </button>
               <button
                 onClick={() => setShowUnlockedOnly(!showUnlockedOnly)}
-                className={`
-                  px-3 py-1.5 rounded-full text-r-xs font-medium transition-all
-                  ${showUnlockedOnly
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50'
-                    : `${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'} text-slate-400 border`
-                  }
-                `}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  showUnlockedOnly
+                    ? 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30'
+                    : `${isDark ? 'bg-white/[0.04] border border-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2]'} text-slate-400`
+                }`}
               >
                 In Progress
               </button>
@@ -409,12 +404,12 @@ export function AchievementsCatalogPage({
 
         {/* Achievement Grid by Category */}
         {filteredAchievements.length === 0 ? (
-          <div className={`p-12 rounded-[14px] text-center ${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'}`}>
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
+          <div className={`p-12 rounded-[14px] text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto ${isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'}`}>
               <Trophy className="w-8 h-8 text-slate-400" />
             </div>
-            <p className={`mt-4 text-r-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>No achievements found</p>
-            <p className="mt-1 text-slate-400 text-r-sm">
+            <p className={`mt-4 text-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>No achievements found</p>
+            <p className={`mt-1 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               {searchQuery ? 'Try a different search term' : 'Adjust your filters to see achievements'}
             </p>
           </div>
@@ -432,17 +427,17 @@ export function AchievementsCatalogPage({
                   {/* Category header */}
                   {selectedCategory === 'all' && (
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-r-xl">{category?.icon}</span>
-                      <h2 className={`text-r-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{category?.label}</h2>
-                      <span className="text-r-sm text-slate-400">
+                      <span className="text-xl">{category?.icon}</span>
+                      <span className="text-xs font-black uppercase tracking-widest text-[#4BB9EC]">{category?.label}</span>
+                      <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                         {earnedInCategory}/{categoryAchievements.length}
                       </span>
-                      <div className={`flex-1 h-px bg-gradient-to-r ${isDark ? 'from-slate-700' : 'from-slate-200'} to-transparent`} />
+                      <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-[#E8ECF2]'}`} />
                     </div>
                   )}
 
                   {/* Achievements grid */}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
                     {categoryAchievements.map(achievement => (
                       <AchievementCard
                         key={achievement.id}
