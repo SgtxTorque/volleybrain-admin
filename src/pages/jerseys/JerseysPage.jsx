@@ -445,27 +445,30 @@ export function JerseysPage({ showToast }) {
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={() => setShowOrderHistory(true)}
-            className={`px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition ${tc.cardBg} border ${tc.border} ${tc.text} ${tc.hoverBg}`}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${tc.cardBg} border ${tc.border} ${tc.text} ${tc.hoverBg}`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <Clock className="w-4 h-4" /> History
           </button>
-          
+
           <button
             onClick={() => setShowFullReport(true)}
-            className={`px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition ${tc.cardBg} border ${tc.border} ${tc.text} ${tc.hoverBg}`}
+            className={`px-4 py-2.5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all ${tc.cardBg} border ${tc.border} ${tc.text} ${tc.hoverBg}`}
+            style={{ fontFamily: 'var(--v2-font)' }}
           >
             <BarChart3 className="w-4 h-4" /> Full League Report
           </button>
-          
+
           {needsJersey.length > 0 && (
             <button
               onClick={handleAutoAssign}
               disabled={autoAssigning}
-              className={`px-4 py-2.5 rounded-xl font-semibold text-white transition flex items-center gap-2 ${
-                autoAssigning 
-                  ? 'bg-slate-400 cursor-wait' 
-                  : 'bg-[var(--accent-primary)] hover:brightness-110'
+              className={`px-4 py-2.5 rounded-xl font-semibold text-sm text-white transition-all shadow-sm flex items-center gap-2 ${
+                autoAssigning
+                  ? 'bg-slate-400 cursor-wait'
+                  : 'bg-[#4BB9EC] hover:brightness-110'
               }`}
+              style={{ fontFamily: 'var(--v2-font)' }}
             >
               {autoAssigning ? (
                 <>
