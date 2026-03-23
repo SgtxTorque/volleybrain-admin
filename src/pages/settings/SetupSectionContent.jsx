@@ -6,6 +6,197 @@ import {
 } from '../../constants/icons'
 
 // ============================================
+// FORM HELPER COMPONENTS (defined outside to prevent remount on re-render)
+// ============================================
+function SectionInput({ label, field, type = 'text', placeholder = '', required = false, helpText = '', localData, updateField, tc, accent }) {
+  return (
+    <div>
+      <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>
+        {label} {required && <span className="text-red-400">*</span>}
+      </label>
+      <input
+        type={type}
+        value={localData[field] || ''}
+        onChange={(e) => updateField(field, e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-4 py-2.5 rounded-xl border ${tc.input} focus:ring-2 focus:ring-offset-0 transition`}
+        style={{ focusRing: accent.primary }}
+      />
+      {helpText && <p className={`text-xs ${tc.textMuted} mt-1`}>{helpText}</p>}
+    </div>
+  )
+}
+
+function SectionToggle({ label, field, helpText = '', localData, updateField, tc, accent }) {
+  return (
+    <div className="flex items-center justify-between py-2">
+      <div>
+        <p className={`font-medium ${tc.text}`}>{label}</p>
+        {helpText && <p className={`text-sm ${tc.textMuted}`}>{helpText}</p>}
+      </div>
+      <button
+        onClick={() => updateField(field, !localData[field])}
+        className={`w-12 h-6 rounded-full transition-colors ${localData[field] ? '' : 'bg-slate-600'}`}
+        style={{ backgroundColor: localData[field] ? accent.primary : undefined }}
+      >
+        <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${localData[field] ? 'translate-x-6' : 'translate-x-0.5'}`} />
+      </button>
+    </div>
+  )
+}
+
+function SectionSelect({ label, field, options, required = false, localData, updateField, tc }) {
+  return (
+    <div>
+      <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>
+        {label} {required && <span className="text-red-400">*</span>}
+      </label>
+      <select
+        value={localData[field] || ''}
+        onChange={(e) => updateField(field, e.target.value)}
+        className={`w-full px-4 py-2.5 rounded-xl border ${tc.input}`}
+      >
+        <option value="">Select...</option>
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function SectionNumberInput({ label, field, min = 0, max = 9999, prefix = '', suffix = '', localData, updateField, tc }) {
+  return (
+    <div>
+      <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>{label}</label>
+      <div className="relative">
+        {prefix && <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${tc.textMuted}`}>{prefix}</span>}
+        <input
+          type="number"
+          value={localData[field] || ''}
+          onChange={(e) => updateField(field, parseFloat(e.target.value) || 0)}
+          min={min}
+          max={max}
+          className={`w-full px-4 py-2.5 rounded-xl border ${tc.input} ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-12' : ''}`}
+        />
+        {suffix && <span className={`absolute right-4 top-1/2 -translate-y-1/2 ${tc.textMuted}`}>{suffix}</span>}
+      </div>
+    </div>
+  )
+}
+
+function SectionFieldToggle({ category, fieldKey, field, localData, updateField, tc, accent }) {
+  const fields = localData.registrationFields || {}
+  const categoryFields = fields[category] || {}
+  const fieldData = categoryFields[fieldKey] || field
+
+  const toggleVisible = () => {
+    const updated = {
+      ...localData.registrationFields,
+      [category]: {
+        ...categoryFields,
+        [fieldKey]: { ...fieldData, visible: !fieldData.visible }
+      }
+    }
+    updateField('registrationFields', updated)
+  }
+
+  const toggleRequired = () => {
+    const updated = {
+      ...localData.registrationFields,
+      [category]: {
+        ...categoryFields,
+        [fieldKey]: { ...fieldData, required: !fieldData.required }
+      }
+    }
+    updateField('registrationFields', updated)
+  }
+
+  return (
+    <div className={`flex items-center justify-between py-3 ${fieldData.visible ? '' : 'opacity-50'}`}>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleVisible}
+          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${
+            fieldData.visible
+              ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)] text-white'
+              : `${tc.border} ${tc.cardBgAlt}`
+          }`}
+        >
+          {fieldData.visible && <span className="text-xs">{'\u2713'}</span>}
+        </button>
+        <span className={`${fieldData.visible ? tc.text : tc.textMuted}`}>{fieldData.label || fieldKey}</span>
+      </div>
+      {fieldData.visible && (
+        <button
+          onClick={toggleRequired}
+          className={`text-xs px-2 py-1 rounded-full transition ${
+            fieldData.required
+              ? 'bg-red-500/20 text-red-400'
+              : `${tc.cardBgAlt} ${tc.textMuted}`
+          }`}
+        >
+          {fieldData.required ? 'Required' : 'Optional'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function SectionCustomQuestionItem({ question, index, onUpdate, onDelete, tc }) {
+  return (
+    <div className={`p-4 rounded-xl border ${tc.border} space-y-3`}>
+      <div className="flex items-start justify-between">
+        <input
+          type="text"
+          value={question.label}
+          onChange={(e) => onUpdate(index, { ...question, label: e.target.value })}
+          placeholder="Question text"
+          className={`flex-1 px-3 py-2 rounded-lg border ${tc.input} text-sm`}
+        />
+        <button
+          onClick={() => onDelete(index)}
+          className="ml-2 p-2 text-red-400 hover:bg-red-500/10 rounded-lg"
+        >
+          {'\uD83D\uDDD1\uFE0F'}
+        </button>
+      </div>
+      <div className="flex gap-3">
+        <select
+          value={question.type}
+          onChange={(e) => onUpdate(index, { ...question, type: e.target.value })}
+          className={`px-3 py-2 rounded-lg border ${tc.input} text-sm`}
+        >
+          <option value="text">Text</option>
+          <option value="textarea">Long Text</option>
+          <option value="dropdown">Dropdown</option>
+          <option value="yesno">Yes/No</option>
+          <option value="checkbox">Checkbox</option>
+        </select>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={question.required}
+            onChange={(e) => onUpdate(index, { ...question, required: e.target.checked })}
+            className="w-4 h-4"
+          />
+          <span className={tc.textMuted}>Required</span>
+        </label>
+      </div>
+      {question.type === 'dropdown' && (
+        <input
+          type="text"
+          value={question.options?.join(', ') || ''}
+          onChange={(e) => onUpdate(index, { ...question, options: e.target.value.split(',').map(o => o.trim()) })}
+          placeholder="Options (comma separated): Option 1, Option 2, Option 3"
+          className={`w-full px-3 py-2 rounded-lg border ${tc.input} text-sm`}
+        />
+      )}
+    </div>
+  )
+}
+
+// ============================================
 // SETUP SECTION CONTENT - Renders each section's form
 // ============================================
 
@@ -48,75 +239,8 @@ function SetupSectionContent({
     setHasChanges(false)
   }
 
-  // Input component helper
-  const Input = ({ label, field, type = 'text', placeholder = '', required = false, helpText = '' }) => (
-    <div>
-      <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
-      <input
-        type={type}
-        value={localData[field] || ''}
-        onChange={(e) => updateField(field, e.target.value)}
-        placeholder={placeholder}
-        className={`w-full px-4 py-2.5 rounded-xl border ${tc.input} focus:ring-2 focus:ring-offset-0 transition`}
-        style={{ focusRing: accent.primary }}
-      />
-      {helpText && <p className={`text-xs ${tc.textMuted} mt-1`}>{helpText}</p>}
-    </div>
-  )
-
-  const Toggle = ({ label, field, helpText = '' }) => (
-    <div className="flex items-center justify-between py-2">
-      <div>
-        <p className={`font-medium ${tc.text}`}>{label}</p>
-        {helpText && <p className={`text-sm ${tc.textMuted}`}>{helpText}</p>}
-      </div>
-      <button
-        onClick={() => updateField(field, !localData[field])}
-        className={`w-12 h-6 rounded-full transition-colors ${localData[field] ? '' : 'bg-slate-600'}`}
-        style={{ backgroundColor: localData[field] ? accent.primary : undefined }}
-      >
-        <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${localData[field] ? 'translate-x-6' : 'translate-x-0.5'}`} />
-      </button>
-    </div>
-  )
-
-  const Select = ({ label, field, options, required = false }) => (
-    <div>
-      <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
-      <select
-        value={localData[field] || ''}
-        onChange={(e) => updateField(field, e.target.value)}
-        className={`w-full px-4 py-2.5 rounded-xl border ${tc.input}`}
-      >
-        <option value="">Select...</option>
-        {options.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    </div>
-  )
-
-  const NumberInput = ({ label, field, min = 0, max = 9999, prefix = '', suffix = '' }) => (
-    <div>
-      <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>{label}</label>
-      <div className="relative">
-        {prefix && <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${tc.textMuted}`}>{prefix}</span>}
-        <input
-          type="number"
-          value={localData[field] || ''}
-          onChange={(e) => updateField(field, parseFloat(e.target.value) || 0)}
-          min={min}
-          max={max}
-          className={`w-full px-4 py-2.5 rounded-xl border ${tc.input} ${prefix ? 'pl-8' : ''} ${suffix ? 'pr-12' : ''}`}
-        />
-        {suffix && <span className={`absolute right-4 top-1/2 -translate-y-1/2 ${tc.textMuted}`}>{suffix}</span>}
-      </div>
-    </div>
-  )
+  // Shared props passed to all extracted form components
+  const fp = { localData, updateField, tc, accent }
 
   // Render content based on section
   const renderContent = () => {
@@ -125,11 +249,11 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Organization Name" field="name" placeholder="Black Hornets Volleyball Club" required />
-              <Input label="Short Name / Abbreviation" field="shortName" placeholder="BHVC" helpText="Used on jerseys and reports" />
+              <SectionInput {...fp} label="Organization Name" field="name" placeholder="Black Hornets Volleyball Club" required />
+              <SectionInput {...fp} label="Short Name / Abbreviation" field="shortName" placeholder="BHVC" helpText="Used on jerseys and reports" />
             </div>
-            <Input label="Tagline / Slogan" field="tagline" placeholder="Building Champions On & Off the Court" />
-            <Input label="Logo URL" field="logoUrl" placeholder="https://..." helpText="Paste a link to your logo image" />
+            <SectionInput {...fp} label="Tagline / Slogan" field="tagline" placeholder="Building Champions On & Off the Court" />
+            <SectionInput {...fp} label="Logo URL" field="logoUrl" placeholder="https://..." helpText="Paste a link to your logo image" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Primary Brand Color</label>
@@ -181,7 +305,7 @@ function SetupSectionContent({
                   { value: 'other', label: 'Other' },
                 ]}
               />
-              <Input label="Founded Year" field="foundedYear" type="number" placeholder="2015" />
+              <SectionInput {...fp} label="Founded Year" field="foundedYear" type="number" placeholder="2015" />
             </div>
             <div>
               <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Mission Statement</label>
@@ -200,21 +324,21 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Primary Contact Name" field="contactName" placeholder="John Smith" required />
-              <Input label="Title" field="contactTitle" placeholder="League Director" />
+              <SectionInput {...fp} label="Primary Contact Name" field="contactName" placeholder="John Smith" required />
+              <SectionInput {...fp} label="Title" field="contactTitle" placeholder="League Director" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Primary Email" field="email" type="email" placeholder="info@blackhornets.com" required />
-              <Input label="Secondary Email" field="secondaryEmail" type="email" placeholder="backup@blackhornets.com" />
+              <SectionInput {...fp} label="Primary Email" field="email" type="email" placeholder="info@blackhornets.com" required />
+              <SectionInput {...fp} label="Secondary Email" field="secondaryEmail" type="email" placeholder="backup@blackhornets.com" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Primary Phone" field="phone" type="tel" placeholder="(555) 123-4567" required />
-              <Input label="Secondary Phone" field="secondaryPhone" type="tel" placeholder="(555) 987-6543" />
+              <SectionInput {...fp} label="Primary Phone" field="phone" type="tel" placeholder="(555) 123-4567" required />
+              <SectionInput {...fp} label="Secondary Phone" field="secondaryPhone" type="tel" placeholder="(555) 987-6543" />
             </div>
-            <Input label="Street Address" field="address" placeholder="123 Main Street" />
+            <SectionInput {...fp} label="Street Address" field="address" placeholder="123 Main Street" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="col-span-2">
-                <Input label="City" field="city" placeholder="Dallas" required />
+                <SectionInput {...fp} label="City" field="city" placeholder="Dallas" required />
               </div>
               <Select
                 label="State"
@@ -228,7 +352,7 @@ function SetupSectionContent({
                   // Add more states as needed
                 ]}
               />
-              <Input label="ZIP" field="zip" placeholder="75001" />
+              <SectionInput {...fp} label="ZIP" field="zip" placeholder="75001" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
@@ -241,7 +365,7 @@ function SetupSectionContent({
                   { value: 'America/Los_Angeles', label: 'Pacific Time' },
                 ]}
               />
-              <Input label="Office Hours" field="officeHours" placeholder="Mon-Fri 9am-5pm" />
+              <SectionInput {...fp} label="Office Hours" field="officeHours" placeholder="Mon-Fri 9am-5pm" />
             </div>
           </div>
         )
@@ -249,10 +373,10 @@ function SetupSectionContent({
       case 'online':
         return (
           <div className="space-y-6">
-            <Input label="Website URL" field="website" placeholder="https://www.blackhornets.com" />
-            <Input label="Facebook Page" field="facebook" placeholder="https://facebook.com/blackhornetsVB" />
-            <Input label="Instagram Handle" field="instagram" placeholder="@blackhornetsVB" helpText="Just the handle, no URL needed" />
-            <Input label="Twitter / X Handle" field="twitter" placeholder="@blackhornetsVB" />
+            <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.blackhornets.com" />
+            <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/blackhornetsVB" />
+            <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@blackhornetsVB" helpText="Just the handle, no URL needed" />
+            <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@blackhornetsVB" />
             <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
               <p className={`text-sm font-medium ${tc.text} mb-1`}>📎 Your Registration Link</p>
               <p className={`text-sm ${tc.textMuted} mb-2`}>Share this link for parents to register:</p>
@@ -477,7 +601,7 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Legal Entity Name" field="legalName" placeholder="Black Hornets Volleyball LLC" helpText="If different from org name" />
+              <SectionInput {...fp} label="Legal Entity Name" field="legalName" placeholder="Black Hornets Volleyball LLC" helpText="If different from org name" />
               <Select
                 label="Entity Type"
                 field="entityType"
@@ -491,7 +615,7 @@ function SetupSectionContent({
                 ]}
               />
             </div>
-            <Input label="EIN / Tax ID" field="ein" placeholder="XX-XXXXXXX" helpText="For tax purposes and payment processing" />
+            <SectionInput {...fp} label="EIN / Tax ID" field="ein" placeholder="XX-XXXXXXX" helpText="For tax purposes and payment processing" />
 
             <div className={`p-4 rounded-xl border ${tc.border} ${tc.cardBgAlt}`}>
               <div className="flex items-center justify-between mb-3">
@@ -527,11 +651,11 @@ function SetupSectionContent({
             <div className={`p-4 rounded-xl border ${tc.border}`}>
               <p className={`font-medium ${tc.text} mb-3`}>Insurance</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Insurance Provider" field="insuranceProvider" placeholder="State Farm, USAV, etc." />
-                <Input label="Policy Number" field="insurancePolicyNumber" placeholder="POL-123456" />
+                <SectionInput {...fp} label="Insurance Provider" field="insuranceProvider" placeholder="State Farm, USAV, etc." />
+                <SectionInput {...fp} label="Policy Number" field="insurancePolicyNumber" placeholder="POL-123456" />
               </div>
               <div className="mt-4">
-                <Input label="Expiration Date" field="insuranceExpiration" type="date" />
+                <SectionInput {...fp} label="Expiration Date" field="insuranceExpiration" type="date" />
               </div>
             </div>
           </div>
@@ -610,12 +734,12 @@ function SetupSectionContent({
                 />
                 {localData.allowPaymentPlans && (
                   <div className="pl-4 border-l-2 border-slate-600 space-y-4">
-                    <NumberInput label="Number of Installments" field="paymentPlanInstallments" min={2} max={6} />
+                    <SectionNumberInput {...fp} label="Number of Installments" field="paymentPlanInstallments" min={2} max={6} />
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4">
-                  <NumberInput label="Late Fee Amount" field="lateFeeAmount" prefix="$" />
-                  <NumberInput label="Grace Period" field="gracePeriodDays" suffix="days" />
+                  <SectionNumberInput {...fp} label="Late Fee Amount" field="lateFeeAmount" prefix="$" />
+                  <SectionNumberInput {...fp} label="Grace Period" field="gracePeriodDays" suffix="days" />
                 </div>
               </div>
             </div>
@@ -630,18 +754,18 @@ function SetupSectionContent({
             <div className={`p-4 rounded-xl border ${tc.border}`}>
               <p className={`font-medium ${tc.text} mb-4`}>💵 Default Fees</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <NumberInput label="Registration Fee" field="defaultRegistrationFee" prefix="$" />
-                <NumberInput label="Uniform Fee" field="defaultUniformFee" prefix="$" />
-                <NumberInput label="Monthly Fee" field="defaultMonthlyFee" prefix="$" />
+                <SectionNumberInput {...fp} label="Registration Fee" field="defaultRegistrationFee" prefix="$" />
+                <SectionNumberInput {...fp} label="Uniform Fee" field="defaultUniformFee" prefix="$" />
+                <SectionNumberInput {...fp} label="Monthly Fee" field="defaultMonthlyFee" prefix="$" />
               </div>
             </div>
 
             <div className={`p-4 rounded-xl border ${tc.border}`}>
               <p className={`font-medium ${tc.text} mb-4`}>🎁 Discounts</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <NumberInput label="Early Bird Discount" field="earlyBirdDiscount" prefix="$" />
-                <NumberInput label="Sibling Discount" field="siblingDiscount" suffix="%" />
-                <NumberInput label="Multi-Sport Discount" field="multiSportDiscount" suffix="%" />
+                <SectionNumberInput {...fp} label="Early Bird Discount" field="earlyBirdDiscount" prefix="$" />
+                <SectionNumberInput {...fp} label="Sibling Discount" field="siblingDiscount" suffix="%" />
+                <SectionNumberInput {...fp} label="Multi-Sport Discount" field="multiSportDiscount" suffix="%" />
               </div>
             </div>
 
@@ -746,12 +870,12 @@ function SetupSectionContent({
             <p className={`text-sm ${tc.textMuted}`}>Set requirements for coaches before they can be assigned to teams.</p>
 
             <div className={`space-y-1 divide-y ${tc.border}`}>
-              <Toggle label="Require Background Check" field="requireBackgroundCheck" helpText="Must complete before coaching" />
-              <Toggle label="Require SafeSport Certification" field="requireSafeSport" helpText="USAV/USA Sports requirement" />
-              <Toggle label="Require CPR/First Aid" field="requireCPR" helpText="Current certification" />
+              <SectionToggle {...fp} label="Require Background Check" field="requireBackgroundCheck" helpText="Must complete before coaching" />
+              <SectionToggle {...fp} label="Require SafeSport Certification" field="requireSafeSport" helpText="USAV/USA Sports requirement" />
+              <SectionToggle {...fp} label="Require CPR/First Aid" field="requireCPR" helpText="Current certification" />
             </div>
 
-            <NumberInput label="Minimum Coach Age" field="coachMinAge" suffix="years" />
+            <SectionNumberInput {...fp} label="Minimum Coach Age" field="coachMinAge" suffix="years" />
           </div>
         )
 
@@ -761,126 +885,16 @@ function SetupSectionContent({
             <p className={`text-sm ${tc.textMuted}`}>Control how the registration process works.</p>
 
             <div className={`space-y-1 divide-y ${tc.border}`}>
-              <Toggle label="Auto-Approve Registrations" field="autoApproveRegistrations" helpText="Skip manual review step" />
-              <Toggle label="Require Payment to Complete" field="requirePaymentToComplete" helpText="Must pay before registration is confirmed" />
-              <Toggle label="Allow Waitlist" field="allowWaitlist" helpText="When teams/seasons are full" />
+              <SectionToggle {...fp} label="Auto-Approve Registrations" field="autoApproveRegistrations" helpText="Skip manual review step" />
+              <SectionToggle {...fp} label="Require Payment to Complete" field="requirePaymentToComplete" helpText="Must pay before registration is confirmed" />
+              <SectionToggle {...fp} label="Allow Waitlist" field="allowWaitlist" helpText="When teams/seasons are full" />
             </div>
 
-            <NumberInput label="Max Players per Registration" field="maxPlayersPerRegistration" helpText="Siblings in one form" />
+            <SectionNumberInput {...fp} label="Max Players per Registration" field="maxPlayersPerRegistration" helpText="Siblings in one form" />
           </div>
         )
 
       case 'registrationForm':
-        // Field toggle component
-        const FieldToggle = ({ category, fieldKey, field }) => {
-          const fields = localData.registrationFields || {}
-          const categoryFields = fields[category] || {}
-          const fieldData = categoryFields[fieldKey] || field
-
-          const toggleVisible = () => {
-            const updated = {
-              ...localData.registrationFields,
-              [category]: {
-                ...categoryFields,
-                [fieldKey]: { ...fieldData, visible: !fieldData.visible }
-              }
-            }
-            updateField('registrationFields', updated)
-          }
-
-          const toggleRequired = () => {
-            const updated = {
-              ...localData.registrationFields,
-              [category]: {
-                ...categoryFields,
-                [fieldKey]: { ...fieldData, required: !fieldData.required }
-              }
-            }
-            updateField('registrationFields', updated)
-          }
-
-          return (
-            <div className={`flex items-center justify-between py-3 ${fieldData.visible ? '' : 'opacity-50'}`}>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={toggleVisible}
-                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${
-                    fieldData.visible
-                      ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)] text-white'
-                      : `${tc.border} ${tc.cardBgAlt}`
-                  }`}
-                >
-                  {fieldData.visible && <span className="text-xs">✓</span>}
-                </button>
-                <span className={`${fieldData.visible ? tc.text : tc.textMuted}`}>{fieldData.label || fieldKey}</span>
-              </div>
-              {fieldData.visible && (
-                <button
-                  onClick={toggleRequired}
-                  className={`text-xs px-2 py-1 rounded-full transition ${
-                    fieldData.required
-                      ? 'bg-red-500/20 text-red-400'
-                      : `${tc.cardBgAlt} ${tc.textMuted}`
-                  }`}
-                >
-                  {fieldData.required ? 'Required' : 'Optional'}
-                </button>
-              )}
-            </div>
-          )
-        }
-
-        // Custom question component
-        const CustomQuestionItem = ({ question, index, onUpdate, onDelete }) => (
-          <div className={`p-4 rounded-xl border ${tc.border} space-y-3`}>
-            <div className="flex items-start justify-between">
-              <input
-                type="text"
-                value={question.label}
-                onChange={(e) => onUpdate(index, { ...question, label: e.target.value })}
-                placeholder="Question text"
-                className={`flex-1 px-3 py-2 rounded-lg border ${tc.input} text-sm`}
-              />
-              <button
-                onClick={() => onDelete(index)}
-                className="ml-2 p-2 text-red-400 hover:bg-red-500/10 rounded-lg"
-              >
-                🗑️
-              </button>
-            </div>
-            <div className="flex gap-3">
-              <select
-                value={question.type}
-                onChange={(e) => onUpdate(index, { ...question, type: e.target.value })}
-                className={`px-3 py-2 rounded-lg border ${tc.input} text-sm`}
-              >
-                <option value="text">Text</option>
-                <option value="textarea">Long Text</option>
-                <option value="dropdown">Dropdown</option>
-                <option value="yesno">Yes/No</option>
-                <option value="checkbox">Checkbox</option>
-              </select>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={question.required}
-                  onChange={(e) => onUpdate(index, { ...question, required: e.target.checked })}
-                  className="w-4 h-4"
-                />
-                <span className={tc.textMuted}>Required</span>
-              </label>
-            </div>
-            {question.type === 'dropdown' && (
-              <input
-                type="text"
-                value={question.options?.join(', ') || ''}
-                onChange={(e) => onUpdate(index, { ...question, options: e.target.value.split(',').map(o => o.trim()) })}
-                placeholder="Options (comma separated): Option 1, Option 2, Option 3"
-                className={`w-full px-3 py-2 rounded-lg border ${tc.input} text-sm`}
-              />
-            )}
-          </div>
-        )
 
         const addCustomQuestion = () => {
           const questions = localData.customQuestions || []
@@ -924,7 +938,7 @@ function SetupSectionContent({
               </div>
               <div className={`divide-y ${tc.border}`}>
                 {Object.entries(fields.player || {}).map(([key, field]) => (
-                  <FieldToggle key={key} category="player" fieldKey={key} field={field} />
+                  <SectionFieldToggle {...fp} key={key} category="player" fieldKey={key} field={field} />
                 ))}
               </div>
             </div>
@@ -937,7 +951,7 @@ function SetupSectionContent({
               </div>
               <div className={`divide-y ${tc.border}`}>
                 {Object.entries(fields.parent || {}).map(([key, field]) => (
-                  <FieldToggle key={key} category="parent" fieldKey={key} field={field} />
+                  <SectionFieldToggle {...fp} key={key} category="parent" fieldKey={key} field={field} />
                 ))}
               </div>
             </div>
@@ -950,7 +964,7 @@ function SetupSectionContent({
               </div>
               <div className={`divide-y ${tc.border}`}>
                 {Object.entries(fields.emergency || {}).map(([key, field]) => (
-                  <FieldToggle key={key} category="emergency" fieldKey={key} field={field} />
+                  <SectionFieldToggle {...fp} key={key} category="emergency" fieldKey={key} field={field} />
                 ))}
               </div>
             </div>
@@ -963,7 +977,7 @@ function SetupSectionContent({
               </div>
               <div className={`divide-y ${tc.border}`}>
                 {Object.entries(fields.medical || {}).map(([key, field]) => (
-                  <FieldToggle key={key} category="medical" fieldKey={key} field={field} />
+                  <SectionFieldToggle {...fp} key={key} category="medical" fieldKey={key} field={field} />
                 ))}
               </div>
             </div>
@@ -991,12 +1005,13 @@ function SetupSectionContent({
               ) : (
                 <div className="space-y-3">
                   {(localData.customQuestions || []).map((q, i) => (
-                    <CustomQuestionItem
+                    <SectionCustomQuestionItem
                       key={q.id}
                       question={q}
                       index={i}
                       onUpdate={updateCustomQuestion}
                       onDelete={deleteCustomQuestion}
+                      tc={tc}
                     />
                   ))}
                 </div>
@@ -1093,12 +1108,12 @@ function SetupSectionContent({
           <div className="space-y-6">
             <p className={`text-sm ${tc.textMuted}`}>Configure jersey/uniform settings.</p>
 
-            <Input label="Jersey Vendor" field="jerseyVendor" placeholder="Company name" />
-            <NumberInput label="Order Lead Time" field="jerseyLeadTime" suffix="weeks" helpText="How long before season to order" />
+            <SectionInput {...fp} label="Jersey Vendor" field="jerseyVendor" placeholder="Company name" />
+            <SectionNumberInput {...fp} label="Order Lead Time" field="jerseyLeadTime" suffix="weeks" helpText="How long before season to order" />
 
             <div className="grid grid-cols-2 gap-4">
-              <NumberInput label="Number Range Start" field="jerseyNumberStart" min={0} max={99} />
-              <NumberInput label="Number Range End" field="jerseyNumberEnd" min={1} max={99} />
+              <SectionNumberInput {...fp} label="Number Range Start" field="jerseyNumberStart" min={0} max={99} />
+              <SectionNumberInput {...fp} label="Number Range End" field="jerseyNumberEnd" min={1} max={99} />
             </div>
           </div>
         )
@@ -1122,11 +1137,11 @@ function SetupSectionContent({
 
               {localData.emailNotificationsEnabled && (
                 <div className="pl-4 border-l-2 border-slate-600 space-y-4 mt-4">
-                  <Toggle label="Registration Confirmation" field="emailOnRegistration" helpText="Email when registration is submitted" />
-                  <Toggle label="Approval Notification" field="emailOnApproval" helpText="Email when registration is approved" />
-                  <Toggle label="Waitlist Updates" field="emailOnWaitlist" helpText="Email when waitlist spot opens" />
-                  <Toggle label="Team Assignment" field="emailOnTeamAssignment" helpText="Email when player is assigned to team" />
-                  <Toggle label="Payment Reminders" field="emailOnPaymentDue" helpText="Email for outstanding balances" />
+                  <SectionToggle {...fp} label="Registration Confirmation" field="emailOnRegistration" helpText="Email when registration is submitted" />
+                  <SectionToggle {...fp} label="Approval Notification" field="emailOnApproval" helpText="Email when registration is approved" />
+                  <SectionToggle {...fp} label="Waitlist Updates" field="emailOnWaitlist" helpText="Email when waitlist spot opens" />
+                  <SectionToggle {...fp} label="Team Assignment" field="emailOnTeamAssignment" helpText="Email when player is assigned to team" />
+                  <SectionToggle {...fp} label="Payment Reminders" field="emailOnPaymentDue" helpText="Email for outstanding balances" />
                 </div>
               )}
             </div>
@@ -1137,9 +1152,9 @@ function SetupSectionContent({
                 <span>⏰</span> Reminder Timing
               </h4>
               <div className="space-y-4">
-                <NumberInput label="Game Reminder" field="gameReminderHours" suffix="hours before" />
-                <NumberInput label="Practice Reminder" field="practiceReminderHours" suffix="hours before" />
-                <NumberInput label="Payment Reminder" field="paymentReminderDays" suffix="days before due" />
+                <SectionNumberInput {...fp} label="Game Reminder" field="gameReminderHours" suffix="hours before" />
+                <SectionNumberInput {...fp} label="Practice Reminder" field="practiceReminderHours" suffix="hours before" />
+                <SectionNumberInput {...fp} label="Payment Reminder" field="paymentReminderDays" suffix="days before due" />
               </div>
             </div>
 
@@ -1160,12 +1175,12 @@ function SetupSectionContent({
           <div className="space-y-6">
             <p className={`text-sm ${tc.textMuted}`}>Configure volunteer requirements for families.</p>
 
-            <Toggle label="Require Volunteer Hours" field="requireVolunteerHours" helpText="Families must volunteer or pay buyout" />
+            <SectionToggle {...fp} label="Require Volunteer Hours" field="requireVolunteerHours" helpText="Families must volunteer or pay buyout" />
 
             {localData.requireVolunteerHours && (
               <div className="pl-4 border-l-2 border-slate-600 space-y-4">
-                <NumberInput label="Hours Required per Family" field="volunteerHoursRequired" suffix="hours" />
-                <NumberInput label="Buyout Amount" field="volunteerBuyoutAmount" prefix="$" helpText="Pay this instead of volunteering" />
+                <SectionNumberInput {...fp} label="Hours Required per Family" field="volunteerHoursRequired" suffix="hours" />
+                <SectionNumberInput {...fp} label="Buyout Amount" field="volunteerBuyoutAmount" prefix="$" helpText="Pay this instead of volunteering" />
               </div>
             )}
           </div>
@@ -1277,7 +1292,7 @@ function SetupSectionContent({
             </div>
 
             {/* Tagline */}
-            <Input label="Tagline / Motto" field="brandingTagline" placeholder="Building Champions On & Off the Court" helpText="Shown on registration pages and parent views" />
+            <SectionInput {...fp} label="Tagline / Motto" field="brandingTagline" placeholder="Building Champions On & Off the Court" helpText="Shown on registration pages and parent views" />
 
             {/* Banner Image */}
             <div>
