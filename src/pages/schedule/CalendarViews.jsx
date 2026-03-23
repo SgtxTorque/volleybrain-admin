@@ -1,7 +1,27 @@
 import { useState } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
-import { getEventColor, formatTime } from './scheduleHelpers'
+import { getEventColor, formatTime, formatTime12 } from './scheduleHelpers'
+import { Clock, MapPin, Trophy, Target, Award, Users, Calendar } from 'lucide-react'
 import EventCard from '../../components/pages/EventCard'
+
+// Event type color config for The Stack & all views
+const EVENT_COLORS = {
+  practice:   { border: 'bg-[#4BB9EC]', badge: 'bg-[#4BB9EC]/10 text-[#4BB9EC]', icon: '#4BB9EC' },
+  game:       { border: 'bg-[#F59E0B]', badge: 'bg-[#F59E0B]/10 text-[#F59E0B]', icon: '#F59E0B' },
+  tournament: { border: 'bg-[#8B5CF6]', badge: 'bg-[#8B5CF6]/10 text-[#8B5CF6]', icon: '#8B5CF6' },
+  meeting:    { border: 'bg-[#22C55E]', badge: 'bg-[#22C55E]/10 text-[#22C55E]', icon: '#22C55E' },
+  team_event: { border: 'bg-[#3B82F6]', badge: 'bg-[#3B82F6]/10 text-[#3B82F6]', icon: '#3B82F6' },
+  other:      { border: 'bg-slate-400', badge: 'bg-slate-400/10 text-slate-400', icon: '#94A3B8' },
+}
+
+const EVENT_ICONS = {
+  practice: Target,
+  game: Trophy,
+  tournament: Award,
+  meeting: Users,
+  team_event: Users,
+  other: Calendar,
+}
 
 // Brand type styles for event pills (full background tinting, NOT just left border)
 const EVENT_TYPE_STYLES = {
@@ -323,10 +343,10 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
 }
 
 // ============================================
-// LIST VIEW — Chronological grouped list using EventCard
+// LIST VIEW — "The Stack" — Day-grouped rich event cards
 // ============================================
 export function ListView({ events, onSelectEvent, teams }) {
-  const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const sortedEvents = [...events].sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
 
   const grouped = sortedEvents.reduce((acc, event) => {
@@ -339,36 +359,156 @@ export function ListView({ events, onSelectEvent, teams }) {
   const today = new Date()
   today.setHours(0,0,0,0)
 
+  // Weekly date strip
+  const startOfWeek = new Date(today)
+  startOfWeek.setDate(today.getDate() - today.getDay())
+  const weekDays = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startOfWeek)
+    d.setDate(startOfWeek.getDate() + i)
+    const dayEvents = events.filter(e => {
+      const ed = new Date(e.start_time)
+      return ed.getDate() === d.getDate() && ed.getMonth() === d.getMonth() && ed.getFullYear() === d.getFullYear()
+    })
+    weekDays.push({ date: d, hasEvents: dayEvents.length > 0, eventTypes: [...new Set(dayEvents.map(e => e.event_type))] })
+  }
+
   return (
-    <div className="space-y-5">
-      {Object.entries(grouped).map(([date, dayEvents]) => {
-        const dateObj = new Date(date)
-        const isToday = dateObj.getDate() === today.getDate() && dateObj.getMonth() === today.getMonth() && dateObj.getFullYear() === today.getFullYear()
-        return (
-          <div key={date}>
-            <div className="flex items-center gap-2 mb-3">
-              {isToday && <div className="w-1 h-5 rounded-full bg-lynx-sky" />}
-              <h3 className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-lynx-sky' : tc.textMuted}`}>
-                {isToday ? 'Today — ' : ''}
-                {dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </h3>
+    <div className="space-y-8">
+      {/* Weekly date strip */}
+      <div className={`sticky top-0 z-10 flex items-center gap-1 p-2 rounded-2xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}>
+        {weekDays.map((wd, i) => {
+          const isWdToday = wd.date.getDate() === today.getDate() && wd.date.getMonth() === today.getMonth() && wd.date.getFullYear() === today.getFullYear()
+          return (
+            <div key={i} className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all ${
+              isWdToday
+                ? (isDark ? 'bg-white/[0.1]' : 'bg-[#10284C] text-white')
+                : ''
+            }`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${
+                isWdToday ? (isDark ? 'text-white' : 'text-white/70') : (isDark ? 'text-slate-500' : 'text-slate-400')
+              }`}>
+                {wd.date.toLocaleDateString('en-US', { weekday: 'short' })}
+              </span>
+              <span className={`text-xl font-black ${
+                isWdToday ? (isDark ? 'text-white' : 'text-white') : (isDark ? 'text-white' : 'text-[#10284C]')
+              }`}>
+                {wd.date.getDate()}
+              </span>
+              {wd.hasEvents && (
+                <div className="flex gap-0.5 mt-1">
+                  {wd.eventTypes.slice(0, 3).map((type, j) => (
+                    <div key={j} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: (EVENT_COLORS[type] || EVENT_COLORS.other).icon }} />
+                  ))}
+                </div>
+              )}
             </div>
-            {dayEvents.map(event => (
-              <EventCard
-                key={event.id}
-                event={{
-                  ...event,
-                  date_display: formatTime(event.start_time),
-                  time_display: event.end_time ? formatTime(event.end_time) : '',
-                  venue: event.venue_name || '',
-                  team_name: event.teams?.name || '',
-                }}
-                onClick={() => onSelectEvent(event)}
-              />
-            ))}
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+
+      {/* Day groups */}
+      <div className="space-y-12">
+        {Object.entries(grouped).map(([date, dayEvents]) => {
+          const dateObj = new Date(date)
+          const isToday = dateObj.getDate() === today.getDate() && dateObj.getMonth() === today.getMonth() && dateObj.getFullYear() === today.getFullYear()
+          const dayLabel = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
+
+          return (
+            <div key={date}>
+              {/* Day header */}
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className={`text-2xl font-black tracking-tighter italic uppercase ${
+                  isToday ? (isDark ? 'text-white' : 'text-[#10284C]') : (isDark ? 'text-slate-500' : 'text-slate-400')
+                }`} style={{ fontFamily: 'var(--v2-font)' }}>
+                  {dayLabel}
+                </h2>
+                {isToday && (
+                  <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
+                    isDark ? 'bg-[#FFD700] text-[#10284C]' : 'bg-[#22C55E] text-white'
+                  }`}>Today</span>
+                )}
+              </div>
+
+              {/* Event cards */}
+              <div className="space-y-3">
+                {dayEvents.map(event => {
+                  const type = event.event_type || 'other'
+                  const colors = EVENT_COLORS[type] || EVENT_COLORS.other
+                  const EventIcon = EVENT_ICONS[type] || EVENT_ICONS.other
+
+                  return (
+                    <div key={event.id}
+                      className={`group relative rounded-[14px] overflow-hidden transition-all cursor-pointer ${
+                        isDark
+                          ? 'bg-[#132240] hover:bg-[#1a2d50] shadow-lg'
+                          : 'bg-white hover:shadow-[0_2px_8px_rgba(16,40,76,0.08)] border border-[#E8ECF2]'
+                      }`}
+                      onClick={() => onSelectEvent(event)}
+                    >
+                      {/* Left color border */}
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.border}`} />
+
+                      <div className="p-5 pl-6 flex items-center justify-between gap-6">
+                        {/* Left: Icon + Info */}
+                        <div className="flex items-start gap-4 min-w-0">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                            isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-[#F5F6F8]'
+                          }`}>
+                            <EventIcon className="w-5 h-5" style={{ color: colors.icon }} />
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-black tracking-widest uppercase text-[#4BB9EC]">
+                                {event.teams?.name || 'All Teams'}
+                              </span>
+                              <span className={`w-1 h-1 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
+                              <span className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                {type}
+                              </span>
+                            </div>
+                            <h3 className={`text-lg font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                              {event.title || event.event_type}
+                            </h3>
+                            <div className={`flex items-center gap-4 mt-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                {formatTime12(event.event_time)}{event.end_time ? ` — ${formatTime12(event.end_time)}` : ''}
+                              </span>
+                              {(event.venue_name || event.location) && (
+                                <span className="flex items-center gap-1.5">
+                                  <MapPin className="w-3.5 h-3.5" />
+                                  {event.venue_name || event.location}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: RSVP + Type badge */}
+                        <div className="flex items-center gap-5 shrink-0">
+                          {event.rsvpCount !== undefined && (
+                            <div className="text-right">
+                              <div className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>RSVP</div>
+                              <div className={`text-lg font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                                {event.rsvpCount || 0}/{event.rsvpTotal || '—'}
+                              </div>
+                            </div>
+                          )}
+                          <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${colors.badge}`}>
+                            {type}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
