@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { JourneyProvider } from './contexts/JourneyContext'
@@ -27,7 +27,14 @@ function PublicDirectoryRoute() {
 function AuthenticatedApp() {
   const { user, isAdmin, loading, needsOnboarding, completeOnboarding } = useAuth()
   const { colors } = useTheme()
+  const navigate = useNavigate()
   const [authView, setAuthView] = useState('landing') // 'landing' | 'login' | 'signup'
+
+  // After wizard completes, ensure new admins land on /dashboard
+  const handleOnboardingComplete = async () => {
+    await completeOnboarding()
+    navigate('/dashboard', { replace: true })
+  }
 
   if (loading) {
     return (
@@ -48,7 +55,7 @@ function AuthenticatedApp() {
   return (
     <JourneyProvider>
       {needsOnboarding ? (
-        <SetupWizard onComplete={completeOnboarding} />
+        <SetupWizard onComplete={handleOnboardingComplete} />
       ) : (
         <MainApp />
       )}
