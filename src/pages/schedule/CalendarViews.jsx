@@ -396,69 +396,106 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
 }
 
 // ============================================
-// DAY VIEW — Single-day hourly timeline
+// DAY VIEW — Single-day with Stack-style event cards
 // ============================================
 export function DayView({ events, currentDate, onSelectEvent, teams }) {
-  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const dayEvents = events.filter(e => {
     const eventDate = new Date(e.start_time)
     return eventDate.getDate() === currentDate.getDate() &&
            eventDate.getMonth() === currentDate.getMonth() &&
            eventDate.getFullYear() === currentDate.getFullYear()
-  })
+  }).sort((a, b) => (a.event_time || '').localeCompare(b.event_time || ''))
 
-  const hours = []
-  for (let h = 6; h <= 22; h++) hours.push(h)
+  const today = new Date()
+  today.setHours(0,0,0,0)
+  const isToday = currentDate.getDate() === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear()
+  const dayLabel = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
 
   return (
-    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
-      <div className={`p-4 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
-        <h3 className={`text-lg font-bold ${tc.text}`}>
-          {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-        </h3>
-        <p className={`text-sm ${tc.textMuted}`}>{dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}</p>
+    <div className="space-y-6">
+      {/* Day header */}
+      <div className="flex items-center gap-3">
+        <h2 className={`text-2xl font-black tracking-tighter italic uppercase ${
+          isToday ? (isDark ? 'text-white' : 'text-[#10284C]') : (isDark ? 'text-slate-500' : 'text-slate-400')
+        }`} style={{ fontFamily: 'var(--v2-font)' }}>
+          {dayLabel}
+        </h2>
+        {isToday && (
+          <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
+            isDark ? 'bg-[#FFD700] text-[#10284C]' : 'bg-[#22C55E] text-white'
+          }`}>Today</span>
+        )}
+        <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
+        </span>
       </div>
-      <div className="max-h-[600px] overflow-y-auto">
-        {hours.map(hour => {
-          const hourEvents = dayEvents.filter(e => new Date(e.start_time).getHours() === hour)
+
+      {/* Stack-style event cards */}
+      <div className="space-y-3">
+        {dayEvents.map(event => {
+          const type = event.event_type || 'other'
+          const colors = EVENT_COLORS[type] || EVENT_COLORS.other
+          const EventIcon = EVENT_ICONS[type] || EVENT_ICONS.other
+
           return (
-            <div key={hour} className={`flex border-b ${isDark ? 'border-slate-700/50' : 'border-slate-100'}`}>
-              <div className={`w-20 p-3 text-sm text-right shrink-0 font-medium ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
-                {hour > 12 ? hour - 12 : hour}:00 {hour >= 12 ? 'PM' : 'AM'}
-              </div>
-              <div className="flex-1 p-2 min-h-[60px]">
-                {hourEvents.map(event => {
-                  const type = event.event_type || 'other'
-                  const ts = getTypeStyle(type)
-                  return (
-                    <div
-                      key={event.id}
-                      onClick={() => onSelectEvent(event)}
-                      className={`p-3 rounded-xl cursor-pointer hover:brightness-105 mb-2 transition ${isDark ? ts.darkBg : `${ts.bg} shadow-sm`}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`font-bold text-sm ${isDark ? ts.darkText : ts.text}`}>{event.title || event.event_type}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${isDark ? `${ts.darkBg} ${ts.darkText}` : `${ts.bg} ${ts.text}`}`}>
-                          {event.event_type}
+            <div key={event.id}
+              className={`group relative rounded-[14px] overflow-hidden transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-[#132240] hover:bg-[#1a2d50] shadow-lg'
+                  : 'bg-white hover:shadow-[0_2px_8px_rgba(16,40,76,0.08)] border border-[#E8ECF2]'
+              }`}
+              onClick={() => onSelectEvent(event)}
+            >
+              <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.border}`} />
+              <div className="p-5 pl-6 flex items-center justify-between gap-6">
+                <div className="flex items-start gap-4 min-w-0">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                    isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-[#F5F6F8]'
+                  }`}>
+                    <EventIcon className="w-5 h-5" style={{ color: colors.icon }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-black tracking-widest uppercase text-[#4BB9EC]">
+                        {event.teams?.name || 'All Teams'}
+                      </span>
+                      <span className={`w-1 h-1 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
+                      <span className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {type}
+                      </span>
+                    </div>
+                    <h3 className={`text-lg font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                      {event.title || event.event_type}
+                    </h3>
+                    <div className={`flex items-center gap-4 mt-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        {formatTime12(event.event_time)}{event.end_time ? ` — ${formatTime12(event.end_time)}` : ''}
+                      </span>
+                      {(event.venue_name || event.location) && (
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5" />
+                          {event.venue_name || event.location}
                         </span>
-                      </div>
-                      <div className={`text-sm mt-1 ${tc.textMuted}`}>
-                        {formatTime(event.start_time)} - {event.end_time ? formatTime(event.end_time) : 'TBD'}
-                      </div>
-                      {event.venue_name && (
-                        <div className={`text-sm mt-1 ${tc.textMuted}`}>📍 {event.venue_name}{event.court_number ? ` (${event.court_number})` : ''}</div>
-                      )}
-                      {event.teams?.name && (
-                        <div className="text-sm font-semibold mt-1 text-sky-600">{event.teams.name}</div>
                       )}
                     </div>
-                  )
-                })}
+                  </div>
+                </div>
+                <div className="flex items-center gap-5 shrink-0">
+                  <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${colors.badge}`}>
+                    {type}
+                  </span>
+                </div>
               </div>
             </div>
           )
         })}
+        {dayEvents.length === 0 && (
+          <div className={`p-8 text-center rounded-2xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+            <p className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events scheduled for this day</p>
+          </div>
+        )}
       </div>
     </div>
   )
