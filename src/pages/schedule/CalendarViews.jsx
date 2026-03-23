@@ -239,10 +239,9 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
 }
 
 // ============================================
-// WEEK VIEW — Hourly grid
+// WEEK VIEW — Swim-lane timeline (teams as rows, days as columns)
 // ============================================
 export function WeekView({ events, currentDate, onSelectEvent, teams }) {
-  const tc = useThemeClasses()
   const { isDark } = useTheme()
   const startOfWeek = new Date(currentDate)
   startOfWeek.setDate(currentDate.getDate() - currentDate.getDay())
@@ -254,18 +253,6 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
     weekDays.push(day)
   }
 
-  const hours = []
-  for (let h = 6; h <= 22; h++) hours.push(h)
-
-  const getEventsForDayHour = (day, hour) => {
-    return events.filter(e => {
-      const eventDate = new Date(e.start_time)
-      return eventDate.getDate() === day.getDate() &&
-             eventDate.getMonth() === day.getMonth() &&
-             eventDate.getHours() === hour
-    })
-  }
-
   const isToday = (day) => {
     const today = new Date()
     return day.getDate() === today.getDate() &&
@@ -273,39 +260,136 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
            day.getFullYear() === today.getFullYear()
   }
 
+  const isWeekend = (day) => day.getDay() === 0 || day.getDay() === 6
+
+  // Group events by team
+  const teamRows = []
+  const teamMap = {}
+  events.forEach(e => {
+    const teamId = e.team_id || 'no-team'
+    if (!teamMap[teamId]) {
+      const team = e.teams || teams.find(t => t.id === e.team_id)
+      teamMap[teamId] = { id: teamId, name: team?.name || 'All Teams', color: team?.color || '#6366F1', events: [] }
+    }
+    teamMap[teamId].events.push(e)
+  })
+  Object.values(teamMap).sort((a, b) => a.name.localeCompare(b.name)).forEach(t => teamRows.push(t))
+
+  const getTeamDayEvents = (teamRow, day) => {
+    return teamRow.events.filter(e => {
+      const ed = new Date(e.start_time)
+      return ed.getDate() === day.getDate() && ed.getMonth() === day.getMonth() && ed.getFullYear() === day.getFullYear()
+    })
+  }
+
+  const weekEventCount = events.filter(e => {
+    const ed = new Date(e.start_time)
+    return ed >= weekDays[0] && ed <= new Date(weekDays[6].getFullYear(), weekDays[6].getMonth(), weekDays[6].getDate(), 23, 59, 59)
+  }).length
+
   return (
-    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
-      <div className={`grid grid-cols-8 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
-        <div className="p-3 text-center text-sm font-medium"></div>
-        {weekDays.map((day, i) => (
-          <div key={i} className={`p-3 text-center ${isToday(day) ? 'bg-sky-50/60' : ''}`}>
-            <div className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-            <div className={`text-lg font-extrabold ${isToday(day) ? 'text-lynx-sky' : tc.text}`}>
-              {day.getDate()}
-            </div>
+    <div>
+      <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}>
+        {/* Day column headers */}
+        <div className={`grid border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}
+          style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
+          <div className={`p-3 flex items-center ${isDark ? 'bg-white/[0.02]' : 'bg-[#F5F6F8]'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-[0.15em] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Team</span>
           </div>
-        ))}
+          {weekDays.map((day, i) => (
+            <div key={i} className={`p-3 text-center transition-colors ${
+              isToday(day) ? (isDark ? 'bg-[#4BB9EC]/[0.06]' : 'bg-[#4BB9EC]/[0.04]') : isWeekend(day) ? (isDark ? 'bg-white/[0.01]' : 'bg-slate-50/50') : ''
+            }`}>
+              <div className={`text-[10px] font-black uppercase tracking-[0.15em] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                {day.toLocaleDateString('en-US', { weekday: 'short' })}
+              </div>
+              <div className={`text-xl font-black ${isToday(day) ? 'text-[#4BB9EC]' : (isDark ? 'text-white' : 'text-[#10284C]')}`}>
+                {day.getDate()}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Team swim lanes */}
+        <div className="max-h-[600px] overflow-y-auto">
+          {teamRows.map(teamRow => (
+            <div key={teamRow.id}
+              className={`grid border-b ${isDark ? 'border-white/[0.04]' : 'border-[#E8ECF2]/60'}`}
+              style={{ gridTemplateColumns: '160px repeat(7, 1fr)' }}>
+              {/* Team label */}
+              <div className={`p-3 flex items-start gap-2 ${isDark ? 'bg-white/[0.02]' : 'bg-[#F5F6F8]'}`}>
+                <div className="w-1 h-8 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: teamRow.color }} />
+                <span className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                  {teamRow.name}
+                </span>
+              </div>
+              {/* Day cells */}
+              {weekDays.map((day, i) => {
+                const dayEvents = getTeamDayEvents(teamRow, day)
+                return (
+                  <div key={i} className={`p-1.5 min-h-[80px] border-l ${isDark ? 'border-white/[0.04]' : 'border-[#E8ECF2]/60'} ${
+                    isToday(day) ? (isDark ? 'bg-[#4BB9EC]/[0.03]' : 'bg-[#4BB9EC]/[0.02]') : isWeekend(day) ? (isDark ? 'bg-white/[0.01]' : 'bg-slate-50/30') : ''
+                  }`}>
+                    {dayEvents.map(event => {
+                      const type = event.event_type || 'other'
+                      const colors = EVENT_COLORS[type] || EVENT_COLORS.other
+                      return (
+                        <div key={event.id}
+                          onClick={() => onSelectEvent(event)}
+                          className={`p-2 mb-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 ${
+                            isDark ? 'hover:brightness-125' : 'hover:shadow-sm'
+                          }`}
+                          style={{ backgroundColor: `${colors.icon}15` }}
+                        >
+                          <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${colors.badge}`}>
+                            {type}
+                          </span>
+                          <div className={`text-xs font-bold mt-1 truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                            {event.title || event.event_type}
+                          </div>
+                          {event.venue_name && (
+                            <div className={`text-[10px] mt-0.5 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                              {event.venue_name}
+                            </div>
+                          )}
+                          {event.event_time && (
+                            <div className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                              {formatTime12(event.event_time)}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          ))}
+          {teamRows.length === 0 && (
+            <div className={`p-8 text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <p className="text-sm font-semibold">No events this week</p>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="max-h-[600px] overflow-y-auto">
-        {hours.map(hour => (
-          <div key={hour} className={`grid grid-cols-8 border-b ${isDark ? 'border-slate-700/50' : 'border-slate-100'}`}>
-            <div className={`p-2 text-xs text-right pr-3 font-medium ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
-              {hour > 12 ? hour - 12 : hour}{hour >= 12 ? 'pm' : 'am'}
+
+      {/* Footer stats + legend */}
+      <div className="flex items-center justify-between mt-4 px-1">
+        <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          {weekEventCount} event{weekEventCount !== 1 ? 's' : ''} this week
+        </span>
+        <div className="flex items-center gap-4">
+          {[
+            { label: 'Practice', color: '#4BB9EC' },
+            { label: 'Game', color: '#F59E0B' },
+            { label: 'Tournament', color: '#8B5CF6' },
+          ].map(item => (
+            <div key={item.label} className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className={`text-[10px] font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.label}</span>
             </div>
-            {weekDays.map((day, i) => {
-              const hourEvents = getEventsForDayHour(day, hour)
-              return (
-                <div key={i} className={`p-1 min-h-[50px] border-l ${isDark ? 'border-slate-700/50' : 'border-slate-100'} ${isToday(day) ? 'bg-sky-50/30' : ''}`}>
-                  {hourEvents.map(event => (
-                    <div key={event.id} className="mb-1">
-                      <EventPill event={event} onClick={onSelectEvent} />
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )
