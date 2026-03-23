@@ -156,7 +156,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       actions={
         <button
           onClick={() => setShowComposeModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-lynx-navy text-white font-bold hover:brightness-110 transition"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#10284C] text-white font-bold hover:brightness-110 transition text-sm"
         >
           <Plus className="w-4 h-4" /> New Announcement
         </button>
@@ -172,29 +172,28 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       ]} />
 
       {/* Filter Tabs */}
-      <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-4`}>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'urgent', label: 'Urgent' },
-            { id: 'pending', label: 'Pending Reads' },
-            { id: 'payment_reminder', label: 'Payment' },
-            { id: 'schedule_change', label: 'Schedule' },
-            { id: 'announcement', label: 'General' },
-          ].map(filter => (
-            <button
-              key={filter.id}
-              onClick={() => setFilterType(filter.id)}
-              className={`px-4 py-2 rounded-lg text-r-sm font-bold transition ${
-                filterType === filter.id
-                  ? 'bg-lynx-sky/20 text-lynx-sky'
-                  : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'}`
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-1 mb-1">
+        {[
+          { id: 'all', label: 'All' },
+          { id: 'urgent', label: 'Urgent' },
+          { id: 'pending', label: 'Pending Reads' },
+          { id: 'payment_reminder', label: 'Payment' },
+          { id: 'schedule_change', label: 'Schedule' },
+          { id: 'announcement', label: 'General' },
+        ].map(filter => (
+          <button
+            key={filter.id}
+            onClick={() => setFilterType(filter.id)}
+            className={`px-4 py-2.5 rounded-xl text-sm font-bold transition ${
+              filterType === filter.id
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                : `text-slate-400 ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-[#F5F6F8]'}`
+            }`}
+            style={{ fontFamily: 'var(--v2-font)' }}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
       
       {/* Blasts List */}
@@ -204,15 +203,15 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           <p className="text-slate-400 mt-4 text-r-sm">Loading announcements...</p>
         </div>
       ) : filteredBlasts.length === 0 ? (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-12 text-center`}>
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-            <Megaphone className="w-7 h-7 text-slate-400" />
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-12 text-center`}>
+          <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center mx-auto">
+            <Megaphone className="w-7 h-7 text-purple-400" />
           </div>
-          <h3 className={`text-r-xl font-bold mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>No announcements yet</h3>
-          <p className="text-slate-400 mt-1 text-r-sm">Send your first announcement to parents and teams</p>
+          <h3 className={`text-lg font-bold mt-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>No announcements yet</h3>
+          <p className="text-slate-400 mt-1 text-sm">Send your first announcement to parents and teams</p>
           <button
             onClick={() => setShowComposeModal(true)}
-            className="mt-4 px-6 py-3 rounded-lg bg-lynx-navy text-white font-bold hover:brightness-110 transition"
+            className="mt-4 px-6 py-3 rounded-xl bg-[#10284C] text-white font-bold hover:brightness-110 transition text-sm"
           >
             Create Announcement
           </button>
@@ -223,7 +222,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
             <div
               key={blast.id}
               onClick={() => setSelectedBlast(blast)}
-              className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06] hover:border-lynx-sky/30' : 'bg-white border border-slate-200 hover:border-lynx-sky/50'} rounded-[14px] p-4 cursor-pointer transition hover:shadow-md`}
+              className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06] hover:border-[#4BB9EC]/30' : 'bg-white border border-[#E8ECF2] hover:border-[#4BB9EC]/50'} rounded-[14px] p-4 cursor-pointer transition hover:shadow-md`}
             >
               <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center text-2xl ${getTypeColor(blast.message_type)}`}>
@@ -231,7 +230,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{blast.title}</h3>
+                    <h3 className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>{blast.title}</h3>
                     {blast.priority === 'urgent' && (
                       <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-500 text-white">URGENT</span>
                     )}
@@ -261,7 +260,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
                   <p className="text-r-xs text-slate-400">
                     {blast.acknowledged_count}/{blast.total_recipients} read
                   </p>
-                  <div className={`w-full h-2 rounded-full mt-2 overflow-hidden ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                  <div className={`w-full h-2.5 rounded-full mt-2 overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-[#F5F6F8]'}`}>
                     <div
                       className={`h-full rounded-full transition-all ${blast.read_percentage === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                       style={{ width: `${blast.read_percentage}%` }}
@@ -304,6 +303,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   const { user, profile } = useAuth()
   const { selectedSeason } = useSeason()
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
 
   const [form, setForm] = useState({
     title: '',
@@ -440,36 +440,36 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
+      <div className={`${isDark ? 'bg-[#0B1D35] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] w-full max-w-xl max-h-[90vh] overflow-hidden`} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className={`p-4 border-b ${tc.border} flex items-center justify-between`}>
-          <h2 className={`text-xl font-bold ${tc.text}`}>📢 New Announcement</h2>
-          <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg} ${tc.text}`}>✕</button>
+        <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex items-center justify-between`}>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>📢 New Announcement</h2>
+          <button onClick={onClose} className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/[0.06] text-white' : 'hover:bg-[#F5F6F8] text-[#10284C]'}`}>✕</button>
         </div>
         
         {/* Form */}
         <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
           {/* Title */}
           <div>
-            <label className={`block text-sm font-medium ${tc.textSecondary} mb-1`}>Title</label>
+            <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Title</label>
             <input
               type="text"
               value={form.title}
               onChange={e => setForm({...form, title: e.target.value})}
               placeholder="Important announcement..."
-              className={`w-full px-4 py-2 rounded-xl ${tc.cardBgAlt} border ${tc.border} ${tc.text}`}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400'} border focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 outline-none transition`}
             />
           </div>
-          
+
           {/* Body */}
           <div>
-            <label className={`block text-sm font-medium ${tc.textSecondary} mb-1`}>Message</label>
+            <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Message</label>
             <textarea
               value={form.body}
               onChange={e => setForm({...form, body: e.target.value})}
               placeholder="Write your message here..."
               rows={4}
-              className={`w-full px-4 py-2 rounded-xl ${tc.cardBgAlt} border ${tc.border} ${tc.text} resize-none`}
+              className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400'} border focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 outline-none transition resize-none`}
             />
           </div>
           
@@ -557,7 +557,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
               <select
                 value={form.target_team_id || ''}
                 onChange={e => setForm({...form, target_team_id: e.target.value || null})}
-                className={`w-full px-4 py-2 rounded-xl ${tc.cardBgAlt} border ${tc.border} ${tc.text}`}
+                className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C]'} border focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 outline-none transition`}
               >
                 <option value="">Select a team...</option>
                 {teams.map(team => (
@@ -575,17 +575,17 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
         </div>
         
         {/* Footer */}
-        <div className={`p-4 border-t ${tc.border} flex gap-3`}>
+        <div className={`p-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex gap-3`}>
           <button
             onClick={onClose}
-            className={`flex-1 py-3 rounded-xl border ${tc.border} ${tc.text} font-medium`}
+            className={`flex-1 py-3 rounded-xl border ${isDark ? 'border-white/[0.08] text-white' : 'border-[#E8ECF2] text-[#10284C]'} font-bold`}
           >
             Cancel
           </button>
           <button
             onClick={handleSend}
             disabled={sending || !form.title.trim() || !form.body.trim()}
-            className="flex-1 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-semibold disabled:opacity-50"
+            className="flex-1 py-3 rounded-xl bg-[#10284C] text-white font-bold hover:brightness-110 transition disabled:opacity-50"
           >
             {sending ? 'Sending...' : `Send to ${recipientCount} Recipients`}
           </button>
@@ -600,6 +600,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
 // ============================================
 function BlastDetailModal({ blast, onClose, showToast }) {
   const tc = useThemeClasses()
+  const { isDark } = useTheme()
   const [filterStatus, setFilterStatus] = useState('all')
   
   const recipients = blast.message_recipients || []
@@ -611,12 +612,12 @@ function BlastDetailModal({ blast, onClose, showToast }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className={`${tc.cardBg} border ${tc.border} rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className={`${isDark ? 'bg-[#0B1D35] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col`} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className={`p-4 border-b ${tc.border}`}>
+        <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
           <div className="flex items-center justify-between mb-2">
-            <h2 className={`text-xl font-bold ${tc.text}`}>{blast.title}</h2>
-            <button onClick={onClose} className={`p-2 rounded-lg ${tc.hoverBg} ${tc.text}`}>✕</button>
+            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>{blast.title}</h2>
+            <button onClick={onClose} className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/[0.06] text-white' : 'hover:bg-[#F5F6F8] text-[#10284C]'}`}>✕</button>
           </div>
           <p className={`${tc.textSecondary} text-sm`}>{blast.body}</p>
           <div className="flex items-center gap-4 mt-3 text-xs">
@@ -628,7 +629,7 @@ function BlastDetailModal({ blast, onClose, showToast }) {
         </div>
         
         {/* Stats */}
-        <div className={`p-4 border-b ${tc.border} flex gap-4`}>
+        <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex gap-4`}>
           <div className="flex-1 text-center">
             <p className="text-3xl font-bold text-emerald-500">{blast.acknowledged_count}</p>
             <p className={`text-xs ${tc.textMuted}`}>Read</p>
@@ -646,16 +647,17 @@ function BlastDetailModal({ blast, onClose, showToast }) {
         </div>
         
         {/* Filter */}
-        <div className={`p-4 border-b ${tc.border} flex gap-2`}>
+        <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex gap-2`}>
           {['all', 'read', 'unread'].map(status => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-xl font-medium transition ${
+              className={`px-4 py-2.5 rounded-xl font-bold text-sm transition ${
                 filterStatus === status
-                  ? 'bg-[var(--accent-primary)] text-white'
-                  : `${tc.cardBgAlt} ${tc.text}`
+                  ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                  : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-[#F5F6F8]'}`
               }`}
+              style={{ fontFamily: 'var(--v2-font)' }}
             >
               {status === 'all' ? 'All' : status === 'read' ? '✓ Read' : '○ Unread'}
               <span className="ml-1 text-xs opacity-70">
@@ -703,10 +705,10 @@ function BlastDetailModal({ blast, onClose, showToast }) {
         </div>
         
         {/* Footer */}
-        <div className={`p-4 border-t ${tc.border}`}>
+        <div className={`p-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
           <button
             onClick={onClose}
-            className={`w-full py-3 rounded-xl border ${tc.border} ${tc.text} font-medium`}
+            className={`w-full py-3 rounded-xl border ${isDark ? 'border-white/[0.08] text-white' : 'border-[#E8ECF2] text-[#10284C]'} font-bold`}
           >
             Close
           </button>
