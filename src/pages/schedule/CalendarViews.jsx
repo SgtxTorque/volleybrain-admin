@@ -149,52 +149,90 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
   }
 
   return (
-    <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver shadow-sm'}`}>
-      <div className={`grid grid-cols-7 border-b ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-          <div key={d} className={`p-3 text-center text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{d}</div>
-        ))}
+    <div>
+      {/* Calendar grid */}
+      <div className={`rounded-2xl overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}>
+        {/* Day-of-week headers */}
+        <div className={`grid grid-cols-7 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className={`p-3 text-center text-[10px] font-black uppercase tracking-[0.15em] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{d}</div>
+          ))}
+        </div>
+        {/* Calendar cells */}
+        <div className="grid grid-cols-7">
+          {days.map((day, i) => {
+            const dayEvents = getEventsForDay(day)
+            const todayCell = isToday(day)
+            const past = isPast(day)
+            return (
+              <div
+                key={i}
+                className={`min-h-[110px] p-2 border-b border-r transition-colors ${
+                  isDark ? 'border-white/[0.04]' : 'border-[#E8ECF2]/60'
+                } ${!day
+                  ? (isDark ? 'bg-[#0B1628]/40' : 'bg-slate-50/50')
+                  : todayCell
+                    ? (isDark ? 'bg-[#4BB9EC]/[0.06] border-l-2 border-l-[#4BB9EC]' : 'bg-[#4BB9EC]/[0.04] border-l-2 border-l-[#4BB9EC]')
+                    : `${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-[#F5F6F8]'} cursor-pointer`
+                } ${past && day ? 'opacity-50' : ''}`}
+                onClick={() => day && onSelectDate(new Date(year, month, day))}
+              >
+                {day && (
+                  <>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className={`text-sm font-black ${
+                        todayCell
+                          ? 'w-7 h-7 bg-[#4BB9EC] text-white rounded-full flex items-center justify-center shadow-sm'
+                          : (isDark ? 'text-white' : 'text-[#10284C]')
+                      }`}>
+                        {day}
+                      </span>
+                      {todayCell && (
+                        <span className="text-[8px] font-black uppercase tracking-widest text-[#4BB9EC]">Today</span>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      {dayEvents.slice(0, 3).map(event => {
+                        const type = event.event_type || 'other'
+                        const colors = EVENT_COLORS[type] || EVENT_COLORS.other
+                        return (
+                          <div
+                            key={event.id}
+                            onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
+                            className={`flex items-center gap-1.5 px-1.5 py-1 rounded-md text-xs font-semibold truncate cursor-pointer transition hover:brightness-110 ${
+                              isDark ? 'bg-white/[0.04] text-slate-300' : 'bg-[#F5F6F8] text-[#10284C]'
+                            }`}
+                          >
+                            <div className={`w-0.5 h-3.5 rounded-full shrink-0 ${colors.border}`} />
+                            <span className="truncate">{event.title || event.event_type}</span>
+                          </div>
+                        )
+                      })}
+                      {dayEvents.length > 3 && (
+                        <div className={`text-[10px] font-bold px-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>+{dayEvents.length - 3} more</div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
-      <div className="grid grid-cols-7">
-        {days.map((day, i) => {
-          const dayEvents = getEventsForDay(day)
-          const today = isToday(day)
-          const past = isPast(day)
-          return (
-            <div
-              key={i}
-              className={`min-h-[100px] p-2 border-b border-r transition-colors ${
-                isDark ? 'border-slate-700/50' : 'border-slate-100'
-              } ${!day
-                ? (isDark ? 'bg-slate-900/30' : 'bg-slate-50/50')
-                : today
-                  ? 'bg-sky-50/60'
-                  : `${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-lynx-cloud'} cursor-pointer`
-              } ${past && day ? 'opacity-60' : ''}`}
-              onClick={() => day && onSelectDate(new Date(year, month, day))}
-            >
-              {day && (
-                <>
-                  <div className={`text-sm font-bold mb-1 ${
-                    today
-                      ? 'w-7 h-7 bg-lynx-sky text-white rounded-full flex items-center justify-center shadow-sm'
-                      : tc.text
-                  }`}>
-                    {day}
-                  </div>
-                  <div className="space-y-1">
-                    {dayEvents.slice(0, 3).map(event => (
-                      <EventPill key={event.id} event={event} onClick={onSelectEvent} compact />
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <div className={`text-xs font-medium ${tc.textMuted}`}>+{dayEvents.length - 3} more</div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )
-        })}
+
+      {/* Legend footer */}
+      <div className="flex items-center justify-center gap-6 mt-4">
+        {[
+          { label: 'Practice', color: '#4BB9EC' },
+          { label: 'Game', color: '#F59E0B' },
+          { label: 'Tournament', color: '#8B5CF6' },
+          { label: 'Team Event', color: '#3B82F6' },
+        ].map(item => (
+          <div key={item.label} className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+            <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.label}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
