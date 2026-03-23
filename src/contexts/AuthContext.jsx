@@ -163,6 +163,7 @@ export function AuthProvider({ children }) {
 
     // Reset URL to root so next login lands on dashboard (not previous user's page)
     window.history.replaceState(null, '', '/')
+    window.dispatchEvent(new PopStateEvent('popstate'))
   }
 
   async function completeOnboarding() {
