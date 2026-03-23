@@ -118,46 +118,33 @@ export default function RegistrationsTable({
 
   return (
     <div className="space-y-3">
-      {/* Bulk Action Bar */}
+      {/* Bulk Action Bar — sticky navy bar */}
       {selectedIds.size > 0 && (
-        <div className={`${cardBg} rounded-[14px] p-4 flex items-center justify-between`}>
-          <div className="flex items-center gap-4">
-            <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              {selectedIds.size} selected
-            </span>
-            <button onClick={() => toggleSelectAll(true)} className="text-base text-slate-400 hover:underline">
-              Clear
-            </button>
-          </div>
-          <div className="flex gap-2">
+        <div className={`sticky top-0 z-10 flex items-center justify-between px-5 py-3 rounded-xl ${
+          isDark ? 'bg-[#10284C] border border-[#4BB9EC]/20' : 'bg-[#10284C]'
+        }`}>
+          <span className="text-sm font-bold text-white">{selectedIds.size} selected</span>
+          <div className="flex items-center gap-2">
             {selectedPendingCount > 0 && (
-              <button
-                onClick={bulkApprove}
-                disabled={bulkProcessing}
-                className="bg-emerald-500 text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-emerald-600 disabled:opacity-50 flex items-center gap-2"
-              >
-                <Check className="w-4 h-4" /> Approve ({selectedPendingCount})
+              <button onClick={bulkApprove} disabled={bulkProcessing}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#22C55E] text-white hover:brightness-110 disabled:opacity-50">
+                Approve ({selectedPendingCount})
               </button>
             )}
-            <button
-              onClick={bulkMoveToWaitlist}
-              disabled={bulkProcessing}
-              className="bg-amber-500 text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-amber-600 disabled:opacity-50 flex items-center gap-2"
-            >
-              <List className="w-4 h-4" /> Waitlist
-            </button>
-            <button
-              onClick={() => setShowBulkDenyModal(true)}
-              disabled={bulkProcessing}
-              className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl text-base font-bold hover:bg-red-500/20 disabled:opacity-50"
-            >
+            <button onClick={() => setShowBulkDenyModal(true)} disabled={bulkProcessing}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white hover:brightness-110 disabled:opacity-50">
               Deny
             </button>
-            <button
-              onClick={bulkExport}
-              className={`px-4 py-2 rounded-xl text-base font-bold ${isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} flex items-center gap-2`}
-            >
-              <FileDown className="w-4 h-4" /> Export
+            <button onClick={bulkMoveToWaitlist} disabled={bulkProcessing}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-white hover:brightness-110 disabled:opacity-50">
+              Waitlist
+            </button>
+            <button onClick={bulkExport}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white/20 text-white hover:bg-white/30">
+              Export
+            </button>
+            <button onClick={() => toggleSelectAll(true)} className="text-xs text-white/60 hover:text-white ml-2">
+              Clear
             </button>
           </div>
         </div>
@@ -165,32 +152,40 @@ export default function RegistrationsTable({
 
       {/* Filter Bar inside card */}
       <div className={`${cardBg} rounded-[14px] overflow-hidden`}>
-        <div className={`px-5 py-3 flex items-center gap-3 ${isDark ? 'bg-white/[0.02]' : 'bg-slate-50'} border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
-          <div className="relative flex-1 max-w-xs">
+        <div className={`px-5 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+          {/* V2 Search input */}
+          <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Search players or parents..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 rounded-lg text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-white placeholder-slate-500' : 'bg-white border-[#E8ECF2] text-[#10284C] placeholder-slate-400 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'} border transition-all focus:outline-none`}
+              className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm font-medium transition-all focus:outline-none ${
+                isDark
+                  ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder:text-slate-500 focus:border-[#4BB9EC]/30'
+                  : 'bg-white border border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'
+              }`}
               style={{ fontFamily: 'var(--v2-font)' }}
             />
           </div>
-          <div className="flex gap-1.5">
+          {/* V2 pill-style status tabs */}
+          <div className={`flex items-center gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
             {filterChips.map(f => (
               <button
                 key={f.key}
                 onClick={() => setStatusFilter(f.key)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition relative ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all relative ${
                   statusFilter === f.key
-                    ? 'bg-lynx-sky text-lynx-navy'
-                    : isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'
+                    ? (isDark ? 'bg-white/[0.1] text-white shadow-sm' : 'bg-white text-[#10284C] shadow-sm')
+                    : (isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-[#10284C]')
                 }`}
               >
-                {f.label} ({f.count || 0})
-                {f.dot && statusFilter !== f.key && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500" />
+                {f.label}
+                {f.count > 0 && (
+                  <span className={`ml-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center rounded-full text-[10px] font-black ${
+                    f.dot && statusFilter !== f.key ? 'bg-amber-500 text-white' : (isDark ? 'bg-white/[0.1] text-slate-400' : 'bg-slate-200 text-slate-600')
+                  }`}>{f.count}</span>
                 )}
               </button>
             ))}
