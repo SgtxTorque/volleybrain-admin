@@ -167,14 +167,16 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
     ? `${(statValue * 100).toFixed(1)}%`
     : statValue
 
+  const podiumBorder = rank === 1 ? 'border-l-4 border-l-amber-400' : rank === 2 ? 'border-l-4 border-l-slate-400' : rank === 3 ? 'border-l-4 border-l-orange-400' : ''
+
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-4 p-4 rounded-xl transition cursor-pointer ${
+      className={`flex items-center gap-4 p-4 rounded-[14px] transition cursor-pointer ${podiumBorder} ${
         rank <= 3
-          ? `${isDark ? 'bg-gradient-to-r from-lynx-charcoal to-lynx-charcoal/80' : 'bg-gradient-to-r from-white to-slate-50'} border-2 ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} shadow-sm hover:shadow-md`
-          : `${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} ${isDark ? 'hover:bg-white/[0.04]' : 'hover:border-slate-300'}`
-      } ${isHighlighted ? 'ring-2 ring-lynx-sky' : ''}`}
+          ? `${isDark ? 'bg-white/[0.05] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2]'} shadow-sm hover:shadow-md`
+          : `${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} ${isDark ? 'hover:bg-white/[0.04]' : 'hover:border-slate-300'}`
+      } ${isHighlighted ? 'ring-2 ring-[#4BB9EC]' : ''}`}
     >
       {/* Rank */}
       <RankBadge rank={rank} />
@@ -190,7 +192,7 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
 
       {/* Player info */}
       <div className="flex-1 min-w-0">
-        <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'} truncate text-r-sm`}>
+        <p className={`${rank <= 3 ? 'font-bold' : 'font-semibold'} ${rank === 1 ? 'text-r-base' : 'text-r-sm'} ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>
           {player.first_name} {player.last_name}
         </p>
         <p className="text-r-sm text-slate-400">
@@ -201,7 +203,7 @@ function LeaderboardRow({ player, rank, statValue, isPercentage, color, onClick,
       {/* Stat value */}
       <div className="text-right">
         <p
-          className="text-r-2xl font-bold"
+          className={`${rank === 1 ? 'text-r-3xl' : 'text-r-2xl'} font-extrabold`}
           style={{ color }}
         >
           {displayValue}
@@ -224,12 +226,12 @@ function CategoryTab({ category, isActive, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-3 rounded-xl text-r-sm font-medium transition whitespace-nowrap ${
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition whitespace-nowrap ${
         isActive
-          ? 'text-white shadow-lg'
-          : `${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} ${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-600 hover:bg-slate-100'}`
+          ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+          : `${isDark ? 'text-slate-400 hover:bg-white/[0.04]' : 'text-slate-500 hover:bg-slate-100'}`
       }`}
-      style={isActive ? { backgroundColor: category.color } : {}}
+      style={{ fontFamily: 'var(--v2-font)' }}
     >
       <span className="text-lg">{category.icon}</span>
       <span>{category.label}</span>
@@ -245,7 +247,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
   const topThree = leaders.slice(0, 3)
 
   return (
-    <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden hover:shadow-lg transition`}>
+    <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] overflow-hidden hover:shadow-lg transition`}>
       {/* Header */}
       <div
         className="px-4 py-3 flex items-center justify-between"
@@ -254,7 +256,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
         <div className="flex items-center gap-2">
           <span className="text-r-2xl">{category.icon}</span>
           <div>
-            <h3 className={`font-semibold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{category.label}</h3>
+            <h3 className={`font-bold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`} style={{ fontFamily: 'var(--v2-font)' }}>{category.label}</h3>
             <p className="text-r-xs text-slate-400">{category.description}</p>
           </div>
         </div>
@@ -271,7 +273,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
             <div
               key={entry.player_id}
               onClick={() => onPlayerClick?.(entry)}
-              className={`flex items-center gap-3 cursor-pointer ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-100'} rounded-lg p-2 -mx-2 transition`}
+              className={`flex items-center gap-3 cursor-pointer ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'} rounded-lg p-2 -mx-2 transition`}
             >
               <RankBadge rank={idx + 1} />
 
@@ -284,13 +286,13 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
               )}
 
               <div className="flex-1 min-w-0">
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'} text-r-sm truncate`}>
+                <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'} text-r-sm truncate`}>
                   {entry.player?.first_name} {entry.player?.last_name?.charAt(0)}.
                 </p>
               </div>
 
               <p
-                className="font-bold text-r-sm"
+                className="font-extrabold text-r-sm"
                 style={{ color: category.color }}
               >
                 {category.isPercentage
@@ -307,7 +309,8 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
       {leaders.length > 3 && (
         <button
           onClick={onViewAll}
-          className={`w-full py-3 text-r-sm font-medium text-lynx-sky ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-sky-50'} transition border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}
+          className={`w-full py-3 text-r-sm font-bold text-[#4BB9EC] ${isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-sky-50'} transition border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}
+          style={{ fontFamily: 'var(--v2-font)' }}
         >
           View All Rankings
         </button>
@@ -444,34 +447,31 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const actionsContent = (
     <>
       {/* Team filter */}
-      <div className="flex items-center gap-2">
-        <FilterIcon className="w-4 h-4 text-slate-400" />
-        <select
-          value={filterTeam || ''}
-          onChange={(e) => setFilterTeam(e.target.value || null)}
-          className={`px-3 py-2 rounded-lg border text-r-sm font-medium focus:outline-none focus:border-lynx-sky focus:ring-1 focus:ring-lynx-sky/20 ${isDark ? 'bg-lynx-charcoal border-white/[0.06] text-white' : 'bg-white border-slate-200 text-slate-700'}`}
-        >
-          <option value="">All Teams</option>
-          {teams.map(t => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </select>
-      </div>
+      <select
+        value={filterTeam || ''}
+        onChange={(e) => setFilterTeam(e.target.value || null)}
+        className={`px-4 py-2.5 rounded-xl border text-sm font-medium outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`}
+      >
+        <option value="">All Teams</option>
+        {teams.map(t => (
+          <option key={t.id} value={t.id}>{t.name}</option>
+        ))}
+      </select>
 
       {/* View toggle */}
-      <div className={`flex rounded-xl p-1 border ${isDark ? 'bg-white/[0.04] border-white/[0.06]' : 'bg-slate-100 border-slate-200'}`}>
+      <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
         <button
           onClick={() => { setViewMode('grid'); setSelectedCategory(null); }}
-          className={`px-3 py-1.5 rounded-lg text-r-sm font-medium transition ${
-            viewMode === 'grid' ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-400'
+          className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${
+            viewMode === 'grid' ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]' : 'text-slate-400'
           }`}
         >
           Grid
         </button>
         <button
           onClick={() => setViewMode('full')}
-          className={`px-3 py-1.5 rounded-lg text-r-sm font-medium transition ${
-            viewMode === 'full' ? 'bg-lynx-sky/20 text-lynx-sky' : 'text-slate-400'
+          className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${
+            viewMode === 'full' ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]' : 'text-slate-400'
           }`}
         >
           Full List
@@ -523,26 +523,23 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
       {viewMode === 'full' && selectedCategory && (
         <div className="space-y-4">
           {/* Category header */}
-          <div
-            className={`${isDark ? 'bg-lynx-charcoal' : 'bg-white'} rounded-[14px] p-6 border-2`}
-            style={{ borderColor: selectedCategory.color }}
-          >
+          <div className="bg-[#10284C] rounded-2xl p-6">
             <div className="flex items-center gap-4">
               <div
-                className="w-16 h-16 rounded-xl flex items-center justify-center text-r-3xl"
-                style={{ backgroundColor: `${selectedCategory.color}20` }}
+                className="w-14 h-14 rounded-xl flex items-center justify-center text-r-3xl"
+                style={{ backgroundColor: `${selectedCategory.color}25` }}
               >
                 {selectedCategory.icon}
               </div>
               <div>
-                <h2 className={`text-r-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{selectedCategory.label}</h2>
-                <p className="text-slate-400 text-r-sm">{selectedCategory.description}</p>
+                <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>{selectedCategory.label}</h2>
+                <p className="text-white/60 text-sm">{selectedCategory.description}</p>
               </div>
               <div className="ml-auto text-right">
-                <p className="text-r-3xl font-bold" style={{ color: selectedCategory.color }}>
+                <p className="text-3xl font-extrabold" style={{ color: selectedCategory.color }}>
                   {getFilteredLeaders(selectedCategory.id).length}
                 </p>
-                <p className="text-r-sm text-slate-400">players ranked</p>
+                <p className="text-xs font-bold text-white/50 uppercase tracking-wider">players ranked</p>
               </div>
             </div>
           </div>
@@ -550,11 +547,11 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
           {/* Rankings list */}
           <div className="space-y-2">
             {getFilteredLeaders(selectedCategory.id).length === 0 ? (
-              <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-12 text-center`}>
+              <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-12 text-center`}>
                 <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                   <UserIcon className="w-7 h-7 text-slate-400" />
                 </div>
-                <p className={`${isDark ? 'text-white' : 'text-slate-900'} font-medium text-r-sm`}>No rankings available</p>
+                <p className={`${isDark ? 'text-white' : 'text-[#10284C]'} font-bold text-r-sm`} style={{ fontFamily: 'var(--v2-font)' }}>No rankings available</p>
                 <p className="text-r-sm text-slate-400 mt-1">Stats need to be recorded first</p>
               </div>
             ) : (
@@ -580,26 +577,31 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
 
       {/* No category selected in full view */}
       {viewMode === 'full' && !selectedCategory && (
-        <div className={`${isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] p-12 text-center`}>
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'} rounded-[14px] p-12 text-center`}>
+          <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
             <TrophyIcon className="w-7 h-7 text-amber-400" />
           </div>
-          <p className={`${isDark ? 'text-white' : 'text-slate-900'} font-medium text-r-sm`}>Select a category above to view rankings</p>
+          <p className={`${isDark ? 'text-white' : 'text-[#10284C]'} font-bold text-r-sm`} style={{ fontFamily: 'var(--v2-font)' }}>Select a category above to view rankings</p>
         </div>
       )}
 
-      {/* Top Performers Summary */}
+      {/* Top Performers Summary — Navy MVP Header */}
       {viewMode === 'grid' && (
-        <div className="mt-8 bg-gradient-to-r from-lynx-navy to-lynx-charcoal rounded-[14px] p-6 text-white">
-          <h3 className="text-r-xl font-bold mb-4 flex items-center gap-2">
-            <TrophyIcon className="w-6 h-6" />
-            Season MVPs
-          </h3>
+        <div className="mt-8 bg-[#10284C] rounded-2xl p-6 text-white">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-amber-400/20 flex items-center justify-center">
+              <TrophyIcon className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold" style={{ fontFamily: 'var(--v2-font)' }}>SEASON MVPs</h3>
+              <p className="text-xs text-white/50">Top performers across all categories</p>
+            </div>
+          </div>
           <div className="grid md:grid-cols-3 gap-4">
             {/* Most Points */}
             {leaderboardData.points?.[0] && (
-              <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-white/70 text-r-sm">Most Points</p>
+              <div className="bg-white/[0.08] rounded-xl p-4 border border-amber-400/20">
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400">Most Points</p>
                 <div className="flex items-center gap-3 mt-2">
                   {leaderboardData.points[0].player?.photo_url ? (
                     <img src={leaderboardData.points[0].player.photo_url} className="w-10 h-10 rounded-full" />
@@ -609,10 +611,10 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-r-sm">
+                    <p className="font-bold text-sm">
                       {leaderboardData.points[0].player?.first_name} {leaderboardData.points[0].player?.last_name?.charAt(0)}.
                     </p>
-                    <p className="text-white/70 text-r-sm">{leaderboardData.points[0].total_points} pts</p>
+                    <p className="text-amber-400 font-extrabold text-lg">{leaderboardData.points[0].total_points} pts</p>
                   </div>
                 </div>
               </div>
@@ -620,8 +622,8 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
 
             {/* Most Aces */}
             {leaderboardData.aces?.[0] && (
-              <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-white/70 text-r-sm">Most Aces</p>
+              <div className="bg-white/[0.08] rounded-xl p-4 border border-emerald-400/20">
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Most Aces</p>
                 <div className="flex items-center gap-3 mt-2">
                   {leaderboardData.aces[0].player?.photo_url ? (
                     <img src={leaderboardData.aces[0].player.photo_url} className="w-10 h-10 rounded-full" />
@@ -631,10 +633,10 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-r-sm">
+                    <p className="font-bold text-sm">
                       {leaderboardData.aces[0].player?.first_name} {leaderboardData.aces[0].player?.last_name?.charAt(0)}.
                     </p>
-                    <p className="text-white/70 text-r-sm">{leaderboardData.aces[0].total_aces} aces</p>
+                    <p className="text-emerald-400 font-extrabold text-lg">{leaderboardData.aces[0].total_aces} aces</p>
                   </div>
                 </div>
               </div>
@@ -642,8 +644,8 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
 
             {/* Most Kills */}
             {leaderboardData.kills?.[0] && (
-              <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-white/70 text-r-sm">Most Kills</p>
+              <div className="bg-white/[0.08] rounded-xl p-4 border border-red-400/20">
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-400">Most Kills</p>
                 <div className="flex items-center gap-3 mt-2">
                   {leaderboardData.kills[0].player?.photo_url ? (
                     <img src={leaderboardData.kills[0].player.photo_url} className="w-10 h-10 rounded-full" />
@@ -653,10 +655,10 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-r-sm">
+                    <p className="font-bold text-sm">
                       {leaderboardData.kills[0].player?.first_name} {leaderboardData.kills[0].player?.last_name?.charAt(0)}.
                     </p>
-                    <p className="text-white/70 text-r-sm">{leaderboardData.kills[0].total_kills} kills</p>
+                    <p className="text-red-400 font-extrabold text-lg">{leaderboardData.kills[0].total_kills} kills</p>
                   </div>
                 </div>
               </div>
