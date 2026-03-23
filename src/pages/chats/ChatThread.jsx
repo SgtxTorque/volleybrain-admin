@@ -360,7 +360,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
         </div>
 
         <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-[15px] truncate" style={{ color: isDark ? 'white' : '#1a1a1a' }}>
+          <h2 className="font-semibold text-[15px] truncate" style={{ color: isDark ? 'white' : '#10284C', letterSpacing: '-0.02em' }}>
             {channel.name}
           </h2>
           <p className="text-[11px]" style={{ color: isDark ? 'rgba(255,255,255,.3)' : 'rgba(0,0,0,.35)' }}>

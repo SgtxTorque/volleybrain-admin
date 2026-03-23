@@ -79,7 +79,7 @@ function MessageBubble({ message, isOwn, showAvatar, isDark, accent, onReply, on
 
       <div className="max-w-[70%] flex flex-col">
         {showAvatar && (
-          <span className="text-[11px] mb-1 font-bold" style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)' }}>
+          <span className="text-[10.5px] mb-1 font-bold uppercase tracking-[0.06em]" style={{ color: isDark ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.4)' }}>
             {message.sender?.full_name || 'Unknown'} {isOwn && <span style={{ opacity: .4 }}>(you)</span>}
           </span>
         )}

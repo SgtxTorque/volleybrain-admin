@@ -255,26 +255,27 @@ function ChatsPage({ showToast, activeView, roleContext }) {
     <div
       className={`h-[calc(100vh-180px)] flex overflow-hidden rounded-[14px] border animate-fade-in ${
         isDark
-          ? 'bg-lynx-charcoal border-white/[0.06]'
-          : 'bg-white border-slate-200 shadow-soft-md'
+          ? 'bg-[#132240] border-white/[0.06]'
+          : 'bg-white border-[#E8ECF2] shadow-[0_2px_8px_rgba(16,40,76,0.06),0_8px_24px_rgba(16,40,76,0.05)]'
       }`}
+      style={{ fontFamily: 'var(--v2-font)' }}
     >
       {/* === SIDEBAR -- Conversation List === */}
       {(!isMobileView || !selectedChannel) && (
         <div
           className={`${isMobileView ? 'w-full' : 'w-80'} flex flex-col border-r ${
-            isDark ? 'border-white/[0.06]' : 'border-slate-200'
+            isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'
           }`}
         >
           {/* Header */}
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className={`text-r-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <h1 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
                 Chats
               </h1>
               <button
                 onClick={() => setShowNewChat(true)}
-                className="w-10 h-10 rounded-lg flex items-center justify-center bg-lynx-navy text-white font-bold hover:brightness-110 transition-all active:scale-95 shadow-soft-sm"
+                className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#10284C] text-white font-bold hover:bg-[#1a3a6b] transition-all active:scale-95 shadow-sm"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -282,10 +283,10 @@ function ChatsPage({ showToast, activeView, roleContext }) {
 
             {/* Search */}
             <div
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition-all focus-within:border-lynx-sky focus-within:ring-1 focus-within:ring-lynx-sky/20 ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all focus-within:border-[#4BB9EC] focus-within:ring-2 focus-within:ring-[#4BB9EC]/20 ${
                 isDark
                   ? 'bg-white/[0.04] border-white/[0.06]'
-                  : 'bg-white border-slate-200'
+                  : 'bg-white border-[#E8ECF2]'
               }`}
             >
               <Search className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-white/25' : 'text-slate-400'}`} />
@@ -294,21 +295,21 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className={`flex-1 bg-transparent outline-none text-r-sm font-medium ${
-                  isDark ? 'text-white placeholder:text-white/30' : 'text-slate-700 placeholder:text-slate-400'
+                className={`flex-1 bg-transparent outline-none text-sm font-medium ${
+                  isDark ? 'text-white placeholder:text-white/30' : 'text-[#10284C] placeholder:text-slate-400'
                 }`}
               />
             </div>
 
             {/* Filter Tabs */}
-            <div className={`flex gap-1 p-1 rounded-lg ${isDark ? 'bg-white/[0.03]' : 'bg-slate-100'}`}>
+            <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-[#F5F6F8]'}`}>
               {['all', 'teams', 'dms'].map(type => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
-                  className={`flex-1 px-3 py-1.5 rounded-md text-r-xs font-bold uppercase tracking-wider transition-all ${
+                  className={`flex-1 px-3 py-1.5 rounded-lg text-[10.5px] font-bold uppercase tracking-[0.08em] transition-all ${
                     filterType === type
-                      ? 'bg-lynx-navy text-white shadow-soft-sm'
+                      ? 'bg-[#10284C] text-white shadow-sm'
                       : isDark ? 'text-white/35 hover:text-white/60' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -368,15 +369,15 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                 className={`w-24 h-24 rounded-[14px] flex items-center justify-center mb-5 border ${
                   isDark
                     ? 'bg-white/[0.04] border-white/[0.06]'
-                    : 'bg-slate-50 border-slate-200'
+                    : 'bg-[#F8F9FB] border-[#E8ECF2]'
                 }`}
               >
                 <span className="text-5xl">💬</span>
               </div>
-              <h2 className={`text-r-xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
                 Select a Conversation
               </h2>
-              <p className={`mt-2 text-r-sm ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+              <p className={`mt-2 text-sm ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
                 Choose a chat from the list to start messaging
               </p>
             </div>
@@ -420,12 +421,12 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
   return (
     <button
       onClick={onClick}
-      className={`w-full p-3 flex items-center gap-3 transition-all rounded-lg mb-1 ${
+      className={`w-full p-3 flex items-center gap-3 transition-all duration-200 rounded-xl mb-1 ${
         isSelected
-          ? 'bg-lynx-sky/10 border-l-2 border-lynx-sky'
+          ? 'bg-[#4BB9EC]/10 border-l-2 border-[#4BB9EC]'
           : isDark
             ? 'border-l-2 border-transparent hover:bg-white/[0.04]'
-            : 'border-l-2 border-transparent hover:bg-slate-100'
+            : 'border-l-2 border-transparent hover:bg-[#F8F9FB]'
       }`}
     >
       {/* Avatar */}
@@ -450,7 +451,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
         )}
         {/* Unread badge */}
         {channel.unread_count > 0 && (
-          <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-r-xs font-bold text-white bg-lynx-sky flex items-center justify-center shadow-soft-sm">
+          <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white bg-[#4BB9EC] flex items-center justify-center shadow-sm">
             {channel.unread_count > 9 ? '9+' : channel.unread_count}
           </div>
         )}
@@ -459,14 +460,14 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
       {/* Content */}
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between gap-2">
-          <span className={`font-bold text-r-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <span className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
             {channel.name}
           </span>
-          <span className={`text-r-xs flex-shrink-0 font-medium ${isDark ? 'text-white/20' : 'text-slate-400'}`}>
+          <span className={`text-[10.5px] flex-shrink-0 font-medium ${isDark ? 'text-white/20' : 'text-slate-400'}`}>
             {formatTime(channel.last_message?.created_at)}
           </span>
         </div>
-        <p className={`text-r-xs truncate mt-0.5 ${isDark ? 'text-white/35' : 'text-slate-500'}`}>
+        <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-white/35' : 'text-slate-500'}`}>
           {getLastMessagePreview()}
         </p>
       </div>
