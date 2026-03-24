@@ -121,9 +121,10 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         q1 = q1.eq('season_id', selectedSeason.id)
       } else if (sportSeasonIds && sportSeasonIds.length > 0) {
         q1 = q1.in('season_id', sportSeasonIds)
-      } else if (isAllSeasons(selectedSeason)) {
-        // All Seasons + no sport → filter by ALL org season IDs
+      } else {
+        // All Seasons + no sport (or any unmatched case) → filter by ALL org season IDs
         const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        console.log('[ChatsPage q1] selectedSeason:', selectedSeason, 'isAllSeasons:', isAllSeasons(selectedSeason), 'orgSeasonIds:', orgSeasonIds)
         if (orgSeasonIds.length === 0) {
           setChannels([])
           setLoading(false)
@@ -147,9 +148,9 @@ function ChatsPage({ showToast, activeView, roleContext }) {
           q2 = q2.eq('season_id', selectedSeason.id)
         } else if (sportSeasonIds && sportSeasonIds.length > 0) {
           q2 = q2.in('season_id', sportSeasonIds)
-        } else if (isAllSeasons(selectedSeason)) {
-          // All Seasons + no sport → filter by ALL org season IDs
+        } else {
           const orgSeasonIds = (allSeasons || []).map(s => s.id)
+          console.log('[ChatsPage q2] selectedSeason:', selectedSeason, 'isAllSeasons:', isAllSeasons(selectedSeason), 'orgSeasonIds:', orgSeasonIds)
           if (orgSeasonIds.length === 0) {
             setChannels([])
             setLoading(false)
