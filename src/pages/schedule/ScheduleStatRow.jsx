@@ -9,22 +9,22 @@ function StatCard({ icon: Icon, label, value, sub, pill, iconColor, valueColor }
   const { isDark } = useTheme()
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl p-5 border ${
+    <div className={`relative overflow-hidden rounded-xl px-4 py-3 border ${
       isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'
-    } shadow-sm`}>
-      <div className="relative z-10">
-        <p className={`text-[10px] font-black uppercase tracking-[0.15em] mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
-        <h3 className={`text-3xl font-black italic tracking-tighter ${valueColor || (isDark ? 'text-white' : 'text-[#10284C]')}`}>{value}</h3>
-        {(sub || pill) && (
-          <div className="flex items-center gap-2 mt-1">
-            {sub && <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{sub}</span>}
-            {pill && <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pill.className}`}>{pill.label}</span>}
-          </div>
+    }`}>
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <Icon className={`w-5 h-5 shrink-0 ${isDark ? 'text-slate-500' : 'text-slate-300'}`} style={{ color: iconColor }} />
         )}
+        <div className="min-w-0">
+          <p className={`text-[9px] font-black uppercase tracking-[0.15em] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</p>
+          <div className="flex items-baseline gap-2">
+            <span className={`text-xl font-black italic tracking-tighter ${valueColor || (isDark ? 'text-white' : 'text-[#10284C]')}`}>{value}</span>
+            {sub && <span className={`text-[10px] truncate ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{sub}</span>}
+            {pill && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${pill.className}`}>{pill.label}</span>}
+          </div>
+        </div>
       </div>
-      {Icon && (
-        <Icon className={`absolute -right-3 -bottom-3 w-20 h-20 ${isDark ? 'text-white/[0.03]' : 'text-slate-100'}`} />
-      )}
     </div>
   )
 }
