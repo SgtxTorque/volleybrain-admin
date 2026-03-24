@@ -329,7 +329,7 @@ function WaiversTab({ roleContext, showToast }) {
 
     try {
       const { data: waiverData } = await supabase
-        .from('waivers')
+        .from('waiver_templates')
         .select('*')
         .eq('organization_id', orgId)
         .eq('is_active', true)

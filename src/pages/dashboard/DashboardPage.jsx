@@ -650,7 +650,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
       let unsignedWaivers = 0
       try {
         const { count: activeWaivers } = await supabase
-          .from('waivers')
+          .from('waiver_templates')
           .select('id', { count: 'exact', head: true })
           .eq('organization_id', orgId)
           .eq('is_active', true)
@@ -658,7 +658,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         const { count: signedCount } = await supabase
           .from('waiver_signatures')
           .select('id', { count: 'exact', head: true })
-          .eq('organization_id', orgId)
 
         // Approximate: unsigned = (active waivers * total players) - signed
         // Simplified: just show waivers that need attention

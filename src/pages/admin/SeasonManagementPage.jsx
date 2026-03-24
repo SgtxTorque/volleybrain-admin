@@ -290,8 +290,8 @@ export default function SeasonManagementPage({ onNavigate, showToast }) {
       // Waivers
       let unsignedWaivers = 0
       try {
-        const { count: activeW } = await supabase.from('waivers').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('is_active', true)
-        const { count: signed } = await supabase.from('waiver_signatures').select('id', { count: 'exact', head: true }).eq('organization_id', orgId)
+        const { count: activeW } = await supabase.from('waiver_templates').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('is_active', true)
+        const { count: signed } = await supabase.from('waiver_signatures').select('id', { count: 'exact', head: true })
         const expected = (activeW || 0) * totalPlayers
         unsignedWaivers = Math.max(0, expected - (signed || 0))
       } catch {}

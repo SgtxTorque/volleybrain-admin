@@ -593,7 +593,7 @@ function PlatformOrgDetail({ showToast }) {
       setOrg(orgData)
 
       // Fetch members, seasons in parallel
-      const [membersRes, seasonsRes, paymentsRes] = await Promise.all([
+      const [membersRes, seasonsRes] = await Promise.all([
         supabase.from('user_roles')
           .select('*, profiles(id, full_name, email)')
           .eq('organization_id', orgId)
@@ -602,19 +602,26 @@ function PlatformOrgDetail({ showToast }) {
           .select('*, sports(name, icon)')
           .eq('organization_id', orgId)
           .order('created_at', { ascending: false }),
-        supabase.from('payments')
-          .select('*, profiles:player_id(full_name)')
-          .eq('organization_id', orgId)
-          .order('created_at', { ascending: false })
-          .limit(100),
       ])
 
       setMembers(membersRes.data || [])
       setSeasons(seasonsRes.data || [])
-      setPayments(paymentsRes.data || [])
 
-      // Teams are linked via season_id, not organization_id
+      // Teams and payments are linked via season_id, not organization_id
       const seasonIds = (seasonsRes.data || []).map(s => s.id)
+
+      // Payments: scope through seasons (payments lacks organization_id)
+      if (seasonIds.length > 0) {
+        const { data: paymentsData } = await supabase
+          .from('payments')
+          .select('*, profiles:player_id(full_name)')
+          .in('season_id', seasonIds)
+          .order('created_at', { ascending: false })
+          .limit(100)
+        setPayments(paymentsData || [])
+      } else {
+        setPayments([])
+      }
       if (seasonIds.length > 0) {
         const { data: teamsData } = await supabase
           .from('teams')
