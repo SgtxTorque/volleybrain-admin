@@ -307,29 +307,34 @@ function ChatsPage({ showToast, activeView, roleContext }) {
     <>
     <SeasonFilterBar role={activeView} />
     <div
-      className={`h-[calc(100vh-180px)] flex overflow-hidden rounded-[14px] border animate-fade-in ${
+      className={`h-[calc(100vh-130px)] flex overflow-hidden animate-fade-in ${
         isDark
-          ? 'bg-[#132240] border-white/[0.06]'
-          : 'bg-white border-[#E8ECF2] shadow-[0_2px_8px_rgba(16,40,76,0.06),0_8px_24px_rgba(16,40,76,0.05)]'
+          ? 'bg-[#0B1628]'
+          : 'bg-white'
       }`}
       style={{ fontFamily: 'var(--v2-font)' }}
     >
       {/* === LEFT COLUMN — Channel List (Broadcast Desk style) === */}
       {(!isMobileView || !selectedChannel) && (
         <div
-          className={`${isMobileView ? 'w-full' : 'w-[280px]'} shrink-0 flex flex-col border-r ${
-            isDark ? 'border-white/[0.06] bg-[#0D1B2F]' : 'border-[#E8ECF2] bg-white'
+          className={`${isMobileView ? 'w-full' : 'w-[340px]'} shrink-0 flex flex-col border-r ${
+            isDark ? 'border-white/[0.06] bg-[#0B1628]' : 'border-[#E8ECF2] bg-[#F8F9FB]'
           }`}
         >
           {/* Header */}
           <div className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h1 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
-                Chats
-              </h1>
+              <div>
+                <h1 className={`text-base font-black uppercase tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)', letterSpacing: '-0.02em' }}>
+                  Messages
+                </h1>
+                <p className={`text-[10px] font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {channels.length} conversation{channels.length !== 1 ? 's' : ''}
+                </p>
+              </div>
               <button
                 onClick={() => setShowNewChat(true)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#4BB9EC] text-white hover:brightness-110 transition-all active:scale-95"
+                className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#10284C] text-white hover:brightness-125 transition-all active:scale-95"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -426,17 +431,11 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center animate-fade-in">
-              <div
-                className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-5 ${
-                  isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'
-                }`}
-              >
-                <span className="text-4xl">💬</span>
-              </div>
-              <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ letterSpacing: '-0.03em' }}>
+              <span className="text-5xl mb-4">💬</span>
+              <h2 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
                 Select a Conversation
               </h2>
-              <p className={`mt-2 text-sm ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+              <p className={`mt-1 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 Choose a chat from the list to start messaging
               </p>
             </div>
