@@ -848,34 +848,80 @@ function SetupSectionContent({
 
       case 'fees':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <p className={`text-sm ${tc.textMuted}`}>Set default fees for new seasons. These can be overridden per season.</p>
 
-            <div className={`p-4 rounded-xl border ${tc.border}`}>
-              <p className={`font-medium ${tc.text} mb-4`}>💵 Default Fees</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <SectionNumberInput {...fp} label="Registration Fee" field="defaultRegistrationFee" prefix="$" />
-                <SectionNumberInput {...fp} label="Uniform Fee" field="defaultUniformFee" prefix="$" />
-                <SectionNumberInput {...fp} label="Monthly Fee" field="defaultMonthlyFee" prefix="$" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Default Fees */}
+              <div className={`p-4 rounded-xl border ${tc.border}`}>
+                <p className={`font-semibold text-sm ${tc.text} mb-3`}>💵 Default Fees</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className={`text-sm ${tc.text} w-32`}>Registration</label>
+                    <div className="relative">
+                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
+                      <input type="number" value={localData.defaultRegistrationFee || ''} onChange={(e) => updateField('defaultRegistrationFee', parseFloat(e.target.value) || 0)}
+                        className={`w-28 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className={`text-sm ${tc.text} w-32`}>Uniform</label>
+                    <div className="relative">
+                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
+                      <input type="number" value={localData.defaultUniformFee || ''} onChange={(e) => updateField('defaultUniformFee', parseFloat(e.target.value) || 0)}
+                        className={`w-28 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className={`text-sm ${tc.text} w-32`}>Monthly</label>
+                    <div className="relative">
+                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
+                      <input type="number" value={localData.defaultMonthlyFee || ''} onChange={(e) => updateField('defaultMonthlyFee', parseFloat(e.target.value) || 0)}
+                        className={`w-28 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Discounts */}
+              <div className={`p-4 rounded-xl border ${tc.border}`}>
+                <p className={`font-semibold text-sm ${tc.text} mb-3`}>🎁 Discounts</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <label className={`text-sm ${tc.text} w-32`}>Early Bird</label>
+                    <div className="relative">
+                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
+                      <input type="number" value={localData.earlyBirdDiscount || ''} onChange={(e) => updateField('earlyBirdDiscount', parseFloat(e.target.value) || 0)}
+                        className={`w-28 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className={`text-sm ${tc.text} w-32`}>Sibling</label>
+                    <div className="relative">
+                      <input type="number" value={localData.siblingDiscount || ''} onChange={(e) => updateField('siblingDiscount', parseFloat(e.target.value) || 0)}
+                        className={`w-28 pr-8 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                      <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className={`text-sm ${tc.text} w-32`}>Multi-Sport</label>
+                    <div className="relative">
+                      <input type="number" value={localData.multiSportDiscount || ''} onChange={(e) => updateField('multiSportDiscount', parseFloat(e.target.value) || 0)}
+                        className={`w-28 pr-8 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                      <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>%</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className={`p-4 rounded-xl border ${tc.border}`}>
-              <p className={`font-medium ${tc.text} mb-4`}>🎁 Discounts</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <SectionNumberInput {...fp} label="Early Bird Discount" field="earlyBirdDiscount" prefix="$" />
-                <SectionNumberInput {...fp} label="Sibling Discount" field="siblingDiscount" suffix="%" />
-                <SectionNumberInput {...fp} label="Multi-Sport Discount" field="multiSportDiscount" suffix="%" />
-              </div>
-            </div>
-
-            <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+            <div className={`p-3 rounded-xl ${tc.cardBgAlt}`}>
               <p className={`text-sm ${tc.text}`}>
-                💡 <strong>Example:</strong> With these defaults, a family with 2 kids registering early would pay:
-              </p>
-              <p className={`text-lg font-semibold mt-2`} style={{ color: accent.primary }}>
-                ${((localData.defaultRegistrationFee || 150) * 2) - (localData.earlyBirdDiscount || 25) - ((localData.defaultRegistrationFee || 150) * (localData.siblingDiscount || 10) / 100)}
-                <span className={`text-sm font-normal ${tc.textMuted}`}> (instead of ${(localData.defaultRegistrationFee || 150) * 2})</span>
+                💡 <strong>Example:</strong> 2 kids registering early =
+                <span className="font-semibold ml-1" style={{ color: accent.primary }}>
+                  ${((localData.defaultRegistrationFee || 150) * 2) - (localData.earlyBirdDiscount || 25) - ((localData.defaultRegistrationFee || 150) * (localData.siblingDiscount || 10) / 100)}
+                </span>
+                <span className={`${tc.textMuted}`}> (instead of ${(localData.defaultRegistrationFee || 150) * 2})</span>
               </p>
             </div>
           </div>
