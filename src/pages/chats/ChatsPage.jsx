@@ -357,7 +357,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
             </div>
 
             {/* Filter Tabs */}
-            <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-[#F5F6F8]'}`}>
+            <div className={`flex gap-0.5 p-1 rounded-lg ${isDark ? 'bg-white/[0.03]' : 'bg-white'}`}>
               {[
                 { key: 'all', label: 'All' },
                 { key: 'unread', label: 'Unread' },
@@ -446,7 +446,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       {/* === RIGHT COLUMN — Context Panel (team channels only) === */}
       {showRightPanel && selectedChannel && !isMobileView && (
         <div className={`w-[300px] shrink-0 flex flex-col border-l overflow-y-auto ${
-          isDark ? 'border-white/[0.06] bg-[#0D1B2F]' : 'border-[#E8ECF2] bg-[#F5F6F8]'
+          isDark ? 'border-white/[0.06] bg-[#0B1628]' : 'border-[#E8ECF2] bg-[#F8F9FB]'
         }`}>
           <ChatContextPanel
             channel={selectedChannel}
@@ -485,7 +485,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
     if (!channel.last_message) return 'No messages yet'
     if (channel.last_message.message_type === 'image') return '📷 Photo'
     if (channel.last_message.message_type === 'gif') return '🎬 GIF'
-    return channel.last_message.content?.slice(0, 40) + (channel.last_message.content?.length > 40 ? '...' : '')
+    return channel.last_message.content?.slice(0, 60) + (channel.last_message.content?.length > 60 ? '...' : '')
   }
 
   const teamColor = channel.teams?.color
@@ -493,37 +493,26 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
   return (
     <button
       onClick={onClick}
-      className={`w-full p-3 flex items-center gap-3 transition-all duration-200 rounded-xl mb-1 ${
+      className={`w-full px-3 py-2.5 flex items-center gap-3 transition-all duration-150 ${
         isSelected
-          ? 'bg-[#4BB9EC]/10 border-l-2 border-[#4BB9EC]'
+          ? (isDark ? 'bg-[#4BB9EC]/10 border-l-3 border-[#4BB9EC]' : 'bg-[#10284C]/[0.05] border-l-3 border-[#10284C]')
           : isDark
-            ? 'border-l-2 border-transparent hover:bg-white/[0.04]'
-            : 'border-l-2 border-transparent hover:bg-[#F8F9FB]'
+            ? 'border-l-3 border-transparent hover:bg-white/[0.03]'
+            : 'border-l-3 border-transparent hover:bg-slate-50'
       }`}
     >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <div
-          className={`w-12 h-12 rounded-[14px] flex items-center justify-center text-lg ${
-            isDark ? 'bg-white/[0.06]' : 'bg-slate-100'
+          className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold ${
+            isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-500'
           }`}
           style={teamColor ? { backgroundColor: `${teamColor}15`, color: teamColor } : undefined}
         >
           {getChannelIcon()}
         </div>
-        {/* Team color dot */}
-        {teamColor && (
-          <div
-            className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2"
-            style={{
-              backgroundColor: teamColor,
-              borderColor: isDark ? '#1A2744' : '#ffffff',
-            }}
-          />
-        )}
-        {/* Unread badge */}
         {channel.unread_count > 0 && (
-          <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white bg-[#4BB9EC] flex items-center justify-center shadow-sm">
+          <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-0.5 rounded-full text-[9px] font-bold text-white bg-[#4BB9EC] flex items-center justify-center">
             {channel.unread_count > 9 ? '9+' : channel.unread_count}
           </div>
         )}
@@ -532,29 +521,31 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
       {/* Content */}
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center justify-between gap-2">
-          <span className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+          <span className={`font-bold text-sm truncate ${
+            channel.unread_count > 0
+              ? (isDark ? 'text-white' : 'text-[#10284C]')
+              : (isDark ? 'text-slate-300' : 'text-slate-700')
+          }`}>
             {channel.name}
           </span>
-          <span className={`text-[10px] flex-shrink-0 font-medium ${isDark ? 'text-white/20' : 'text-slate-400'}`}>
+          <span className={`text-[10px] flex-shrink-0 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
             {formatTime(channel.last_message?.created_at)}
           </span>
         </div>
-        <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-white/35' : 'text-slate-500'}`}>
-          {getLastMessagePreview()}
-        </p>
-        {/* Type + unread badges */}
-        <div className="flex items-center gap-1.5 mt-1">
+        <div className="flex items-center gap-1.5 mt-0.5">
           {channel.channel_type === 'team_chat' && (
-            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#10284C] text-white">Team</span>
+            <span className="px-1 py-0 rounded text-[8px] font-black uppercase bg-[#10284C] text-white leading-tight">Team</span>
           )}
           {channel.channel_type === 'player_chat' && (
-            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-[#4BB9EC]/20 text-[#4BB9EC]">Player</span>
+            <span className="px-1 py-0 rounded text-[8px] font-black uppercase bg-[#4BB9EC]/20 text-[#4BB9EC] leading-tight">Player</span>
           )}
-          {channel.unread_count > 0 && (
-            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-red-500/15 text-red-500">
-              {channel.unread_count} new
-            </span>
-          )}
+          <p className={`text-[11px] truncate ${
+            channel.unread_count > 0
+              ? (isDark ? 'text-slate-300 font-medium' : 'text-slate-600 font-medium')
+              : (isDark ? 'text-slate-500' : 'text-slate-400')
+          }`}>
+            {getLastMessagePreview()}
+          </p>
         </div>
       </div>
     </button>
