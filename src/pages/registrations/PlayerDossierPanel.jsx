@@ -65,7 +65,7 @@ export default function PlayerDossierPanel({ player, registration, onClose, onAp
     : null
 
   return (
-    <div className={`sticky top-4 rounded-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-220px)] ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}
+    <div className={`sticky top-4 rounded-2xl border overflow-hidden ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}
       style={{ fontFamily: 'var(--v2-font)' }}>
 
       {/* Header */}
@@ -94,61 +94,77 @@ export default function PlayerDossierPanel({ player, registration, onClose, onAp
         </div>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-5 py-3">
+      {/* Content — 2-column layout */}
+      <div className="px-5 py-3 space-y-4">
 
-        <SectionLabel isDark={isDark}>Player Information</SectionLabel>
-        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
-          <InfoRow label="Date of Birth" value={dob} isDark={isDark} />
-          <InfoRow label="Age" value={age} isDark={isDark} />
-          <InfoRow label="Grade" value={player.grade} isDark={isDark} />
-          <InfoRow label="Gender" value={player.gender} isDark={isDark} />
-          <InfoRow label="School" value={player.school} isDark={isDark} />
-          <InfoRow label="Experience" value={player.experience_level} isDark={isDark} />
-          <InfoRow label="Jersey #" value={player.jersey_number} isDark={isDark} />
-          <InfoRow label="Jersey Pref" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || null} isDark={isDark} />
-          <InfoRow label="Jersey Size" value={player.uniform_size_jersey} isDark={isDark} />
-          <InfoRow label="Shorts Size" value={player.uniform_size_shorts} isDark={isDark} />
-          <InfoRow label="Position" value={player.position} isDark={isDark} />
+        {/* Row 1: Player Info (left) + Parent/Guardian (right) */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <SectionLabel isDark={isDark}>Player Information</SectionLabel>
+            <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+              <InfoRow label="Date of Birth" value={dob} isDark={isDark} />
+              <InfoRow label="Age" value={age} isDark={isDark} />
+              <InfoRow label="Grade" value={player.grade} isDark={isDark} />
+              <InfoRow label="Gender" value={player.gender} isDark={isDark} />
+              <InfoRow label="School" value={player.school} isDark={isDark} />
+              <InfoRow label="Experience" value={player.experience_level} isDark={isDark} />
+              <InfoRow label="Jersey #" value={player.jersey_number} isDark={isDark} />
+              <InfoRow label="Jersey Pref" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || null} isDark={isDark} />
+              <InfoRow label="Jersey Size" value={player.uniform_size_jersey} isDark={isDark} />
+              <InfoRow label="Shorts Size" value={player.uniform_size_shorts} isDark={isDark} />
+              <InfoRow label="Position" value={player.position} isDark={isDark} />
+            </div>
+          </div>
+          <div>
+            <SectionLabel isDark={isDark}>Parent / Guardian</SectionLabel>
+            <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+              <InfoRow label="Name" value={player.parent_name} isDark={isDark} />
+              <InfoRow label="Email" value={player.parent_email} isDark={isDark} />
+              <InfoRow label="Phone" value={player.parent_phone} isDark={isDark} />
+              <InfoRow label="Phone 2" value={player.parent_phone_secondary} isDark={isDark} />
+              <InfoRow label="Address" value={[player.address, player.city, player.state, player.zip].filter(Boolean).join(', ') || null} isDark={isDark} />
+            </div>
+          </div>
         </div>
 
-        <SectionLabel isDark={isDark}>Parent / Guardian</SectionLabel>
-        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
-          <InfoRow label="Name" value={player.parent_name} isDark={isDark} />
-          <InfoRow label="Email" value={player.parent_email} isDark={isDark} />
-          <InfoRow label="Phone" value={player.parent_phone} isDark={isDark} />
-          <InfoRow label="Phone 2" value={player.parent_phone_secondary} isDark={isDark} />
-          <InfoRow label="Address" value={[player.address, player.city, player.state, player.zip].filter(Boolean).join(', ') || null} isDark={isDark} />
+        {/* Row 2: Medical (left) + Emergency Contact (right) */}
+        <div className={`border-t pt-4 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <SectionLabel isDark={isDark}>Medical</SectionLabel>
+              <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+                <InfoRow label="Conditions" value={player.medical_conditions || player.medical_notes || 'None'} isDark={isDark} />
+                <InfoRow label="Allergies" value={player.allergies || 'None'} isDark={isDark} />
+                <InfoRow label="Medications" value={player.medications || 'None'} isDark={isDark} />
+              </div>
+            </div>
+            <div>
+              <SectionLabel isDark={isDark}>Emergency Contact</SectionLabel>
+              <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+                <InfoRow label="Name" value={player.emergency_contact_name} isDark={isDark} />
+                <InfoRow label="Phone" value={player.emergency_contact_phone} isDark={isDark} />
+                <InfoRow label="Relation" value={player.emergency_contact_relation} isDark={isDark} />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <SectionLabel isDark={isDark}>Emergency Contact</SectionLabel>
-        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
-          <InfoRow label="Name" value={player.emergency_contact_name} isDark={isDark} />
-          <InfoRow label="Phone" value={player.emergency_contact_phone} isDark={isDark} />
-          <InfoRow label="Relation" value={player.emergency_contact_relation} isDark={isDark} />
-        </div>
-
-        <SectionLabel isDark={isDark}>Medical</SectionLabel>
-        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
-          <InfoRow label="Conditions" value={player.medical_conditions || player.medical_notes} isDark={isDark} />
-          <InfoRow label="Allergies" value={player.allergies} isDark={isDark} />
-          <InfoRow label="Medications" value={player.medications} isDark={isDark} />
-        </div>
-
-        <SectionLabel isDark={isDark}>Waivers</SectionLabel>
-        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
-          <WaiverRow label="Liability Waiver" signed={player.waiver_liability} isDark={isDark} />
-          <WaiverRow label="Photo Release" signed={player.waiver_photo} isDark={isDark} />
-          <WaiverRow label="Code of Conduct" signed={player.waiver_conduct} isDark={isDark} />
-        </div>
-
-        <SectionLabel isDark={isDark}>Payment</SectionLabel>
-        <div className={`rounded-lg p-3 ${isDark ? 'bg-[#10284C]' : 'bg-[#10284C]'}`}>
-          <div className="flex justify-between items-baseline">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total</span>
-            <span className="text-lg font-black text-white">
-              {reg?.registration_fee ? `$${reg.registration_fee}` : '—'}
-            </span>
+        {/* Row 3: Waivers + Payment inline */}
+        <div className={`border-t pt-4 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <SectionLabel isDark={isDark}>Waivers</SectionLabel>
+              <WaiverRow label="Liability" signed={player.waiver_liability} isDark={isDark} />
+              <WaiverRow label="Photo Release" signed={player.waiver_photo} isDark={isDark} />
+              <WaiverRow label="Code of Conduct" signed={player.waiver_conduct} isDark={isDark} />
+            </div>
+            <div>
+              <SectionLabel isDark={isDark}>Payment</SectionLabel>
+              <div className={`rounded-lg px-3 py-2 flex justify-between items-center ${isDark ? 'bg-[#10284C]' : 'bg-[#10284C]'}`}>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total</span>
+                <span className="text-base font-black text-white">{reg?.registration_fee ? `$${reg.registration_fee}` : '—'}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
