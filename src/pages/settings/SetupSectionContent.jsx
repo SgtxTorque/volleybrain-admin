@@ -1012,31 +1012,45 @@ function SetupSectionContent({
 
       case 'coaches':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <p className={`text-sm ${tc.textMuted}`}>Set requirements for coaches before they can be assigned to teams.</p>
 
-            <div className={`space-y-1 divide-y ${tc.border}`}>
-              <SectionToggle {...fp} label="Require Background Check" field="requireBackgroundCheck" helpText="Must complete before coaching" />
-              <SectionToggle {...fp} label="Require SafeSport Certification" field="requireSafeSport" helpText="USAV/USA Sports requirement" />
-              <SectionToggle {...fp} label="Require CPR/First Aid" field="requireCPR" helpText="Current certification" />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4">
+              <div className={`space-y-1 divide-y ${tc.border}`}>
+                <SectionToggle {...fp} label="Require Background Check" field="requireBackgroundCheck" helpText="Must complete before coaching" />
+                <SectionToggle {...fp} label="Require SafeSport Certification" field="requireSafeSport" helpText="USAV/USA Sports requirement" />
+                <SectionToggle {...fp} label="Require CPR/First Aid" field="requireCPR" helpText="Current certification" />
+              </div>
+              <div className={`p-4 rounded-xl border ${tc.border} self-start`}>
+                <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Min Coach Age</label>
+                <div className="relative">
+                  <input type="number" value={localData.coachMinAge || ''} onChange={(e) => updateField('coachMinAge', parseFloat(e.target.value) || 0)}
+                    className={`w-24 pr-12 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                  <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>years</span>
+                </div>
+              </div>
             </div>
-
-            <SectionNumberInput {...fp} label="Minimum Coach Age" field="coachMinAge" suffix="years" />
           </div>
         )
 
       case 'registration':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <p className={`text-sm ${tc.textMuted}`}>Control how the registration process works.</p>
 
-            <div className={`space-y-1 divide-y ${tc.border}`}>
-              <SectionToggle {...fp} label="Auto-Approve Registrations" field="autoApproveRegistrations" helpText="Skip manual review step" />
-              <SectionToggle {...fp} label="Require Payment to Complete" field="requirePaymentToComplete" helpText="Must pay before registration is confirmed" />
-              <SectionToggle {...fp} label="Allow Waitlist" field="allowWaitlist" helpText="When teams/seasons are full" />
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4">
+              <div className={`space-y-1 divide-y ${tc.border}`}>
+                <SectionToggle {...fp} label="Auto-Approve Registrations" field="autoApproveRegistrations" helpText="Skip manual review step" />
+                <SectionToggle {...fp} label="Require Payment to Complete" field="requirePaymentToComplete" helpText="Must pay before registration is confirmed" />
+                <SectionToggle {...fp} label="Allow Waitlist" field="allowWaitlist" helpText="When teams/seasons are full" />
+              </div>
+              <div className={`p-4 rounded-xl border ${tc.border} self-start`}>
+                <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Max Players per Reg</label>
+                <input type="number" value={localData.maxPlayersPerRegistration || ''} onChange={(e) => updateField('maxPlayersPerRegistration', parseFloat(e.target.value) || 0)}
+                  className={`w-20 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                <p className={`text-[10px] ${tc.textMuted} mt-1`}>Siblings in one form</p>
+              </div>
             </div>
-
-            <SectionNumberInput {...fp} label="Max Players per Registration" field="maxPlayersPerRegistration" helpText="Siblings in one form" />
           </div>
         )
 
@@ -1243,15 +1257,34 @@ function SetupSectionContent({
 
       case 'jerseys':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <p className={`text-sm ${tc.textMuted}`}>Configure jersey/uniform settings.</p>
-
-            <SectionInput {...fp} label="Jersey Vendor" field="jerseyVendor" placeholder="Company name" />
-            <SectionNumberInput {...fp} label="Order Lead Time" field="jerseyLeadTime" suffix="weeks" helpText="How long before season to order" />
-
-            <div className="grid grid-cols-2 gap-4">
-              <SectionNumberInput {...fp} label="Number Range Start" field="jerseyNumberStart" min={0} max={99} />
-              <SectionNumberInput {...fp} label="Number Range End" field="jerseyNumberEnd" min={1} max={99} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div>
+                  <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Jersey Vendor</label>
+                  <input type="text" value={localData.jerseyVendor || ''} onChange={(e) => updateField('jerseyVendor', e.target.value)}
+                    placeholder="Company name" className={`w-full max-w-xs px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                </div>
+                <div>
+                  <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Order Lead Time</label>
+                  <div className="relative w-32">
+                    <input type="number" value={localData.jerseyLeadTime || ''} onChange={(e) => updateField('jerseyLeadTime', parseFloat(e.target.value) || 0)}
+                      className={`w-full pr-14 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>weeks</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Number Range</label>
+                <div className="flex items-center gap-2">
+                  <input type="number" value={localData.jerseyNumberStart || ''} onChange={(e) => updateField('jerseyNumberStart', parseFloat(e.target.value) || 0)}
+                    min={0} max={99} placeholder="1" className={`w-20 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                  <span className={`text-sm ${tc.textMuted}`}>to</span>
+                  <input type="number" value={localData.jerseyNumberEnd || ''} onChange={(e) => updateField('jerseyNumberEnd', parseFloat(e.target.value) || 0)}
+                    min={1} max={99} placeholder="99" className={`w-20 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                </div>
+              </div>
             </div>
           </div>
         )
@@ -1289,10 +1322,31 @@ function SetupSectionContent({
               <h4 className={`font-semibold ${tc.text} mb-4 flex items-center gap-2`}>
                 <span>⏰</span> Reminder Timing
               </h4>
-              <div className="space-y-4">
-                <SectionNumberInput {...fp} label="Game Reminder" field="gameReminderHours" suffix="hours before" />
-                <SectionNumberInput {...fp} label="Practice Reminder" field="practiceReminderHours" suffix="hours before" />
-                <SectionNumberInput {...fp} label="Payment Reminder" field="paymentReminderDays" suffix="days before due" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <label className={`text-sm ${tc.text} w-36`}>Game Reminder</label>
+                  <div className="relative">
+                    <input type="number" value={localData.gameReminderHours || ''} onChange={(e) => updateField('gameReminderHours', parseFloat(e.target.value) || 0)}
+                      className={`w-28 pr-16 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] ${tc.textMuted}`}>hrs before</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className={`text-sm ${tc.text} w-36`}>Practice Reminder</label>
+                  <div className="relative">
+                    <input type="number" value={localData.practiceReminderHours || ''} onChange={(e) => updateField('practiceReminderHours', parseFloat(e.target.value) || 0)}
+                      className={`w-28 pr-16 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] ${tc.textMuted}`}>hrs before</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className={`text-sm ${tc.text} w-36`}>Payment Reminder</label>
+                  <div className="relative">
+                    <input type="number" value={localData.paymentReminderDays || ''} onChange={(e) => updateField('paymentReminderDays', parseFloat(e.target.value) || 0)}
+                      className={`w-28 pr-20 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] ${tc.textMuted}`}>days before</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1310,15 +1364,30 @@ function SetupSectionContent({
 
       case 'volunteers':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <p className={`text-sm ${tc.textMuted}`}>Configure volunteer requirements for families.</p>
 
             <SectionToggle {...fp} label="Require Volunteer Hours" field="requireVolunteerHours" helpText="Families must volunteer or pay buyout" />
 
             {localData.requireVolunteerHours && (
-              <div className="pl-4 border-l-2 border-slate-600 space-y-4">
-                <SectionNumberInput {...fp} label="Hours Required per Family" field="volunteerHoursRequired" suffix="hours" />
-                <SectionNumberInput {...fp} label="Buyout Amount" field="volunteerBuyoutAmount" prefix="$" helpText="Pay this instead of volunteering" />
+              <div className="pl-4 border-l-2 border-slate-600 flex gap-6">
+                <div>
+                  <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Hours Required</label>
+                  <div className="relative">
+                    <input type="number" value={localData.volunteerHoursRequired || ''} onChange={(e) => updateField('volunteerHoursRequired', parseFloat(e.target.value) || 0)}
+                      className={`w-24 pr-12 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>hrs</span>
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Buyout Amount</label>
+                  <div className="relative">
+                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
+                    <input type="number" value={localData.volunteerBuyoutAmount || ''} onChange={(e) => updateField('volunteerBuyoutAmount', parseFloat(e.target.value) || 0)}
+                      className={`w-24 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`} />
+                  </div>
+                  <p className={`text-[10px] ${tc.textMuted} mt-1`}>Pay instead of volunteering</p>
+                </div>
               </div>
             )}
           </div>
