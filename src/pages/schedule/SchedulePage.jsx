@@ -23,6 +23,7 @@ import BulkEventWizard from './BulkEventWizard'
 import VenueManagerModal from './VenueManagerModal'
 import AvailabilitySurveyModal from './AvailabilitySurveyModal'
 import EventDetailModal from './EventDetailModal'
+import VolunteerAutoAssignModal from './VolunteerAutoAssignModal'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
@@ -62,6 +63,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showPosterModal, setShowPosterModal] = useState(false)
   const [showGameDayCard, setShowGameDayCard] = useState(null)
+  const [showVolunteerAutoAssign, setShowVolunteerAutoAssign] = useState(false)
   // allUpcomingGames removed — upcoming strip removed per redesign
 
   // Helper: get season IDs filtered by sport (for "All Seasons" + sport filter)
@@ -370,6 +372,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
                   <button onClick={() => { setShowBulkWizard(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>📋</span> Create Event Series</button>
                   <button onClick={() => { setShowVenueManager(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>📍</span> Manage Venues</button>
                   <button onClick={() => { setShowAvailabilitySurvey(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><BarChart3 className="w-5 h-5" /> Availability Survey</button>
+                  <button onClick={() => { setShowVolunteerAutoAssign(true); setShowQuickActions(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 ${dropdownItemCls}`}><span>🎲</span> Auto-Assign Volunteers</button>
                 </div>
               )}
             </div>
@@ -480,6 +483,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       {showBulkWizard && <BulkEventWizard teams={teams} venues={venues} onClose={() => setShowBulkWizard(false)} onCreate={createBulkEvents} showToast={showToast} />}
       {showVenueManager && <VenueManagerModal venues={venues} onClose={() => setShowVenueManager(false)} onSave={saveVenues} />}
       {showAvailabilitySurvey && <AvailabilitySurveyModal teams={teams} organization={organization} onClose={() => setShowAvailabilitySurvey(false)} showToast={showToast} />}
+      {showVolunteerAutoAssign && <VolunteerAutoAssignModal teams={teams} events={filteredEvents} onClose={() => setShowVolunteerAutoAssign(false)} showToast={showToast} selectedSeason={selectedSeason} />}
       {selectedEvent && (
         <EventDetailModal event={selectedEvent} teams={teams} venues={venues} onClose={() => setSelectedEvent(null)} onUpdate={updateEvent} onDelete={deleteEvent}
           onUpdateSeries={updateSeriesEvents} onDeleteSeries={deleteSeriesEvents}
