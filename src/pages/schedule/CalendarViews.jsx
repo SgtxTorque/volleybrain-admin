@@ -25,11 +25,11 @@ const EVENT_ICONS = {
 
 // Brand type styles for event pills (full background tinting, NOT just left border)
 const EVENT_TYPE_STYLES = {
-  game:       { bg: 'bg-amber-100/80',   text: 'text-amber-800',   dot: 'bg-amber-500',   darkBg: 'bg-amber-900/30',   darkText: 'text-amber-300' },
-  practice:   { bg: 'bg-emerald-100/70',  text: 'text-emerald-800', dot: 'bg-emerald-500',  darkBg: 'bg-emerald-900/30',  darkText: 'text-emerald-300' },
-  tournament: { bg: 'bg-purple-100/70',   text: 'text-purple-800',  dot: 'bg-purple-500',   darkBg: 'bg-purple-900/30',   darkText: 'text-purple-300' },
-  team_event: { bg: 'bg-sky-100/70',      text: 'text-sky-800',     dot: 'bg-sky-500',      darkBg: 'bg-sky-900/30',      darkText: 'text-sky-300' },
-  other:      { bg: 'bg-slate-100',       text: 'text-slate-700',   dot: 'bg-slate-400',    darkBg: 'bg-slate-700/40',    darkText: 'text-slate-300' },
+  game:       { bg: 'bg-[#10284C]',         text: 'text-white',        dot: 'bg-[#10284C]',    darkBg: 'bg-[#10284C]',       darkText: 'text-white' },
+  practice:   { bg: 'bg-emerald-500/20',     text: 'text-emerald-800',  dot: 'bg-emerald-500',  darkBg: 'bg-emerald-500/20',  darkText: 'text-emerald-300' },
+  tournament: { bg: 'bg-purple-500/20',      text: 'text-purple-800',   dot: 'bg-purple-500',   darkBg: 'bg-purple-500/20',   darkText: 'text-purple-300' },
+  team_event: { bg: 'bg-sky-500/20',         text: 'text-sky-800',      dot: 'bg-sky-500',      darkBg: 'bg-sky-500/20',      darkText: 'text-sky-300' },
+  other:      { bg: 'bg-slate-200',          text: 'text-slate-700',    dot: 'bg-slate-400',    darkBg: 'bg-slate-700/40',    darkText: 'text-slate-300' },
 }
 
 function getTypeStyle(eventType) {
@@ -339,7 +339,7 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
                           className={`p-2 mb-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 ${
                             isDark ? 'hover:brightness-125' : 'hover:shadow-sm'
                           }`}
-                          style={{ backgroundColor: `${colors.icon}15` }}
+                          style={{ backgroundColor: `${colors.icon}25` }}
                         >
                           <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${colors.badge}`}>
                             {type}
@@ -407,96 +407,73 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
            eventDate.getFullYear() === currentDate.getFullYear()
   }).sort((a, b) => (a.event_time || '').localeCompare(b.event_time || ''))
 
-  const today = new Date()
-  today.setHours(0,0,0,0)
-  const isToday = currentDate.getDate() === today.getDate() && currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear()
-  const dayLabel = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
-
   return (
-    <div className="space-y-6">
-      {/* Day header */}
-      <div className="flex items-center gap-3">
-        <h2 className={`text-2xl font-black tracking-tighter italic uppercase ${
-          isToday ? (isDark ? 'text-white' : 'text-[#10284C]') : (isDark ? 'text-slate-500' : 'text-slate-400')
-        }`} style={{ fontFamily: 'var(--v2-font)' }}>
-          {dayLabel}
-        </h2>
-        {isToday && (
-          <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
-            isDark ? 'bg-[#FFD700] text-[#10284C]' : 'bg-[#22C55E] text-white'
-          }`}>Today</span>
-        )}
-        <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-          {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
-        </span>
-      </div>
+    <div className="space-y-4">
+      {dayEvents.length === 0 ? (
+        <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+          <p className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events scheduled for this day</p>
+        </div>
+      ) : (
+        <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+          <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
+            {dayEvents.map(event => {
+              const type = event.event_type || 'other'
+              const isGame = type === 'game'
+              const isTournament = type === 'tournament'
+              const colors = EVENT_COLORS[type] || EVENT_COLORS.other
 
-      {/* Stack-style event cards */}
-      <div className="space-y-3">
-        {dayEvents.map(event => {
-          const type = event.event_type || 'other'
-          const colors = EVENT_COLORS[type] || EVENT_COLORS.other
-          const EventIcon = EVENT_ICONS[type] || EVENT_ICONS.other
-
-          return (
-            <div key={event.id}
-              className={`group relative rounded-[14px] overflow-hidden transition-all cursor-pointer ${
-                isDark
-                  ? 'bg-[#132240] hover:bg-[#1a2d50] shadow-lg'
-                  : 'bg-white hover:shadow-[0_2px_8px_rgba(16,40,76,0.08)] border border-[#E8ECF2]'
-              }`}
-              onClick={() => onSelectEvent(event)}
-            >
-              <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.border}`} />
-              <div className="p-5 pl-6 flex items-center justify-between gap-6">
-                <div className="flex items-start gap-4 min-w-0">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                    isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-[#F5F6F8]'
-                  }`}>
-                    <EventIcon className="w-5 h-5" style={{ color: colors.icon }} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-black tracking-widest uppercase text-[#4BB9EC]">
+              return (
+                <div key={event.id}
+                  className={`relative px-4 py-3 flex items-center gap-4 cursor-pointer transition-all ${
+                    isGame
+                      ? (isDark ? 'bg-[#10284C] hover:bg-[#162d52]' : 'bg-gradient-to-r from-[#10284C] to-[#1a3a6b] text-white hover:brightness-110')
+                      : isTournament
+                        ? (isDark ? 'bg-purple-900/20 hover:bg-purple-900/30' : 'bg-purple-50 hover:bg-purple-100')
+                        : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50')
+                  }`}
+                  onClick={() => onSelectEvent(event)}
+                >
+                  <div className={`w-1 self-stretch rounded-full shrink-0 ${colors.border}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${
+                        isGame ? 'text-[#4BB9EC]' : 'text-[#4BB9EC]'
+                      }`}>
                         {event.teams?.name || 'All Teams'}
                       </span>
-                      <span className={`w-1 h-1 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
-                      <span className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span className={`text-[10px] font-bold uppercase ${
+                        isGame ? 'text-white/50' : (isDark ? 'text-slate-500' : 'text-slate-400')
+                      }`}>
                         {type}
                       </span>
                     </div>
-                    <h3 className={`text-lg font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                    <h3 className={`text-sm font-bold tracking-tight ${
+                      isGame ? 'text-white' : (isDark ? 'text-white' : 'text-[#10284C]')
+                    }`}>
                       {event.title || event.event_type}
                     </h3>
-                    <div className={`flex items-center gap-4 mt-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        {formatTime12(event.event_time)}{event.end_time ? ` — ${formatTime12(event.end_time)}` : ''}
-                      </span>
+                    <div className={`flex items-center gap-3 mt-0.5 text-xs ${
+                      isGame ? 'text-white/60' : (isDark ? 'text-slate-500' : 'text-slate-400')
+                    }`}>
+                      <span>{formatTime12(event.event_time)}{event.end_time ? ` — ${formatTime12(event.end_time)}` : ''}</span>
                       {(event.venue_name || event.location) && (
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {event.venue_name || event.location}
-                        </span>
+                        <span>📍 {event.venue_name || event.location}</span>
                       )}
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-5 shrink-0">
-                  <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${colors.badge}`}>
+                  <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-md shrink-0 ${
+                    isGame
+                      ? 'bg-white/10 text-white'
+                      : colors.badge
+                  }`}>
                     {type}
                   </span>
                 </div>
-              </div>
-            </div>
-          )
-        })}
-        {dayEvents.length === 0 && (
-          <div className={`p-8 text-center rounded-2xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
-            <p className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No events scheduled for this day</p>
+              )
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -504,7 +481,7 @@ export function DayView({ events, currentDate, onSelectEvent, teams }) {
 // ============================================
 // LIST VIEW — "The Stack" — Day-grouped rich event cards
 // ============================================
-export function ListView({ events, onSelectEvent, teams }) {
+export function ListView({ events, onSelectEvent, teams, currentDate }) {
   const { isDark } = useTheme()
   const sortedEvents = [...events].sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
 
@@ -518,156 +495,94 @@ export function ListView({ events, onSelectEvent, teams }) {
   const today = new Date()
   today.setHours(0,0,0,0)
 
-  // Weekly date strip
-  const startOfWeek = new Date(today)
-  startOfWeek.setDate(today.getDate() - today.getDay())
-  const weekDays = []
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(startOfWeek)
-    d.setDate(startOfWeek.getDate() + i)
-    const dayEvents = events.filter(e => {
-      const ed = new Date(e.start_time)
-      return ed.getDate() === d.getDate() && ed.getMonth() === d.getMonth() && ed.getFullYear() === d.getFullYear()
-    })
-    weekDays.push({ date: d, hasEvents: dayEvents.length > 0, eventTypes: [...new Set(dayEvents.map(e => e.event_type))] })
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Weekly date strip */}
-      <div className={`sticky top-0 z-10 flex items-center gap-1 p-2 rounded-2xl border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}>
-        {weekDays.map((wd, i) => {
-          const isWdToday = wd.date.getDate() === today.getDate() && wd.date.getMonth() === today.getMonth() && wd.date.getFullYear() === today.getFullYear()
-          return (
-            <div key={i} className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all ${
-              isWdToday
-                ? (isDark ? 'bg-white/[0.1]' : 'bg-[#10284C] text-white')
-                : ''
-            }`}>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${
-                isWdToday ? (isDark ? 'text-white' : 'text-white/70') : (isDark ? 'text-slate-500' : 'text-slate-400')
-              }`}>
-                {wd.date.toLocaleDateString('en-US', { weekday: 'short' })}
-              </span>
-              <span className={`text-xl font-black ${
-                isWdToday ? (isDark ? 'text-white' : 'text-white') : (isDark ? 'text-white' : 'text-[#10284C]')
-              }`}>
-                {wd.date.getDate()}
-              </span>
-              {wd.hasEvents && (
-                <div className="flex gap-0.5 mt-1">
-                  {wd.eventTypes.slice(0, 3).map((type, j) => (
-                    <div key={j} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: (EVENT_COLORS[type] || EVENT_COLORS.other).icon }} />
-                  ))}
-                </div>
+    <div className="space-y-6">
+      {Object.entries(grouped).map(([date, dayEvents]) => {
+        const dateObj = new Date(date)
+        const isToday = dateObj.getDate() === today.getDate() && dateObj.getMonth() === today.getMonth() && dateObj.getFullYear() === today.getFullYear()
+        const dayLabel = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
+
+        return (
+          <div key={date}>
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className={`text-base font-black tracking-tight italic uppercase ${
+                isToday ? (isDark ? 'text-white' : 'text-[#10284C]') : (isDark ? 'text-slate-500' : 'text-slate-400')
+              }`} style={{ fontFamily: 'var(--v2-font)' }}>
+                {dayLabel}
+              </h2>
+              {isToday && (
+                <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full ${
+                  isDark ? 'bg-[#FFD700] text-[#10284C]' : 'bg-[#22C55E] text-white'
+                }`}>Today</span>
               )}
+              <span className={`text-xs font-bold ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
+              </span>
+              <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`} />
             </div>
-          )
-        })}
-      </div>
 
-      {/* Day groups */}
-      <div className="space-y-12">
-        {Object.entries(grouped).map(([date, dayEvents]) => {
-          const dateObj = new Date(date)
-          const isToday = dateObj.getDate() === today.getDate() && dateObj.getMonth() === today.getMonth() && dateObj.getFullYear() === today.getFullYear()
-          const dayLabel = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
-
-          return (
-            <div key={date}>
-              {/* Day header */}
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className={`text-2xl font-black tracking-tighter italic uppercase ${
-                  isToday ? (isDark ? 'text-white' : 'text-[#10284C]') : (isDark ? 'text-slate-500' : 'text-slate-400')
-                }`} style={{ fontFamily: 'var(--v2-font)' }}>
-                  {dayLabel}
-                </h2>
-                {isToday && (
-                  <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
-                    isDark ? 'bg-[#FFD700] text-[#10284C]' : 'bg-[#22C55E] text-white'
-                  }`}>Today</span>
-                )}
-              </div>
-
-              {/* Event cards */}
-              <div className="space-y-3">
+            <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
+              <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
                 {dayEvents.map(event => {
                   const type = event.event_type || 'other'
+                  const isGame = type === 'game'
+                  const isTournament = type === 'tournament'
                   const colors = EVENT_COLORS[type] || EVENT_COLORS.other
-                  const EventIcon = EVENT_ICONS[type] || EVENT_ICONS.other
 
                   return (
                     <div key={event.id}
-                      className={`group relative rounded-[14px] overflow-hidden transition-all cursor-pointer ${
-                        isDark
-                          ? 'bg-[#132240] hover:bg-[#1a2d50] shadow-lg'
-                          : 'bg-white hover:shadow-[0_2px_8px_rgba(16,40,76,0.08)] border border-[#E8ECF2]'
+                      className={`relative px-4 py-3 flex items-center gap-4 cursor-pointer transition-all ${
+                        isGame
+                          ? (isDark ? 'bg-[#10284C] hover:bg-[#162d52]' : 'bg-gradient-to-r from-[#10284C] to-[#1a3a6b] text-white hover:brightness-110')
+                          : isTournament
+                            ? (isDark ? 'bg-purple-900/20 hover:bg-purple-900/30' : 'bg-purple-50 hover:bg-purple-100')
+                            : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50')
                       }`}
                       onClick={() => onSelectEvent(event)}
                     >
-                      {/* Left color border */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.border}`} />
-
-                      <div className="p-5 pl-6 flex items-center justify-between gap-6">
-                        {/* Left: Icon + Info */}
-                        <div className="flex items-start gap-4 min-w-0">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                            isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-[#F5F6F8]'
+                      <div className={`w-1 self-stretch rounded-full shrink-0 ${colors.border}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            isGame ? 'text-[#4BB9EC]' : 'text-[#4BB9EC]'
                           }`}>
-                            <EventIcon className="w-5 h-5" style={{ color: colors.icon }} />
-                          </div>
-
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-black tracking-widest uppercase text-[#4BB9EC]">
-                                {event.teams?.name || 'All Teams'}
-                              </span>
-                              <span className={`w-1 h-1 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-300'}`} />
-                              <span className={`text-xs font-bold uppercase ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                                {type}
-                              </span>
-                            </div>
-                            <h3 className={`text-lg font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-                              {event.title || event.event_type}
-                            </h3>
-                            <div className={`flex items-center gap-4 mt-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                              <span className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
-                                {formatTime12(event.event_time)}{event.end_time ? ` — ${formatTime12(event.end_time)}` : ''}
-                              </span>
-                              {(event.venue_name || event.location) && (
-                                <span className="flex items-center gap-1.5">
-                                  <MapPin className="w-3.5 h-3.5" />
-                                  {event.venue_name || event.location}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Right: RSVP + Type badge */}
-                        <div className="flex items-center gap-5 shrink-0">
-                          {event.rsvpCount !== undefined && (
-                            <div className="text-right">
-                              <div className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>RSVP</div>
-                              <div className={`text-lg font-black ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-                                {event.rsvpCount || 0}/{event.rsvpTotal || '—'}
-                              </div>
-                            </div>
-                          )}
-                          <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${colors.badge}`}>
+                            {event.teams?.name || 'All Teams'}
+                          </span>
+                          <span className={`text-[10px] font-bold uppercase ${
+                            isGame ? 'text-white/50' : (isDark ? 'text-slate-500' : 'text-slate-400')
+                          }`}>
                             {type}
                           </span>
                         </div>
+                        <h3 className={`text-sm font-bold tracking-tight ${
+                          isGame ? 'text-white' : (isDark ? 'text-white' : 'text-[#10284C]')
+                        }`}>
+                          {event.title || event.event_type}
+                        </h3>
+                        <div className={`flex items-center gap-3 mt-0.5 text-xs ${
+                          isGame ? 'text-white/60' : (isDark ? 'text-slate-500' : 'text-slate-400')
+                        }`}>
+                          <span>{formatTime12(event.event_time)}{event.end_time ? ` — ${formatTime12(event.end_time)}` : ''}</span>
+                          {(event.venue_name || event.location) && (
+                            <span>📍 {event.venue_name || event.location}</span>
+                          )}
+                        </div>
                       </div>
+                      <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-md shrink-0 ${
+                        isGame
+                          ? 'bg-white/10 text-white'
+                          : colors.badge
+                      }`}>
+                        {type}
+                      </span>
                     </div>
                   )
                 })}
               </div>
             </div>
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
