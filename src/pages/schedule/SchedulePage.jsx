@@ -95,6 +95,15 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         setEvents([])
         setLoading(false)
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setEvents([])
+          setLoading(false)
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data, error } = await query
@@ -146,6 +155,14 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       } else if (sportIds && sportIds.length === 0) {
         setTeams([])
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setTeams([])
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data } = await query.order('name')

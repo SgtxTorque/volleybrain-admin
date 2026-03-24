@@ -96,6 +96,15 @@ export function RegistrationsPage({ showToast }) {
         return
       }
       query = query.in('season_id', sportSeasonIds)
+    } else {
+      // All Seasons + no sport → filter by ALL org season IDs
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) {
+        setRegistrations([])
+        setLoading(false)
+        return
+      }
+      query = query.in('season_id', orgSeasonIds)
     }
 
     const { data, error } = await query

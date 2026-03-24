@@ -96,6 +96,11 @@ export function StaffPortalPage({ showToast }) {
           .map(s => s.id)
         if (sportSeasonIds.length === 0) { setCoaches([]); return }
         coachQuery = coachQuery.in('season_id', sportSeasonIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) { setCoaches([]); return }
+        coachQuery = coachQuery.in('season_id', orgSeasonIds)
       }
       const { data: coachesData, error } = await coachQuery.order('last_name', { ascending: true })
       if (error) throw error
@@ -126,6 +131,11 @@ export function StaffPortalPage({ showToast }) {
           query = query.in('season_id', sportIds)
         } else if (sportIds && sportIds.length === 0) {
           setStaffMembers([]); return
+        } else {
+          // All Seasons + no sport → filter by ALL org season IDs
+          const orgSeasonIds = (allSeasons || []).map(s => s.id)
+          if (orgSeasonIds.length === 0) { setStaffMembers([]); return }
+          query = query.in('season_id', orgSeasonIds)
         }
       }
       const { data, error } = await query.order('last_name')
@@ -145,6 +155,11 @@ export function StaffPortalPage({ showToast }) {
       const sportIds = getSportSeasonIds()
       if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) { setTeams([]); return }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data } = await query

@@ -360,6 +360,11 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
       query = query.eq('season_id', selectedSeason.id)
     } else if (sportIds && sportIds.length > 0) {
       query = query.in('season_id', sportIds)
+    } else if (isAllSeasons(selectedSeason)) {
+      // All Seasons + no sport → filter by ALL org season IDs
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) { setTeams([]); return }
+      query = query.in('season_id', orgSeasonIds)
     }
     query = query.order('name')
 
@@ -390,6 +395,11 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
         query = query.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else if (isAllSeasons(selectedSeason)) {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) { setLeaderboardData({}); setLoading(false); return }
+        query = query.in('season_id', orgSeasonIds)
       }
       query = query.gt('games_played', 0)
 

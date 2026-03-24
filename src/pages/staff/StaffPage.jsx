@@ -71,6 +71,15 @@ export function StaffPage({ showToast }) {
           setStaff([])
           setLoading(false)
           return
+        } else {
+          // All Seasons + no sport → filter by ALL org season IDs
+          const orgSeasonIds = (allSeasons || []).map(s => s.id)
+          if (orgSeasonIds.length === 0) {
+            setStaff([])
+            setLoading(false)
+            return
+          }
+          query = query.in('season_id', orgSeasonIds)
         }
       }
       const { data, error } = await query.order('last_name')
@@ -95,6 +104,11 @@ export function StaffPage({ showToast }) {
       } else if (sportIds && sportIds.length === 0) {
         setTeams([])
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) { setTeams([]); return }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data } = await query

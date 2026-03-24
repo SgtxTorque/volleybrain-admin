@@ -199,6 +199,14 @@ export function PaymentsPage({ showToast }) {
       } else if (sportIds && sportIds.length === 0) {
         setPlayers([])
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setPlayers([])
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data } = await query
@@ -221,6 +229,15 @@ export function PaymentsPage({ showToast }) {
         setPayments([])
         setLoading(false)
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setPayments([])
+          setLoading(false)
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data } = await query.order('created_at', { ascending: false })

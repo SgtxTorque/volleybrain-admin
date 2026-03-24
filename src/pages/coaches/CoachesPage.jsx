@@ -69,6 +69,15 @@ export function CoachesPage({ showToast }) {
           return
         }
         coachQuery = coachQuery.in('season_id', sportSeasonIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setCoaches([])
+          setLoading(false)
+          return
+        }
+        coachQuery = coachQuery.in('season_id', orgSeasonIds)
       }
       const { data: coachesData, error } = await coachQuery
         .order('last_name', { ascending: true })
@@ -93,6 +102,23 @@ export function CoachesPage({ showToast }) {
     let query = supabase.from('teams').select('id, name, color')
     if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
       query = query.eq('season_id', selectedSeason.id)
+    } else if (isAllSeasons(selectedSeason) && selectedSport?.id) {
+      const sportSeasonIds = (allSeasons || [])
+        .filter(s => s.sport_id === selectedSport.id)
+        .map(s => s.id)
+      if (sportSeasonIds.length === 0) {
+        setTeams([])
+        return
+      }
+      query = query.in('season_id', sportSeasonIds)
+    } else if (isAllSeasons(selectedSeason)) {
+      // All Seasons + no sport → filter by ALL org season IDs
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) {
+        setTeams([])
+        return
+      }
+      query = query.in('season_id', orgSeasonIds)
     }
     const { data } = await query
     setTeams(data || [])

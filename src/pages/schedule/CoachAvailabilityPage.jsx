@@ -156,6 +156,14 @@ function CoachAvailabilityPage({ showToast, activeView, roleContext, onNavigate 
           return
         }
         query = query.in('season_id', sportSeasonIds)
+      } else if (isAllSeasons(selectedSeason)) {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setCoaches([])
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
 
       const { data } = await query

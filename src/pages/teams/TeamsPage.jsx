@@ -78,6 +78,15 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
         return
       }
       query = query.in('season_id', sportSeasonIds)
+    } else {
+      // All Seasons + no sport → filter by ALL org season IDs
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) {
+        setTeams([])
+        setLoading(false)
+        return
+      }
+      query = query.in('season_id', orgSeasonIds)
     }
     const { data } = await query.order('name')
     setTeams(data || [])
@@ -125,6 +134,14 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       return
     } else if (sportSeasonIds) {
       playersQuery = playersQuery.in('season_id', sportSeasonIds)
+    } else {
+      // All Seasons + no sport → filter by ALL org season IDs
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) {
+        setUnrosteredPlayers([])
+        return
+      }
+      playersQuery = playersQuery.in('season_id', orgSeasonIds)
     }
     const { data: allPlayers } = await playersQuery
     const approvedPlayers = (allPlayers || []).filter(p => {
@@ -316,6 +333,14 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
         return
       }
       query = query.in('season_id', sportSeasonIds)
+    } else {
+      // All Seasons + no sport → filter by ALL org season IDs
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+      if (orgSeasonIds.length === 0) {
+        setCoaches([])
+        return
+      }
+      query = query.in('season_id', orgSeasonIds)
     }
     const { data } = await query
     setCoaches(data || [])

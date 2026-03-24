@@ -60,6 +60,14 @@ function AttendancePage({ showToast }) {
       } else if (sportIds && sportIds.length === 0) {
         setTeams([])
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setTeams([])
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
     }
     const { data } = await query.order('name')
@@ -81,6 +89,15 @@ function AttendancePage({ showToast }) {
           setEvents([])
           setLoading(false)
           return
+        } else {
+          // All Seasons + no sport → filter by ALL org season IDs
+          const orgSeasonIds = (allSeasons || []).map(s => s.id)
+          if (orgSeasonIds.length === 0) {
+            setEvents([])
+            setLoading(false)
+            return
+          }
+          query = query.in('season_id', orgSeasonIds)
         }
       }
       query = query.order('event_date', { ascending: viewMode !== 'past' })

@@ -60,6 +60,16 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         setBlasts([])
         setLoading(false)
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setTeams([])
+          setBlasts([])
+          setLoading(false)
+          return
+        }
+        teamsQuery = teamsQuery.in('season_id', orgSeasonIds)
       }
       if ((isCoach || isTeamManager) && coachTeamIds.length > 0) {
         teamsQuery = teamsQuery.in('id', coachTeamIds)
@@ -85,6 +95,15 @@ function BlastsPage({ showToast, activeView, roleContext }) {
         setBlasts([])
         setLoading(false)
         return
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setBlasts([])
+          setLoading(false)
+          return
+        }
+        blastsQuery = blastsQuery.in('season_id', orgSeasonIds)
       }
       const { data: blastsData } = await blastsQuery
         .order('created_at', { ascending: false })

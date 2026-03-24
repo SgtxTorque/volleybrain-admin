@@ -104,6 +104,14 @@ export function JerseysPage({ showToast }) {
         regQuery = regQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
         regQuery = regQuery.in('season_id', sportIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setUnrosteredCount(0)
+          return
+        }
+        regQuery = regQuery.in('season_id', orgSeasonIds)
       }
       const { data: registrations } = await regQuery
 
@@ -119,6 +127,14 @@ export function JerseysPage({ showToast }) {
         seasonTeamsQuery = seasonTeamsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
         seasonTeamsQuery = seasonTeamsQuery.in('season_id', sportIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setUnrosteredCount(0)
+          return
+        }
+        seasonTeamsQuery = seasonTeamsQuery.in('season_id', orgSeasonIds)
       }
       const { data: seasonTeams } = await seasonTeamsQuery
 
@@ -153,6 +169,15 @@ export function JerseysPage({ showToast }) {
         query = query.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
         query = query.in('season_id', sportIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setTeams([])
+          setLoading(false)
+          return
+        }
+        query = query.in('season_id', orgSeasonIds)
       }
       const { data } = await query.order('name')
       setTeams(data || [])
@@ -180,9 +205,19 @@ export function JerseysPage({ showToast }) {
         teamsQuery = teamsQuery.eq('season_id', selectedSeason.id)
       } else if (sportIds && sportIds.length > 0) {
         teamsQuery = teamsQuery.in('season_id', sportIds)
+      } else {
+        // All Seasons + no sport → filter by ALL org season IDs
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setPlayers([])
+          setAllPlayersAllTeams([])
+          setLoading(false)
+          return
+        }
+        teamsQuery = teamsQuery.in('season_id', orgSeasonIds)
       }
       const { data: seasonTeams } = await teamsQuery
-      
+
       if (!seasonTeams || seasonTeams.length === 0) {
         setPlayers([])
         setLoading(false)
