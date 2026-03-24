@@ -154,7 +154,7 @@ function AttendancePage({ showToast }) {
         supabase.from('event_rsvps').select('*, players(id, first_name, last_name, jersey_number)').eq('event_id', event.id).then(r => r.data || []).catch(() => []),
         supabase.from('event_volunteers').select('*, profiles(id, full_name)').eq('event_id', event.id).order('role').order('position').then(r => r.data || []).catch(() => []),
         event.team_id ? supabase.from('team_players').select('*, players(id, first_name, last_name, jersey_number, photo_url, position)').eq('team_id', event.team_id).then(r => r.data || []).catch(() => []) : Promise.resolve([]),
-        supabase.from('profiles').select('id, full_name, email').order('full_name').then(r => r.data || []).catch(() => [])
+        supabase.from('profiles').select('id, full_name, email').eq('organization_id', organization?.id).order('full_name').then(r => r.data || []).catch(() => [])
       ])
       setRsvps(rsvpRes)
       setVolunteers(volRes)
