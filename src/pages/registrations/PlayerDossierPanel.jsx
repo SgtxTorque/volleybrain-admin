@@ -1,9 +1,4 @@
-// =============================================================================
-// PlayerDossierPanel — War Room right-column player detail panel
-// Receives all data as props — makes NO Supabase queries
-// =============================================================================
-
-import { Check, X, Edit, Eye, FileCheck, AlertCircle, XCircle } from 'lucide-react'
+import { Check, X, Edit } from 'lucide-react'
 
 function calculateAge(birthDate) {
   if (!birthDate) return null
@@ -15,36 +10,35 @@ function calculateAge(birthDate) {
   return age
 }
 
-function InfoMini({ label, value, isDark }) {
+function InfoRow({ label, value, isDark }) {
   return (
-    <div className={`rounded-lg p-2.5 ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
-      <div className={`text-[9px] font-black uppercase tracking-[0.15em] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</div>
-      <div className={`text-sm font-bold mt-0.5 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{value || '—'}</div>
+    <div className="flex items-baseline justify-between py-1.5">
+      <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
+      <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{value || '—'}</span>
     </div>
   )
 }
 
-function WaiverItem({ label, status, isDark }) {
-  const colors = status === 'signed'
-    ? { bar: 'bg-[#22C55E]', icon: FileCheck, iconColor: 'text-[#22C55E]', text: isDark ? 'text-emerald-300' : 'text-emerald-700' }
-    : status === 'pending'
-    ? { bar: 'bg-amber-400', icon: AlertCircle, iconColor: 'text-amber-400', text: isDark ? 'text-amber-300' : 'text-amber-700' }
-    : { bar: 'bg-red-500', icon: XCircle, iconColor: 'text-red-500', text: isDark ? 'text-red-300' : 'text-red-700' }
-  const Icon = colors.icon
-
+function SectionLabel({ children, isDark }) {
   return (
-    <div className={`flex items-center gap-2.5 px-3 py-2 rounded-lg ${isDark ? 'bg-white/[0.03]' : 'bg-[#F5F6F8]'}`}>
-      <div className={`w-1 h-6 rounded-full ${colors.bar}`} />
-      <Icon className={`w-3.5 h-3.5 ${colors.iconColor}`} />
-      <span className={`text-xs font-bold ${colors.text}`}>{label}</span>
-      <span className={`ml-auto text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-        {status === 'signed' ? 'Complete' : status === 'pending' ? 'Pending' : 'Missing'}
+    <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-1.5 mt-4 first:mt-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{children}</h4>
+  )
+}
+
+function WaiverRow({ label, signed, isDark }) {
+  return (
+    <div className={`flex items-center justify-between py-1.5`}>
+      <span className={`text-xs font-semibold ${signed ? (isDark ? 'text-emerald-400' : 'text-emerald-700') : (isDark ? 'text-red-400' : 'text-red-600')}`}>
+        {label}
+      </span>
+      <span className={`text-[10px] font-bold uppercase ${signed ? 'text-emerald-500' : 'text-red-500'}`}>
+        {signed ? 'Signed' : 'Missing'}
       </span>
     </div>
   )
 }
 
-export default function PlayerDossierPanel({ player, registration, onClose, onApprove, onDeny, onEdit, onViewFull, isDark }) {
+export default function PlayerDossierPanel({ player, registration, onClose, onApprove, onDeny, onEdit, isDark }) {
   if (!player) return null
 
   const reg = registration || player.registrations?.[0]
@@ -54,12 +48,6 @@ export default function PlayerDossierPanel({ player, registration, onClose, onAp
     ? new Date((player.birth_date || player.dob) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null
 
-  // Waiver statuses
-  const waiverLiability = player.waiver_liability ? 'signed' : 'missing'
-  const waiverPhoto = player.waiver_photo ? 'signed' : 'missing'
-  const waiverConduct = player.waiver_conduct ? 'signed' : 'missing'
-
-  // Status display
   const statusDisplay = isPending ? 'Pending' :
     reg?.status === 'approved' ? 'Approved' :
     reg?.status === 'rostered' ? 'Rostered' :
@@ -72,85 +60,101 @@ export default function PlayerDossierPanel({ player, registration, onClose, onAp
     reg?.status === 'waitlist' ? 'bg-amber-500/12 text-amber-500' :
     reg?.status === 'withdrawn' ? 'bg-red-500/12 text-red-500' : 'bg-slate-500/12 text-slate-400'
 
+  const registeredDate = reg?.created_at
+    ? new Date(reg.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : null
+
   return (
-    <div className={`sticky top-6 rounded-2xl border overflow-hidden ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}
+    <div className={`sticky top-4 rounded-2xl border overflow-hidden flex flex-col max-h-[calc(100vh-220px)] ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'} shadow-sm`}
       style={{ fontFamily: 'var(--v2-font)' }}>
 
-      {/* Navy header */}
-      <div className="px-4 py-3 flex items-center justify-between bg-[#10284C]">
-        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/70">Player Dossier</span>
+      {/* Header */}
+      <div className="px-5 py-3 flex items-center justify-between bg-[#10284C] shrink-0">
+        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/70">Player Profile</span>
         <button onClick={onClose} className="text-white/50 hover:text-white text-lg leading-none">&times;</button>
       </div>
 
-      {/* Avatar + Name */}
-      <div className={`p-5 text-center border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
-        <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center text-xl font-black ${isDark ? 'bg-[#4BB9EC]/10 text-[#4BB9EC]' : 'bg-[#4BB9EC]/10 text-[#4BB9EC]'}`}>
-          {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
-        </div>
-        <h3 className={`text-lg font-extrabold mt-3 tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-          {player.first_name} {player.last_name}
-        </h3>
-        <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          {player.parent_name ? `Family: ${player.parent_name}` : 'No parent info'}
-        </p>
-        <div className="mt-2">
-          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black ${statusColor}`}>
-            {statusDisplay}
-          </span>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-4 max-h-[calc(100vh-350px)] overflow-y-auto">
-        {/* Info grid */}
-        <div>
-          <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Details</h4>
-          <div className="grid grid-cols-2 gap-2">
-            <InfoMini label="DOB" value={dob} isDark={isDark} />
-            <InfoMini label="Age" value={age} isDark={isDark} />
-            <InfoMini label="Jersey #" value={player.jersey_number} isDark={isDark} />
-            <InfoMini label="Grade" value={player.grade} isDark={isDark} />
+      {/* Player identity */}
+      <div className={`px-5 py-4 flex items-center gap-4 border-b shrink-0 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+        {player.photo_url ? (
+          <img src={player.photo_url} alt="" className="w-14 h-14 rounded-full object-cover shrink-0" />
+        ) : (
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-black shrink-0 ${isDark ? 'bg-[#4BB9EC]/10 text-[#4BB9EC]' : 'bg-[#4BB9EC]/10 text-[#4BB9EC]'}`}>
+            {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
           </div>
-        </div>
-
-        {/* Document Checklist */}
-        <div>
-          <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Documents</h4>
-          <div className="space-y-1.5">
-            <WaiverItem label="Liability Waiver" status={waiverLiability} isDark={isDark} />
-            <WaiverItem label="Photo Release" status={waiverPhoto} isDark={isDark} />
-            <WaiverItem label="Code of Conduct" status={waiverConduct} isDark={isDark} />
-          </div>
-        </div>
-
-        {/* Payment Summary */}
-        <div>
-          <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment</h4>
-          <div className={`rounded-lg p-3 ${isDark ? 'bg-[#10284C]' : 'bg-[#10284C]'}`}>
-            <div className="flex justify-between items-baseline">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total Commitment</span>
-              <span className="text-xl font-black text-white">
-                {reg?.registration_fee ? `$${reg.registration_fee}` : '—'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div>
-          <h4 className={`text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Contact</h4>
-          <div className="space-y-1">
-            {player.parent_email && (
-              <p className={`text-xs truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{player.parent_email}</p>
-            )}
-            {player.parent_phone && (
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{player.parent_phone}</p>
-            )}
+        )}
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-lg font-bold tracking-tight ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+            {player.first_name} {player.last_name}
+          </h3>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColor}`}>{statusDisplay}</span>
+            {registeredDate && <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Registered {registeredDate}</span>}
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className={`p-4 border-t space-y-2 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto px-5 py-3">
+
+        <SectionLabel isDark={isDark}>Player Information</SectionLabel>
+        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+          <InfoRow label="Date of Birth" value={dob} isDark={isDark} />
+          <InfoRow label="Age" value={age} isDark={isDark} />
+          <InfoRow label="Grade" value={player.grade} isDark={isDark} />
+          <InfoRow label="Gender" value={player.gender} isDark={isDark} />
+          <InfoRow label="School" value={player.school} isDark={isDark} />
+          <InfoRow label="Experience" value={player.experience_level} isDark={isDark} />
+          <InfoRow label="Jersey #" value={player.jersey_number} isDark={isDark} />
+          <InfoRow label="Jersey Pref" value={[player.jersey_pref_1, player.jersey_pref_2, player.jersey_pref_3].filter(Boolean).join(', ') || null} isDark={isDark} />
+          <InfoRow label="Jersey Size" value={player.uniform_size_jersey} isDark={isDark} />
+          <InfoRow label="Shorts Size" value={player.uniform_size_shorts} isDark={isDark} />
+          <InfoRow label="Position" value={player.position} isDark={isDark} />
+        </div>
+
+        <SectionLabel isDark={isDark}>Parent / Guardian</SectionLabel>
+        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+          <InfoRow label="Name" value={player.parent_name} isDark={isDark} />
+          <InfoRow label="Email" value={player.parent_email} isDark={isDark} />
+          <InfoRow label="Phone" value={player.parent_phone} isDark={isDark} />
+          <InfoRow label="Phone 2" value={player.parent_phone_secondary} isDark={isDark} />
+          <InfoRow label="Address" value={[player.address, player.city, player.state, player.zip].filter(Boolean).join(', ') || null} isDark={isDark} />
+        </div>
+
+        <SectionLabel isDark={isDark}>Emergency Contact</SectionLabel>
+        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+          <InfoRow label="Name" value={player.emergency_contact_name} isDark={isDark} />
+          <InfoRow label="Phone" value={player.emergency_contact_phone} isDark={isDark} />
+          <InfoRow label="Relation" value={player.emergency_contact_relation} isDark={isDark} />
+        </div>
+
+        <SectionLabel isDark={isDark}>Medical</SectionLabel>
+        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+          <InfoRow label="Conditions" value={player.medical_conditions || player.medical_notes} isDark={isDark} />
+          <InfoRow label="Allergies" value={player.allergies} isDark={isDark} />
+          <InfoRow label="Medications" value={player.medications} isDark={isDark} />
+        </div>
+
+        <SectionLabel isDark={isDark}>Waivers</SectionLabel>
+        <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
+          <WaiverRow label="Liability Waiver" signed={player.waiver_liability} isDark={isDark} />
+          <WaiverRow label="Photo Release" signed={player.waiver_photo} isDark={isDark} />
+          <WaiverRow label="Code of Conduct" signed={player.waiver_conduct} isDark={isDark} />
+        </div>
+
+        <SectionLabel isDark={isDark}>Payment</SectionLabel>
+        <div className={`rounded-lg p-3 ${isDark ? 'bg-[#10284C]' : 'bg-[#10284C]'}`}>
+          <div className="flex justify-between items-baseline">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total</span>
+            <span className="text-lg font-black text-white">
+              {reg?.registration_fee ? `$${reg.registration_fee}` : '—'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className={`px-5 py-3 border-t shrink-0 space-y-2 ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
         {isPending && (
           <div className="grid grid-cols-2 gap-2">
             <button onClick={onApprove}
@@ -168,10 +172,6 @@ export default function PlayerDossierPanel({ player, registration, onClose, onAp
             isDark ? 'bg-white/[0.06] text-white hover:bg-white/[0.1]' : 'bg-[#F5F6F8] text-[#10284C] hover:bg-slate-200'
           }`}>
           <Edit className="w-3.5 h-3.5" /> Edit Player
-        </button>
-        <button onClick={onViewFull}
-          className="w-full px-3 py-2 rounded-lg text-xs font-bold text-[#4BB9EC] hover:bg-[#4BB9EC]/10 flex items-center justify-center gap-1.5 transition">
-          <Eye className="w-3.5 h-3.5" /> View Full Profile
         </button>
       </div>
     </div>
