@@ -383,8 +383,8 @@ export function RegistrationsPage({ showToast }) {
         newCount={newCount}
       />
 
-      {/* Action bar */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Action bar + filter tabs */}
+      <div className="flex items-center gap-3 flex-wrap">
         <div className={`flex rounded-xl p-1 ${isDark ? 'bg-white/[0.06] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
           <button onClick={() => setViewMode('table')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${viewMode === 'table' ? (isDark ? 'bg-white/[0.1] text-white' : 'bg-[#F5F6F8] text-[#10284C]') : (isDark ? 'text-slate-500' : 'text-slate-400')}`}>
@@ -395,16 +395,41 @@ export function RegistrationsPage({ showToast }) {
             <BarChart3 className="w-3.5 h-3.5" /> Analytics
           </button>
         </div>
+        <button onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
+          className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06]' : 'bg-white text-[#10284C] border border-[#E8ECF2]'}`}>
+          <FileDown className="w-3.5 h-3.5" /> Export
+        </button>
         {statusCounts.pending > 0 && (
           <button onClick={bulkApproveAllPending} disabled={bulkProcessing}
             className="px-3 py-2 rounded-xl text-xs font-bold bg-[#22C55E] text-white hover:brightness-110 disabled:opacity-50 flex items-center gap-1.5 transition">
             <Check className="w-3.5 h-3.5" /> Approve All ({statusCounts.pending})
           </button>
         )}
-        <button onClick={() => exportToCSV(filteredRegs, 'registrations', csvColumns)}
-          className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition ${isDark ? 'bg-white/[0.06] text-slate-300 border border-white/[0.06]' : 'bg-white text-[#10284C] border border-[#E8ECF2]'}`}>
-          <FileDown className="w-3.5 h-3.5" /> Export CSV
-        </button>
+
+        {/* Status filter tabs — moved from table */}
+        <div className={`ml-auto flex items-center gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+          {[
+            { key: 'all', label: 'All', count: statusCounts.all },
+            { key: 'pending', label: 'Pending', count: statusCounts.pending },
+            { key: 'approved', label: 'Approved', count: statusCounts.approved },
+            { key: 'rostered', label: 'Rostered', count: statusCounts.rostered },
+            { key: 'waitlist', label: 'Waitlist', count: statusCounts.waitlist },
+            { key: 'denied', label: 'Denied', count: statusCounts.denied },
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setStatusFilter(f.key)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition ${
+                statusFilter === f.key
+                  ? (isDark ? 'bg-white/[0.1] text-white' : 'bg-[#F5F6F8] text-[#10284C] shadow-sm')
+                  : (isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-[#10284C]')
+              }`}
+            >
+              {f.label}
+              {f.count > 0 && <span className="ml-1 opacity-60">{f.count}</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Analytics View */}
@@ -467,7 +492,6 @@ export function RegistrationsPage({ showToast }) {
                   if (reg) setShowDenyModal({ player: dossierPlayer, reg })
                 }}
                 onEdit={() => { setSelectedPlayer(dossierPlayer); setEditMode(true) }}
-                onViewFull={() => { setSelectedPlayer(dossierPlayer); setEditMode(false) }}
                 isDark={isDark}
               />
             ) : (

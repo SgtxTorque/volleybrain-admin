@@ -150,47 +150,22 @@ export default function RegistrationsTable({
         </div>
       )}
 
-      {/* Filter Bar inside card */}
-      <div className={`${cardBg} rounded-[14px] overflow-hidden`}>
-        <div className={`px-5 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
-          {/* V2 Search input */}
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search players or parents..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm font-medium transition-all focus:outline-none ${
-                isDark
-                  ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder:text-slate-500 focus:border-[#4BB9EC]/30'
-                  : 'bg-white border border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'
-              }`}
-              style={{ fontFamily: 'var(--v2-font)' }}
-            />
-          </div>
-          {/* V2 pill-style status tabs */}
-          <div className={`flex items-center gap-1 p-1 rounded-xl ${isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'}`}>
-            {filterChips.map(f => (
-              <button
-                key={f.key}
-                onClick={() => setStatusFilter(f.key)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all relative ${
-                  statusFilter === f.key
-                    ? (isDark ? 'bg-white/[0.1] text-white shadow-sm' : 'bg-white text-[#10284C] shadow-sm')
-                    : (isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-[#10284C]')
-                }`}
-              >
-                {f.label}
-                {f.count > 0 && (
-                  <span className={`ml-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center rounded-full text-[10px] font-black ${
-                    f.dot && statusFilter !== f.key ? 'bg-amber-500 text-white' : (isDark ? 'bg-white/[0.1] text-slate-400' : 'bg-slate-200 text-slate-600')
-                  }`}>{f.count}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Search */}
+      <div className={`relative max-w-sm`}>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search players or parents..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className={`w-full pl-10 pr-4 py-2 rounded-xl text-sm font-medium transition-all focus:outline-none ${
+            isDark
+              ? 'bg-white/[0.06] border border-white/[0.06] text-white placeholder:text-slate-500 focus:border-[#4BB9EC]/30'
+              : 'bg-white border border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400 focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10'
+          }`}
+          style={{ fontFamily: 'var(--v2-font)' }}
+        />
+      </div>
 
       <div className={`rounded-xl overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2]'}`}>
         {loading ? (
@@ -246,14 +221,20 @@ export default function RegistrationsTable({
                     {(player.first_name || '?').charAt(0)}{(player.last_name || '').charAt(0)}
                   </div>
 
-                  {/* Name + parent */}
-                  <div className="flex-1 min-w-0">
+                  {/* Player name */}
+                  <div className="w-[160px] min-w-0 shrink-0">
                     <span className={`text-sm font-semibold truncate block ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
                       {player.first_name} {player.last_name}
                     </span>
-                    <span className={`text-xs truncate block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {player.parent_name || 'No parent'}
-                      {player.grade ? ` · Gr ${player.grade}` : ''}
+                    <span className={`text-[10px] truncate block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {player.grade ? `Gr ${player.grade}` : ''}
+                    </span>
+                  </div>
+
+                  {/* Parent name */}
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-xs truncate block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {player.parent_name || '—'}
                     </span>
                   </div>
 
@@ -280,7 +261,6 @@ export default function RegistrationsTable({
             })}
           </div>
         )}
-      </div>
       </div>
     </div>
   )
