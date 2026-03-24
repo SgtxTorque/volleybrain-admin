@@ -550,7 +550,7 @@ export function PaymentsPage({ showToast }) {
       ) : (
         <div className="flex gap-5">
           {/* Left: Payment list */}
-          <div className="w-[580px] shrink-0 min-w-0 overflow-y-auto max-h-[calc(100vh-280px)]">
+          <div className="w-[680px] shrink-0 min-w-0 overflow-y-auto max-h-[calc(100vh-280px)]">
             {viewMode === 'individual' ? (
               <div>
                 {playerList.length === 0 ? (
