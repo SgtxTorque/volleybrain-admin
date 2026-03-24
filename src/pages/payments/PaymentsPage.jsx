@@ -552,17 +552,21 @@ export function PaymentsPage({ showToast }) {
           {/* Left: Payment list */}
           <div className="flex-1 min-w-0">
             {viewMode === 'individual' ? (
-              <div className="space-y-3">
+              <div>
                 {playerList.length === 0 ? (
                   <div className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No results found for "{searchQuery}"</div>
                 ) : (
-                  playerList.map(({ id, player, payments: pPayments }) => (
-                    <PlayerPaymentCard key={id} player={player} payments={pPayments}
-                      expanded={expandedCards.has(id)} onToggle={() => toggleCard(id)}
-                      onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
-                      onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={p => setShowReminderModal(p)}
-                    />
-                  ))
+                  <div className={`rounded-[14px] overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2] shadow-[0_1px_3px_rgba(16,40,76,0.04)]'}`}>
+                    <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
+                      {playerList.map(({ id, player, payments: pPayments }) => (
+                        <PlayerPaymentCard key={id} player={player} payments={pPayments}
+                          expanded={expandedCards.has(id)} onToggle={() => toggleCard(id)}
+                          onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
+                          onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={p => setShowReminderModal(p)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             ) : sortMode === 'priority' ? (
@@ -589,7 +593,8 @@ export function PaymentsPage({ showToast }) {
                         )}
                       </div>
                       {/* Zone families */}
-                      <div className="space-y-3">
+                      <div className={`rounded-[14px] overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2] shadow-[0_1px_3px_rgba(16,40,76,0.04)]'}`}>
+                        <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
                         {visibleFamilies.map(family => (
                           <FamilyPaymentCard key={family.email} family={family}
                             expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
@@ -602,6 +607,7 @@ export function PaymentsPage({ showToast }) {
                             bulkSelected={selectedFamilyIds.has(family.email)}
                           />
                         ))}
+                        </div>
                       </div>
                     </div>
                   )
@@ -609,22 +615,26 @@ export function PaymentsPage({ showToast }) {
               </div>
             ) : (
               /* Flat list (balance/name sort) */
-              <div className="space-y-3">
+              <div>
                 {familyList.length === 0 ? (
                   <div className={`text-center py-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No results found for "{searchQuery}"</div>
                 ) : (
-                  familyList.map(family => (
-                    <FamilyPaymentCard key={family.email} family={family}
-                      expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
-                      onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
-                      onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
-                      isSelected={selectedFamily?.email === family.email}
-                      onSelect={() => setSelectedFamily(selectedFamily?.email === family.email ? null : family)}
-                      zone={classifyFamily(family)}
-                      onBulkToggle={() => toggleBulkSelect(family.email)}
-                      bulkSelected={selectedFamilyIds.has(family.email)}
-                    />
-                  ))
+                  <div className={`rounded-[14px] overflow-hidden border ${isDark ? 'bg-[#132240] border-white/[0.06]' : 'bg-white border-[#E8ECF2] shadow-[0_1px_3px_rgba(16,40,76,0.04)]'}`}>
+                    <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
+                      {familyList.map(family => (
+                        <FamilyPaymentCard key={family.email} family={family}
+                          expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
+                          onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
+                          onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
+                          isSelected={selectedFamily?.email === family.email}
+                          onSelect={() => setSelectedFamily(selectedFamily?.email === family.email ? null : family)}
+                          zone={classifyFamily(family)}
+                          onBulkToggle={() => toggleBulkSelect(family.email)}
+                          bulkSelected={selectedFamilyIds.has(family.email)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
