@@ -686,6 +686,46 @@ function SetupSectionContent({
           <div className="space-y-6">
             <p className={`text-sm ${tc.textMuted}`}>Configure how you accept payments from families. Enable at least one method.</p>
 
+            {/* Online Payments (Stripe) */}
+            <div className={`p-5 rounded-xl border-2 ${
+              organization?.stripe_enabled
+                ? 'border-emerald-500/30 bg-emerald-500/5'
+                : `${tc.border}`
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💳</span>
+                  <div>
+                    <p className={`font-semibold ${tc.text}`}>Online Payments</p>
+                    <p className={`text-sm ${tc.textMuted}`}>
+                      {organization?.stripe_enabled
+                        ? <>Stripe is <span className="text-emerald-500 font-semibold">enabled</span> ({organization?.stripe_mode === 'live' ? 'Live' : 'Test'} mode)</>
+                        : 'Accept credit/debit cards via Stripe'
+                      }
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className="px-4 py-2 rounded-lg text-white font-medium text-sm"
+                  style={{ backgroundColor: accent.primary }}
+                  onClick={() => navigate('/settings/payment-setup')}
+                >
+                  {organization?.stripe_enabled ? 'Manage Stripe →' : 'Set Up Stripe →'}
+                </button>
+              </div>
+              {!organization?.stripe_enabled && (
+                <p className={`text-xs mt-3 ${tc.textMuted}`}>
+                  Enable Stripe to let families pay registration fees, dues, and other charges online with credit or debit cards.
+                </p>
+              )}
+            </div>
+
+            <div className={`flex items-center gap-3 ${tc.textMuted}`}>
+              <div className={`flex-1 h-px ${tc.border}`} style={{ borderTopWidth: '1px' }} />
+              <span className="text-xs font-bold uppercase tracking-wider">Manual Payment Methods</span>
+              <div className={`flex-1 h-px ${tc.border}`} style={{ borderTopWidth: '1px' }} />
+            </div>
+
             {[
               { key: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourVenmoHandle' },
               { key: 'zelle', label: 'Zelle', icon: '💚', placeholder: 'email@example.com or phone' },
