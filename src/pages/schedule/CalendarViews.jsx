@@ -191,20 +191,40 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
                         <span className="text-[8px] font-black uppercase tracking-widest text-[#4BB9EC]">Today</span>
                       )}
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {dayEvents.slice(0, 3).map(event => {
                         const type = event.event_type || 'other'
-                        const colors = EVENT_COLORS[type] || EVENT_COLORS.other
+                        const isGame = type === 'game'
+                        const isTournament = type === 'tournament'
+                        const isPractice = type === 'practice'
+                        const teamColor = event.teams?.color || '#6366F1'
+
+                        const pillBg = isGame
+                          ? (isDark ? 'bg-[#10284C]' : 'bg-[#10284C]')
+                          : isPractice
+                            ? (isDark ? 'bg-emerald-900/40' : 'bg-emerald-500/15')
+                            : isTournament
+                              ? (isDark ? 'bg-purple-900/40' : 'bg-purple-500/15')
+                              : (isDark ? 'bg-white/[0.06]' : 'bg-slate-100')
+
+                        const pillText = isGame
+                          ? 'text-white'
+                          : isPractice
+                            ? (isDark ? 'text-emerald-300' : 'text-emerald-800')
+                            : isTournament
+                              ? (isDark ? 'text-purple-300' : 'text-purple-800')
+                              : (isDark ? 'text-slate-300' : 'text-slate-700')
+
                         return (
                           <div
                             key={event.id}
                             onClick={(e) => { e.stopPropagation(); onSelectEvent(event) }}
-                            className={`flex items-center gap-1.5 px-1.5 py-1 rounded-md text-xs font-semibold truncate cursor-pointer transition hover:brightness-110 ${
-                              isDark ? 'bg-white/[0.04] text-slate-300' : 'bg-[#F5F6F8] text-[#10284C]'
-                            }`}
+                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded cursor-pointer transition hover:brightness-110 ${pillBg}`}
                           >
-                            <div className={`w-0.5 h-3.5 rounded-full shrink-0 ${colors.border}`} />
-                            <span className="truncate">{event.title || event.event_type}</span>
+                            <div className="w-[3px] h-3 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
+                            <span className={`text-[10px] font-bold truncate ${pillText}`}>
+                              {event.title || event.event_type}
+                            </span>
                           </div>
                         )
                       })}
@@ -223,14 +243,20 @@ export function MonthView({ events, currentDate, onSelectEvent, onSelectDate, te
       {/* Legend footer */}
       <div className="flex items-center justify-center gap-6 mt-4">
         {[
-          { label: 'Practice', color: '#4BB9EC' },
-          { label: 'Game', color: '#F59E0B' },
+          { label: 'Practice', color: '#10B981' },
+          { label: 'Game', bg: 'bg-[#10284C]', textColor: 'text-white' },
           { label: 'Tournament', color: '#8B5CF6' },
           { label: 'Team Event', color: '#3B82F6' },
         ].map(item => (
           <div key={item.label} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.label}</span>
+            {item.bg ? (
+              <div className={`w-4 h-3 rounded-sm ${item.bg}`} />
+            ) : (
+              <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: `${item.color}30` }}>
+                <div className="w-[3px] h-full rounded-l-sm" style={{ backgroundColor: item.color }} />
+              </div>
+            )}
+            <span className={`text-[10px] font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{item.label}</span>
           </div>
         ))}
       </div>
@@ -332,31 +358,48 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
                   }`}>
                     {dayEvents.map(event => {
                       const type = event.event_type || 'other'
-                      const colors = EVENT_COLORS[type] || EVENT_COLORS.other
+                      const isGame = type === 'game'
+                      const isTournament = type === 'tournament'
+                      const isPractice = type === 'practice'
+                      const teamColor = event.teams?.color || '#6366F1'
+
+                      const cellBg = isGame
+                        ? (isDark ? 'bg-[#10284C]' : 'bg-[#10284C]')
+                        : isPractice
+                          ? (isDark ? 'bg-emerald-900/30' : 'bg-emerald-500/15')
+                          : isTournament
+                            ? (isDark ? 'bg-purple-900/30' : 'bg-purple-500/15')
+                            : (isDark ? 'bg-white/[0.06]' : 'bg-slate-100')
+
+                      const cellText = isGame ? 'text-white' : (isDark ? 'text-white' : 'text-[#10284C]')
+                      const cellMuted = isGame ? 'text-white/60' : (isDark ? 'text-slate-400' : 'text-slate-500')
+
                       return (
                         <div key={event.id}
                           onClick={() => onSelectEvent(event)}
-                          className={`p-2 mb-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 ${
-                            isDark ? 'hover:brightness-125' : 'hover:shadow-sm'
-                          }`}
-                          style={{ backgroundColor: `${colors.icon}25` }}
+                          className={`p-2 mb-1.5 rounded-lg cursor-pointer transition-all hover:brightness-110 flex gap-1.5 ${cellBg}`}
                         >
-                          <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${colors.badge}`}>
-                            {type}
-                          </span>
-                          <div className={`text-xs font-bold mt-1 truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-                            {event.title || event.event_type}
+                          <div className="w-[3px] rounded-full shrink-0 self-stretch" style={{ backgroundColor: teamColor }} />
+                          <div className="min-w-0 flex-1">
+                            <span className={`text-[9px] font-black uppercase tracking-widest ${
+                              isGame ? 'text-[#4BB9EC]' : 'text-[#4BB9EC]'
+                            }`}>
+                              {type}
+                            </span>
+                            <div className={`text-sm font-bold truncate ${cellText}`}>
+                              {event.title || event.event_type}
+                            </div>
+                            {event.venue_name && (
+                              <div className={`text-[10px] truncate ${cellMuted}`}>
+                                {event.venue_name}
+                              </div>
+                            )}
+                            {event.event_time && (
+                              <div className={`text-[10px] ${cellMuted}`}>
+                                {formatTime12(event.event_time)}
+                              </div>
+                            )}
                           </div>
-                          {event.venue_name && (
-                            <div className={`text-[10px] mt-0.5 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                              {event.venue_name}
-                            </div>
-                          )}
-                          {event.event_time && (
-                            <div className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                              {formatTime12(event.event_time)}
-                            </div>
-                          )}
                         </div>
                       )
                     })}
@@ -381,7 +424,7 @@ export function WeekView({ events, currentDate, onSelectEvent, teams }) {
         <div className="flex items-center gap-4">
           {[
             { label: 'Practice', color: '#4BB9EC' },
-            { label: 'Game', color: '#F59E0B' },
+            { label: 'Game', color: '#10284C' },
             { label: 'Tournament', color: '#8B5CF6' },
           ].map(item => (
             <div key={item.label} className="flex items-center gap-1.5">
