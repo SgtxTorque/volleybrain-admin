@@ -726,63 +726,65 @@ function SetupSectionContent({
               <div className={`flex-1 h-px ${tc.border}`} style={{ borderTopWidth: '1px' }} />
             </div>
 
-            {[
-              { key: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourVenmoHandle' },
-              { key: 'zelle', label: 'Zelle', icon: '💚', placeholder: 'email@example.com or phone' },
-              { key: 'cashapp', label: 'Cash App', icon: '💵', placeholder: '$YourCashTag' },
-              { key: 'paypal', label: 'PayPal', icon: '💙', placeholder: 'email@example.com' },
-              { key: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Org Name' },
-              { key: 'cash', label: 'Cash', icon: 'dollar', placeholder: 'In-person only' },
-            ].map(method => {
-              const methodData = localData.paymentMethods?.[method.key] || {}
-              return (
-                <div key={method.key} className={`p-4 rounded-xl border ${tc.border}`}>
-                  <div className="flex items-center justify-between mb-3">
+            <div className={`rounded-xl border ${tc.border} divide-y ${tc.border}`}>
+              {[
+                { key: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourVenmoHandle' },
+                { key: 'zelle', label: 'Zelle', icon: '💚', placeholder: 'email@example.com or phone' },
+                { key: 'cashapp', label: 'Cash App', icon: '💵', placeholder: '$YourCashTag' },
+                { key: 'paypal', label: 'PayPal', icon: '💙', placeholder: 'email@example.com' },
+                { key: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Org Name' },
+                { key: 'cash', label: 'Cash', icon: 'dollar', placeholder: 'In-person only' },
+              ].map(method => {
+                const methodData = localData.paymentMethods?.[method.key] || {}
+                return (
+                  <div key={method.key} className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{method.icon}</span>
-                      <span className={`font-medium ${tc.text}`}>{method.label}</span>
+                      <span className="text-lg">{method.icon}</span>
+                      <span className={`font-medium text-sm ${tc.text} w-24`}>{method.label}</span>
+                      <button
+                        onClick={() => {
+                          const newMethods = { ...localData.paymentMethods }
+                          newMethods[method.key] = { ...methodData, enabled: !methodData.enabled }
+                          updateField('paymentMethods', newMethods)
+                        }}
+                        className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 ${methodData.enabled ? '' : 'bg-slate-600'}`}
+                        style={{ backgroundColor: methodData.enabled ? accent.primary : undefined }}
+                      >
+                        <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${methodData.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                      </button>
+                      {methodData.enabled && (
+                        <input
+                          type="text"
+                          value={methodData.account || ''}
+                          onChange={(e) => {
+                            const newMethods = { ...localData.paymentMethods }
+                            newMethods[method.key] = { ...methodData, account: e.target.value }
+                            updateField('paymentMethods', newMethods)
+                          }}
+                          placeholder={method.placeholder}
+                          className={`flex-1 max-w-xs px-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
+                        />
+                      )}
                     </div>
-                    <button
-                      onClick={() => {
-                        const newMethods = { ...localData.paymentMethods }
-                        newMethods[method.key] = { ...methodData, enabled: !methodData.enabled }
-                        updateField('paymentMethods', newMethods)
-                      }}
-                      className={`w-12 h-6 rounded-full transition-colors ${methodData.enabled ? '' : 'bg-slate-600'}`}
-                      style={{ backgroundColor: methodData.enabled ? accent.primary : undefined }}
-                    >
-                      <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${methodData.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                    </button>
+                    {methodData.enabled && (
+                      <div className="mt-2 ml-[calc(1.125rem+0.75rem+6rem+0.75rem)]">
+                        <textarea
+                          value={methodData.instructions || ''}
+                          onChange={(e) => {
+                            const newMethods = { ...localData.paymentMethods }
+                            newMethods[method.key] = { ...methodData, instructions: e.target.value }
+                            updateField('paymentMethods', newMethods)
+                          }}
+                          placeholder="Payment instructions (optional)"
+                          rows={1}
+                          className={`w-full max-w-md px-3 py-1.5 rounded-lg border text-sm ${tc.input} resize-none`}
+                        />
+                      </div>
+                    )}
                   </div>
-                  {methodData.enabled && (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        value={methodData.account || ''}
-                        onChange={(e) => {
-                          const newMethods = { ...localData.paymentMethods }
-                          newMethods[method.key] = { ...methodData, account: e.target.value }
-                          updateField('paymentMethods', newMethods)
-                        }}
-                        placeholder={method.placeholder}
-                        className={`w-full px-4 py-2 rounded-lg border ${tc.input}`}
-                      />
-                      <textarea
-                        value={methodData.instructions || ''}
-                        onChange={(e) => {
-                          const newMethods = { ...localData.paymentMethods }
-                          newMethods[method.key] = { ...methodData, instructions: e.target.value }
-                          updateField('paymentMethods', newMethods)
-                        }}
-                        placeholder="Payment instructions (e.g., 'Include player name in memo')"
-                        rows={2}
-                        className={`w-full px-4 py-2 rounded-lg border ${tc.input} text-sm resize-none`}
-                      />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
 
             <div className={`p-4 rounded-xl border ${tc.border}`}>
               <p className={`font-medium ${tc.text} mb-4`}>⚙️ Payment Settings</p>
@@ -793,13 +795,19 @@ function SetupSectionContent({
                   helpText="Let families split payments into installments"
                 />
                 {localData.allowPaymentPlans && (
-                  <div className="pl-4 border-l-2 border-slate-600 space-y-4">
-                    <SectionNumberInput {...fp} label="Number of Installments" field="paymentPlanInstallments" min={2} max={6} />
+                  <div className="pl-4 border-l-2 border-slate-600">
+                    <div className="max-w-[200px]">
+                      <SectionNumberInput {...fp} label="Number of Installments" field="paymentPlanInstallments" min={2} max={6} />
+                    </div>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-4">
-                  <SectionNumberInput {...fp} label="Late Fee Amount" field="lateFeeAmount" prefix="$" />
-                  <SectionNumberInput {...fp} label="Grace Period" field="gracePeriodDays" suffix="days" />
+                <div className="flex gap-4">
+                  <div className="w-[180px]">
+                    <SectionNumberInput {...fp} label="Late Fee Amount" field="lateFeeAmount" prefix="$" />
+                  </div>
+                  <div className="w-[200px]">
+                    <SectionNumberInput {...fp} label="Grace Period" field="gracePeriodDays" suffix="days" />
+                  </div>
                 </div>
               </div>
             </div>
