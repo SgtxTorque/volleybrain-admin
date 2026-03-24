@@ -341,7 +341,6 @@ function OrganizationPage({ showToast }) {
               ...currentSettings,
               registration_fields: data.registrationFields,
               custom_questions: data.customQuestions,
-              selected_waivers: data.selectedWaivers,
             }
           }
           break

@@ -1038,51 +1038,43 @@ function SetupSectionContent({
               )}
             </div>
 
-            {/* Waivers Selection */}
+            {/* Waivers Summary (managed via Waiver Manager) */}
             <div className={`p-5 rounded-xl border ${tc.border}`}>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-xl">📜</span>
-                <h3 className={`font-semibold ${tc.text}`}>Waivers to Include</h3>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📜</span>
+                  <h3 className={`font-semibold ${tc.text}`}>Waivers</h3>
+                </div>
+                <button
+                  className="text-sm font-medium transition"
+                  style={{ color: accent.primary }}
+                  onClick={() => navigate('/settings/waivers')}
+                >
+                  Manage Waivers →
+                </button>
               </div>
-              <p className={`text-sm ${tc.textMuted} mb-4`}>
-                Select which waivers families must sign during registration. Configure waivers in the Legal & Waivers section.
+              <p className={`text-sm ${tc.textMuted} mb-3`}>
+                All active waivers are automatically included during registration. Manage them in the Waiver Manager.
               </p>
-              {waivers && waivers.length > 0 ? (
-                <div className="space-y-2">
-                  {waivers.map(waiver => {
-                    const isSelected = (localData.selectedWaivers || []).includes(waiver.id)
-                    return (
-                      <button
-                        key={waiver.id}
-                        onClick={() => {
-                          const current = localData.selectedWaivers || []
-                          const updated = isSelected
-                            ? current.filter(id => id !== waiver.id)
-                            : [...current, waiver.id]
-                          updateField('selectedWaivers', updated)
-                        }}
-                        className={`w-full p-3 rounded-xl border-2 text-left transition ${
-                          isSelected
-                            ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                            : `${tc.border} hover:border-slate-500`
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                            isSelected ? 'bg-[var(--accent-primary)] border-[var(--accent-primary)] text-white' : tc.border
-                          }`}>
-                            {isSelected && <span className="text-xs">✓</span>}
-                          </span>
-                          <span className={isSelected ? tc.text : tc.textMuted}>{waiver.name}</span>
-                        </div>
-                      </button>
-                    )
-                  })}
+              {waivers && waivers.filter(w => w.is_active).length > 0 ? (
+                <div className="space-y-1.5">
+                  {waivers.filter(w => w.is_active).map(w => (
+                    <div key={w.id} className={`flex items-center gap-2 text-sm ${tc.text}`}>
+                      <span className="text-green-500">✓</span>
+                      <span>{w.name}</span>
+                      {w.is_required && (
+                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-500">Required</span>
+                      )}
+                      {w.sport_id && (
+                        <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${tc.cardBgAlt} ${tc.textMuted}`}>Sport-specific</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div className={`text-center py-6 ${tc.cardBgAlt} rounded-xl`}>
-                  <p className={tc.textMuted}>No waivers configured yet.</p>
-                  <p className={`text-sm ${tc.textMuted} mt-1`}>Go to Legal & Waivers to add waivers.</p>
+                <div className={`text-center py-4 ${tc.cardBgAlt} rounded-xl`}>
+                  <p className={tc.textMuted}>No active waivers.</p>
+                  <p className={`text-sm ${tc.textMuted} mt-1`}>Create and activate waivers in the Waiver Manager.</p>
                 </div>
               )}
             </div>
@@ -1114,9 +1106,9 @@ function SetupSectionContent({
                 </div>
                 <div>
                   <p className="text-2xl font-bold" style={{ color: accent.primary }}>
-                    {(localData.selectedWaivers || []).length}
+                    {waivers?.filter(w => w.is_active).length || 0}
                   </p>
-                  <p className={`text-xs ${tc.textMuted}`}>Waivers</p>
+                  <p className={`text-xs ${tc.textMuted}`}>Active Waivers</p>
                 </div>
               </div>
             </div>
