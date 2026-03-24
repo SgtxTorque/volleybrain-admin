@@ -455,7 +455,6 @@ function OrganizationPage({ showToast }) {
       ],
       legal: [
         setupData.legalName || setupData.name,
-        waivers.length >= 3,
       ],
       payments: [
         Object.values(setupData.paymentMethods || {}).some(m => m?.enabled),
