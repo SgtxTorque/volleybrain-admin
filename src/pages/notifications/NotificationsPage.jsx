@@ -49,6 +49,7 @@ export function NotificationsPage({ showToast }) {
       const { data: notifData } = await supabase
         .from('notifications')
         .select('*, profiles:user_id(full_name, email)')
+        .eq('organization_id', organization?.id)
         .order('created_at', { ascending: false })
         .limit(100);
 
