@@ -466,7 +466,7 @@ function OrganizationPage({ showToast }) {
         venues.length > 0,
       ],
       staff: [
-        adminUsers.length > 0,
+        true, // Admin exists by definition (they're logged in)
       ],
       coaches: [
         true, // Settings are optional
