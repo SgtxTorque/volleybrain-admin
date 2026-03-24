@@ -550,7 +550,7 @@ export function PaymentsPage({ showToast }) {
       ) : (
         <div className="flex gap-5">
           {/* Left: Payment list */}
-          <div className={`min-w-0 ${selectedFamily && viewMode === 'family' ? 'w-[420px] shrink-0' : 'flex-1'}`}>
+          <div className="w-[420px] shrink-0 min-w-0 overflow-y-auto max-h-[calc(100vh-280px)]">
             {viewMode === 'individual' ? (
               <div>
                 {playerList.length === 0 ? (
@@ -640,17 +640,35 @@ export function PaymentsPage({ showToast }) {
             )}
           </div>
 
-          {/* Right: Family Detail Panel */}
-          {selectedFamily && viewMode === 'family' && (
-            <div className="flex-1 min-w-[400px] hidden xl:block">
-              <FamilyDetailPanel
-                family={selectedFamily}
-                onClose={() => setSelectedFamily(null)}
-                onMarkPaid={p => setShowMarkPaidModal(p)}
-                onMarkUnpaid={handleMarkUnpaid}
-                onSendReminder={f => setShowReminderModal(f)}
-                onAddFee={() => setShowAddModal(true)}
-              />
+          {/* Right: Family Detail Panel — always visible */}
+          {viewMode === 'family' && (
+            <div className="flex-1 min-w-0 hidden lg:block">
+              {selectedFamily ? (
+                <FamilyDetailPanel
+                  family={selectedFamily}
+                  onClose={() => setSelectedFamily(null)}
+                  onMarkPaid={p => setShowMarkPaidModal(p)}
+                  onMarkUnpaid={handleMarkUnpaid}
+                  onSendReminder={f => setShowReminderModal(f)}
+                  onAddFee={() => setShowAddModal(true)}
+                />
+              ) : (
+                <div className={`rounded-2xl flex flex-col items-center justify-center sticky top-4 h-[calc(100vh-280px)] ${
+                  isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-[#E8ECF2] shadow-sm'
+                }`}>
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${
+                    isDark ? 'bg-white/[0.04]' : 'bg-[#F5F6F8]'
+                  }`}>
+                    <span className="text-3xl">👈</span>
+                  </div>
+                  <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
+                    Select a Family
+                  </h3>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    Click a family to view account details
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
