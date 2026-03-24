@@ -117,14 +117,25 @@ function ChatsPage({ showToast, activeView, roleContext }) {
           teams (id, name, color, logo_url),
           channel_members (id, user_id, display_name, last_read_at)
         `)
-      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+      // Admin: always show all org channels regardless of season/sport selection
+      // Non-admin: respect season + sport filters
+      const isAdminView = activeView === 'admin'
+
+      if (isAdminView) {
+        // Admin always sees all org channels — season is a filter, not a gate
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) {
+          setChannels([])
+          setLoading(false)
+          return
+        }
+        q1 = q1.in('season_id', orgSeasonIds)
+      } else if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
         q1 = q1.eq('season_id', selectedSeason.id)
       } else if (sportSeasonIds && sportSeasonIds.length > 0) {
         q1 = q1.in('season_id', sportSeasonIds)
       } else {
-        // All Seasons + no sport (or any unmatched case) → filter by ALL org season IDs
         const orgSeasonIds = (allSeasons || []).map(s => s.id)
-        console.log('[ChatsPage q1] selectedSeason:', selectedSeason, 'isAllSeasons:', isAllSeasons(selectedSeason), 'orgSeasonIds:', orgSeasonIds)
         if (orgSeasonIds.length === 0) {
           setChannels([])
           setLoading(false)
@@ -144,13 +155,20 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         let q2 = supabase
           .from('chat_channels')
           .select('*')
-        if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        if (isAdminView) {
+          const orgSeasonIds = (allSeasons || []).map(s => s.id)
+          if (orgSeasonIds.length === 0) {
+            setChannels([])
+            setLoading(false)
+            return
+          }
+          q2 = q2.in('season_id', orgSeasonIds)
+        } else if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
           q2 = q2.eq('season_id', selectedSeason.id)
         } else if (sportSeasonIds && sportSeasonIds.length > 0) {
           q2 = q2.in('season_id', sportSeasonIds)
         } else {
           const orgSeasonIds = (allSeasons || []).map(s => s.id)
-          console.log('[ChatsPage q2] selectedSeason:', selectedSeason, 'isAllSeasons:', isAllSeasons(selectedSeason), 'orgSeasonIds:', orgSeasonIds)
           if (orgSeasonIds.length === 0) {
             setChannels([])
             setLoading(false)
