@@ -683,169 +683,164 @@ function SetupSectionContent({
 
       case 'payments':
         return (
-          <div className="space-y-5">
+          <div className="space-y-4">
             <p className={`text-sm ${tc.textMuted}`}>Configure how you accept payments from families. Enable at least one method.</p>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* LEFT COLUMN */}
-              <div className="space-y-5">
-                {/* Online Payments (Stripe) */}
-                <div className={`p-4 rounded-xl border-2 h-full ${
-                  organization?.stripe_enabled
-                    ? 'border-emerald-500/30 bg-emerald-500/5'
-                    : `${tc.border}`
-                }`}>
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl mt-0.5">💳</span>
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-semibold ${tc.text}`}>Online Payments</p>
-                      <p className={`text-sm ${tc.textMuted} mt-0.5`}>
-                        {organization?.stripe_enabled
-                          ? <>Stripe is <span className="text-emerald-500 font-semibold">enabled</span> ({organization?.stripe_mode === 'live' ? 'Live' : 'Test'} mode)</>
-                          : 'Accept credit/debit cards via Stripe'
-                        }
-                      </p>
-                      <button
-                        className="mt-3 px-4 py-2 rounded-lg text-white font-medium text-sm"
-                        style={{ backgroundColor: accent.primary }}
-                        onClick={() => navigate('/settings/payment-setup')}
-                      >
-                        {organization?.stripe_enabled ? 'Manage Stripe →' : 'Set Up Stripe →'}
-                      </button>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] lg:grid-rows-[auto_1fr] gap-4">
+
+              {/* TOP-LEFT: Online Payments (Stripe) */}
+              <div className={`p-4 rounded-xl border-2 ${
+                organization?.stripe_enabled
+                  ? 'border-emerald-500/30 bg-emerald-500/5'
+                  : `${tc.border}`
+              }`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">💳</span>
+                  <div className="flex-1">
+                    <p className={`font-semibold text-sm ${tc.text}`}>Online Payments</p>
+                    <p className={`text-xs ${tc.textMuted}`}>
+                      {organization?.stripe_enabled
+                        ? <>Stripe is <span className="text-emerald-500 font-semibold">enabled</span> ({organization?.stripe_mode === 'live' ? 'Live' : 'Test'} mode)</>
+                        : 'Credit/debit cards via Stripe'
+                      }
+                    </p>
+                  </div>
+                  <button
+                    className="px-3 py-1.5 rounded-lg text-white font-medium text-xs flex-shrink-0"
+                    style={{ backgroundColor: accent.primary }}
+                    onClick={() => navigate('/settings/payment-setup')}
+                  >
+                    {organization?.stripe_enabled ? 'Manage →' : 'Set Up →'}
+                  </button>
+                </div>
+              </div>
+
+              {/* TOP-RIGHT: Payment Plans */}
+              <div className={`p-4 rounded-xl border ${tc.border}`}>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => updateField('allowPaymentPlans', !localData.allowPaymentPlans)}
+                    className={`w-9 h-[18px] rounded-full transition-colors flex-shrink-0 ${localData.allowPaymentPlans ? '' : 'bg-slate-600'}`}
+                    style={{ backgroundColor: localData.allowPaymentPlans ? accent.primary : undefined }}
+                  >
+                    <div className={`w-3.5 h-3.5 rounded-full bg-white shadow transition-transform ${localData.allowPaymentPlans ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                  </button>
+                  <div>
+                    <p className={`text-sm font-semibold ${tc.text}`}>Allow Payment Plans</p>
+                    <p className={`text-xs ${tc.textMuted}`}>Split payments into installments</p>
                   </div>
                 </div>
-
-                {/* Manual Payment Methods */}
-                <div className={`rounded-xl border ${tc.border}`}>
-                  <div className="px-4 py-2.5">
-                    <p className={`text-[10px] font-black uppercase tracking-widest ${tc.textMuted}`}>Manual Methods</p>
+                {localData.allowPaymentPlans && (
+                  <div className="mt-3 pl-12">
+                    <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Installments</label>
+                    <input
+                      type="number"
+                      value={localData.paymentPlanInstallments || ''}
+                      onChange={(e) => updateField('paymentPlanInstallments', parseFloat(e.target.value) || 0)}
+                      min={2} max={6}
+                      className={`w-20 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
+                    />
                   </div>
-                  <div className={`divide-y ${tc.border}`}>
-                    {[
-                      { key: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourVenmoHandle' },
-                      { key: 'zelle', label: 'Zelle', icon: '💚', placeholder: 'email@example.com or phone' },
-                      { key: 'cashapp', label: 'Cash App', icon: '💵', placeholder: '$YourCashTag' },
-                      { key: 'paypal', label: 'PayPal', icon: '💙', placeholder: 'email@example.com' },
-                      { key: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Org Name' },
-                      { key: 'cash', label: 'Cash', icon: '💰', placeholder: 'In-person only' },
-                    ].map(method => {
-                      const methodData = localData.paymentMethods?.[method.key] || {}
-                      return (
-                        <div key={method.key} className="px-4 py-2.5">
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-base w-5 text-center">{method.icon}</span>
-                            <span className={`font-medium text-sm ${tc.text} w-20`}>{method.label}</span>
-                            <button
-                              onClick={() => {
+                )}
+              </div>
+
+              {/* BOTTOM-LEFT: Manual Methods */}
+              <div className={`rounded-xl border ${tc.border}`}>
+                <div className="px-4 py-2">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${tc.textMuted}`}>Manual Methods</p>
+                </div>
+                <div className={`divide-y ${tc.border}`}>
+                  {[
+                    { key: 'venmo', label: 'Venmo', icon: '💜', placeholder: '@YourVenmoHandle' },
+                    { key: 'zelle', label: 'Zelle', icon: '💚', placeholder: 'email@example.com or phone' },
+                    { key: 'cashapp', label: 'Cash App', icon: '💵', placeholder: '$YourCashTag' },
+                    { key: 'paypal', label: 'PayPal', icon: '💙', placeholder: 'email@example.com' },
+                    { key: 'check', label: 'Check', icon: '📝', placeholder: 'Payable to: Your Org Name' },
+                    { key: 'cash', label: 'Cash', icon: '💰', placeholder: 'In-person only' },
+                  ].map(method => {
+                    const methodData = localData.paymentMethods?.[method.key] || {}
+                    return (
+                      <div key={method.key} className="px-4 py-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-sm w-5 text-center">{method.icon}</span>
+                          <span className={`font-medium text-sm ${tc.text} w-20`}>{method.label}</span>
+                          <button
+                            onClick={() => {
+                              const newMethods = { ...localData.paymentMethods }
+                              newMethods[method.key] = { ...methodData, enabled: !methodData.enabled }
+                              updateField('paymentMethods', newMethods)
+                            }}
+                            className={`w-9 h-[18px] rounded-full transition-colors flex-shrink-0 ${methodData.enabled ? '' : 'bg-slate-600'}`}
+                            style={{ backgroundColor: methodData.enabled ? accent.primary : undefined }}
+                          >
+                            <div className={`w-3.5 h-3.5 rounded-full bg-white shadow transition-transform ${methodData.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+                          </button>
+                          {methodData.enabled && (
+                            <input
+                              type="text"
+                              value={methodData.account || ''}
+                              onChange={(e) => {
                                 const newMethods = { ...localData.paymentMethods }
-                                newMethods[method.key] = { ...methodData, enabled: !methodData.enabled }
+                                newMethods[method.key] = { ...methodData, account: e.target.value }
                                 updateField('paymentMethods', newMethods)
                               }}
-                              className={`w-9 h-[18px] rounded-full transition-colors flex-shrink-0 ${methodData.enabled ? '' : 'bg-slate-600'}`}
-                              style={{ backgroundColor: methodData.enabled ? accent.primary : undefined }}
-                            >
-                              <div className={`w-3.5 h-3.5 rounded-full bg-white shadow transition-transform ${methodData.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-                            </button>
-                            {methodData.enabled && (
-                              <input
-                                type="text"
-                                value={methodData.account || ''}
-                                onChange={(e) => {
-                                  const newMethods = { ...localData.paymentMethods }
-                                  newMethods[method.key] = { ...methodData, account: e.target.value }
-                                  updateField('paymentMethods', newMethods)
-                                }}
-                                placeholder={method.placeholder}
-                                className={`flex-1 px-2.5 py-1 rounded-lg border text-sm ${tc.input}`}
-                              />
-                            )}
-                          </div>
-                          {methodData.enabled && (
-                            <div className="mt-1.5 pl-[calc(1.25rem+0.625rem+5rem+0.625rem)]">
-                              <input
-                                type="text"
-                                value={methodData.instructions || ''}
-                                onChange={(e) => {
-                                  const newMethods = { ...localData.paymentMethods }
-                                  newMethods[method.key] = { ...methodData, instructions: e.target.value }
-                                  updateField('paymentMethods', newMethods)
-                                }}
-                                placeholder="Instructions (optional)"
-                                className={`w-full px-2.5 py-1 rounded-lg border text-xs ${tc.input}`}
-                              />
-                            </div>
+                              placeholder={method.placeholder}
+                              className={`flex-1 px-2.5 py-1 rounded-lg border text-sm ${tc.input}`}
+                            />
                           )}
                         </div>
-                      )
-                    })}
-                  </div>
+                        {methodData.enabled && (
+                          <div className="mt-1.5 pl-[7.5rem]">
+                            <input
+                              type="text"
+                              value={methodData.instructions || ''}
+                              onChange={(e) => {
+                                const newMethods = { ...localData.paymentMethods }
+                                newMethods[method.key] = { ...methodData, instructions: e.target.value }
+                                updateField('paymentMethods', newMethods)
+                              }}
+                              placeholder="Instructions (optional)"
+                              className={`w-full px-2.5 py-1 rounded-lg border text-xs ${tc.input}`}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
-              {/* RIGHT COLUMN */}
-              <div className="space-y-5">
-                {/* Payment Plans */}
-                <div className={`p-4 rounded-xl border ${tc.border}`}>
-                  <p className={`font-semibold ${tc.text} mb-3`}>Payment Plans</p>
-                  <div className="flex items-center gap-3 mb-3">
-                    <button
-                      onClick={() => updateField('allowPaymentPlans', !localData.allowPaymentPlans)}
-                      className={`w-9 h-[18px] rounded-full transition-colors flex-shrink-0 ${localData.allowPaymentPlans ? '' : 'bg-slate-600'}`}
-                      style={{ backgroundColor: localData.allowPaymentPlans ? accent.primary : undefined }}
-                    >
-                      <div className={`w-3.5 h-3.5 rounded-full bg-white shadow transition-transform ${localData.allowPaymentPlans ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-                    </button>
-                    <div>
-                      <p className={`text-sm font-medium ${tc.text}`}>Allow Payment Plans</p>
-                      <p className={`text-xs ${tc.textMuted}`}>Let families split payments into installments</p>
-                    </div>
-                  </div>
-                  {localData.allowPaymentPlans && (
-                    <div className="pl-4 border-l-2 border-slate-600 mt-3">
-                      <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Number of Installments</label>
+              {/* BOTTOM-RIGHT: Fees & Grace Period */}
+              <div className={`p-4 rounded-xl border ${tc.border} self-start`}>
+                <p className={`font-semibold text-sm ${tc.text} mb-3`}>Fees & Grace Period</p>
+                <div className="flex gap-4">
+                  <div>
+                    <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Late Fee</label>
+                    <div className="relative">
+                      <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
                       <input
                         type="number"
-                        value={localData.paymentPlanInstallments || ''}
-                        onChange={(e) => updateField('paymentPlanInstallments', parseFloat(e.target.value) || 0)}
-                        min={2} max={6}
-                        className={`w-24 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
+                        value={localData.lateFeeAmount || ''}
+                        onChange={(e) => updateField('lateFeeAmount', parseFloat(e.target.value) || 0)}
+                        className={`w-24 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
                       />
                     </div>
-                  )}
-                </div>
-
-                {/* Late Fees & Grace */}
-                <div className={`p-4 rounded-xl border ${tc.border}`}>
-                  <p className={`font-semibold ${tc.text} mb-3`}>Fees & Grace Period</p>
-                  <div className="flex gap-4">
-                    <div>
-                      <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Late Fee</label>
-                      <div className="relative">
-                        <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${tc.textMuted}`}>$</span>
-                        <input
-                          type="number"
-                          value={localData.lateFeeAmount || ''}
-                          onChange={(e) => updateField('lateFeeAmount', parseFloat(e.target.value) || 0)}
-                          className={`w-24 pl-7 pr-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Grace Period</label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          value={localData.gracePeriodDays || ''}
-                          onChange={(e) => updateField('gracePeriodDays', parseFloat(e.target.value) || 0)}
-                          className={`w-24 pr-12 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
-                        />
-                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>days</span>
-                      </div>
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-medium ${tc.textSecondary} mb-1`}>Grace Period</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={localData.gracePeriodDays || ''}
+                        onChange={(e) => updateField('gracePeriodDays', parseFloat(e.target.value) || 0)}
+                        className={`w-24 pr-12 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
+                      />
+                      <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${tc.textMuted}`}>days</span>
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         )
