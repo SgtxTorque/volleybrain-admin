@@ -548,9 +548,9 @@ export function PaymentsPage({ showToast }) {
           </button>
         </div>
       ) : (
-        <div className="flex gap-6">
+        <div className="flex gap-5">
           {/* Left: Payment list */}
-          <div className="flex-1 min-w-0">
+          <div className={`min-w-0 ${selectedFamily && viewMode === 'family' ? 'w-[420px] shrink-0' : 'flex-1'}`}>
             {viewMode === 'individual' ? (
               <div>
                 {playerList.length === 0 ? (
@@ -642,7 +642,7 @@ export function PaymentsPage({ showToast }) {
 
           {/* Right: Family Detail Panel */}
           {selectedFamily && viewMode === 'family' && (
-            <div className="w-[380px] shrink-0 hidden xl:block">
+            <div className="flex-1 min-w-[400px] hidden xl:block">
               <FamilyDetailPanel
                 family={selectedFamily}
                 onClose={() => setSelectedFamily(null)}
@@ -686,7 +686,7 @@ export function PaymentsPage({ showToast }) {
       {selectedFamily && viewMode === 'family' && (
         <div className="xl:hidden">
           <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setSelectedFamily(null)} />
-          <div className={`fixed right-0 top-0 h-screen w-[400px] z-50 shadow-2xl overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-white'}`}>
+          <div className={`fixed right-0 top-0 h-screen w-[500px] max-w-[90vw] z-50 shadow-2xl overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-white'}`}>
             <FamilyDetailPanel
               family={selectedFamily}
               onClose={() => setSelectedFamily(null)}
