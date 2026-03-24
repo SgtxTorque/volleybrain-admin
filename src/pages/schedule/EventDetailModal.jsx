@@ -9,6 +9,8 @@ import { PlayerCardExpanded } from '../../components/players'
 import { CoachDetailModal } from '../../pages/coaches/CoachesPage'
 import { getEventColor, formatTime12 } from './scheduleHelpers'
 
+const formatPosition = (pos) => pos?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || pos
+
 // ── Event type config ──
 const TYPE_CONFIG = {
   game:       { icon: Trophy,  label: 'Game',       bg: 'bg-[#10284C]', text: 'text-white', accent: '#F59E0B' },
@@ -357,14 +359,14 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                   <div className={`rounded-xl border ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
                     <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
                       {['Line Judge', 'Scorekeeper'].map(role => {
-                        const slots = ['Primary', 'Backup 1', 'Backup 2']
+                        const slots = ['primary', 'backup_1', 'backup_2']
                         return slots.map(pos => {
                           const vol = getVolunteer(role, pos)
                           return (
                             <div key={`${role}-${pos}`} className="px-4 py-2 flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{role}</span>
-                                <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{pos}</span>
+                                <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{formatPosition(pos)}</span>
                               </div>
                               {vol ? (
                                 <div className="flex items-center gap-2">
@@ -578,7 +580,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
           <div className={`w-full max-w-sm rounded-xl p-5 ${isDark ? 'bg-[#132240] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2] shadow-xl'}`}
             onClick={e => e.stopPropagation()}>
             <h3 className={`text-sm font-bold mb-3 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-              Assign {volunteerAssignModal.role} — {volunteerAssignModal.position}
+              Assign {volunteerAssignModal.role} — {formatPosition(volunteerAssignModal.position)}
             </h3>
             <div className={`max-h-60 overflow-y-auto divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
               {availableParents.map(p => (

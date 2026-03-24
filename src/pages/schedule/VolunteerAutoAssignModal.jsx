@@ -6,8 +6,8 @@ import { X, Users, Shuffle, Check, AlertTriangle, Loader2 } from 'lucide-react'
 
 // Default volunteer roles and slots per event
 const DEFAULT_ROLES = [
-  { role: 'Line Judge', positions: ['Primary', 'Backup 1'] },
-  { role: 'Scorekeeper', positions: ['Primary', 'Backup 1'] },
+  { role: 'Line Judge', positions: ['primary', 'backup_1'] },
+  { role: 'Scorekeeper', positions: ['primary', 'backup_1'] },
 ]
 
 export default function VolunteerAutoAssignModal({ teams, events, onClose, showToast, selectedSeason }) {
