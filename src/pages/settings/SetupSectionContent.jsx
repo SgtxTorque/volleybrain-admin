@@ -789,7 +789,7 @@ function SetupSectionContent({
               <button
                 className="px-4 py-2 rounded-lg text-white font-medium text-sm"
                 style={{ backgroundColor: accent.primary }}
-                onClick={() => showToast('Venue manager coming soon!', 'info')}
+                onClick={() => navigate('/settings/venues')}
               >
                 ➕ Add Venue
               </button>
