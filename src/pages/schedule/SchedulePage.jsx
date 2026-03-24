@@ -276,8 +276,32 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     return true
   })
 
-  function prevMonth() { setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)) }
-  function nextMonth() { setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)) }
+  function navigateBack() {
+    if (view === 'week') {
+      const d = new Date(currentDate)
+      d.setDate(d.getDate() - 7)
+      setCurrentDate(d)
+    } else if (view === 'day') {
+      const d = new Date(currentDate)
+      d.setDate(d.getDate() - 1)
+      setCurrentDate(d)
+    } else {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+    }
+  }
+  function navigateForward() {
+    if (view === 'week') {
+      const d = new Date(currentDate)
+      d.setDate(d.getDate() + 7)
+      setCurrentDate(d)
+    } else if (view === 'day') {
+      const d = new Date(currentDate)
+      d.setDate(d.getDate() + 1)
+      setCurrentDate(d)
+    } else {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+    }
+  }
   function goToToday() { setCurrentDate(new Date()) }
 
   const upcomingGames = filteredEvents.filter(e => e.event_type === 'game' && new Date(e.event_date) >= new Date())
@@ -407,18 +431,29 @@ function SchedulePage({ showToast, activeView, roleContext }) {
 
       {/* Calendar Navigation */}
       <div className={`flex items-center justify-between rounded-[14px] p-3 border ${isDark ? 'bg-lynx-charcoal border-white/[0.06]' : 'bg-white border-slate-200'}`}>
-        <button onClick={prevMonth} className={`p-2 rounded-lg transition ${isDark ? 'hover:bg-white/[0.04] text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}>
+        <button onClick={navigateBack} className={`p-2 rounded-lg transition ${isDark ? 'hover:bg-white/[0.04] text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}>
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-3">
           <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            {view === 'day'
+              ? currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+              : view === 'week'
+                ? (() => {
+                    const start = new Date(currentDate)
+                    start.setDate(currentDate.getDate() - currentDate.getDay())
+                    const end = new Date(start)
+                    end.setDate(start.getDate() + 6)
+                    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                  })()
+                : currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+            }
           </h2>
           <button onClick={goToToday} className={`px-3 py-1.5 rounded-lg text-sm font-bold transition ${isDark ? 'bg-white/[0.06] text-white hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
             Today
           </button>
         </div>
-        <button onClick={nextMonth} className={`p-2 rounded-lg transition ${isDark ? 'hover:bg-white/[0.04] text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}>
+        <button onClick={navigateForward} className={`p-2 rounded-lg transition ${isDark ? 'hover:bg-white/[0.04] text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}>
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
@@ -431,7 +466,7 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       ) : view === 'day' ? (
         <DayView events={filteredEvents} currentDate={currentDate} onSelectEvent={setSelectedEvent} teams={teams} />
       ) : (
-        <ListView events={filteredEvents} onSelectEvent={setSelectedEvent} teams={teams} />
+        <ListView events={filteredEvents} onSelectEvent={setSelectedEvent} teams={teams} currentDate={currentDate} />
       )}
 
       <div className="text-center text-base text-slate-400">
