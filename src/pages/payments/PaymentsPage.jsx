@@ -172,7 +172,7 @@ export function PaymentsPage({ showToast }) {
   const [showReminderModal, setShowReminderModal] = useState(null)
   const [showBlastModal, setShowBlastModal] = useState(false)
   const [sortMode, setSortMode] = useState('balance')
-  const [selectedFamily, setSelectedFamily] = useState(null)
+  const [selectedFamilyEmail, setSelectedFamilyEmail] = useState(null)
   const [selectedFamilyIds, setSelectedFamilyIds] = useState(new Set())
   const [showZone4All, setShowZone4All] = useState(false)
 
@@ -372,6 +372,8 @@ export function PaymentsPage({ showToast }) {
     const bOwed = b.payments.filter(p => !p.paid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
     return bOwed - aOwed
   })
+
+  const selectedFamily = selectedFamilyEmail ? familyList.find(f => f.email === selectedFamilyEmail) || null : null
 
   // ------ Summary stats ------
   const totalOwed = payments.filter(p => !p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
@@ -601,7 +603,7 @@ export function PaymentsPage({ showToast }) {
                             onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
                             onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
                             isSelected={selectedFamily?.email === family.email}
-                            onSelect={() => setSelectedFamily(selectedFamily?.email === family.email ? null : family)}
+                            onSelect={() => setSelectedFamilyEmail(selectedFamilyEmail === family.email ? null : family.email)}
                             zone={zone.key}
                             onBulkToggle={() => toggleBulkSelect(family.email)}
                             bulkSelected={selectedFamilyIds.has(family.email)}
@@ -627,7 +629,7 @@ export function PaymentsPage({ showToast }) {
                           onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
                           onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
                           isSelected={selectedFamily?.email === family.email}
-                          onSelect={() => setSelectedFamily(selectedFamily?.email === family.email ? null : family)}
+                          onSelect={() => setSelectedFamilyEmail(selectedFamilyEmail === family.email ? null : family.email)}
                           zone={classifyFamily(family)}
                           onBulkToggle={() => toggleBulkSelect(family.email)}
                           bulkSelected={selectedFamilyIds.has(family.email)}
@@ -646,7 +648,7 @@ export function PaymentsPage({ showToast }) {
               {selectedFamily ? (
                 <FamilyDetailPanel
                   family={selectedFamily}
-                  onClose={() => setSelectedFamily(null)}
+                  onClose={() => setSelectedFamilyEmail(null)}
                   onMarkPaid={p => setShowMarkPaidModal(p)}
                   onMarkUnpaid={handleMarkUnpaid}
                   onSendReminder={f => setShowReminderModal(f)}
@@ -703,11 +705,11 @@ export function PaymentsPage({ showToast }) {
       {/* Detail panel overlay for smaller screens */}
       {selectedFamily && viewMode === 'family' && (
         <div className="xl:hidden">
-          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setSelectedFamily(null)} />
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setSelectedFamilyEmail(null)} />
           <div className={`fixed right-0 top-0 h-screen w-[500px] max-w-[90vw] z-50 shadow-2xl overflow-y-auto ${isDark ? 'bg-lynx-midnight' : 'bg-white'}`}>
             <FamilyDetailPanel
               family={selectedFamily}
-              onClose={() => setSelectedFamily(null)}
+              onClose={() => setSelectedFamilyEmail(null)}
               onMarkPaid={p => setShowMarkPaidModal(p)}
               onMarkUnpaid={handleMarkUnpaid}
               onSendReminder={f => setShowReminderModal(f)}
