@@ -358,14 +358,14 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                   <h3 className={`text-[10px] font-black uppercase tracking-widest mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Volunteers</h3>
                   <div className={`rounded-xl border ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
                     <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
-                      {['Line Judge', 'Scorekeeper'].map(role => {
+                      {['line_judge', 'scorekeeper'].map(role => {
                         const slots = ['primary', 'backup_1', 'backup_2']
                         return slots.map(pos => {
                           const vol = getVolunteer(role, pos)
                           return (
                             <div key={`${role}-${pos}`} className="px-4 py-2 flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{role}</span>
+                                <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</span>
                                 <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{formatPosition(pos)}</span>
                               </div>
                               {vol ? (
@@ -580,7 +580,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
           <div className={`w-full max-w-sm rounded-xl p-5 ${isDark ? 'bg-[#132240] border border-white/[0.08]' : 'bg-white border border-[#E8ECF2] shadow-xl'}`}
             onClick={e => e.stopPropagation()}>
             <h3 className={`text-sm font-bold mb-3 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-              Assign {volunteerAssignModal.role} — {formatPosition(volunteerAssignModal.position)}
+              Assign {volunteerAssignModal.role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} — {formatPosition(volunteerAssignModal.position)}
             </h3>
             <div className={`max-h-60 overflow-y-auto divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
               {availableParents.map(p => (

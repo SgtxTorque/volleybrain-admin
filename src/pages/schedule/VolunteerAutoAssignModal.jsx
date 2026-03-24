@@ -6,8 +6,8 @@ import { X, Users, Shuffle, Check, AlertTriangle, Loader2 } from 'lucide-react'
 
 // Default volunteer roles and slots per event
 const DEFAULT_ROLES = [
-  { role: 'Line Judge', positions: ['primary', 'backup_1'] },
-  { role: 'Scorekeeper', positions: ['primary', 'backup_1'] },
+  { role: 'line_judge', label: 'Line Judge', positions: ['primary', 'backup_1'] },
+  { role: 'scorekeeper', label: 'Scorekeeper', positions: ['primary', 'backup_1'] },
 ]
 
 export default function VolunteerAutoAssignModal({ teams, events, onClose, showToast, selectedSeason }) {
@@ -260,7 +260,7 @@ export default function VolunteerAutoAssignModal({ teams, events, onClose, showT
                 <div className={`divide-y ${isDark ? 'divide-white/[0.06]' : 'divide-[#E8ECF2]'}`}>
                   {roles.map((r, i) => (
                     <div key={i} className="px-4 py-2.5 flex items-center justify-between">
-                      <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{r.role}</span>
+                      <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{r.label}</span>
                       <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{r.positions.length} slot{r.positions.length !== 1 ? 's' : ''} per game</span>
                     </div>
                   ))}
