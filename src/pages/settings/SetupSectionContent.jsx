@@ -372,16 +372,17 @@ function SetupSectionContent({
 
       case 'online':
         return (
-          <div className="space-y-6">
-            <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.blackhornets.com" />
-            <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/blackhornetsVB" />
-            <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@blackhornetsVB" helpText="Just the handle, no URL needed" />
-            <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@blackhornetsVB" />
-            <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.blackhornets.com" />
+              <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/blackhornetsVB" />
+              <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@blackhornetsVB" helpText="Just the handle, no URL needed" />
+              <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@blackhornetsVB" />
+            </div>
+            <div className={`p-3 rounded-xl ${tc.cardBgAlt}`}>
               <p className={`text-sm font-medium ${tc.text} mb-1`}>📎 Your Registration Link</p>
-              <p className={`text-sm ${tc.textMuted} mb-2`}>Share this link for parents to register:</p>
-              <div className="flex gap-2">
-                <code className={`flex-1 px-3 py-2 rounded-lg text-sm ${tc.input}`}>
+              <div className="flex gap-2 items-center">
+                <code className={`flex-1 px-3 py-1.5 rounded-lg text-sm ${tc.input}`}>
                   thelynxapp.com/register/{organization?.slug || 'your-org'}
                 </code>
                 <button
@@ -389,7 +390,7 @@ function SetupSectionContent({
                     navigator.clipboard.writeText(`https://thelynxapp.com/register/${organization?.slug}`)
                     showToast('Link copied!', 'success')
                   }}
-                  className="px-4 py-2 rounded-lg text-white font-medium"
+                  className="px-3 py-1.5 rounded-lg text-white font-medium text-sm"
                   style={{ backgroundColor: accent.primary }}
                 >
                   Copy
@@ -443,27 +444,27 @@ function SetupSectionContent({
         }
 
         return (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Sports Selection */}
             <div>
-              <label className={`block text-sm font-medium ${tc.textSecondary} mb-3`}>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>
                 Which sports does your organization offer? <span className="text-red-400">*</span>
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {allSports.map(sport => {
                   const isEnabled = (localData.enabledSports || []).includes(sport.id)
                   return (
                     <button
                       key={sport.id}
                       onClick={() => toggleArrayItem('enabledSports', sport.id)}
-                      className={`p-3 rounded-xl border-2 transition-all text-left ${
+                      className={`px-2 py-2 rounded-xl border-2 transition-all text-center ${
                         isEnabled
                           ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
                           : `${tc.border} ${tc.hoverBg}`
                       }`}
                     >
-                      <span className="text-2xl">{sport.icon}</span>
-                      <p className={`text-sm font-medium mt-1 ${isEnabled ? tc.text : tc.textMuted}`}>{sport.name}</p>
+                      <span className="text-lg">{sport.icon}</span>
+                      <p className={`text-xs font-medium mt-0.5 ${isEnabled ? tc.text : tc.textMuted}`}>{sport.name}</p>
                     </button>
                   )
                 })}
@@ -472,27 +473,27 @@ function SetupSectionContent({
 
             {/* Program Types */}
             <div>
-              <label className={`block text-sm font-medium ${tc.textSecondary} mb-3`}>
+              <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>
                 What types of programs do you offer?
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {allPrograms.map(program => {
                   const isEnabled = (localData.programTypes || []).includes(program.id)
                   return (
                     <button
                       key={program.id}
                       onClick={() => toggleArrayItem('programTypes', program.id)}
-                      className={`p-4 rounded-xl border-2 transition-all text-left ${
+                      className={`px-3 py-2.5 rounded-xl border-2 transition-all text-left ${
                         isEnabled
                           ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
                           : `${tc.border} ${tc.hoverBg}`
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{program.icon}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{program.icon}</span>
                         <div>
-                          <p className={`font-medium ${isEnabled ? tc.text : tc.textMuted}`}>{program.name}</p>
-                          <p className={`text-xs ${tc.textMuted}`}>{program.desc}</p>
+                          <p className={`text-sm font-medium ${isEnabled ? tc.text : tc.textMuted}`}>{program.name}</p>
+                          <p className={`text-[10px] ${tc.textMuted}`}>{program.desc}</p>
                         </div>
                       </div>
                     </button>
@@ -501,97 +502,97 @@ function SetupSectionContent({
               </div>
             </div>
 
-            {/* Age System */}
-            <div className={`p-4 rounded-xl border ${tc.border}`}>
-              <label className={`block text-sm font-medium ${tc.textSecondary} mb-3`}>
-                How do you organize age divisions?
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => updateField('ageSystem', 'grade')}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    localData.ageSystem === 'grade'
-                      ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                      : `${tc.border}`
-                  }`}
-                >
-                  <p className={`font-medium ${tc.text}`}>📚 Grade-Based</p>
-                  <p className={`text-sm ${tc.textMuted} mt-1`}>3rd-4th, 5th-6th, etc.</p>
-                </button>
-                <button
-                  onClick={() => updateField('ageSystem', 'age')}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    localData.ageSystem === 'age'
-                      ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10'
-                      : `${tc.border}`
-                  }`}
-                >
-                  <p className={`font-medium ${tc.text}`}>🎂 Age-Based</p>
-                  <p className={`text-sm ${tc.textMuted} mt-1`}>10U, 12U, 14U, etc.</p>
-                </button>
-              </div>
-              {localData.ageSystem === 'age' && (
-                <div className="mt-4">
-                  <label className={`block text-sm ${tc.textMuted} mb-2`}>Age cutoff date (MM-DD)</label>
-                  <input
-                    type="text"
-                    value={localData.ageCutoffDate || '08-01'}
-                    onChange={(e) => updateField('ageCutoffDate', e.target.value)}
-                    placeholder="08-01"
-                    className={`w-32 px-3 py-2 rounded-lg border ${tc.input}`}
-                  />
-                  <p className={`text-xs ${tc.textMuted} mt-1`}>Player's age on this date determines their division</p>
+            {/* Age, Skill, Gender in a 2-col grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Age System */}
+              <div className={`p-3 rounded-xl border ${tc.border}`}>
+                <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2`}>
+                  Age Divisions
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => updateField('ageSystem', 'grade')}
+                    className={`flex-1 px-3 py-2 rounded-lg border-2 text-center transition-all text-sm ${
+                      localData.ageSystem === 'grade'
+                        ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 font-medium'
+                        : `${tc.border}`
+                    }`}
+                  >
+                    📚 Grade-Based
+                  </button>
+                  <button
+                    onClick={() => updateField('ageSystem', 'age')}
+                    className={`flex-1 px-3 py-2 rounded-lg border-2 text-center transition-all text-sm ${
+                      localData.ageSystem === 'age'
+                        ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 font-medium'
+                        : `${tc.border}`
+                    }`}
+                  >
+                    🎂 Age-Based
+                  </button>
                 </div>
-              )}
-            </div>
-
-            {/* Skill Levels */}
-            <div>
-              <label className={`block text-sm font-medium ${tc.textSecondary} mb-3`}>
-                What skill levels do you offer?
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {allSkillLevels.map(level => {
-                  const isEnabled = (localData.skillLevels || []).includes(level.id)
-                  return (
-                    <button
-                      key={level.id}
-                      onClick={() => toggleArrayItem('skillLevels', level.id)}
-                      className={`px-4 py-2 rounded-full border-2 transition-all ${
-                        isEnabled
-                          ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
-                          : `${tc.border} ${tc.textMuted}`
-                      }`}
-                    >
-                      {level.name}
-                    </button>
-                  )
-                })}
+                {localData.ageSystem === 'age' && (
+                  <div className="mt-2">
+                    <label className={`block text-xs ${tc.textMuted} mb-1`}>Age cutoff (MM-DD)</label>
+                    <input
+                      type="text"
+                      value={localData.ageCutoffDate || '08-01'}
+                      onChange={(e) => updateField('ageCutoffDate', e.target.value)}
+                      placeholder="08-01"
+                      className={`w-24 px-3 py-1.5 rounded-lg border text-sm ${tc.input}`}
+                    />
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* Gender Options */}
-            <div>
-              <label className={`block text-sm font-medium ${tc.textSecondary} mb-3`}>
-                What gender divisions do you offer?
-              </label>
-              <div className="flex gap-3">
-                {allGenders.map(gender => {
-                  const isEnabled = (localData.genderOptions || []).includes(gender.id)
-                  return (
-                    <button
-                      key={gender.id}
-                      onClick={() => toggleArrayItem('genderOptions', gender.id)}
-                      className={`px-6 py-3 rounded-xl border-2 transition-all ${
-                        isEnabled
-                          ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] font-medium'
-                          : `${tc.border} ${tc.textMuted}`
-                      }`}
-                    >
-                      {gender.name}
-                    </button>
-                  )
-                })}
+              {/* Skill Levels + Gender */}
+              <div className="space-y-3">
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2`}>
+                    Skill Levels
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {allSkillLevels.map(level => {
+                      const isEnabled = (localData.skillLevels || []).includes(level.id)
+                      return (
+                        <button
+                          key={level.id}
+                          onClick={() => toggleArrayItem('skillLevels', level.id)}
+                          className={`px-3 py-1.5 rounded-full border-2 text-xs font-medium transition-all ${
+                            isEnabled
+                              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+                              : `${tc.border} ${tc.textMuted}`
+                          }`}
+                        >
+                          {level.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2`}>
+                    Gender Divisions
+                  </label>
+                  <div className="flex gap-2">
+                    {allGenders.map(gender => {
+                      const isEnabled = (localData.genderOptions || []).includes(gender.id)
+                      return (
+                        <button
+                          key={gender.id}
+                          onClick={() => toggleArrayItem('genderOptions', gender.id)}
+                          className={`px-4 py-1.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                            isEnabled
+                              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+                              : `${tc.border} ${tc.textMuted}`
+                          }`}
+                        >
+                          {gender.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
