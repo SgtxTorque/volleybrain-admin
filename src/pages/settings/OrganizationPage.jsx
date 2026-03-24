@@ -544,10 +544,10 @@ function OrganizationPage({ showToast }) {
     },
     {
       key: 'legal',
-      title: 'Legal & Waivers',
+      title: 'Legal & Compliance',
       icon: '⚖️',
-      estTime: '10-15 min',
-      description: 'Waivers, insurance, and compliance',
+      estTime: '5-10 min',
+      description: 'Entity info, insurance, and compliance',
       required: true,
       category: 'foundation',
     },

@@ -618,10 +618,19 @@ function SetupSectionContent({
             <SectionInput {...fp} label="EIN / Tax ID" field="ein" placeholder="XX-XXXXXXX" helpText="For tax purposes and payment processing" />
 
             <div className={`p-4 rounded-xl border ${tc.border} ${tc.cardBgAlt}`}>
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className={`font-medium ${tc.text}`}>📋 Waivers</p>
-                  <p className={`text-sm ${tc.textMuted}`}>{waivers?.length || 0} waivers configured</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📋</span>
+                  <div>
+                    <p className={`font-medium ${tc.text}`}>Waivers</p>
+                    <p className={`text-sm ${tc.textMuted}`}>
+                      {waivers?.filter(w => w.is_active).length || 0} active
+                      {' · '}
+                      {waivers?.filter(w => w.is_required).length || 0} required
+                      {' · '}
+                      {waivers?.length || 0} total
+                    </p>
+                  </div>
                 </div>
                 <button
                   className="px-4 py-2 rounded-lg text-white font-medium text-sm"
@@ -634,18 +643,29 @@ function SetupSectionContent({
                   Manage Waivers →
                 </button>
               </div>
-              <div className="space-y-2">
-                {['Liability Waiver', 'Photo/Media Release', 'Medical Authorization', 'Code of Conduct', 'Concussion Protocol'].map(waiver => {
-                  const exists = waivers?.some(w => w.name?.toLowerCase().includes(waiver.toLowerCase().split(' ')[0]))
-                  return (
-                    <div key={waiver} className="flex items-center gap-2">
-                      <span>{exists ? '✅' : '⬜'}</span>
-                      <span className={`text-sm ${exists ? tc.text : tc.textMuted}`}>{waiver}</span>
-                      {!exists && <span className="text-xs text-amber-500">(Recommended)</span>}
-                    </div>
-                  )
-                })}
-              </div>
+              {(!waivers || waivers.length === 0) && (
+                <p className={`text-sm mt-3 ${tc.textMuted}`}>
+                  No waivers created yet. Add your liability waiver, code of conduct, and other documents families need to sign.
+                </p>
+              )}
+              {waivers && waivers.filter(w => w.is_active).length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {waivers.filter(w => w.is_active).map(w => (
+                    <span
+                      key={w.id}
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                        w.is_required
+                          ? 'bg-red-500/10 text-red-500'
+                          : tc.cardBgAlt + ' ' + tc.textMuted
+                      }`}
+                    >
+                      {w.name}
+                      {w.is_required && ' · Required'}
+                      {w.sport_id && ' · Sport-specific'}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className={`p-4 rounded-xl border ${tc.border}`}>
