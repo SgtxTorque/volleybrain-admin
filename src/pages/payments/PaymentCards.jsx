@@ -28,8 +28,8 @@ export function PlayerPaymentCard({
   const cardBg = isDark ? 'bg-lynx-charcoal border border-white/[0.06]' : 'bg-white border border-slate-200'
 
   return (
-    <div className={`${cardBg} rounded-[14px] overflow-hidden transition-all`}>
-      <div onClick={onToggle} className={`px-5 py-4 cursor-pointer transition flex items-center justify-between ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'}`}>
+    <div className="overflow-hidden transition-all">
+      <div onClick={onToggle} className={`px-4 py-2.5 cursor-pointer transition flex items-center justify-between ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'}`}>
         <div className="flex items-center gap-4">
           {expanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
           {player.photo_url ? (
@@ -65,7 +65,7 @@ export function PlayerPaymentCard({
         <div className={`border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
             {payments.map(payment => (
-              <div key={payment.id} className={`px-5 py-3 flex items-center justify-between ${payment.paid ? (isDark ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
+              <div key={payment.id} className={`px-4 py-2 flex items-center justify-between ${payment.paid ? (isDark ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
                 <div className="flex items-center gap-4 flex-1">
                   <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   <div className="flex-1">
@@ -113,7 +113,7 @@ export function PlayerPaymentCard({
           </div>
 
           {payments.some(p => p.paid) && (
-            <div className={`px-5 py-3 border-t ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-slate-100 bg-slate-50'}`}>
+            <div className={`px-4 py-2 border-t ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-slate-100 bg-slate-50'}`}>
               <p className={`text-sm font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Payment History</p>
               <div className="space-y-1">
                 {payments.filter(p => p.paid).map(p => (
@@ -163,13 +163,13 @@ export function FamilyPaymentCard({
   const initial = (family.parentName || '?').charAt(0)
 
   return (
-    <div className={`rounded-[14px] overflow-hidden transition-all ${
+    <div className={`overflow-hidden transition-all ${
       isSelected
-        ? (isDark ? 'bg-[#4BB9EC]/10 border-2 border-[#10284C]' : 'bg-[#4BB9EC]/[0.06] border-2 border-[#10284C]')
-        : (isDark ? 'bg-[#132240] border border-white/[0.06] hover:bg-[#1a2d50]' : 'bg-white border border-[#E8ECF2] hover:shadow-md')
-    } ${isOverdue && !isSelected ? (isDark ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-red-500') : ''}`}>
+        ? (isDark ? 'bg-[#4BB9EC]/10' : 'bg-[#4BB9EC]/[0.06]')
+        : (isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50')
+    } ${isOverdue && !isSelected ? 'border-l-4 border-l-red-500' : ''}`}>
       {/* Header row */}
-      <div className={`p-4 flex items-center gap-3 cursor-pointer transition`}
+      <div className={`px-4 py-2.5 flex items-center gap-3 cursor-pointer transition`}
         onClick={() => onSelect?.()}>
         {/* Bulk checkbox */}
         {onBulkToggle && (
@@ -239,7 +239,7 @@ export function FamilyPaymentCard({
         <div className={`border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
           <div className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-slate-100'}`}>
             {family.payments.map(payment => (
-              <div key={payment.id} className={`px-5 py-3 flex items-center justify-between ${payment.paid ? (isDark ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
+              <div key={payment.id} className={`px-4 py-2 flex items-center justify-between ${payment.paid ? (isDark ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''}`}>
                 <div className="flex items-center gap-4 flex-1">
                   <div className={`w-2 h-2 rounded-full ${payment.paid ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   <div className="flex-1">
