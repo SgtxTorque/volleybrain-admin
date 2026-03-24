@@ -9,6 +9,7 @@ import ChatThread from './ChatThread'
 import ChatContextPanel from './ChatContextPanel'
 import NewChatModal from './NewChatModal'
 import CoppaConsentModal from '../../components/compliance/CoppaConsentModal'
+import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 
 // ---------------------------------------------------------------
 // MAIN COMPONENT
@@ -303,6 +304,8 @@ function ChatsPage({ showToast, activeView, roleContext }) {
   // ---------------------------------------------------------------
 
   return (
+    <>
+    <SeasonFilterBar role={activeView} />
     <div
       className={`h-[calc(100vh-180px)] flex overflow-hidden rounded-[14px] border animate-fade-in ${
         isDark
@@ -464,6 +467,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         />
       )}
     </div>
+    </>
   )
 }
 
