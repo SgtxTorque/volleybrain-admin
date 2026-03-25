@@ -33,7 +33,7 @@ function EmptyStateCTA({ emoji, title, description, buttonLabel, onClick, isDark
       <h3 className="font-extrabold text-lg mb-1" style={{ color: 'var(--v2-text-primary)' }}>{title}</h3>
       <p className="text-sm text-slate-400 mb-4">{description}</p>
       <button onClick={onClick}
-        className="px-6 py-2.5 bg-[#10284C] text-white font-bold rounded-xl hover:brightness-110 transition">
+        className="px-6 py-2.5 bg-lynx-navy-subtle text-white font-bold rounded-xl hover:brightness-110 transition">
         {buttonLabel}
       </button>
     </div>
@@ -139,7 +139,7 @@ export function GettingStartedGuide({ onNavigate }) {
             Set up your club's identity, contact info, sports, payment methods, and fees. This information feeds into seasons, registration, and payments.
           </p>
           <button onClick={() => onNavigate?.('organization')}
-            className="px-8 py-3 bg-[#10284C] text-white font-bold rounded-xl hover:brightness-110 transition text-sm">
+            className="px-8 py-3 bg-lynx-navy-subtle text-white font-bold rounded-xl hover:brightness-110 transition text-sm">
             Start Organization Setup {'\u2192'}
           </button>
           <p className={`text-xs mt-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -1237,7 +1237,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                         <h3 className="font-extrabold text-lg mb-1" style={{ color: 'var(--v2-text-primary)' }}>No Upcoming Events</h3>
                         <p className="text-sm text-slate-400 mb-4">Add practices, games, and events to your schedule</p>
                         <button onClick={() => onNavigate?.('schedule')}
-                          className="px-6 py-2.5 bg-[#10284C] text-white font-bold rounded-xl hover:brightness-110 transition">
+                          className="px-6 py-2.5 bg-lynx-navy-subtle text-white font-bold rounded-xl hover:brightness-110 transition">
                           Go to Schedule {'\u2192'}
                         </button>
                       </div>
@@ -1299,7 +1299,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   <p className={`text-sm font-bold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>No Events This Week</p>
                   <p className="text-xs text-slate-400 mb-3">Create practices and games for your teams</p>
                   <button onClick={() => onNavigate?.('schedule')}
-                    className="w-full py-2 bg-[#10284C] text-white font-bold rounded-lg text-xs hover:brightness-110 transition">
+                    className="w-full py-2 bg-lynx-navy-subtle text-white font-bold rounded-lg text-xs hover:brightness-110 transition">
                     + Create Event
                   </button>
                 </div>

@@ -196,7 +196,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
       {viewingWaiver && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={() => setViewingWaiver(null)}>
           <div className={`${isDark ? 'bg-white/[0.03]' : 'bg-white'} rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl`} onClick={e => e.stopPropagation()}>
-            <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-[#0B1628]' : 'bg-slate-100'} rounded-t-xl`}>
+            <div className={`px-5 py-3 flex items-center justify-between ${isDark ? 'bg-lynx-navy' : 'bg-slate-100'} rounded-t-xl`}>
               <span className={`text-xl font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{viewingWaiver.name}</span>
               <button onClick={() => setViewingWaiver(null)} className={`text-xl ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>×</button>
             </div>
@@ -261,7 +261,7 @@ export default function WaiversTab({ player, organization, isDark, showToast, te
               )}
             </div>
 
-            <div className={`px-6 py-5 ${isDark ? 'bg-[#0B1628]' : 'bg-slate-50'} border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+            <div className={`px-6 py-5 ${isDark ? 'bg-lynx-navy' : 'bg-slate-50'} border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
               <label className={`flex items-start gap-3 cursor-pointer mb-5 p-4 rounded-xl border ${isDark ? 'border-white/[0.06] bg-white/[0.04]' : 'border-slate-200 bg-white'}`}>
                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
                   className="w-5 h-5 mt-0.5 rounded accent-current shrink-0" style={{ accentColor: teamColor }} />

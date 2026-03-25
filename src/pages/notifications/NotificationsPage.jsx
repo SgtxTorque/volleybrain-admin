@@ -173,7 +173,7 @@ export function NotificationsPage({ showToast }) {
           </button>
           <button
             onClick={() => setShowSendModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#10284C] text-white hover:brightness-110 transition"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-lynx-navy-subtle text-white hover:brightness-110 transition"
           >
             <Send size={16} />
             Send Notification
@@ -696,7 +696,7 @@ function SendNotificationModal({ teams, onClose, showToast, onSent, selectedSeas
           <button
             onClick={handleSend}
             disabled={sending || !title.trim() || !body.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#10284C] text-white hover:brightness-110 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-lynx-navy-subtle text-white hover:brightness-110 transition disabled:opacity-50"
           >
             <Send size={14} />
             {sending ? 'Sending...' : 'Send'}

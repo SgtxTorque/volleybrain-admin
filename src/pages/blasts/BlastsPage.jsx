@@ -176,7 +176,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
       actions={
         <button
           onClick={() => setShowComposeModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#10284C] text-white font-bold hover:brightness-110 transition text-sm"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition text-sm"
         >
           <Plus className="w-4 h-4" /> New Announcement
         </button>
@@ -231,7 +231,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
           <p className="text-slate-400 mt-1 text-sm">Send your first announcement to parents and teams</p>
           <button
             onClick={() => setShowComposeModal(true)}
-            className="mt-4 px-6 py-3 rounded-xl bg-[#10284C] text-white font-bold hover:brightness-110 transition text-sm"
+            className="mt-4 px-6 py-3 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition text-sm"
           >
             Create Announcement
           </button>
@@ -605,7 +605,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
           <button
             onClick={handleSend}
             disabled={sending || !form.title.trim() || !form.body.trim()}
-            className="flex-1 py-3 rounded-xl bg-[#10284C] text-white font-bold hover:brightness-110 transition disabled:opacity-50"
+            className="flex-1 py-3 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition disabled:opacity-50"
           >
             {sending ? 'Sending...' : `Send to ${recipientCount} Recipients`}
           </button>

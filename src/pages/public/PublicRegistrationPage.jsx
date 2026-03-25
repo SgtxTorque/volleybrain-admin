@@ -367,7 +367,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   return (
     <div className="min-h-screen bg-[#F5F6F8]">
       {/* Branded header */}
-      <div className="bg-gradient-to-br from-[#0B1628] to-[#10284C]">
+      <div className="bg-lynx-navy">
         <div className="px-4 py-10 text-center max-w-2xl mx-auto">
           {organization?.logo_url && (
             <img

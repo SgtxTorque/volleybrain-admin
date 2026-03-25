@@ -24,7 +24,7 @@ export default function GameDayHero({ event, team, mode, seasonRecord }) {
     <div
       className="relative rounded-2xl p-7 overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #0B1628 0%, #122240 50%, #0B1628 100%)',
+        background: 'linear-gradient(135deg, #0B1628 0%, #162D50 50%, #0B1628 100%)',
       }}
     >
       {/* Dot grid overlay */}

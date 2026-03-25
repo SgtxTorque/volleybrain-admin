@@ -474,7 +474,7 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
           {player.photo_url ? (
             <img src={player.photo_url} className="w-12 h-12 rounded-xl object-cover shadow" />
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-[#10284C] flex items-center justify-center text-white text-lg font-extrabold shadow">
+            <div className="w-12 h-12 rounded-xl bg-lynx-navy-subtle flex items-center justify-center text-white text-lg font-extrabold shadow">
               {player.jersey_number || '?'}
             </div>
           )}

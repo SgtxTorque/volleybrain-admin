@@ -92,6 +92,11 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
+      backgroundImage: {
+        'lynx-navy': 'linear-gradient(135deg, #0B1628 0%, #162D50 100%)',
+        'lynx-navy-h': 'linear-gradient(90deg, #0B1628 0%, #162D50 100%)',
+        'lynx-navy-subtle': 'linear-gradient(135deg, #0B1628 0%, #132244 100%)',
+      },
       backdropBlur: {
         xs: '2px',
       },

@@ -121,7 +121,7 @@ export default function RegistrationsTable({
       {/* Bulk Action Bar — sticky navy bar */}
       {selectedIds.size > 0 && (
         <div className={`sticky top-0 z-10 flex items-center justify-between px-5 py-3 rounded-xl ${
-          isDark ? 'bg-[#10284C] border border-[#4BB9EC]/20' : 'bg-[#10284C]'
+          isDark ? 'bg-lynx-navy-h border border-[#4BB9EC]/20' : 'bg-lynx-navy-h'
         }`}>
           <span className="text-sm font-bold text-white">{selectedIds.size} selected</span>
           <div className="flex items-center gap-2">

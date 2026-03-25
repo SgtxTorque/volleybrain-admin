@@ -449,7 +449,7 @@ export function PaymentsPage({ showToast }) {
             <Download className="w-4 h-4" /> Export
           </button>
           <button onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-[#10284C] text-white font-semibold hover:bg-[#1a3a6b] shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-lynx-navy-subtle text-white font-semibold hover:brightness-110 shadow-sm transition-all"
             style={{ fontFamily: 'var(--v2-font)' }}>
             <Plus className="w-4 h-4" /> Add Fee
           </button>
@@ -461,7 +461,7 @@ export function PaymentsPage({ showToast }) {
       <SeasonFilterBar />
 
       {/* Navy Financial Overview Header */}
-      <div className="bg-[#10284C] rounded-2xl p-6" style={{ fontFamily: 'var(--v2-font)' }}>
+      <div className="bg-lynx-navy-h rounded-2xl p-6" style={{ fontFamily: 'var(--v2-font)' }}>
         <div className="grid grid-cols-3 lg:grid-cols-6 gap-6">
           {[
             { label: 'Total Billed', value: `$${totalBilled.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, color: 'text-white' },

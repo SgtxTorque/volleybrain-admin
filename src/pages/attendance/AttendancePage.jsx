@@ -409,7 +409,7 @@ function AttendancePage({ showToast }) {
                     {/* Send Reminders Button */}
                     <div className={`flex items-center justify-between pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
                       <button onClick={(e) => { e.stopPropagation(); showToast('Reminder sent to pending players', 'success') }}
-                        className="bg-[#10284C] text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:brightness-110 transition">
+                        className="bg-lynx-navy-subtle text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:brightness-110 transition">
                         📩 Send RSVP Reminders
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); setExpandedEventId(null) }}

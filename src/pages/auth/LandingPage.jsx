@@ -48,7 +48,7 @@ export function LandingPage({ onNavigate }) {
             </button>
             <button
               onClick={() => onNavigate('signup')}
-              className="text-sm font-bold text-white bg-[#10284C] px-6 py-2.5 rounded-full hover:brightness-110 transition"
+              className="text-sm font-bold text-white bg-lynx-navy-subtle px-6 py-2.5 rounded-full hover:brightness-110 transition"
             >
               Secure Your Spot
             </button>
@@ -156,7 +156,7 @@ export function LandingPage({ onNavigate }) {
 
       {/* ─── 5. One Platform Card (dark) ─── */}
       <section className="max-w-[1200px] mx-auto px-6 pb-10">
-        <div className="bg-gradient-to-br from-[#0B1628] to-[#10284C] rounded-[28px] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+        <div className="bg-lynx-navy rounded-[28px] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
           <div className="flex flex-wrap items-center min-h-[380px]">
             <div style={{ flex: '1 1 300px' }} className="flex justify-center p-10">
               <img src="/images/celebrate.png" alt="Lynx mascot" className="h-[280px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.3)]" />
@@ -186,7 +186,7 @@ export function LandingPage({ onNavigate }) {
 
       {/* ─── 6. Starting Lineup Card (dark) ─── */}
       <section className="max-w-[1200px] mx-auto px-6 pb-10">
-        <div className="bg-gradient-to-br from-[#10284C] to-[#0B1628] rounded-[28px] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+        <div className="bg-lynx-navy rounded-[28px] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
           <div className="flex flex-wrap items-center min-h-[380px]">
             <div style={{ flex: '1 1 300px' }} className="flex justify-center p-10">
               <img src="/images/laptoplynx.png" alt="Lynx with laptop" className="h-[280px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.3)]" />

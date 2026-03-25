@@ -444,7 +444,7 @@ function ReportsPage({ showToast }) {
       }
     >
       {/* Navy Overview Header */}
-      <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
+      <div className="bg-lynx-navy-h rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
@@ -529,7 +529,7 @@ function ReportsPage({ showToast }) {
                 <button
                   onClick={() => setShowExportMenu(!showExportMenu)}
                   disabled={loading || data.length === 0}
-                  className="px-5 py-2.5 rounded-xl bg-[#10284C] text-white font-bold text-sm flex items-center gap-2 disabled:opacity-40 hover:brightness-110 transition"
+                  className="px-5 py-2.5 rounded-xl bg-lynx-navy-subtle text-white font-bold text-sm flex items-center gap-2 disabled:opacity-40 hover:brightness-110 transition"
                 >
                   \uD83D\uDCE4 Export \u25BC
                 </button>

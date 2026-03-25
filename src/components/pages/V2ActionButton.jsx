@@ -1,6 +1,6 @@
 export default function V2ActionButton({ label, icon: Icon, onClick, variant = 'secondary', size = 'md', className = '' }) {
   const variants = {
-    primary: 'bg-[#10284C] text-white hover:bg-[#1a3a6b] shadow-sm',
+    primary: 'bg-lynx-navy-subtle text-white hover:brightness-110 shadow-sm',
     sky: 'bg-[#4BB9EC] text-white hover:brightness-110 shadow-sm',
     danger: 'bg-red-500 text-white hover:bg-red-600 shadow-sm',
     secondary: 'bg-white text-[#10284C] border border-[#E8ECF2] hover:border-[#4BB9EC]/30 hover:shadow-sm',

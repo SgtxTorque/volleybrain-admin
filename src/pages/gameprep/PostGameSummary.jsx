@@ -201,7 +201,7 @@ function PostGameSummary({
           </button>
           <button
             onClick={onSaveStats}
-            className="flex-1 py-4 bg-[#10284C] hover:bg-lynx-sky text-white font-bold rounded-xl transition"
+            className="flex-1 py-4 bg-lynx-navy-subtle hover:bg-lynx-sky text-white font-bold rounded-xl transition"
           >
             Save & Finish
           </button>

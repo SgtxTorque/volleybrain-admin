@@ -177,7 +177,7 @@ export function FamilyPaymentCard({
             onClick={e => { e.stopPropagation(); onBulkToggle() }}
             className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition ${
               bulkSelected
-                ? 'bg-[#10284C] border-[#10284C]'
+                ? 'bg-lynx-navy-subtle border-[#10284C]'
                 : isDark ? 'border-white/20 hover:border-white/40' : 'border-slate-300 hover:border-slate-400'
             }`}
           >

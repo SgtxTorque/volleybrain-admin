@@ -145,7 +145,7 @@ export default function FamilyDetailPanel({
           </button>
           {unpaidPayments.length > 0 && (
             <button onClick={() => onMarkPaid(unpaidPayments[0])}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#10284C] text-white hover:brightness-110 transition">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-lynx-navy-subtle text-white hover:brightness-110 transition">
               <DollarSign className="w-3 h-3" /> Mark Paid
             </button>
           )}

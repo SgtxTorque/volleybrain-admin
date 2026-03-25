@@ -309,7 +309,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
     <div
       className={`h-[calc(100vh-130px)] flex overflow-hidden animate-fade-in ${
         isDark
-          ? 'bg-[#0B1628]'
+          ? 'bg-lynx-navy'
           : 'bg-white'
       }`}
       style={{ fontFamily: 'var(--v2-font)' }}
@@ -318,7 +318,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       {(!isMobileView || !selectedChannel) && (
         <div
           className={`${isMobileView ? 'w-full' : 'w-[340px]'} shrink-0 flex flex-col border-r ${
-            isDark ? 'border-white/[0.06] bg-[#0B1628]' : 'border-[#E8ECF2] bg-[#F8F9FB]'
+            isDark ? 'border-white/[0.06] bg-lynx-navy' : 'border-[#E8ECF2] bg-[#F8F9FB]'
           }`}
         >
           {/* Header */}
@@ -334,7 +334,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
               </div>
               <button
                 onClick={() => setShowNewChat(true)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#10284C] text-white hover:brightness-125 transition-all active:scale-95"
+                className="w-8 h-8 rounded-xl flex items-center justify-center bg-lynx-navy-subtle text-white hover:brightness-125 transition-all active:scale-95"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -369,7 +369,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
                   onClick={() => setFilterType(key)}
                   className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all relative ${
                     filterType === key
-                      ? 'bg-[#10284C] text-white shadow-sm'
+                      ? 'bg-lynx-navy-subtle text-white shadow-sm'
                       : isDark ? 'text-white/35 hover:text-white/60' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -446,7 +446,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       {/* === RIGHT COLUMN — Context Panel (team channels only) === */}
       {showRightPanel && selectedChannel && !isMobileView && (
         <div className={`w-[300px] shrink-0 flex flex-col border-l overflow-y-auto ${
-          isDark ? 'border-white/[0.06] bg-[#0B1628]' : 'border-[#E8ECF2] bg-[#F8F9FB]'
+          isDark ? 'border-white/[0.06] bg-lynx-navy' : 'border-[#E8ECF2] bg-[#F8F9FB]'
         }`}>
           <ChatContextPanel
             channel={selectedChannel}
@@ -534,7 +534,7 @@ function ConversationItem({ channel, isSelected, onClick, formatTime, isDark, in
         </div>
         <div className="flex items-center gap-1.5 mt-0.5">
           {channel.channel_type === 'team_chat' && (
-            <span className="px-1 py-0 rounded text-[8px] font-black uppercase bg-[#10284C] text-white leading-tight">Team</span>
+            <span className="px-1 py-0 rounded text-[8px] font-black uppercase bg-lynx-navy-subtle text-white leading-tight">Team</span>
           )}
           {channel.channel_type === 'player_chat' && (
             <span className="px-1 py-0 rounded text-[8px] font-black uppercase bg-[#4BB9EC]/20 text-[#4BB9EC] leading-tight">Player</span>

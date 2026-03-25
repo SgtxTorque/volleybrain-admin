@@ -138,7 +138,7 @@ export function ActionBar({ mode, onRotate, onTimeout, onSubstitute, onStartGame
       <div className="p-5" style={{ backgroundColor: theme.headerBg, borderTop: `1px solid ${theme.border}` }}>
         <div className="flex items-center justify-center gap-4">
           <button onClick={onStartGame} disabled={!canStartGame}
-            className="flex items-center gap-3 px-10 py-5 bg-[#10284C] hover:bg-lynx-sky text-white font-black rounded-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+            className="flex items-center gap-3 px-10 py-5 bg-lynx-navy-subtle hover:bg-lynx-sky text-white font-black rounded-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
             style={{ letterSpacing: '0.08em' }}>
             <Icons.Play className="w-7 h-7" /><span className="text-4xl">START MATCH</span>
           </button>

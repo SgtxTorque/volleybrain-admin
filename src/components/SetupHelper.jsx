@@ -98,12 +98,12 @@ export default function SetupHelper({ onNavigate }) {
           {/* Panel */}
           <div
             className={`fixed top-0 right-0 z-50 h-full w-[360px] max-w-[90vw] shadow-2xl flex flex-col ${
-              isDark ? 'bg-[#0B1628]' : 'bg-white'
+              isDark ? 'bg-lynx-navy' : 'bg-white'
             }`}
             style={{ animation: 'slideInRight 0.3s ease-out' }}
           >
             {/* Header */}
-            <div className="bg-[#0B1628] px-5 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-lynx-navy-h px-5 py-4 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-white font-bold text-base">Your Setup Checklist</h3>
                 <p className="text-slate-400 text-xs mt-0.5">{doneCount} of {totalSteps} complete</p>

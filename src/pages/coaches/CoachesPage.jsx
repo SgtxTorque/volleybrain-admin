@@ -255,7 +255,7 @@ export function CoachesPage({ showToast }) {
             <UserPlus className="w-4 h-4" /> Invite
           </button>
           <button onClick={() => { setEditingCoach(null); setShowAddModal(true) }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#10284C] text-white font-semibold rounded-xl hover:bg-[#1a3a6b] shadow-sm transition-all text-sm"
+            className="flex items-center gap-2 px-5 py-2.5 bg-lynx-navy-subtle text-white font-semibold rounded-xl hover:brightness-110 shadow-sm transition-all text-sm"
             style={{ fontFamily: 'var(--v2-font)' }}>
             <Plus className="w-4 h-4" /> Add Coach
           </button>
@@ -300,7 +300,7 @@ export function CoachesPage({ showToast }) {
           <h3 className="text-xl font-semibold text-slate-900 mb-2">No coaches found</h3>
           <p className="text-slate-500 mb-6">{searchTerm ? 'Try a different search term' : 'Add your first coach to get started'}</p>
           {!searchTerm && (
-            <button onClick={() => setShowAddModal(true)} className="px-6 py-2.5 bg-[#10284C] text-white font-semibold rounded-xl hover:bg-[#1a3a6b] shadow-sm transition-all" style={{ fontFamily: 'var(--v2-font)' }}>Add First Coach</button>
+            <button onClick={() => setShowAddModal(true)} className="px-6 py-2.5 bg-lynx-navy-subtle text-white font-semibold rounded-xl hover:brightness-110 shadow-sm transition-all" style={{ fontFamily: 'var(--v2-font)' }}>Add First Coach</button>
           )}
         </div>
       ) : (

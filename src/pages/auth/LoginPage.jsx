@@ -99,7 +99,7 @@ export function LoginPage({ initialMode, onBack }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#0B1628' }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #0B1628 0%, #162D50 100%)' }}>
       <div className="w-full max-w-md">
         {/* Back button */}
         {onBack && (
@@ -254,7 +254,7 @@ export function LoginPage({ initialMode, onBack }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#10284C] text-white font-bold py-3 rounded-xl hover:brightness-110 transition disabled:opacity-50"
+              className="w-full bg-lynx-navy-subtle text-white font-bold py-3 rounded-xl hover:brightness-110 transition disabled:opacity-50"
               style={{ fontFamily: 'var(--v2-font)' }}
             >
               {loading

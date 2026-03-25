@@ -321,7 +321,7 @@ export default function TeamDetailPanel({
         <div className="flex gap-2">
           <button
             onClick={() => { onManageRoster?.(team); handleClose() }}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#10284C] text-white hover:brightness-110 transition"
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-lynx-navy-subtle text-white hover:brightness-110 transition"
           >
             <Users className="w-3.5 h-3.5" /> Roster
           </button>

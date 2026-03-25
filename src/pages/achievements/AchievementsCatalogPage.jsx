@@ -309,7 +309,7 @@ export function AchievementsCatalogPage({
     >
       <div className="space-y-6">
         {/* Navy Hero Header */}
-        <div className="bg-[#10284C] rounded-2xl p-6">
+        <div className="bg-lynx-navy rounded-2xl p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-extrabold text-white italic" style={{ fontFamily: 'var(--v2-font)' }}>

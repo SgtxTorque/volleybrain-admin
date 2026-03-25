@@ -458,7 +458,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           </button>
           <button
             onClick={() => setShowNewTeamModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-[#10284C] text-white font-semibold hover:bg-[#1a3a6b] shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-lynx-navy-subtle text-white font-semibold hover:brightness-110 shadow-sm transition-all"
             style={{ fontFamily: 'var(--v2-font)' }}
           >
             <Plus className="w-4 h-4" /> New Team
@@ -522,7 +522,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
                 onClick={() => setActiveSportFilter(sf.key)}
                 className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
                   activeSportFilter === sf.key
-                    ? 'bg-[#10284C] text-white shadow-sm'
+                    ? 'bg-lynx-navy-subtle text-white shadow-sm'
                     : isDark
                       ? 'bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-white'
                       : 'bg-white border border-[#E8ECF2] text-slate-500 hover:border-[#4BB9EC]/30'

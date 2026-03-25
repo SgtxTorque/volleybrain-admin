@@ -534,7 +534,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
       {viewMode === 'full' && selectedCategory && (
         <div className="space-y-4">
           {/* Category header */}
-          <div className="bg-[#10284C] rounded-2xl p-6">
+          <div className="bg-lynx-navy rounded-2xl p-6">
             <div className="flex items-center gap-4">
               <div
                 className="w-14 h-14 rounded-xl flex items-center justify-center text-r-3xl"
@@ -598,7 +598,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
 
       {/* Top Performers Summary — Navy MVP Header */}
       {viewMode === 'grid' && (
-        <div className="mt-8 bg-[#10284C] rounded-2xl p-6 text-white">
+        <div className="mt-8 bg-lynx-navy rounded-2xl p-6 text-white">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-10 h-10 rounded-xl bg-amber-400/20 flex items-center justify-center">
               <TrophyIcon className="w-5 h-5 text-amber-400" />

@@ -181,7 +181,7 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
           </p>
           <a
             href="/"
-            className="inline-block mt-4 bg-[#10284C] text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
+            className="inline-block mt-4 bg-lynx-navy-subtle text-white font-bold py-3 px-8 rounded-xl hover:brightness-110 transition"
             style={{ fontFamily: 'var(--v2-font)' }}
           >
             Create Account

@@ -59,13 +59,13 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
         </div>
         <div className="p-4">
           <input type="text" placeholder="Search by name or jersey #..." value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: '#10284C', border: '1px solid rgba(255,255,255,0.06)', color: '#fff' }} />
+            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: 'var(--lynx-navy-gradient-subtle)', border: '1px solid rgba(255,255,255,0.06)', color: '#fff' }} />
         </div>
         <div className="flex-1 overflow-auto px-4 pb-4 space-y-2">
           {filtered.map(player => (
             <button key={player.id} onClick={() => onSelect(player)}
               className="w-full flex items-center gap-3 p-3 rounded-xl"
-              style={{ background: selectedPlayerId === player.id ? '#162848' : '#10284C', border: selectedPlayerId === player.id ? '1px solid #4BB9EC' : '1px solid transparent' }}>
+              style={{ background: selectedPlayerId === player.id ? 'linear-gradient(135deg, #0B1628 0%, #1a3a6b 100%)' : 'var(--lynx-navy-gradient-subtle)', border: selectedPlayerId === player.id ? '1px solid #4BB9EC' : '1px solid transparent' }}>
               {player.photo_url
                 ? <img src={player.photo_url} className="w-10 h-10 rounded-lg object-cover" alt="" />
                 : <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: '#162848', color: 'rgba(255,255,255,0.60)' }}>{player.jersey_number || `${player.first_name?.[0]}${player.last_name?.[0]}`}</div>

@@ -11,6 +11,11 @@
   --v2-sky: #4BB9EC;
   --v2-gold: #FFD700;
 
+  /* ---- Navy Gradients ---- */
+  --lynx-navy-gradient: linear-gradient(135deg, #0B1628 0%, #162D50 100%);
+  --lynx-navy-gradient-h: linear-gradient(90deg, #0B1628 0%, #162D50 100%);
+  --lynx-navy-gradient-subtle: linear-gradient(135deg, #0B1628 0%, #132244 100%);
+
   /* ---- Surfaces (Light Mode) ---- */
   --v2-surface: #F5F6F8;
   --v2-white: #FFFFFF;

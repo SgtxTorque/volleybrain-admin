@@ -774,7 +774,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
             <button
               onClick={saveLineup}
               disabled={saving || startersCount === 0}
-              className="px-7 py-3.5 bg-[#10284C] hover:bg-lynx-sky text-white font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-3"
+              className="px-7 py-3.5 bg-lynx-navy-subtle hover:bg-lynx-sky text-white font-semibold rounded-xl transition disabled:opacity-50 flex items-center gap-3"
             >
               <SaveIcon className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save Lineup'}
@@ -804,7 +804,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                         onClick={() => switchSet(setNum)}
                         className={`w-12 h-12 rounded-xl font-bold text-2xl transition ${
                           currentSet === setNum
-                            ? 'bg-[#10284C] text-[#4BB9EC] shadow-lg shadow-[#10284C]/30'
+                            ? 'bg-lynx-navy-subtle text-[#4BB9EC] shadow-lg shadow-[#10284C]/30'
                             : 'text-slate-400 hover:text-white'
                         }`}
                         style={currentSet !== setNum ? { background: 'rgba(30,40,60,0.5)' } : {}}
@@ -1160,7 +1160,7 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
                 <div className="flex gap-3">
                   <button
                     onClick={autoFillLineup}
-                    className="px-4 py-2 bg-[#10284C] text-[#4BB9EC] rounded-lg text-base font-medium hover:bg-[#10284C]/80 transition shadow border border-[#10284C]"
+                    className="px-4 py-2 bg-lynx-navy-subtle text-[#4BB9EC] rounded-lg text-base font-medium hover:brightness-110 transition shadow border border-[#10284C]"
                   >
                     Auto-Fill
                   </button>

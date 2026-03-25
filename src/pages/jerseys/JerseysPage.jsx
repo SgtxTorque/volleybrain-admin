@@ -638,7 +638,7 @@ export function JerseysPage({ showToast }) {
             onClick={() => setSelectedTeam(null)}
             className={`px-4 py-2.5 rounded-xl whitespace-nowrap flex items-center gap-2 transition font-medium ${
               !selectedTeam
-                ? 'bg-[#10284C] text-white shadow-lg'
+                ? 'bg-lynx-navy-subtle text-white shadow-lg'
                 : `${tc.cardBg} border ${tc.border} ${tc.textSecondary} ${tc.hoverBg}`
             }`}
           >
@@ -829,7 +829,7 @@ export function JerseysPage({ showToast }) {
                                 onClick={() => setTeamStageFilter(team.id, stage.key)}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition ${
                                   activeStage === stage.key
-                                    ? 'bg-[#10284C] text-white'
+                                    ? 'bg-lynx-navy-subtle text-white'
                                     : isDark
                                       ? 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.04]'
                                       : 'text-slate-400 hover:text-slate-600 hover:bg-white'
@@ -1006,7 +1006,7 @@ export function JerseysPage({ showToast }) {
         {/* Bulk Action Bar */}
         {selectedPlayerIds.size > 0 && (
           <div className={`sticky bottom-4 z-30 rounded-2xl px-6 py-3 flex items-center justify-between shadow-xl ${
-            isDark ? 'bg-[#10284C] border border-white/[0.1]' : 'bg-[#10284C]'
+            isDark ? 'bg-lynx-navy-subtle border border-white/[0.1]' : 'bg-lynx-navy-subtle'
           }`}>
             <span className="text-white text-sm font-bold">
               {selectedPlayerIds.size} Player{selectedPlayerIds.size !== 1 ? 's' : ''} Selected
