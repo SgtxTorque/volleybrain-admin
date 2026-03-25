@@ -250,9 +250,8 @@ export default function LynxSidebar({
       style={{
         position: 'fixed', top: 0, left: 0,
         width: 'var(--v2-sidebar-width)',
-        boxShadow: isPlayer ? '1px 0 0 0 var(--v2-midnight)' : '1px 0 0 0 var(--v2-white)',
         height: '100vh',
-        background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
+        background: isPlayer ? 'var(--v2-midnight)' : '#F6F8FB',
         borderRight: 'none',
         display: 'flex', flexDirection: 'column',
         alignItems: 'stretch',
