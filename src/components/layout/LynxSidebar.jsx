@@ -251,7 +251,7 @@ export default function LynxSidebar({
         position: 'fixed', top: 0, left: 0,
         width: 'var(--v2-sidebar-width)',
         height: '100vh',
-        background: isPlayer ? 'var(--v2-midnight)' : '#F6F8FB',
+        background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
         borderRight: 'none',
         display: 'flex', flexDirection: 'column',
         alignItems: 'stretch',
