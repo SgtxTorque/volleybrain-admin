@@ -275,7 +275,7 @@ export default function LynxSidebar({
       </div>
 
       {/* ---- Nav Items with Section Headers ---- */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="lynx-sidebar-nav">
         {navGroups.map((group) => {
           if (group.type === 'single') {
             const singleItem = { ...group, icon: group.icon || group.id }
@@ -422,6 +422,7 @@ export default function LynxSidebar({
         /* Hidden scrollbar — still scrollable */
         .lynx-sidebar::-webkit-scrollbar { width: 0px; display: none; }
         .lynx-sidebar { scrollbar-width: none; -ms-overflow-style: none; }
+        .lynx-sidebar-nav::-webkit-scrollbar { width: 0; display: none; }
         @media (max-width: 700px) {
           .v2-sidebar { display: none !important; }
         }
