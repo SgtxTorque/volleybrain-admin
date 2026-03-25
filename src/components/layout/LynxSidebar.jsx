@@ -252,9 +252,7 @@ export default function LynxSidebar({
         width: 'var(--v2-sidebar-width)',
         height: '100vh',
         background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
-        borderRight: isPlayer
-          ? '1px solid rgba(255,255,255,0.06)'
-          : '1px solid var(--v2-border-subtle)',
+        borderRight: 'none',
         display: 'flex', flexDirection: 'column',
         alignItems: 'stretch',
         padding: '14px 10px 20px',
