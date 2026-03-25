@@ -21,7 +21,7 @@ import {
 import { VolleyballIcon } from './constants/icons'
 
 // UI Components
-import { ToastContainer, useToast, Icon, ErrorBoundary, Breadcrumb, CommandPalette, useCommandPalette } from './components/ui'
+import { ToastContainer, useToast, Icon, ErrorBoundary, CommandPalette, useCommandPalette } from './components/ui'
 
 // Layout Components
 import { 
@@ -1323,7 +1323,6 @@ function MainApp() {
               activeRoleId={activeView}
               onRoleSwitch={(viewId) => { setActiveView(viewId); navigate('/dashboard') }}
             />
-            <Breadcrumb />
             <ErrorBoundary>
               <RoutedContent
                 activeView={activeView}
