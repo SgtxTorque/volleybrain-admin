@@ -100,12 +100,21 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       // Primary query with joins (same as working pattern)
       let channelsData = null
 
-      const sportSeasonIds = (isAllSeasons(selectedSeason) && selectedSport?.id)
-        ? (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
-        : null
-
-      // If sport is selected but has no seasons, show empty results
-      if (sportSeasonIds && sportSeasonIds.length === 0) {
+      // Compute target season IDs respecting both season and sport filters (all roles)
+      let targetSeasonIds = null
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        targetSeasonIds = [selectedSeason.id]
+      } else {
+        targetSeasonIds = (allSeasons || []).map(s => s.id)
+      }
+      // Narrow by sport if one is selected
+      if (selectedSport?.id && targetSeasonIds) {
+        targetSeasonIds = targetSeasonIds.filter(sid => {
+          const season = (allSeasons || []).find(s => s.id === sid)
+          return season?.sport_id === selectedSport.id
+        })
+      }
+      if (!targetSeasonIds || targetSeasonIds.length === 0) {
         setChannels([])
         setLoading(false)
         return
@@ -118,32 +127,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
           teams (id, name, color, logo_url),
           channel_members (id, user_id, display_name, last_read_at)
         `)
-      // Admin: always show all org channels regardless of season/sport selection
-      // Non-admin: respect season + sport filters
-      const isAdminView = activeView === 'admin'
-
-      if (isAdminView) {
-        // Admin always sees all org channels — season is a filter, not a gate
-        const orgSeasonIds = (allSeasons || []).map(s => s.id)
-        if (orgSeasonIds.length === 0) {
-          setChannels([])
-          setLoading(false)
-          return
-        }
-        q1 = q1.in('season_id', orgSeasonIds)
-      } else if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
-        q1 = q1.eq('season_id', selectedSeason.id)
-      } else if (sportSeasonIds && sportSeasonIds.length > 0) {
-        q1 = q1.in('season_id', sportSeasonIds)
-      } else {
-        const orgSeasonIds = (allSeasons || []).map(s => s.id)
-        if (orgSeasonIds.length === 0) {
-          setChannels([])
-          setLoading(false)
-          return
-        }
-        q1 = q1.in('season_id', orgSeasonIds)
-      }
+      q1 = q1.in('season_id', targetSeasonIds)
       const { data: d1, error: e1 } = await q1
         .eq('is_archived', false)
         .order('updated_at', { ascending: false })
@@ -156,27 +140,7 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         let q2 = supabase
           .from('chat_channels')
           .select('*')
-        if (isAdminView) {
-          const orgSeasonIds = (allSeasons || []).map(s => s.id)
-          if (orgSeasonIds.length === 0) {
-            setChannels([])
-            setLoading(false)
-            return
-          }
-          q2 = q2.in('season_id', orgSeasonIds)
-        } else if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
-          q2 = q2.eq('season_id', selectedSeason.id)
-        } else if (sportSeasonIds && sportSeasonIds.length > 0) {
-          q2 = q2.in('season_id', sportSeasonIds)
-        } else {
-          const orgSeasonIds = (allSeasons || []).map(s => s.id)
-          if (orgSeasonIds.length === 0) {
-            setChannels([])
-            setLoading(false)
-            return
-          }
-          q2 = q2.in('season_id', orgSeasonIds)
-        }
+        q2 = q2.in('season_id', targetSeasonIds)
         const { data: d2, error: e2 } = await q2
           .eq('is_archived', false)
           .order('updated_at', { ascending: false })
