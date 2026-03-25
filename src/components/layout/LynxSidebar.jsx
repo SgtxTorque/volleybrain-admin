@@ -255,9 +255,20 @@ export default function LynxSidebar({
   const [expandedGroups, setExpandedGroups] = useState(new Set())
 
   // Auto-expand active group when activePage changes
+  // Exception: parent "myplayers" group with 4+ children stays collapsed unless
+  // the user navigates to a child profile page (which lives inside that group)
   useEffect(() => {
     const activeGroupId = getActiveGroupId()
     if (activeGroupId) {
+      // Check if this is the "myplayers" group with 4+ dynamic children
+      const group = navGroups.find(g => g.id === activeGroupId)
+      if (group?.id === 'myplayers' && group.items?.length >= 4) {
+        // Only auto-expand if active page is actually a child profile inside this group
+        const isChildProfile = group.items.some(item =>
+          item.playerId && activePage === `player-${item.playerId}`
+        )
+        if (!isChildProfile) return // Keep collapsed
+      }
       setExpandedGroups(prev => {
         const next = new Set(prev)
         next.add(activeGroupId)

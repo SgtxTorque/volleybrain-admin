@@ -932,7 +932,73 @@ function MainApp() {
     jerseys: 'Jerseys', templates: 'Reg Forms', waivers: 'Waivers', paymentsetup: 'Pay Setup',
     venues: 'Venues', 'coach-availability': 'Availability', 'registration-funnel': 'Funnel',
     'season-archives': 'Archives', 'org-directory': 'Directory', 'data-export': 'Export',
-    subscription: 'Subscription',
+    subscription: 'Subscription', roster: 'Roster', achievements: 'Achievements',
+    stats: 'My Stats', 'my-stuff': 'My Stuff', 'parent-register': 'Registration',
+    'team-hub': 'Team Hub',
+  }
+
+  // ── Contextual nav maps per role ──
+  const COACH_CONTEXTUAL_NAV = {
+    dashboard:          ['schedule', 'attendance', 'gameprep'],
+    roster:             ['schedule', 'chats', 'standings'],
+    schedule:           ['dashboard', 'attendance', 'chats'],
+    gameprep:           ['attendance', 'standings', 'leaderboards'],
+    attendance:         ['schedule', 'gameprep', 'standings'],
+    standings:          ['leaderboards', 'gameprep', 'schedule'],
+    leaderboards:       ['standings', 'gameprep', 'schedule'],
+    chats:              ['dashboard', 'schedule', 'roster'],
+    blasts:             ['chats', 'schedule', 'dashboard'],
+    'coach-availability': ['schedule', 'dashboard', 'season-archives'],
+    'season-archives':  ['dashboard', 'org-directory', 'schedule'],
+    'org-directory':    ['dashboard', 'season-archives', 'chats'],
+  }
+
+  const PARENT_CONTEXTUAL_NAV = {
+    dashboard:          ['schedule', 'payments', 'chats'],
+    schedule:           ['dashboard', 'payments', 'chats'],
+    payments:           ['parent-register', 'schedule', 'dashboard'],
+    'parent-register':  ['payments', 'schedule', 'dashboard'],
+    chats:              ['dashboard', 'schedule', 'team-hub'],
+    'team-hub':         ['chats', 'schedule', 'dashboard'],
+    'my-stuff':         ['dashboard', 'season-archives', 'org-directory'],
+    'season-archives':  ['dashboard', 'my-stuff', 'org-directory'],
+    'org-directory':    ['dashboard', 'my-stuff', 'season-archives'],
+  }
+
+  const PLAYER_CONTEXTUAL_NAV = {
+    dashboard:          ['schedule', 'leaderboards', 'achievements'],
+    schedule:           ['dashboard', 'achievements', 'leaderboards'],
+    achievements:       ['schedule', 'leaderboards', 'stats'],
+    stats:              ['leaderboards', 'standings', 'schedule'],
+    leaderboards:       ['stats', 'standings', 'achievements'],
+    standings:          ['leaderboards', 'stats', 'schedule'],
+    'my-stuff':         ['dashboard', 'schedule', 'achievements'],
+  }
+
+  const TM_CONTEXTUAL_NAV = {
+    dashboard:          ['schedule', 'attendance', 'payments'],
+    roster:             ['schedule', 'chats', 'standings'],
+    schedule:           ['dashboard', 'attendance', 'chats'],
+    attendance:         ['schedule', 'standings', 'leaderboards'],
+    standings:          ['leaderboards', 'schedule', 'attendance'],
+    leaderboards:       ['standings', 'schedule', 'attendance'],
+    chats:              ['dashboard', 'schedule', 'roster'],
+    blasts:             ['chats', 'schedule', 'dashboard'],
+    payments:           ['schedule', 'dashboard', 'chats'],
+    'season-archives':  ['dashboard', 'org-directory', 'schedule'],
+    'org-directory':    ['dashboard', 'season-archives', 'chats'],
+  }
+
+  // Select the correct contextual nav map based on active role
+  const getContextualNav = () => {
+    switch (activeView) {
+      case 'admin': return CONTEXTUAL_NAV
+      case 'coach': return COACH_CONTEXTUAL_NAV
+      case 'parent': return PARENT_CONTEXTUAL_NAV
+      case 'player': return PLAYER_CONTEXTUAL_NAV
+      case 'team_manager': return TM_CONTEXTUAL_NAV
+      default: return {}
+    }
   }
 
   const adminNavGroups = [
@@ -998,8 +1064,8 @@ function MainApp() {
   ]
 
   const coachNavGroups = [
-    { id: 'dashboard', label: 'Dashboard', type: 'single' },
     { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
+      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
       { id: 'roster', label: 'Roster Manager', icon: 'users' },
       ...(roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
         id: `teamwall-${tc_item.team_id}`,
@@ -1008,10 +1074,12 @@ function MainApp() {
         teamId: tc_item.team_id,
       })) || [])
     ]},
-    { id: 'schedule', label: 'Schedule', type: 'single' },
+    { id: 'scheduling', label: 'Schedule & Events', type: 'group', icon: 'schedule', items: [
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+    ]},
     { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
-      { id: 'attendance', label: 'Attendance', icon: 'check-square' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
     ]},
@@ -1027,7 +1095,6 @@ function MainApp() {
   ]
 
   const parentNavGroups = [
-    { id: 'dashboard', label: 'Home', type: 'single', icon: 'home' },
     { id: 'myplayers', label: 'My Players', type: 'group', icon: 'users', items:
       roleContext?.children?.map(child => ({
         id: `player-${child.id}`,
@@ -1037,42 +1104,48 @@ function MainApp() {
         teams: child.team_players,
       })) || []
     },
+    { id: 'scheduling', label: 'Schedule & Events', type: 'group', icon: 'schedule', items: [
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+    ]},
+    { id: 'money', label: 'Payments & Registration', type: 'group', icon: 'payments', items: [
+      { id: 'payments', label: 'Payments', icon: 'dollar' },
+      { id: 'parent-register', label: 'Registration', icon: 'clipboard' },
+    ]},
     { id: 'social', label: 'Social', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chat', icon: 'message' },
       { id: 'team-hub', label: 'Team Hub', icon: 'users' },
     ]},
-    { id: 'payments', label: 'Payments', type: 'single', icon: 'payments' },
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
       { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
-      { id: 'parent-register', label: 'Registration', icon: 'clipboard' },
       { id: 'season-archives', label: 'Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Directory', icon: 'building' },
     ]},
   ]
 
   const playerNavGroups = [
-    { id: 'dashboard', label: 'Home', type: 'single', icon: 'home' },
-    { id: 'myteams', label: 'My Team', type: 'group', icon: 'teams', items:
-      roleContext?.playerInfo?.team_players?.map(tp => ({
+    { id: 'myteams', label: 'My Team', type: 'group', icon: 'teams', items: [
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
+      ...(roleContext?.playerInfo?.team_players?.map(tp => ({
         id: `teamwall-${tp.team_id}`,
         label: tp.teams?.name,
         icon: 'users',
         teamId: tp.team_id,
-      })) || []
-    },
-    { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'achievements', label: 'Achievements', type: 'single' },
-    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
+      })) || [])
+    ]},
+    { id: 'competition', label: 'Stats & Competition', type: 'group', icon: 'stats', items: [
       { id: 'stats', label: 'My Stats', icon: 'bar-chart' },
-      { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
-      { id: 'standings', label: 'Standings', icon: 'star' },
+      { id: 'leaderboards', label: 'Leaderboards', icon: 'star' },
+      { id: 'standings', label: 'Standings', icon: 'trophy' },
+    ]},
+    { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
       { id: 'my-stuff', label: 'Profile & Stats', icon: 'user' },
     ]},
   ]
 
   const teamManagerNavGroups = [
-    { id: 'dashboard', label: 'Dashboard', type: 'single' },
     { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
+      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
       { id: 'roster', label: 'Roster Manager', icon: 'users' },
       ...(roleContext?.teamManagerInfo?.map(ts => ({
         id: `teamwall-${ts.team_id}`,
@@ -1081,9 +1154,11 @@ function MainApp() {
         teamId: ts.team_id,
       })) || [])
     ]},
-    { id: 'schedule', label: 'Schedule', type: 'single' },
-    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+    { id: 'scheduling', label: 'Schedule & Events', type: 'group', icon: 'schedule', items: [
+      { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+    ]},
+    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
     ]},
@@ -1225,31 +1300,29 @@ function MainApp() {
               ? 'overflow-hidden'
               : 'overflow-auto animate-slide-up'
           }`}>
-            {activeView === 'admin' && (
-              <TopBar
-                roleLabel="Lynx Admin"
-                navLinks={[
-                  { label: PAGE_LABELS[page] || page, pageId: page, isActive: true, onClick: () => {} },
-                  ...(CONTEXTUAL_NAV[page] || []).map(linkId => ({
-                    label: PAGE_LABELS[linkId] || linkId,
-                    pageId: linkId,
-                    isActive: false,
-                    onClick: () => navigate(getPathForPage(linkId)),
-                  })),
-                ]}
-                searchPlaceholder="Search..."
-                onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-                hasNotifications={false}
-                onNotificationClick={() => navigate(getPathForPage('notifications'))}
-                avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
-                onSettingsClick={() => navigate(getPathForPage('organization'))}
-                onThemeToggle={toggleTheme}
-                isDark={isDark}
-                availableRoles={getAvailableViews().map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
-                activeRoleId={activeView}
-                onRoleSwitch={(viewId) => { setActiveView(viewId); navigate('/dashboard') }}
-              />
-            )}
+            <TopBar
+              roleLabel={`Lynx ${activeView === 'team_manager' ? 'Team Manager' : activeView.charAt(0).toUpperCase() + activeView.slice(1)}`}
+              navLinks={[
+                { label: PAGE_LABELS[page] || page, pageId: page, isActive: true, onClick: () => {} },
+                ...(getContextualNav()[page] || []).map(linkId => ({
+                  label: PAGE_LABELS[linkId] || linkId,
+                  pageId: linkId,
+                  isActive: false,
+                  onClick: () => navigate(getPathForPage(linkId)),
+                })),
+              ]}
+              searchPlaceholder="Search..."
+              onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
+              hasNotifications={false}
+              onNotificationClick={() => navigate(getPathForPage('notifications'))}
+              avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
+              onSettingsClick={() => navigate(getPathForPage('organization'))}
+              onThemeToggle={toggleTheme}
+              isDark={isDark}
+              availableRoles={getAvailableViews().map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
+              activeRoleId={activeView}
+              onRoleSwitch={(viewId) => { setActiveView(viewId); navigate('/dashboard') }}
+            />
             <Breadcrumb />
             <ErrorBoundary>
               <RoutedContent
