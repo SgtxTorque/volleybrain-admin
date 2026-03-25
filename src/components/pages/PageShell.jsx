@@ -4,7 +4,7 @@ export default function PageShell({ breadcrumb, title, subtitle, actions, childr
   const { isDark } = useTheme()
 
   return (
-    <div className={`w-full px-8 py-6 ${className}`} style={{ fontFamily: 'var(--v2-font)' }}>
+    <div className={`w-full pl-5 pr-8 py-6 ${className}`} style={{ fontFamily: 'var(--v2-font)' }}>
       {/* Breadcrumb */}
       {breadcrumb && (
         <div className={`text-xs font-semibold mb-2 flex items-center gap-1.5 ${
