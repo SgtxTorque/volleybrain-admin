@@ -249,7 +249,8 @@ export default function LynxSidebar({
       data-player={isPlayer || undefined}
       style={{
         position: 'fixed', top: 0, left: 0,
-        width: 'calc(var(--v2-sidebar-width) + 1px)',
+        width: 'var(--v2-sidebar-width)',
+        boxShadow: isPlayer ? '1px 0 0 0 var(--v2-midnight)' : '1px 0 0 0 var(--v2-white)',
         height: '100vh',
         background: isPlayer ? 'var(--v2-midnight)' : 'var(--v2-white)',
         borderRight: 'none',
