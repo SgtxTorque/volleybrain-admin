@@ -274,13 +274,6 @@ export default function LynxSidebar({
           alignItems: 'center', justifyContent: 'center',
           fontWeight: 800, fontSize: 17, flexShrink: 0,
         }}>L</div>
-        <span style={{
-          fontSize: 15, fontWeight: 800,
-          color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
-          whiteSpace: 'nowrap', overflow: 'hidden',
-        }}>
-          Lynx
-        </span>
       </div>
 
       {/* ---- Nav Items with Section Headers ---- */}
@@ -428,10 +421,9 @@ export default function LynxSidebar({
           border-radius: 50%;
           background: var(--v2-amber);
         }
-        /* Clean thin scrollbar */
-        .lynx-sidebar::-webkit-scrollbar { width: 4px; }
-        .lynx-sidebar::-webkit-scrollbar-track { background: transparent; }
-        .lynx-sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+        /* Hidden scrollbar — still scrollable */
+        .lynx-sidebar::-webkit-scrollbar { width: 0px; display: none; }
+        .lynx-sidebar { scrollbar-width: none; -ms-overflow-style: none; }
         @media (max-width: 700px) {
           .v2-sidebar { display: none !important; }
         }
