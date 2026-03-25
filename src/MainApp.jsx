@@ -1175,7 +1175,7 @@ function MainApp() {
         />
 
         {/* Main Content — offset by sidebar width (64px), capped at 2400px on ultrawide */}
-        <div className="flex-1 min-h-screen relative z-10 min-w-[480px] overflow-x-auto" style={{ paddingLeft: 'var(--v2-sidebar-width)' }}>
+        <div className="flex-1 min-h-screen relative z-10 min-w-[480px] overflow-x-hidden" style={{ paddingLeft: 'var(--v2-sidebar-width)' }}>
           <div className={`w-full h-full 3xl:max-w-[2400px] 3xl:mx-auto ${
             mainLocation.pathname === '/dashboard' || mainLocation.pathname.startsWith('/teams/')
               ? 'overflow-hidden'
