@@ -7,7 +7,7 @@ import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { supabase } from '../../lib/supabase'
 import { SkeletonDashboard } from '../../components/ui'
 import {
-  TopBar, HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
+  HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
   WeeklyLoad, OrgHealthCard, ThePlaybook, MilestoneCard, MascotNudge,
   V2DashboardLayout,
 } from '../../components/v2'
@@ -1042,29 +1042,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
 
   return (
     <>
-      {/* ─── TopBar ──── */}
-      <TopBar
-        roleLabel="Lynx Admin"
-        navLinks={[
-          { label: 'Dashboard', pageId: 'dashboard', isActive: true, onClick: () => onNavigate?.('dashboard') },
-          { label: 'Schedule', pageId: 'schedule', onClick: () => onNavigate?.('schedule') },
-          { label: 'Registrations', pageId: 'registrations', onClick: () => onNavigate?.('registrations') },
-          { label: 'Payments', pageId: 'payments', onClick: () => onNavigate?.('payments') },
-        ]}
-        searchPlaceholder="Search roster, teams..."
-        onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-        hasNotifications={actionCount > 0}
-        notificationCount={actionCount}
-        onNotificationClick={() => onNavigate?.('notifications')}
-        avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
-        onSettingsClick={() => onNavigate?.('organization')}
-        onThemeToggle={toggleTheme}
-        isDark={isDark}
-        availableRoles={availableViews.map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
-        activeRoleId={activeView}
-        onRoleSwitch={onSwitchRole}
-      />
-
       {/* ─── Empty state for brand new orgs ──── */}
       {totalTeams === 0 && !selectedSeason && (
         <div style={{ padding: '64px 32px', textAlign: 'center', fontFamily: 'var(--v2-font)' }}>

@@ -37,6 +37,7 @@ import {
   JourneyCelebrations
 } from './components/layout'
 import LynxSidebar from './components/layout/LynxSidebar'
+import TopBar from './components/v2/TopBar'
 import FloatingChatButton from './components/layout/FloatingChatButton'
 import SetupHelper from './components/SetupHelper'
 
@@ -556,6 +557,8 @@ const BACKGROUND_PATTERNS = {
 function OrgBackgroundLayer({ isDark }) {
   const { background } = useOrgBranding()
 
+  const sidebarOffset = { left: 'var(--v2-sidebar-width)' }
+
   // Default gradient if no org background set
   if (!background) {
     return (
@@ -563,7 +566,7 @@ function OrgBackgroundLayer({ isDark }) {
         isDark
           ? 'bg-gradient-to-br from-lynx-midnight via-lynx-midnight to-lynx-charcoal'
           : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
-      }`} />
+      }`} style={sidebarOffset} />
     )
   }
 
@@ -571,20 +574,20 @@ function OrgBackgroundLayer({ isDark }) {
 
   if (background.type === 'solid') {
     const color = BACKGROUND_SOLIDS[background.value] || background.value || '#0F172A'
-    return <div className="fixed inset-0 pointer-events-none" style={{ backgroundColor: color }} />
+    return <div className="fixed inset-0 pointer-events-none" style={{ backgroundColor: color, ...sidebarOffset }} />
   }
 
   if (background.type === 'gradient') {
     const grad = BACKGROUND_GRADIENTS[background.value]
-    if (!grad) return <div className="fixed inset-0 pointer-events-none bg-lynx-midnight" />
-    return <div className="fixed inset-0 pointer-events-none" style={{ background: grad }} />
+    if (!grad) return <div className="fixed inset-0 pointer-events-none bg-lynx-midnight" style={sidebarOffset} />
+    return <div className="fixed inset-0 pointer-events-none" style={{ background: grad, ...sidebarOffset }} />
   }
 
   if (background.type === 'pattern') {
     const pattern = BACKGROUND_PATTERNS[background.value]
-    if (!pattern) return <div className="fixed inset-0 pointer-events-none bg-lynx-midnight" />
+    if (!pattern) return <div className="fixed inset-0 pointer-events-none bg-lynx-midnight" style={sidebarOffset} />
     return (
-      <div className="fixed inset-0 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none" style={sidebarOffset}>
         <div className="absolute inset-0 bg-lynx-midnight" />
         <div className="absolute inset-0" style={{ backgroundImage: pattern, backgroundRepeat: 'repeat', opacity }} />
       </div>
@@ -593,7 +596,7 @@ function OrgBackgroundLayer({ isDark }) {
 
   if (background.type === 'custom' && background.value) {
     return (
-      <div className="fixed inset-0 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none" style={sidebarOffset}>
         <div className={`absolute inset-0 ${isDark ? 'bg-lynx-midnight' : 'bg-[#F0F1F5]'}`} />
         <img
           src={background.value}
@@ -610,7 +613,7 @@ function OrgBackgroundLayer({ isDark }) {
       isDark
         ? 'bg-gradient-to-br from-lynx-midnight via-lynx-midnight to-lynx-charcoal'
         : 'bg-gradient-to-br from-[#E8EAF0] via-[#F0F1F5] to-[#F5F0EB]'
-    }`} />
+    }`} style={sidebarOffset} />
   )
 }
 
@@ -895,57 +898,98 @@ function MainApp() {
   const page = useCurrentPageId()
   const directTeamWallId = mainLocation.pathname.match(/^\/teams\/([^/]+)$/)?.[1] || null
 
-  const adminNavGroups = [
-    { id: 'dashboard', label: 'Dashboard', type: 'single' },
+  // Contextual top bar links — what shows in the top bar based on current page
+  const CONTEXTUAL_NAV = {
+    dashboard:     ['schedule', 'registrations', 'payments', 'teams'],
+    teams:         ['coaches', 'jerseys', 'registrations'],
+    coaches:       ['teams', 'jerseys', 'schedule'],
+    registrations: ['templates', 'registration-funnel', 'payments'],
+    payments:      ['paymentsetup', 'registrations', 'reports'],
+    schedule:      ['attendance', 'coach-availability', 'gameprep'],
+    attendance:    ['schedule', 'gameprep', 'chats'],
+    gameprep:      ['schedule', 'attendance', 'standings'],
+    standings:     ['leaderboards', 'gameprep', 'reports'],
+    leaderboards:  ['standings', 'gameprep', 'reports'],
+    chats:         ['blasts', 'notifications', 'schedule'],
+    blasts:        ['chats', 'notifications'],
+    notifications: ['chats', 'blasts'],
+    reports:       ['registration-funnel', 'season-archives', 'org-directory'],
+    seasons:       ['organization', 'venues', 'waivers'],
+    organization:  ['seasons', 'paymentsetup', 'venues'],
+    jerseys:       ['teams', 'coaches', 'registrations'],
+    templates:     ['registrations', 'waivers', 'registration-funnel'],
+    waivers:       ['templates', 'registrations', 'organization'],
+    paymentsetup:  ['payments', 'registrations', 'organization'],
+    venues:        ['schedule', 'organization', 'seasons'],
+  }
 
-    // --- CLUB MANAGEMENT (people + teams + staff) ---
-    { id: 'club', label: 'Club Management', type: 'group', icon: 'shield', items: [
+  // Page ID to label mapping for top bar display
+  const PAGE_LABELS = {
+    dashboard: 'Dashboard', teams: 'Teams', coaches: 'Staff', registrations: 'Registrations',
+    payments: 'Payments', schedule: 'Schedule', attendance: 'Attendance', gameprep: 'Game Prep',
+    standings: 'Standings', leaderboards: 'Leaderboards', chats: 'Chats', blasts: 'Announcements',
+    notifications: 'Notifications', reports: 'Reports', seasons: 'Seasons', organization: 'Settings',
+    jerseys: 'Jerseys', templates: 'Reg Forms', waivers: 'Waivers', paymentsetup: 'Pay Setup',
+    venues: 'Venues', 'coach-availability': 'Availability', 'registration-funnel': 'Funnel',
+    'season-archives': 'Archives', 'org-directory': 'Directory', 'data-export': 'Export',
+    subscription: 'Subscription',
+  }
+
+  const adminNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single', icon: 'dashboard' },
+
+    // --- TEAMS & ROSTERS ---
+    { id: 'teams-rosters', label: 'Teams & Rosters', type: 'group', icon: 'shield', items: [
       { id: 'teams', label: 'Team Management', icon: 'shield' },
       { id: 'coaches', label: 'Staff Portal', icon: 'users' },
-    ]},
-
-    // --- REGISTRATION & PAYMENTS (the money stuff) ---
-    { id: 'registration', label: 'Registration & Payments', type: 'group', icon: 'clipboard', items: [
-      { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
-      { id: 'payments', label: 'Payment Admin', icon: 'dollar' },
       { id: 'jerseys', label: 'Jersey Management', icon: 'shirt', hasBadge: true },
     ]},
 
-    // --- SCHEDULING & ATTENDANCE ---
-    { id: 'scheduling', label: 'Scheduling', type: 'group', icon: 'calendar', items: [
+    // --- REGISTRATION ---
+    { id: 'registration', label: 'Registration', type: 'group', icon: 'clipboard', items: [
+      { id: 'registrations', label: 'Registrations', icon: 'clipboard' },
+      { id: 'templates', label: 'Registration Forms', icon: 'file-text' },
+      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
+    ]},
+
+    // --- PAYMENTS ---
+    { id: 'money', label: 'Payments', type: 'group', icon: 'dollar', items: [
+      { id: 'payments', label: 'Payment Admin', icon: 'dollar' },
+      { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
+    ]},
+
+    // --- SCHEDULE & EVENTS ---
+    { id: 'scheduling', label: 'Schedule & Events', type: 'group', icon: 'calendar', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance & RSVP', icon: 'check-square' },
       { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
     ]},
 
-    // --- GAME DAY (unchanged, this group is solid) ---
+    // --- GAME DAY ---
     { id: 'game', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
     ]},
 
-    // --- COMMUNICATION (unchanged) ---
+    // --- COMMUNICATION ---
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chats', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
       { id: 'notifications', label: 'Push Notifications', icon: 'bell' },
     ]},
 
-    // --- INSIGHTS & REPORTS ---
-    { id: 'insights', label: 'Reports & Insights', type: 'group', icon: 'reports', items: [
+    // --- REPORTS ---
+    { id: 'insights', label: 'Reports', type: 'group', icon: 'reports', items: [
       { id: 'reports', label: 'Reports & Analytics', icon: 'pie-chart' },
-      { id: 'registration-funnel', label: 'Registration Funnel', icon: 'trending-up' },
       { id: 'season-archives', label: 'Season Archives', icon: 'trophy' },
       { id: 'org-directory', label: 'Org Directory', icon: 'building' },
     ]},
 
-    // --- SETUP & SETTINGS ---
+    // --- SETTINGS ---
     { id: 'setup', label: 'Settings', type: 'group', icon: 'settings', items: [
       { id: 'seasons', label: 'Season Management', icon: 'calendar' },
-      { id: 'templates', label: 'Registration Forms', icon: 'clipboard' },
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
-      { id: 'paymentsetup', label: 'Payment Setup', icon: 'credit-card' },
       { id: 'venues', label: 'Venues', icon: 'map-pin' },
       { id: 'organization', label: 'Organization', icon: 'building' },
       { id: 'data-export', label: 'Data Export', icon: 'download' },
@@ -1181,6 +1225,31 @@ function MainApp() {
               ? 'overflow-hidden'
               : 'overflow-auto animate-slide-up'
           }`}>
+            {activeView === 'admin' && (
+              <TopBar
+                roleLabel="Lynx Admin"
+                navLinks={[
+                  { label: PAGE_LABELS[page] || page, pageId: page, isActive: true, onClick: () => {} },
+                  ...(CONTEXTUAL_NAV[page] || []).map(linkId => ({
+                    label: PAGE_LABELS[linkId] || linkId,
+                    pageId: linkId,
+                    isActive: false,
+                    onClick: () => navigate(getPathForPage(linkId)),
+                  })),
+                ]}
+                searchPlaceholder="Search..."
+                onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
+                hasNotifications={false}
+                onNotificationClick={() => navigate(getPathForPage('notifications'))}
+                avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
+                onSettingsClick={() => navigate(getPathForPage('organization'))}
+                onThemeToggle={toggleTheme}
+                isDark={isDark}
+                availableRoles={getAvailableViews().map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
+                activeRoleId={activeView}
+                onRoleSwitch={(viewId) => { setActiveView(viewId); navigate('/dashboard') }}
+              />
+            )}
             <Breadcrumb />
             <ErrorBoundary>
               <RoutedContent

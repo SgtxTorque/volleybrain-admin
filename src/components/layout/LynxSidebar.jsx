@@ -237,6 +237,47 @@ export default function LynxSidebar({
 }) {
   const isPlayer = activeView === 'player'
 
+  // Accordion state — track which groups are expanded
+  // Auto-expand the group containing the active page
+  const getActiveGroupId = () => {
+    for (const group of navGroups) {
+      if (group.type === 'group' && group.items) {
+        for (const item of group.items) {
+          if (item.id === activePage || (item.teamId && directTeamWallId === item.teamId) || (item.playerId && activePage === `player-${item.playerId}`)) {
+            return group.id
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  const [expandedGroups, setExpandedGroups] = useState(new Set())
+
+  // Auto-expand active group when activePage changes
+  useEffect(() => {
+    const activeGroupId = getActiveGroupId()
+    if (activeGroupId) {
+      setExpandedGroups(prev => {
+        const next = new Set(prev)
+        next.add(activeGroupId)
+        return next
+      })
+    }
+  }, [activePage, directTeamWallId])
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+      }
+      return next
+    })
+  }
+
   const isItemActive = (item) => {
     if (item.teamId) return directTeamWallId === item.teamId
     if (item.playerId) return activePage === `player-${item.playerId}`
@@ -291,25 +332,57 @@ export default function LynxSidebar({
             )
           }
 
-          // Group with section header
+          // Collapsible group
+          const isExpanded = expandedGroups.has(group.id)
+          const hasActiveChild = (group.items || []).some(item =>
+            item.id === activePage ||
+            (item.teamId && directTeamWallId === item.teamId) ||
+            (item.playerId && activePage === `player-${item.playerId}`)
+          )
+          const GroupIcon = ICON_MAP[group.icon] || ICON_MAP[group.id] || LayoutDashboard
+
           return (
             <div key={group.id}>
-              <div style={{
-                fontSize: 9, fontWeight: 900, textTransform: 'uppercase',
-                letterSpacing: '0.15em', paddingLeft: 16, paddingTop: 14, paddingBottom: 4,
-                color: isPlayer ? 'rgba(255,255,255,0.3)' : 'var(--v2-text-muted)',
-              }}>
-                {group.label}
-              </div>
-              {(group.items || []).map(item => (
-                <NavItem
-                  key={item.id + (item.teamId || '') + (item.playerId || '')}
-                  item={item}
-                  isActive={isItemActive(item)}
-                  onNavigate={onNavigate}
-                  isPlayer={isPlayer}
-                />
-              ))}
+              <button
+                onClick={() => toggleGroup(group.id)}
+                className="v2-sidebar-btn"
+                data-player={isPlayer || undefined}
+                style={{
+                  width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10,
+                  ...(hasActiveChild && !isExpanded ? {
+                    color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+                    fontWeight: 700,
+                  } : {}),
+                }}
+              >
+                <GroupIcon style={{ width: 18, height: 18, flexShrink: 0 }} />
+                <span style={{
+                  flex: 1, textAlign: 'left',
+                  fontSize: 12.5, fontWeight: 600,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {group.label}
+                </span>
+                <ChevronRight style={{
+                  width: 12, height: 12, flexShrink: 0,
+                  transition: 'transform 0.15s ease',
+                  transform: isExpanded ? 'rotate(90deg)' : 'none',
+                  opacity: 0.4,
+                }} />
+              </button>
+              {isExpanded && (
+                <div style={{ paddingLeft: 8, overflow: 'hidden' }}>
+                  {(group.items || []).map(item => (
+                    <NavItem
+                      key={item.id + (item.teamId || '') + (item.playerId || '')}
+                      item={item}
+                      isActive={isItemActive(item)}
+                      onNavigate={onNavigate}
+                      isPlayer={isPlayer}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )
         })}
