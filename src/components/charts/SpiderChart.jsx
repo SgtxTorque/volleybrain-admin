@@ -7,6 +7,7 @@
  * @param {number} [props.size=280] — width/height of the chart
  * @param {string} [props.color='#4BB9EC'] — primary fill color
  * @param {string} [props.compareColor='#94A3B8'] — comparison fill color
+ * @param {string} [props.compareStrokeDash] — optional dash pattern for compare stroke (e.g. "4,4")
  * @param {boolean} [props.isDark] — dark mode flag
  */
 export default function SpiderChart({
@@ -16,6 +17,7 @@ export default function SpiderChart({
   size = 280,
   color = '#4BB9EC',
   compareColor = '#94A3B8',
+  compareStrokeDash,
   isDark,
 }) {
   if (!data || data.length < 3) return null
@@ -41,8 +43,7 @@ export default function SpiderChart({
   }
 
   const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'
-  const ringLevels = Array.from({ length: 5 }, (_, i) => ((i + 1) / 5) * maxValue)
-  const rings = ringLevels
+  const rings = Array.from({ length: 5 }, (_, i) => ((i + 1) / 5) * maxValue)
 
   return (
     <svg width={size} height={size} className="mx-auto">
@@ -67,21 +68,30 @@ export default function SpiderChart({
         )
       })}
 
-      {/* Comparison data (if provided) — dashed outline */}
+      {/* Comparison data (if provided) */}
       {compareData && compareData.length === data.length && (
-        <polygon
-          points={getPolygonPoints(compareData)}
-          fill={`${compareColor}15`}
-          stroke={compareColor}
-          strokeWidth="2"
-          strokeDasharray="4,4"
-        />
+        <>
+          <polygon
+            points={getPolygonPoints(compareData)}
+            fill={`${compareColor}30`}
+            stroke={compareColor}
+            strokeWidth="2.5"
+            strokeDasharray={compareStrokeDash || undefined}
+          />
+          {compareData.map((d, i) => {
+            const pt = getPoint(i, d.value)
+            return (
+              <circle key={`c-${i}`} cx={pt.x} cy={pt.y} r="3"
+                fill={compareColor} stroke="white" strokeWidth="1.5" />
+            )
+          })}
+        </>
       )}
 
       {/* Primary data — solid fill */}
       <polygon
         points={getPolygonPoints(data)}
-        fill={`${color}25`}
+        fill={`${color}35`}
         stroke={color}
         strokeWidth="2.5"
       />
@@ -101,7 +111,7 @@ export default function SpiderChart({
         return (
           <text key={i} x={labelPt.x} y={labelPt.y}
             textAnchor="middle" dominantBaseline="middle"
-            className={`text-[11px] font-semibold ${isDark ? 'fill-slate-400' : 'fill-slate-500'}`}>
+            className={`text-[12px] font-semibold ${isDark ? 'fill-slate-400' : 'fill-slate-500'}`}>
             {d.label}
           </text>
         )

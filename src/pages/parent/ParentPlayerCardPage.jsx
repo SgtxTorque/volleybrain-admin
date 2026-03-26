@@ -552,7 +552,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'overview' && <OverviewTab sc={sc} skills={skills} getSkillValue={getSkillValue} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} badges={badges} badgesInProgress={badgesInProgress} overallRating={overallRating} />}
           {activeTab === 'stats' && <StatsTab sc={sc} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} skills={skills} evalHistory={evalHistory} />}
-          {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} />}
+          {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} transformedGames={transformedGames} seasonStats={seasonStats} />}
           {activeTab === 'badges' && <BadgesTab badges={badges} badgesInProgress={badgesInProgress} shoutouts={shoutouts} challenges={challenges} />}
           {activeTab === 'games' && <GamesTab sc={sc} transformedGames={transformedGames} seasonStats={seasonStats} gamesPlayed={gamesPlayed} seasonName={seasonName} />}
         </div>
@@ -808,7 +808,7 @@ function StatsTab({ sc, seasonStats, gamesPlayed, transformedGames, perGameStats
 // ═══════════════════════════════════════════════
 // TAB: DEVELOPMENT
 // ═══════════════════════════════════════════════
-function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback, playerGoals }) {
+function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback, playerGoals, transformedGames, seasonStats }) {
   const parseSkills = (ev) => {
     const s = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
     if (!s) return []
@@ -827,38 +827,81 @@ function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback,
     return Math.round(((avgLast - avgFirst) / avgFirst) * 100)
   })()
 
+  // Last game performance spider data
+  const lastGame = transformedGames?.[0]
+  const gameSpiderData = (() => {
+    if (!lastGame || !seasonStats) return []
+    return sc.primaryStats.map(stat => {
+      const gameVal = stat.calc ? stat.calc(lastGame.raw) : (lastGame.raw[stat.key] || 0)
+      const seasonTotal = stat.calc ? stat.calc(seasonStats) : (seasonStats[stat.key] || 0)
+      const gp = seasonStats.games_played || 1
+      const seasonAvg = seasonTotal / gp
+      const normalized = seasonAvg > 0 ? Math.min(10, Math.max(0, (gameVal / seasonAvg) * 5)) : (gameVal > 0 ? 7 : 0)
+      return { label: stat.short || stat.label, value: normalized }
+    })
+  })()
+
   return (
     <div className="space-y-5">
-      {/* Skill Progression */}
-      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Skill Progression</h4>
-          {growthPct !== null && <span className={`text-xs font-bold ${growthPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{growthPct >= 0 ? '+' : ''}{growthPct}% Growth</span>}
-        </div>
-        {evalHistory.length >= 2 ? (() => {
-          const latest = evalHistory[evalHistory.length - 1]
-          const earliest = evalHistory[0]
-          const latestData = parseSkills(latest)
-          const earliestData = parseSkills(earliest)
-          return latestData.length >= 3 ? (
+      {/* Side-by-side spider charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Skill Progression */}
+        <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Skill Progression</h4>
+            {growthPct !== null && <span className={`text-xs font-bold ${growthPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{growthPct >= 0 ? '+' : ''}{growthPct}% Growth</span>}
+          </div>
+          {evalHistory.length >= 2 ? (() => {
+            const latest = evalHistory[evalHistory.length - 1]
+            const earliest = evalHistory[0]
+            const latestData = parseSkills(latest)
+            const earliestData = parseSkills(earliest)
+            return latestData.length >= 3 ? (
+              <div className="flex flex-col items-center">
+                <SpiderChart data={latestData} compareData={earliestData.length === latestData.length ? earliestData : undefined} maxValue={10} size={320} color="#4BB9EC" compareColor="#F59E0B" isDark={false} />
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4BB9EC]/10 border border-[#4BB9EC]/30">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#4BB9EC]" />
+                    <span className="text-xs font-semibold text-[#4BB9EC]">Latest: {new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                  </span>
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+                    <span className="text-xs font-semibold text-[#F59E0B]">Baseline: {new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                  </span>
+                </div>
+              </div>
+            ) : <p className="text-center py-4 text-slate-400 text-sm">Not enough skill data to chart</p>
+          })() : evalHistory.length === 1 ? (
             <div className="flex flex-col items-center">
-              <SpiderChart data={latestData} compareData={earliestData.length === latestData.length ? earliestData : undefined} maxValue={10} size={280} color="#4BB9EC" compareColor="#94A3B8" isDark={false} />
-              <div className="flex items-center gap-4 mt-3 text-[10px] text-slate-400">
-                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#4BB9EC] rounded inline-block" /> Latest ({new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-slate-400 rounded inline-block" /> First ({new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
+              {(() => { const chartData = parseSkills(evalHistory[0]); return chartData.length >= 3 ? <SpiderChart data={chartData} maxValue={10} size={340} color="#4BB9EC" isDark={false} /> : null })()}
+              <p className="text-xs mt-2 text-slate-400">One evaluation so far. Comparison shows after the next evaluation.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center py-6 text-center">
+              <TrendingUp className="w-8 h-8 text-[#4BB9EC] mb-2" />
+              <p className="text-sm font-semibold text-[#10284C]">No evaluations yet</p>
+              <p className="text-xs mt-1 text-slate-400">Skill progression appears once your coach evaluates skills.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Last Game Performance */}
+        {lastGame && gameSpiderData.length >= 3 && (
+          <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Last Game Performance</h4>
+              <span className="text-xs font-semibold text-slate-500">vs {lastGame.opponent} &bull; {lastGame.result} {lastGame.score}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <SpiderChart data={gameSpiderData} maxValue={10} size={320} color="#10B981" isDark={false} />
+              <div className="flex items-center justify-center gap-3 mt-4">
+                <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10B981]/10 border border-[#10B981]/30">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+                  <span className="text-xs font-semibold text-[#10B981]">Game output</span>
+                </span>
+                <span className="text-xs text-slate-400">5.0 = season average</span>
               </div>
             </div>
-          ) : <p className="text-center py-4 text-slate-400 text-sm">Not enough skill data to chart</p>
-        })() : evalHistory.length === 1 ? (
-          <div className="flex flex-col items-center">
-            {(() => { const chartData = parseSkills(evalHistory[0]); return chartData.length >= 3 ? <SpiderChart data={chartData} maxValue={10} size={260} color="#4BB9EC" isDark={false} /> : null })()}
-            <p className="text-xs mt-2 text-slate-400">One evaluation so far. Comparison shows after the next evaluation.</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center py-6 text-center">
-            <TrendingUp className="w-8 h-8 text-[#4BB9EC] mb-2" />
-            <p className="text-sm font-semibold text-[#10284C]">No evaluations yet</p>
-            <p className="text-xs mt-1 text-slate-400">Skill progression appears once your coach evaluates skills.</p>
           </div>
         )}
       </div>
