@@ -48,6 +48,7 @@ export default function HeroScoreCard({
         <img
           src={photoUrl}
           alt=""
+          crossOrigin="anonymous"
           style={{
             position: 'absolute',
             top: 0,

@@ -62,6 +62,7 @@ export default function BadgeGDCard({
         <img
           src={logoUrl}
           alt=""
+          crossOrigin="anonymous"
           style={{
             width: logoSize,
             marginBottom: 16,

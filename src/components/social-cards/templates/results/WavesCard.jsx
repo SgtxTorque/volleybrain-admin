@@ -76,6 +76,7 @@ export default function WavesCard({
         <img
           src={featuredPlayer.photo_url}
           alt=""
+          crossOrigin="anonymous"
           style={{
             position: 'absolute',
             inset: 0,
@@ -148,6 +149,7 @@ export default function WavesCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{ width: 28, height: 28, objectFit: 'contain' }}
             />
           ) : (

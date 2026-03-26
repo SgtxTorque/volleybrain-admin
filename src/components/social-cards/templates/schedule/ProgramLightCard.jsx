@@ -88,6 +88,7 @@ export default function ProgramLightCard({
           <img
             src={logoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               width: 36,
               height: 36,

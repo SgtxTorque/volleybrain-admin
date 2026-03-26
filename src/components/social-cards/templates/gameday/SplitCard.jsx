@@ -1,10 +1,11 @@
-import React from 'react'
 import { getContrastText, darken, lighten, hexToRgba, isLightColor } from '../../cardColorUtils'
 
 function fmtDate(d) {
   if (!d) return 'TBD'
   const dt = new Date(d + 'T00:00:00')
-  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  const dayName = dt.toLocaleDateString('en-US', { weekday: 'long' })
+  const monthDay = dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  return { dayName, monthDay }
 }
 
 function fmtTime(t) {
@@ -15,225 +16,128 @@ function fmtTime(t) {
 }
 
 export default function SplitCard({
-  event,
-  events,
-  team,
-  organization,
-  season,
-  stats,
-  teamColor,
-  teamName,
-  orgName,
-  logoUrl,
-  featuredPlayer,
-  format,
-  width,
-  height,
-  sportIcon,
+  event, events, team, organization, season, stats,
+  teamColor, teamName, orgName, logoUrl, featuredPlayer,
+  format, width, height, sportIcon,
 }) {
   const isWide = format === 'wide'
   const hasPhoto = featuredPlayer?.photo_url
-  const light = isLightColor(teamColor)
-  const panelColor = light ? darken(teamColor, 0.7) : teamColor
-  const accentLine = light ? '#fff' : lighten(teamColor, 0.3)
-
-  const eventDate = event?.date || event?.event_date
-  const eventTime = event?.time || event?.start_time
-  const venue = event?.venue || event?.location || ''
+  const isLight = isLightColor(teamColor)
+  const panelBg = isLight ? '#111' : teamColor
+  const textColor = isLight ? '#fff' : getContrastText(teamColor)
+  const accentColor = isLight ? teamColor : 'rgba(255,255,255,0.8)'
+  const opponent = event?.opponent_name || event?.opponent || 'TBD'
+  const eventDate = event?.event_date || event?.date
+  const { dayName, monthDay } = fmtDate(eventDate)
+  const formattedTime = fmtTime(event?.event_time || event?.start_time)
+  const venue = event?.venue_name || event?.venue || event?.location || 'TBD'
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        width,
-        height,
-        overflow: 'hidden',
-        background: '#000',
-        fontFamily: "'Inter', sans-serif",
-      }}
-    >
+    <div style={{
+      position: 'relative', width, height,
+      overflow: 'hidden', background: '#000',
+    }}>
       {/* Photo panel (right side) */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: isWide ? '55%' : '58%',
-          zIndex: 1,
-          overflow: 'hidden',
-        }}
-      >
+      <div style={{
+        position: 'absolute', top: 0, right: 0, bottom: 0,
+        width: '60%', zIndex: 1, overflow: 'hidden',
+      }}>
         {hasPhoto ? (
-          <img
-            src={featuredPlayer.photo_url}
-            alt=""
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-            }}
-          />
+          <>
+            <img src={featuredPlayer.photo_url} alt="" crossOrigin="anonymous" style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center top',
+            }} />
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: `linear-gradient(90deg, ${panelBg} 0%, transparent 35%)`,
+            }} />
+          </>
         ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              background: `linear-gradient(135deg, #1a1a2e, ${hexToRgba(teamColor, 0.25)})`,
-            }}
-          />
+          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <div style={{
+              width: '100%', height: '100%',
+              background: `linear-gradient(135deg, ${darken(teamColor, 0.3)} 0%, ${darken(teamColor, 0.6)} 100%)`,
+            }} />
+            <div style={{
+              position: 'absolute', inset: 0, opacity: 0.08,
+              backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 15px, rgba(255,255,255,0.1) 15px, rgba(255,255,255,0.1) 17px)',
+            }} />
+          </div>
         )}
-        {/* Edge gradient for blending */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: `linear-gradient(90deg, ${panelColor} 0%, transparent 35%)`,
-          }}
-        />
       </div>
 
-      {/* Text panel (left side) */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          width: isWide ? '52%' : '55%',
-          background: panelColor,
-          zIndex: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: 28,
-        }}
-      >
-        {/* Skewed divider */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: -50,
-            bottom: 0,
-            width: 100,
-            background: panelColor,
-            transform: isWide ? 'skewX(-6deg)' : 'skewX(-8deg)',
-          }}
-        />
+      {/* Left text panel */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, bottom: 0,
+        width: '48%', background: panelBg,
+        zIndex: 2, display: 'flex', flexDirection: 'column',
+        justifyContent: 'center', padding: 28,
+      }}>
+        {/* Skewed edge */}
+        <div style={{
+          position: 'absolute', top: 0, right: -50, bottom: 0,
+          width: 100, background: panelBg,
+          transform: isWide ? 'skewX(-6deg)' : 'skewX(-8deg)',
+        }} />
 
-        {/* Game Day label */}
-        <div
-          style={{
+        {/* Content */}
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div style={{
             fontFamily: "'Teko', sans-serif",
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: 6,
-            color: 'rgba(255,255,255,0.5)',
-            textTransform: 'uppercase',
-            position: 'relative',
-            zIndex: 3,
-          }}
-        >
-          Game Day
-        </div>
+            fontSize: 13, fontWeight: 600,
+            letterSpacing: 6, textTransform: 'uppercase',
+            color: accentColor, opacity: isLight ? 1 : 0.6,
+          }}>GAME DAY</div>
 
-        {/* Team name */}
-        <div
-          style={{
+          <div style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: isWide ? 48 : 42,
-            lineHeight: 0.92,
-            color: '#fff',
-            marginTop: 2,
-            position: 'relative',
-            zIndex: 3,
-          }}
-        >
-          {teamName || ''}
-        </div>
+            fontSize: isWide ? 48 : 44, lineHeight: 0.92,
+            color: textColor, marginTop: 2,
+          }}>{teamName.toUpperCase()}</div>
 
-        {/* Accent line */}
-        <div
-          style={{
-            width: 30,
-            height: 3,
-            background: accentLine,
-            margin: '8px 0',
-            position: 'relative',
-            zIndex: 3,
-          }}
-        />
+          <div style={{
+            width: 30, height: 3,
+            background: accentColor,
+            margin: '10px 0',
+          }} />
 
-        {/* Opponent */}
-        <div
-          style={{
+          <div style={{
             fontFamily: "'Oswald', sans-serif",
-            fontSize: isWide ? 15 : 14,
-            fontWeight: 600,
-            color: 'rgba(255,255,255,0.8)',
+            fontSize: 15, fontWeight: 600,
+            color: isLight ? '#ccc' : 'rgba(255,255,255,0.85)',
             textTransform: 'uppercase',
-            position: 'relative',
-            zIndex: 3,
-          }}
-        >
-          vs. {event?.opponent_name || event?.opponent || 'TBD'}
-        </div>
+          }}>vs. {opponent}</div>
 
-        {/* Date / Venue */}
-        <div
-          style={{
+          <div style={{
+            marginTop: 14, display: 'flex', flexDirection: 'column', gap: 3,
             fontFamily: "'Rajdhani', sans-serif",
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1,
-            color: 'rgba(255,255,255,0.45)',
+            fontSize: 11, fontWeight: 700, letterSpacing: 1,
             textTransform: 'uppercase',
-            marginTop: 12,
-            lineHeight: 1.8,
-            position: 'relative',
-            zIndex: 3,
-          }}
-        >
-          <div>{fmtDate(eventDate)} &middot; {fmtTime(eventTime)}</div>
-          {venue && <div>{venue}</div>}
+            color: isLight ? '#666' : 'rgba(255,255,255,0.45)',
+          }}>
+            <span>{dayName}, {monthDay} · {formattedTime}</span>
+            <span>{venue}</span>
+          </div>
         </div>
       </div>
 
       {/* Logo */}
       {logoUrl && (
-        <img
-          src={logoUrl}
-          alt=""
-          style={{
-            position: 'absolute',
-            bottom: 14,
-            left: 28,
-            width: 32,
-            opacity: 0.35,
-            zIndex: 10,
-          }}
-        />
+        <img src={logoUrl} alt="" crossOrigin="anonymous" style={{
+          position: 'absolute', bottom: 14, left: 28,
+          width: 34, opacity: 0.35, zIndex: 10,
+        }} />
       )}
 
-      {/* POWERED BY LYNX watermark */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 7,
-          right: 10,
-          fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: 8,
-          letterSpacing: 3,
-          textTransform: 'uppercase',
-          opacity: 0.3,
-          zIndex: 20,
-          color: teamColor,
-        }}
-      >
-        POWERED BY LYNX
-      </div>
+      {/* Watermark */}
+      <div style={{
+        position: 'absolute', bottom: 7, right: 10,
+        fontFamily: "'Bebas Neue', sans-serif",
+        fontSize: 8, letterSpacing: 3,
+        textTransform: 'uppercase',
+        opacity: 0.3, zIndex: 20, color: teamColor,
+      }}>POWERED BY LYNX</div>
     </div>
   )
 }

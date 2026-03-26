@@ -7,6 +7,7 @@ import html2canvas from 'html2canvas'
 
 export async function exportCardAsPng(element, filename) {
   await document.fonts.ready
+  await new Promise(r => setTimeout(r, 100))
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,

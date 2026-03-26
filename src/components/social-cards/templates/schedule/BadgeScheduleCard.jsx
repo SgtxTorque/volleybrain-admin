@@ -97,6 +97,7 @@ export default function BadgeScheduleCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{ width: 50 }}
             />
           )}

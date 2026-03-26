@@ -87,6 +87,7 @@ export default function ProgramCard({
             <img
               src={featuredPlayer.photo_url}
               alt=""
+              crossOrigin="anonymous"
               style={{
                 position: 'absolute',
                 inset: 0,
@@ -120,6 +121,7 @@ export default function ProgramCard({
           <img
             src={logoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               position: 'absolute',
               top: 14,

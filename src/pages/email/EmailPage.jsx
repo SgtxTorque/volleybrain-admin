@@ -515,7 +515,7 @@ function EmailComposeTab({ showToast }) {
             srcDoc={getPreviewHtml()}
             title="Email Preview"
             style={{ width: '100%', height: '100%', border: 'none', background: '#F2F4F7' }}
-            sandbox="allow-same-origin"
+            sandbox="allow-same-origin allow-scripts"
           />
         </div>
       </div>
@@ -834,7 +834,7 @@ function TemplateEditor({ template, onClose, onSave, showToast }) {
                 srcDoc={getPreviewHtml()}
                 title="Template Preview"
                 style={{ width: '100%', height: 600, border: 'none', background: '#F2F4F7' }}
-                sandbox="allow-same-origin"
+                sandbox="allow-same-origin allow-scripts"
               />
             </div>
           </div>
@@ -1058,7 +1058,7 @@ function EmailSettingsTab({ showToast }) {
             srcDoc={getPreviewHtml()}
             title="Email Settings Preview"
             style={{ width: '100%', height: 650, border: 'none', background: '#F2F4F7' }}
-            sandbox="allow-same-origin"
+            sandbox="allow-same-origin allow-scripts"
           />
         </div>
       </div>

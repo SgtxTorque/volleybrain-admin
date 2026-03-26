@@ -93,6 +93,7 @@ export default function ProgramLogoCard({
           <img
             src={logoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               width: 60,
               marginBottom: 8,

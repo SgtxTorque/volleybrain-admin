@@ -116,6 +116,7 @@ export default function ScoreboardResCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{
                 width: 70,
                 height: 70,

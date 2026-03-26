@@ -99,6 +99,7 @@ export default function StatLineCard({
           <img
             src={photoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               objectFit: 'cover',
               width: '100%',
@@ -161,6 +162,7 @@ export default function StatLineCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{
                 width: 36,
                 height: 36,

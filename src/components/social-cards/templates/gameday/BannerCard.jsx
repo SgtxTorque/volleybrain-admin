@@ -48,7 +48,7 @@ export default function BannerCard({
         width,
         height,
         overflow: 'hidden',
-        background: `linear-gradient(135deg, #0a0a0a, ${hexToRgba(teamColor, 0.08)})`,
+        background: `linear-gradient(135deg, #0a0a0a 0%, ${darken(teamColor, 0.7)} 100%)`,
         fontFamily: "'Inter', sans-serif",
       }}
     >
@@ -70,6 +70,7 @@ export default function BannerCard({
           <img
             src={featuredPlayer.photo_url}
             alt=""
+            crossOrigin="anonymous"
             style={{
               width: '100%',
               height: '100%',
@@ -102,6 +103,7 @@ export default function BannerCard({
         <img
           src={logoUrl}
           alt=""
+          crossOrigin="anonymous"
           style={{
             position: 'absolute',
             top: 16,

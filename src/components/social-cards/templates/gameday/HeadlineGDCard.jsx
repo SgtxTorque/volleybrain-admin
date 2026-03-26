@@ -63,6 +63,7 @@ export default function HeadlineGDCard({
           <img
             src={logoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               position: 'absolute',
               top: '50%',
@@ -92,6 +93,7 @@ export default function HeadlineGDCard({
               <img
                 src={photoUrl}
                 alt=""
+                crossOrigin="anonymous"
                 style={{
                   width: '100%',
                   height: '100%',

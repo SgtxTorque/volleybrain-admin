@@ -75,6 +75,7 @@ export default function SplitScheduleCard({
             <img
               src={featuredPlayer.photo_url}
               alt=""
+              crossOrigin="anonymous"
               style={{
                 width: '100%',
                 height: '100%',
@@ -107,6 +108,7 @@ export default function SplitScheduleCard({
           <img
             src={logoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               position: 'absolute',
               top: 12,

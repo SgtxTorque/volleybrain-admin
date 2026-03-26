@@ -53,6 +53,7 @@ export default function PosterCard({
         <img
           src={featuredPlayer.photo_url}
           alt=""
+          crossOrigin="anonymous"
           style={{
             position: 'absolute',
             inset: 0,
@@ -88,7 +89,7 @@ export default function PosterCard({
         style={{
           position: 'absolute',
           inset: 0,
-          background: `radial-gradient(ellipse at 50% 35%, transparent 30%, ${hexToRgba(teamColor, 0.12)} 60%, ${hexToRgba(teamColor, 0.25)} 100%)`,
+          background: `radial-gradient(ellipse at 50% 35%, transparent 30%, ${hexToRgba(teamColor, 0.15)} 60%, ${hexToRgba(teamColor, 0.3)} 100%)`,
           zIndex: 3,
         }}
       />
@@ -116,6 +117,7 @@ export default function PosterCard({
         <img
           src={logoUrl}
           alt=""
+          crossOrigin="anonymous"
           style={{
             position: 'absolute',
             top: 14,

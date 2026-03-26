@@ -87,6 +87,7 @@ export default function MinimalScheduleCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{ width: 28, height: 28 }}
             />
           )}

@@ -155,6 +155,7 @@ export default function TriPanelCard({
               <img
                 src={featuredPlayer.photo_url}
                 alt=""
+                crossOrigin="anonymous"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -193,6 +194,7 @@ export default function TriPanelCard({
           <img
             src={logoUrl}
             alt=""
+            crossOrigin="anonymous"
             style={{
               width: 36,
               height: 36,

@@ -119,6 +119,7 @@ export default function HeadlineScoreCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{
                 width: 44,
                 height: 44,

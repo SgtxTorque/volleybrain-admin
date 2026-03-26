@@ -55,6 +55,7 @@ export default function MinimalGDCard({
         <img
           src={logoUrl}
           alt=""
+          crossOrigin="anonymous"
           style={{
             position: 'absolute',
             bottom: 16,

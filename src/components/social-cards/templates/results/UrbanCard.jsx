@@ -187,6 +187,7 @@ export default function UrbanCard({
             <img
               src={logoUrl}
               alt=""
+              crossOrigin="anonymous"
               style={{ width: 32, height: 32, objectFit: 'contain' }}
             />
           ) : (
@@ -348,6 +349,7 @@ export default function UrbanCard({
             <img
               src={featuredPlayer.photo_url}
               alt=""
+              crossOrigin="anonymous"
               style={{
                 width: '100%',
                 height: '100%',
