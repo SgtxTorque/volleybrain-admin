@@ -37,7 +37,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const [emergencyForm, setEmergencyForm] = useState({ name: '', phone: '', relation: '' })
 
   const [seasonHistory, setSeasonHistory] = useState([])
-  const [sportName, setSportName] = useState('volleyball')
+  const [sportName, setSportName] = useState('')
   const [registrationData, setRegistrationData] = useState(null)
 
   // === DATA LOADING (preserved exactly) ===
@@ -113,7 +113,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
         startDate: tp.teams?.seasons?.start_date, endDate: tp.teams?.seasons?.end_date,
       }))
       setSeasonHistory(history)
-      setSportName(teamPlayersData?.[0]?.teams?.seasons?.sports?.name || seasonData?.sports?.name || 'volleyball')
+      setSportName(teamPlayersData?.[0]?.teams?.seasons?.sports?.name || seasonData?.sports?.name || '')
     } catch (err) { console.error('Error loading player:', err) }
     setLoading(false)
   }

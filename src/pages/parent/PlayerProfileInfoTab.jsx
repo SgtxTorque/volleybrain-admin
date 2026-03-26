@@ -36,7 +36,7 @@ export default function PlayerProfileInfoTab({
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <FormField isDark={isDark} label="School" value={infoForm.school} onChange={v => setInfoForm({ ...infoForm, school: v })} placeholder="School name" />
               <FormField isDark={isDark} label="Position" value={infoForm.position} onChange={v => setInfoForm({ ...infoForm, position: v })}
-                options={(SPORT_POSITIONS[sportName.toLowerCase()] || SPORT_POSITIONS.volleyball).map(p => ({ value: p, label: p }))} />
+                options={(SPORT_POSITIONS[sportName?.toLowerCase()] || SPORT_POSITIONS.volleyball || []).map(p => ({ value: p, label: p }))} />
               <FormField isDark={isDark} label="Experience" value={infoForm.experience_level} onChange={v => setInfoForm({ ...infoForm, experience_level: v })}
                 options={['Beginner', 'Intermediate', 'Advanced', 'Club/Travel']} />
             </div>

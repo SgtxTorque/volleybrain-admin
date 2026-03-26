@@ -81,7 +81,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     children: registrationData, teamIds, seasonId, organizationId,
   })
 
-  const primarySport = registrationData[0]?.season?.sports || selectedSport || { name: 'Volleyball', icon: '🏐' }
+  const primarySport = registrationData[0]?.season?.sports || selectedSport || { name: 'Sport', icon: '🏆' }
 
   // ═══ DATA LOADING (preserved exactly) ═══
   useEffect(() => {

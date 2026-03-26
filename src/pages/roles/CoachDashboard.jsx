@@ -895,7 +895,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         <PlayerCardExpanded
           player={selectedPlayer} visible={!!selectedPlayer} onClose={() => setSelectedPlayer(null)}
           context="coach_dashboard" viewerRole="coach" seasonId={selectedSeason?.id}
-          sport={selectedSport?.name || 'volleyball'} isOwnChild={false}
+          sport={selectedSport?.name || ''} isOwnChild={false}
         />
       )}
       {showCoachBlast && selectedTeam && (

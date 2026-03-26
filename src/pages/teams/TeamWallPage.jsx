@@ -813,7 +813,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate, activeView }) {
           context="roster"
           viewerRole={activeView === 'parent' ? 'parent' : activeView === 'coach' ? 'coach' : 'admin'}
           seasonId={team?.season_id}
-          sport={team?.seasons?.sports?.name?.toLowerCase() || 'volleyball'}
+          sport={team?.seasons?.sports?.name?.toLowerCase() || ''}
           isOwnChild={false}
         />
       )}

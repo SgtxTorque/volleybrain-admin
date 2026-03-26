@@ -228,7 +228,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   const [badges, setBadges] = useState([])
   const [badgesInProgress, setBadgesInProgress] = useState([])
   const [skills, setSkills] = useState(null)
-  const [sportName, setSportName] = useState('volleyball')
+  const [sportName, setSportName] = useState('')
   const [evalHistory, setEvalHistory] = useState([])
   const [coachFeedback, setCoachFeedback] = useState([])
   const [playerGoals, setPlayerGoals] = useState([])
@@ -254,7 +254,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
         .select('*, teams(id, name, color, season_id, seasons(id, name, sports(name, icon)))')
         .eq('player_id', playerId)
       setTeamAssignments(teams || [])
-      const sport = teams?.[0]?.teams?.seasons?.sports?.name || fullPlayer?.sport || 'volleyball'
+      const sport = teams?.[0]?.teams?.seasons?.sports?.name || fullPlayer?.sport || ''
       setSportName(sport)
       const sid = propSeasonId || fullPlayer?.season_id || teams?.[0]?.teams?.season_id
       if (sid) {

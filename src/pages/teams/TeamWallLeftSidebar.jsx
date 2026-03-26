@@ -100,7 +100,7 @@ export default function TeamWallLeftSidebar({
       {/* Next Event Hero Card */}
       {nextGame && (() => {
         const isGame = nextGame.event_type === 'game' || nextGame.event_type === 'tournament'
-        const bgImage = isGame ? '/images/volleyball-game.jpg' : '/images/volleyball-practice.jpg'
+        const bgImage = isGame ? '/images/sports-game.jpg' : '/images/sports-practice.jpg'
         const dayLabel = getEventDayLabel(nextGame.event_date)
         return (
           <div style={{ borderRadius: 14, overflow: 'hidden', position: 'relative', minHeight: 200, border: `1px solid ${borderColor}`, boxShadow: shadow }}>
