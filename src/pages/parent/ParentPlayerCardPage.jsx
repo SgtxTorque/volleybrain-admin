@@ -846,44 +846,83 @@ function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback,
     <div className="space-y-5">
       {/* Side-by-side spider charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Skill Progression */}
+        {/* Skill Progression — Chart Left, Eval Timeline Right */}
         <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Skill Progression</h4>
             {growthPct !== null && <span className={`text-xs font-bold ${growthPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{growthPct >= 0 ? '+' : ''}{growthPct}% Growth</span>}
           </div>
-          {evalHistory.length >= 2 ? (() => {
-            const latest = evalHistory[evalHistory.length - 1]
-            const earliest = evalHistory[0]
-            const latestData = parseSkills(latest)
-            const earliestData = parseSkills(earliest)
-            return latestData.length >= 3 ? (
-              <div className="flex flex-col items-center">
-                <SpiderChart data={latestData} compareData={earliestData.length === latestData.length ? earliestData : undefined} maxValue={10} size={320} color="#4BB9EC" compareColor="#F59E0B" isDark={false} />
-                <div className="flex items-center justify-center gap-3 mt-4">
-                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4BB9EC]/10 border border-[#4BB9EC]/30">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#4BB9EC]" />
-                    <span className="text-xs font-semibold text-[#4BB9EC]">Latest: {new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                  </span>
-                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-                    <span className="text-xs font-semibold text-[#F59E0B]">Baseline: {new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                  </span>
+
+          <div className="flex gap-6">
+            {/* LEFT — Spider Chart */}
+            <div className="flex flex-col items-center flex-shrink-0">
+              {evalHistory.length >= 2 ? (() => {
+                const latest = evalHistory[evalHistory.length - 1]
+                const earliest = evalHistory[0]
+                const latestData = parseSkills(latest)
+                const earliestData = parseSkills(earliest)
+                return latestData.length >= 3 ? (
+                  <>
+                    <SpiderChart data={latestData} compareData={earliestData.length === latestData.length ? earliestData : undefined} maxValue={10} size={280} color="#4BB9EC" compareColor="#F59E0B" isDark={false} />
+                    <div className="flex items-center gap-3 mt-4">
+                      <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4BB9EC]/10 border border-[#4BB9EC]/30">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#4BB9EC]" />
+                        <span className="text-xs font-semibold text-[#4BB9EC]">Latest: {new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                      </span>
+                      <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F59E0B]/10 border border-[#F59E0B]/30">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+                        <span className="text-xs font-semibold text-[#F59E0B]">Baseline: {new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                      </span>
+                    </div>
+                  </>
+                ) : <p className="text-center py-4 text-slate-400 text-sm">Not enough skill data to chart</p>
+              })() : evalHistory.length === 1 ? (
+                <>
+                  {(() => { const chartData = parseSkills(evalHistory[0]); return chartData.length >= 3 ? <SpiderChart data={chartData} maxValue={10} size={280} color="#4BB9EC" isDark={false} /> : null })()}
+                  <p className="text-xs mt-2 text-slate-400">One evaluation so far. Comparison shows after the next.</p>
+                </>
+              ) : (
+                <div className="flex flex-col items-center py-6 text-center">
+                  <TrendingUp className="w-8 h-8 text-[#4BB9EC] mb-2" />
+                  <p className="text-sm font-semibold text-[#10284C]">No evaluations yet</p>
+                  <p className="text-xs mt-1 text-slate-400">Skill progression appears once your coach evaluates skills.</p>
                 </div>
-              </div>
-            ) : <p className="text-center py-4 text-slate-400 text-sm">Not enough skill data to chart</p>
-          })() : evalHistory.length === 1 ? (
-            <div className="flex flex-col items-center">
-              {(() => { const chartData = parseSkills(evalHistory[0]); return chartData.length >= 3 ? <SpiderChart data={chartData} maxValue={10} size={340} color="#4BB9EC" isDark={false} /> : null })()}
-              <p className="text-xs mt-2 text-slate-400">One evaluation so far. Comparison shows after the next evaluation.</p>
+              )}
+              {isCoachOrAdmin && (
+                <button onClick={() => showToast?.('Evaluation workflow coming soon', 'info')}
+                  className="mt-4 px-4 py-2 rounded-lg bg-[#10284C] text-white text-xs font-bold uppercase tracking-wider hover:brightness-110 transition">
+                  Evaluate Player
+                </button>
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col items-center py-6 text-center">
-              <TrendingUp className="w-8 h-8 text-[#4BB9EC] mb-2" />
-              <p className="text-sm font-semibold text-[#10284C]">No evaluations yet</p>
-              <p className="text-xs mt-1 text-slate-400">Skill progression appears once your coach evaluates skills.</p>
+
+            {/* RIGHT — Evaluation Timeline */}
+            <div className="flex-1 min-w-0">
+              <h5 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3">Evaluation History</h5>
+              {evalHistory.length > 0 ? (
+                <div className="space-y-0">
+                  {evalHistory.slice(-6).reverse().map((ev, i) => (
+                    <div key={i} className={`flex items-center gap-3 py-2.5 ${i < Math.min(evalHistory.length, 6) - 1 ? 'border-b border-slate-100' : ''}`}>
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${i === 0 ? 'bg-[#4BB9EC]' : 'bg-slate-300'}`} />
+                      <span className="text-xs text-slate-400 w-24 flex-shrink-0">
+                        {new Date(ev.evaluation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600 uppercase tracking-wider">
+                        {(ev.evaluation_type || 'Eval').replace(/_/g, ' ')}
+                      </span>
+                      {ev.overall_score != null && (
+                        <span className="text-sm font-bold text-[#10284C] ml-auto">
+                          {typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/10
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400 py-4">No evaluations recorded yet</p>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Last Game Performance */}
@@ -954,25 +993,6 @@ function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback,
         ) : <p className="text-sm text-center py-4 text-slate-400">No goals set yet</p>}
       </div>
 
-      {/* Career Milestones */}
-      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
-        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Career Milestones</h4>
-        {evalHistory.length > 0 ? (
-          <div className="relative pl-6">
-            <div className="absolute left-2 top-1 bottom-1 w-0.5 bg-slate-200" />
-            {evalHistory.map((ev, i) => (
-              <div key={i} className="relative mb-4 last:mb-0">
-                <div className={`absolute -left-4 top-1 w-3 h-3 rounded-full border-2 ${i === evalHistory.length - 1 ? 'bg-[#4BB9EC] border-[#4BB9EC]' : 'bg-slate-200 border-slate-300'}`} />
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] text-slate-400">{new Date(ev.evaluation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase bg-slate-100 text-slate-600">{(ev.evaluation_type || 'eval').replace(/_/g, ' ')}</span>
-                  {ev.overall_score != null && <span className="text-sm font-bold text-[#4BB9EC]">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/10</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : <p className="text-sm text-center py-4 text-slate-400">No evaluations recorded yet</p>}
-      </div>
     </div>
   )
 }
