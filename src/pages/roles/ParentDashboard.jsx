@@ -520,8 +520,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                     const idx = registrationData.findIndex(c => c.id === childId)
                     if (idx >= 0) setActiveChildIdx(idx)
                   }}
-                  onViewProfile={(playerId) => onNavigate?.(`player-${playerId}`)}
-                  onViewPlayerCard={(playerId) => onNavigate?.(`player-card-${playerId}`)}
+                  onViewProfile={(playerId) => onNavigate?.(`player-profile-${playerId}`)}
+                  onViewPlayerCard={(playerId) => onNavigate?.(`player-${playerId}`)}
                 />
               </div>
 
