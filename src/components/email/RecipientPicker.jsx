@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { X } from '../../constants/icons'
+import { X, Mail } from '../../constants/icons'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function RecipientPicker({ selected = [], onChange }) {
   const { isDark } = useTheme()
@@ -79,6 +81,36 @@ export default function RecipientPicker({ selected = [], onChange }) {
     onChange(selected.filter(s => s.email?.toLowerCase() !== email.toLowerCase()))
   }
 
+  // Free-text email: valid email not already in results or selected
+  const trimmedQuery = query.trim()
+  const isValidEmail = EMAIL_RE.test(trimmedQuery)
+  const selectedEmails = new Set(selected.map(s => s.email?.toLowerCase()))
+  const alreadySelected = isValidEmail && selectedEmails.has(trimmedQuery.toLowerCase())
+  const alreadyInResults = isValidEmail && results.some(r => r.email?.toLowerCase() === trimmedQuery.toLowerCase())
+  const showFreeTextOption = isValidEmail && !alreadySelected && !alreadyInResults && !loading
+
+  function addFreeTextEmail() {
+    addRecipient({
+      id: `manual-${trimmedQuery.toLowerCase()}`,
+      name: trimmedQuery,
+      email: trimmedQuery,
+      source: 'manual',
+    })
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (showFreeTextOption) {
+        addFreeTextEmail()
+      } else if (results.length === 1) {
+        addRecipient(results[0])
+      }
+    }
+  }
+
+  const showDropdown = results.length > 0 || loading || showFreeTextOption
+
   return (
     <div>
       {/* Selected chips */}
@@ -109,6 +141,7 @@ export default function RecipientPicker({ selected = [], onChange }) {
         type="text"
         value={query}
         onChange={e => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="Search by name or email..."
         className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium ${
           isDark
@@ -118,12 +151,24 @@ export default function RecipientPicker({ selected = [], onChange }) {
       />
 
       {/* Results dropdown */}
-      {(results.length > 0 || loading) && (
+      {showDropdown && (
         <div className={`mt-1 rounded-xl border max-h-48 overflow-y-auto ${
           isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'
         }`}>
           {loading && (
             <div className="p-3 text-center text-xs text-slate-400">Searching...</div>
+          )}
+          {showFreeTextOption && (
+            <button
+              onClick={addFreeTextEmail}
+              className={`w-full text-left px-4 py-2.5 text-sm transition flex items-center gap-2 ${
+                isDark ? 'hover:bg-white/[0.04] text-white' : 'hover:bg-[#F5F6F8] text-[#10284C]'
+              }`}
+              type="button"
+            >
+              <Mail className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-[#4BB9EC]' : 'text-[#0d7bb5]'}`} />
+              <span>Send to <span className="font-semibold">{trimmedQuery}</span></span>
+            </button>
           )}
           {results.map(r => (
             <button
