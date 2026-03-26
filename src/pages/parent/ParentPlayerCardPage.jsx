@@ -217,8 +217,9 @@ function getSportDisplay(sportName) {
 // ============================================
 // MAIN COMPONENT
 // ============================================
-function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: propSeasonId }) {
+function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: propSeasonId, activeView }) {
   const { isDark } = useTheme()
+  const isCoachOrAdmin = activeView === 'coach' || activeView === 'admin'
 
   const [loading, setLoading] = useState(true)
   const [player, setPlayer] = useState(null)
@@ -552,7 +553,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'overview' && <OverviewTab sc={sc} skills={skills} getSkillValue={getSkillValue} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} badges={badges} badgesInProgress={badgesInProgress} overallRating={overallRating} />}
           {activeTab === 'stats' && <StatsTab sc={sc} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} skills={skills} evalHistory={evalHistory} />}
-          {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} transformedGames={transformedGames} seasonStats={seasonStats} />}
+          {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} transformedGames={transformedGames} seasonStats={seasonStats} gamesPlayed={gamesPlayed} isCoachOrAdmin={isCoachOrAdmin} showToast={showToast} />}
           {activeTab === 'badges' && <BadgesTab badges={badges} badgesInProgress={badgesInProgress} shoutouts={shoutouts} challenges={challenges} />}
           {activeTab === 'games' && <GamesTab sc={sc} transformedGames={transformedGames} seasonStats={seasonStats} gamesPlayed={gamesPlayed} seasonName={seasonName} />}
         </div>
@@ -808,7 +809,7 @@ function StatsTab({ sc, seasonStats, gamesPlayed, transformedGames, perGameStats
 // ═══════════════════════════════════════════════
 // TAB: DEVELOPMENT
 // ═══════════════════════════════════════════════
-function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback, playerGoals, transformedGames, seasonStats }) {
+function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback, playerGoals, transformedGames, seasonStats, gamesPlayed, isCoachOrAdmin, showToast }) {
   const parseSkills = (ev) => {
     const s = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
     if (!s) return []

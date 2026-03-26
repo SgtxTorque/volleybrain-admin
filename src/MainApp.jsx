@@ -638,9 +638,9 @@ function TeamWallRoute({ showToast, activeView }) {
 // ============================================
 // PARENT PLAYER ROUTE WRAPPERS
 // ============================================
-function ParentPlayerCardRoute({ roleContext, showToast }) {
+function ParentPlayerCardRoute({ roleContext, showToast, activeView }) {
   const { playerId } = useParams()
-  return <ParentPlayerCardPage playerId={playerId} roleContext={roleContext} showToast={showToast} />
+  return <ParentPlayerCardPage playerId={playerId} roleContext={roleContext} showToast={showToast} activeView={activeView} />
 }
 
 function PlayerProfileRoute({ roleContext, showToast }) {
@@ -691,7 +691,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
 
       {/* Parent-specific routes */}
       <Route path="/parent/player/:playerId/profile" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><PlayerProfileRoute roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
-      <Route path="/parent/player/:playerId" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/parent/player/:playerId" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/messages" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentMessagesPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/invite" element={<RouteGuard allow={['parent']} activeView={activeView}><InviteFriendsPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/my-stuff" element={<RouteGuard allow={['parent', 'player']} activeView={activeView}><MyStuffPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
