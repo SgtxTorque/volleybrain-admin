@@ -11,7 +11,7 @@ import {
 // Shows full breakdown of a completed game
 // ============================================
 
-export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = false }) {
+export function GameDetailModal({ game, team, sport, onClose, onEditStats, isAdmin = false }) {
   const tc = useThemeClasses()
   const [activeTab, setActiveTab] = useState('summary')
   const [attendance, setAttendance] = useState([])
@@ -256,6 +256,40 @@ export function GameDetailModal({ game, team, onClose, onEditStats, isAdmin = fa
                     </div>
                   )}
                   
+                  {/* Period-by-period breakdown (basketball, soccer, etc.) */}
+                  {game.period_scores && game.period_scores.length > 0 && (
+                    <div>
+                      <h3 className={`font-semibold ${tc.text} mb-3`}>
+                        {game.scoring_format === 'four_quarters' ? 'Quarter-by-Quarter Breakdown' :
+                         game.scoring_format === 'two_halves' ? 'Half-by-Half Breakdown' : 'Period Breakdown'}
+                      </h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {game.period_scores.map((period, idx) => {
+                          if (!period || (period.our === 0 && period.their === 0)) return null
+                          const weWon = period.our > period.their
+                          const periodLabel = game.scoring_format === 'four_quarters' ? `Q${idx + 1}` :
+                                             game.scoring_format === 'two_halves' ? `H${idx + 1}` : `P${idx + 1}`
+                          return (
+                            <div
+                              key={idx}
+                              className={`p-4 rounded-xl border ${
+                                weWon ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
+                              }`}
+                            >
+                              <p className={`text-sm ${tc.textMuted} mb-1`}>{periodLabel}</p>
+                              <p className={`text-2xl font-bold ${weWon ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {period.our} - {period.their}
+                              </p>
+                              <p className={`text-xs ${tc.textMuted}`}>
+                                {weWon ? '✓ Won' : '✗ Lost'}
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className={`p-4 rounded-xl ${tc.cardBgAlt}`}>

@@ -568,6 +568,7 @@ function GamePrepPage({ showToast }) {
         <GameDetailModal
           game={selectedGame}
           team={selectedTeam}
+          sport={sport}
           isAdmin={true}
           onClose={() => setShowGameDetail(false)}
           onEditStats={(game) => {
@@ -581,6 +582,7 @@ function GamePrepPage({ showToast }) {
         <GameDayCommandCenter
           event={selectedGame}
           team={selectedTeam}
+          sport={sport}
           onClose={() => {
             setShowGameDayMode(false)
             loadGames()
