@@ -280,14 +280,29 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
 
   async function loadRecentGames() {
     try {
-      const { data } = await supabase
+      // Try with explicit FK first
+      const { data, error } = await supabase
         .from('game_player_stats')
         .select('*, schedule_events!event_id(event_date, opponent_name, our_score, their_score)')
         .eq('player_id', playerId)
         .order('created_at', { ascending: false })
         .limit(10)
-      setRecentGames(data || [])
-    } catch { setRecentGames([]) }
+      if (error) {
+        // Fallback: try without explicit FK name
+        console.warn('game_player_stats FK join failed, trying implicit:', error.message)
+        const { data: fallbackData } = await supabase
+          .from('game_player_stats')
+          .select('*')
+          .eq('player_id', playerId)
+          .limit(10)
+        setRecentGames(fallbackData || [])
+      } else {
+        setRecentGames(data || [])
+      }
+    } catch (err) {
+      console.warn('Game stats query failed:', err?.message)
+      setRecentGames([])
+    }
   }
 
   async function loadSkills() {
@@ -340,12 +355,15 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
     try {
       const { data: shoutoutData } = await supabase
         .from('shoutouts')
-        .select('*, giver:profiles!giver_id(first_name, last_name, photo_url)')
+        .select('*')
         .eq('receiver_id', playerId)
         .order('created_at', { ascending: false })
         .limit(5)
       setShoutouts(shoutoutData || [])
-    } catch { setShoutouts([]) }
+    } catch (err) {
+      console.warn('Shoutouts query failed:', err?.message)
+      setShoutouts([])
+    }
     try {
       const { data: challengeData } = await supabase
         .from('challenge_participants')
@@ -353,7 +371,10 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
         .eq('player_id', playerId)
         .order('opted_in_at', { ascending: false })
       setChallenges(challengeData || [])
-    } catch { setChallenges([]) }
+    } catch (err) {
+      console.warn('Challenges query failed:', err?.message)
+      setChallenges([])
+    }
   }
 
   // Loading state
@@ -529,7 +550,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
 
         {/* Tab content — scrollable */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === 'overview' && <OverviewTab sc={sc} skills={skills} getSkillValue={getSkillValue} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} badges={badges} badgesInProgress={badgesInProgress} />}
+          {activeTab === 'overview' && <OverviewTab sc={sc} skills={skills} getSkillValue={getSkillValue} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} badges={badges} badgesInProgress={badgesInProgress} overallRating={overallRating} />}
           {activeTab === 'stats' && <StatsTab sc={sc} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} skills={skills} evalHistory={evalHistory} />}
           {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} />}
           {activeTab === 'badges' && <BadgesTab badges={badges} badgesInProgress={badgesInProgress} shoutouts={shoutouts} challenges={challenges} />}
@@ -580,7 +601,7 @@ function MiniBarChart({ data, color = '#F59E0B', label }) {
 // ═══════════════════════════════════════════════
 // TAB: OVERVIEW
 // ═══════════════════════════════════════════════
-function OverviewTab({ sc, skills, getSkillValue, seasonStats, gamesPlayed, transformedGames, perGameStats, trends, badges, badgesInProgress }) {
+function OverviewTab({ sc, skills, getSkillValue, seasonStats, gamesPlayed, transformedGames, perGameStats, trends, badges, badgesInProgress, overallRating }) {
   return (
     <div className="space-y-5">
       {/* Season Progress Tiles */}
