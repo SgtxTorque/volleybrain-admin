@@ -31,6 +31,7 @@ export const ROUTES = {
   'chats': '/chats',
   'blasts': '/blasts',
   'notifications': '/notifications',
+  'email': '/email',
 
   // Insights
   'reports': '/reports',
@@ -153,6 +154,7 @@ export const PAGE_TITLES = {
   '/chats': 'Chats',
   '/blasts': 'Announcements',
   '/notifications': 'Push Notifications',
+  '/email': 'Email',
   '/reports': 'Reports & Analytics',
   '/reports/funnel': 'Registration Funnel',
   '/archives': 'Season Archives',

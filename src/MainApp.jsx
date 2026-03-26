@@ -92,6 +92,7 @@ import { PlayerStatsPage } from './pages/stats/PlayerStatsPage'
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
 import { NotificationsPage } from './pages/notifications/NotificationsPage'
+import EmailPage from './pages/email/EmailPage'
 
 // Platform Admin
 import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
@@ -720,6 +721,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
       <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/email" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><EmailPage showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/reports/funnel" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationFunnelPage showToast={showToast} /></RouteGuard>} />
       <Route path="/archives" element={<SeasonArchivePage showToast={showToast} />} />
@@ -1043,6 +1045,7 @@ function MainApp() {
       { id: 'chats', label: 'Chats', icon: 'message' },
       { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
       { id: 'notifications', label: 'Push Notifications', icon: 'bell' },
+      { id: 'email', label: 'Email', icon: 'mail' },
     ]},
 
     // --- REPORTS ---

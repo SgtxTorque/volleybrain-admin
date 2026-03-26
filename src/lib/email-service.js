@@ -1,14 +1,29 @@
 import { supabase } from './supabase'
+import { buildLynxEmail, resolveOrgBranding, replaceTemplateVars } from './email-html-builder'
 
 // ============================================
 // EMAIL NOTIFICATION SERVICE
 // ============================================
 // Queues emails to Supabase for sending via Edge Functions
-// Supports: registration confirmation, approval, waitlist, payment reminders
+// Supports: registration confirmation, approval, waitlist, payment reminders, broadcasts
 
 export const EmailService = {
-  // Queue an email notification
-  async queueEmail(type, recipientEmail, recipientName, data, organizationId) {
+  // Queue an email notification (extended with tracking columns)
+  async queueEmail(type, recipientEmail, recipientName, data, organizationId, options = {}) {
+    const {
+      subject = null,
+      category = 'transactional',
+      sentBy = null,
+      sentByRole = 'system',
+      recipientUserId = null,
+      templateType = null,
+      broadcastBatchId = null,
+      blastMessageId = null,
+      audienceType = null,
+      audienceTargetId = null,
+      hasAttachments = false,
+    } = options
+
     try {
       const { error } = await supabase.from('email_notifications').insert({
         type,
@@ -17,6 +32,17 @@ export const EmailService = {
         data,
         organization_id: organizationId,
         status: 'pending',
+        subject,
+        category,
+        sent_by: sentBy,
+        sent_by_role: sentByRole,
+        recipient_user_id: recipientUserId,
+        template_type: templateType,
+        broadcast_batch_id: broadcastBatchId,
+        blast_message_id: blastMessageId,
+        audience_type: audienceType,
+        audience_target_id: audienceTargetId,
+        has_attachments: hasAttachments,
         created_at: new Date().toISOString()
       })
       if (error) throw error
@@ -29,31 +55,31 @@ export const EmailService = {
   },
 
   // Send registration confirmation email
-  async sendRegistrationConfirmation(player, season, organization) {
-    const email = player.parent_email
-    if (!email) return { success: false, error: 'No parent email' }
-    
-    return this.queueEmail('registration_confirmation', email, player.parent_name, {
-      player_name: `${player.first_name} ${player.last_name}`,
-      season_name: season.name,
-      organization_name: organization.name,
-      organization_email: organization.settings?.contact_email,
-      registration_date: new Date().toLocaleDateString(),
-      fees: {
-        registration: season.fee_registration || 0,
-        uniform: season.fee_uniform || 0,
-        monthly: season.fee_monthly || 0,
-      }
-    }, organization.id)
+  async sendRegistrationConfirmation({ recipientEmail, recipientName, playerName, seasonName, teamName, startDate, organizationId, organizationName }) {
+    if (!recipientEmail) return { success: false, error: 'No recipient email' }
+
+    return this.queueEmail('registration_confirmation', recipientEmail, recipientName, {
+      player_name: playerName,
+      parent_name: recipientName,
+      season_name: seasonName,
+      team_name: teamName || 'TBD',
+      start_date: startDate || 'TBD',
+      org_name: organizationName,
+      app_url: window.location.origin,
+    }, organizationId, {
+      subject: `${playerName} is on the roster. Let's go.`,
+      category: 'transactional',
+      templateType: 'registration_confirmation',
+    })
   },
 
-  // Send approval notification
+  // Send approval notification (existing — kept for backward compat)
   async sendApprovalNotification(player, season, organization, fees = []) {
     const email = player.parent_email
     if (!email) return { success: false, error: 'No parent email' }
-    
+
     const totalDue = fees.reduce((sum, f) => sum + (f.amount || 0), 0)
-    
+
     return this.queueEmail('registration_approved', email, player.parent_name, {
       player_name: `${player.first_name} ${player.last_name}`,
       season_name: season.name,
@@ -69,12 +95,10 @@ export const EmailService = {
   async sendWaitlistSpotAvailable(player, season, organization) {
     const email = player.parent_email
     if (!email) return { success: false, error: 'No parent email' }
-    
-    // Note: organization.settings.registration_url should be set to the deployed app URL
-    // e.g., https://your-app.vercel.app
+
     const baseUrl = organization.settings?.registration_url || organization.settings?.app_url || ''
     const registrationUrl = baseUrl ? `${baseUrl}/register/${organization.slug}/${season.id}` : null
-    
+
     return this.queueEmail('waitlist_spot_available', email, player.parent_name, {
       player_name: `${player.first_name} ${player.last_name}`,
       season_name: season.name,
@@ -88,7 +112,7 @@ export const EmailService = {
   async sendPaymentReminder(player, season, organization, amountDue, dueDate = null) {
     const email = player.parent_email
     if (!email) return { success: false, error: 'No parent email' }
-    
+
     return this.queueEmail('payment_reminder', email, player.parent_name, {
       player_name: `${player.first_name} ${player.last_name}`,
       season_name: season.name,
@@ -100,11 +124,31 @@ export const EmailService = {
     }, organization.id)
   },
 
+  // Send payment receipt email
+  async sendPaymentReceipt({ recipientEmail, recipientName, amount, description, paymentDate, paymentMethod, transactionId, organizationId, organizationName }) {
+    if (!recipientEmail) return { success: false, error: 'No recipient email' }
+
+    return this.queueEmail('payment_receipt', recipientEmail, recipientName, {
+      payer_name: recipientName,
+      amount,
+      description: description || 'Club Fee',
+      payment_date: paymentDate || new Date().toLocaleDateString(),
+      payment_method: paymentMethod || 'Card',
+      transaction_id: transactionId || '',
+      org_name: organizationName,
+      app_url: window.location.origin,
+    }, organizationId, {
+      subject: "Payment received. You're all set.",
+      category: 'transactional',
+      templateType: 'payment_receipt',
+    })
+  },
+
   // Send team assignment notification
   async sendTeamAssignment(player, team, season, organization) {
     const email = player.parent_email
     if (!email) return { success: false, error: 'No parent email' }
-    
+
     return this.queueEmail('team_assignment', email, player.parent_name, {
       player_name: `${player.first_name} ${player.last_name}`,
       team_name: team.name,
@@ -115,7 +159,47 @@ export const EmailService = {
     }, organization.id)
   },
 
-  // Get email templates for preview/customization
+  // Send broadcast/blast email
+  async sendBlastEmail({ recipientEmail, recipientName, recipientUserId, subject, heading, body, ctaText, ctaUrl, organizationId, organizationName, sentBy, sentByRole, blastMessageId, broadcastBatchId, audienceType, audienceTargetId, hasAttachments }) {
+    if (!recipientEmail) return { success: false, error: 'No recipient email' }
+
+    return this.queueEmail('blast_announcement', recipientEmail, recipientName, {
+      subject,
+      heading,
+      body,
+      html_body: body,
+      org_name: organizationName,
+      app_url: window.location.origin,
+    }, organizationId, {
+      subject: subject || heading || 'Announcement',
+      category: 'broadcast',
+      sentBy,
+      sentByRole: sentByRole || 'admin',
+      recipientUserId,
+      templateType: 'blast_announcement',
+      broadcastBatchId,
+      blastMessageId,
+      audienceType,
+      audienceTargetId,
+      hasAttachments: hasAttachments || false,
+    })
+  },
+
+  // Build a branded email preview using org branding
+  buildPreview(organization, { heading, body, ctaText, ctaUrl, isBroadcast }) {
+    const branding = resolveOrgBranding(organization)
+    return buildLynxEmail({
+      ...branding,
+      heading,
+      body,
+      ctaText: ctaText || null,
+      ctaUrl: ctaUrl || null,
+      showUnsubscribe: isBroadcast && branding.includeUnsubscribe,
+      unsubscribeUrl: '#unsubscribe',
+    })
+  },
+
+  // Get email template (legacy — still used for Edge Function fallback)
   getEmailTemplate(type, data) {
     const templates = {
       registration_confirmation: {
@@ -139,7 +223,7 @@ export const EmailService = {
         subject: `Registration Approved - ${data.organization_name}`,
         preview: `Great news! ${data.player_name} is approved for ${data.season_name}!`,
         body: `
-          <h2>🎉 Registration Approved!</h2>
+          <h2>Registration Approved!</h2>
           <p>Great news! <strong>${data.player_name}</strong> has been approved for <strong>${data.season_name}</strong>.</p>
           ${data.total_due > 0 ? `
             <h3>Payment Due: $${data.total_due.toFixed(2)}</h3>
@@ -153,10 +237,9 @@ export const EmailService = {
         subject: `Spot Available! - ${data.organization_name}`,
         preview: `A spot has opened up for ${data.player_name}!`,
         body: `
-          <h2>⏰ A Spot Has Opened Up!</h2>
+          <h2>A Spot Has Opened Up!</h2>
           <p>Great news! A spot is now available for <strong>${data.player_name}</strong> in <strong>${data.season_name}</strong>.</p>
           <p><strong>This spot will expire in ${data.expires_in}.</strong></p>
-          <p><a href="${data.registration_url}" style="background-color: #FFD700; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 16px 0;">Confirm Your Spot →</a></p>
           <p>If you no longer wish to join, simply ignore this email and the spot will go to the next person on the waitlist.</p>
           <p>Thank you,<br>${data.organization_name}</p>
         `
@@ -165,11 +248,11 @@ export const EmailService = {
         subject: `Payment Reminder - ${data.organization_name}`,
         preview: `Reminder: $${data.amount_due} due for ${data.player_name}`,
         body: `
-          <h2>💰 Payment Reminder</h2>
+          <h2>Payment Reminder</h2>
           <p>This is a friendly reminder that payment is due for <strong>${data.player_name}</strong>'s registration in <strong>${data.season_name}</strong>.</p>
-          <h3>Amount Due: $${data.amount_due.toFixed(2)}</h3>
+          <h3>Amount Due: $${typeof data.amount_due === 'number' ? data.amount_due.toFixed(2) : data.amount_due}</h3>
           ${data.due_date ? `<p>Due Date: ${data.due_date}</p>` : ''}
-          <p>If you have any questions or need to set up a payment plan, please contact us.</p>
+          <p>If you have any questions, please contact us.</p>
           <p>Thank you,<br>${data.organization_name}</p>
         `
       },
@@ -177,7 +260,7 @@ export const EmailService = {
         subject: `Team Assignment - ${data.organization_name}`,
         preview: `${data.player_name} has been assigned to ${data.team_name}!`,
         body: `
-          <h2>🏐 Team Assignment</h2>
+          <h2>Team Assignment</h2>
           <p><strong>${data.player_name}</strong> has been assigned to <strong>${data.team_name}</strong> for ${data.season_name}!</p>
           ${data.coach_name ? `<p>Coach: ${data.coach_name}</p>` : ''}
           ${data.practice_info ? `<p>Practice Schedule: ${data.practice_info}</p>` : ''}
@@ -194,10 +277,10 @@ export const EmailService = {
 export function isEmailEnabled(organization, notificationType = null) {
   // Check if email is globally enabled
   if (organization?.settings?.email_notifications_enabled === false) return false
-  
+
   // If no specific type requested, return global status
   if (!notificationType) return true
-  
+
   // Check specific notification type
   const typeSettings = {
     'registration_confirmation': organization?.settings?.email_on_registration,
@@ -205,8 +288,9 @@ export function isEmailEnabled(organization, notificationType = null) {
     'waitlist_spot_available': organization?.settings?.email_on_waitlist,
     'team_assignment': organization?.settings?.email_on_team_assignment,
     'payment_reminder': organization?.settings?.email_on_payment_due,
+    'payment_receipt': organization?.send_receipt_emails,
   }
-  
+
   // Default to true if setting not explicitly set
   return typeSettings[notificationType] !== false
 }

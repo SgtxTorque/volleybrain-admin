@@ -1648,15 +1648,42 @@ function SetupSectionContent({
             {/* Email Branding */}
             <div className={`p-4 rounded-xl ${tc.cardAlt} border ${tc.border}`}>
               <h4 className={`font-semibold ${tc.text} mb-3 flex items-center gap-2`}>
-                <Mail className="w-4 h-4" /> Email Branding (Future)
+                <Mail className="w-4 h-4" /> Email Branding
               </h4>
               <div className="space-y-4">
+                {/* Sender Name */}
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Sender Name</label>
+                  <input
+                    type="text"
+                    value={localData.emailSenderName || ''}
+                    onChange={(e) => updateField('emailSenderName', e.target.value)}
+                    placeholder={organization?.name || 'Your org name'}
+                    className={`w-full px-4 py-2 rounded-xl border ${tc.input}`}
+                  />
+                  <p className={`text-xs ${tc.textMuted} mt-1`}>Appears as the "From" name in recipients' inboxes</p>
+                </div>
+
+                {/* Reply-To Email */}
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Reply-To Email</label>
+                  <input
+                    type="email"
+                    value={localData.emailReplyTo || ''}
+                    onChange={(e) => updateField('emailReplyTo', e.target.value)}
+                    placeholder={organization?.contact_email || 'info@yourclub.com'}
+                    className={`w-full px-4 py-2 rounded-xl border ${tc.input}`}
+                  />
+                  <p className={`text-xs ${tc.textMuted} mt-1`}>Where replies go. Defaults to your contact email.</p>
+                </div>
+
+                {/* Header Color */}
                 <div>
                   <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Email Header Color</label>
                   <div className="flex gap-2">
                     <input
                       type="color"
-                      value={localData.brandingEmailHeaderColor || localData.brandingPrimaryColor || '#EAB308'}
+                      value={localData.brandingEmailHeaderColor || localData.brandingPrimaryColor || '#10284C'}
                       onChange={(e) => updateField('brandingEmailHeaderColor', e.target.value)}
                       className="w-12 h-10 rounded-lg cursor-pointer border-0"
                     />
@@ -1667,6 +1694,111 @@ function SetupSectionContent({
                       placeholder="Same as primary"
                       className={`flex-1 px-4 py-2 rounded-xl border ${tc.input}`}
                     />
+                  </div>
+                </div>
+
+                {/* Button/Accent Color */}
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Button / Accent Color</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={localData.brandingSecondaryColor || '#5BCBFA'}
+                      onChange={(e) => updateField('brandingSecondaryColor', e.target.value)}
+                      className="w-12 h-10 rounded-lg cursor-pointer border-0"
+                    />
+                    <input
+                      type="text"
+                      value={localData.brandingSecondaryColor || ''}
+                      onChange={(e) => updateField('brandingSecondaryColor', e.target.value)}
+                      placeholder="#5BCBFA"
+                      className={`flex-1 px-4 py-2 rounded-xl border ${tc.input}`}
+                    />
+                  </div>
+                  <p className={`text-xs ${tc.textMuted} mt-1`}>Used for CTA buttons and links in emails</p>
+                </div>
+
+                {/* Footer Text */}
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-1.5`}>Footer Text</label>
+                  <textarea
+                    value={localData.emailFooterText || ''}
+                    onChange={(e) => updateField('emailFooterText', e.target.value)}
+                    placeholder="e.g. Black Hornets Volleyball Club · Dallas, TX"
+                    rows={2}
+                    className={`w-full px-4 py-2 rounded-xl border ${tc.input} resize-none`}
+                  />
+                </div>
+
+                {/* Social Links */}
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Social Links</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input
+                      type="url"
+                      value={localData.emailSocialInstagram || ''}
+                      onChange={(e) => updateField('emailSocialInstagram', e.target.value)}
+                      placeholder="Instagram URL"
+                      className={`w-full px-4 py-2 rounded-xl border ${tc.input}`}
+                    />
+                    <input
+                      type="url"
+                      value={localData.emailSocialFacebook || ''}
+                      onChange={(e) => updateField('emailSocialFacebook', e.target.value)}
+                      placeholder="Facebook URL"
+                      className={`w-full px-4 py-2 rounded-xl border ${tc.input}`}
+                    />
+                    <input
+                      type="url"
+                      value={localData.emailSocialTwitter || ''}
+                      onChange={(e) => updateField('emailSocialTwitter', e.target.value)}
+                      placeholder="X (Twitter) URL"
+                      className={`w-full px-4 py-2 rounded-xl border ${tc.input}`}
+                    />
+                    <input
+                      type="url"
+                      value={localData.website || organization?.website || ''}
+                      onChange={(e) => updateField('website', e.target.value)}
+                      placeholder="Website URL"
+                      className={`w-full px-4 py-2 rounded-xl border ${tc.input}`}
+                    />
+                  </div>
+                </div>
+
+                {/* Unsubscribe Toggle */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className={`block text-sm font-medium ${tc.text}`}>Include unsubscribe link</label>
+                    <p className={`text-xs ${tc.textMuted}`}>Added to broadcast emails (recommended)</p>
+                  </div>
+                  <button
+                    onClick={() => updateField('emailIncludeUnsubscribe', !localData.emailIncludeUnsubscribe)}
+                    className={`w-11 h-6 rounded-full transition-colors ${localData.emailIncludeUnsubscribe !== false ? 'bg-emerald-500' : 'bg-slate-600'}`}
+                  >
+                    <div className={`w-5 h-5 bg-white rounded-full transition-transform ${localData.emailIncludeUnsubscribe !== false ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+
+                {/* Email Preview Mini */}
+                <div>
+                  <label className={`block text-sm font-medium ${tc.textSecondary} mb-2`}>Preview</label>
+                  <div className="rounded-xl overflow-hidden border" style={{ borderColor: localData.brandingEmailHeaderColor || localData.brandingPrimaryColor || '#10284C' }}>
+                    <div style={{ backgroundColor: localData.brandingEmailHeaderColor || localData.brandingPrimaryColor || '#10284C', padding: '20px', textAlign: 'center' }}>
+                      {localData.logoUrl ? (
+                        <img src={localData.logoUrl} alt="" style={{ height: 32, margin: '0 auto 8px', display: 'block' }} />
+                      ) : (
+                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>
+                          {localData.emailSenderName || organization?.name || 'Your Club'}
+                        </div>
+                      )}
+                      <div style={{ color: '#fff', fontSize: 16, fontWeight: 800 }}>Sample Email Heading</div>
+                    </div>
+                    <div style={{ padding: '16px', background: '#fff', color: '#2D3748', fontSize: 13, lineHeight: 1.6 }}>
+                      <p>This is how your emails will look to recipients.</p>
+                    </div>
+                    <div style={{ padding: '12px 16px', background: '#F8F9FB', borderTop: '1px solid #EDF0F4', textAlign: 'center' }}>
+                      <span style={{ color: '#CBD5E0', fontSize: 10 }}>Powered by Lynx</span>
+                    </div>
                   </div>
                 </div>
               </div>

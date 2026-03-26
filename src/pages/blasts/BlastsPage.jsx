@@ -6,8 +6,10 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { sanitizeText } from '../../lib/validation'
 import {
-  Megaphone, DollarSign, Calendar, Clock, Users, Check, X, Plus
+  Megaphone, DollarSign, Calendar, Clock, Users, Check, X, Plus, Mail
 } from '../../constants/icons'
+import { EmailService } from '../../lib/email-service'
+import { buildLynxEmail, resolveOrgBranding } from '../../lib/email-html-builder'
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
@@ -320,7 +322,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
 // COMPOSE BLAST MODAL
 // ============================================
 function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
-  const { user, profile } = useAuth()
+  const { user, profile, organization } = useAuth()
   const { selectedSeason } = useSeason()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
@@ -328,13 +330,31 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   const [form, setForm] = useState({
     title: '',
     body: '',
+    richBody: '',
     message_type: 'announcement',
     priority: 'normal',
-    target_type: isCoach ? 'team' : 'all', // coaches default to team scope
+    target_type: isCoach ? 'team' : 'all',
     target_team_id: isCoach && teams.length === 1 ? teams[0].id : null
   })
   const [sending, setSending] = useState(false)
   const [recipientCount, setRecipientCount] = useState(0)
+
+  // Email delivery state
+  const [sendAsEmail, setSendAsEmail] = useState(false)
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailCtaText, setEmailCtaText] = useState('')
+  const [emailCtaUrl, setEmailCtaUrl] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+
+  // Lazy-load email components
+  const [EmailComposer, setEmailComposer] = useState(null)
+  const [EmailPreviewModal, setEmailPreviewModal] = useState(null)
+
+  useEffect(() => {
+    // Lazy load Tiptap composer
+    import('../../components/email/EmailComposer').then(mod => setEmailComposer(() => mod.default))
+    import('../../components/email/EmailPreviewModal').then(mod => setEmailPreviewModal(() => mod.default))
+  }, [])
 
   // Calculate recipients when target changes
   useEffect(() => {
@@ -375,10 +395,25 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
     }
   }
 
+  function getPreviewHtml() {
+    const branding = resolveOrgBranding(organization)
+    return buildLynxEmail({
+      ...branding,
+      heading: form.title,
+      body: form.richBody || `<p>${form.body}</p>`,
+      ctaText: emailCtaText || null,
+      ctaUrl: emailCtaUrl || null,
+      showUnsubscribe: branding.includeUnsubscribe,
+      unsubscribeUrl: '#unsubscribe',
+    })
+  }
+
   async function handleSend() {
     const cleanTitle = sanitizeText(form.title)
-    const cleanBody = sanitizeText(form.body)
-    if (!cleanTitle || !cleanBody) {
+    // For plain-text blast body, use sanitized form.body. For rich text, use richBody as-is (HTML).
+    const plainBody = sanitizeText(form.body)
+    const hasContent = cleanTitle && (plainBody || form.richBody)
+    if (!hasContent) {
       showToast?.('Please fill in all fields', 'error')
       return
     }
@@ -392,8 +427,9 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
       // Create the message/blast
       const insertData = {
         sender_id: user?.id,
+        organization_id: organization.id,
         title: cleanTitle,
-        body: cleanBody,
+        body: plainBody || form.richBody?.replace(/<[^>]+>/g, ' ').trim() || '',
         message_type: form.message_type,
         priority: form.priority,
         target_type: form.target_type,
@@ -412,6 +448,7 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
 
       // Get recipients based on target
       let recipients = []
+      let playersList = []
 
       if (form.target_type === 'all' || form.target_type === 'parents') {
         let playersQuery = supabase
@@ -421,35 +458,78 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
           playersQuery = playersQuery.eq('season_id', selectedSeason.id)
         }
         const { data: players } = await playersQuery
-        
-        recipients = (players || []).map(p => ({
-          message_id: blast.id,
-          recipient_type: 'parent',
-          recipient_id: p.id,
-          recipient_name: p.parent_name || `${p.first_name} ${p.last_name}'s Parent`,
-          recipient_email: p.parent_email
-        }))
+        playersList = players || []
       } else if (form.target_type === 'team' && form.target_team_id) {
         const { data: teamPlayers } = await supabase
           .from('team_players')
           .select('players(id, first_name, last_name, parent_name, parent_email)')
           .eq('team_id', form.target_team_id)
-        
-        recipients = (teamPlayers || []).map(tp => ({
-          message_id: blast.id,
-          recipient_type: 'parent',
-          recipient_id: tp.players?.id,
-          recipient_name: tp.players?.parent_name || `${tp.players?.first_name} ${tp.players?.last_name}'s Parent`,
-          recipient_email: tp.players?.parent_email
-        })).filter(r => r.recipient_id)
+        playersList = (teamPlayers || []).map(tp => tp.players).filter(Boolean)
       }
-      
+
+      // Resolve profile_id for each parent by matching email to profiles table
+      const parentEmails = [...new Set(playersList.map(p => p.parent_email).filter(Boolean))]
+      let emailToProfileId = {}
+      if (parentEmails.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('email', parentEmails)
+        ;(profiles || []).forEach(p => { emailToProfileId[p.email?.toLowerCase()] = p.id })
+      }
+
+      recipients = playersList.map(p => ({
+        message_id: blast.id,
+        recipient_type: 'parent',
+        recipient_id: p.id,
+        recipient_name: p.parent_name || `${p.first_name} ${p.last_name}'s Parent`,
+        recipient_email: p.parent_email,
+        profile_id: emailToProfileId[p.parent_email?.toLowerCase()] || null,
+      })).filter(r => r.recipient_id)
+
       // Insert recipients
       if (recipients.length > 0) {
         await supabase.from('message_recipients').insert(recipients)
       }
-      
-      showToast?.(`Announcement sent to ${recipients.length} recipients!`, 'success')
+
+      // Queue emails if toggle is on
+      let emailCount = 0
+      if (sendAsEmail) {
+        const batchId = crypto.randomUUID()
+        // Get unsubscribed emails
+        const { data: unsubs } = await supabase
+          .from('email_unsubscribes')
+          .select('email')
+          .eq('organization_id', organization.id)
+        const unsubSet = new Set((unsubs || []).map(u => u.email?.toLowerCase()))
+
+        const emailBody = form.richBody || `<p>${plainBody}</p>`
+        for (const r of recipients) {
+          if (!r.recipient_email || unsubSet.has(r.recipient_email.toLowerCase())) continue
+          await EmailService.sendBlastEmail({
+            recipientEmail: r.recipient_email,
+            recipientName: r.recipient_name,
+            recipientUserId: r.profile_id,
+            subject: emailSubject || cleanTitle,
+            heading: cleanTitle,
+            body: emailBody,
+            ctaText: emailCtaText || null,
+            ctaUrl: emailCtaUrl || null,
+            organizationId: organization.id,
+            organizationName: organization.email_sender_name || organization.name,
+            sentBy: user.id,
+            sentByRole: isCoach ? 'coach' : 'admin',
+            blastMessageId: blast.id,
+            broadcastBatchId: batchId,
+            audienceType: form.target_type,
+            audienceTargetId: form.target_type === 'team' ? form.target_team_id : null,
+          })
+          emailCount++
+        }
+      }
+
+      const emailMsg = emailCount > 0 ? ` ${emailCount} emails queued.` : ''
+      showToast?.(`Announcement sent to ${recipients.length} recipients!${emailMsg}`, 'success')
       onSent?.()
     } catch (err) {
       console.error('Error sending blast:', err)
@@ -481,16 +561,25 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
             />
           </div>
 
-          {/* Body */}
+          {/* Body — Tiptap rich text or plain textarea fallback */}
           <div>
             <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Message</label>
-            <textarea
-              value={form.body}
-              onChange={e => setForm({...form, body: e.target.value})}
-              placeholder="Write your message here..."
-              rows={4}
-              className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400'} border focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 outline-none transition resize-none`}
-            />
+            {EmailComposer ? (
+              <EmailComposer
+                content={form.richBody}
+                onChange={(html) => setForm(prev => ({ ...prev, richBody: html, body: html.replace(/<[^>]+>/g, ' ').trim() }))}
+                placeholder="Write your message here..."
+                minHeight={120}
+              />
+            ) : (
+              <textarea
+                value={form.body}
+                onChange={e => setForm({...form, body: e.target.value})}
+                placeholder="Write your message here..."
+                rows={4}
+                className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-500' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C] placeholder:text-slate-400'} border focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 outline-none transition resize-none`}
+              />
+            )}
           </div>
           
           {/* Type */}
@@ -587,15 +676,81 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
             )}
           </div>
           
+          {/* Email Delivery Toggle */}
+          <div className={`rounded-xl border ${isDark ? 'border-white/[0.06] bg-white/[0.02]' : 'border-[#E8ECF2] bg-[#FAFBFC]'} p-4`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-[#4BB9EC]" />
+                <span className={`text-sm font-bold ${tc.text}`}>Also send as email</span>
+              </div>
+              <button
+                onClick={() => setSendAsEmail(!sendAsEmail)}
+                className={`w-11 h-6 rounded-full transition-colors ${sendAsEmail ? 'bg-[#4BB9EC]' : isDark ? 'bg-white/[0.08]' : 'bg-slate-300'}`}
+                type="button"
+              >
+                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow ${sendAsEmail ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            {sendAsEmail && (
+              <div className="space-y-3 mt-3 pt-3" style={{ borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#E8ECF2'}` }}>
+                <div>
+                  <label className={`block text-xs font-bold ${tc.textMuted} mb-1`}>Email Subject</label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={e => setEmailSubject(e.target.value)}
+                    placeholder={form.title || 'Same as title'}
+                    className={`w-full px-3 py-2 rounded-lg text-sm ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'} border outline-none focus:border-[#4BB9EC]`}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className={`block text-xs font-bold ${tc.textMuted} mb-1`}>CTA Button Text</label>
+                    <input
+                      type="text"
+                      value={emailCtaText}
+                      onChange={e => setEmailCtaText(e.target.value)}
+                      placeholder="Open Lynx"
+                      className={`w-full px-3 py-2 rounded-lg text-sm ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'} border outline-none focus:border-[#4BB9EC]`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-bold ${tc.textMuted} mb-1`}>CTA Button URL</label>
+                    <input
+                      type="url"
+                      value={emailCtaUrl}
+                      onChange={e => setEmailCtaUrl(e.target.value)}
+                      placeholder="https://..."
+                      className={`w-full px-3 py-2 rounded-lg text-sm ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'} border outline-none focus:border-[#4BB9EC]`}
+                    />
+                  </div>
+                </div>
+                <p className={`text-xs ${tc.textMuted}`}>
+                  Email will be sent to {recipientCount} recipients (unsubscribed will be skipped)
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Recipient Preview */}
           <div className={`${tc.cardBgAlt} rounded-xl p-3 text-center`}>
             <p className={`text-2xl font-bold ${tc.text}`}>{recipientCount}</p>
             <p className={`text-sm ${tc.textMuted}`}>recipients will receive this message</p>
           </div>
         </div>
-        
+
         {/* Footer */}
         <div className={`p-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex gap-3`}>
+          {sendAsEmail && (
+            <button
+              onClick={() => setShowPreview(true)}
+              className={`py-3 px-4 rounded-xl border ${isDark ? 'border-white/[0.08] text-[#4BB9EC]' : 'border-[#E8ECF2] text-[#4BB9EC]'} font-bold text-sm`}
+              type="button"
+            >
+              Preview
+            </button>
+          )}
           <button
             onClick={onClose}
             className={`flex-1 py-3 rounded-xl border ${isDark ? 'border-white/[0.08] text-white' : 'border-[#E8ECF2] text-[#10284C]'} font-bold`}
@@ -604,12 +759,17 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
           </button>
           <button
             onClick={handleSend}
-            disabled={sending || !form.title.trim() || !form.body.trim()}
+            disabled={sending || !form.title.trim() || (!form.body.trim() && !form.richBody)}
             className="flex-1 py-3 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition disabled:opacity-50"
           >
             {sending ? 'Sending...' : `Send to ${recipientCount} Recipients`}
           </button>
         </div>
+
+        {/* Email Preview Modal */}
+        {showPreview && EmailPreviewModal && (
+          <EmailPreviewModal html={getPreviewHtml()} onClose={() => setShowPreview(false)} />
+        )}
       </div>
     </div>
   )

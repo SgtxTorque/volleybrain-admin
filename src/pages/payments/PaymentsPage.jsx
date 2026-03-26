@@ -11,6 +11,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { calculateFeesForPlayer } from '../../lib/fee-calculator'
 import { exportToCSV } from '../../lib/csv-export'
+import { EmailService, isEmailEnabled } from '../../lib/email-service'
 import {
   DollarSign, Search, Bell, User, Users, Download, Plus, X, AlertTriangle, CheckCircle, Clock as ClockIcon
 } from 'lucide-react'
@@ -246,6 +247,7 @@ export function PaymentsPage({ showToast }) {
   }
 
   async function handleMarkPaid(paymentId, details) {
+    const payment = showMarkPaidModal
     await supabase.from('payments').update({
       paid: true,
       paid_date: details.paid_date || new Date().toISOString().split('T')[0],
@@ -255,6 +257,23 @@ export function PaymentsPage({ showToast }) {
       verified_at: new Date().toISOString(),
       notes: details.notes || null
     }).eq('id', paymentId)
+
+    // Send payment receipt email
+    const parentEmail = payment?.players?.parent_email || payment?.family_email
+    if (parentEmail && isEmailEnabled(organization, 'payment_receipt')) {
+      EmailService.sendPaymentReceipt({
+        recipientEmail: parentEmail,
+        recipientName: payment?.players?.parent_name || parentEmail,
+        amount: payment?.amount,
+        description: payment?.fee_name || payment?.fee_type || 'Club Fee',
+        paymentDate: details.paid_date || new Date().toISOString().split('T')[0],
+        paymentMethod: details.payment_method || 'Manual',
+        transactionId: details.reference_number || '',
+        organizationId: organization.id,
+        organizationName: organization.name,
+      }).catch(e => console.error('Payment receipt email error:', e))
+    }
+
     showToast('Payment marked as paid', 'success')
     setShowMarkPaidModal(null)
     loadPayments()

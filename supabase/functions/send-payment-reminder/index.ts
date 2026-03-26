@@ -2,211 +2,149 @@
 // SUPABASE EDGE FUNCTION: Send Email Notifications
 // ============================================
 // Deploy: supabase functions deploy send-payment-reminder
-// 
+//
 // Required secrets:
 //   supabase secrets set RESEND_API_KEY=re_xxxxxxxxxxxx
-//   supabase secrets set FROM_EMAIL="Black Hornets <notifications@yourdomain.com>"
+//   supabase secrets set FROM_EMAIL="noreply@mail.thelynxapp.com"
 // ============================================
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'Black Hornets <noreply@blackhornetsvolleyball.com>'
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'noreply@mail.thelynxapp.com'
 
-// Email templates
-const templates: Record<string, (data: any) => { subject: string; html: string }> = {
-  registration_confirmation: (data) => ({
-    subject: `Registration Received - ${data.player_name}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head><style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style></head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">${data.organization_name || 'Black Hornets Volleyball'}</h1>
-          </div>
-          <div class="content">
-            <h2>Registration Received!</h2>
-            <p>Thank you for registering <strong>${data.player_name}</strong> for ${data.season_name}.</p>
-            <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
-              <p style="margin: 0;"><strong>Player:</strong> ${data.player_name}</p>
-              <p style="margin: 8px 0 0 0;"><strong>Age Group:</strong> ${data.age_group || 'TBD'}</p>
-              <p style="margin: 8px 0 0 0;"><strong>Status:</strong> Pending Review</p>
-            </div>
-            <p>We'll review your registration and get back to you soon with next steps.</p>
-          </div>
-          <div class="footer">
-            <p>${data.organization_name || 'Black Hornets Volleyball'} • Powered by VolleyBrain</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
+// ── Branded HTML email builder (mirrors src/lib/email-html-builder.js) ──────
+function buildLynxEmail({
+  headerColor = '#10284C',
+  headerLogo = null as string | null,
+  accentColor = '#5BCBFA',
+  senderName = 'Lynx',
+  heading = '',
+  body = '',
+  ctaText = null as string | null,
+  ctaUrl = null as string | null,
+  footerText = null as string | null,
+  socialLinks = {} as Record<string, string | null>,
+  showUnsubscribe = false,
+  unsubscribeUrl = '',
+}) {
+  const socials = [
+    socialLinks.website && `<a href="${socialLinks.website}" style="color:${accentColor};text-decoration:none;font-size:12px;margin:0 8px">Website</a>`,
+    socialLinks.instagram && `<a href="${socialLinks.instagram}" style="color:${accentColor};text-decoration:none;font-size:12px;margin:0 8px">Instagram</a>`,
+    socialLinks.facebook && `<a href="${socialLinks.facebook}" style="color:${accentColor};text-decoration:none;font-size:12px;margin:0 8px">Facebook</a>`,
+    socialLinks.twitter && `<a href="${socialLinks.twitter}" style="color:${accentColor};text-decoration:none;font-size:12px;margin:0 8px">X</a>`,
+  ].filter(Boolean).join(' &middot; ')
 
-  registration_approved: (data) => ({
-    subject: `Registration Approved - ${data.player_name}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head><style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #10b981; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style></head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">✓ Registration Approved!</h1>
-          </div>
-          <div class="content">
-            <p>Great news! <strong>${data.player_name}</strong> has been approved for ${data.season_name}.</p>
-            <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
-              <p style="margin: 0;"><strong>Player:</strong> ${data.player_name}</p>
-              <p style="margin: 8px 0 0 0;"><strong>Age Group:</strong> ${data.age_group || 'TBD'}</p>
-              ${data.team_name ? `<p style="margin: 8px 0 0 0;"><strong>Team:</strong> ${data.team_name}</p>` : ''}
-            </div>
-            ${data.payment_info ? `<p><strong>Payment Due:</strong> ${data.payment_info}</p>` : ''}
-            <p>We're excited to have ${data.player_name} join us this season!</p>
-          </div>
-          <div class="footer">
-            <p>${data.organization_name || 'Black Hornets Volleyball'} • Powered by VolleyBrain</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
-
-  payment_reminder: (data) => ({
-    subject: `Payment Reminder - ${data.player_name}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head><style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .amount { font-size: 24px; font-weight: bold; color: #f59e0b; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style></head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">Payment Reminder</h1>
-          </div>
-          <div class="content">
-            <p>This is a friendly reminder about the outstanding balance for <strong>${data.player_name}</strong>.</p>
-            <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center;">
-              <p style="margin: 0; color: #666;">Amount Due</p>
-              <p class="amount" style="margin: 5px 0;">$${data.amount_due || '0.00'}</p>
-            </div>
-            ${data.custom_message ? `<p>${data.custom_message}</p>` : ''}
-            <p><strong>Payment Options:</strong></p>
-            <ul>
-              <li>Venmo: @BlackHornetsVB</li>
-              <li>Zelle: pay@blackhornets.com</li>
-              <li>Cash App: $BlackHornetsVB</li>
-            </ul>
-            <p>Thank you for your prompt attention to this matter!</p>
-          </div>
-          <div class="footer">
-            <p>${data.organization_name || 'Black Hornets Volleyball'} • Powered by VolleyBrain</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
-
-  team_assignment: (data) => ({
-    subject: `Team Assignment - ${data.player_name}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head><style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #6366f1; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .team-name { font-size: 28px; font-weight: bold; color: #6366f1; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style></head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">Team Assignment</h1>
-          </div>
-          <div class="content">
-            <p><strong>${data.player_name}</strong> has been assigned to a team!</p>
-            <div style="background: white; padding: 20px; border-radius: 8px; margin: 15px 0; text-align: center;">
-              <p class="team-name" style="margin: 0;">${data.team_name}</p>
-              ${data.coach_name ? `<p style="margin: 12px 0 0 0;">Coach: ${data.coach_name}</p>` : ''}
-            </div>
-            ${data.practice_info ? `<p><strong>Practice Schedule:</strong> ${data.practice_info}</p>` : ''}
-            <p>More details will be shared soon. We're excited to have ${data.player_name} on the team!</p>
-          </div>
-          <div class="footer">
-            <p>${data.organization_name || 'Black Hornets Volleyball'} • Powered by VolleyBrain</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  }),
-
-  waitlist: (data) => ({
-    subject: `Waitlist Notification - ${data.player_name}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head><style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #8b5cf6; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style></head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">Waitlist Status</h1>
-          </div>
-          <div class="content">
-            <p><strong>${data.player_name}</strong> has been added to the waitlist for ${data.season_name}.</p>
-            <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
-              <p style="margin: 0;"><strong>Age Group:</strong> ${data.age_group || 'TBD'}</p>
-              ${data.waitlist_position ? `<p style="margin: 8px 0 0 0;"><strong>Position:</strong> #${data.waitlist_position}</p>` : ''}
-            </div>
-            <p>We'll contact you as soon as a spot becomes available. Thank you for your patience!</p>
-          </div>
-          <div class="footer">
-            <p>${data.organization_name || 'Black Hornets Volleyball'} • Powered by VolleyBrain</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-  })
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>${heading}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F2F4F7;font-family:-apple-system,BlinkMacSystemFont,'Plus Jakarta Sans','Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F2F4F7">
+    <tr>
+      <td align="center" style="padding:40px 16px">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+          <tr>
+            <td style="background-color:${headerColor};padding:36px 40px;text-align:center">
+              ${headerLogo
+                ? `<img src="${headerLogo}" alt="${senderName}" height="44" style="height:44px;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">`
+                : `<div style="font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:16px">${senderName}</div>`
+              }
+              ${heading ? `<h1 style="color:#FFFFFF;font-size:24px;font-weight:800;margin:0;line-height:1.25;letter-spacing:-0.01em">${heading}</h1>` : ''}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px 40px 28px;color:#2D3748;font-size:15px;line-height:1.75">
+              ${body}
+            </td>
+          </tr>
+          ${ctaText && ctaUrl ? `
+          <tr>
+            <td style="padding:0 40px 40px;text-align:center">
+              <a href="${ctaUrl}" style="display:inline-block;background-color:${accentColor};color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:100px;letter-spacing:0.02em">${ctaText}</a>
+            </td>
+          </tr>` : ''}
+          <tr>
+            <td style="background-color:#F8F9FB;padding:28px 40px;border-top:1px solid #EDF0F4">
+              ${footerText ? `<p style="color:#8896A6;font-size:13px;line-height:1.5;margin:0 0 12px;text-align:center">${footerText}</p>` : ''}
+              ${socials ? `<p style="text-align:center;margin:0 0 12px">${socials}</p>` : ''}
+              ${showUnsubscribe ? `<p style="text-align:center;margin:0 0 12px"><a href="${unsubscribeUrl}" style="color:#A0AEC0;font-size:11px;text-decoration:underline">Unsubscribe from announcements</a></p>` : ''}
+              <p style="color:#CBD5E0;font-size:10px;text-align:center;margin:0">Powered by <a href="https://thelynxapp.com" style="color:#CBD5E0;text-decoration:none;font-weight:600">Lynx</a> &middot; Youth sports, organized.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
 }
 
-// Send email via Resend API
-async function sendEmail(to: string, subject: string, html: string) {
+// ── Legacy fallback templates (for emails without branded template data) ─────
+const legacyTemplates: Record<string, (data: any) => { subject: string; heading: string; body: string }> = {
+  registration_confirmation: (data) => ({
+    subject: `Registration Received - ${data.player_name}`,
+    heading: 'Registration Received',
+    body: `<p>Thank you for registering <strong>${data.player_name}</strong> for <strong>${data.season_name}</strong>.</p><p>Your registration is being reviewed. You'll receive another email once it's approved.</p>`,
+  }),
+  registration_approved: (data) => ({
+    subject: `Registration Approved - ${data.player_name}`,
+    heading: 'Registration Approved!',
+    body: `<p>Great news! <strong>${data.player_name}</strong> has been approved for <strong>${data.season_name}</strong>.</p>${data.total_due > 0 ? `<p><strong>Payment Due: $${data.total_due.toFixed(2)}</strong></p>` : ''}<p>We look forward to seeing ${data.player_name} on the court!</p>`,
+  }),
+  payment_reminder: (data) => ({
+    subject: `Payment Reminder - ${data.player_name}`,
+    heading: 'Payment Reminder',
+    body: `<p>This is a friendly reminder about the outstanding balance for <strong>${data.player_name}</strong>.</p><p style="font-size:24px;font-weight:bold;color:#f59e0b">$${data.amount_due || '0.00'}</p>`,
+  }),
+  payment_receipt: (data) => ({
+    subject: "Payment received. You're all set.",
+    heading: 'Payment Confirmed',
+    body: `<p>Hi ${data.payer_name},</p><p>We got it. Here's your receipt:</p><ul><li>Amount: ${data.amount}</li><li>For: ${data.description}</li><li>Date: ${data.payment_date}</li></ul>`,
+  }),
+  team_assignment: (data) => ({
+    subject: `Team Assignment - ${data.player_name}`,
+    heading: 'Team Assignment',
+    body: `<p><strong>${data.player_name}</strong> has been assigned to <strong>${data.team_name}</strong> for ${data.season_name}!</p>${data.coach_name ? `<p>Coach: ${data.coach_name}</p>` : ''}`,
+  }),
+  waitlist: (data) => ({
+    subject: `Waitlist Notification - ${data.player_name}`,
+    heading: 'Waitlist Status',
+    body: `<p><strong>${data.player_name}</strong> has been added to the waitlist for ${data.season_name}.</p><p>We'll contact you as soon as a spot becomes available.</p>`,
+  }),
+  blast_announcement: (data) => ({
+    subject: data.subject || 'Announcement',
+    heading: data.heading || data.subject || '',
+    body: data.html_body || data.body || '',
+  }),
+}
+
+// ── Send email via Resend API ───────────────────────────────────────────────
+async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  senderName: string,
+  replyTo?: string,
+  attachments?: Array<{ filename: string; content: string }>
+) {
   if (!RESEND_API_KEY) {
     console.error('RESEND_API_KEY not set')
-    return { success: false, error: 'API key not configured' }
+    return { success: false, error: 'API key not configured', id: null }
   }
+
+  const payload: any = {
+    from: `${senderName} <${FROM_EMAIL}>`,
+    to: [to],
+    subject,
+    html,
+  }
+  if (replyTo) payload.reply_to = replyTo
+  if (attachments && attachments.length > 0) payload.attachments = attachments
 
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -214,18 +152,13 @@ async function sendEmail(to: string, subject: string, html: string) {
       'Authorization': `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      from: FROM_EMAIL,
-      to: [to],
-      subject,
-      html
-    })
+    body: JSON.stringify(payload)
   })
 
   const result = await response.json()
-  
+
   if (!response.ok) {
-    return { success: false, error: result.message || 'Failed to send' }
+    return { success: false, error: result.message || 'Failed to send', id: null }
   }
 
   return { success: true, id: result.id }
@@ -233,7 +166,6 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 serve(async (req) => {
   try {
-    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
@@ -242,9 +174,7 @@ serve(async (req) => {
     const { data: pendingEmails, error } = await supabase
       .rpc('get_pending_emails', { batch_size: 50 })
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
 
     if (!pendingEmails || pendingEmails.length === 0) {
       return new Response(JSON.stringify({ message: 'No pending emails', processed: 0 }), {
@@ -257,46 +187,138 @@ serve(async (req) => {
 
     for (const email of pendingEmails) {
       try {
-        // Get template
-        const template = templates[email.type]
-        if (!template) {
-          await supabase.rpc('mark_email_failed', { 
-            email_id: email.id, 
-            error_msg: `Unknown template: ${email.type}` 
-          })
-          failed++
-          continue
+        // 1. Fetch org branding
+        let orgBranding: any = {}
+        if (email.organization_id) {
+          const { data: org } = await supabase
+            .from('organizations')
+            .select(`
+              name, logo_url, primary_color, secondary_color, contact_email, website,
+              email_sender_name, email_reply_to, email_footer_text,
+              email_social_facebook, email_social_instagram, email_social_twitter,
+              email_include_unsubscribe, settings
+            `)
+            .eq('id', email.organization_id)
+            .single()
+          if (org) orgBranding = org
         }
 
-        // Generate email content
-        const { subject, html } = template(email.data)
+        // 2. Resolve branding
+        const headerColor = orgBranding.settings?.branding?.email_header_color || orgBranding.primary_color || '#10284C'
+        const headerLogo = orgBranding.settings?.branding?.email_header_logo || orgBranding.logo_url || null
+        const accentColor = orgBranding.secondary_color || '#5BCBFA'
+        const senderName = orgBranding.email_sender_name || orgBranding.name || 'Lynx'
+        const replyTo = orgBranding.email_reply_to || orgBranding.contact_email || undefined
 
-        // Send email
-        const result = await sendEmail(email.recipient_email, subject, html)
+        // 3. Resolve content — use data.html_body if present (rich text from composer),
+        //    otherwise fall back to legacy template
+        let subject: string
+        let heading: string
+        let body: string
+
+        if (email.data?.html_body || email.data?.body) {
+          // Modern path: content provided by client
+          subject = email.subject || email.data?.subject || `Message from ${senderName}`
+          heading = email.data?.heading || ''
+          body = email.data?.html_body || email.data?.body || ''
+        } else {
+          // Legacy path: use built-in template
+          const template = legacyTemplates[email.type]
+          if (!template) {
+            await supabase.rpc('mark_email_failed', {
+              email_id: email.id,
+              error_msg: `Unknown template: ${email.type}`
+            })
+            failed++
+            continue
+          }
+          const rendered = template(email.data)
+          subject = email.subject || rendered.subject
+          heading = rendered.heading
+          body = rendered.body
+        }
+
+        // 4. Build branded HTML
+        const isBroadcast = email.category === 'broadcast'
+        const html = buildLynxEmail({
+          headerColor,
+          headerLogo,
+          accentColor,
+          senderName,
+          heading,
+          body,
+          ctaText: email.data?.cta_text || null,
+          ctaUrl: email.data?.cta_url || null,
+          footerText: orgBranding.email_footer_text || null,
+          socialLinks: {
+            website: orgBranding.website || null,
+            instagram: orgBranding.email_social_instagram || null,
+            facebook: orgBranding.email_social_facebook || null,
+            twitter: orgBranding.email_social_twitter || null,
+          },
+          showUnsubscribe: isBroadcast && orgBranding.email_include_unsubscribe !== false,
+          unsubscribeUrl: isBroadcast
+            ? `https://thelynxapp.com/unsubscribe?org=${email.organization_id}&email=${encodeURIComponent(email.recipient_email)}`
+            : '',
+        })
+
+        // 5. Fetch attachments if present
+        let attachments: Array<{ filename: string; content: string }> = []
+        if (email.has_attachments) {
+          const { data: files } = await supabase
+            .from('email_attachments')
+            .select('file_name, file_url, mime_type')
+            .eq('email_notification_id', email.id)
+
+          if (files && files.length > 0) {
+            attachments = await Promise.all(files.map(async (f: any) => {
+              try {
+                const res = await fetch(f.file_url)
+                const buffer = await res.arrayBuffer()
+                return {
+                  filename: f.file_name,
+                  content: btoa(String.fromCharCode(...new Uint8Array(buffer))),
+                }
+              } catch {
+                return null
+              }
+            })).then(results => results.filter(Boolean) as Array<{ filename: string; content: string }>)
+          }
+        }
+
+        // 6. Send
+        const result = await sendEmail(
+          email.recipient_email,
+          subject,
+          html,
+          senderName,
+          replyTo,
+          attachments.length > 0 ? attachments : undefined
+        )
 
         if (result.success) {
-          await supabase.rpc('mark_email_sent', { 
-            email_id: email.id, 
-            ext_id: result.id 
+          await supabase.rpc('mark_email_sent', {
+            email_id: email.id,
+            ext_id: result.id
           })
           sent++
         } else {
-          await supabase.rpc('mark_email_failed', { 
-            email_id: email.id, 
-            error_msg: result.error 
+          await supabase.rpc('mark_email_failed', {
+            email_id: email.id,
+            error_msg: result.error
           })
           failed++
         }
       } catch (err: any) {
-        await supabase.rpc('mark_email_failed', { 
-          email_id: email.id, 
-          error_msg: err.message 
+        await supabase.rpc('mark_email_failed', {
+          email_id: email.id,
+          error_msg: err.message
         })
         failed++
       }
     }
 
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       message: 'Email batch processed',
       processed: pendingEmails.length,
       sent,

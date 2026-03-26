@@ -211,6 +211,15 @@ function OrganizationPage({ showToast }) {
         brandingEmailHeaderColor: branding.email_header_color || '',
         brandingEmailHeaderLogo: branding.email_header_logo || '',
         background: branding.background || null,
+
+        // Email Settings (top-level org columns)
+        emailSenderName: org.email_sender_name || '',
+        emailReplyTo: org.email_reply_to || '',
+        emailFooterText: org.email_footer_text || '',
+        emailSocialFacebook: org.email_social_facebook || '',
+        emailSocialInstagram: org.email_social_instagram || '',
+        emailSocialTwitter: org.email_social_twitter || '',
+        emailIncludeUnsubscribe: org.email_include_unsubscribe !== false,
       })
     } catch (err) {
       console.error('Error loading setup data:', err)
@@ -396,6 +405,13 @@ function OrganizationPage({ showToast }) {
         case 'branding':
           updatePayload = {
             logo_url: data.logoUrl,
+            email_sender_name: data.emailSenderName || null,
+            email_reply_to: data.emailReplyTo || null,
+            email_footer_text: data.emailFooterText || null,
+            email_social_facebook: data.emailSocialFacebook || null,
+            email_social_instagram: data.emailSocialInstagram || null,
+            email_social_twitter: data.emailSocialTwitter || null,
+            email_include_unsubscribe: data.emailIncludeUnsubscribe !== false,
             settings: {
               ...currentSettings,
               branding: {
