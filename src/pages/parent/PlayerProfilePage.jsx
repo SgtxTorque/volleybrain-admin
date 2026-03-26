@@ -1,13 +1,13 @@
 // =============================================================================
-// PlayerProfilePage - Player profile with tabs (Registration, Uniform, Medical, Waivers, History)
+// PlayerProfilePage - Two-column layout: photo gallery left, name banner + tabs right
 // Preserves ALL Supabase queries and save handlers from the original
 // =============================================================================
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import PageShell from '../../components/pages/PageShell'
+import { Camera } from 'lucide-react'
 import { getUniformConfig } from './PlayerProfileConstants'
 import WaiversTab from './PlayerProfileWaivers'
 import PlayerProfileInfoTab from './PlayerProfileInfoTab'
@@ -23,6 +23,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('info')
+  const [uploading, setUploading] = useState(false)
 
   // Edit states
   const [editingInfo, setEditingInfo] = useState(false)
@@ -39,6 +40,8 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const [seasonHistory, setSeasonHistory] = useState([])
   const [sportName, setSportName] = useState('')
   const [registrationData, setRegistrationData] = useState(null)
+
+  const fileInputRef = useRef(null)
 
   // === DATA LOADING (preserved exactly) ===
   useEffect(() => { loadPlayerData() }, [playerId])
@@ -108,7 +111,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
       const history = (teamPlayersData || []).map(tp => ({
         seasonName: tp.teams?.seasons?.name || 'Unknown Season', teamName: tp.teams?.name || 'Unknown Team',
-        teamColor: tp.teams?.color || '#666', sportIcon: tp.teams?.seasons?.sports?.icon || '🏐',
+        teamColor: tp.teams?.color || '#666', sportIcon: tp.teams?.seasons?.sports?.icon || '',
         sportName: tp.teams?.seasons?.sports?.name || 'Volleyball', jerseyNumber: tp.jersey_number,
         startDate: tp.teams?.seasons?.start_date, endDate: tp.teams?.seasons?.end_date,
       }))
@@ -220,26 +223,45 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
     } catch (err) { showToast('Error saving: ' + err.message, 'error') }
   }
 
+  // === PHOTO UPLOAD ===
+  async function handlePhotoUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `player-photos/${playerId}_${Date.now()}.${ext}`
+      const { error: uploadErr } = await supabase.storage.from('media').upload(path, file)
+      if (uploadErr) throw uploadErr
+      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(path)
+      await supabase.from('players').update({ photo_url: publicUrl }).eq('id', playerId)
+      showToast?.('Photo updated!', 'success')
+      loadPlayerData()
+    } catch (err) {
+      showToast?.(`Upload failed: ${err.message}`, 'error')
+    }
+    setUploading(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   // === LOADING / ERROR ===
   if (loading) {
     return (
-      <PageShell title="Player Profile" breadcrumb="My Players" subtitle="Loading player data...">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full" />
-        </div>
-      </PageShell>
+      <div className="flex items-center justify-center" style={{ height: 'calc(100vh - var(--v2-topbar-height, 56px))' }}>
+        <div className="animate-spin w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full" />
+      </div>
     )
   }
   if (!player) {
     return (
-      <PageShell title="Player Not Found" breadcrumb="My Players" subtitle="Could not locate this player">
-        <div className="text-center py-12">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-            <span className="text-r-2xl">😕</span>
+      <div className="flex items-center justify-center" style={{ height: 'calc(100vh - var(--v2-topbar-height, 56px))' }}>
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">?</span>
           </div>
-          <h2 className={`text-r-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'} mt-4`}>Player Not Found</h2>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Player Not Found</h2>
         </div>
-      </PageShell>
+      </div>
     )
   }
 
@@ -249,104 +271,149 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
   const teamColor = primaryTeam?.color || '#EAB308'
   const assignedJersey = primaryTeamPlayer?.jersey_number
 
-  const mutedCls = 'text-slate-400'
-  const textCls = isDark ? 'text-white' : 'text-slate-900'
-
   const tabs = [
-    { id: 'info', label: 'Registration', icon: '📋' },
-    { id: 'jersey', label: 'Uniform', icon: '👕' },
-    { id: 'medical', label: 'Medical', icon: '🏥' },
-    { id: 'waivers', label: 'Waivers', icon: '📄' },
-    { id: 'history', label: 'History', icon: '📅' },
+    { id: 'info', label: 'Registration', icon: '' },
+    { id: 'jersey', label: 'Uniform', icon: '' },
+    { id: 'medical', label: 'Medical', icon: '' },
+    { id: 'waivers', label: 'Waivers', icon: '' },
+    { id: 'history', label: 'History', icon: '' },
   ]
 
-  // === RENDER ===
+  // === RENDER — Two-column layout ===
   return (
-    <PageShell
-      title={`${player.first_name} ${player.last_name}`}
-      breadcrumb="My Players"
-      subtitle={primaryTeam?.name ? `${primaryTeam.name} - Player Profile` : 'Player Profile'}
-    >
-      <div className="space-y-5">
-        {/* Trading Card Hero */}
-        <div className="relative overflow-hidden rounded-[14px]" style={{ background: `linear-gradient(135deg, #0B1628 0%, ${teamColor}30 100%)` }}>
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-          <div className="relative flex items-center gap-5 p-6">
-            {player.photo_url ? (
-              <img src={player.photo_url} alt={player.first_name} className="w-24 h-24 rounded-2xl object-cover border-2 border-white/10" />
-            ) : (
-              <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-white font-black text-r-3xl border-2 border-white/10"
-                style={{ backgroundColor: teamColor }}>{player.first_name?.[0]}{player.last_name?.[0]}</div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-r-xs font-bold uppercase tracking-wider text-[#4BB9EC]">{primaryTeam?.name || 'No Team'}</p>
-              <h1 className="text-r-3xl font-extrabold text-white truncate">{player.first_name} {player.last_name}</h1>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                {assignedJersey && <span className="text-r-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
-                {player.position && <span className="text-r-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white/70">{player.position}</span>}
-                <span className={`text-r-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  player.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-                }`}>{player.status === 'active' ? 'Active' : player.status || 'Pending'}</span>
+    <div className="flex overflow-hidden" style={{ height: 'calc(100vh - var(--v2-topbar-height, 56px))', fontFamily: 'var(--v2-font, inherit)' }}>
+
+      {/* Hidden file input for photo upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoUpload}
+      />
+
+      {/* LEFT COLUMN — Photo Gallery */}
+      <div className="w-[360px] flex-shrink-0 flex flex-col p-5 gap-4">
+
+        {/* Primary Photo */}
+        <div
+          className={`flex-1 relative rounded-[14px] overflow-hidden group cursor-pointer ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}
+          onClick={() => !uploading && fileInputRef.current?.click()}
+        >
+          {player.photo_url ? (
+            <img src={player.photo_url} alt={player.first_name} className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full gap-3">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-200'}`}>
+                <Camera className={`w-8 h-8 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
               </div>
+              <p className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Add a player photo</p>
+            </div>
+          )}
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span className="text-white font-semibold text-sm">
+              {uploading ? 'Uploading...' : player.photo_url ? 'Change Photo' : 'Upload Photo'}
+            </span>
+          </div>
+        </div>
+
+        {/* Gallery Slots (placeholder — gallery_photos column doesn't exist yet) */}
+        <div className="flex gap-3">
+          {[0, 1, 2].map(idx => (
+            <div
+              key={idx}
+              className={`flex-1 aspect-square rounded-[10px] overflow-hidden cursor-pointer group relative ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}
+              onClick={() => showToast?.('Gallery photos coming soon!', 'info')}
+            >
+              <div className="flex items-center justify-center h-full">
+                <span className={`text-2xl ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>+</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className={`text-xs text-center ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>Click photo to change</p>
+      </div>
+
+      {/* RIGHT COLUMN — Name Banner + Tabs */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Name Banner — navy gradient */}
+        <div className="rounded-[14px] m-5 mb-0 p-6 overflow-hidden relative" style={{ background: 'linear-gradient(90deg, #0B1628, #162D50)' }}>
+          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+          <div className="relative">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4BB9EC]">{primaryTeam?.name || 'No Team'}</p>
+            <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none mt-1" style={{ letterSpacing: '-0.03em' }}>
+              {player.first_name?.toUpperCase()}
+            </h1>
+            <h1 className="text-4xl font-extrabold text-white tracking-tight leading-none" style={{ letterSpacing: '-0.03em' }}>
+              {player.last_name?.toUpperCase()}
+            </h1>
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              {assignedJersey && <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-white/70">#{assignedJersey}</span>}
+              {player.position && <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/10 text-white/70">{player.position}</span>}
+              <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                player.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+              }`}>{player.status === 'active' ? 'Active' : player.status || 'Pending'}</span>
             </div>
           </div>
         </div>
 
-        {/* Tabs + Content */}
-        <div className={`${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-slate-200'} rounded-[14px] overflow-hidden`}>
-          <div className={`flex border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} overflow-x-auto`}>
-            {tabs.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3 text-r-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
-                  activeTab === tab.id ? 'border-[#4BB9EC] text-[#4BB9EC]' : `border-transparent ${mutedCls} hover:${isDark ? 'bg-white/[0.04]' : 'bg-slate-50'}`
-                }`}>
-                <span>{tab.icon}</span><span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+        {/* Tab Bar */}
+        <div className={`mx-5 mt-4 flex border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}>
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
+                activeTab === tab.id ? 'border-[#4BB9EC] text-[#4BB9EC]' : 'border-transparent text-slate-400 hover:text-slate-500'
+              }`}>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
-          <div className="p-6">
-            {activeTab === 'info' && (
-              <PlayerProfileInfoTab
-                player={player} infoForm={infoForm} setInfoForm={setInfoForm}
-                editingInfo={editingInfo} setEditingInfo={setEditingInfo}
-                savePlayerInfo={savePlayerInfo} sportName={sportName}
-                seasonHistory={seasonHistory} isDark={isDark}
-              />
-            )}
+        {/* Tab Content — scrollable within this container */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {activeTab === 'info' && (
+            <PlayerProfileInfoTab
+              player={player} infoForm={infoForm} setInfoForm={setInfoForm}
+              editingInfo={editingInfo} setEditingInfo={setEditingInfo}
+              savePlayerInfo={savePlayerInfo} sportName={sportName}
+              seasonHistory={seasonHistory} isDark={isDark}
+            />
+          )}
 
-            {activeTab === 'jersey' && (
-              <PlayerProfileUniformTab
-                player={player} jerseyPrefs={jerseyPrefs} setJerseyPrefs={setJerseyPrefs}
-                editingJersey={editingJersey} setEditingJersey={setEditingJersey}
-                saveJerseyPreferences={saveJerseyPreferences} sportName={sportName}
-                primaryTeam={primaryTeam} assignedJersey={assignedJersey}
-                teamColor={teamColor} isDark={isDark}
-              />
-            )}
+          {activeTab === 'jersey' && (
+            <PlayerProfileUniformTab
+              player={player} jerseyPrefs={jerseyPrefs} setJerseyPrefs={setJerseyPrefs}
+              editingJersey={editingJersey} setEditingJersey={setEditingJersey}
+              saveJerseyPreferences={saveJerseyPreferences} sportName={sportName}
+              primaryTeam={primaryTeam} assignedJersey={assignedJersey}
+              teamColor={teamColor} isDark={isDark}
+            />
+          )}
 
-            {activeTab === 'medical' && (
-              <PlayerProfileMedicalTab
-                player={player} medicalForm={medicalForm} setMedicalForm={setMedicalForm}
-                emergencyForm={emergencyForm} setEmergencyForm={setEmergencyForm}
-                editingMedical={editingMedical} setEditingMedical={setEditingMedical}
-                editingEmergency={editingEmergency} setEditingEmergency={setEditingEmergency}
-                saveMedicalInfo={saveMedicalInfo} saveEmergencyContact={saveEmergencyContact}
-                isDark={isDark}
-              />
-            )}
+          {activeTab === 'medical' && (
+            <PlayerProfileMedicalTab
+              player={player} medicalForm={medicalForm} setMedicalForm={setMedicalForm}
+              emergencyForm={emergencyForm} setEmergencyForm={setEmergencyForm}
+              editingMedical={editingMedical} setEditingMedical={setEditingMedical}
+              editingEmergency={editingEmergency} setEditingEmergency={setEditingEmergency}
+              saveMedicalInfo={saveMedicalInfo} saveEmergencyContact={saveEmergencyContact}
+              isDark={isDark}
+            />
+          )}
 
-            {activeTab === 'waivers' && (
-              <WaiversTab player={player} organization={organization} isDark={isDark} showToast={showToast} teamColor={teamColor} />
-            )}
+          {activeTab === 'waivers' && (
+            <WaiversTab player={player} organization={organization} isDark={isDark} showToast={showToast} teamColor={teamColor} />
+          )}
 
-            {activeTab === 'history' && (
-              <PlayerProfileHistoryTab seasonHistory={seasonHistory} isDark={isDark} />
-            )}
-          </div>
+          {activeTab === 'history' && (
+            <PlayerProfileHistoryTab seasonHistory={seasonHistory} isDark={isDark} />
+          )}
         </div>
       </div>
-    </PageShell>
+    </div>
   )
 }
 
