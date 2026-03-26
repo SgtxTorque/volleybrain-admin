@@ -14,9 +14,24 @@ import ScorePanel from './ScorePanel'
 import AttendancePanel from './AttendancePanel'
 import { QuickStatsPanel, StatPickerModal } from './GameDayStats'
 
-function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
+function GameDayCommandCenter({ event, team, sport, onClose, onSave, showToast }) {
   const { user } = useAuth()
   const theme = useGameDayTheme()
+
+  // Gate non-volleyball sports — live scoring is volleyball-only for now
+  const sportLower = (sport || '').toLowerCase()
+  if (sportLower && sportLower !== 'volleyball') {
+    return (
+      <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-12 text-center">
+        <span className="text-6xl mb-6">{sportLower === 'basketball' ? '🏀' : sportLower === 'soccer' ? '⚽' : '🏆'}</span>
+        <h2 className="text-2xl font-bold text-white mb-3">Live scoring coming soon for {sport}</h2>
+        <p className="text-slate-400 max-w-md">Use Quick Score or Game Completion from Game Prep to enter final scores for {sport} games.</p>
+        <button onClick={onClose} className="mt-8 px-8 py-3 bg-lynx-sky text-white rounded-xl font-bold text-lg hover:bg-lynx-deep transition">
+          Back to Game Prep
+        </button>
+      </div>
+    )
+  }
 
   // Core state
   const [mode, setMode] = useState(GAME_MODES.PRE_GAME)
@@ -81,13 +96,13 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
       // Load season record for hero
       if (event?.season_id) {
         const { data: games } = await supabase.from('schedule_events')
-          .select('our_score, their_score, event_date')
-          .eq('season_id', event.season_id).eq('event_type', 'game').eq('status', 'completed')
+          .select('our_score, opponent_score, event_date')
+          .eq('season_id', event.season_id).eq('event_type', 'game').eq('game_status', 'completed')
           .order('event_date', { ascending: false }).limit(10)
         if (games?.length) {
-          const w = games.filter(g => g.our_score > g.their_score).length
-          const l = games.filter(g => g.their_score > g.our_score).length
-          const form = games.slice(0, 5).reverse().map(g => g.our_score > g.their_score ? 'W' : 'L')
+          const w = games.filter(g => g.our_score > g.opponent_score).length
+          const l = games.filter(g => g.opponent_score > g.our_score).length
+          const form = games.slice(0, 5).reverse().map(g => g.our_score > g.opponent_score ? 'W' : 'L')
           setSeasonRecord({ wins: w, losses: l, recentForm: form })
         }
       }
@@ -185,7 +200,7 @@ function GameDayCommandCenter({ event, team, onClose, onSave, showToast }) {
       }
       const ourSW = setScores.filter(s => s.our > s.their).length
       const theirSW = setScores.filter(s => s.their > s.our).length
-      await supabase.from('schedule_events').update({ our_score: ourSW, their_score: theirSW, status: 'completed' }).eq('id', event.id)
+      await supabase.from('schedule_events').update({ our_score: ourSW, opponent_score: theirSW, game_status: 'completed' }).eq('id', event.id)
       showToast?.('Game stats saved successfully!', 'success')
       onSave?.(); onClose?.()
     } catch (err) { console.error('Error saving stats:', err); showToast?.('Error saving stats', 'error') }
