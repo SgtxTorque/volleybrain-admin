@@ -9,24 +9,41 @@ const VOLLEYBALL_FORMATS = [
   { id: 'best_of_5', name: 'Best of 5', setsToWin: 3, maxSets: 5, setScores: [25, 25, 25, 25, 15], caps: [30, 30, 30, 30, 20] },
 ]
 
+const BASKETBALL_FORMATS = [
+  { id: 'four_quarters', name: '4 Quarters', periods: 4, periodName: 'Quarter', periodAbbr: 'Q', hasOvertime: true },
+  { id: 'two_halves', name: '2 Halves', periods: 2, periodName: 'Half', periodAbbr: 'H', hasOvertime: true },
+]
+
 export default function QuickScoreModal({ event, team, roster, sport = 'volleyball', onClose, onComplete, showToast }) {
   const { isDark } = useTheme()
   const { user } = useAuth()
+
+  const sportLower = sport?.toLowerCase() || ''
+  const isSetBased = sportLower === 'volleyball' || sportLower === ''
+  const formats = isSetBased ? VOLLEYBALL_FORMATS : BASKETBALL_FORMATS
+
   const [saving, setSaving] = useState(false)
-  const [selectedFormat, setSelectedFormat] = useState(VOLLEYBALL_FORMATS[0])
+  const [selectedFormat, setSelectedFormat] = useState(formats[0])
   const [setScores, setSetScores] = useState([])
+  const [periodScores, setPeriodScores] = useState([])
   const [quickStars, setQuickStars] = useState({})
 
+  // Restore format from previous game if available
   useEffect(() => {
-    // Restore format from previous game if available
     if (event?.scoring_format) {
-      const found = VOLLEYBALL_FORMATS.find(f => f.id === event.scoring_format)
-      if (found) setSelectedFormat(found)
+      const found = formats.find(f => f.id === event.scoring_format)
+      if (found) { setSelectedFormat(found); return }
     }
-  }, [event?.id])
+    setSelectedFormat(formats[0])
+  }, [event?.id, isSetBased])
 
+  // Initialize scores when format changes
   useEffect(() => {
-    setSetScores(Array(selectedFormat.maxSets).fill(null).map(() => ({ our: 0, their: 0 })))
+    if (isSetBased) {
+      setSetScores(Array(selectedFormat.maxSets).fill(null).map(() => ({ our: 0, their: 0 })))
+    } else {
+      setPeriodScores(Array(selectedFormat.periods).fill(null).map(() => ({ our: 0, their: 0 })))
+    }
   }, [selectedFormat])
 
   function updateSet(idx, side, value) {
@@ -38,13 +55,23 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
     })
   }
 
-  function calculateResult() {
+  function updatePeriod(idx, side, value) {
+    const val = Math.max(0, Math.min(999, parseInt(value) || 0))
+    setPeriodScores(prev => {
+      const updated = [...prev]
+      updated[idx] = { ...updated[idx], [side]: val }
+      return updated
+    })
+  }
+
+  // --- Volleyball result calculation ---
+  function calculateSetResult() {
     let ourSetsWon = 0
     let theirSetsWon = 0
     let ourTotal = 0
     let theirTotal = 0
 
-    setScores.forEach((set, idx) => {
+    setScores.forEach((set) => {
       ourTotal += set.our || 0
       theirTotal += set.their || 0
       if (set.our > 0 || set.their > 0) {
@@ -60,8 +87,32 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
     return { result, ourSetsWon, theirSetsWon, ourTotal, theirTotal, diff: ourTotal - theirTotal }
   }
 
-  const match = calculateResult()
-  const canSave = match.result === 'win' || match.result === 'loss'
+  // --- Period-based result calculation (basketball etc.) ---
+  function calculatePeriodResult() {
+    let ourTotal = 0
+    let theirTotal = 0
+    let hasAnyScore = false
+
+    periodScores.forEach((p) => {
+      ourTotal += p.our || 0
+      theirTotal += p.their || 0
+      if (p.our > 0 || p.their > 0) hasAnyScore = true
+    })
+
+    let result = 'in_progress'
+    if (hasAnyScore && ourTotal !== theirTotal) {
+      result = ourTotal > theirTotal ? 'win' : 'loss'
+    } else if (hasAnyScore && ourTotal === theirTotal) {
+      result = 'tie'
+    }
+
+    return { result, ourTotal, theirTotal, diff: ourTotal - theirTotal, hasAnyScore }
+  }
+
+  const match = isSetBased ? calculateSetResult() : calculatePeriodResult()
+  const canSave = isSetBased
+    ? (match.result === 'win' || match.result === 'loss')
+    : (match.hasAnyScore && match.result !== 'in_progress')
 
   function getSetsToShow() {
     if (match.result === 'win' || match.result === 'loss') {
@@ -79,19 +130,36 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
   async function save() {
     setSaving(true)
     try {
-      // Update schedule_events
-      const updateData = {
-        game_status: 'completed',
-        scoring_format: selectedFormat.id,
-        our_score: match.ourTotal,
-        opponent_score: match.theirTotal,
-        point_differential: match.diff,
-        game_result: match.result,
-        set_scores: setScores,
-        our_sets_won: match.ourSetsWon,
-        opponent_sets_won: match.theirSetsWon,
-        completed_at: new Date().toISOString(),
-        completed_by: user?.id,
+      let updateData
+
+      if (isSetBased) {
+        // Volleyball save — unchanged
+        updateData = {
+          game_status: 'completed',
+          scoring_format: selectedFormat.id,
+          our_score: match.ourTotal,
+          opponent_score: match.theirTotal,
+          point_differential: match.diff,
+          game_result: match.result,
+          set_scores: setScores,
+          our_sets_won: match.ourSetsWon,
+          opponent_sets_won: match.theirSetsWon,
+          completed_at: new Date().toISOString(),
+          completed_by: user?.id,
+        }
+      } else {
+        // Period-based save (basketball, soccer, etc.) — follows GamePrepCompletionModal pattern
+        updateData = {
+          game_status: 'completed',
+          scoring_format: selectedFormat.id,
+          our_score: match.ourTotal,
+          opponent_score: match.theirTotal,
+          point_differential: match.diff,
+          game_result: match.result,
+          period_scores: periodScores,
+          completed_at: new Date().toISOString(),
+          completed_by: user?.id,
+        }
       }
 
       const { error } = await supabase
@@ -125,7 +193,7 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
         }).catch(() => {})
       }
 
-      const message = match.result === 'win' ? 'Victory! Game saved.' : 'Game completed and saved.'
+      const message = match.result === 'win' ? 'Victory! Game saved.' : match.result === 'tie' ? 'Tie game saved.' : 'Game completed and saved.'
       showToast?.(message, 'success')
       onComplete?.()
       onClose()
@@ -136,7 +204,16 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
     setSaving(false)
   }
 
-  const setsToShow = getSetsToShow()
+  const setsToShow = isSetBased ? getSetsToShow() : 0
+
+  // Result display text
+  const resultLabel = isSetBased
+    ? `${match.result === 'win' ? 'WIN' : match.result === 'loss' ? 'LOSS' : 'In Progress'} ${match.ourSetsWon}-${match.theirSetsWon}`
+    : `${match.result === 'win' ? 'WIN' : match.result === 'loss' ? 'LOSS' : match.result === 'tie' ? 'TIE' : 'In Progress'}`
+
+  const scoreSummary = isSetBased
+    ? `${match.ourTotal}-${match.theirTotal} total · ${match.diff > 0 ? '+' : ''}${match.diff} diff`
+    : `${match.ourTotal} - ${match.theirTotal} · ${match.diff > 0 ? '+' : ''}${match.diff} diff`
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
@@ -163,7 +240,7 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
           <div className="flex items-center gap-2">
             <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>Format:</span>
             <div className="flex gap-2">
-              {VOLLEYBALL_FORMATS.map(f => (
+              {formats.map(f => (
                 <button
                   key={f.id}
                   onClick={() => setSelectedFormat(f)}
@@ -194,47 +271,96 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
               </div>
             </div>
 
-            {setScores.slice(0, setsToShow).map((set, idx) => {
-              const ourWon = set.our > set.their && (set.our > 0 || set.their > 0)
-              const theirWon = set.their > set.our && (set.our > 0 || set.their > 0)
-              return (
-                <div key={idx} className="grid grid-cols-[1fr_80px_80px] gap-3 items-center">
-                  <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>
-                    Set {idx + 1} {idx === selectedFormat.maxSets - 1 ? '(deciding)' : ''}
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="99"
-                    value={set.our || ''}
-                    onChange={e => updateSet(idx, 'our', e.target.value)}
-                    className={`text-center text-lg font-bold rounded-lg py-2 outline-none transition ${
-                      ourWon
-                        ? 'bg-emerald-500/20 text-emerald-500 border-2 border-emerald-500/40'
-                        : isDark
-                          ? 'bg-lynx-graphite text-white border border-lynx-border-dark focus:border-lynx-sky'
-                          : 'bg-lynx-frost text-lynx-navy border border-lynx-silver focus:border-lynx-sky'
-                    }`}
-                    placeholder="0"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    max="99"
-                    value={set.their || ''}
-                    onChange={e => updateSet(idx, 'their', e.target.value)}
-                    className={`text-center text-lg font-bold rounded-lg py-2 outline-none transition ${
-                      theirWon
-                        ? 'bg-red-500/20 text-red-500 border-2 border-red-500/40'
-                        : isDark
-                          ? 'bg-lynx-graphite text-white border border-lynx-border-dark focus:border-lynx-sky'
-                          : 'bg-lynx-frost text-lynx-navy border border-lynx-silver focus:border-lynx-sky'
-                    }`}
-                    placeholder="0"
-                  />
-                </div>
-              )
-            })}
+            {isSetBased ? (
+              /* Volleyball set inputs */
+              setScores.slice(0, setsToShow).map((set, idx) => {
+                const ourWon = set.our > set.their && (set.our > 0 || set.their > 0)
+                const theirWon = set.their > set.our && (set.our > 0 || set.their > 0)
+                return (
+                  <div key={idx} className="grid grid-cols-[1fr_80px_80px] gap-3 items-center">
+                    <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>
+                      Set {idx + 1} {idx === selectedFormat.maxSets - 1 ? '(deciding)' : ''}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      value={set.our || ''}
+                      onChange={e => updateSet(idx, 'our', e.target.value)}
+                      className={`text-center text-lg font-bold rounded-lg py-2 outline-none transition ${
+                        ourWon
+                          ? 'bg-emerald-500/20 text-emerald-500 border-2 border-emerald-500/40'
+                          : isDark
+                            ? 'bg-lynx-graphite text-white border border-lynx-border-dark focus:border-lynx-sky'
+                            : 'bg-lynx-frost text-lynx-navy border border-lynx-silver focus:border-lynx-sky'
+                      }`}
+                      placeholder="0"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      value={set.their || ''}
+                      onChange={e => updateSet(idx, 'their', e.target.value)}
+                      className={`text-center text-lg font-bold rounded-lg py-2 outline-none transition ${
+                        theirWon
+                          ? 'bg-red-500/20 text-red-500 border-2 border-red-500/40'
+                          : isDark
+                            ? 'bg-lynx-graphite text-white border border-lynx-border-dark focus:border-lynx-sky'
+                            : 'bg-lynx-frost text-lynx-navy border border-lynx-silver focus:border-lynx-sky'
+                      }`}
+                      placeholder="0"
+                    />
+                  </div>
+                )
+              })
+            ) : (
+              /* Period-based inputs (basketball, soccer, etc.) */
+              periodScores.map((period, idx) => {
+                const periodLabel = selectedFormat.periodAbbr
+                  ? `${selectedFormat.periodAbbr}${idx + 1}`
+                  : `P${idx + 1}`
+                const ourWon = period.our > period.their && (period.our > 0 || period.their > 0)
+                const theirWon = period.their > period.our && (period.our > 0 || period.their > 0)
+                return (
+                  <div key={idx} className="grid grid-cols-[1fr_80px_80px] gap-3 items-center">
+                    <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-lynx-navy'}`}>
+                      {periodLabel}
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="999"
+                      value={period.our || ''}
+                      onChange={e => updatePeriod(idx, 'our', e.target.value)}
+                      className={`text-center text-lg font-bold rounded-lg py-2 outline-none transition ${
+                        ourWon
+                          ? 'bg-emerald-500/20 text-emerald-500 border-2 border-emerald-500/40'
+                          : isDark
+                            ? 'bg-lynx-graphite text-white border border-lynx-border-dark focus:border-lynx-sky'
+                            : 'bg-lynx-frost text-lynx-navy border border-lynx-silver focus:border-lynx-sky'
+                      }`}
+                      placeholder="0"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      max="999"
+                      value={period.their || ''}
+                      onChange={e => updatePeriod(idx, 'their', e.target.value)}
+                      className={`text-center text-lg font-bold rounded-lg py-2 outline-none transition ${
+                        theirWon
+                          ? 'bg-red-500/20 text-red-500 border-2 border-red-500/40'
+                          : isDark
+                            ? 'bg-lynx-graphite text-white border border-lynx-border-dark focus:border-lynx-sky'
+                            : 'bg-lynx-frost text-lynx-navy border border-lynx-silver focus:border-lynx-sky'
+                      }`}
+                      placeholder="0"
+                    />
+                  </div>
+                )
+              })
+            )}
           </div>
 
           {/* Result Display */}
@@ -242,19 +368,19 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
             <div className={`rounded-xl p-4 text-center ${
               match.result === 'win' ? isDark ? 'bg-emerald-500/10' : 'bg-emerald-50' :
               match.result === 'loss' ? isDark ? 'bg-red-500/10' : 'bg-red-50' :
+              match.result === 'tie' ? isDark ? 'bg-amber-500/10' : 'bg-amber-50' :
               isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'
             }`}>
               <p className={`text-2xl font-bold ${
                 match.result === 'win' ? 'text-emerald-500' :
                 match.result === 'loss' ? 'text-red-500' :
+                match.result === 'tie' ? 'text-amber-500' :
                 isDark ? 'text-white' : 'text-lynx-navy'
               }`}>
-                {match.result === 'win' ? 'WIN' : match.result === 'loss' ? 'LOSS' : 'In Progress'}
-                {' '}
-                {match.ourSetsWon}-{match.theirSetsWon}
+                {resultLabel}
               </p>
               <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-                {match.ourTotal}-{match.theirTotal} total · {match.diff > 0 ? '+' : ''}{match.diff} diff
+                {scoreSummary}
               </p>
             </div>
           )}
