@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import PageShell from '../../components/pages/PageShell'
-import ParentPlayerHero from './ParentPlayerHero'
-import ParentPlayerTabs from './ParentPlayerTabs'
+import SpiderChart from '../../components/charts/SpiderChart'
+import { Target, TrendingUp } from '../../constants/icons'
+import { badgeDefinitions, rarityColors } from './ParentPlayerHero'
 
 // ============================================
 // MULTI-SPORT DISPLAY CONFIG
@@ -232,13 +232,16 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
   const [evalHistory, setEvalHistory] = useState([])
   const [coachFeedback, setCoachFeedback] = useState([])
   const [playerGoals, setPlayerGoals] = useState([])
+  const [shoutouts, setShoutouts] = useState([])
+  const [challenges, setChallenges] = useState([])
+  const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => { if (playerId) loadAllData() }, [playerId])
 
   async function loadAllData() {
     setLoading(true)
     try {
-      await Promise.all([loadPlayerData(), loadBadges(), loadRecentGames(), loadSkills(), loadDevelopmentData()])
+      await Promise.all([loadPlayerData(), loadBadges(), loadRecentGames(), loadSkills(), loadDevelopmentData(), loadEngagement()])
     } catch (err) {
       console.error('Error loading player card data:', err)
     }
@@ -333,6 +336,26 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
     }
   }
 
+  async function loadEngagement() {
+    try {
+      const { data: shoutoutData } = await supabase
+        .from('shoutouts')
+        .select('*, giver:profiles!giver_id(first_name, last_name, photo_url)')
+        .eq('receiver_id', playerId)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      setShoutouts(shoutoutData || [])
+    } catch { setShoutouts([]) }
+    try {
+      const { data: challengeData } = await supabase
+        .from('challenge_participants')
+        .select('*, challenge:coach_challenges(*)')
+        .eq('player_id', playerId)
+        .order('opted_in_at', { ascending: false })
+      setChallenges(challengeData || [])
+    } catch { setChallenges([]) }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -401,42 +424,690 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
       : []
   }))
 
-  const playerName = `${p.first_name || 'Player'} ${p.last_name || ''}`.trim()
-  const subtitle = `${posInfo.full}${jerseyNumber ? ` #${jerseyNumber}` : ''} - ${teamName}`
+  const TABS = [
+    { id: 'overview', label: 'Overview' }, { id: 'stats', label: 'Stats' },
+    { id: 'development', label: 'Development' }, { id: 'badges', label: 'Badges' }, { id: 'games', label: 'Games' },
+  ]
+
+  // OVR color
+  const ovrColor = overallRating >= 80 ? '#22C55E' : overallRating >= 50 ? '#F59E0B' : '#EF4444'
 
   return (
-    <PageShell title={playerName} breadcrumb="My Players" subtitle={subtitle}>
-      <div className="w-full space-y-0">
-        <ParentPlayerHero
-          player={player}
-          posInfo={posInfo}
-          posColor={posColor}
-          teamName={teamName}
-          teamColor={teamColor}
-          seasonName={seasonName}
-          jerseyNumber={jerseyNumber}
-          overallRating={overallRating}
-          badges={badges}
-          perGameStats={perGameStats}
-          sc={sc}
-        />
-        <ParentPlayerTabs
-          sc={sc}
-          skills={skills}
-          getSkillValue={getSkillValue}
-          seasonStats={seasonStats}
-          gamesPlayed={gamesPlayed}
-          transformedGames={transformedGames}
-          perGameStats={perGameStats}
-          trends={trends}
-          badges={badges}
-          badgesInProgress={badgesInProgress}
-          evalHistory={evalHistory}
-          coachFeedback={coachFeedback}
-          playerGoals={playerGoals}
-        />
+    <div className="flex" style={{ height: 'calc(100vh - var(--v2-topbar-height, 56px))', fontFamily: 'var(--v2-font, inherit)' }}>
+      {/* ═══════ LEFT COLUMN — IDENTITY CARD ═══════ */}
+      <div className="w-[380px] flex-shrink-0 flex flex-col overflow-y-auto" style={{ background: 'linear-gradient(180deg, #0B1628 0%, #162D50 100%)' }}>
+        {/* Photo */}
+        <div className="relative w-full" style={{ minHeight: 280 }}>
+          {p.photo_url ? (
+            <>
+              <img src={p.photo_url} alt="" className="absolute inset-0 w-full h-full object-cover object-top" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #0B1628 0%, transparent 50%)' }} />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${posColor}30, #0B1628)` }}>
+              <div className="text-center">
+                <span className="text-8xl font-black" style={{ color: posColor }}>{jerseyNumber || '?'}</span>
+                <p className="text-lg font-bold mt-2 text-slate-400">{p.first_name?.[0]}{p.last_name?.[0]}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Name + Info */}
+        <div className="px-6 -mt-8 relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: teamColor, color: '#fff' }}>
+              {seasonName ? `${seasonName} ` : ''}{teamName}
+            </span>
+            {overallRating !== null && (
+              <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center" style={{ borderColor: ovrColor, boxShadow: `0 0 16px ${ovrColor}30` }}>
+                <span className="text-lg font-extrabold" style={{ color: ovrColor }}>{overallRating}</span>
+              </div>
+            )}
+          </div>
+          <h1 className="text-3xl font-extrabold uppercase" style={{ color: '#FFD700', letterSpacing: '-0.03em' }}>
+            {p.first_name || 'Player'}
+          </h1>
+          <h2 className="text-3xl font-extrabold uppercase -mt-1 text-white" style={{ letterSpacing: '-0.03em' }}>
+            {p.last_name || ''}
+          </h2>
+          <p className="mt-2 text-sm font-medium text-slate-400">
+            {posInfo.full} <span className="mx-2">&bull;</span> #{jerseyNumber || '-'}
+          </p>
+
+          {/* Per-game stats */}
+          {perGameStats && (
+            <div className="grid grid-cols-3 gap-3 mt-5">
+              {perGameStats.slice(0, 3).map(stat => (
+                <div key={stat.key} className="text-center rounded-xl py-3 px-2" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+                  <span className="text-xl font-extrabold text-white" style={{ letterSpacing: '-0.03em' }}>{stat.value}</span>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mt-0.5">{stat.label}/G</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Skill Bars */}
+        <div className="px-6 mt-6 pb-6 flex-1">
+          <h4 className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-3">Skill Ratings</h4>
+          {skills && sc.skills.some(s => skills[s] != null) ? (
+            <div className="space-y-2.5">
+              {sc.skills.map(s => {
+                const val = getSkillValue(skills[s])
+                return (
+                  <div key={s} className="flex items-center gap-2.5">
+                    <span className="text-[10px] uppercase w-16 font-bold tracking-wider text-slate-500 truncate">{sc.skillLabels?.[s] || s}</span>
+                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${val}%`, backgroundColor: '#4BB9EC' }} />
+                    </div>
+                    <span className="text-sm font-extrabold text-white w-7 text-right" style={{ letterSpacing: '-0.03em' }}>{val || 0}</span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center py-6 text-center">
+              <Target className="w-7 h-7 text-[#4BB9EC] mb-2" />
+              <p className="text-xs text-slate-500">Skills not rated yet</p>
+            </div>
+          )}
+        </div>
       </div>
-    </PageShell>
+
+      {/* ═══════ RIGHT COLUMN — TABS ═══════ */}
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F8F9FB]">
+        {/* Tab bar */}
+        <div className="flex border-b border-[#E8ECF2] bg-white flex-shrink-0">
+          {TABS.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-3.5 text-sm font-semibold transition-all duration-200 ${activeTab === tab.id ? 'bg-[#4BB9EC]/10 text-[#4BB9EC] border-b-2 border-[#4BB9EC]' : 'text-slate-400 hover:text-slate-600'}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content — scrollable */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {activeTab === 'overview' && <OverviewTab sc={sc} skills={skills} getSkillValue={getSkillValue} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} badges={badges} badgesInProgress={badgesInProgress} />}
+          {activeTab === 'stats' && <StatsTab sc={sc} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} skills={skills} evalHistory={evalHistory} />}
+          {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} />}
+          {activeTab === 'badges' && <BadgesTab badges={badges} badgesInProgress={badgesInProgress} shoutouts={shoutouts} challenges={challenges} />}
+          {activeTab === 'games' && <GamesTab sc={sc} transformedGames={transformedGames} seasonStats={seasonStats} gamesPlayed={gamesPlayed} seasonName={seasonName} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════
+// HELPER SUB-COMPONENTS
+// ═══════════════════════════════════════════════
+function formatStatValue(value, format) {
+  if (value === null || value === undefined) return '-'
+  if (format === 'pct3') return value ? `.${Math.round(value * 1000)}` : '-'
+  if (format === 'pct') return typeof value === 'number' ? `${Math.round(value)}%` : '-'
+  if (format === 'avg') return typeof value === 'number' ? value.toFixed(3).replace(/^0/, '') : '-'
+  return value
+}
+
+function MiniBarChart({ data, color = '#F59E0B', label }) {
+  const maxValue = Math.max(...(data || []).map(d => d.value), 1)
+  if (!data || data.length === 0) return (
+    <div className="rounded-xl p-4 bg-white border border-[#E8ECF2]">
+      <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">{label}</span>
+      <div className="flex items-center justify-center h-16"><span className="text-sm text-slate-400">No data yet</span></div>
+    </div>
+  )
+  return (
+    <div className="rounded-xl p-4 bg-white border border-[#E8ECF2]">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">{label}</span>
+        <span className="text-xs text-slate-400">Last {data.length} games</span>
+      </div>
+      <div className="flex items-end gap-1.5 h-16">
+        {data.map((d, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <div className="w-full rounded-t transition-all" style={{ height: `${(d.value / maxValue) * 100}%`, backgroundColor: color, minHeight: '4px' }} />
+            <span className="text-[10px] text-slate-400">{d.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════
+// TAB: OVERVIEW
+// ═══════════════════════════════════════════════
+function OverviewTab({ sc, skills, getSkillValue, seasonStats, gamesPlayed, transformedGames, perGameStats, trends, badges, badgesInProgress }) {
+  return (
+    <div className="space-y-5">
+      {/* Season Progress Tiles */}
+      {perGameStats && (
+        <div className="grid grid-cols-4 gap-3">
+          {perGameStats.slice(0, 4).map(stat => (
+            <div key={stat.key} className="bg-white rounded-xl border border-[#E8ECF2] p-4 text-center">
+              <span className="text-2xl font-extrabold text-[#10284C]" style={{ letterSpacing: '-0.03em' }}>{stat.value}</span>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">{stat.label}/G</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Recent Games */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Recent Games</h4>
+        {transformedGames.length > 0 ? transformedGames.slice(0, 3).map((game, i) => (
+          <div key={i} className={`flex items-center gap-3 py-3 ${i < 2 ? 'border-b border-[#E8ECF2]' : ''}`}>
+            <span className="text-xs w-12 text-slate-400">{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}</span>
+            <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${game.result === 'W' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>{game.result}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-[#10284C] truncate">{game.opponent}</p>
+              <p className="text-xs text-slate-400">{game.score}</p>
+            </div>
+            <div className="flex gap-2 text-xs font-bold">{game.statValues.slice(0, 3).map((val, si) => <span key={si} style={{ color: sc.primaryStats[si]?.color }}>{val}</span>)}</div>
+          </div>
+        )) : <p className="text-sm text-center py-4 text-slate-400">No games played yet</p>}
+      </div>
+
+      {/* Elite Specialty + Status */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* Elite Specialty Card */}
+        <div className="col-span-2 rounded-xl p-5 text-white" style={{ background: 'linear-gradient(135deg, #0B1628, #1E3A5F)' }}>
+          <p className="text-[10px] uppercase tracking-wider font-bold text-sky-400 mb-2">Elite Specialty</p>
+          {(() => {
+            if (!perGameStats || perGameStats.length === 0) return <p className="text-sm text-slate-400">Play more games to unlock your specialty</p>
+            const top = [...perGameStats].sort((a, b) => parseFloat(b.value) - parseFloat(a.value))[0]
+            const titles = { kills: 'Offensive Weapon', digs: 'Defensive Anchor', aces: 'Serving Machine', blocks: 'Wall of Steel', assists: 'Floor General', points: 'Scoring Machine', rebounds: 'Board Crasher', steals: 'Ball Hawk', goals: 'Goal Machine', shots: 'Sharpshooter', hits: 'Contact Hitter', tackles: 'Defensive Force' }
+            const title = titles[top.key] || `${top.label} Specialist`
+            return (
+              <>
+                <h3 className="text-xl font-extrabold uppercase" style={{ letterSpacing: '-0.02em' }}>{title}</h3>
+                <p className="text-sm text-slate-300 mt-2">Averaging {top.value} {top.label.toLowerCase()} per game this season. {top.total > 0 ? `${top.total} total across ${gamesPlayed} games.` : ''}</p>
+              </>
+            )
+          })()}
+        </div>
+
+        {/* Status Cards */}
+        <div className="space-y-3">
+          <div className="bg-white rounded-xl border border-[#E8ECF2] p-4">
+            <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">Badges</p>
+            <span className="text-2xl font-extrabold text-[#10284C]">{badges.length}</span>
+            <p className="text-[10px] text-slate-400">earned</p>
+          </div>
+          <div className="bg-white rounded-xl border border-[#E8ECF2] p-4">
+            <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">Rating Tier</p>
+            <span className="text-lg font-extrabold" style={{ color: overallRating >= 80 ? '#22C55E' : overallRating >= 50 ? '#F59E0B' : '#EF4444' }}>
+              {overallRating ? (overallRating >= 80 ? 'Elite' : overallRating >= 60 ? 'Pro' : overallRating >= 40 ? 'Rising' : 'Prospect') : '—'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Trends */}
+      {trends.length > 0 && trends[0].data.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {trends.map(t => <MiniBarChart key={t.key} data={t.data} color={t.color} label={t.label} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════
+// TAB: STATS
+// ═══════════════════════════════════════════════
+function StatsTab({ sc, seasonStats, gamesPlayed, transformedGames, perGameStats, trends, skills, evalHistory }) {
+  const [gameFilter, setGameFilter] = useState('')
+  const [gameSort, setGameSort] = useState('desc')
+
+  return (
+    <div className="space-y-5">
+      {/* Season Totals */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Season Totals</h4>
+        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(sc.primaryStats.length + 1, 6)}, 1fr)` }}>
+          <div className="text-center">
+            <p className="text-xs uppercase mb-1 text-slate-400">Games {sc.icon}</p>
+            <p className="text-3xl font-bold text-[#10284C]">{seasonStats?.games_played || transformedGames.length}</p>
+          </div>
+          {sc.primaryStats.map(stat => {
+            const val = stat.calc ? (seasonStats ? stat.calc(seasonStats) : transformedGames.reduce((s, g) => s + (stat.calc(g.raw) || 0), 0)) : (seasonStats?.[stat.key] || 0)
+            return <div key={stat.key} className="text-center"><p className="text-xs uppercase mb-1 text-slate-400">{stat.label} <span>{stat.icon}</span></p><p className="text-3xl font-bold" style={{ color: stat.color }}>{val}</p></div>
+          })}
+        </div>
+      </div>
+
+      {/* Spider Graph + Phase Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-[#E8ECF2] p-5 flex flex-col items-center">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-3 self-start">Skill Radar</h4>
+          {skills && sc.skills.some(s => skills[s] != null) ? (
+            <>
+              <SpiderChart
+                data={sc.skills.map(s => ({ label: sc.skillLabels?.[s] || s, value: skills[s] || 0 }))}
+                compareData={evalHistory.length >= 2 ? (() => {
+                  const first = evalHistory[0]
+                  const s = typeof first.skills === 'string' ? JSON.parse(first.skills) : first.skills
+                  if (!s) return undefined
+                  return sc.skills.map(sk => ({ label: sc.skillLabels?.[sk] || sk, value: s[sk] || 0 }))
+                })() : undefined}
+                maxValue={10} size={220} color="#4BB9EC" compareColor="#94A3B8" isDark={false}
+              />
+              {evalHistory.length >= 2 && (
+                <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-400">
+                  <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#4BB9EC] rounded inline-block" /> Current</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-slate-400 rounded inline-block" /> Baseline</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="py-8 text-center">
+              <Target className="w-8 h-8 text-[#4BB9EC] mx-auto mb-2" />
+              <p className="text-xs text-slate-400">Skills not rated yet</p>
+            </div>
+          )}
+        </div>
+
+        {sc.detailSections.map((section, si) => (
+          <div key={si} className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+            <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">{section.title}</h4>
+            <div className="space-y-4">
+              {section.stats.map(stat => {
+                const val = stat.calc && seasonStats ? stat.calc(seasonStats) : (seasonStats?.[stat.key] ?? null)
+                return (
+                  <div key={stat.key}>
+                    <p className="text-xs uppercase text-slate-400 mb-0.5">{stat.label}</p>
+                    <p className={`text-2xl font-bold ${stat.color || 'text-[#10284C]'}`}>{formatStatValue(val, stat.format)}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Per Game Averages */}
+      {perGameStats && (
+        <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Per Game Averages</h4>
+          <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${sc.primaryStats.length}, 1fr)` }}>
+            {perGameStats.map(stat => <div key={stat.key}><p className="text-xs uppercase mb-1 text-slate-400">{stat.label}</p><p className="text-2xl font-bold text-[#10284C]">{stat.value}</p><p className="text-xs text-slate-400">per game</p></div>)}
+          </div>
+        </div>
+      )}
+
+      {/* Game-by-Game Breakdown */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Game-by-Game Breakdown</h4>
+          <div className="flex items-center gap-2">
+            <input type="text" placeholder="Search opponent..." value={gameFilter} onChange={e => setGameFilter(e.target.value)}
+              className="px-3 py-1.5 text-xs border border-[#E8ECF2] rounded-lg bg-white text-slate-700 focus:outline-none focus:border-[#4BB9EC]" />
+            <button onClick={() => setGameSort(s => s === 'desc' ? 'asc' : 'desc')} className="px-2.5 py-1.5 text-xs border border-[#E8ECF2] rounded-lg text-slate-500 hover:text-slate-700">
+              {gameSort === 'desc' ? 'Latest' : 'Oldest'}
+            </button>
+          </div>
+        </div>
+        {(() => {
+          let games = [...transformedGames]
+          if (gameFilter) games = games.filter(g => g.opponent.toLowerCase().includes(gameFilter.toLowerCase()))
+          if (gameSort === 'asc') games = games.reverse()
+          return games.length > 0 ? (
+            <>
+              <div className="flex items-center gap-4 py-2 text-[10px] uppercase font-bold border-b border-[#E8ECF2] text-slate-400">
+                <span className="w-14">Date</span><span className="w-8"></span><span className="flex-1">Opponent</span>
+                <div className="flex gap-3 w-48 justify-end">{sc.primaryStats.map(stat => <span key={stat.key} className="w-8 text-center">{stat.short}</span>)}</div>
+              </div>
+              {games.map((game, i) => (
+                <div key={i} className="flex items-center gap-4 py-3 border-b last:border-0 border-[#E8ECF2]">
+                  <span className="text-xs w-14 text-slate-400">{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}</span>
+                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${game.result === 'W' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>{game.result}</span>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#10284C]">{game.opponent}</p><p className="text-xs text-slate-400">{game.score}</p></div>
+                  <div className="flex gap-3 w-48 justify-end text-sm font-bold">{game.statValues.map((val, si) => <span key={si} className="w-8 text-center" style={{ color: sc.primaryStats[si]?.color }}>{val}</span>)}</div>
+                </div>
+              ))}
+            </>
+          ) : <p className="text-sm text-center py-4 text-slate-400">{gameFilter ? 'No matching games' : 'No games played yet'}</p>
+        })()}
+      </div>
+
+      {/* Trends */}
+      {trends.length > 0 && trends[0].data.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {trends.map(t => <MiniBarChart key={t.key} data={t.data} color={t.color} label={t.label} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════
+// TAB: DEVELOPMENT
+// ═══════════════════════════════════════════════
+function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback, playerGoals }) {
+  const parseSkills = (ev) => {
+    const s = typeof ev.skills === 'string' ? JSON.parse(ev.skills) : ev.skills
+    if (!s) return []
+    return Object.entries(s).filter(([, v]) => v != null).map(([k, v]) => ({ label: k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '), value: typeof v === 'number' ? (v <= 10 ? v : v / 10) : 0 }))
+  }
+
+  // Growth trajectory
+  const growthPct = (() => {
+    if (evalHistory.length < 2) return null
+    const first = parseSkills(evalHistory[0])
+    const last = parseSkills(evalHistory[evalHistory.length - 1])
+    if (!first.length || !last.length) return null
+    const avgFirst = first.reduce((s, d) => s + d.value, 0) / first.length
+    const avgLast = last.reduce((s, d) => s + d.value, 0) / last.length
+    if (avgFirst === 0) return null
+    return Math.round(((avgLast - avgFirst) / avgFirst) * 100)
+  })()
+
+  return (
+    <div className="space-y-5">
+      {/* Skill Progression */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Skill Progression</h4>
+          {growthPct !== null && <span className={`text-xs font-bold ${growthPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{growthPct >= 0 ? '+' : ''}{growthPct}% Growth</span>}
+        </div>
+        {evalHistory.length >= 2 ? (() => {
+          const latest = evalHistory[evalHistory.length - 1]
+          const earliest = evalHistory[0]
+          const latestData = parseSkills(latest)
+          const earliestData = parseSkills(earliest)
+          return latestData.length >= 3 ? (
+            <div className="flex flex-col items-center">
+              <SpiderChart data={latestData} compareData={earliestData.length === latestData.length ? earliestData : undefined} maxValue={10} size={280} color="#4BB9EC" compareColor="#94A3B8" isDark={false} />
+              <div className="flex items-center gap-4 mt-3 text-[10px] text-slate-400">
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[#4BB9EC] rounded inline-block" /> Latest ({new Date(latest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-slate-400 rounded inline-block" /> First ({new Date(earliest.evaluation_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })})</span>
+              </div>
+            </div>
+          ) : <p className="text-center py-4 text-slate-400 text-sm">Not enough skill data to chart</p>
+        })() : evalHistory.length === 1 ? (
+          <div className="flex flex-col items-center">
+            {(() => { const chartData = parseSkills(evalHistory[0]); return chartData.length >= 3 ? <SpiderChart data={chartData} maxValue={10} size={260} color="#4BB9EC" isDark={false} /> : null })()}
+            <p className="text-xs mt-2 text-slate-400">One evaluation so far. Comparison shows after the next evaluation.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center py-6 text-center">
+            <TrendingUp className="w-8 h-8 text-[#4BB9EC] mb-2" />
+            <p className="text-sm font-semibold text-[#10284C]">No evaluations yet</p>
+            <p className="text-xs mt-1 text-slate-400">Skill progression appears once your coach evaluates skills.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Coach Intelligence */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Coach Intelligence</h4>
+        {coachFeedback.length > 0 ? (
+          <div className="space-y-3">
+            {coachFeedback.map((note, i) => (
+              <div key={i} className="p-3 rounded-lg border border-[#E8ECF2]">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase ${note.note_type === 'skill' ? 'bg-[#4BB9EC]/10 text-[#4BB9EC]' : note.note_type === 'behavior' ? 'bg-purple-500/10 text-purple-500' : 'bg-slate-500/10 text-slate-500'}`}>{note.note_type}</span>
+                  <span className="text-[10px] text-slate-400">{note.created_at ? new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}</span>
+                </div>
+                <p className="text-sm text-slate-700">{note.content}</p>
+              </div>
+            ))}
+          </div>
+        ) : <p className="text-sm text-center py-4 text-slate-400">No coach feedback shared yet</p>}
+      </div>
+
+      {/* Strategic Objectives */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Strategic Objectives</h4>
+        {playerGoals.length > 0 ? (
+          <div className="space-y-3">
+            {playerGoals.map((goal, i) => {
+              const progress = goal.current_value && goal.target_value ? Math.min((goal.current_value / goal.target_value) * 100, 100) : 0
+              return (
+                <div key={i} className="p-3 rounded-lg border border-[#E8ECF2]">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-semibold text-[#10284C]">{goal.title}</span>
+                    {goal.status === 'completed' && <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-bold uppercase">Done</span>}
+                    {goal.status === 'in_progress' && <span className="text-[10px] bg-[#4BB9EC]/10 text-[#4BB9EC] px-1.5 py-0.5 rounded font-bold uppercase">Active</span>}
+                  </div>
+                  {goal.description && <p className="text-xs text-slate-500 mb-2">{goal.description}</p>}
+                  {goal.target_value && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 rounded-full bg-slate-200"><div className="h-full rounded-full bg-[#4BB9EC] transition-all" style={{ width: `${progress}%` }} /></div>
+                      <span className="text-xs font-mono text-slate-500">{goal.current_value || 0}/{goal.target_value}</span>
+                    </div>
+                  )}
+                  {goal.target_date && <p className="text-[10px] mt-1 text-slate-400">Target: {new Date(goal.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>}
+                </div>
+              )
+            })}
+          </div>
+        ) : <p className="text-sm text-center py-4 text-slate-400">No goals set yet</p>}
+      </div>
+
+      {/* Career Milestones */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Career Milestones</h4>
+        {evalHistory.length > 0 ? (
+          <div className="relative pl-6">
+            <div className="absolute left-2 top-1 bottom-1 w-0.5 bg-slate-200" />
+            {evalHistory.map((ev, i) => (
+              <div key={i} className="relative mb-4 last:mb-0">
+                <div className={`absolute -left-4 top-1 w-3 h-3 rounded-full border-2 ${i === evalHistory.length - 1 ? 'bg-[#4BB9EC] border-[#4BB9EC]' : 'bg-slate-200 border-slate-300'}`} />
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-slate-400">{new Date(ev.evaluation_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase bg-slate-100 text-slate-600">{(ev.evaluation_type || 'eval').replace(/_/g, ' ')}</span>
+                  {ev.overall_score != null && <span className="text-sm font-bold text-[#4BB9EC]">{typeof ev.overall_score === 'number' ? ev.overall_score.toFixed(1) : ev.overall_score}/10</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : <p className="text-sm text-center py-4 text-slate-400">No evaluations recorded yet</p>}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════
+// TAB: BADGES
+// ═══════════════════════════════════════════════
+function BadgesTab({ badges, badgesInProgress, shoutouts, challenges }) {
+  return (
+    <div className="space-y-5">
+      {/* Earned Badges */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+        <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Earned ({badges.length})</h4>
+        {badges.length > 0 ? (
+          <div className="grid grid-cols-4 gap-5">
+            {badges.map((b, i) => {
+              const badge = badgeDefinitions[b.badge_id] || { name: b.badge_id, icon: '\u{1F3C5}', color: '#6B7280', rarity: 'Common' }
+              const rColor = rarityColors[badge.rarity] || '#6B7280'
+              return (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl" style={{ backgroundColor: `${badge.color}20`, border: `2px solid ${rColor}`, boxShadow: `0 0 20px ${rColor}30` }}>{badge.icon}</div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-[#10284C] text-center">{badge.name}</span>
+                  <span className="text-[10px] text-slate-400">{badge.rarity}</span>
+                  {b.awarded_at && <span className="text-[10px] text-slate-400">Earned {new Date(b.awarded_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>}
+                </div>
+              )
+            })}
+          </div>
+        ) : <p className="text-sm text-center py-8 text-slate-400">No badges earned yet</p>}
+      </div>
+
+      {/* In Progress */}
+      {badgesInProgress.length > 0 && (
+        <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">In Progress</h4>
+          <div className="grid grid-cols-2 gap-4">
+            {badgesInProgress.map((b, i) => {
+              const badge = badgeDefinitions[b.badge_id] || { name: b.badge_id, icon: '\u{1F3C5}', color: '#6B7280' }
+              const pct = b.target ? Math.min((b.progress / b.target) * 100, 100) : (b.target_value ? Math.min(((b.current_value || 0) / b.target_value) * 100, 100) : 0)
+              const prog = b.progress ?? b.current_value ?? 0
+              const tgt = b.target ?? b.target_value ?? 0
+              return (
+                <div key={i} className="flex items-center gap-4 rounded-xl p-4 bg-slate-50">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: `${badge.color}20` }}>{badge.icon}</div>
+                  <div className="flex-1">
+                    <p className="font-medium uppercase text-sm text-[#10284C]">{badge.name}</p>
+                    <div className="flex items-center gap-2 mt-1"><div className="flex-1 h-2 rounded-full bg-slate-200"><div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: badge.color }} /></div><span className="text-xs text-slate-400">{prog}/{tgt}</span></div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Shoutouts */}
+      {shoutouts.length > 0 && (
+        <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Recent Shoutouts</h4>
+          <div className="space-y-3">
+            {shoutouts.map((s, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <span className="text-xl">{s.category_emoji || '\u{1F31F}'}</span>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-[#10284C]">{s.category || 'Shoutout'}</p>
+                  {s.message && <p className="text-xs text-slate-500 italic mt-0.5">"{s.message}"</p>}
+                  <p className="text-[10px] text-slate-400 mt-0.5">From {s.giver?.first_name || 'Coach'} {s.giver?.last_name || ''} &bull; {s.created_at ? new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Active Challenges */}
+      {challenges.length > 0 && (
+        <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
+          <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Challenges</h4>
+          <div className="space-y-3">
+            {challenges.map((c, i) => {
+              const ch = c.challenge || c
+              const pct = ch.target_value ? Math.min(((c.current_value || 0) / ch.target_value) * 100, 100) : 0
+              return (
+                <div key={i} className="p-3 rounded-lg border border-[#E8ECF2]">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-semibold text-[#10284C]">{ch.title || 'Challenge'}</span>
+                    {c.completed && <span className="text-[10px] bg-emerald-500/10 text-emerald-500 px-1.5 py-0.5 rounded font-bold uppercase">Complete</span>}
+                    {ch.xp_reward && !c.completed && <span className="text-[10px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded font-bold">+{ch.xp_reward} XP</span>}
+                  </div>
+                  {ch.description && <p className="text-xs text-slate-500 mb-2">{ch.description}</p>}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 rounded-full bg-slate-200"><div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: c.completed ? '#22C55E' : '#4BB9EC' }} /></div>
+                    <span className="text-xs text-slate-400">{c.current_value || 0}/{ch.target_value || '?'}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Badge Rarity Guide */}
+      <div className="bg-white rounded-xl border border-[#E8ECF2] p-4">
+        <h4 className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-3">Badge Rarity Guide</h4>
+        <div className="flex items-center gap-4">
+          {Object.entries(rarityColors).map(([tier, color]) => (
+            <div key={tier} className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+              <span className="text-[10px] font-semibold text-slate-500">{tier}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════
+// TAB: GAMES
+// ═══════════════════════════════════════════════
+function GamesTab({ sc, transformedGames, seasonStats, gamesPlayed, seasonName }) {
+  const [filter, setFilter] = useState('all')
+  const [sort, setSort] = useState('desc')
+
+  let games = [...transformedGames]
+  if (filter === 'wins') games = games.filter(g => g.result === 'W')
+  if (filter === 'losses') games = games.filter(g => g.result === 'L')
+  if (sort === 'asc') games = games.reverse()
+
+  // Performance grade
+  const getGrade = (game) => {
+    if (!transformedGames.length) return null
+    const avgPerStat = sc.primaryStats.map((stat, si) => {
+      const sum = transformedGames.reduce((s, g) => s + (g.statValues[si] || 0), 0)
+      return sum / transformedGames.length
+    })
+    let aboveAvg = 0
+    game.statValues.forEach((val, si) => { if (val >= avgPerStat[si]) aboveAvg++ })
+    if (aboveAvg >= 4) return { grade: 'A+', color: '#22C55E' }
+    if (aboveAvg >= 3) return { grade: 'A', color: '#22C55E' }
+    if (aboveAvg >= 2) return { grade: 'B', color: '#4BB9EC' }
+    if (aboveAvg >= 1) return { grade: 'C', color: '#F59E0B' }
+    return { grade: 'D', color: '#EF4444' }
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-[#10284C]">{gamesPlayed} Games Played {seasonName ? `\u00B7 ${seasonName} Season` : ''}</h4>
+        <div className="flex items-center gap-2">
+          {['all', 'wins', 'losses'].map(f => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${filter === f ? 'bg-[#4BB9EC] text-white' : 'bg-white border border-[#E8ECF2] text-slate-500 hover:text-slate-700'}`}>
+              {f === 'all' ? 'All' : f === 'wins' ? 'Wins' : 'Losses'}
+            </button>
+          ))}
+          <button onClick={() => setSort(s => s === 'desc' ? 'asc' : 'desc')} className="px-2.5 py-1.5 text-xs border border-[#E8ECF2] rounded-lg text-slate-500 hover:text-slate-700 bg-white">
+            {sort === 'desc' ? 'Latest' : 'Oldest'}
+          </button>
+        </div>
+      </div>
+
+      {/* Game Cards */}
+      {games.length > 0 ? (
+        <div className="space-y-2">
+          {games.map((game, i) => {
+            const gradeInfo = getGrade(game)
+            return (
+              <div key={i} className="flex items-center gap-4 bg-white rounded-xl border border-[#E8ECF2] p-4">
+                <div className="w-16 text-center">
+                  <p className="text-xs text-slate-400">{game.date ? new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}</p>
+                  <p className="text-[10px] text-slate-300">VS</p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#10284C] truncate">{game.opponent}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${game.result === 'W' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>{game.result}</span>
+                    <span className="text-xs text-slate-400">{game.score}</span>
+                  </div>
+                </div>
+                <div className="flex gap-3 text-sm font-bold">
+                  {game.statValues.slice(0, 3).map((val, si) => (
+                    <div key={si} className="text-center w-10">
+                      <span style={{ color: sc.primaryStats[si]?.color }}>{val}</span>
+                      <p className="text-[8px] uppercase text-slate-400">{sc.primaryStats[si]?.short}</p>
+                    </div>
+                  ))}
+                </div>
+                {gradeInfo && (
+                  <div className="w-10 h-10 rounded-full border-2 flex items-center justify-center" style={{ borderColor: gradeInfo.color }}>
+                    <span className="text-xs font-extrabold" style={{ color: gradeInfo.color }}>{gradeInfo.grade}</span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      ) : <p className="text-sm text-center py-8 text-slate-400">{filter !== 'all' ? `No ${filter} recorded` : 'No games played yet'}</p>}
+    </div>
   )
 }
 
