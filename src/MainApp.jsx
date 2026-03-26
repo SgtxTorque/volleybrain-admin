@@ -1098,9 +1098,10 @@ function MainApp() {
   ]
 
   const parentNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single', icon: 'home' },
     { id: 'myplayers', label: 'My Players', type: 'group', icon: 'users', items:
       roleContext?.children?.map(child => ({
-        id: `player-${child.id}`,
+        id: `player-profile-${child.id}`,
         label: child.first_name,
         icon: 'user',
         playerId: child.id,

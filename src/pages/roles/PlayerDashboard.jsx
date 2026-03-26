@@ -11,7 +11,7 @@ import { Users, X, Eye, Shield } from '../../constants/icons'
 // V2 shared components
 import { useTheme } from '../../contexts/ThemeContext'
 import {
-  TopBar, HeroCard, BodyTabs, WeeklyLoad, ThePlaybook,
+  HeroCard, BodyTabs, WeeklyLoad, ThePlaybook,
   MascotNudge, MilestoneCard, V2DashboardLayout,
 } from '../../components/v2'
 // V2 player-specific components
@@ -287,24 +287,6 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   // ── Render ──
   return (
     <div className="v2-player-dark" style={{ background: '#060E1A', minHeight: 'calc(100vh - 4rem)' }}>
-      <TopBar
-        roleLabel="Lynx Player"
-        navLinks={[
-          { label: 'Home', pageId: 'dashboard', isActive: true, onClick: () => onNavigate?.('dashboard') },
-          { label: 'Schedule', pageId: 'schedule', onClick: () => onNavigate?.('schedule') },
-          { label: 'Leaderboards', pageId: 'leaderboards', onClick: () => onNavigate?.('leaderboards') },
-        ]}
-        searchPlaceholder="Search..."
-        onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-        avatarInitials={displayName?.[0] || ''}
-        onSettingsClick={() => onNavigate?.('organization')}
-        onNotificationClick={() => onNavigate?.('notifications')}
-        onThemeToggle={toggleTheme}
-        isDark={true}
-        availableRoles={availableViews.map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
-        activeRoleId={activeView}
-        onRoleSwitch={onSwitchRole}
-      />
       {/* Admin Preview Banner */}
       {isAdminPreview && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 24px', background: 'linear-gradient(90deg, rgba(75,185,236,0.12), rgba(75,185,236,0.04))', borderBottom: '1px solid rgba(75,185,236,0.15)' }}>

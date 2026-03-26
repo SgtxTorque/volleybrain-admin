@@ -13,7 +13,7 @@ import { CheckCircle2, Circle } from '../../constants/icons'
 // V2 shared components
 import { useTheme } from '../../contexts/ThemeContext'
 import {
-  TopBar, HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
+  HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
   WeeklyLoad, ThePlaybook, MilestoneCard, MascotNudge, V2DashboardLayout,
 } from '../../components/v2'
 // V2 team manager tab components
@@ -118,24 +118,6 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
 
   return (
     <>
-      <TopBar
-        roleLabel="Lynx Team Manager"
-        navLinks={[
-          { label: 'Dashboard', pageId: 'dashboard', isActive: true, onClick: () => onNavigate?.('dashboard') },
-          { label: 'Schedule', pageId: 'schedule', onClick: () => onNavigate?.('schedule') },
-          { label: 'Registrations', pageId: 'registrations', onClick: () => onNavigate?.('registrations') },
-        ]}
-        searchPlaceholder="Search..."
-        onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-        avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
-        onSettingsClick={() => onNavigate?.('organization')}
-        onNotificationClick={() => onNavigate?.('notifications')}
-        onThemeToggle={toggleTheme}
-        isDark={isDark}
-        availableRoles={availableViews.map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
-        activeRoleId={activeView}
-        onRoleSwitch={onSwitchRole}
-      />
       <V2DashboardLayout
         mainContent={
           <>

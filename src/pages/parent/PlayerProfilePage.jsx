@@ -293,7 +293,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
       />
 
       {/* LEFT COLUMN — Photo Gallery */}
-      <div className="w-[360px] flex-shrink-0 flex flex-col p-5 gap-4">
+      <div className="w-[460px] flex-shrink-0 flex flex-col p-5 gap-4">
 
         {/* Primary Photo */}
         <div
@@ -356,6 +356,12 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                 player.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
               }`}>{player.status === 'active' ? 'Active' : player.status || 'Pending'}</span>
+              <button
+                onClick={() => onNavigate?.(`player-${playerId}`)}
+                className="ml-auto px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition"
+              >
+                View Player Card &rarr;
+              </button>
             </div>
           </div>
         </div>
@@ -380,6 +386,9 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
               editingInfo={editingInfo} setEditingInfo={setEditingInfo}
               savePlayerInfo={savePlayerInfo} sportName={sportName}
               seasonHistory={seasonHistory} isDark={isDark}
+              emergencyForm={emergencyForm} setEmergencyForm={setEmergencyForm}
+              editingEmergency={editingEmergency} setEditingEmergency={setEditingEmergency}
+              saveEmergencyContact={saveEmergencyContact}
             />
           )}
 
@@ -396,11 +405,8 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
           {activeTab === 'medical' && (
             <PlayerProfileMedicalTab
               player={player} medicalForm={medicalForm} setMedicalForm={setMedicalForm}
-              emergencyForm={emergencyForm} setEmergencyForm={setEmergencyForm}
               editingMedical={editingMedical} setEditingMedical={setEditingMedical}
-              editingEmergency={editingEmergency} setEditingEmergency={setEditingEmergency}
-              saveMedicalInfo={saveMedicalInfo} saveEmergencyContact={saveEmergencyContact}
-              isDark={isDark}
+              saveMedicalInfo={saveMedicalInfo} isDark={isDark}
             />
           )}
 

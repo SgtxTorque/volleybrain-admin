@@ -1,5 +1,6 @@
 // =============================================================================
 // PlayerProfileInfoTab - Registration info tab — dense 2-column read-only layout
+// Includes Emergency Contact (moved from Medical tab)
 // =============================================================================
 
 import { InfoRow, EditBtn, SaveCancelBtns, FormField } from './PlayerProfileUI'
@@ -7,7 +8,8 @@ import { SPORT_POSITIONS } from './PlayerProfileConstants'
 
 export default function PlayerProfileInfoTab({
   player, infoForm, setInfoForm, editingInfo, setEditingInfo,
-  savePlayerInfo, sportName, seasonHistory, isDark
+  savePlayerInfo, sportName, seasonHistory, isDark,
+  emergencyForm, setEmergencyForm, editingEmergency, setEditingEmergency, saveEmergencyContact
 }) {
   const textCls = isDark ? 'text-white' : 'text-slate-900'
   const altBg = isDark ? 'bg-white/[0.04]' : 'bg-slate-50'
@@ -105,11 +107,11 @@ export default function PlayerProfileInfoTab({
           <InfoRow isDark={isDark} label="Experience" value={player.experience_level || player.experience} />
         </div>
 
-        {/* Right: Address + Parent */}
+        {/* Right: Address + Parent + Emergency */}
         <div className="space-y-4">
           {(infoForm.address || infoForm.city) && (
             <div>
-              <h4 className={`text-xs font-bold uppercase tracking-wider text-slate-400 mb-1`}>Address</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Address</h4>
               <div className={`${altBg} rounded-[14px] px-4`}>
                 {infoForm.address && <InfoRow isDark={isDark} label="Street" value={infoForm.address} />}
                 <InfoRow isDark={isDark} label="City/State/Zip" value={[infoForm.city, infoForm.state, infoForm.zip].filter(Boolean).join(', ') || null} />
@@ -118,7 +120,7 @@ export default function PlayerProfileInfoTab({
           )}
 
           <div>
-            <h4 className={`text-xs font-bold uppercase tracking-wider text-slate-400 mb-1`}>Parent / Guardian</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Parent / Guardian</h4>
             <div className={`${altBg} rounded-[14px] px-4`}>
               <InfoRow isDark={isDark} label="Name" value={infoForm.parent_name} />
               <InfoRow isDark={isDark} label="Email" value={infoForm.parent_email} />
@@ -128,7 +130,7 @@ export default function PlayerProfileInfoTab({
 
           {(infoForm.parent2_name || infoForm.parent2_email) && (
             <div>
-              <h4 className={`text-xs font-bold uppercase tracking-wider text-slate-400 mb-1`}>Parent / Guardian 2</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Parent / Guardian 2</h4>
               <div className={`${altBg} rounded-[14px] px-4`}>
                 <InfoRow isDark={isDark} label="Name" value={infoForm.parent2_name} />
                 <InfoRow isDark={isDark} label="Email" value={infoForm.parent2_email} />
@@ -137,6 +139,37 @@ export default function PlayerProfileInfoTab({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Emergency Contact — full width below the 2-col grid */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className={`text-sm font-bold ${textCls}`}>Emergency Contact</h3>
+          {!editingEmergency && <EditBtn onClick={() => setEditingEmergency(true)} />}
+        </div>
+        {editingEmergency ? (
+          <div className={`${altBg} rounded-[14px] p-4 space-y-3`}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <FormField isDark={isDark} label="Contact Name" value={emergencyForm.name} onChange={v => setEmergencyForm({ ...emergencyForm, name: v })} placeholder="Full name" />
+              <FormField isDark={isDark} label="Phone Number" value={emergencyForm.phone} onChange={v => setEmergencyForm({ ...emergencyForm, phone: v })} type="tel" placeholder="(555) 123-4567" />
+              <FormField isDark={isDark} label="Relationship" value={emergencyForm.relation} onChange={v => setEmergencyForm({ ...emergencyForm, relation: v })}
+                options={['Mother', 'Father', 'Grandparent', 'Aunt/Uncle', 'Sibling', 'Other']} />
+            </div>
+            <SaveCancelBtns isDark={isDark} onSave={saveEmergencyContact} onCancel={() => setEditingEmergency(false)} />
+          </div>
+        ) : (
+          <div className={`${altBg} rounded-[14px] px-4`}>
+            <InfoRow isDark={isDark} label="Name" value={player.emergency_contact_name || player.emergency_name} />
+            <InfoRow isDark={isDark} label="Phone" value={player.emergency_contact_phone || player.emergency_phone} />
+            <InfoRow isDark={isDark} label="Relationship" value={player.emergency_contact_relation || player.emergency_relation} />
+          </div>
+        )}
+        {!(player.emergency_contact_name || player.emergency_name) && !editingEmergency && (
+          <div className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-[14px] ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
+            <span className="text-amber-500 text-xs">Warning</span>
+            <span className={`text-xs ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>No emergency contact on file. Please add one.</span>
+          </div>
+        )}
       </div>
     </div>
   )

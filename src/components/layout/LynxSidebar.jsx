@@ -244,7 +244,7 @@ export default function LynxSidebar({
     for (const group of navGroups) {
       if (group.type === 'group' && group.items) {
         for (const item of group.items) {
-          if (item.id === activePage || (item.teamId && directTeamWallId === item.teamId) || (item.playerId && activePage === `player-${item.playerId}`)) {
+          if (item.id === activePage || (item.teamId && directTeamWallId === item.teamId) || (item.playerId && (activePage === `player-${item.playerId}` || activePage === `player-profile-${item.playerId}`))) {
             return group.id
           }
         }
@@ -266,7 +266,7 @@ export default function LynxSidebar({
       if (group?.id === 'myplayers' && group.items?.length >= 4) {
         // Only auto-expand if active page is actually a child profile inside this group
         const isChildProfile = group.items.some(item =>
-          item.playerId && activePage === `player-${item.playerId}`
+          item.playerId && (activePage === `player-${item.playerId}` || activePage === `player-profile-${item.playerId}`)
         )
         if (!isChildProfile) return // Keep collapsed
       }
@@ -349,7 +349,7 @@ export default function LynxSidebar({
           const hasActiveChild = (group.items || []).some(item =>
             item.id === activePage ||
             (item.teamId && directTeamWallId === item.teamId) ||
-            (item.playerId && activePage === `player-${item.playerId}`)
+            (item.playerId && (activePage === `player-${item.playerId}` || activePage === `player-profile-${item.playerId}`))
           )
           const GroupIcon = ICON_MAP[group.icon] || ICON_MAP[group.id] || LayoutDashboard
 
