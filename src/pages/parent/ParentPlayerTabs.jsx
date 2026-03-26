@@ -1,3 +1,7 @@
+// DEPRECATED: ParentPlayerTabs is no longer rendered.
+// All tab content is now inline in ParentPlayerCardPage.jsx (two-column redesign).
+// This file is kept for reference only.
+
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import SpiderChart from '../../components/charts/SpiderChart'

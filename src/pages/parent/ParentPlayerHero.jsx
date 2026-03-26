@@ -1,3 +1,7 @@
+// DEPRECATED: The ParentPlayerHero component is no longer rendered.
+// It was replaced by the inline left-column identity card in ParentPlayerCardPage.jsx.
+// This file is kept ONLY for its exported constants (badgeDefinitions, rarityColors).
+
 import { useTheme } from '../../contexts/ThemeContext'
 
 // ============================================
