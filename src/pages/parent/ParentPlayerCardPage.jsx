@@ -925,21 +925,65 @@ function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback,
           </div>
         </div>
 
-        {/* Last Game Performance */}
+        {/* Last Game Performance — Chart Left, Stat Table Right */}
         {lastGame && gameSpiderData.length >= 3 && (
           <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400">Last Game Performance</h4>
               <span className="text-xs font-semibold text-slate-500">vs {lastGame.opponent} &bull; {lastGame.result} {lastGame.score}</span>
             </div>
-            <div className="flex flex-col items-center">
-              <SpiderChart data={gameSpiderData} maxValue={10} size={320} color="#10B981" isDark={false} />
-              <div className="flex items-center justify-center gap-3 mt-4">
-                <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10B981]/10 border border-[#10B981]/30">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
-                  <span className="text-xs font-semibold text-[#10B981]">Game output</span>
-                </span>
-                <span className="text-xs text-slate-400">5.0 = season average</span>
+
+            <div className="flex gap-6">
+              {/* LEFT — Spider Chart */}
+              <div className="flex flex-col items-center flex-shrink-0">
+                <SpiderChart data={gameSpiderData} maxValue={10} size={280} color="#10B981" isDark={false} />
+                <div className="flex items-center gap-3 mt-4">
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#10B981]/10 border border-[#10B981]/30">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+                    <span className="text-xs font-semibold text-[#10B981]">Game output</span>
+                  </span>
+                  <span className="text-xs text-slate-400">5.0 = season avg</span>
+                </div>
+              </div>
+
+              {/* RIGHT — Game Stat Table */}
+              <div className="flex-1 min-w-0">
+                <div className="mb-3">
+                  <p className="text-sm font-bold text-[#10284C]">{lastGame.opponent}</p>
+                  <p className="text-xs text-slate-400">
+                    {lastGame.date ? new Date(lastGame.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown date'}
+                    {' \u00B7 '}{lastGame.result === 'W' ? 'Win' : 'Loss'} {lastGame.score}
+                  </p>
+                </div>
+
+                <div className="space-y-0">
+                  {sc.primaryStats.map((stat, i) => {
+                    const gameVal = stat.calc ? stat.calc(lastGame.raw) : (lastGame.raw[stat.key] || 0)
+                    const seasonTotal = stat.calc ? stat.calc(seasonStats) : (seasonStats?.[stat.key] || 0)
+                    const seasonAvg = gamesPlayed > 0 ? seasonTotal / gamesPlayed : 0
+                    const diff = gameVal - seasonAvg
+                    return (
+                      <div key={stat.key} className={`flex items-center justify-between py-2.5 ${i < sc.primaryStats.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                        <span className="text-sm text-slate-500">{stat.label}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-[#10284C]">{gameVal}</span>
+                          {seasonAvg > 0 && (
+                            <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                              {diff >= 0 ? '+' : ''}{diff.toFixed(1)} vs avg
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {isCoachOrAdmin && (
+                  <button onClick={() => showToast?.('Stat entry workflow coming soon', 'info')}
+                    className="mt-4 w-full px-4 py-2 rounded-lg bg-[#10284C] text-white text-xs font-bold uppercase tracking-wider hover:brightness-110 transition text-center">
+                    Enter / Edit Stats
+                  </button>
+                )}
               </div>
             </div>
           </div>
