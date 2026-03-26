@@ -17,11 +17,13 @@ import QuickAttendanceModal from './QuickAttendanceModal'
 import DashboardContainer from '../../components/layout/DashboardContainer'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import QuickScoreModal from './QuickScoreModal'
+import SocialCardModal from '../../components/social-cards/SocialCardModal'
 
 // ============================================
 // MAIN GAME PREP PAGE
 // ============================================
 function GamePrepPage({ showToast }) {
+  const { organization } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
   const tc = useThemeClasses()
@@ -45,6 +47,7 @@ function GamePrepPage({ showToast }) {
   const [showJourneyPanel, setShowJourneyPanel] = useState(false)
   const [showAttendanceModal, setShowAttendanceModal] = useState(false)
   const [showQuickScore, setShowQuickScore] = useState(false)
+  const [showResultsCard, setShowResultsCard] = useState(null)
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
 
@@ -453,6 +456,10 @@ function GamePrepPage({ showToast }) {
                         setSelectedGame(g)
                         setShowStatsModal(true)
                       }}
+                      onShareResults={(g) => {
+                        setSelectedGame(g)
+                        setShowResultsCard(g)
+                      }}
                     />
                   )
                 })}
@@ -575,6 +582,10 @@ function GamePrepPage({ showToast }) {
             setShowGameDetail(false)
             setShowStatsModal(true)
           }}
+          onShareResults={(game) => {
+            setShowGameDetail(false)
+            setShowResultsCard(game)
+          }}
         />
       )}
 
@@ -640,6 +651,18 @@ function GamePrepPage({ showToast }) {
           />
         )
       })()}
+
+      {showResultsCard && selectedTeam && (
+        <SocialCardModal
+          category="results"
+          event={showResultsCard}
+          team={selectedTeam}
+          organization={organization}
+          season={selectedSeason}
+          onClose={() => setShowResultsCard(null)}
+          showToast={showToast}
+        />
+      )}
     </DashboardContainer>
     </div>
   )

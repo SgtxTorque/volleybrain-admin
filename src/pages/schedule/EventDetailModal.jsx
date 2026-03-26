@@ -20,7 +20,7 @@ const TYPE_CONFIG = {
   other:      { icon: Calendar, label: 'Event',     bg: 'bg-slate-100', text: 'text-slate-700', accent: '#94A3B8' },
 }
 
-function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, onUpdateSeries, onDeleteSeries, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, parentTutorial }) {
+function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, onUpdateSeries, onDeleteSeries, activeView, showToast, selectedSeason, parentChildIds = [], onShareGameDay, onShareResults, parentTutorial }) {
   const { isAdmin: hasAdminRole, profile, user } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
@@ -217,6 +217,14 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                       isGame ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-[#4BB9EC]/10 text-[#4BB9EC] hover:bg-[#4BB9EC]/20'
                     }`}>
                     🏟️ Share
+                  </button>
+                )}
+                {event.game_status === 'completed' && onShareResults && (
+                  <button onClick={() => onShareResults(event)}
+                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition ${
+                      isGame ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-[#4BB9EC]/10 text-[#4BB9EC] hover:bg-[#4BB9EC]/20'
+                    }`}>
+                    📊 Results
                   </button>
                 )}
                 <button onClick={onClose} className={`p-1.5 rounded-lg transition ${

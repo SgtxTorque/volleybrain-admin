@@ -1,5 +1,5 @@
 import React from 'react'
-import { Calendar, MapPin, Clock, BarChart3, Check } from '../../constants/icons'
+import { Calendar, MapPin, Clock, BarChart3, Check, Share2 } from '../../constants/icons'
 import { CHECKPOINTS } from '../../lib/gameCheckpoints'
 
 // ============================================
@@ -36,7 +36,7 @@ function isTomorrow(dateStr) {
 // ============================================
 // GAME CARD COMPONENT
 // ============================================
-function GameCard({ game, team, status, isSelected, isDark, onClick, onPrepClick, onCompleteClick, onGameDayClick, onEnterStats, checkpoints, currentCheckpoint }) {
+function GameCard({ game, team, status, isSelected, isDark, onClick, onPrepClick, onCompleteClick, onGameDayClick, onEnterStats, onShareResults, checkpoints, currentCheckpoint }) {
   const gameDate = new Date(game.event_date)
   const today = isToday(game.event_date)
   const tomorrow = isTomorrow(game.event_date)
@@ -242,6 +242,14 @@ function GameCard({ game, team, status, isSelected, isDark, onClick, onPrepClick
                 <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-500 flex items-center gap-1">
                   <Check className="w-3 h-3" /> Stats
                 </span>
+              )}
+              {onShareResults && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onShareResults(game) }}
+                  className="px-3 py-2 rounded-[10px] font-semibold text-sm transition-all bg-[var(--accent-primary)]/15 hover:bg-[var(--accent-primary)]/25 text-[var(--accent-primary)] flex items-center gap-1.5"
+                >
+                  <Share2 className="w-3.5 h-3.5" /> Share
+                </button>
               )}
             </div>
           )}

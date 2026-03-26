@@ -11,7 +11,7 @@ import {
 // Shows full breakdown of a completed game
 // ============================================
 
-export function GameDetailModal({ game, team, sport, onClose, onEditStats, isAdmin = false }) {
+export function GameDetailModal({ game, team, sport, onClose, onEditStats, onShareResults, isAdmin = false }) {
   const tc = useThemeClasses()
   const [activeTab, setActiveTab] = useState('summary')
   const [attendance, setAttendance] = useState([])
@@ -512,6 +512,16 @@ export function GameDetailModal({ game, team, sport, onClose, onEditStats, isAdm
                         className="w-full py-3 rounded-xl border-2 border-dashed border-slate-600 text-slate-400 hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] transition"
                       >
                         ✏️ Edit Player Stats
+                      </button>
+                    </div>
+                  )}
+                  {game.game_status === 'completed' && onShareResults && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => onShareResults(game)}
+                        className="w-full py-3 rounded-xl bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] font-semibold hover:bg-[var(--accent-primary)]/20 transition flex items-center justify-center gap-2"
+                      >
+                        📊 Share Results Card
                       </button>
                     </div>
                   )}

@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, BarChart3, Share2 } from '../..
 import { SkeletonSchedulePage } from '../../components/ui'
 import SchedulePosterModal from './SchedulePosterModal'
 import GameDayShareModal from './GameDayShareModal'
+import SocialCardModal from '../../components/social-cards/SocialCardModal'
 import { getEventColor, formatTime, formatTime12, VolleyballIcon, exportEventsToICal } from './scheduleHelpers'
 import { MonthView, WeekView, DayView, ListView } from './CalendarViews'
 import ScheduleStatRow from './ScheduleStatRow'
@@ -63,6 +64,8 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showPosterModal, setShowPosterModal] = useState(false)
   const [showGameDayCard, setShowGameDayCard] = useState(null)
+  const [showScheduleCard, setShowScheduleCard] = useState(false)
+  const [showResultsCard, setShowResultsCard] = useState(null)
   const [showVolunteerAutoAssign, setShowVolunteerAutoAssign] = useState(false)
   // allUpcomingGames removed — upcoming strip removed per redesign
 
@@ -346,6 +349,16 @@ function SchedulePage({ showToast, activeView, roleContext }) {
                     <div><div className="font-semibold text-base">Game Day Card</div><div className="text-sm text-slate-400">Share next game on social</div></div>
                   </button>
                 )}
+                <button onClick={() => { setShowScheduleCard(true); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
+                  <span className="text-xl">📅</span>
+                  <div><div className="font-semibold text-base">Season Schedule Card</div><div className="text-sm text-slate-400">Shareable schedule graphic</div></div>
+                </button>
+                {filteredEvents.filter(e => e.game_status === 'completed').length > 0 && (
+                  <button onClick={() => { setShowResultsCard(filteredEvents.filter(e => e.game_status === 'completed').sort((a, b) => b.event_date.localeCompare(a.event_date))[0]); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
+                    <span className="text-xl">📊</span>
+                    <div><div className="font-semibold text-base">Share Results</div><div className="text-sm text-slate-400">Score card for last game</div></div>
+                  </button>
+                )}
                 <div className={`px-4 py-2 text-sm font-bold uppercase tracking-wider border-t ${isDark ? 'text-slate-500 bg-white/[0.02] border-white/[0.06]' : 'text-slate-400 bg-slate-50 border-slate-200'}`}>Export</div>
                 <button onClick={() => { exportEventsToICal(filteredEvents, selectedSeason?.name, showToast); setShowShareMenu(false) }} className={`w-full text-left px-4 py-3 flex items-center gap-3 transition ${dropdownItemCls}`}>
                   <span className="text-xl">📅</span>
@@ -488,15 +501,31 @@ function SchedulePage({ showToast, activeView, roleContext }) {
         <EventDetailModal event={selectedEvent} teams={teams} venues={venues} onClose={() => setSelectedEvent(null)} onUpdate={updateEvent} onDelete={deleteEvent}
           onUpdateSeries={updateSeriesEvents} onDeleteSeries={deleteSeriesEvents}
           activeView={activeView} selectedSeason={selectedSeason} parentChildIds={parentChildIds} showToast={showToast}
-          onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }} parentTutorial={parentTutorial} />
+          onShareGameDay={(evt) => { setSelectedEvent(null); setShowGameDayCard(evt) }}
+          onShareResults={(evt) => { setSelectedEvent(null); setShowResultsCard(evt) }} parentTutorial={parentTutorial} />
       )}
       {showPosterModal && (
         <SchedulePosterModal season={selectedSeason} team={selectedTeam !== 'all' ? teams.find(t => t.id === selectedTeam) : teams[0]}
           organization={organization} events={events} onClose={() => setShowPosterModal(false)} showToast={showToast} />
       )}
       {showGameDayCard && (
-        <GameDayShareModal event={showGameDayCard} team={teams.find(t => t.id === showGameDayCard.team_id) || teams[0]}
-          organization={organization} season={selectedSeason} onClose={() => setShowGameDayCard(null)} showToast={showToast} />
+        <SocialCardModal category="gameday" event={showGameDayCard}
+          team={teams.find(t => t.id === showGameDayCard.team_id) || teams[0]}
+          organization={organization} season={selectedSeason}
+          onClose={() => setShowGameDayCard(null)} showToast={showToast} />
+      )}
+      {showScheduleCard && (
+        <SocialCardModal category="schedule"
+          events={filteredEvents}
+          team={selectedTeam !== 'all' ? teams.find(t => t.id === selectedTeam) : teams[0]}
+          organization={organization} season={selectedSeason}
+          onClose={() => setShowScheduleCard(false)} showToast={showToast} />
+      )}
+      {showResultsCard && (
+        <SocialCardModal category="results" event={showResultsCard}
+          team={teams.find(t => t.id === showResultsCard.team_id) || teams[0]}
+          organization={organization} season={selectedSeason}
+          onClose={() => setShowResultsCard(null)} showToast={showToast} />
       )}
 
       {(showQuickActions || showShareMenu) && (
