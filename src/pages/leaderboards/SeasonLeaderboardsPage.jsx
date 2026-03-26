@@ -47,9 +47,9 @@ const ChevronRightIcon = ({ className }) => (
 )
 
 // ============================================
-// LEADERBOARD CATEGORIES
+// LEADERBOARD CATEGORIES (per sport)
 // ============================================
-const LEADERBOARD_CATEGORIES = [
+const VOLLEYBALL_LEADERBOARD_CATEGORIES = [
   {
     id: 'points',
     label: 'Points Leaders',
@@ -123,6 +123,82 @@ const LEADERBOARD_CATEGORIES = [
     description: 'Serve success rate'
   },
 ]
+
+const BASKETBALL_LEADERBOARD_CATEGORIES = [
+  {
+    id: 'points',
+    label: 'Points Leaders',
+    statKey: 'total_basketball_points',
+    icon: '⭐',
+    color: '#F59E0B',
+    description: 'Total points scored'
+  },
+  {
+    id: 'rebounds',
+    label: 'Rebound Leaders',
+    statKey: 'total_rebounds',
+    icon: '🏀',
+    color: '#10B981',
+    description: 'Total rebounds'
+  },
+  {
+    id: 'assists',
+    label: 'Assist Leaders',
+    statKey: 'total_basketball_assists',
+    icon: '🙌',
+    color: '#8B5CF6',
+    description: 'Total assists'
+  },
+  {
+    id: 'steals',
+    label: 'Steal Leaders',
+    statKey: 'total_steals',
+    icon: '💨',
+    color: '#4BB9EC',
+    description: 'Total steals'
+  },
+  {
+    id: 'blocks',
+    label: 'Block Leaders',
+    statKey: 'total_blocks',
+    icon: '🛡️',
+    color: '#6366F1',
+    description: 'Total blocks'
+  },
+  {
+    id: 'fg_pct',
+    label: 'FG %',
+    statKey: 'fg_percentage',
+    isPercentage: true,
+    icon: '🎯',
+    color: '#EF4444',
+    description: 'Field goal percentage'
+  },
+  {
+    id: 'three_pct',
+    label: '3P %',
+    statKey: 'three_percentage',
+    isPercentage: true,
+    icon: '🔥',
+    color: '#EC4899',
+    description: 'Three-point percentage'
+  },
+  {
+    id: 'ft_pct',
+    label: 'FT %',
+    statKey: 'ft_percentage',
+    isPercentage: true,
+    icon: '✅',
+    color: '#14B8A6',
+    description: 'Free throw percentage'
+  },
+]
+
+function getLeaderboardCategories(sport) {
+  const name = (sport || '').toLowerCase()
+  if (name === 'basketball') return BASKETBALL_LEADERBOARD_CATEGORIES
+  return VOLLEYBALL_LEADERBOARD_CATEGORIES
+}
 
 // ============================================
 // RANK BADGE COMPONENT
@@ -335,16 +411,26 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const [filterTeam, setFilterTeam] = useState(null)
   const [teams, setTeams] = useState([])
 
+  // Sport-aware leaderboard categories
+  const sportName = selectedSeason?.sports?.name || selectedSeason?.sport || selectedSport?.name || ''
+  const LEADERBOARD_CATEGORIES = getLeaderboardCategories(sportName)
+
   // Helper: get season IDs filtered by sport
   function getSportSeasonIds() {
     if (!selectedSport?.id) return null
     return (allSeasons || []).filter(s => s.sport_id === selectedSport.id).map(s => s.id)
   }
 
+  // Reset category selection when sport changes
+  useEffect(() => {
+    setSelectedCategory(null)
+    setViewMode('grid')
+  }, [sportName])
+
   useEffect(() => {
     loadLeaderboards()
     loadTeams()
-  }, [selectedSeason?.id, selectedSport?.id])
+  }, [selectedSeason?.id, selectedSport?.id, sportName])
 
   async function loadTeams() {
     const sportIds = getSportSeasonIds()
@@ -681,4 +767,4 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   )
 }
 
-export { SeasonLeaderboardsPage, LEADERBOARD_CATEGORIES }
+export { SeasonLeaderboardsPage, VOLLEYBALL_LEADERBOARD_CATEGORIES, BASKETBALL_LEADERBOARD_CATEGORIES, getLeaderboardCategories }
