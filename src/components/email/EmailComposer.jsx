@@ -54,6 +54,9 @@ export default function EmailComposer({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2] },
+        // Disable extensions we register separately to avoid duplicates
+        link: false,
+        underline: false,
       }),
       Underline,
       Link.configure({

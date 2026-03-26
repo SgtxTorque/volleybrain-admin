@@ -6,6 +6,7 @@
 export function buildLynxEmail({
   headerColor = '#10284C',
   headerLogo = null,
+  headerImage = null,
   accentColor = '#5BCBFA',
   senderName = 'Lynx',
   heading = '',
@@ -38,7 +39,14 @@ export function buildLynxEmail({
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
 
           <!-- HEADER -->
-          <tr>
+          ${headerImage
+            ? `<tr>
+            <td style="padding:0;line-height:0">
+              <img src="${headerImage}" alt="${senderName}" width="600" style="width:100%;max-width:600px;height:auto;display:block" />
+            </td>
+          </tr>
+          ${heading ? `<tr><td style="background-color:${headerColor};padding:24px 40px;text-align:center"><h1 style="color:#FFFFFF;font-size:24px;font-weight:800;margin:0;line-height:1.25;letter-spacing:-0.01em">${heading}</h1></td></tr>` : ''}`
+            : `<tr>
             <td style="background-color:${headerColor};padding:36px 40px;text-align:center">
               ${headerLogo
                 ? `<img src="${headerLogo}" alt="${senderName}" height="44" style="height:44px;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">`
@@ -46,7 +54,8 @@ export function buildLynxEmail({
               }
               ${heading ? `<h1 style="color:#FFFFFF;font-size:24px;font-weight:800;margin:0;line-height:1.25;letter-spacing:-0.01em">${heading}</h1>` : ''}
             </td>
-          </tr>
+          </tr>`
+          }
 
           <!-- BODY -->
           <tr>
@@ -86,6 +95,7 @@ export function resolveOrgBranding(org) {
   return {
     headerColor: org?.settings?.branding?.email_header_color || org?.primary_color || '#10284C',
     headerLogo: org?.settings?.branding?.email_header_logo || org?.logo_url || null,
+    headerImage: org?.email_header_image || org?.settings?.branding?.email_header_image || null,
     accentColor: org?.secondary_color || '#5BCBFA',
     senderName: org?.email_sender_name || org?.name || 'Lynx',
     replyTo: org?.email_reply_to || org?.contact_email || null,

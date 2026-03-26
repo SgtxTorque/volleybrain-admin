@@ -28,11 +28,11 @@ export default function RecipientPicker({ selected = [], onChange }) {
         .or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
         .limit(20)
 
-      // Also search parents via players table
+      // Also search parents via players table (join through seasons for org scoping)
       const { data: players } = await supabase
         .from('players')
-        .select('id, parent_name, parent_email')
-        .eq('organization_id', organization.id)
+        .select('id, parent_name, parent_email, seasons!inner(organization_id)')
+        .eq('seasons.organization_id', organization.id)
         .or(`parent_name.ilike.%${q}%,parent_email.ilike.%${q}%`)
         .limit(20)
 

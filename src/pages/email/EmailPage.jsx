@@ -6,7 +6,7 @@ import { EmailService } from '../../lib/email-service'
 import { buildLynxEmail, resolveOrgBranding } from '../../lib/email-html-builder'
 import PageShell from '../../components/pages/PageShell'
 import EmailStatusBadge from '../../components/email/EmailStatusBadge'
-import { Mail, Send, FileText, Search, ChevronDown } from '../../constants/icons'
+import { Mail, Send, FileText, Search, ChevronDown, Settings } from '../../constants/icons'
 
 const EmailComposer = lazy(() => import('../../components/email/EmailComposer'))
 const EmailPreviewModal = lazy(() => import('../../components/email/EmailPreviewModal'))
@@ -22,7 +22,10 @@ export default function EmailPage({ showToast, activeView }) {
   const tabs = [
     { id: 'log', label: 'Email Log', icon: Mail },
     { id: 'compose', label: 'Compose', icon: Send },
-    ...(isAdmin ? [{ id: 'templates', label: 'Templates', icon: FileText }] : []),
+    ...(isAdmin ? [
+      { id: 'templates', label: 'Templates', icon: FileText },
+      { id: 'settings', label: 'Settings', icon: Settings },
+    ] : []),
   ]
 
   return (
@@ -52,6 +55,7 @@ export default function EmailPage({ showToast, activeView }) {
         </Suspense>
       )}
       {activeTab === 'templates' && isAdmin && <EmailTemplatesTab showToast={showToast} />}
+      {activeTab === 'settings' && isAdmin && <EmailSettingsTab showToast={showToast} />}
     </PageShell>
   )
 }
@@ -834,6 +838,228 @@ function TemplateEditor({ template, onClose, onSave, showToast }) {
               />
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── EMAIL SETTINGS TAB ───────────────────────────────────────────────────────
+function EmailSettingsTab({ showToast }) {
+  const { organization, setOrganization } = useAuth()
+  const tc = useThemeClasses()
+  const { isDark } = useTheme()
+
+  const [senderName, setSenderName] = useState(organization?.email_sender_name || '')
+  const [replyTo, setReplyTo] = useState(organization?.email_reply_to || '')
+  const [headerColor, setHeaderColor] = useState(organization?.settings?.branding?.email_header_color || organization?.primary_color || '#10284C')
+  const [accentColor, setAccentColor] = useState(organization?.secondary_color || '#5BCBFA')
+  const [footerText, setFooterText] = useState(organization?.email_footer_text || '')
+  const [socialInstagram, setSocialInstagram] = useState(organization?.email_social_instagram || '')
+  const [socialFacebook, setSocialFacebook] = useState(organization?.email_social_facebook || '')
+  const [socialTwitter, setSocialTwitter] = useState(organization?.email_social_twitter || '')
+  const [website, setWebsite] = useState(organization?.website || '')
+  const [includeUnsubscribe, setIncludeUnsubscribe] = useState(organization?.email_include_unsubscribe !== false)
+  const [headerImage, setHeaderImage] = useState(organization?.email_header_image || '')
+  const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  async function handleHeaderImageUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      showToast?.('Image must be under 2MB', 'error')
+      return
+    }
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      showToast?.('Only PNG and JPG files accepted', 'error')
+      return
+    }
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${organization.id}/email-header.${ext}`
+      const { error } = await supabase.storage.from('email-attachments').upload(path, file, { upsert: true })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('email-attachments').getPublicUrl(path)
+      if (urlData?.publicUrl) {
+        setHeaderImage(urlData.publicUrl)
+        showToast?.('Header banner uploaded', 'success')
+      }
+    } catch (err) {
+      console.error('Header image upload error:', err)
+      showToast?.('Failed to upload image', 'error')
+    }
+    setUploading(false)
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const currentSettings = organization.settings || {}
+      const updatePayload = {
+        email_sender_name: senderName || null,
+        email_reply_to: replyTo || null,
+        email_footer_text: footerText || null,
+        email_social_facebook: socialFacebook || null,
+        email_social_instagram: socialInstagram || null,
+        email_social_twitter: socialTwitter || null,
+        email_include_unsubscribe: includeUnsubscribe,
+        email_header_image: headerImage || null,
+        secondary_color: accentColor || null,
+        website: website || null,
+        settings: {
+          ...currentSettings,
+          branding: {
+            ...(currentSettings.branding || {}),
+            email_header_color: headerColor,
+          },
+        },
+      }
+      await supabase.from('organizations').update(updatePayload).eq('id', organization.id)
+      setOrganization?.({ ...organization, ...updatePayload, settings: { ...currentSettings, ...updatePayload.settings } })
+      showToast?.('Email settings saved!', 'success')
+    } catch (err) {
+      console.error('Save error:', err)
+      showToast?.('Error saving settings', 'error')
+    }
+    setSaving(false)
+  }
+
+  function getPreviewHtml() {
+    return buildLynxEmail({
+      headerColor,
+      headerLogo: organization?.logo_url || null,
+      headerImage: headerImage || null,
+      accentColor,
+      senderName: senderName || organization?.name || 'Lynx',
+      heading: 'Sample Email Heading',
+      body: '<p>This is how your emails will look to recipients. Customize the settings on the left to see changes in real time.</p>',
+      ctaText: 'Open Lynx',
+      ctaUrl: '#',
+      footerText: footerText || null,
+      socialLinks: { website, instagram: socialInstagram, facebook: socialFacebook, twitter: socialTwitter },
+      showUnsubscribe: includeUnsubscribe,
+      unsubscribeUrl: '#unsubscribe',
+    })
+  }
+
+  const inputCls = `w-full px-4 py-2.5 rounded-xl text-sm ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-[#F5F6F8] border-[#E8ECF2] text-[#10284C]'} border outline-none focus:border-[#4BB9EC]`
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Left: Settings Form */}
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h3 className={`text-base font-bold ${tc.text}`}>Email Branding</h3>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2 rounded-xl bg-lynx-navy-subtle text-white font-bold text-sm hover:brightness-110 transition disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
+
+        {/* Header Banner Image */}
+        <div className={`rounded-xl p-4 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
+          <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-2`}>
+            Header Banner (600 x 200px recommended)
+          </label>
+          {headerImage ? (
+            <div className="relative rounded-xl overflow-hidden mb-2">
+              <img src={headerImage} alt="Email header" className="w-full h-auto max-h-48 object-cover" />
+              <button
+                onClick={() => setHeaderImage('')}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center text-sm hover:bg-black/80"
+              >
+                &times;
+              </button>
+            </div>
+          ) : (
+            <div className={`border-2 border-dashed rounded-xl p-8 text-center ${isDark ? 'border-white/[0.08]' : 'border-[#E8ECF2]'}`}>
+              <Mail className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+              <p className="text-xs text-slate-400">PNG or JPG, max 2MB</p>
+            </div>
+          )}
+          <label className={`mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition ${isDark ? 'bg-white/[0.04] text-white hover:bg-white/[0.08]' : 'bg-[#F5F6F8] text-[#10284C] hover:bg-[#EDEEF1]'}`}>
+            {uploading ? 'Uploading...' : headerImage ? 'Replace Banner' : 'Upload Banner'}
+            <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={handleHeaderImageUpload} className="hidden" disabled={uploading} />
+          </label>
+        </div>
+
+        {/* Sender & Reply */}
+        <div>
+          <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Sender Name</label>
+          <input type="text" value={senderName} onChange={e => setSenderName(e.target.value)} placeholder={organization?.name || 'Your org name'} className={inputCls} />
+          <p className="text-xs text-slate-400 mt-1">Appears as the "From" name in recipients' inboxes</p>
+        </div>
+        <div>
+          <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Reply-To Email</label>
+          <input type="email" value={replyTo} onChange={e => setReplyTo(e.target.value)} placeholder={organization?.contact_email || 'info@yourclub.com'} className={inputCls} />
+          <p className="text-xs text-slate-400 mt-1">Where replies go. Defaults to your contact email.</p>
+        </div>
+
+        {/* Colors */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Header Color</label>
+            <div className="flex gap-2">
+              <input type="color" value={headerColor} onChange={e => setHeaderColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+              <input type="text" value={headerColor} onChange={e => setHeaderColor(e.target.value)} className={`flex-1 ${inputCls}`} />
+            </div>
+          </div>
+          <div>
+            <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Button Color</label>
+            <div className="flex gap-2">
+              <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0" />
+              <input type="text" value={accentColor} onChange={e => setAccentColor(e.target.value)} className={`flex-1 ${inputCls}`} />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div>
+          <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Footer Text</label>
+          <textarea value={footerText} onChange={e => setFooterText(e.target.value)} placeholder="e.g. Black Hornets Volleyball Club · Dallas, TX" rows={2} className={`${inputCls} resize-none`} />
+        </div>
+
+        {/* Social Links */}
+        <div>
+          <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-2`}>Social Links</label>
+          <div className="grid grid-cols-2 gap-3">
+            <input type="url" value={socialInstagram} onChange={e => setSocialInstagram(e.target.value)} placeholder="Instagram URL" className={inputCls} />
+            <input type="url" value={socialFacebook} onChange={e => setSocialFacebook(e.target.value)} placeholder="Facebook URL" className={inputCls} />
+            <input type="url" value={socialTwitter} onChange={e => setSocialTwitter(e.target.value)} placeholder="X (Twitter) URL" className={inputCls} />
+            <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="Website URL" className={inputCls} />
+          </div>
+        </div>
+
+        {/* Unsubscribe Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className={`text-sm font-medium ${tc.text}`}>Include unsubscribe link</p>
+            <p className="text-xs text-slate-400">Added to broadcast emails (recommended)</p>
+          </div>
+          <button
+            onClick={() => setIncludeUnsubscribe(!includeUnsubscribe)}
+            className={`w-11 h-6 rounded-full transition-colors ${includeUnsubscribe ? 'bg-emerald-500' : 'bg-slate-600'}`}
+          >
+            <div className={`w-5 h-5 bg-white rounded-full transition-transform ${includeUnsubscribe ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Right: Live Preview */}
+      <div>
+        <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-2`}>Live Preview</label>
+        <div className={`rounded-xl border overflow-hidden ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'}`}>
+          <iframe
+            srcDoc={getPreviewHtml()}
+            title="Email Settings Preview"
+            style={{ width: '100%', height: 650, border: 'none', background: '#F2F4F7' }}
+            sandbox="allow-same-origin"
+          />
         </div>
       </div>
     </div>

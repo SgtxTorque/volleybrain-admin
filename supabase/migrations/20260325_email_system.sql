@@ -52,7 +52,8 @@ ALTER TABLE organizations
   ADD COLUMN IF NOT EXISTS email_social_facebook TEXT DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS email_social_instagram TEXT DEFAULT NULL,
   ADD COLUMN IF NOT EXISTS email_social_twitter TEXT DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS email_include_unsubscribe BOOLEAN DEFAULT TRUE;
+  ADD COLUMN IF NOT EXISTS email_include_unsubscribe BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS email_header_image TEXT DEFAULT NULL;
 
 -- ─── 4. Create email_unsubscribes table ─────────────────────────────────────
 CREATE TABLE IF NOT EXISTS email_unsubscribes (

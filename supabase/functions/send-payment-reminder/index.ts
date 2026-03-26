@@ -18,6 +18,7 @@ const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'noreply@mail.thelynxapp.com'
 function buildLynxEmail({
   headerColor = '#10284C',
   headerLogo = null as string | null,
+  headerImage = null as string | null,
   accentColor = '#5BCBFA',
   senderName = 'Lynx',
   heading = '',
@@ -48,7 +49,14 @@ function buildLynxEmail({
     <tr>
       <td align="center" style="padding:40px 16px">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
-          <tr>
+          ${headerImage
+            ? `<tr>
+            <td style="padding:0;line-height:0">
+              <img src="${headerImage}" alt="${senderName}" width="600" style="width:100%;max-width:600px;height:auto;display:block" />
+            </td>
+          </tr>
+          ${heading ? `<tr><td style="background-color:${headerColor};padding:24px 40px;text-align:center"><h1 style="color:#FFFFFF;font-size:24px;font-weight:800;margin:0;line-height:1.25;letter-spacing:-0.01em">${heading}</h1></td></tr>` : ''}`
+            : `<tr>
             <td style="background-color:${headerColor};padding:36px 40px;text-align:center">
               ${headerLogo
                 ? `<img src="${headerLogo}" alt="${senderName}" height="44" style="height:44px;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto">`
@@ -56,7 +64,8 @@ function buildLynxEmail({
               }
               ${heading ? `<h1 style="color:#FFFFFF;font-size:24px;font-weight:800;margin:0;line-height:1.25;letter-spacing:-0.01em">${heading}</h1>` : ''}
             </td>
-          </tr>
+          </tr>`
+          }
           <tr>
             <td style="padding:36px 40px 28px;color:#2D3748;font-size:15px;line-height:1.75">
               ${body}
@@ -196,7 +205,7 @@ serve(async (req) => {
               name, logo_url, primary_color, secondary_color, contact_email, website,
               email_sender_name, email_reply_to, email_footer_text,
               email_social_facebook, email_social_instagram, email_social_twitter,
-              email_include_unsubscribe, settings
+              email_include_unsubscribe, email_header_image, settings
             `)
             .eq('id', email.organization_id)
             .single()
@@ -206,6 +215,7 @@ serve(async (req) => {
         // 2. Resolve branding
         const headerColor = orgBranding.settings?.branding?.email_header_color || orgBranding.primary_color || '#10284C'
         const headerLogo = orgBranding.settings?.branding?.email_header_logo || orgBranding.logo_url || null
+        const headerImage = orgBranding.email_header_image || orgBranding.settings?.branding?.email_header_image || null
         const accentColor = orgBranding.secondary_color || '#5BCBFA'
         const senderName = orgBranding.email_sender_name || orgBranding.name || 'Lynx'
         const replyTo = orgBranding.email_reply_to || orgBranding.contact_email || undefined
@@ -243,6 +253,7 @@ serve(async (req) => {
         const html = buildLynxEmail({
           headerColor,
           headerLogo,
+          headerImage,
           accentColor,
           senderName,
           heading,
