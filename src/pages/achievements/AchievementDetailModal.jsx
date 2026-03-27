@@ -71,7 +71,8 @@ export function AchievementDetailModal({
   
   const rarity = RARITY_STYLES[achievement.rarity] || RARITY_STYLES.common
   const category = CATEGORY_CONFIG[achievement.category] || CATEGORY_CONFIG.offensive
-  const hasImages = !!achievement.icon_url
+  const badgeImageUrl = achievement.badge_image_url || achievement.icon_url
+  const hasImages = !!badgeImageUrl
   
   // Show unlock effect animation briefly when modal opens for earned achievements
   useEffect(() => {
@@ -179,7 +180,7 @@ export function AchievementDetailModal({
           >
             {hasImages ? (
               <img
-                src={achievement.icon_url}
+                src={badgeImageUrl}
                 alt={achievement.name}
                 className="w-full h-full object-contain rounded-xl"
               />

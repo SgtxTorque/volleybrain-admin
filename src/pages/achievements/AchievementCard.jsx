@@ -106,8 +106,9 @@ export function AchievementCard({
   const rarity = RARITY_CONFIG[achievement.rarity] || RARITY_CONFIG.common
   const category = CATEGORY_CONFIG[achievement.category] || CATEGORY_CONFIG.offensive
   
-  // Check if we have image URL
-  const hasImages = !!achievement.icon_url
+  // Check if we have image URL — prefer composited badge, fall back to legacy icon
+  const badgeImageUrl = achievement.badge_image_url || achievement.icon_url
+  const hasImages = !!badgeImageUrl
   
   // Format earned date
   const earnedDate = earnedData?.awarded_at
@@ -222,7 +223,7 @@ export function AchievementCard({
           >
             {hasImages ? (
               <img
-                src={achievement.icon_url}
+                src={badgeImageUrl}
                 alt={achievement.name}
                 className="w-full h-full object-contain rounded-lg"
               />
@@ -430,9 +431,9 @@ export function CallingCardPreview({ achievement, isEquipped = false, onClick })
       {/* Overlay with name */}
       <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
         <div className="text-center">
-          {achievement.icon_url ? (
+          {(achievement.badge_image_url || achievement.icon_url) ? (
             <LayeredImage
-              src={achievement.icon_url}
+              src={achievement.badge_image_url || achievement.icon_url}
               alt={achievement.name}
               className="w-8 h-8 mx-auto object-contain"
               fallback={<span className="text-2xl">{achievement.icon}</span>}

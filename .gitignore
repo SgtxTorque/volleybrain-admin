@@ -34,3 +34,11 @@ src/_archive/
 
 # Reference materials (90MB, contains credentials)
 reference/
+
+# Badge staging area (uploaded to Supabase storage, not committed to repo)
+public/badges/*.png
+public/badges/mascots/
+public/badges/quest/
+badge-manifest.csv
+upload-results.json
+wire-results.json
