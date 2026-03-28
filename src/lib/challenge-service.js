@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { supabase } from './supabase'
-import { getLevelFromXP, XP_BY_SOURCE } from './engagement-constants'
+import { getLevelFromXP, XP_BY_SOURCE, DIFFICULTY_CONFIG } from './engagement-constants'
 
 // =============================================================================
 // Create Challenge
@@ -13,9 +13,15 @@ export async function createChallenge({
   coachId, coachName, teamId, organizationId,
   title, description, challengeType, metricType, statKey,
   targetValue, xpReward, badgeId, customRewardText,
-  startsAt, endsAt,
+  startsAt, endsAt, difficulty,
 }) {
   try {
+    // Clamp XP to difficulty tier range if provided
+    if (difficulty && DIFFICULTY_CONFIG[difficulty]) {
+      const tierConfig = DIFFICULTY_CONFIG[difficulty]
+      xpReward = Math.min(Math.max(xpReward, tierConfig.xpMin), tierConfig.xpMax)
+    }
+
     // 1. Create team_post of type 'challenge'
     const metadata = JSON.stringify({
       title,
@@ -68,6 +74,7 @@ export async function createChallenge({
         ends_at: endsAt,
         status: 'active',
         post_id: post.id,
+        difficulty: difficulty || null,
       })
       .select('id')
       .single()
