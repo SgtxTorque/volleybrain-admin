@@ -3,7 +3,8 @@
 // =============================================================================
 
 import { supabase } from './supabase'
-import { XP_BY_SOURCE, getLevelFromXP } from './engagement-constants'
+import { XP_BY_SOURCE } from './engagement-constants'
+import { awardXP } from './xp-award-service'
 
 // =============================================================================
 // Main: giveShoutout
@@ -89,53 +90,30 @@ export async function giveShoutout({
 // =============================================================================
 
 async function awardShoutoutXP(giverId, receiverId, organizationId, shoutoutId) {
-  const giverXP = XP_BY_SOURCE.shoutout_given
-  const receiverXP = XP_BY_SOURCE.shoutout_received
+  // Resolve profile IDs (handles player ID -> profile ID mapping)
+  const giverProfileId = await resolveProfileId(giverId)
+  const receiverProfileId = await resolveProfileId(receiverId)
 
-  const entries = [
-    {
-      player_id: giverId,
-      organization_id: organizationId,
-      xp_amount: giverXP,
-      source_type: 'shoutout_given',
-      source_id: shoutoutId,
-      description: `Gave a shoutout (+${giverXP} XP)`,
-    },
-    {
-      player_id: receiverId,
-      organization_id: organizationId,
-      xp_amount: receiverXP,
-      source_type: 'shoutout_received',
-      source_id: shoutoutId,
-      description: `Received a shoutout (+${receiverXP} XP)`,
-    },
-  ]
+  if (giverProfileId) {
+    await awardXP({
+      profileId: giverProfileId,
+      baseAmount: XP_BY_SOURCE.shoutout_given,
+      sourceType: 'shoutout_given',
+      sourceId: shoutoutId,
+      organizationId,
+      description: `Gave a shoutout (+${XP_BY_SOURCE.shoutout_given} XP)`,
+    })
+  }
 
-  const { error: ledgerError } = await supabase.from('xp_ledger').insert(entries)
-  if (ledgerError) console.error('[ShoutoutService] XP ledger error:', ledgerError)
-
-  // Update total_xp and player_level on profiles
-  for (const { userId, xp_amount } of [
-    { userId: giverId, xp_amount: giverXP },
-    { userId: receiverId, xp_amount: receiverXP },
-  ]) {
-    const profId = await resolveProfileId(userId)
-    if (!profId) continue
-
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('total_xp')
-      .eq('id', profId)
-      .single()
-
-    const currentXP = prof?.total_xp || 0
-    const newXP = currentXP + xp_amount
-    const { level, tier, xpToNext } = getLevelFromXP(newXP)
-
-    await supabase
-      .from('profiles')
-      .update({ total_xp: newXP, player_level: level, tier, xp_to_next_level: xpToNext })
-      .eq('id', profId)
+  if (receiverProfileId) {
+    await awardXP({
+      profileId: receiverProfileId,
+      baseAmount: XP_BY_SOURCE.shoutout_received,
+      sourceType: 'shoutout_received',
+      sourceId: shoutoutId,
+      organizationId,
+      description: `Received a shoutout (+${XP_BY_SOURCE.shoutout_received} XP)`,
+    })
   }
 }
 
