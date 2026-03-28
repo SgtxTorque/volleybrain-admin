@@ -5,6 +5,7 @@
 
 import { useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Plus, ExternalLink } from '../../constants/icons'
+import { getLevelTier } from '../../lib/engagement-constants'
 
 function PlayerCard({ child, isActive, onClick, onViewProfile, parentName }) {
   const teamColor = child.team?.color || '#6366F1'
@@ -12,7 +13,8 @@ function PlayerCard({ child, isActive, onClick, onViewProfile, parentName }) {
   const jersey = child.jersey_number
   const level = child._level || 1
   const xpPct = child._xpPct || 0
-  const TIER = level >= 10 ? { label: 'Diamond', color: '#B9F2FF' } : level >= 7 ? { label: 'Gold', color: '#FFD700' } : level >= 4 ? { label: 'Silver', color: '#C0C0C0' } : { label: 'Bronze', color: '#CD7F32' }
+  const tierConfig = getLevelTier(level)
+  const TIER = { label: tierConfig.name, color: tierConfig.color }
 
   return (
     <div className="snap-start flex-shrink-0" style={{ width: 220 }}>

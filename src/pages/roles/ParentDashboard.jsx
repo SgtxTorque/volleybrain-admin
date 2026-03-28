@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
+import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { supabase } from '../../lib/supabase'
 import { OrphanPlayerBanner } from '../parent/ClaimAccountPage'
@@ -60,7 +61,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [alerts, setAlerts] = useState([])
   const [childAchievements, setChildAchievements] = useState([])
   const [teamRecord, setTeamRecord] = useState({ wins: 0, losses: 0, lastResult: null })
-  const [xpData, setXpData] = useState({ level: 1, currentXp: 0, xpToNext: 1000 })
+  const [xpData, setXpData] = useState({ level: 1, currentXp: 0, xpToNext: 100, tierName: 'Rookie' })
   const [activeChildIdx, setActiveChildIdx] = useState(0)
 
   // Modal state
@@ -282,8 +283,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       const { data: ledger } = await supabase.from('xp_ledger')
         .select('xp_amount').eq('player_id', playerId)
       const totalXp = (ledger || []).reduce((sum, r) => sum + (r.xp_amount || 0), 0)
-      const level = Math.floor(totalXp / 1000) + 1
-      setXpData({ level, currentXp: totalXp % 1000, xpToNext: 1000 })
+      const info = getLevelFromXP(totalXp)
+      setXpData({ level: info.level, currentXp: info.currentXp, xpToNext: info.xpToNext, tierName: info.tier })
     } catch (err) { console.warn('Error loading XP data:', err) }
   }
 
@@ -569,7 +570,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 <div>
                   <div style={{ fontSize: 24, marginBottom: 6 }}>🏆</div>
                   <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>
-                    {xpData?.tierName || 'Bronze'} Tier
+                    {xpData?.tierName || 'Rookie'} Tier
                   </div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
                     Level {xpData?.level || 1}

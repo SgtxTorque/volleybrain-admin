@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTeamManagerData } from '../../hooks/useTeamManagerData'
 import { supabase } from '../../lib/supabase'
+import { getLevelFromXP } from '../../lib/engagement-constants'
 import InviteCodeModal from '../../components/team-manager/InviteCodeModal'
 import { CheckCircle2, Circle } from '../../constants/icons'
 // V2 shared components
@@ -245,13 +246,19 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
             <ThePlaybook actions={playbookItems} />
 
             {/* Milestone Card */}
-            <MilestoneCard
-              variant="sky"
-              title="Team Progress"
-              xpCurrent={rosterCount * 50 + (paymentHealth?.collectedAmount || 0) / 10}
-              xpGoal={1000}
-              level={Math.floor((rosterCount * 50) / 1000) + 1}
-            />
+            {(() => {
+              const tmXp = rosterCount * 50 + (paymentHealth?.collectedAmount || 0) / 10
+              const tmInfo = getLevelFromXP(tmXp)
+              return (
+                <MilestoneCard
+                  variant="sky"
+                  title="Team Progress"
+                  xpCurrent={tmXp}
+                  xpGoal={tmInfo.nextLevelXp}
+                  level={tmInfo.level}
+                />
+              )
+            })()}
           </>
         }
       />

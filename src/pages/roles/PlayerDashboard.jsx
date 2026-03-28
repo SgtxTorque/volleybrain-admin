@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
 import { Users, X, Eye, Shield } from '../../constants/icons'
+import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 // V2 shared components
 import { useTheme } from '../../contexts/ThemeContext'
 import {
@@ -212,9 +213,10 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       ((s.total_digs || 0) * 5) + ((s.total_blocks || 0) * 15) + ((s.total_assists || 0) * 10) + (badges.length * 50)
   }, [seasonStats, badges])
 
-  const level = Math.floor(xp / 1000) + 1
-  const xpProgress = xp > 0 ? ((xp % 1000) / 1000) * 100 : 0
-  const xpToNext = 1000 - (xp % 1000)
+  const levelInfo = getLevelFromXP(xp)
+  const level = levelInfo.level
+  const xpProgress = levelInfo.progress
+  const xpToNext = levelInfo.xpToNext
 
   const overallRating = useMemo(() => {
     if (!seasonStats || !gamesPlayed) return 0
@@ -227,7 +229,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
   }, [seasonStats, gamesPlayed])
 
   // ── Derived values for v2 ──
-  const tierLabel = level >= 10 ? 'Diamond' : level >= 7 ? 'Platinum' : level >= 4 ? 'Gold' : 'Silver'
+  const tierLabel = getLevelTier(level).name
 
   const getPlayerGreeting = () => {
     const firstName = viewingPlayer?.first_name || 'Player'
