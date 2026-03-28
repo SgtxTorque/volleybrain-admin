@@ -5,7 +5,7 @@
 import React, { useState } from 'react'
 import { X, Trophy, User, Users, BarChart3, ClipboardCheck, Hand, Star } from 'lucide-react'
 import { createChallenge } from '../../lib/challenge-service'
-import { STAT_OPTIONS } from '../../lib/engagement-constants'
+import { STAT_OPTIONS, DIFFICULTY_CONFIG } from '../../lib/engagement-constants'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 
@@ -22,12 +22,13 @@ export default function CreateChallengeModal({ visible, teamId, organizationId, 
   const [xpReward, setXpReward] = useState('50')
   const [customReward, setCustomReward] = useState('')
   const [durationDays, setDurationDays] = useState('7')
+  const [difficulty, setDifficulty] = useState('standard')
   const [creating, setCreating] = useState(false)
 
   const resetForm = () => {
     setTitle(''); setDescription(''); setChallengeType('individual')
     setMetricType('coach_verified'); setStatKey(''); setTargetValue('')
-    setXpReward('50'); setCustomReward(''); setDurationDays('7')
+    setXpReward('50'); setCustomReward(''); setDurationDays('7'); setDifficulty('standard')
   }
 
   const handleCreate = async () => {
@@ -53,7 +54,11 @@ export default function CreateChallengeModal({ visible, teamId, organizationId, 
         metricType,
         statKey: metricType === 'stat_based' ? statKey : undefined,
         targetValue: Number(targetValue),
-        xpReward: Math.min(Math.max(Number(xpReward) || 50, 25), 500),
+        xpReward: (() => {
+          const tc = DIFFICULTY_CONFIG[difficulty]
+          return Math.min(Math.max(Number(xpReward) || tc.xpDefault, tc.xpMin), tc.xpMax)
+        })(),
+        difficulty,
         customRewardText: customReward.trim() || undefined,
         startsAt: now.toISOString(),
         endsAt: end.toISOString(),
@@ -227,16 +232,38 @@ export default function CreateChallengeModal({ visible, teamId, organizationId, 
             </div>
           </div>
 
+          {/* Difficulty Tier */}
+          <div>
+            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>Difficulty Tier</label>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(DIFFICULTY_CONFIG).map(([key, cfg]) => (
+                <button
+                  key={key}
+                  onClick={() => { setDifficulty(key); setXpReward(String(cfg.xpDefault)) }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                  style={{
+                    border: `1.5px solid ${difficulty === key ? cfg.color : border}`,
+                    background: difficulty === key ? cfg.bgColor : 'transparent',
+                    color: difficulty === key ? cfg.color : textColor,
+                  }}
+                >
+                  {cfg.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] mt-1" style={{ color: mutedColor }}>{DIFFICULTY_CONFIG[difficulty].description}</p>
+          </div>
+
           {/* XP Reward */}
           <div>
-            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>XP Reward (15–300)</label>
+            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>XP Reward ({DIFFICULTY_CONFIG[difficulty].xpMin}–{DIFFICULTY_CONFIG[difficulty].xpMax})</label>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
               <input
                 type="number"
                 value={xpReward}
                 onChange={e => setXpReward(e.target.value)}
-                placeholder="50"
+                placeholder={String(DIFFICULTY_CONFIG[difficulty].xpDefault)}
                 className="w-28 px-3.5 py-2.5 rounded-xl text-sm outline-none"
                 style={{ background: inputBg, border: `1px solid ${border}`, color: textColor }}
               />
