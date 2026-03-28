@@ -4,6 +4,7 @@
 
 import { supabase } from './supabase'
 import { getLevelFromXP, XP_BY_RARITY } from './engagement-constants'
+import { awardXP } from './xp-award-service'
 
 // =============================================================================
 // Core: Check and unlock achievements after game stats
@@ -148,30 +149,14 @@ async function gatherAllStats(playerId, organizationId) {
 async function awardAchievementXP(playerId, organizationId, achievement) {
   const xpAmount = XP_BY_RARITY[achievement.rarity] || XP_BY_RARITY.common
 
-  await supabase.from('xp_ledger').insert({
-    player_id: playerId,
-    organization_id: organizationId,
-    xp_amount: xpAmount,
-    source_type: 'achievement',
-    source_id: achievement.id,
+  await awardXP({
+    profileId: playerId,
+    baseAmount: xpAmount,
+    sourceType: 'achievement',
+    sourceId: achievement.id,
+    organizationId,
     description: `Unlocked "${achievement.name}" (+${xpAmount} XP)`,
   })
-
-  // Update profile XP
-  const { data: prof } = await supabase
-    .from('profiles')
-    .select('total_xp')
-    .eq('id', playerId)
-    .single()
-
-  const currentXP = prof?.total_xp || 0
-  const newXP = currentXP + xpAmount
-  const { level, tier, xpToNext } = getLevelFromXP(newXP)
-
-  await supabase
-    .from('profiles')
-    .update({ total_xp: newXP, player_level: level, tier, xp_to_next_level: xpToNext })
-    .eq('id', playerId)
 }
 
 // =============================================================================
