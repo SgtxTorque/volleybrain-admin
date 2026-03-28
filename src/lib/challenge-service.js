@@ -3,7 +3,8 @@
 // =============================================================================
 
 import { supabase } from './supabase'
-import { getLevelFromXP, XP_BY_SOURCE, DIFFICULTY_CONFIG } from './engagement-constants'
+import { XP_BY_SOURCE, DIFFICULTY_CONFIG } from './engagement-constants'
+import { awardXP } from './xp-award-service'
 
 // =============================================================================
 // Create Challenge
@@ -317,50 +318,28 @@ export async function completeChallenge(challengeId) {
     const completedParticipants = participants.filter(p => p.completed)
     const winnerId = participants[0]?.player_id
 
-    const xpEntries = completedParticipants.map(p => ({
-      player_id: p.player_id,
-      organization_id: challenge.organization_id,
-      xp_amount: challenge.xp_reward || XP_BY_SOURCE.challenge_completed,
-      source_type: 'challenge',
-      source_id: challengeId,
-      description: `Completed challenge "${challenge.title}" (+${challenge.xp_reward} XP)`,
-    }))
-
-    if (challenge.challenge_type === 'individual' && winnerId) {
-      xpEntries.push({
-        player_id: winnerId,
-        organization_id: challenge.organization_id,
-        xp_amount: XP_BY_SOURCE.challenge_won,
-        source_type: 'challenge_won',
-        source_id: challengeId,
-        description: `Won challenge "${challenge.title}" (+${XP_BY_SOURCE.challenge_won} XP bonus)`,
+    for (const participant of completedParticipants) {
+      const xpAmount = challenge.xp_reward || XP_BY_SOURCE.challenge_completed
+      await awardXP({
+        profileId: participant.player_id,
+        baseAmount: xpAmount,
+        sourceType: 'challenge',
+        sourceId: challenge.id,
+        organizationId: challenge.organization_id,
+        description: `Completed challenge "${challenge.title}" (+${xpAmount} XP)`,
       })
     }
 
-    if (xpEntries.length > 0) {
-      await supabase.from('xp_ledger').insert(xpEntries)
-
-      const playerIds = [...new Set(xpEntries.map(e => e.player_id))]
-      for (const pid of playerIds) {
-        const totalXpForPlayer = xpEntries
-          .filter(e => e.player_id === pid)
-          .reduce((sum, e) => sum + e.xp_amount, 0)
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('total_xp')
-          .eq('id', pid)
-          .single()
-
-        const currentXP = profile?.total_xp || 0
-        const newXP = currentXP + totalXpForPlayer
-        const { level, tier, xpToNext } = getLevelFromXP(newXP)
-
-        await supabase
-          .from('profiles')
-          .update({ total_xp: newXP, player_level: level, tier, xp_to_next_level: xpToNext })
-          .eq('id', pid)
-      }
+    // Winner bonus (individual challenges only)
+    if (challenge.challenge_type === 'individual' && winnerId) {
+      await awardXP({
+        profileId: winnerId,
+        baseAmount: XP_BY_SOURCE.challenge_won,
+        sourceType: 'challenge_won',
+        sourceId: challenge.id,
+        organizationId: challenge.organization_id,
+        description: `Won challenge "${challenge.title}" (+${XP_BY_SOURCE.challenge_won} XP bonus)`,
+      })
     }
 
     return {
