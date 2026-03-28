@@ -155,3 +155,61 @@ export const STAT_OPTIONS = [
   { key: 'total_serves', label: 'Serves' },
   { key: 'total_service_points', label: 'Service Points' },
 ]
+
+/** V2 Challenge Difficulty Tiers — coach picks tier, adjusts XP within range */
+export const DIFFICULTY_CONFIG = {
+  quick_win: {
+    label: 'Quick Win',
+    color: '#10B981',
+    bgColor: '#10B98115',
+    xpMin: 15,
+    xpMax: 35,
+    xpDefault: 25,
+    description: '10 minutes or less',
+  },
+  standard: {
+    label: 'Standard',
+    color: '#3B82F6',
+    bgColor: '#3B82F615',
+    xpMin: 35,
+    xpMax: 75,
+    xpDefault: 50,
+    description: 'Real effort across a practice or day',
+  },
+  grind: {
+    label: 'Grind',
+    color: '#F59E0B',
+    bgColor: '#F59E0B15',
+    xpMin: 75,
+    xpMax: 150,
+    xpDefault: 100,
+    description: 'Sustained effort across days or a week',
+  },
+  team_challenge: {
+    label: 'Team Challenge',
+    color: '#8B5CF6',
+    bgColor: '#8B5CF615',
+    xpMin: 50,
+    xpMax: 100,
+    xpDefault: 75,
+    description: 'Whole team works together',
+  },
+  boss_challenge: {
+    label: 'Boss Challenge',
+    color: '#EF4444',
+    bgColor: '#EF444415',
+    xpMin: 150,
+    xpMax: 300,
+    xpDefault: 200,
+    description: 'Season-defining accomplishment',
+  },
+}
+
+/** V2 Engagement Categories — the 5 parent categories for all badges */
+export const ENGAGEMENT_CATEGORIES = {
+  stat:      { label: 'Stat Badges',      icon: 'BarChart3',       color: '#EF4444', description: 'Auto-earned from game performance' },
+  milestone: { label: 'Milestones',        icon: 'Award',           color: '#6366F1', description: 'Auto-earned from showing up' },
+  coach:     { label: 'Coach Badges',      icon: 'ClipboardList',   color: '#F59E0B', description: 'Coach-awarded and challenge completion' },
+  journey:   { label: 'Journey Badges',    icon: 'Map',             color: '#10B981', description: 'Earned from skill path progress' },
+  community: { label: 'Community',         icon: 'Users',           color: '#EC4899', description: 'Social actions and discovery' },
+}
