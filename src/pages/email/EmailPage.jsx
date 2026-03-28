@@ -916,7 +916,8 @@ function EmailSettingsTab({ showToast }) {
           },
         },
       }
-      await supabase.from('organizations').update(updatePayload).eq('id', organization.id)
+      const { error } = await supabase.from('organizations').update(updatePayload).eq('id', organization.id)
+      if (error) throw error
       setOrganization?.({ ...organization, ...updatePayload, settings: { ...currentSettings, ...updatePayload.settings } })
       showToast?.('Email settings saved!', 'success')
     } catch (err) {
