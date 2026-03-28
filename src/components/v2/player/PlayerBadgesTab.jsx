@@ -65,7 +65,12 @@ export default function PlayerBadgesTab({
                 opacity: 0.5,
               }}
             >
-              <span style={{ fontSize: 32, display: 'block', marginBottom: 8 }}>🔒</span>
+              <div style={{ fontSize: 32, display: 'flex', justifyContent: 'center', marginBottom: 8, height: 40 }}>
+                {badge.imageUrl ? (
+                  <img src={badge.imageUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'grayscale(80%) opacity(0.5)' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline' }} />
+                ) : null}
+                <span style={{ display: badge.imageUrl ? 'none' : 'inline' }}>🔒</span>
+              </div>
               <div style={{ fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.40)', marginBottom: 4 }}>
                 {badge.name || 'Locked'}
               </div>
