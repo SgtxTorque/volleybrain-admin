@@ -55,8 +55,12 @@ export default function BadgeShowcase({
             background: tierBg[badge.tier] || tierBg.common,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 20, flexShrink: 0,
+            overflow: 'hidden',
           }}>
-            {badge.emoji || '🏅'}
+            {badge.imageUrl ? (
+              <img src={badge.imageUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
+            ) : null}
+            <span style={{ display: badge.imageUrl ? 'none' : 'block' }}>{badge.emoji || '🏅'}</span>
           </div>
 
           {/* Info */}

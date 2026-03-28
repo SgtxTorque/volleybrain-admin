@@ -34,9 +34,12 @@ export default function PlayerBadgesTab({
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
-              <span style={{ fontSize: 32, display: 'block', marginBottom: 8 }}>
-                {badge.icon || '🏅'}
-              </span>
+              <div style={{ fontSize: 32, display: 'flex', justifyContent: 'center', marginBottom: 8, height: 40 }}>
+                {badge.imageUrl ? (
+                  <img src={badge.imageUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline' }} />
+                ) : null}
+                <span style={{ display: badge.imageUrl ? 'none' : 'inline' }}>{badge.icon || '🏅'}</span>
+              </div>
               <div style={{ fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.90)', marginBottom: 4 }}>
                 {badge.name || 'Badge'}
               </div>

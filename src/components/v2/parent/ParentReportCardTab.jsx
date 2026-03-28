@@ -83,9 +83,12 @@ export default function ParentReportCardTab({
                   textAlign: 'center', background: tier.bg,
                   borderRadius: 10, padding: '12px 8px',
                 }}>
-                  <span style={{ fontSize: 24, display: 'block', marginBottom: 4 }}>
-                    {badge.icon || '🏅'}
-                  </span>
+                  <div style={{ fontSize: 24, display: 'flex', justifyContent: 'center', marginBottom: 4, height: 32 }}>
+                    {badge.icon_url || badge.badge_image_url ? (
+                      <img src={badge.badge_image_url || badge.icon_url} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline' }} />
+                    ) : null}
+                    <span style={{ display: (badge.icon_url || badge.badge_image_url) ? 'none' : 'inline' }}>{badge.icon || '🏅'}</span>
+                  </div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--v2-text-primary)' }}>
                     {badge.name || 'Badge'}
                   </div>

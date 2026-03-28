@@ -173,7 +173,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
       }
 
       try {
-        const { data: badgeData } = await supabase.from('player_achievements').select('id, earned_at, achievement:achievement_id(id, name, icon, rarity, color_primary, description)').eq('player_id', player.id).order('earned_at', { ascending: false })
+        const { data: badgeData } = await supabase.from('player_achievements').select('id, earned_at, achievement:achievement_id(id, name, icon, icon_url, badge_image_url, rarity, color_primary, description)').eq('player_id', player.id).order('earned_at', { ascending: false })
         setBadges(badgeData || [])
       } catch { setBadges([]) }
     } catch (err) { console.error('Error loading player dashboard:', err) }
@@ -249,6 +249,7 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
     id: b.id,
     name: b.achievement?.name || 'Badge',
     icon: b.achievement?.icon || '🏅',
+    imageUrl: b.achievement?.badge_image_url || b.achievement?.icon_url || null,
     rarity: b.achievement?.rarity || 'common',
   }))
 

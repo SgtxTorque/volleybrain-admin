@@ -249,7 +249,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     if (!playerId) return
     try {
       const { data } = await supabase.from('player_achievements')
-        .select('*, achievements(name, icon, description, rarity)')
+        .select('*, achievements(name, icon, icon_url, badge_image_url, description, rarity)')
         .eq('player_id', playerId)
         .order('earned_at', { ascending: false })
         .limit(8)
@@ -441,6 +441,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const showcaseBadges = childAchievements.map(ach => ({
     name: ach.achievements?.name || 'Badge',
     emoji: ach.achievements?.icon || '🏅',
+    imageUrl: ach.achievements?.badge_image_url || ach.achievements?.icon_url || null,
     tier: ach.achievements?.rarity || 'common',
     childName: activeChild?.first_name,
     earnedDate: ach.earned_at ? new Date(ach.earned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
@@ -579,16 +580,23 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
 
                 {/* Badge preview */}
                 <div style={{ display: 'flex', gap: 5, margin: '10px 0' }}>
-                  {(childAchievements || []).slice(0, 3).map((badge, i) => (
-                    <div key={i} style={{
-                      width: 30, height: 30, borderRadius: 8,
-                      background: 'rgba(255,255,255,0.08)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 15, border: '1px solid rgba(255,255,255,0.06)',
-                    }}>
-                      {badge.achievements?.icon || '🏅'}
-                    </div>
-                  ))}
+                  {(childAchievements || []).slice(0, 3).map((badge, i) => {
+                    const badgeImg = badge.achievements?.badge_image_url || badge.achievements?.icon_url
+                    return (
+                      <div key={i} style={{
+                        width: 30, height: 30, borderRadius: 8,
+                        background: 'rgba(255,255,255,0.08)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 15, border: '1px solid rgba(255,255,255,0.06)',
+                        overflow: 'hidden',
+                      }}>
+                        {badgeImg ? (
+                          <img src={badgeImg} alt="" style={{ width: 30, height: 30, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
+                        ) : null}
+                        <span style={{ display: badgeImg ? 'none' : 'block' }}>{badge.achievements?.icon || '🏅'}</span>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* XP bar */}
