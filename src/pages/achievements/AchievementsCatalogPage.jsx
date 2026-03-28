@@ -7,6 +7,7 @@ import { Search, Filter, Trophy, Star, Target, Shield, Zap, Heart, ChevronDown }
 import { AchievementCard, CallingCardPreview } from './AchievementCard'
 import { AchievementDetailModal } from './AchievementDetailModal'
 import PageShell from '../../components/pages/PageShell'
+import { ENGAGEMENT_CATEGORIES } from '../../lib/engagement-constants'
 
 // Category configuration
 const CATEGORIES = [
@@ -53,6 +54,7 @@ export function AchievementsCatalogPage({
   const [selectedType, setSelectedType] = useState('all')
   const [showEarnedOnly, setShowEarnedOnly] = useState(false)
   const [showUnlockedOnly, setShowUnlockedOnly] = useState(false)
+  const [engagementFilter, setEngagementFilter] = useState(null)
 
   // Modal
   const [selectedAchievement, setSelectedAchievement] = useState(null)
@@ -164,6 +166,9 @@ export function AchievementsCatalogPage({
   // Filter achievements
   const filteredAchievements = useMemo(() => {
     return achievementsWithProgress.filter(a => {
+      // V2 engagement category
+      if (engagementFilter && a.engagement_category !== engagementFilter) return false
+
       // Search
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
@@ -187,7 +192,7 @@ export function AchievementsCatalogPage({
 
       return true
     })
-  }, [achievementsWithProgress, searchQuery, selectedCategory, selectedType, showEarnedOnly, showUnlockedOnly])
+  }, [achievementsWithProgress, searchQuery, selectedCategory, selectedType, showEarnedOnly, showUnlockedOnly, engagementFilter])
 
   // Group by category for display
   const groupedAchievements = useMemo(() => {
@@ -332,6 +337,34 @@ export function AchievementsCatalogPage({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* V2 Engagement Category Filter */}
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setEngagementFilter(null)}
+            className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all ${
+              !engagementFilter
+                ? 'bg-[#4BB9EC]/15 text-[#4BB9EC] border border-[#4BB9EC]/30'
+                : `${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white/60 hover:bg-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2] text-slate-500 hover:bg-[#E8ECF2]'}`
+            }`}
+          >
+            All Badges
+          </button>
+          {Object.entries(ENGAGEMENT_CATEGORIES).map(([key, cfg]) => (
+            <button
+              key={key}
+              onClick={() => setEngagementFilter(engagementFilter === key ? null : key)}
+              className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all"
+              style={{
+                border: `1.5px solid ${engagementFilter === key ? cfg.color : isDark ? 'rgba(255,255,255,0.08)' : '#E8ECF2'}`,
+                background: engagementFilter === key ? cfg.color + '15' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
+                color: engagementFilter === key ? cfg.color : isDark ? 'rgba(255,255,255,0.6)' : '#64748b',
+              }}
+            >
+              {cfg.label}
+            </button>
+          ))}
         </div>
 
         {/* Filters — V2 styled */}
