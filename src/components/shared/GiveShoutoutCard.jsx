@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Star, Send, ChevronDown, Check } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { fetchShoutoutCategories, giveShoutout } from '../../lib/shoutout-service'
@@ -120,7 +121,7 @@ export default function GiveShoutoutCard({ selectedTeam }) {
             <Check className="w-5 h-5 text-green-500" />
           </div>
           <p className={`text-r-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Sent!</p>
-          <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>+10 XP for you</p>
+          <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>+{XP_BY_SOURCE.shoutout_given} XP for you</p>
         </div>
       ) : (
         <>

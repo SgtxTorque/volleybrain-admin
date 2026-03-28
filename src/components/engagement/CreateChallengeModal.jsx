@@ -229,7 +229,7 @@ export default function CreateChallengeModal({ visible, teamId, organizationId, 
 
           {/* XP Reward */}
           <div>
-            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>XP Reward (25–500)</label>
+            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>XP Reward (15–300)</label>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
               <input

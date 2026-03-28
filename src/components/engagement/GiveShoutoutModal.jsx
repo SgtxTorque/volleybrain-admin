@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { X, ArrowLeft, Search, Send, Star, ChevronRight } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { fetchShoutoutCategories, giveShoutout } from '../../lib/shoutout-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 
@@ -314,7 +315,7 @@ export default function GiveShoutoutModal({ visible, teamId, onClose, onSuccess,
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl mb-5" style={{ background: inputBg }}>
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                 <span className="text-xs font-medium" style={{ color: subtleColor }}>
-                  +10 XP for you, +15 XP for {selectedRecipient?.full_name?.split(' ')[0]}
+                  +{XP_BY_SOURCE.shoutout_given} XP for you, +{XP_BY_SOURCE.shoutout_received} XP for {selectedRecipient?.full_name?.split(' ')[0]}
                 </span>
               </div>
 
