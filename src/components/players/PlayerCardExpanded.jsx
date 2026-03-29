@@ -19,27 +19,10 @@ const positionNames = {
   'OPP': 'Opposite', 'L': 'Libero', 'DS': 'Defensive Specialist', 'RS': 'Right Side',
 }
 
-// Badge definitions with icons and colors
-const badgeDefinitions = {
-  'ace_sniper': { name: 'Ace Sniper', icon: '🏐', color: '#F59E0B', rarity: 'Rare' },
-  'kill_shot': { name: 'Kill Shot', icon: '⚡', color: '#EF4444', rarity: 'Epic' },
-  'heart_breaker': { name: 'Heart Breaker', icon: '💜', color: '#EC4899', rarity: 'Rare' },
-  'ground_zero': { name: 'Ground Zero', icon: '💎', color: '#06B6D4', rarity: 'Uncommon' },
-  'iron_fortress': { name: 'Iron Fortress', icon: '🛡️', color: '#6366F1', rarity: 'Legendary' },
-  'puppet_master': { name: 'Puppet Master', icon: '🎭', color: '#F59E0B', rarity: 'Epic' },
-  'ace_master': { name: 'Ace Master', icon: '🎯', color: '#10B981', rarity: 'Rare' },
-  'dig_machine': { name: 'Dig Machine', icon: '💪', color: '#8B5CF6', rarity: 'Uncommon' },
-  'mvp': { name: 'MVP', icon: '⭐', color: '#EF4444', rarity: 'Legendary' },
-  'team_player': { name: 'Team Player', icon: '🤝', color: '#3B82F6', rarity: 'Common' },
-}
-
-// Rarity colors for badge borders
-const rarityColors = {
-  'Common': '#6B7280',
-  'Uncommon': '#10B981',
-  'Rare': '#3B82F6',
-  'Epic': '#8B5CF6',
-  'Legendary': '#F59E0B',
+// V2 rarity colors (lowercase keys match achievements table)
+const RARITY_COLORS = {
+  common: '#6B7280', uncommon: '#10B981', rare: '#3B82F6',
+  epic: '#8B5CF6', legendary: '#F59E0B',
 }
 
 // ============================================
@@ -142,36 +125,42 @@ function SkillBar({ label, value, maxValue = 100, theme }) {
 }
 
 // ============================================
-// BADGE ICON COMPONENT
+// BADGE ICON COMPONENT (V2 — renders icon_url images)
 // ============================================
-function BadgeIcon({ badgeId, size = 'md', showLabel = false, earnedDate, theme }) {
-  const badge = badgeDefinitions[badgeId] || { name: badgeId, icon: '🏅', color: '#6B7280', rarity: 'Common' }
-  const rarityColor = rarityColors[badge.rarity] || '#6B7280'
-  
-  const sizeClasses = {
-    sm: 'w-10 h-10 text-lg',
-    md: 'w-14 h-14 text-2xl',
-    lg: 'w-20 h-20 text-4xl',
+function BadgeIcon({ achievement, size = 'md', showLabel = false, earnedDate, theme }) {
+  if (!achievement) return null
+  const imgUrl = achievement.badge_image_url || achievement.icon_url
+  const rarityColor = RARITY_COLORS[achievement.rarity] || '#6B7280'
+  const bgColor = achievement.color_primary || rarityColor
+
+  const sizes = {
+    sm: { box: 'w-10 h-10', img: 32, emoji: 'text-lg' },
+    md: { box: 'w-14 h-14', img: 48, emoji: 'text-2xl' },
+    lg: { box: 'w-20 h-20', img: 64, emoji: 'text-4xl' },
   }
-  
+  const s = sizes[size] || sizes.md
+
   return (
     <div className="flex flex-col items-center gap-2">
-      <div 
-        className={`${sizeClasses[size]} rounded-xl flex items-center justify-center`}
-        style={{ 
-          backgroundColor: `${badge.color}20`,
+      <div
+        className={`${s.box} rounded-xl flex items-center justify-center overflow-hidden`}
+        style={{
+          backgroundColor: `${bgColor}20`,
           border: `2px solid ${rarityColor}`,
           boxShadow: `0 0 20px ${rarityColor}40`
         }}
       >
-        {badge.icon}
+        {imgUrl ? (
+          <img src={imgUrl} alt={achievement.name} style={{ width: s.img, height: s.img, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+        ) : null}
+        <span style={{ display: imgUrl ? 'none' : 'block' }} className={s.emoji}>{achievement.icon || '🏅'}</span>
       </div>
       {showLabel && (
         <>
-          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: theme?.textPrimary || '#ffffff' }}>
-            {badge.name}
+          <span className="text-xs font-semibold uppercase tracking-wide text-center" style={{ color: theme?.textPrimary || '#ffffff' }}>
+            {achievement.name}
           </span>
-          <span className="text-[10px]" style={{ color: theme?.textMuted || '#64748b' }}>{badge.rarity}</span>
+          <span className="text-[10px] capitalize" style={{ color: theme?.textMuted || '#64748b' }}>{achievement.rarity}</span>
           {earnedDate && <span className="text-[10px]" style={{ color: theme?.textMuted || '#64748b' }}>Earned {earnedDate}</span>}
         </>
       )}
@@ -340,22 +329,23 @@ export function PlayerCardExpanded({
 
   async function loadBadges() {
     try {
-      const { data, error } = await supabase
-        .from('player_badges')
-        .select('*')
+      // V2: Query player_achievements with joined achievement data
+      const { data: earnedData, error } = await supabase
+        .from('player_achievements')
+        .select('achievement_id, earned_at, achievements(id, name, icon, icon_url, badge_image_url, rarity, color_primary)')
         .eq('player_id', player.id)
-        .order('awarded_at', { ascending: false })
-      
+        .order('earned_at', { ascending: false })
+
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading badges:', error)
       }
-      setBadges(data || [])
-      
-      // Try to load in-progress achievements
+      setBadges(earnedData || [])
+
+      // Load in-progress achievements with joined data
       try {
         const { data: progressData } = await supabase
           .from('player_achievement_progress')
-          .select('*')
+          .select('achievement_id, current_value, target_value, achievements(id, name, icon, icon_url, badge_image_url, rarity, color_primary)')
           .eq('player_id', player.id)
         setBadgesInProgress(progressData || [])
       } catch {
@@ -640,18 +630,21 @@ export function PlayerCardExpanded({
                 {/* Badge Icons Row */}
                 {badges.length > 0 && (
                   <div className="flex gap-2 mt-3">
-                    {badges.slice(0, 4).map((b, i) => (
-                      <div 
-                        key={i}
-                        className="w-10 h-10 rounded-lg flex items-center justify-center"
-                        style={{ 
-                          backgroundColor: `${badgeDefinitions[b.badge_id]?.color || '#6B7280'}20`,
-                          border: `2px solid ${badgeDefinitions[b.badge_id]?.color || '#6B7280'}`,
-                        }}
-                      >
-                        {badgeDefinitions[b.badge_id]?.icon || '🏅'}
-                      </div>
-                    ))}
+                    {badges.slice(0, 4).map((b, i) => {
+                      const ach = b.achievements
+                      if (!ach) return null
+                      const imgUrl = ach.badge_image_url || ach.icon_url
+                      const rc = RARITY_COLORS[ach.rarity] || '#6B7280'
+                      return (
+                        <div key={i} className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden"
+                          style={{ backgroundColor: `${rc}20`, border: `2px solid ${rc}` }}>
+                          {imgUrl ? (
+                            <img src={imgUrl} alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+                          ) : null}
+                          <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 18 }}>{ach.icon || '🏅'}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -849,18 +842,21 @@ export function PlayerCardExpanded({
                       
                       {badges.length > 0 ? (
                         <div className="grid grid-cols-3 gap-3">
-                          {badges.slice(0, 6).map((b, i) => (
-                            <div 
-                              key={i}
-                              className="aspect-square rounded-xl flex items-center justify-center text-2xl"
-                              style={{ 
-                                backgroundColor: `${badgeDefinitions[b.badge_id]?.color || '#6B7280'}20`,
-                                border: `2px solid ${badgeDefinitions[b.badge_id]?.color || '#6B7280'}`,
-                              }}
-                            >
-                              {badgeDefinitions[b.badge_id]?.icon || '🏅'}
-                            </div>
-                          ))}
+                          {badges.slice(0, 6).map((b, i) => {
+                            const ach = b.achievements
+                            if (!ach) return null
+                            const imgUrl = ach.badge_image_url || ach.icon_url
+                            const rc = RARITY_COLORS[ach.rarity] || '#6B7280'
+                            return (
+                              <div key={i} className="aspect-square rounded-xl flex items-center justify-center overflow-hidden"
+                                style={{ backgroundColor: `${rc}20`, border: `2px solid ${rc}` }}>
+                                {imgUrl ? (
+                                  <img src={imgUrl} alt="" style={{ width: '80%', height: '80%', objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+                                ) : null}
+                                <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 24 }}>{ach.icon || '🏅'}</span>
+                              </div>
+                            )
+                          })}
                         </div>
                       ) : (
                         <p style={{ color: theme.textMuted }} className="text-sm text-center py-4">
@@ -872,33 +868,31 @@ export function PlayerCardExpanded({
                       {badgesInProgress.length > 0 && (
                         <>
                           <h5 className="text-xs uppercase mt-4 mb-2" style={{ color: theme.textMuted }}>In Progress</h5>
-                          {badgesInProgress.slice(0, 2).map((b, i) => (
-                            <div key={i} className="flex items-center gap-3 py-2">
-                              <div 
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
-                                style={{ 
-                                  backgroundColor: `${badgeDefinitions[b.badge_id]?.color || '#6B7280'}20`,
-                                }}
-                              >
-                                {badgeDefinitions[b.badge_id]?.icon || '🏅'}
-                              </div>
-                              <div className="flex-1">
-                                <p style={{ color: theme.textPrimary }} className="text-xs font-medium uppercase">
-                                  {badgeDefinitions[b.badge_id]?.name || b.badge_id}
-                                </p>
-                                <div className="h-1.5 rounded-full mt-1" style={{ backgroundColor: theme.skillBarBg }}>
-                                  <div 
-                                    className="h-full rounded-full"
-                                    style={{ 
-                                      width: `${(b.progress / b.target) * 100}%`,
-                                      backgroundColor: badgeDefinitions[b.badge_id]?.color || '#6B7280'
-                                    }}
-                                  />
+                          {badgesInProgress.slice(0, 2).map((b, i) => {
+                            const ach = b.achievements
+                            if (!ach) return null
+                            const imgUrl = ach.badge_image_url || ach.icon_url
+                            const rc = RARITY_COLORS[ach.rarity] || '#6B7280'
+                            const pct = b.target_value ? Math.min((b.current_value / b.target_value) * 100, 100) : 0
+                            return (
+                              <div key={i} className="flex items-center gap-3 py-2">
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
+                                  style={{ backgroundColor: `${rc}20` }}>
+                                  {imgUrl ? (
+                                    <img src={imgUrl} alt="" style={{ width: 24, height: 24, objectFit: 'contain', filter: 'grayscale(60%) opacity(0.6)' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+                                  ) : null}
+                                  <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 14 }}>{ach.icon || '🏅'}</span>
                                 </div>
+                                <div className="flex-1">
+                                  <p style={{ color: theme.textPrimary }} className="text-xs font-medium uppercase">{ach.name}</p>
+                                  <div className="h-1.5 rounded-full mt-1" style={{ backgroundColor: theme.skillBarBg }}>
+                                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: rc }} />
+                                  </div>
+                                </div>
+                                <span className="text-xs" style={{ color: theme.textMuted }}>{b.current_value || 0}/{b.target_value || '?'}</span>
                               </div>
-                              <span className="text-xs" style={{ color: theme.textMuted }}>{b.progress}/{b.target}</span>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </>
                       )}
                     </div>
@@ -1038,12 +1032,12 @@ export function PlayerCardExpanded({
                     {badges.length > 0 ? (
                       <div className="grid grid-cols-4 gap-6">
                         {badges.map((b, i) => (
-                          <BadgeIcon 
-                            key={i} 
-                            badgeId={b.badge_id} 
-                            size="lg" 
-                            showLabel 
-                            earnedDate={b.awarded_at ? new Date(b.awarded_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null}
+                          <BadgeIcon
+                            key={i}
+                            achievement={b.achievements}
+                            size="lg"
+                            showLabel
+                            earnedDate={b.earned_at ? new Date(b.earned_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' }) : null}
                             theme={theme}
                           />
                         ))}
@@ -1058,39 +1052,34 @@ export function PlayerCardExpanded({
                     <div style={{ backgroundColor: theme.cardBg }} className="rounded-xl p-5">
                       <h4 className="text-xs uppercase tracking-wider mb-4" style={{ color: theme.textMuted }}>In Progress</h4>
                       <div className="grid grid-cols-2 gap-4">
-                        {badgesInProgress.map((b, i) => (
-                          <div 
-                            key={i} 
-                            className="flex items-center gap-4 rounded-xl p-4"
-                            style={{ backgroundColor: theme.isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.5)' }}
-                          >
-                            <div 
-                              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
-                              style={{ 
-                                backgroundColor: `${badgeDefinitions[b.badge_id]?.color || '#6B7280'}20`,
-                              }}
-                            >
-                              {badgeDefinitions[b.badge_id]?.icon || '🏅'}
-                            </div>
-                            <div className="flex-1">
-                              <p style={{ color: theme.textPrimary }} className="font-medium uppercase text-sm">
-                                {badgeDefinitions[b.badge_id]?.name || b.badge_id}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: theme.skillBarBg }}>
-                                  <div 
-                                    className="h-full rounded-full"
-                                    style={{ 
-                                      width: `${(b.progress / b.target) * 100}%`,
-                                      backgroundColor: badgeDefinitions[b.badge_id]?.color || '#6B7280'
-                                    }}
-                                  />
+                        {badgesInProgress.map((b, i) => {
+                          const ach = b.achievements
+                          if (!ach) return null
+                          const imgUrl = ach.badge_image_url || ach.icon_url
+                          const rc = RARITY_COLORS[ach.rarity] || '#6B7280'
+                          const pct = b.target_value ? Math.min((b.current_value / b.target_value) * 100, 100) : 0
+                          return (
+                            <div key={i} className="flex items-center gap-4 rounded-xl p-4"
+                              style={{ backgroundColor: theme.isDark ? 'rgba(51, 65, 85, 0.3)' : 'rgba(226, 232, 240, 0.5)' }}>
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
+                                style={{ backgroundColor: `${rc}20` }}>
+                                {imgUrl ? (
+                                  <img src={imgUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'grayscale(60%) opacity(0.6)' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+                                ) : null}
+                                <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 20 }}>{ach.icon || '🏅'}</span>
+                              </div>
+                              <div className="flex-1">
+                                <p style={{ color: theme.textPrimary }} className="font-medium uppercase text-sm">{ach.name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: theme.skillBarBg }}>
+                                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: rc }} />
+                                  </div>
+                                  <span className="text-xs" style={{ color: theme.textMuted }}>{b.current_value || 0}/{b.target_value || '?'}</span>
                                 </div>
-                                <span className="text-xs" style={{ color: theme.textMuted }}>{b.progress}/{b.target}</span>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   )}
