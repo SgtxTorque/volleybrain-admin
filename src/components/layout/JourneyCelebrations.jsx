@@ -16,8 +16,18 @@ function BadgeCelebration({ badge, onClose }) {
         className={`text-center p-8 rounded-xl max-w-sm ${tc.pageBg}`}
         style={{ animation: 'bounceIn 0.5s ease-out' }}
       >
-        {/* Confetti effect placeholder */}
-        <div className="text-6xl mb-4 animate-bounce">{badge.icon}</div>
+        {/* Badge visual */}
+        <div className="mb-4 animate-bounce flex justify-center">
+          {(badge.badge_image_url || badge.icon_url) ? (
+            <img
+              src={badge.badge_image_url || badge.icon_url}
+              alt={badge.name || 'Badge'}
+              style={{ width: 80, height: 80, borderRadius: 12, objectFit: 'contain' }}
+              onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }}
+            />
+          ) : null}
+          <span className="text-6xl" style={{ display: (badge.badge_image_url || badge.icon_url) ? 'none' : 'block' }}>{badge.icon || '🏅'}</span>
+        </div>
         <h2 className={`text-2xl font-bold ${tc.text} mb-2`}>Badge Earned!</h2>
         <p className="text-xl font-semibold mb-1" style={{ color: accent.primary }}>{badge.name}</p>
         <p className={`${tc.textMuted} mb-6`}>{badge.description}</p>
