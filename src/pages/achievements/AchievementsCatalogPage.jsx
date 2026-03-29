@@ -223,10 +223,20 @@ export function AchievementsCatalogPage({
     return { total, earned, inProgress }
   }, [achievements, playerAchievements, achievementsWithProgress])
 
-  // Dynamic subcategory list derived from actual achievement data
+  // Dynamic subcategory list — scoped to active engagement category
   const dynamicCategories = useMemo(() => {
-    return [...new Set(achievements.map(a => a.category).filter(Boolean))].sort()
-  }, [achievements])
+    const source = engagementFilter
+      ? achievements.filter(a => a.engagement_category === engagementFilter)
+      : achievements
+    return [...new Set(source.map(a => a.category).filter(Boolean))].sort()
+  }, [achievements, engagementFilter])
+
+  // Reset subcategory when engagement filter changes (selected may no longer exist)
+  useEffect(() => {
+    if (selectedCategory !== 'all' && !dynamicCategories.includes(selectedCategory)) {
+      setSelectedCategory('all')
+    }
+  }, [dynamicCategories, selectedCategory])
 
   // Track/untrack handlers
   async function handleTrack(achievementId) {
