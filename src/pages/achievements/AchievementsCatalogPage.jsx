@@ -330,7 +330,7 @@ export function AchievementsCatalogPage({
               <h2 className="text-xl font-extrabold text-white italic" style={{ fontFamily: 'var(--v2-font)' }}>
                 ACHIEVEMENTS
               </h2>
-              <p className="text-sm text-white/50 mt-1">{stats.total} total badges across {CATEGORIES.length - 1} categories</p>
+              <p className="text-sm text-white/50 mt-1">{stats.total} total badges across {dynamicCategories.length} categories</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="px-4 py-2 rounded-xl bg-[#22C55E]/15 text-center">
