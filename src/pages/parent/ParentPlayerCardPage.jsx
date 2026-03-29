@@ -3,7 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import SpiderChart from '../../components/charts/SpiderChart'
 import { Target, TrendingUp } from '../../constants/icons'
-import { badgeDefinitions, rarityColors } from './ParentPlayerHero'
+// badgeDefinitions removed — BadgesTab now uses V2 achievements system
 
 // ============================================
 // MULTI-SPORT DISPLAY CONFIG
@@ -270,13 +270,30 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
 
   async function loadBadges() {
     try {
-      const { data } = await supabase.from('player_badges').select('*').eq('player_id', playerId).order('awarded_at', { ascending: false })
-      setBadges(data || [])
-      try {
-        const { data: p } = await supabase.from('player_achievement_progress').select('*').eq('player_id', playerId)
-        setBadgesInProgress(p || [])
-      } catch { setBadgesInProgress([]) }
-    } catch { setBadges([]) }
+      // V2: Query achievements catalog + player's earned achievements
+      const [achResult, earnedResult, progressResult] = await Promise.all([
+        supabase.from('achievements').select('*').eq('is_active', true).order('display_order'),
+        supabase.from('player_achievements').select('achievement_id, earned_at, stat_value_at_unlock').eq('player_id', playerId),
+        supabase.from('player_achievement_progress').select('achievement_id, current_value, target_value').eq('player_id', playerId),
+      ])
+      const allAchievements = achResult.data || []
+      const earnedList = earnedResult.data || []
+      const progressList = progressResult.data || []
+
+      const earnedSet = new Set(earnedList.map(e => e.achievement_id))
+      const earnedMap = Object.fromEntries(earnedList.map(e => [e.achievement_id, e]))
+      const progressMap = Object.fromEntries(progressList.map(p => [p.achievement_id, p]))
+
+      const earned = allAchievements.filter(a => earnedSet.has(a.id)).map(a => ({ ...a, _earned: earnedMap[a.id] }))
+      const inProgress = allAchievements.filter(a => !earnedSet.has(a.id)).map(a => ({ ...a, _progress: progressMap[a.id] || null }))
+
+      setBadges(earned)
+      setBadgesInProgress(inProgress)
+    } catch (err) {
+      console.error('Error loading V2 badges:', err)
+      setBadges([])
+      setBadgesInProgress([])
+    }
   }
 
   async function loadRecentGames() {
