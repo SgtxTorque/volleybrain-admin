@@ -136,8 +136,9 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
 
   async function loadBadges() {
     try {
-      const { data } = await supabase.from('player_badges').select('*')
-        .eq('player_id', playerId).order('awarded_at', { ascending: false }).limit(6)
+      const { data } = await supabase.from('player_achievements')
+        .select('achievement_id, earned_at, achievements(id, name, icon, icon_url, badge_image_url, rarity)')
+        .eq('player_id', playerId).order('earned_at', { ascending: false }).limit(8)
       setBadges(data || [])
     } catch { setBadges([]) }
   }
@@ -402,11 +403,20 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                       <h4 className={`text-xs uppercase tracking-wider font-semibold mb-3 ${secondaryText}`}>Badges</h4>
                       {badges.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
-                          {badges.slice(0, 4).map((b, i) => (
-                            <div key={i} className={`px-2.5 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-lynx-sky/10 text-lynx-sky' : 'bg-lynx-ice text-lynx-deep'}`}>
-                              {b.badge_name || b.badge_type || 'Badge'}
-                            </div>
-                          ))}
+                          {badges.slice(0, 6).map((b, i) => {
+                            const ach = b.achievements
+                            if (!ach) return null
+                            const imgUrl = ach.badge_image_url || ach.icon_url
+                            return (
+                              <div key={i} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1" style={{ backgroundColor: isDark ? 'rgba(75,185,236,0.1)' : '#EDF7FD' }}>
+                                {imgUrl ? (
+                                  <img src={imgUrl} alt="" style={{ width: 20, height: 20, borderRadius: 3, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'inline' }} />
+                                ) : null}
+                                <span style={{ display: imgUrl ? 'none' : 'inline', fontSize: 14 }}>{ach.icon || '🏅'}</span>
+                                <span className={`text-xs font-semibold ${isDark ? 'text-lynx-sky' : 'text-lynx-deep'}`}>{ach.name}</span>
+                              </div>
+                            )
+                          })}
                         </div>
                       ) : <p className={`text-xs text-center py-2 ${secondaryText}`}>No badges yet</p>}
                     </div>
