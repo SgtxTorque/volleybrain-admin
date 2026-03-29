@@ -3,21 +3,14 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { supabase } from '../../lib/supabase'
-import { Search, Filter, Trophy, Star, Target, Shield, Zap, Heart, ChevronDown } from '../../constants/icons'
+import { Search, Trophy } from '../../constants/icons'
 import { AchievementCard, CallingCardPreview } from './AchievementCard'
 import { AchievementDetailModal } from './AchievementDetailModal'
 import PageShell from '../../components/pages/PageShell'
 import { ENGAGEMENT_CATEGORIES } from '../../lib/engagement-constants'
 
-// Category configuration
-const CATEGORIES = [
-  { id: 'all', label: 'All', icon: '🏆' },
-  { id: 'offensive', label: 'Offensive', icon: '⚔️', color: '#EF4444' },
-  { id: 'defensive', label: 'Defensive', icon: '🛡️', color: '#3B82F6' },
-  { id: 'playmaker', label: 'Playmaker', icon: '🎯', color: '#10B981' },
-  { id: 'heart', label: 'Heart', icon: '💜', color: '#A855F7' },
-  { id: 'elite', label: 'Elite', icon: '⭐', color: '#FFD700' },
-]
+// Hardcoded CATEGORIES removed — subcategory chips are now derived dynamically
+// from the actual achievement data (see dynamicCategories useMemo below)
 
 // Type filters
 const TYPES = [
@@ -230,6 +223,11 @@ export function AchievementsCatalogPage({
     return { total, earned, inProgress }
   }, [achievements, playerAchievements, achievementsWithProgress])
 
+  // Dynamic subcategory list derived from actual achievement data
+  const dynamicCategories = useMemo(() => {
+    return [...new Set(achievements.map(a => a.category).filter(Boolean))].sort()
+  }, [achievements])
+
   // Track/untrack handlers
   async function handleTrack(achievementId) {
     try {
@@ -384,20 +382,29 @@ export function AchievementsCatalogPage({
               />
             </div>
 
-            {/* Category pills — V2 */}
+            {/* Category pills — dynamic from data */}
             <div className="flex gap-2 flex-wrap">
-              {CATEGORIES.map(cat => (
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all ${
+                  selectedCategory === 'all'
+                    ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                    : `${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2] text-[#10284C] hover:bg-[#E8ECF2]'}`
+                }`}
+              >
+                All
+              </button>
+              {dynamicCategories.map(cat => (
                 <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${
-                    selectedCategory === cat.id
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-bold transition-all capitalize ${
+                    selectedCategory === cat
                       ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
                       : `${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-[#F5F6F8] border border-[#E8ECF2] text-[#10284C] hover:bg-[#E8ECF2]'}`
                   }`}
                 >
-                  <span>{cat.icon}</span>
-                  <span className="hidden sm:inline">{cat.label}</span>
+                  {cat}
                 </button>
               ))}
             </div>
