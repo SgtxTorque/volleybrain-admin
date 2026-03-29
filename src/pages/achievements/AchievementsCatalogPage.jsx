@@ -273,8 +273,10 @@ export function AchievementsCatalogPage({
     }
   }
 
-  // Category order for display
-  const categoryOrder = ['offensive', 'defensive', 'playmaker', 'heart', 'elite']
+  // Dynamic category order derived from actual data (sorted alphabetically)
+  const categoryOrder = useMemo(() => {
+    return Object.keys(groupedAchievements).sort()
+  }, [groupedAchievements])
 
   // Stats summary pills for PageShell actions (kept simple)
   const statsPills = null
@@ -454,7 +456,6 @@ export function AchievementsCatalogPage({
               const categoryAchievements = groupedAchievements[categoryId]
               if (!categoryAchievements || categoryAchievements.length === 0) return null
 
-              const category = CATEGORIES.find(c => c.id === categoryId)
               const earnedInCategory = categoryAchievements.filter(a => a.isEarned).length
 
               return (
@@ -462,8 +463,7 @@ export function AchievementsCatalogPage({
                   {/* Category header */}
                   {selectedCategory === 'all' && (
                     <div className="flex items-center gap-3 mb-4">
-                      <span className="text-xl">{category?.icon}</span>
-                      <span className="text-xs font-black uppercase tracking-widest text-[#4BB9EC]">{category?.label}</span>
+                      <span className="text-xs font-black uppercase tracking-widest text-[#4BB9EC]">{categoryId}</span>
                       <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                         {earnedInCategory}/{categoryAchievements.length}
                       </span>
