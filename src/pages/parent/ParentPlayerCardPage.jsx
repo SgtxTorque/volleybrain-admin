@@ -571,7 +571,7 @@ function ParentPlayerCardPage({ playerId, roleContext, showToast, seasonId: prop
           {activeTab === 'overview' && <OverviewTab sc={sc} skills={skills} getSkillValue={getSkillValue} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} badges={badges} badgesInProgress={badgesInProgress} overallRating={overallRating} />}
           {activeTab === 'stats' && <StatsTab sc={sc} seasonStats={seasonStats} gamesPlayed={gamesPlayed} transformedGames={transformedGames} perGameStats={perGameStats} trends={trends} skills={skills} evalHistory={evalHistory} />}
           {activeTab === 'development' && <DevelopmentTab sc={sc} skills={skills} getSkillValue={getSkillValue} evalHistory={evalHistory} coachFeedback={coachFeedback} playerGoals={playerGoals} transformedGames={transformedGames} seasonStats={seasonStats} gamesPlayed={gamesPlayed} isCoachOrAdmin={isCoachOrAdmin} showToast={showToast} />}
-          {activeTab === 'badges' && <BadgesTab badges={badges} badgesInProgress={badgesInProgress} shoutouts={shoutouts} challenges={challenges} />}
+          {activeTab === 'badges' && <BadgesTab badges={badges} badgesInProgress={badgesInProgress} shoutouts={shoutouts} challenges={challenges} seasonStats={seasonStats} />}
           {activeTab === 'games' && <GamesTab sc={sc} transformedGames={transformedGames} seasonStats={seasonStats} gamesPlayed={gamesPlayed} seasonName={seasonName} />}
         </div>
       </div>
@@ -1061,7 +1061,12 @@ function DevelopmentTab({ sc, skills, getSkillValue, evalHistory, coachFeedback,
 // ═══════════════════════════════════════════════
 // TAB: BADGES
 // ═══════════════════════════════════════════════
-function BadgesTab({ badges, badgesInProgress, shoutouts, challenges }) {
+function BadgesTab({ badges, badgesInProgress, shoutouts, challenges, seasonStats }) {
+  const RARITY_COLORS = {
+    common: '#71717a', uncommon: '#10B981', rare: '#3B82F6',
+    epic: '#A855F7', legendary: '#FFD700',
+  }
+
   return (
     <div className="space-y-5">
       {/* Earned Badges */}
@@ -1069,15 +1074,22 @@ function BadgesTab({ badges, badgesInProgress, shoutouts, challenges }) {
         <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">Earned ({badges.length})</h4>
         {badges.length > 0 ? (
           <div className="grid grid-cols-4 gap-5">
-            {badges.map((b, i) => {
-              const badge = badgeDefinitions[b.badge_id] || { name: b.badge_id, icon: '\u{1F3C5}', color: '#6B7280', rarity: 'Common' }
-              const rColor = rarityColors[badge.rarity] || '#6B7280'
+            {badges.map(badge => {
+              const imgUrl = badge.badge_image_url || badge.icon_url
+              const rColor = RARITY_COLORS[badge.rarity] || '#6B7280'
               return (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl" style={{ backgroundColor: `${badge.color}20`, border: `2px solid ${rColor}`, boxShadow: `0 0 20px ${rColor}30` }}>{badge.icon}</div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-[#10284C] text-center">{badge.name}</span>
-                  <span className="text-[10px] text-slate-400">{badge.rarity}</span>
-                  {b.awarded_at && <span className="text-[10px] text-slate-400">Earned {new Date(b.awarded_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>}
+                <div key={badge.id} className="flex flex-col items-center gap-2">
+                  <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: `${rColor}15`, border: `2px solid ${rColor}40`, boxShadow: `0 0 16px ${rColor}20` }}>
+                    {imgUrl ? (
+                      <img src={imgUrl} alt={badge.name} className="w-14 h-14 object-contain" onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
+                    ) : null}
+                    <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 28 }}>{badge.icon || '🏅'}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-[#10284C] text-center leading-tight">{badge.name}</span>
+                  <span className="text-[10px] font-bold uppercase" style={{ color: rColor }}>{badge.rarity || 'common'}</span>
+                  {badge._earned?.earned_at && (
+                    <span className="text-[10px] text-slate-400">Earned {new Date(badge._earned.earned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  )}
                 </div>
               )
             })}
@@ -1089,18 +1101,36 @@ function BadgesTab({ badges, badgesInProgress, shoutouts, challenges }) {
       {badgesInProgress.length > 0 && (
         <div className="bg-white rounded-xl border border-[#E8ECF2] p-5">
           <h4 className="text-xs uppercase tracking-wider font-bold text-slate-400 mb-4">In Progress</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {badgesInProgress.map((b, i) => {
-              const badge = badgeDefinitions[b.badge_id] || { name: b.badge_id, icon: '\u{1F3C5}', color: '#6B7280' }
-              const pct = b.target ? Math.min((b.progress / b.target) * 100, 100) : (b.target_value ? Math.min(((b.current_value || 0) / b.target_value) * 100, 100) : 0)
-              const prog = b.progress ?? b.current_value ?? 0
-              const tgt = b.target ?? b.target_value ?? 0
+          <div className="grid grid-cols-2 gap-3">
+            {badgesInProgress.filter(b => {
+              // Only show badges that have some progress or are stat-based
+              const prog = b._progress
+              if (prog && prog.current_value > 0) return true
+              if (b.stat_key && seasonStats?.[b.stat_key] > 0) return true
+              return false
+            }).slice(0, 20).map(badge => {
+              const imgUrl = badge.badge_image_url || badge.icon_url
+              const rColor = RARITY_COLORS[badge.rarity] || '#6B7280'
+              const currentVal = badge._progress?.current_value || seasonStats?.[badge.stat_key] || 0
+              const target = badge.threshold || 1
+              const pct = Math.min(Math.round((currentVal / target) * 100), 100)
+
               return (
-                <div key={i} className="flex items-center gap-4 rounded-xl p-4 bg-slate-50">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: `${badge.color}20` }}>{badge.icon}</div>
-                  <div className="flex-1">
-                    <p className="font-medium uppercase text-sm text-[#10284C]">{badge.name}</p>
-                    <div className="flex items-center gap-2 mt-1"><div className="flex-1 h-2 rounded-full bg-slate-200"><div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: badge.color }} /></div><span className="text-xs text-slate-400">{prog}/{tgt}</span></div>
+                <div key={badge.id} className="flex items-center gap-3 rounded-xl p-3 bg-slate-50 border border-[#E8ECF2]">
+                  <div className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ backgroundColor: `${rColor}10` }}>
+                    {imgUrl ? (
+                      <img src={imgUrl} alt="" className="w-10 h-10 object-contain" style={{ filter: 'grayscale(70%) opacity(0.5)' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
+                    ) : null}
+                    <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 22, filter: 'grayscale(70%) opacity(0.5)' }}>{badge.icon || '🏅'}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-[#10284C] truncate">{badge.name}</span>
+                      <span className="text-[10px] text-slate-400 flex-shrink-0">{currentVal}/{target}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-200 mt-1.5">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: rColor }} />
+                    </div>
                   </div>
                 </div>
               )
@@ -1159,10 +1189,10 @@ function BadgesTab({ badges, badgesInProgress, shoutouts, challenges }) {
       <div className="bg-white rounded-xl border border-[#E8ECF2] p-4">
         <h4 className="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-3">Badge Rarity Guide</h4>
         <div className="flex items-center gap-4">
-          {Object.entries(rarityColors).map(([tier, color]) => (
+          {Object.entries(RARITY_COLORS).map(([tier, color]) => (
             <div key={tier} className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-              <span className="text-[10px] font-semibold text-slate-500">{tier}</span>
+              <span className="text-[10px] font-semibold text-slate-500 capitalize">{tier}</span>
             </div>
           ))}
         </div>
