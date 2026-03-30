@@ -171,6 +171,15 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
 
       if (error) throw error
 
+      // Audit log
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user.id,
+        action_type: isInternalNote ? 'send_internal_note' : 'send_support_reply',
+        target_type: 'support_ticket',
+        target_id: ticket.id,
+        details: { subject: ticket.subject, org_name: ticket.organizations?.name }
+      })
+
       setReplyText('')
       setIsInternalNote(false)
       await loadMessages()
@@ -192,6 +201,17 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
         .eq('id', ticket.id)
 
       if (error) throw error
+
+      // Audit log
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'update_ticket_status',
+        target_type: 'support_ticket',
+        target_id: ticket.id,
+        details: { subject: ticket.subject, old_status: ticket.status, new_status: newStatus }
+      })
+
       showToast?.(`Status updated to ${newStatus.replace('_', ' ')}`, 'success')
       onTicketUpdated?.()
     } catch (err) {
@@ -211,6 +231,17 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
         .eq('id', ticket.id)
 
       if (error) throw error
+
+      // Audit log
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'update_ticket_priority',
+        target_type: 'support_ticket',
+        target_id: ticket.id,
+        details: { subject: ticket.subject, old_priority: ticket.priority, new_priority: newPriority }
+      })
+
       showToast?.(`Priority updated to ${newPriority}`, 'success')
       onTicketUpdated?.()
     } catch (err) {

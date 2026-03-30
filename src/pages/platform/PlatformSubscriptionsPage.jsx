@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
@@ -54,6 +55,7 @@ function fmtDate(d) {
 // ═══════ MAIN COMPONENT ═══════
 
 function PlatformSubscriptionsPage({ showToast }) {
+  const { user } = useAuth()
   const { isDark, accent } = useTheme()
   const tc = useThemeClasses()
   const accentColor = accent?.primary || '#EAB308'
@@ -198,9 +200,18 @@ function PlatformSubscriptionsPage({ showToast }) {
           })
           .eq('id', editingSub.subscription.id)
         if (error) throw error
+
+        // Audit log
+        await supabase.from('platform_admin_actions').insert({
+          admin_id: user?.id,
+          action_type: 'update_subscription',
+          target_type: 'subscription',
+          target_id: editingSub.subscription.id,
+          details: { org_name: editingSub.name, changes: { plan_tier: editForm.plan_tier, billing_cycle: editForm.billing_cycle, status: editForm.status, price_cents: priceCents } }
+        })
       } else {
         // Create new
-        const { error } = await supabase
+        const { data: newSub, error } = await supabase
           .from('platform_subscriptions')
           .insert({
             organization_id: editingSub.id,
@@ -212,7 +223,18 @@ function PlatformSubscriptionsPage({ showToast }) {
             current_period_start: now.toISOString(),
             current_period_end: periodEnd.toISOString(),
           })
+          .select('id')
+          .single()
         if (error) throw error
+
+        // Audit log
+        await supabase.from('platform_admin_actions').insert({
+          admin_id: user?.id,
+          action_type: 'create_subscription',
+          target_type: 'subscription',
+          target_id: newSub?.id || null,
+          details: { org_name: editingSub.name, plan_tier: editForm.plan_tier, billing_cycle: editForm.billing_cycle, status: editForm.status, price_cents: priceCents }
+        })
       }
 
       showToast(`Subscription updated for ${editingSub.name}`, 'success')
@@ -245,6 +267,13 @@ function PlatformSubscriptionsPage({ showToast }) {
     if (error) {
       showToast('Error: ' + error.message, 'error')
     } else {
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'mark_invoice_paid',
+        target_type: 'invoice',
+        target_id: invoiceId,
+        details: { org_id: showInvoicesFor, org_name: orgs.find(o => o.id === showInvoicesFor)?.name }
+      })
       showToast('Invoice marked as paid', 'success')
       if (showInvoicesFor) loadOrgInvoices(showInvoicesFor)
     }
@@ -256,7 +285,7 @@ function PlatformSubscriptionsPage({ showToast }) {
     const dueDate = new Date()
     dueDate.setDate(dueDate.getDate() + 30)
 
-    const { error } = await supabase
+    const { data: newInvoice, error } = await supabase
       .from('platform_invoices')
       .insert({
         subscription_id: sub?.id || null,
@@ -266,9 +295,18 @@ function PlatformSubscriptionsPage({ showToast }) {
         invoice_date: new Date().toISOString().split('T')[0],
         due_date: dueDate.toISOString().split('T')[0],
       })
+      .select('id')
+      .single()
     if (error) {
       showToast('Error: ' + error.message, 'error')
     } else {
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'create_invoice',
+        target_type: 'invoice',
+        target_id: newInvoice?.id || null,
+        details: { org_id: orgId, org_name: orgs.find(o => o.id === orgId)?.name, amount_cents: amountCents }
+      })
       showToast('Invoice created', 'success')
       if (showInvoicesFor === orgId) loadOrgInvoices(orgId)
     }
