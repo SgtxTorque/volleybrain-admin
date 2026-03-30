@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import {
   Shield, Building2, Users, DollarSign, TrendingUp, Calendar, Clock,
   ChevronDown, RefreshCw, AlertTriangle, Star, Zap, Gem, Check, X,
-  Search, Receipt, CreditCard, Sparkles
+  Search, Receipt, CreditCard, Sparkles, Tag, Plus, Copy, Trash2, Gift
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
@@ -65,6 +65,9 @@ function PlatformSubscriptionsPage({ showToast }) {
   const [invoices, setInvoices] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // View toggle: subscriptions vs promos
+  const [activeView, setActiveView] = useState('subscriptions')
+
   // Filters
   const [search, setSearch] = useState('')
   const [filterTier, setFilterTier] = useState('all')
@@ -77,23 +80,171 @@ function PlatformSubscriptionsPage({ showToast }) {
   const [savingSub, setSavingSub] = useState(false)
   const [creatingInvoice, setCreatingInvoice] = useState(false)
 
+  // Subscription history in edit modal
+  const [subHistory, setSubHistory] = useState([])
+
+  // Promo codes
+  const [promoCodes, setPromoCodes] = useState([])
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [showCreatePromo, setShowCreatePromo] = useState(false)
+  const [promoForm, setPromoForm] = useState({ code: '', discount_percent: 10, duration_months: '', max_uses: '', expires_at: '' })
+  const [savingPromo, setSavingPromo] = useState(false)
+  const [applyPromoFor, setApplyPromoFor] = useState(null) // promo code obj to apply
+  const [applyOrgSearch, setApplyOrgSearch] = useState('')
+
+  // Payment health
+  const [healthMetrics, setHealthMetrics] = useState({ failedPayments: 0, upcomingRenewals: 0, trialExpirations: 0 })
+
   // ═══════ LOAD DATA ═══════
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
     setLoading(true)
     try {
-      const [subsRes, orgsRes] = await Promise.all([
+      const now = new Date()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      const nextWeek = new Date(now)
+      nextWeek.setDate(nextWeek.getDate() + 7)
+
+      const [subsRes, orgsRes, failedRes, promosRes] = await Promise.all([
         supabase.from('platform_subscriptions').select('*').order('created_at', { ascending: false }),
         supabase.from('organizations').select('id, name, slug, is_active, created_at').order('name'),
+        supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('created_at', startOfMonth),
+        supabase.from('platform_promo_codes').select('*').order('created_at', { ascending: false }),
       ])
 
-      setSubscriptions(subsRes.data || [])
+      const subs = subsRes.data || []
+      setSubscriptions(subs)
       setOrgs(orgsRes.data || [])
+      setPromoCodes(promosRes.data || [])
+
+      // Compute health metrics from loaded subs
+      const upcomingRenewals = subs.filter(s =>
+        s.status === 'active' && s.current_period_end &&
+        new Date(s.current_period_end) <= nextWeek && new Date(s.current_period_end) >= now
+      ).length
+      const trialExpirations = subs.filter(s =>
+        s.status === 'trialing' && s.trial_ends_at &&
+        new Date(s.trial_ends_at) <= nextWeek && new Date(s.trial_ends_at) >= now
+      ).length
+
+      setHealthMetrics({
+        failedPayments: failedRes.count || 0,
+        upcomingRenewals,
+        trialExpirations,
+      })
     } catch (err) {
       console.error('Load error:', err)
     }
     setLoading(false)
+  }
+
+  // ═══════ PROMO CODES ═══════
+
+  async function loadPromos() {
+    setPromoLoading(true)
+    const { data } = await supabase.from('platform_promo_codes').select('*').order('created_at', { ascending: false })
+    setPromoCodes(data || [])
+    setPromoLoading(false)
+  }
+
+  async function createPromoCode() {
+    if (!promoForm.code.trim()) return showToast('Code is required', 'error')
+    if (!promoForm.discount_percent || promoForm.discount_percent < 1 || promoForm.discount_percent > 100) return showToast('Discount must be 1-100%', 'error')
+    setSavingPromo(true)
+    try {
+      const payload = {
+        code: promoForm.code.trim().toUpperCase(),
+        discount_percent: parseInt(promoForm.discount_percent),
+        duration_months: promoForm.duration_months ? parseInt(promoForm.duration_months) : null,
+        max_uses: promoForm.max_uses ? parseInt(promoForm.max_uses) : null,
+        expires_at: promoForm.expires_at || null,
+        is_active: true,
+        created_by: user?.id,
+      }
+      const { data: newCode, error } = await supabase.from('platform_promo_codes').insert(payload).select('id').single()
+      if (error) throw error
+
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'create_promo_code',
+        target_type: 'promo_code',
+        target_id: newCode?.id,
+        details: { code: payload.code, discount_percent: payload.discount_percent },
+      })
+
+      showToast(`Promo code "${payload.code}" created`, 'success')
+      setShowCreatePromo(false)
+      setPromoForm({ code: '', discount_percent: 10, duration_months: '', max_uses: '', expires_at: '' })
+      await loadPromos()
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error')
+    }
+    setSavingPromo(false)
+  }
+
+  async function deactivatePromo(promo) {
+    const { error } = await supabase.from('platform_promo_codes').update({ is_active: false }).eq('id', promo.id)
+    if (error) return showToast('Error: ' + error.message, 'error')
+
+    await supabase.from('platform_admin_actions').insert({
+      admin_id: user?.id,
+      action_type: 'deactivate_promo_code',
+      target_type: 'promo_code',
+      target_id: promo.id,
+      details: { code: promo.code },
+    })
+
+    showToast(`Promo code "${promo.code}" deactivated`, 'success')
+    await loadPromos()
+  }
+
+  async function applyPromoToOrg(promo, orgId) {
+    try {
+      // Insert usage record
+      const { error: usageErr } = await supabase.from('platform_promo_usage').insert({
+        promo_code_id: promo.id,
+        organization_id: orgId,
+        applied_by: user?.id,
+      })
+      if (usageErr) throw usageErr
+
+      // Increment times_used
+      const { error: updateErr } = await supabase
+        .from('platform_promo_codes')
+        .update({ times_used: (promo.times_used || 0) + 1 })
+        .eq('id', promo.id)
+      if (updateErr) throw updateErr
+
+      const orgName = orgs.find(o => o.id === orgId)?.name || orgId
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'apply_promo_code',
+        target_type: 'promo_code',
+        target_id: promo.id,
+        details: { code: promo.code, organization_id: orgId, org_name: orgName },
+      })
+
+      showToast(`Applied "${promo.code}" to ${orgName}`, 'success')
+      setApplyPromoFor(null)
+      setApplyOrgSearch('')
+      await loadPromos()
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error')
+    }
+  }
+
+  // ═══════ SUBSCRIPTION HISTORY ═══════
+
+  async function loadSubHistory(orgId) {
+    const { data } = await supabase
+      .from('platform_org_events')
+      .select('*')
+      .eq('organization_id', orgId)
+      .in('event_type', ['upgraded', 'downgraded', 'trial_started', 'trial_extended', 'suspended', 'reactivated'])
+      .order('created_at', { ascending: false })
+      .limit(20)
+    setSubHistory(data || [])
   }
 
   // ═══════ COMPUTED ═══════
@@ -157,6 +308,8 @@ function PlatformSubscriptionsPage({ showToast }) {
       status: sub?.status || 'active',
       trial_days: 14,
     })
+    setSubHistory([])
+    loadSubHistory(org.id)
   }
 
   async function saveSubscription() {
@@ -336,13 +489,58 @@ function PlatformSubscriptionsPage({ showToast }) {
       <style>{PS_STYLES}</style>
       <div className="space-y-6 w-full">
 
-        {/* Controls */}
-        <div className="flex justify-end ps-au" style={{ animationDelay: '.05s' }}>
+        {/* Controls + View Toggle */}
+        <div className="flex items-center justify-between ps-au" style={{ animationDelay: '.05s' }}>
+          <div className="flex items-center gap-1">
+            {['subscriptions', 'promos'].map(v => (
+              <button
+                key={v}
+                onClick={() => setActiveView(v)}
+                className={`px-4 py-2 rounded-xl text-sm transition ${
+                  activeView === v
+                    ? 'text-white'
+                    : isDark ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-white text-slate-500 hover:bg-slate-50'
+                }`}
+                style={activeView === v ? { backgroundColor: accentColor } : {}}
+              >
+                {v === 'subscriptions' ? 'Subscriptions' : 'Promo Codes'}
+              </button>
+            ))}
+          </div>
           <button onClick={loadData} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10' : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'}`}>
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
         </div>
+
+        {/* PAYMENT HEALTH STRIP */}
+        {(healthMetrics.failedPayments > 0 || healthMetrics.upcomingRenewals > 0 || healthMetrics.trialExpirations > 0) && (
+          <div className="ps-au" style={{ animationDelay: '.08s' }}>
+            <div className="flex flex-wrap gap-3">
+              {healthMetrics.failedPayments > 0 && (
+                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl ${isDark ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200'}`}>
+                  <AlertTriangle className="w-4 h-4 text-red-400" />
+                  <span className="text-sm text-red-400">{healthMetrics.failedPayments} failed payment{healthMetrics.failedPayments !== 1 ? 's' : ''} this month</span>
+                </div>
+              )}
+              {healthMetrics.upcomingRenewals > 0 && (
+                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl ${isDark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
+                  <Calendar className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm text-blue-400">{healthMetrics.upcomingRenewals} renewal{healthMetrics.upcomingRenewals !== 1 ? 's' : ''} this week</span>
+                </div>
+              )}
+              {healthMetrics.trialExpirations > 0 && (
+                <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm text-amber-400">{healthMetrics.trialExpirations} trial{healthMetrics.trialExpirations !== 1 ? 's' : ''} expiring this week</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════ SUBSCRIPTIONS VIEW ═══════ */}
+        {activeView === 'subscriptions' && (<>
 
         {/* REVENUE METRICS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -623,6 +821,23 @@ function PlatformSubscriptionsPage({ showToast }) {
                 )}
               </div>
 
+              {/* Subscription History */}
+              {subHistory.length > 0 && (
+                <div className="mt-4 pt-4 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,.06)' : '#e2e8f0' }}>
+                  <h4 className={`text-xs ${tc.textMuted} mb-2`}>SUBSCRIPTION HISTORY</h4>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {subHistory.map(ev => (
+                      <div key={ev.id} className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg ${isDark ? 'bg-white/[.03]' : 'bg-slate-50'}`}>
+                        <Clock className={`w-3 h-3 flex-shrink-0 ${tc.textMuted}`} />
+                        <span className={tc.textMuted}>{fmtDate(ev.created_at)}</span>
+                        <span className={tc.text}>{ev.event_type.replace(/_/g, ' ')}</span>
+                        {ev.details?.note && <span className={`${tc.textMuted} truncate`}>— {ev.details.note}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2 mt-6">
                 <button
                   onClick={saveSubscription}
@@ -715,6 +930,257 @@ function PlatformSubscriptionsPage({ showToast }) {
               </div>
             </div>
           </div>
+        )}
+
+        </>)} {/* end subscriptions view */}
+
+        {/* ═══════ PROMO CODES VIEW ═══════ */}
+        {activeView === 'promos' && (
+          <>
+            {/* Header + Create Button */}
+            <div className="ps-au flex items-center justify-between" style={{ animationDelay: '.1s' }}>
+              <div>
+                <h3 className={`text-lg ${tc.text}`}>Promo Codes</h3>
+                <p className={`text-xs ${tc.textMuted}`}>{promoCodes.length} total codes</p>
+              </div>
+              <button
+                onClick={() => setShowCreatePromo(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-white transition hover:opacity-90"
+                style={{ backgroundColor: accentColor }}
+              >
+                <Plus className="w-4 h-4" />
+                Create Promo Code
+              </button>
+            </div>
+
+            {/* Promo Codes List */}
+            <div className="ps-au" style={{ animationDelay: '.15s' }}>
+              <div className={`ps-glass rounded-xl overflow-hidden ${isDark ? '' : 'bg-white/80 border-lynx-silver'}`}>
+                {promoCodes.length === 0 ? (
+                  <div className="py-12 text-center">
+                    <Tag className="w-8 h-8 mx-auto mb-2" style={{ color: `${accentColor}50` }} />
+                    <p className={`text-sm ${tc.textMuted}`}>No promo codes yet</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className={isDark ? 'bg-white/[.02]' : 'bg-lynx-cloud'}>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Code</th>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Discount</th>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Duration</th>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Uses</th>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Status</th>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Expires</th>
+                          <th className={`text-left px-4 py-3 text-xs ${tc.textMuted}`}>Created</th>
+                          <th className={`text-right px-4 py-3 text-xs ${tc.textMuted}`}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {promoCodes.map(promo => (
+                          <tr key={promo.id} className={`border-t ${isDark ? 'border-white/[.04] hover:bg-white/[.02]' : 'border-slate-100 hover:bg-lynx-cloud'} transition`}>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <Tag className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                                <span className={`text-sm font-mono ${tc.text}`}>{promo.code}</span>
+                                <button
+                                  onClick={() => { navigator.clipboard.writeText(promo.code); showToast('Code copied!', 'success') }}
+                                  className={`p-1 rounded transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
+                                  title="Copy code"
+                                >
+                                  <Copy className="w-3 h-3" style={{ color: `${accentColor}80` }} />
+                                </button>
+                              </div>
+                            </td>
+                            <td className={`px-4 py-3 text-sm ${tc.text}`}>{promo.discount_percent}%</td>
+                            <td className={`px-4 py-3 text-sm ${tc.textMuted}`}>
+                              {promo.duration_months ? `${promo.duration_months} mo` : 'Indefinite'}
+                            </td>
+                            <td className={`px-4 py-3 text-sm ${tc.textMuted}`}>
+                              {promo.times_used || 0}{promo.max_uses ? ` / ${promo.max_uses}` : ''}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                                promo.is_active
+                                  ? 'bg-emerald-500/10 text-emerald-400'
+                                  : 'bg-slate-500/10 text-slate-400'
+                              }`}>
+                                {promo.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className={`px-4 py-3 text-sm ${tc.textMuted}`}>
+                              {promo.expires_at ? fmtDate(promo.expires_at) : '—'}
+                            </td>
+                            <td className={`px-4 py-3 text-sm ${tc.textMuted}`}>{fmtDate(promo.created_at)}</td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {promo.is_active && (
+                                  <>
+                                    <button
+                                      onClick={() => { setApplyPromoFor(promo); setApplyOrgSearch('') }}
+                                      className={`px-2.5 py-1.5 rounded-lg text-[11px] transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                                    >
+                                      <Gift className="w-3 h-3 inline mr-1" />
+                                      Apply
+                                    </button>
+                                    <button
+                                      onClick={() => deactivatePromo(promo)}
+                                      className={`px-2.5 py-1.5 rounded-lg text-[11px] transition text-red-400 ${isDark ? 'bg-red-500/10 hover:bg-red-500/20' : 'bg-red-50 hover:bg-red-100'}`}
+                                    >
+                                      Deactivate
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Create Promo Modal */}
+            {showCreatePromo && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreatePromo(false)} />
+                <div className={`relative w-full max-w-md rounded-xl p-6 ps-as ${isDark ? 'bg-lynx-charcoal border border-white/10' : 'bg-white border border-lynx-silver'} shadow-2xl`}>
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className={`text-lg ${tc.text}`}>Create Promo Code</h3>
+                    <button onClick={() => setShowCreatePromo(false)} className={`p-1.5 rounded-lg transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className={`text-xs ${tc.textMuted} block mb-1`}>PROMO CODE</label>
+                      <input
+                        type="text"
+                        value={promoForm.code}
+                        onChange={e => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
+                        placeholder="e.g. SUMMER25"
+                        className={`w-full px-3 py-2.5 rounded-xl text-sm font-mono border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={`text-xs ${tc.textMuted} block mb-1`}>DISCOUNT %</label>
+                        <input
+                          type="number"
+                          value={promoForm.discount_percent}
+                          onChange={e => setPromoForm({ ...promoForm, discount_percent: e.target.value })}
+                          min={1} max={100}
+                          className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`text-xs ${tc.textMuted} block mb-1`}>DURATION (MONTHS)</label>
+                        <input
+                          type="number"
+                          value={promoForm.duration_months}
+                          onChange={e => setPromoForm({ ...promoForm, duration_months: e.target.value })}
+                          placeholder="Optional"
+                          min={1}
+                          className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={`text-xs ${tc.textMuted} block mb-1`}>MAX USES</label>
+                        <input
+                          type="number"
+                          value={promoForm.max_uses}
+                          onChange={e => setPromoForm({ ...promoForm, max_uses: e.target.value })}
+                          placeholder="Unlimited"
+                          min={1}
+                          className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`text-xs ${tc.textMuted} block mb-1`}>EXPIRES</label>
+                        <input
+                          type="date"
+                          value={promoForm.expires_at}
+                          onChange={e => setPromoForm({ ...promoForm, expires_at: e.target.value })}
+                          className={`w-full px-3 py-2.5 rounded-xl text-sm border ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-lynx-silver text-slate-800'}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-6">
+                    <button
+                      onClick={createPromoCode}
+                      disabled={savingPromo}
+                      className="flex-1 py-2.5 rounded-xl text-sm text-white transition hover:opacity-90 disabled:opacity-50"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      {savingPromo ? 'Creating...' : 'Create Code'}
+                    </button>
+                    <button
+                      onClick={() => setShowCreatePromo(false)}
+                      className={`px-6 py-2.5 rounded-xl text-sm transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Apply Promo to Org Modal */}
+            {applyPromoFor && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setApplyPromoFor(null)} />
+                <div className={`relative w-full max-w-md rounded-xl p-6 ps-as ${isDark ? 'bg-lynx-charcoal border border-white/10' : 'bg-white border border-lynx-silver'} shadow-2xl`}>
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h3 className={`text-lg ${tc.text}`}>Apply Promo Code</h3>
+                      <p className={`text-xs ${tc.textMuted}`}>Apply "{applyPromoFor.code}" ({applyPromoFor.discount_percent}% off) to an organization</p>
+                    </div>
+                    <button onClick={() => setApplyPromoFor(null)} className={`p-1.5 rounded-lg transition ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border mb-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-lynx-silver'}`}>
+                    <Search className="w-4 h-4" style={{ color: `${accentColor}80` }} />
+                    <input
+                      type="text"
+                      placeholder="Search organizations..."
+                      value={applyOrgSearch}
+                      onChange={e => setApplyOrgSearch(e.target.value)}
+                      className={`bg-transparent text-sm outline-none w-full ${tc.text}`}
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="space-y-1 max-h-64 overflow-y-auto">
+                    {orgs
+                      .filter(o => !applyOrgSearch || o.name.toLowerCase().includes(applyOrgSearch.toLowerCase()))
+                      .slice(0, 20)
+                      .map(org => (
+                        <button
+                          key={org.id}
+                          onClick={() => applyPromoToOrg(applyPromoFor, org.id)}
+                          className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm transition ${isDark ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-50 text-slate-700'}`}
+                        >
+                          <Building2 className="w-4 h-4" style={{ color: accentColor }} />
+                          <span>{org.name}</span>
+                        </button>
+                      ))}
+                    {orgs.filter(o => !applyOrgSearch || o.name.toLowerCase().includes(applyOrgSearch.toLowerCase())).length === 0 && (
+                      <p className={`text-sm text-center py-4 ${tc.textMuted}`}>No organizations found</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
       </div>
