@@ -1067,8 +1067,8 @@ function MainApp() {
   ]
 
   const coachNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single', icon: 'dashboard' },
     { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
-      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
       { id: 'roster', label: 'Roster Manager', icon: 'users' },
       ...(roleContext?.coachInfo?.team_coaches?.map(tc_item => ({
         id: `teamwall-${tc_item.team_id}`,
@@ -1127,6 +1127,7 @@ function MainApp() {
   ]
 
   const playerNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single', icon: 'dashboard' },
     { id: 'myteams', label: 'My Team', type: 'group', icon: 'teams', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'achievements', label: 'Achievements', icon: 'achievements' },
@@ -1148,8 +1149,8 @@ function MainApp() {
   ]
 
   const teamManagerNavGroups = [
+    { id: 'dashboard', label: 'Dashboard', type: 'single', icon: 'dashboard' },
     { id: 'myteams', label: 'My Teams', type: 'group', icon: 'teams', items: [
-      { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
       { id: 'roster', label: 'Roster Manager', icon: 'users' },
       ...(roleContext?.teamManagerInfo?.map(ts => ({
         id: `teamwall-${ts.team_id}`,
