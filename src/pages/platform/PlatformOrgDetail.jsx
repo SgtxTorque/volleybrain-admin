@@ -21,6 +21,7 @@ const TAB_LIST = [
   { id: 'seasons', label: 'Seasons', icon: Calendar },
   { id: 'payments', label: 'Payments', icon: DollarSign },
   { id: 'activity', label: 'Activity Log', icon: Activity },
+  { id: 'lifecycle', label: 'Lifecycle', icon: Clock },
 ]
 
 // ═══════ INLINE CONFIRM MODAL ═══════
@@ -552,6 +553,365 @@ function ActivityLogTab({ orgId, isDark, tc, accent }) {
   )
 }
 
+// ═══════ NOTE MODAL (LIFECYCLE) ═══════
+function OrgNoteModal({ isOpen, onClose, orgId, orgName, user, isDark, tc, showToast, onSaved }) {
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  if (!isOpen) return null
+
+  async function handleSave() {
+    if (!note.trim()) return
+    setSaving(true)
+    try {
+      await supabase.from('platform_org_events').insert({
+        organization_id: orgId,
+        event_type: 'note_added',
+        details: { note: note.trim() },
+        performed_by: user?.id,
+      })
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'add_note',
+        target_type: 'organization',
+        target_id: orgId,
+        details: { org_name: orgName, note: note.trim() },
+      })
+      showToast?.('Note added', 'success')
+      setNote('')
+      onSaved?.()
+      onClose()
+    } catch (err) {
+      console.error('Failed to save note:', err)
+      showToast?.('Failed to save note', 'error')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+      <div className={`w-full max-w-md rounded-[14px] p-6 shadow-2xl ${
+        isDark ? 'bg-[#1E293B] border border-white/[0.08]' : 'bg-white border border-slate-200/60'
+      }`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-sky-500/20">
+            <FileText className="w-5 h-5 text-sky-400" />
+          </div>
+          <div>
+            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Add Note</h3>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{orgName}</p>
+          </div>
+        </div>
+        <textarea
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="Type your note..."
+          rows={4}
+          className={`w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 resize-none transition ${tc.input}`}
+        />
+        <div className="flex gap-3 mt-4">
+          <button onClick={onClose} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!note.trim() || saving}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:bg-sky-600/40 disabled:cursor-not-allowed transition"
+          >
+            {saving ? 'Saving...' : 'Save Note'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════ EXTEND TRIAL MODAL ═══════
+function ExtendTrialModal({ isOpen, onClose, orgId, orgName, currentTrialEnd, user, isDark, tc, accent, showToast, onSaved }) {
+  const [newDate, setNewDate] = useState('')
+  const [reason, setReason] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (isOpen && currentTrialEnd) {
+      const d = new Date(currentTrialEnd)
+      d.setDate(d.getDate() + 14)
+      setNewDate(d.toISOString().split('T')[0])
+    }
+  }, [isOpen, currentTrialEnd])
+
+  if (!isOpen) return null
+
+  async function handleSave() {
+    if (!newDate) return
+    setSaving(true)
+    try {
+      await supabase.from('platform_subscriptions')
+        .update({ trial_ends_at: newDate })
+        .eq('organization_id', orgId)
+        .eq('status', 'trialing')
+      await supabase.from('platform_org_events').insert({
+        organization_id: orgId,
+        event_type: 'trial_extended',
+        details: { old_end: currentTrialEnd, new_end: newDate, reason: reason.trim() || null },
+        performed_by: user?.id,
+      })
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'extend_trial',
+        target_type: 'organization',
+        target_id: orgId,
+        details: { org_name: orgName, old_end: currentTrialEnd, new_end: newDate, reason: reason.trim() || null },
+      })
+      showToast?.('Trial extended', 'success')
+      setReason('')
+      onSaved?.()
+      onClose()
+    } catch (err) {
+      console.error('Failed to extend trial:', err)
+      showToast?.('Failed to extend trial', 'error')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+      <div className={`w-full max-w-md rounded-[14px] p-6 shadow-2xl ${
+        isDark ? 'bg-[#1E293B] border border-white/[0.08]' : 'bg-white border border-slate-200/60'
+      }`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/20">
+            <Clock className="w-5 h-5 text-amber-400" />
+          </div>
+          <div>
+            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Extend Trial</h3>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{orgName}</p>
+          </div>
+        </div>
+        {currentTrialEnd && (
+          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'} mb-3`}>
+            Current trial ends: <span className="font-medium">{new Date(currentTrialEnd).toLocaleDateString()}</span>
+          </p>
+        )}
+        <label className={`text-xs font-medium uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'} block mb-1.5`}>New End Date</label>
+        <input
+          type="date"
+          value={newDate}
+          onChange={e => setNewDate(e.target.value)}
+          className={`w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 transition mb-3 ${tc.input}`}
+        />
+        <label className={`text-xs font-medium uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'} block mb-1.5`}>Reason (optional)</label>
+        <textarea
+          value={reason}
+          onChange={e => setReason(e.target.value)}
+          placeholder="Why are you extending this trial?"
+          rows={2}
+          className={`w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 resize-none transition ${tc.input}`}
+        />
+        <div className="flex gap-3 mt-4">
+          <button onClick={onClose} className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!newDate || saving}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 disabled:bg-amber-600/40 disabled:cursor-not-allowed transition"
+          >
+            {saving ? 'Extending...' : 'Extend Trial'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════ LIFECYCLE TAB ═══════
+function LifecycleTab({ orgId, orgName, user, subscription, isDark, tc, accent, showToast, onRefresh }) {
+  const [events, setEvents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [noteModal, setNoteModal] = useState(false)
+  const [extendTrialModal, setExtendTrialModal] = useState(false)
+
+  useEffect(() => {
+    loadEvents()
+  }, [orgId])
+
+  async function loadEvents() {
+    setLoading(true)
+    try {
+      const { data } = await supabase
+        .from('platform_org_events')
+        .select('*, profiles:performed_by(full_name, email)')
+        .eq('organization_id', orgId)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      setEvents(data || [])
+    } catch (err) {
+      console.error('Lifecycle events error:', err)
+    }
+    setLoading(false)
+  }
+
+  function getEventIcon(type) {
+    switch (type) {
+      case 'trial_started': return { icon: Clock, color: '#3B82F6' }
+      case 'trial_extended': return { icon: Clock, color: '#F59E0B' }
+      case 'upgraded': return { icon: Activity, color: '#10B981' }
+      case 'downgraded': return { icon: Activity, color: '#F59E0B' }
+      case 'suspended': return { icon: Lock, color: '#EF4444' }
+      case 'reactivated': return { icon: Unlock, color: '#10B981' }
+      case 'deleted': return { icon: Trash2, color: '#EF4444' }
+      case 'note_added': return { icon: FileText, color: '#6366F1' }
+      case 'setup_reminder_sent': return { icon: AlertTriangle, color: '#F59E0B' }
+      default: return { icon: Activity, color: '#6B7280' }
+    }
+  }
+
+  function formatEventType(type) {
+    return (type || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
+  function timeAgo(dateStr) {
+    const now = new Date()
+    const date = new Date(dateStr)
+    const mins = Math.floor((now - date) / 60000)
+    if (mins < 1) return 'just now'
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    if (days < 7) return `${days}d ago`
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const isTrialing = subscription?.status === 'trialing'
+  const trialEndsAt = subscription?.trial_ends_at
+  const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((new Date(trialEndsAt) - new Date()) / 86400000)) : null
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: accent.primary, borderTopColor: 'transparent' }} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Trial Status + Actions */}
+      {isTrialing && (
+        <div className={`rounded-[14px] p-5 shadow-sm border ${isDark ? 'bg-[#1E293B] border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Trial Status</h3>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-1`}>
+                {trialDaysLeft !== null ? (
+                  trialDaysLeft > 0
+                    ? <><span className="font-semibold text-amber-500">{trialDaysLeft} days</span> remaining (ends {new Date(trialEndsAt).toLocaleDateString()})</>
+                    : <span className="text-red-500 font-semibold">Trial expired</span>
+                ) : 'No trial end date set'}
+              </p>
+            </div>
+            <button
+              onClick={() => setExtendTrialModal(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                isDark ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              Extend Trial
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Note Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setNoteModal(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-white transition hover:opacity-90"
+          style={{ background: accent.primary }}
+        >
+          <FileText className="w-4 h-4" />
+          Add Note
+        </button>
+      </div>
+
+      {/* Timeline */}
+      {events.length === 0 ? (
+        <div className={`rounded-[14px] p-8 text-center shadow-sm border ${isDark ? 'bg-[#1E293B] border-slate-700' : 'bg-white border-slate-200'}`}>
+          <Clock className={`w-10 h-10 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'} mb-3`} />
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No lifecycle events yet</p>
+        </div>
+      ) : (
+        <div className={`rounded-[14px] shadow-sm border overflow-hidden ${isDark ? 'bg-[#1E293B] border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className={`divide-y ${isDark ? 'divide-slate-700/50' : 'divide-slate-100'}`}>
+            {events.map(evt => {
+              const { icon: EvtIcon, color } = getEventIcon(evt.event_type)
+              return (
+                <div key={evt.id} className="px-5 py-4 flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
+                    <EvtIcon className="w-4 h-4" style={{ color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{formatEventType(evt.event_type)}</p>
+                    {evt.details?.note && (
+                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'} mt-1 line-clamp-2`}>{evt.details.note}</p>
+                    )}
+                    {evt.details?.reason && !evt.details?.note && (
+                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'} mt-1`}>{evt.details.reason}</p>
+                    )}
+                    {evt.details?.new_end && (
+                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'} mt-1`}>
+                        Extended to {new Date(evt.details.new_end).toLocaleDateString()}
+                      </p>
+                    )}
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'} mt-1`}>
+                      by {evt.profiles?.full_name || evt.profiles?.email || 'System'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Clock className={`w-3 h-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{timeAgo(evt.created_at)}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Note Modal */}
+      <OrgNoteModal
+        isOpen={noteModal}
+        onClose={() => setNoteModal(false)}
+        orgId={orgId}
+        orgName={orgName}
+        user={user}
+        isDark={isDark}
+        tc={tc}
+        showToast={showToast}
+        onSaved={loadEvents}
+      />
+
+      {/* Extend Trial Modal */}
+      <ExtendTrialModal
+        isOpen={extendTrialModal}
+        onClose={() => setExtendTrialModal(false)}
+        orgId={orgId}
+        orgName={orgName}
+        currentTrialEnd={trialEndsAt}
+        user={user}
+        isDark={isDark}
+        tc={tc}
+        accent={accent}
+        showToast={showToast}
+        onSaved={() => { loadEvents(); onRefresh?.() }}
+      />
+    </div>
+  )
+}
+
 // ═══════════════════════════════════════════════════════════
 // MAIN PAGE COMPONENT
 // ═══════════════════════════════════════════════════════════
@@ -567,6 +927,7 @@ function PlatformOrgDetail({ showToast }) {
   const [teams, setTeams] = useState([])
   const [seasons, setSeasons] = useState([])
   const [payments, setPayments] = useState([])
+  const [subscription, setSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [confirmModal, setConfirmModal] = useState({ open: false })
@@ -591,6 +952,15 @@ function PlatformOrgDetail({ showToast }) {
         return
       }
       setOrg(orgData)
+
+      // Load subscription
+      const { data: subData } = await supabase
+        .from('platform_subscriptions')
+        .select('*')
+        .eq('organization_id', orgId)
+        .limit(1)
+        .maybeSingle()
+      setSubscription(subData)
 
       // Fetch members, seasons in parallel
       const [membersRes, seasonsRes] = await Promise.all([
@@ -669,6 +1039,12 @@ function PlatformOrgDetail({ showToast }) {
         const newActive = isSuspended ? true : false
         await supabase.from('organizations').update({ is_active: newActive }).eq('id', orgId)
         await logAction(isSuspended ? 'activate_org' : 'suspend_org', 'organization', orgId, { org_name: org.name })
+        await supabase.from('platform_org_events').insert({
+          organization_id: orgId,
+          event_type: isSuspended ? 'reactivated' : 'suspended',
+          details: { reason: isSuspended ? 'Reactivated by platform admin' : 'Suspended by platform admin' },
+          performed_by: user.id,
+        })
         showToast?.(`${org.name} ${isSuspended ? 'reactivated' : 'suspended'}`, 'success')
         loadOrgData()
       },
@@ -877,6 +1253,19 @@ function PlatformOrgDetail({ showToast }) {
         )}
         {activeTab === 'activity' && (
           <ActivityLogTab orgId={orgId} isDark={isDark} tc={tc} accent={accent} />
+        )}
+        {activeTab === 'lifecycle' && (
+          <LifecycleTab
+            orgId={orgId}
+            orgName={org.name}
+            user={user}
+            subscription={subscription}
+            isDark={isDark}
+            tc={tc}
+            accent={accent}
+            showToast={showToast}
+            onRefresh={loadOrgData}
+          />
         )}
       </div>
 

@@ -7,7 +7,7 @@ import {
   Search, X, Building2, Users, Shield, Calendar, CreditCard,
   ChevronRight, AlertTriangle, Eye, Lock, Unlock, Clock, Activity,
   RefreshCw, ArrowLeft, Filter, SortAsc, CheckCircle2, TrendingUp,
-  Layers, CalendarCheck, MapPin
+  Layers, CalendarCheck, MapPin, FileText
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
@@ -28,8 +28,9 @@ const PAGE_STYLES = `
 const FILTER_OPTIONS = [
   { id: 'all', label: 'All' },
   { id: 'active', label: 'Active' },
+  { id: 'trialing', label: 'Trialing' },
   { id: 'suspended', label: 'Suspended' },
-  { id: 'needs_attention', label: 'Needs Attention' },
+  { id: 'needs_setup', label: 'Needs Setup' },
 ]
 
 const SORT_OPTIONS = [
@@ -124,8 +125,92 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, destructive 
   )
 }
 
+// ── Note Modal ──────────────────────────────────────────
+function NoteModal({ isOpen, onClose, org, user, showToast, onSaved }) {
+  const { isDark } = useTheme()
+  const tc = useThemeClasses()
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  if (!isOpen || !org) return null
+
+  async function handleSave() {
+    if (!note.trim()) return
+    setSaving(true)
+    try {
+      await supabase.from('platform_org_events').insert({
+        organization_id: org.id,
+        event_type: 'note_added',
+        details: { note: note.trim() },
+        performed_by: user?.id,
+      })
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'add_note',
+        target_type: 'organization',
+        target_id: org.id,
+        details: { org_name: org.name, note: note.trim() },
+      })
+      showToast?.('Note added', 'success')
+      setNote('')
+      onSaved?.()
+      onClose()
+    } catch (err) {
+      console.error('Failed to save note:', err)
+      showToast?.('Failed to save note', 'error')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+      <div className={`po-as w-full max-w-md rounded-[14px] p-6 shadow-2xl ${
+        isDark
+          ? 'bg-[#1E293B] border border-white/[0.08]'
+          : 'bg-white border border-slate-200/60'
+      }`}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-sky-500/20">
+            <FileText className="w-5 h-5 text-sky-400" />
+          </div>
+          <div>
+            <h3 className={`text-lg font-bold ${tc.text}`}>Add Note</h3>
+            <p className={`text-xs ${tc.textMuted}`}>{org.name}</p>
+          </div>
+        </div>
+        <textarea
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="Type your note here..."
+          rows={4}
+          className={`w-full px-3 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 resize-none transition ${tc.input}`}
+        />
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={onClose}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${
+              isDark
+                ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!note.trim() || saving}
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 disabled:bg-sky-600/40 disabled:cursor-not-allowed transition"
+          >
+            {saving ? 'Saving...' : 'Save Note'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Org Card ─────────────────────────────────────────────
-function OrgCard({ org, isDark, tc, onClick, onAction }) {
+function OrgCard({ org, isDark, tc, onClick, onAction, onAddNote }) {
   const memberCount = org._memberCount || 0
   const teamCount = org._teamCount || 0
   const seasonCount = org._activeSeasonCount || 0
@@ -177,6 +262,15 @@ function OrgCard({ org, isDark, tc, onClick, onAction }) {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddNote?.(org) }}
+              title="Add note"
+              className={`p-1.5 rounded-lg transition ${
+                isDark ? 'hover:bg-white/10 text-slate-400 hover:text-sky-400' : 'hover:bg-slate-100 text-slate-400 hover:text-sky-600'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+            </button>
             <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
               org.is_active === false
                 ? isDark
@@ -315,6 +409,7 @@ function PlatformOrganizations({ showToast }) {
   const [sortBy, setSortBy] = useState('name')
   const [sortAsc, setSortAsc] = useState(true)
   const [confirmModal, setConfirmModal] = useState({ open: false })
+  const [noteModal, setNoteModal] = useState({ open: false, org: null })
 
   // ── Load data ──────────────────────────────────────────
   useEffect(() => {
@@ -350,8 +445,7 @@ function PlatformOrganizations({ showToast }) {
         userRolesRes,
         seasonsRes,
         regTemplatesRes,
-        eventsRes,
-        coachesRes,
+        subsRes,
       ] = await Promise.all([
         // Members: user_roles grouped by org
         supabase.from('user_roles').select('organization_id, id').in('organization_id', orgIds),
@@ -359,14 +453,14 @@ function PlatformOrganizations({ showToast }) {
         supabase.from('seasons').select('id, organization_id, status, updated_at').in('organization_id', orgIds),
         // Registration templates
         supabase.from('registration_templates').select('id, organization_id').in('organization_id', orgIds),
-        // Schedule events (need season_ids)
-        null, // we'll handle this after seasons
-        null, // we'll handle coaches after teams
+        // Subscriptions for trialing filter
+        supabase.from('platform_subscriptions').select('organization_id, status').in('organization_id', orgIds).limit(10000),
       ])
 
       const members = userRolesRes.data || []
       const seasons = seasonsRes.data || []
       const regTemplates = regTemplatesRes.data || []
+      const subs = subsRes?.data || []
 
       // Get season IDs to query teams and events
       const allSeasonIds = seasons.map(s => s.id)
@@ -430,12 +524,15 @@ function PlatformOrganizations({ showToast }) {
           lastActivity = orgObj?.updated_at || orgObj?.created_at || null
         }
 
+        const orgSub = subs.find(s => s.organization_id === orgId)
+
         meta[orgId] = {
           memberCount: orgMembers.length,
           teamCount: orgTeams.length,
           activeSeasonCount: activeSeasons.length,
           setupHealth: { completed, total: 7, checks: setupChecks },
           lastActivity,
+          subStatus: orgSub?.status || null,
         }
       })
 
@@ -458,6 +555,7 @@ function PlatformOrganizations({ showToast }) {
       _activeSeasonCount: orgMeta[org.id]?.activeSeasonCount || 0,
       _setupHealth: orgMeta[org.id]?.setupHealth || { completed: 0, total: 7 },
       _lastActivity: orgMeta[org.id]?.lastActivity || null,
+      _subStatus: orgMeta[org.id]?.subStatus || null,
     }))
   }, [orgs, orgMeta])
 
@@ -476,10 +574,12 @@ function PlatformOrganizations({ showToast }) {
 
     // Filter pills
     if (activeFilter === 'active') {
-      result = result.filter(o => o.is_active !== false)
+      result = result.filter(o => o.is_active !== false && o._subStatus !== 'trialing')
+    } else if (activeFilter === 'trialing') {
+      result = result.filter(o => o._subStatus === 'trialing')
     } else if (activeFilter === 'suspended') {
       result = result.filter(o => o.is_active === false)
-    } else if (activeFilter === 'needs_attention') {
+    } else if (activeFilter === 'needs_setup') {
       result = result.filter(o => (o._setupHealth?.completed || 0) < 3)
     }
 
@@ -531,6 +631,12 @@ function PlatformOrganizations({ showToast }) {
             return
           }
           await logAction('suspend_org', 'organization', org.id, { org_name: org.name })
+          await supabase.from('platform_org_events').insert({
+            organization_id: org.id,
+            event_type: 'suspended',
+            details: { reason: 'Suspended by platform admin' },
+            performed_by: user.id,
+          })
           showToast?.(`${org.name} has been suspended`, 'success')
           loadOrgs(true)
         },
@@ -551,6 +657,12 @@ function PlatformOrganizations({ showToast }) {
             return
           }
           await logAction('activate_org', 'organization', org.id, { org_name: org.name })
+          await supabase.from('platform_org_events').insert({
+            organization_id: org.id,
+            event_type: 'reactivated',
+            details: { reason: 'Reactivated by platform admin' },
+            performed_by: user.id,
+          })
           showToast?.(`${org.name} has been reactivated`, 'success')
           loadOrgs(true)
         },
@@ -589,9 +701,10 @@ function PlatformOrganizations({ showToast }) {
   // ── Counts for filter pills ────────────────────────────
   const filterCounts = {
     all: enrichedOrgs.length,
-    active: enrichedOrgs.filter(o => o.is_active !== false).length,
+    active: enrichedOrgs.filter(o => o.is_active !== false && o._subStatus !== 'trialing').length,
+    trialing: enrichedOrgs.filter(o => o._subStatus === 'trialing').length,
     suspended: enrichedOrgs.filter(o => o.is_active === false).length,
-    needs_attention: enrichedOrgs.filter(o => (o._setupHealth?.completed || 0) < 3).length,
+    needs_setup: enrichedOrgs.filter(o => (o._setupHealth?.completed || 0) < 3).length,
   }
 
   // ── Render ─────────────────────────────────────────────
@@ -758,6 +871,7 @@ function PlatformOrganizations({ showToast }) {
                 tc={tc}
                 onClick={() => handleCardClick(org)}
                 onAction={handleOrgAction}
+                onAddNote={(o) => setNoteModal({ open: true, org: o })}
               />
             </div>
           ))}
@@ -780,6 +894,16 @@ function PlatformOrganizations({ showToast }) {
         title={confirmModal.title || ''}
         message={confirmModal.message || ''}
         destructive={confirmModal.destructive}
+      />
+
+      {/* Note Modal */}
+      <NoteModal
+        isOpen={noteModal.open}
+        onClose={() => setNoteModal({ open: false, org: null })}
+        org={noteModal.org}
+        user={user}
+        showToast={showToast}
+        onSaved={() => loadOrgs(true)}
       />
     </div>
   )
