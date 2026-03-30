@@ -1321,6 +1321,7 @@ function MainApp() {
               hasNotifications={false}
               onNotificationClick={() => navigate(getPathForPage('notifications'))}
               avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
+              onAvatarClick={() => navigate('/profile')}
               onSettingsClick={() => navigate(getPathForPage('organization'))}
               onThemeToggle={toggleTheme}
               isDark={isDark}
