@@ -1089,6 +1089,15 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 ]}
               />
 
+              {/* MASCOT NUDGE */}
+              {(stats.unsignedWaivers || 0) > 0 && !nudgeDismissed && (
+                <MascotNudge
+                  message={<>Hey {profile?.first_name || 'there'}! I noticed <strong>{stats.unsignedWaivers} player{stats.unsignedWaivers !== 1 ? 's' : ''}</strong> haven&apos;t turned in their forms. Want me to ping their parents?</>}
+                  primaryAction={{ label: 'Yes, send reminders', onClick: () => onNavigate?.('waivers') }}
+                  secondaryAction={{ label: 'Not now', onClick: () => setNudgeDismissed(true) }}
+                />
+              )}
+
               {/* ATTENTION STRIP */}
               {actionCount > 0 && (
                 <AttentionStrip
@@ -1244,15 +1253,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                     : <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
                 )}
               </BodyTabs>
-
-              {/* MASCOT NUDGE */}
-              {(stats.unsignedWaivers || 0) > 0 && !nudgeDismissed && (
-                <MascotNudge
-                  message={<>Hey {profile?.first_name || 'there'}! I noticed <strong>{stats.unsignedWaivers} player{stats.unsignedWaivers !== 1 ? 's' : ''}</strong> haven&apos;t turned in their forms. Want me to ping their parents?</>}
-                  primaryAction={{ label: 'Yes, send reminders', onClick: () => onNavigate?.('waivers') }}
-                  secondaryAction={{ label: 'Not now', onClick: () => setNudgeDismissed(true) }}
-                />
-              )}
             </>
           }
 

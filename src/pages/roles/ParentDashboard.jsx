@@ -623,6 +623,17 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               </div>
             </div>
 
+            {/* Mascot Nudge */}
+            <MascotNudge
+              message={
+                childAchievements.length > 0
+                  ? `${activeChild?.first_name || 'Your player'} earned ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}! Check them out.`
+                  : paymentSummary.totalDue > 0
+                    ? `You have $${Number(paymentSummary.totalDue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} due. Tap Pay Now to settle up.`
+                    : 'Everything looks great! Enjoy the season.'
+              }
+            />
+
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
               <AttentionStrip
@@ -673,17 +684,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 />
               )}
             </BodyTabs>
-
-            {/* Mascot Nudge */}
-            <MascotNudge
-              message={
-                childAchievements.length > 0
-                  ? `${activeChild?.first_name || 'Your player'} earned ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}! Check them out.`
-                  : paymentSummary.totalDue > 0
-                    ? `You have $${Number(paymentSummary.totalDue).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} due. Tap Pay Now to settle up.`
-                    : 'Everything looks great! Enjoy the season.'
-              }
-            />
           </>
         }
         sideContent={

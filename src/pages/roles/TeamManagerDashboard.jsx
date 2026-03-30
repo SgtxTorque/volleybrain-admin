@@ -130,6 +130,21 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
               stats={heroStats}
             />
 
+            {/* Mascot Nudge */}
+            <MascotNudge
+              message={
+                paymentHealth?.overdueCount > 0
+                  ? `Heads up — ${paymentHealth.overdueCount} payment${paymentHealth.overdueCount > 1 ? 's are' : ' is'} overdue ($${paymentHealth.overdueAmount?.toLocaleString()}). A quick reminder can go a long way.`
+                  : !hasEvents
+                    ? 'No events on the calendar yet. Add your first practice or game to get things rolling!'
+                    : rosterCount < 6
+                      ? `Only ${rosterCount} player${rosterCount !== 1 ? 's' : ''} on the roster. Share the invite code to fill up your team.`
+                      : upcomingEvents.length > 0
+                        ? `Next up: ${upcomingEvents[0]?.title || upcomingEvents[0]?.event_type}. Your team is locked in — keep it going!`
+                        : 'Everything looks great! Your team is humming along.'
+              }
+            />
+
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
               <AttentionStrip items={attentionItems} />
@@ -200,21 +215,6 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
                 <TMAttendanceTab data={nextEventRsvp} loading={loading} onNavigate={onNavigate} />
               )}
             </BodyTabs>
-
-            {/* Mascot Nudge */}
-            <MascotNudge
-              message={
-                paymentHealth?.overdueCount > 0
-                  ? `Heads up — ${paymentHealth.overdueCount} payment${paymentHealth.overdueCount > 1 ? 's are' : ' is'} overdue ($${paymentHealth.overdueAmount?.toLocaleString()}). A quick reminder can go a long way.`
-                  : !hasEvents
-                    ? 'No events on the calendar yet. Add your first practice or game to get things rolling!'
-                    : rosterCount < 6
-                      ? `Only ${rosterCount} player${rosterCount !== 1 ? 's' : ''} on the roster. Share the invite code to fill up your team.`
-                      : upcomingEvents.length > 0
-                        ? `Next up: ${upcomingEvents[0]?.title || upcomingEvents[0]?.event_type}. Your team is locked in — keep it going!`
-                        : 'Everything looks great! Your team is humming along.'
-              }
-            />
           </>
         }
         sideContent={

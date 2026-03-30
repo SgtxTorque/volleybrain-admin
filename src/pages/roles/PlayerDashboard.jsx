@@ -366,6 +366,16 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
               ) : null}
             />
 
+            {/* Mascot Nudge */}
+            <MascotNudge
+              variant="dark"
+              message={
+                badges.length > 0
+                  ? `You've earned ${badges.length} badge${badges.length > 1 ? 's' : ''}! Keep grinding for more.`
+                  : 'Keep putting in the work — your first badge is within reach!'
+              }
+            />
+
             {/* Body Tabs */}
             <BodyTabs
               tabs={playerTabs}
@@ -393,16 +403,6 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
                 />
               )}
             </BodyTabs>
-
-            {/* Mascot Nudge */}
-            <MascotNudge
-              variant="dark"
-              message={
-                badges.length > 0
-                  ? `You've earned ${badges.length} badge${badges.length > 1 ? 's' : ''}! Keep grinding for more.`
-                  : 'Keep putting in the work — your first badge is within reach!'
-              }
-            />
           </>
         }
         sideContent={

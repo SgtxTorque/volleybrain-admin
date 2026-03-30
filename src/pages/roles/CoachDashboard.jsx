@@ -743,6 +743,15 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               onTeamSelect={handleTeamSelect}
             />
 
+            {/* MASCOT NUDGE */}
+            {notResponded > 0 && (
+              <MascotNudge
+                message={<>Hey {coachName}! <strong>{notResponded} player{notResponded !== 1 ? 's' : ''}</strong> haven&apos;t RSVP&apos;d for the next event. Want to send a nudge?</>}
+                primaryAction={{ label: 'Send reminders', onClick: () => setShowCoachBlast(true) }}
+                secondaryAction={{ label: 'Not now', onClick: () => {} }}
+              />
+            )}
+
             {/* ATTENTION STRIP */}
             {attentionCount > 0 && (
               <AttentionStrip
@@ -788,15 +797,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 />
               )}
             </BodyTabs>
-
-            {/* MASCOT NUDGE */}
-            {notResponded > 0 && (
-              <MascotNudge
-                message={<>Hey {coachName}! <strong>{notResponded} player{notResponded !== 1 ? 's' : ''}</strong> haven&apos;t RSVP&apos;d for the next event. Want to send a nudge?</>}
-                primaryAction={{ label: 'Send reminders', onClick: () => setShowCoachBlast(true) }}
-                secondaryAction={{ label: 'Not now', onClick: () => {} }}
-              />
-            )}
           </>
         }
 
