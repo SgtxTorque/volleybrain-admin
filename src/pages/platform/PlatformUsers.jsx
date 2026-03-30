@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import {
-  Shield, ShieldCheck, Users, Search, X, AlertTriangle,
+  Shield, ShieldCheck, Users, Search, X, AlertTriangle, Trash2,
   ChevronDown, ChevronRight, UserX, UserCheck, Clock, Activity,
   Filter, Download, RefreshCw, Mail, Building2, Calendar, Eye
 } from '../../constants/icons'
@@ -90,12 +90,16 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, destructive 
 // ================================================================
 // USER DETAIL SLIDE-OVER
 // ================================================================
-function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction }) {
+function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction, showToast, onDataChange }) {
   const tc = useThemeClasses()
   const { isDark, accent } = useTheme()
+  const { user: adminUser } = useAuth()
   const [orgMemberships, setOrgMemberships] = useState([])
   const [recentActivity, setRecentActivity] = useState([])
+  const [xpEntries, setXpEntries] = useState([])
+  const [shoutoutsReceived, setShoutoutsReceived] = useState([])
   const [loading, setLoading] = useState(true)
+  const [removeConfirm, setRemoveConfirm] = useState({ open: false, membership: null })
 
   useEffect(() => {
     if (isOpen && selectedUser?.id) {
@@ -106,29 +110,78 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction }) 
   async function loadUserDetails() {
     setLoading(true)
     try {
-      // Load org memberships via user_roles joined with organizations
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('*, organizations(id, name, slug, is_active)')
-        .eq('user_id', selectedUser.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
+      const [rolesRes, actionsOnRes, actionsByRes, xpRes, shoutoutsRes] = await Promise.all([
+        supabase.from('user_roles')
+          .select('*, organizations(id, name, slug, is_active)')
+          .eq('user_id', selectedUser.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false }),
+        supabase.from('platform_admin_actions')
+          .select('*, profiles:admin_id(full_name)')
+          .eq('target_id', selectedUser.id)
+          .order('created_at', { ascending: false })
+          .limit(10),
+        supabase.from('platform_admin_actions')
+          .select('*, profiles:admin_id(full_name)')
+          .eq('admin_id', selectedUser.id)
+          .order('created_at', { ascending: false })
+          .limit(10),
+        supabase.from('xp_ledger')
+          .select('amount, reason, created_at')
+          .eq('user_id', selectedUser.id)
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabase.from('shoutouts')
+          .select('id, message, created_at, category')
+          .eq('recipient_id', selectedUser.id)
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ])
 
-      setOrgMemberships(roles || [])
+      setOrgMemberships(rolesRes.data || [])
 
-      // Load recent admin actions related to this user
-      const { data: activity } = await supabase
-        .from('platform_admin_actions')
-        .select('*, profiles:admin_id(full_name)')
-        .eq('target_id', selectedUser.id)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      setRecentActivity(activity || [])
+      // Combine actions on user and actions by user into unified timeline
+      const combined = [
+        ...(actionsOnRes.data || []).map(a => ({ ...a, _direction: 'on_user' })),
+        ...(actionsByRes.data || []).map(a => ({ ...a, _direction: 'by_user' })),
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20)
+      setRecentActivity(combined)
+      setXpEntries(xpRes.data || [])
+      setShoutoutsReceived(shoutoutsRes.data || [])
     } catch (err) {
       console.error('Error loading user details:', err)
     }
     setLoading(false)
+  }
+
+  async function handleRemoveFromOrg(membership) {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('id', membership.id)
+      if (error) throw error
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: adminUser?.id,
+        action_type: 'remove_user_from_org',
+        target_type: 'user',
+        target_id: selectedUser.id,
+        details: {
+          user_name: selectedUser.full_name,
+          email: selectedUser.email,
+          org_name: membership.organizations?.name,
+          org_id: membership.organization_id,
+          role: membership.role,
+        },
+      })
+      showToast?.(`Removed from ${membership.organizations?.name || 'organization'}`, 'success')
+      setRemoveConfirm({ open: false, membership: null })
+      loadUserDetails()
+      onDataChange?.()
+    } catch (err) {
+      console.error('Error removing user from org:', err)
+      showToast?.('Failed to remove user from organization', 'error')
+    }
   }
 
   function timeAgo(dateStr) {
@@ -286,6 +339,13 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction }) 
                             Org Suspended
                           </span>
                         )}
+                        <button
+                          onClick={() => setRemoveConfirm({ open: true, membership: m })}
+                          title="Remove from organization"
+                          className="p-1 rounded-lg text-red-400 hover:bg-red-500/10 transition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -305,17 +365,19 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction }) 
                 </div>
               ) : (
                 <div className={`rounded-xl border ${tc.border} overflow-hidden divide-y ${tc.border}`}>
-                  {recentActivity.map(log => (
-                    <div key={log.id} className="px-4 py-3 flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-slate-500/10 shrink-0">
-                        <Activity className="w-3.5 h-3.5 text-slate-400" />
+                  {recentActivity.map((log, i) => (
+                    <div key={`${log.id}-${log._direction || i}`} className="px-4 py-3 flex items-center gap-3">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                        log._direction === 'by_user' ? 'bg-blue-500/10' : 'bg-slate-500/10'
+                      }`}>
+                        <Activity className={`w-3.5 h-3.5 ${log._direction === 'by_user' ? 'text-blue-400' : 'text-slate-400'}`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium ${tc.text}`}>
                           {log.action_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </p>
                         <p className={`text-xs ${tc.textMuted}`}>
-                          by {log.profiles?.full_name || 'Unknown'} -- {timeAgo(log.created_at)}
+                          {log._direction === 'by_user' ? 'performed' : `by ${log.profiles?.full_name || 'Unknown'}`} · {timeAgo(log.created_at)}
                         </p>
                       </div>
                     </div>
@@ -323,6 +385,41 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction }) 
                 </div>
               )}
             </section>
+
+            {/* Engagement Data */}
+            {(xpEntries.length > 0 || shoutoutsReceived.length > 0) && (
+              <section>
+                <h3 className={`text-xs font-semibold uppercase tracking-wider ${tc.textMuted} mb-3`}>
+                  Engagement
+                </h3>
+                {xpEntries.length > 0 && (
+                  <div className={`rounded-xl border ${tc.border} overflow-hidden mb-3`}>
+                    <div className={`px-4 py-2 border-b ${tc.border} ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                      <p className={`text-xs font-semibold ${tc.textMuted}`}>Recent XP</p>
+                    </div>
+                    {xpEntries.map((xp, i) => (
+                      <div key={i} className={`px-4 py-2.5 flex items-center justify-between ${i > 0 ? `border-t ${tc.border}` : ''}`}>
+                        <span className={`text-sm ${tc.textSecondary}`}>{xp.reason || 'XP earned'}</span>
+                        <span className="text-sm font-semibold text-amber-500">+{xp.amount} XP</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {shoutoutsReceived.length > 0 && (
+                  <div className={`rounded-xl border ${tc.border} overflow-hidden`}>
+                    <div className={`px-4 py-2 border-b ${tc.border} ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                      <p className={`text-xs font-semibold ${tc.textMuted}`}>Shoutouts Received</p>
+                    </div>
+                    {shoutoutsReceived.map((s, i) => (
+                      <div key={s.id} className={`px-4 py-2.5 ${i > 0 ? `border-t ${tc.border}` : ''}`}>
+                        <p className={`text-sm ${tc.text}`}>{s.message || s.category || 'Shoutout'}</p>
+                        <p className={`text-xs ${tc.textMuted}`}>{timeAgo(s.created_at)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Actions */}
             <section className={`border-t ${tc.border} pt-5`}>
@@ -362,6 +459,39 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction }) 
                 )}
               </div>
             </section>
+          </div>
+        )}
+
+        {/* Remove from Org Confirmation */}
+        {removeConfirm.open && removeConfirm.membership && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[75] p-4">
+            <div className={`w-full max-w-sm rounded-xl p-5 shadow-2xl ${
+              isDark ? 'bg-[#1E293B] border border-slate-700' : 'bg-white border border-slate-200'
+            }`}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-red-500/15">
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </div>
+                <h4 className={`text-base font-bold ${tc.text}`}>Remove from Organization</h4>
+              </div>
+              <p className={`text-sm ${tc.textSecondary} mb-4`}>
+                Remove <strong>{selectedUser.full_name || selectedUser.email}</strong> from <strong>{removeConfirm.membership.organizations?.name}</strong>?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setRemoveConfirm({ open: false, membership: null })}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleRemoveFromOrg(removeConfirm.membership)}
+                  className="flex-1 py-2 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -412,10 +542,14 @@ function PlatformUsersPage({ showToast }) {
   const [orgFilter, setOrgFilter] = useState('all')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [dateFilter, setDateFilter] = useState('all')
 
   // UI state
   const [selectedUser, setSelectedUser] = useState(null)
   const [confirmModal, setConfirmModal] = useState({ open: false })
+  const [duplicates, setDuplicates] = useState([])
+  const [showDuplicates, setShowDuplicates] = useState(false)
+  const [loadingDuplicates, setLoadingDuplicates] = useState(false)
   const [sortField, setSortField] = useState('created_at')
   const [sortAsc, setSortAsc] = useState(false)
 
@@ -547,6 +681,24 @@ function PlatformUsersPage({ showToast }) {
     })
   }
 
+  // Duplicate detection
+  function checkForDuplicates() {
+    setLoadingDuplicates(true)
+    const nameGroups = {}
+    users.forEach(u => {
+      if (!u.full_name) return
+      const key = u.full_name.toLowerCase().trim()
+      if (!nameGroups[key]) nameGroups[key] = []
+      nameGroups[key].push(u)
+    })
+    const dupes = Object.entries(nameGroups)
+      .filter(([_, group]) => group.length > 1)
+      .map(([name, group]) => ({ type: 'name', key: name, users: group }))
+    setDuplicates(dupes)
+    setShowDuplicates(true)
+    setLoadingDuplicates(false)
+  }
+
   // Route slide-over actions
   function handleSlideOverAction(action, targetUser) {
     if (action === 'suspend' || action === 'activate') {
@@ -589,6 +741,16 @@ function PlatformUsersPage({ showToast }) {
       if (roleFilter !== 'all') {
         const roles = userRolesMap[u.id] || []
         if (!roles.some(r => r.role === roleFilter)) return false
+      }
+      // Date filter
+      if (dateFilter !== 'all') {
+        const now = new Date()
+        let cutoff
+        if (dateFilter === 'this_week') cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+        else if (dateFilter === 'this_month') cutoff = new Date(now.getFullYear(), now.getMonth(), 1)
+        else if (dateFilter === 'this_quarter') cutoff = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1)
+        else if (dateFilter === 'this_year') cutoff = new Date(now.getFullYear(), 0, 1)
+        if (cutoff && (!u.created_at || new Date(u.created_at) < cutoff)) return false
       }
       return true
     })
@@ -637,7 +799,15 @@ function PlatformUsersPage({ showToast }) {
     { value: 'platform_admin', label: 'Platform Admins' },
   ]
 
-  const hasActiveFilters = orgFilter !== 'all' || roleFilter !== 'all' || statusFilter !== 'all' || search !== ''
+  const dateOptions = [
+    { value: 'all', label: 'All Time' },
+    { value: 'this_week', label: 'This Week' },
+    { value: 'this_month', label: 'This Month' },
+    { value: 'this_quarter', label: 'This Quarter' },
+    { value: 'this_year', label: 'This Year' },
+  ]
+
+  const hasActiveFilters = orgFilter !== 'all' || roleFilter !== 'all' || statusFilter !== 'all' || dateFilter !== 'all' || search !== ''
 
   // Access gate
   if (!isPlatformAdmin) {
@@ -741,9 +911,17 @@ function PlatformUsersPage({ showToast }) {
               isDark={isDark}
               tc={tc}
             />
+            <FilterDropdown
+              label="Joined"
+              value={dateFilter}
+              onChange={setDateFilter}
+              options={dateOptions}
+              isDark={isDark}
+              tc={tc}
+            />
             {hasActiveFilters && (
               <button
-                onClick={() => { setSearch(''); setOrgFilter('all'); setRoleFilter('all'); setStatusFilter('all') }}
+                onClick={() => { setSearch(''); setOrgFilter('all'); setRoleFilter('all'); setStatusFilter('all'); setDateFilter('all') }}
                 className="px-3 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-500/10 transition"
               >
                 Clear Filters
@@ -999,12 +1177,73 @@ function PlatformUsersPage({ showToast }) {
         </div>
       )}
 
+      {/* Duplicate Detection */}
+      {!loading && users.length > 0 && (
+        <div className={`pu-au mt-5 rounded-xl border p-4 ${
+          isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver'
+        }`} style={{ animationDelay: '180ms' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={`w-4 h-4 ${tc.textMuted}`} />
+              <h3 className={`text-sm font-semibold ${tc.text}`}>Duplicate Detection</h3>
+            </div>
+            <button
+              onClick={showDuplicates ? () => setShowDuplicates(false) : checkForDuplicates}
+              disabled={loadingDuplicates}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                isDark
+                  ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              } ${loadingDuplicates ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {loadingDuplicates ? 'Checking...' : showDuplicates ? 'Hide' : 'Check for Duplicates'}
+            </button>
+          </div>
+          {showDuplicates && (
+            <div className="mt-4 space-y-3">
+              {duplicates.length === 0 ? (
+                <p className={`text-sm ${tc.textMuted} text-center py-4`}>No duplicate names detected.</p>
+              ) : (
+                <>
+                  <p className={`text-xs ${tc.textMuted}`}>{duplicates.length} potential duplicate group{duplicates.length !== 1 ? 's' : ''} found</p>
+                  {duplicates.map((group, gi) => (
+                    <div key={gi} className={`rounded-lg border ${tc.border} overflow-hidden`}>
+                      <div className={`px-3 py-2 text-xs font-semibold ${isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'}`}>
+                        "{group.key}" — {group.users.length} profiles
+                      </div>
+                      <div className={`divide-y ${tc.border}`}>
+                        {group.users.map(u => (
+                          <div key={u.id} className="px-3 py-2 flex items-center justify-between">
+                            <div>
+                              <p className={`text-sm font-medium ${tc.text}`}>{u.full_name}</p>
+                              <p className={`text-xs ${tc.textMuted}`}>{u.email}</p>
+                            </div>
+                            <button
+                              onClick={() => setSelectedUser(u)}
+                              className={`text-xs font-medium transition ${isDark ? 'text-sky-400 hover:text-sky-300' : 'text-sky-600 hover:text-sky-700'}`}
+                            >
+                              Review
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* User Detail Slide-Over */}
       <UserDetailSlideOver
         user={selectedUser}
         isOpen={!!selectedUser}
         onClose={() => setSelectedUser(null)}
         onAction={handleSlideOverAction}
+        showToast={showToast}
+        onDataChange={loadData}
       />
 
       {/* Confirm Modal */}
