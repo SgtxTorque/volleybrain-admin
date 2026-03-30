@@ -70,7 +70,6 @@ export const ROUTES = {
   'platform-support': '/platform/support',
   'platform-audit': '/platform/audit',
   'platform-settings': '/platform/settings',
-  'platform-admin': '/platform/admin',
 
   // Parent-specific
   'messages': '/messages',
@@ -179,7 +178,6 @@ export const PAGE_TITLES = {
   '/platform/support': 'Platform Support',
   '/platform/audit': 'Platform Audit Log',
   '/platform/settings': 'Platform Settings',
-  '/platform/admin': 'Platform Admin',
   '/messages': 'Messages',
   '/invite': 'Invite Friends',
   '/my-stuff': 'My Stuff',

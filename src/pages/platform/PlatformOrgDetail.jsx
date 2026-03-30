@@ -687,7 +687,7 @@ function PlatformOrgDetail({ showToast }) {
         await logAction('delete_org', 'organization', orgId, { org_name: org.name })
         await supabase.from('organizations').delete().eq('id', orgId)
         showToast?.(`${org.name} deleted`, 'success')
-        navigate('/platform/admin')
+        navigate('/platform/organizations')
       },
     })
   }
@@ -734,7 +734,7 @@ function PlatformOrgDetail({ showToast }) {
         <h2 className={`text-xl font-bold ${tc.text} mb-2`}>Organization Not Found</h2>
         <p className={`text-sm ${tc.textMuted} mb-6`}>The organization you are looking for does not exist or has been deleted.</p>
         <button
-          onClick={() => navigate('/platform/admin')}
+          onClick={() => navigate('/platform/organizations')}
           className="flex items-center gap-2 px-4 py-2 rounded-[10px] text-sm font-medium text-white transition hover:opacity-90"
           style={{ background: accent.primary }}
         >
@@ -752,7 +752,7 @@ function PlatformOrgDetail({ showToast }) {
     <div className="max-w-6xl mx-auto">
       {/* Back button */}
       <button
-        onClick={() => navigate('/platform/admin')}
+        onClick={() => navigate('/platform/organizations')}
         className={`flex items-center gap-1.5 text-sm font-medium mb-5 transition ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
       >
         <ArrowLeft className="w-4 h-4" />

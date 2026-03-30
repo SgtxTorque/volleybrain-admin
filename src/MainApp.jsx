@@ -95,7 +95,6 @@ import { NotificationsPage } from './pages/notifications/NotificationsPage'
 import EmailPage from './pages/email/EmailPage'
 
 // Platform Admin
-import { PlatformAdminPage } from './pages/platform/PlatformAdminPage'
 import { PlatformAnalyticsPage } from './pages/platform/PlatformAnalyticsPage'
 import { PlatformSubscriptionsPage } from './pages/platform/PlatformSubscriptionsPage'
 import PlatformOverview from './pages/platform/PlatformOverview'
@@ -1251,7 +1250,6 @@ function MainApp() {
               <Route path="/platform/support" element={<PlatformSupport showToast={showToast} />} />
               <Route path="/platform/audit" element={<PlatformAuditLog showToast={showToast} />} />
               <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
-              <Route path="/platform/admin" element={<PlatformAdminPage showToast={showToast} />} />
               <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
               <Route path="*" element={<Navigate to="/platform/overview" replace />} />
             </Routes>
