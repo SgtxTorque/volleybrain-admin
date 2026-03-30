@@ -235,6 +235,7 @@ export default function LynxSidebar({
   onToggleTheme, onSignOut, onNavigateToProfile, isDark = false,
   notificationCount = 0, onOpenNotifications,
   isPlatformAdmin = false, onEnterPlatformMode,
+  onSettingsClick,
 }) {
   const isPlayer = activeView === 'player'
 
@@ -425,7 +426,7 @@ export default function LynxSidebar({
 
         {/* Settings */}
         <button
-          onClick={() => onNavigate?.('organization')}
+          onClick={() => onSettingsClick ? onSettingsClick() : onNavigate?.('organization')}
           className="v2-sidebar-btn"
           data-player={isPlayer || undefined}
           style={{ width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10 }}

@@ -1296,6 +1296,7 @@ function MainApp() {
           onOpenNotifications={() => navigate('/notifications')}
           isPlatformAdmin={isPlatformAdmin}
           onEnterPlatformMode={handleEnterPlatformMode}
+          onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
         />
 
         {/* Main Content — offset by sidebar width (64px), capped at 2400px on ultrawide */}
@@ -1322,7 +1323,7 @@ function MainApp() {
               onNotificationClick={() => navigate(getPathForPage('notifications'))}
               avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
               onAvatarClick={() => navigate('/profile')}
-              onSettingsClick={() => navigate(getPathForPage('organization'))}
+              onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
               onThemeToggle={toggleTheme}
               isDark={isDark}
               availableRoles={getAvailableViews().map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
