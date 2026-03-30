@@ -408,7 +408,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
   // ── User Growth ──
   async function loadUserGrowth() {
-    let query = supabase.from('profiles').select('created_at').order('created_at')
+    let query = supabase.from('profiles').select('created_at').order('created_at').limit(50000)
     if (rangeDate) query = query.gte('created_at', rangeDate)
     const { data } = await query
     const grouped = groupByMonth(data || [])
@@ -417,7 +417,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
   // ── Revenue ──
   async function loadRevenue() {
-    let query = supabase.from('payments').select('amount, paid, created_at').eq('paid', true).order('created_at')
+    let query = supabase.from('payments').select('amount, paid, created_at').eq('paid', true).order('created_at').limit(50000)
     if (rangeDate) query = query.gte('created_at', rangeDate)
     const { data } = await query
     const grouped = groupByMonth(data || [])
@@ -429,7 +429,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
   // ── Org Breakdowns ──
   async function loadOrgBreakdowns() {
-    const { data: orgs } = await supabase.from('organizations').select('id, name, settings, is_active, created_at')
+    const { data: orgs } = await supabase.from('organizations').select('id, name, settings, is_active, created_at').limit(10000)
 
     // Org types from settings.org_type
     const typeMap = {}
@@ -504,15 +504,15 @@ function PlatformAnalyticsPage({ showToast }) {
     setRecentUsers((newUsers || []).filter(u => u.created_at >= cutoff))
 
     // Inactive orgs: active orgs with 0 teams
-    const { data: allOrgs } = await supabase.from('organizations').select('id, name, created_at, is_active').eq('is_active', true)
-    const { data: allSeasons } = await supabase.from('seasons').select('organization_id')
+    const { data: allOrgs } = await supabase.from('organizations').select('id, name, created_at, is_active').eq('is_active', true).limit(10000)
+    const { data: allSeasons } = await supabase.from('seasons').select('organization_id').limit(50000)
     const orgsWithSeasons = new Set((allSeasons || []).map(s => s.organization_id))
     setInactiveOrgs((allOrgs || []).filter(o => !orgsWithSeasons.has(o.id)))
   }
 
   // ── Registrations ──
   async function loadRegistrations() {
-    let query = supabase.from('registrations').select('created_at, status').order('created_at')
+    let query = supabase.from('registrations').select('created_at, status').order('created_at').limit(50000)
     if (rangeDate) query = query.gte('created_at', rangeDate)
     const { data, error } = await query
     if (error) { setRegistrationsByMonth([]); return }
