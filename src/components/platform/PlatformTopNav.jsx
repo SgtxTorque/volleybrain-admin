@@ -8,6 +8,7 @@ const NAV_SECTIONS = [
   { id: 'subscriptions', label: 'Subscriptions' },
   { id: 'analytics', label: 'Analytics' },
   { id: 'support', label: 'Support' },
+  { id: 'notifications', label: 'Notifications' },
   { id: 'audit', label: 'Audit Log' },
   { id: 'settings', label: 'Settings' },
 ]

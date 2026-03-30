@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   LayoutDashboard, Building2, Users, CreditCard, BarChart3,
   MessageSquare, FileText, Settings, ChevronRight,
-  LogOut, Moon, Sun, ArrowLeft, Shield, Search
+  LogOut, Moon, Sun, ArrowLeft, Shield, Search, Bell
 } from 'lucide-react'
 
 const SECTION_NAV = {
@@ -23,6 +23,9 @@ const SECTION_NAV = {
   ],
   support: [
     { id: 'support', label: 'Support Inbox', icon: MessageSquare },
+  ],
+  notifications: [
+    { id: 'notifications', label: 'Notifications', icon: Bell },
   ],
   audit: [
     { id: 'audit', label: 'Audit Log', icon: FileText },

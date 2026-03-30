@@ -68,6 +68,7 @@ export const ROUTES = {
   'platform-subscriptions': '/platform/subscriptions',
   'platform-analytics': '/platform/analytics',
   'platform-support': '/platform/support',
+  'platform-notifications': '/platform/notifications',
   'platform-audit': '/platform/audit',
   'platform-settings': '/platform/settings',
 
@@ -176,6 +177,7 @@ export const PAGE_TITLES = {
   '/platform/subscriptions': 'Platform Subscriptions',
   '/platform/analytics': 'Platform Analytics',
   '/platform/support': 'Platform Support',
+  '/platform/notifications': 'Platform Notifications',
   '/platform/audit': 'Platform Audit Log',
   '/platform/settings': 'Platform Settings',
   '/messages': 'Messages',

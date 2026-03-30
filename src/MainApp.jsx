@@ -104,6 +104,7 @@ import PlatformUsersPage from './pages/platform/PlatformUsers'
 import PlatformSupport from './pages/platform/PlatformSupport'
 import PlatformAuditLog from './pages/platform/PlatformAuditLog'
 import PlatformSettings from './pages/platform/PlatformSettings'
+import PlatformNotifications from './pages/platform/PlatformNotifications'
 import PlatformShell from './components/platform/PlatformShell'
 
 // Profile
@@ -1248,6 +1249,7 @@ function MainApp() {
               <Route path="/platform/subscriptions" element={<PlatformSubscriptionsPage showToast={showToast} />} />
               <Route path="/platform/analytics" element={<PlatformAnalyticsPage showToast={showToast} />} />
               <Route path="/platform/support" element={<PlatformSupport showToast={showToast} />} />
+              <Route path="/platform/notifications" element={<PlatformNotifications showToast={showToast} />} />
               <Route path="/platform/audit" element={<PlatformAuditLog showToast={showToast} />} />
               <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
               <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
