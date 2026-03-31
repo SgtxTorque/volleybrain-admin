@@ -1,16 +1,73 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { usePlatformSettings } from '../../hooks/usePlatformSettings'
 import {
   AlertCircle, Lightbulb, CreditCard, HelpCircle, MessageSquare,
   Search, X, Filter, Clock, Send, ChevronDown, ChevronRight,
   RefreshCw, Loader2, MoreVertical, ArrowLeft, User, Building2,
   CheckCircle2, AlertTriangle, Tag, Mail
 } from '../../constants/icons'
+import { Star, Zap, Timer, TrendingUp, BarChart3 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
 // PLATFORM SUPPORT INBOX — Clean professional support page
 // ═══════════════════════════════════════════════════════════
+
+// ═══════ SLA CONFIG ═══════
+const SLA_CONFIG = {
+  urgent:  { response_hours: 1,  resolution_hours: 4 },
+  high:    { response_hours: 4,  resolution_hours: 24 },
+  normal:  { response_hours: 24, resolution_hours: 72 },
+  low:     { response_hours: 48, resolution_hours: 168 },
+}
+
+const DEFAULT_CANNED = [
+  { id: '1', label: 'Investigating', text: 'Thanks for reaching out! We\'re looking into this and will update you shortly.' },
+  { id: '2', label: 'Need More Info', text: 'Could you provide more details about this issue? Screenshots or steps to reproduce would be very helpful.' },
+  { id: '3', label: 'Resolved', text: 'This issue has been resolved. Please let us know if you experience it again.' },
+  { id: '4', label: 'Known Issue', text: 'This is a known issue that we\'re actively working on. We\'ll notify you when the fix is deployed.' },
+  { id: '5', label: 'Feature Noted', text: 'Thanks for the suggestion! We\'ve added this to our feature request tracker.' },
+]
+
+// ═══════ SLA TIMER PILL ═══════
+function SlaTimerPill({ ticket }) {
+  // Determine which deadline to check
+  const deadline = !ticket.first_response_at
+    ? ticket.first_response_deadline
+    : ticket.resolution_deadline
+
+  if (!deadline) return null
+  if (ticket.status === 'closed' || ticket.status === 'resolved') return null
+
+  const now = new Date()
+  const deadlineDate = new Date(deadline)
+  const totalMs = deadlineDate - new Date(ticket.created_at)
+  const remainingMs = deadlineDate - now
+  const pctRemaining = totalMs > 0 ? (remainingMs / totalMs) * 100 : 0
+
+  if (remainingMs <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400">
+        <Timer className="w-3 h-3" /> Breached
+      </span>
+    )
+  }
+
+  const hours = Math.floor(remainingMs / 3600000)
+  const mins = Math.floor((remainingMs % 3600000) / 60000)
+  const label = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
+
+  let color = 'bg-emerald-500/15 text-emerald-500'
+  if (pctRemaining < 10) color = 'bg-red-500/15 text-red-400'
+  else if (pctRemaining < 50) color = 'bg-amber-500/15 text-amber-500'
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${color}`}>
+      <Timer className="w-3 h-3" /> {label}
+    </span>
+  )
+}
 
 const STATUS_OPTIONS = [
   { id: 'all', label: 'All' },
@@ -115,7 +172,7 @@ function CategoryIcon({ category, size = 'w-4 h-4' }) {
 }
 
 // ═══════ TICKET DETAIL SLIDE-OVER ═══════
-function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast, onTicketUpdated }) {
+function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast, onTicketUpdated, cannedResponses }) {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [replyText, setReplyText] = useState('')
@@ -125,6 +182,10 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
   const [updatingPriority, setUpdatingPriority] = useState(false)
   const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [showPriorityMenu, setShowPriorityMenu] = useState(false)
+  const [showCannedMenu, setShowCannedMenu] = useState(false)
+  const [csatRating, setCsatRating] = useState(ticket?.satisfaction_rating || 0)
+  const [csatComment, setCsatComment] = useState(ticket?.satisfaction_comment || '')
+  const [savingCsat, setSavingCsat] = useState(false)
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -171,13 +232,21 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
 
       if (error) throw error
 
+      // Track first response time if this is the first non-internal reply
+      if (!isInternalNote && !ticket.first_response_at) {
+        await supabase.from('platform_support_tickets')
+          .update({ first_response_at: new Date().toISOString() })
+          .eq('id', ticket.id)
+      }
+
       // Audit log
       await supabase.from('platform_admin_actions').insert({
         admin_id: user.id,
         action_type: isInternalNote ? 'send_internal_note' : 'send_support_reply',
         target_type: 'support_ticket',
         target_id: ticket.id,
-        details: { subject: ticket.subject, org_name: ticket.organizations?.name }
+        details: { subject: ticket.subject, org_name: ticket.organizations?.name },
+        user_agent: navigator.userAgent,
       })
 
       setReplyText('')
@@ -195,9 +264,15 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
     setUpdatingStatus(true)
     setShowStatusMenu(false)
     try {
+      const updateData = { status: newStatus, updated_at: new Date().toISOString() }
+      // Set resolved_at when resolving
+      if (newStatus === 'resolved' && !ticket.resolved_at) {
+        updateData.resolved_at = new Date().toISOString()
+      }
+
       const { error } = await supabase
         .from('platform_support_tickets')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq('id', ticket.id)
 
       if (error) throw error
@@ -209,7 +284,8 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
         action_type: 'update_ticket_status',
         target_type: 'support_ticket',
         target_id: ticket.id,
-        details: { subject: ticket.subject, old_status: ticket.status, new_status: newStatus }
+        details: { subject: ticket.subject, old_status: ticket.status, new_status: newStatus },
+        user_agent: navigator.userAgent,
       })
 
       showToast?.(`Status updated to ${newStatus.replace('_', ' ')}`, 'success')
@@ -225,9 +301,18 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
     setUpdatingPriority(true)
     setShowPriorityMenu(false)
     try {
+      const sla = SLA_CONFIG[newPriority] || SLA_CONFIG.normal
+      const now = new Date()
+      const updateData = {
+        priority: newPriority,
+        updated_at: now.toISOString(),
+        first_response_deadline: new Date(now.getTime() + sla.response_hours * 3600000).toISOString(),
+        resolution_deadline: new Date(now.getTime() + sla.resolution_hours * 3600000).toISOString(),
+      }
+
       const { error } = await supabase
         .from('platform_support_tickets')
-        .update({ priority: newPriority, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq('id', ticket.id)
 
       if (error) throw error
@@ -239,7 +324,8 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
         action_type: 'update_ticket_priority',
         target_type: 'support_ticket',
         target_id: ticket.id,
-        details: { subject: ticket.subject, old_priority: ticket.priority, new_priority: newPriority }
+        details: { subject: ticket.subject, old_priority: ticket.priority, new_priority: newPriority },
+        user_agent: navigator.userAgent,
       })
 
       showToast?.(`Priority updated to ${newPriority}`, 'success')
@@ -249,6 +335,46 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
       showToast?.('Failed to update priority', 'error')
     }
     setUpdatingPriority(false)
+  }
+
+  async function handleSaveCsat(rating) {
+    setCsatRating(rating)
+    setSavingCsat(true)
+    try {
+      const { error } = await supabase.from('platform_support_tickets')
+        .update({ satisfaction_rating: rating, satisfaction_comment: csatComment || null })
+        .eq('id', ticket.id)
+      if (error) throw error
+      showToast?.('Rating saved', 'success')
+      onTicketUpdated?.()
+    } catch (err) {
+      console.error('Error saving CSAT:', err)
+      showToast?.('Failed to save rating', 'error')
+    }
+    setSavingCsat(false)
+  }
+
+  async function handleSaveCsatComment() {
+    if (!csatRating) return
+    setSavingCsat(true)
+    try {
+      await supabase.from('platform_support_tickets')
+        .update({ satisfaction_comment: csatComment })
+        .eq('id', ticket.id)
+      showToast?.('Comment saved', 'success')
+    } catch (err) {
+      console.error('Error saving CSAT comment:', err)
+    }
+    setSavingCsat(false)
+  }
+
+  function applyCannedResponse(canned) {
+    let text = canned.text
+    text = text.replace(/\{\{org_name\}\}/g, ticket.organizations?.name || 'your organization')
+    text = text.replace(/\{\{user_name\}\}/g, ticket.profiles?.full_name || 'there')
+    text = text.replace(/\{\{ticket_id\}\}/g, ticket.id?.slice(0, 8) || '')
+    setReplyText(text)
+    setShowCannedMenu(false)
   }
 
   if (!isOpen || !ticket) return null
@@ -365,6 +491,42 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
               )}
             </div>
           </div>
+
+          {/* SLA Timer */}
+          <div className="mt-2">
+            <SlaTimerPill ticket={ticket} />
+          </div>
+
+          {/* Satisfaction Rating (show if resolved) */}
+          {(ticket.status === 'resolved' || ticket.status === 'closed') && (
+            <div className={`mt-3 p-3 rounded-xl border ${isDark ? 'bg-slate-800/50 border-white/[0.06]' : 'bg-slate-50 border-slate-200'}`}>
+              <p className={`text-xs font-semibold ${tc.text} mb-2`}>Support Experience Rating</p>
+              <div className="flex items-center gap-1 mb-2">
+                {[1,2,3,4,5].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => handleSaveCsat(s)}
+                    disabled={savingCsat}
+                    className="transition hover:scale-110"
+                  >
+                    <Star className={`w-5 h-5 ${s <= csatRating ? 'text-amber-400 fill-amber-400' : isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                  </button>
+                ))}
+                {csatRating > 0 && <span className={`text-xs ml-2 ${tc.textMuted}`}>{csatRating}/5</span>}
+              </div>
+              {csatRating > 0 && (
+                <div className="flex gap-2">
+                  <input
+                    value={csatComment}
+                    onChange={e => setCsatComment(e.target.value)}
+                    placeholder="Optional comment..."
+                    className={`flex-1 text-xs px-2 py-1.5 rounded-lg ${tc.input} border`}
+                    onBlur={handleSaveCsatComment}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Ticket meta */}
           <div className={`flex items-center gap-4 mt-3 text-xs ${tc.textMuted}`}>
@@ -499,13 +661,45 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSendReply()
               }}
             />
-            <button
-              onClick={handleSendReply}
-              disabled={sending || !replyText.trim()}
-              className="self-end p-2.5 rounded-xl bg-[var(--accent-primary)] text-white disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition"
-            >
-              {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </button>
+            <div className="flex flex-col gap-1 self-end">
+              {/* Canned responses dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCannedMenu(!showCannedMenu)}
+                  className={`p-2.5 rounded-xl text-sm font-medium transition border ${
+                    isDark ? 'border-white/[0.08] hover:bg-white/5 text-slate-400' : 'border-slate-200 hover:bg-slate-50 text-slate-500'
+                  }`}
+                  title="Quick Reply"
+                >
+                  <Zap className="w-4 h-4" />
+                </button>
+                {showCannedMenu && (
+                  <div className={`absolute bottom-full right-0 mb-1 w-56 rounded-xl border shadow-xl z-20 py-1 ${
+                    isDark ? 'bg-lynx-charcoal border-white/[0.08]' : 'bg-white border-slate-200'
+                  }`}>
+                    <p className={`px-3 py-1.5 text-xs font-semibold ${tc.textMuted}`}>Quick Replies</p>
+                    {(cannedResponses || DEFAULT_CANNED).map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => applyCannedResponse(c)}
+                        className={`w-full text-left px-3 py-2 text-sm transition ${
+                          isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
+                        } ${tc.text}`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleSendReply}
+                disabled={sending || !replyText.trim()}
+                className="p-2.5 rounded-xl bg-[var(--accent-primary)] text-white disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition"
+              >
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <p className={`text-xs ${tc.textMuted} mt-1.5`}>Ctrl+Enter to send</p>
         </div>
@@ -528,6 +722,10 @@ function TicketDetailSlideOver({ ticket, isOpen, onClose, isDark, tc, showToast,
 function PlatformSupport({ showToast }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
+
+  // Canned responses from platform settings
+  const { settings: supportSettings } = usePlatformSettings('support')
+  const cannedResponses = supportSettings.support_canned_responses || DEFAULT_CANNED
 
   // Data state
   const [tickets, setTickets] = useState([])
@@ -615,6 +813,29 @@ function PlatformSupport({ showToast }) {
     loadTickets()
   }
 
+  // ── METRICS ──
+  const metrics = useMemo(() => {
+    const openCount = tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length
+    const rated = tickets.filter(t => t.satisfaction_rating)
+    const avgCsat = rated.length > 0 ? (rated.reduce((s, t) => s + t.satisfaction_rating, 0) / rated.length).toFixed(1) : '—'
+
+    const responded = tickets.filter(t => t.first_response_at && t.created_at)
+    const avgResponseH = responded.length > 0
+      ? (responded.reduce((s, t) => s + (new Date(t.first_response_at) - new Date(t.created_at)), 0) / responded.length / 3600000).toFixed(1)
+      : '—'
+
+    const resolved = tickets.filter(t => t.resolved_at && t.created_at)
+    const avgResolutionH = resolved.length > 0
+      ? (resolved.reduce((s, t) => s + (new Date(t.resolved_at) - new Date(t.created_at)), 0) / resolved.length / 3600000).toFixed(1)
+      : '—'
+
+    const withDeadline = tickets.filter(t => t.resolution_deadline && (t.status === 'resolved' || t.status === 'closed'))
+    const slaCompliant = withDeadline.filter(t => t.resolved_at && new Date(t.resolved_at) <= new Date(t.resolution_deadline)).length
+    const slaRate = withDeadline.length > 0 ? Math.round((slaCompliant / withDeadline.length) * 100) : '—'
+
+    return { openCount, avgCsat, avgResponseH, avgResolutionH, slaRate }
+  }, [tickets])
+
   // ── RENDER ──
   return (
     <div className={`min-h-screen ${tc.pageBg}`}>
@@ -641,6 +862,29 @@ function PlatformSupport({ showToast }) {
             Refresh
           </button>
         </div>
+
+        {/* Metrics strip */}
+        {!loading && !loadError && tickets.length > 0 && (
+          <div className="grid grid-cols-5 gap-3 mb-5">
+            {[
+              { label: 'Open Tickets', value: metrics.openCount, icon: MessageSquare, color: 'text-blue-500' },
+              { label: 'Avg First Response', value: metrics.avgResponseH !== '—' ? `${metrics.avgResponseH}h` : '—', icon: Timer, color: 'text-amber-500' },
+              { label: 'Avg Resolution', value: metrics.avgResolutionH !== '—' ? `${metrics.avgResolutionH}h` : '—', icon: Clock, color: 'text-emerald-500' },
+              { label: 'CSAT Score', value: metrics.avgCsat !== '—' ? `${metrics.avgCsat}/5` : '—', icon: Star, color: 'text-amber-400' },
+              { label: 'SLA Compliance', value: metrics.slaRate !== '—' ? `${metrics.slaRate}%` : '—', icon: TrendingUp, color: 'text-sky-500' },
+            ].map(m => (
+              <div key={m.label} className={`rounded-[14px] p-4 border ${
+                isDark ? 'bg-[#1E293B] border-slate-700' : 'bg-white border-slate-200'
+              } shadow-sm`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <m.icon className={`w-4 h-4 ${m.color}`} />
+                  <span className={`text-xs font-medium ${tc.textMuted}`}>{m.label}</span>
+                </div>
+                <p className={`text-xl font-bold ${tc.text}`}>{m.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Status pills */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">
@@ -920,6 +1164,7 @@ function PlatformSupport({ showToast }) {
 
                     {/* Badges */}
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      <SlaTimerPill ticket={ticket} />
                       <PriorityBadge priority={ticket.priority} />
                       <StatusBadge status={ticket.status} />
                     </div>
@@ -948,6 +1193,7 @@ function PlatformSupport({ showToast }) {
         tc={tc}
         showToast={showToast}
         onTicketUpdated={handleTicketUpdated}
+        cannedResponses={cannedResponses}
       />
     </div>
   )
