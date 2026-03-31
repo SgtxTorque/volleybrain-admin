@@ -71,14 +71,17 @@ export default function PlatformTopNav({
 
       {/* Right: Profile avatar + Exit button (in darker zone) */}
       <div className="flex items-center gap-3">
-        {/* Profile avatar */}
-        <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold"
+        {/* Profile avatar — clickable, goes to profile page */}
+        <button
+          onClick={() => navigate('/platform/profile')}
+          className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold hover:ring-2 hover:ring-white/30 transition-all"
           style={{ background: profile?.photo_url ? 'transparent' : 'rgba(255,255,255,0.2)', color: '#fff' }}
+          title="My Account"
         >
           {profile?.photo_url ? (
             <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
           ) : avatarInitial}
-        </div>
+        </button>
 
         {/* Exit to Org button */}
         <button
