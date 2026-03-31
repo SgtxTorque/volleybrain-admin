@@ -738,3 +738,4 @@ function PlatformAnalyticsPage({ showToast }) {
 }
 
 export { PlatformAnalyticsPage }
+export default PlatformAnalyticsPage

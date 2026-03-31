@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { useTheme, useThemeClasses } from './contexts/ThemeContext'
@@ -94,18 +94,18 @@ import { AchievementsCatalogPage } from './pages/achievements'
 import { NotificationsPage } from './pages/notifications/NotificationsPage'
 import EmailPage from './pages/email/EmailPage'
 
-// Platform Admin
-import { PlatformAnalyticsPage } from './pages/platform/PlatformAnalyticsPage'
-import { PlatformSubscriptionsPage } from './pages/platform/PlatformSubscriptionsPage'
-import PlatformOverview from './pages/platform/PlatformOverview'
-import PlatformOrganizations from './pages/platform/PlatformOrganizations'
-import PlatformOrgDetail from './pages/platform/PlatformOrgDetail'
-import PlatformUsersPage from './pages/platform/PlatformUsers'
-import PlatformSupport from './pages/platform/PlatformSupport'
-import PlatformAuditLog from './pages/platform/PlatformAuditLog'
-import PlatformSettings from './pages/platform/PlatformSettings'
-import PlatformNotifications from './pages/platform/PlatformNotifications'
-import PlatformShell from './components/platform/PlatformShell'
+// Platform Admin (lazy loaded)
+const PlatformAnalyticsPage = lazy(() => import('./pages/platform/PlatformAnalyticsPage'))
+const PlatformSubscriptionsPage = lazy(() => import('./pages/platform/PlatformSubscriptionsPage'))
+const PlatformOverview = lazy(() => import('./pages/platform/PlatformOverview'))
+const PlatformOrganizations = lazy(() => import('./pages/platform/PlatformOrganizations'))
+const PlatformOrgDetail = lazy(() => import('./pages/platform/PlatformOrgDetail'))
+const PlatformUsersPage = lazy(() => import('./pages/platform/PlatformUsers'))
+const PlatformSupport = lazy(() => import('./pages/platform/PlatformSupport'))
+const PlatformAuditLog = lazy(() => import('./pages/platform/PlatformAuditLog'))
+const PlatformSettings = lazy(() => import('./pages/platform/PlatformSettings'))
+const PlatformNotifications = lazy(() => import('./pages/platform/PlatformNotifications'))
+const PlatformShell = lazy(() => import('./components/platform/PlatformShell'))
 
 // Profile
 import { MyProfilePage } from './pages/profile/MyProfilePage'
@@ -1232,6 +1232,7 @@ function MainApp() {
   if (appMode === 'platform') {
     return (
       <>
+        <Suspense fallback={<div className="flex items-center justify-center h-screen"><div className="animate-spin w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full" /></div>}>
         <PlatformShell
           profile={profile}
           orgName={orgName}
@@ -1257,6 +1258,7 @@ function MainApp() {
             </Routes>
           </ErrorBoundary>
         </PlatformShell>
+        </Suspense>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         <CommandPalette isOpen={cmdPalette.isOpen} onClose={cmdPalette.close} />
       </>

@@ -1189,3 +1189,4 @@ function PlatformSubscriptionsPage({ showToast }) {
 }
 
 export { PlatformSubscriptionsPage }
+export default PlatformSubscriptionsPage
