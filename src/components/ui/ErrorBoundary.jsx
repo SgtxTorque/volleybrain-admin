@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 
 // ============================================
 // ERROR BOUNDARY — Catches render errors per-page
@@ -17,6 +18,19 @@ export class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('[ErrorBoundary]', error, errorInfo)
+    // Log to platform_error_log table (fire-and-forget)
+    try {
+      supabase.from('platform_error_log').insert({
+        error_type: 'js_error',
+        message: error?.message || 'Unknown error',
+        stack_trace: error?.stack || null,
+        component: errorInfo?.componentStack || null,
+        severity: 'error',
+        metadata: { url: window.location.href }
+      })
+    } catch (e) {
+      // Silent fail — don't break error handling with error logging
+    }
   }
 
   handleReset = () => {
