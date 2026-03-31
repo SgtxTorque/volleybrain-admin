@@ -27,6 +27,9 @@ const SECTION_NAV = {
   notifications: [
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ],
+  email: [
+    { id: 'email', label: 'Email Center', icon: MessageSquare },
+  ],
   audit: [
     { id: 'audit', label: 'Audit Log', icon: FileText },
   ],
