@@ -21,6 +21,9 @@ const SECTION_NAV = {
   analytics: [
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ],
+  engagement: [
+    { id: 'engagement', label: 'Engagement', icon: BarChart3 },
+  ],
   support: [
     { id: 'support', label: 'Support Inbox', icon: MessageSquare },
   ],

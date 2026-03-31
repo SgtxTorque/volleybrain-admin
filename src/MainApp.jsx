@@ -108,6 +108,7 @@ const PlatformNotifications = lazy(() => import('./pages/platform/PlatformNotifi
 const PlatformEmailCenter = lazy(() => import('./pages/platform/PlatformEmailCenter'))
 const PlatformFeatureRequests = lazy(() => import('./pages/platform/PlatformFeatureRequests'))
 const PlatformCompliance = lazy(() => import('./pages/platform/PlatformCompliance'))
+const PlatformEngagement = lazy(() => import('./pages/platform/PlatformEngagement'))
 const PlatformShell = lazy(() => import('./components/platform/PlatformShell'))
 
 // Profile
@@ -1252,6 +1253,7 @@ function MainApp() {
               <Route path="/platform/users" element={<PlatformUsersPage showToast={showToast} />} />
               <Route path="/platform/subscriptions" element={<PlatformSubscriptionsPage showToast={showToast} />} />
               <Route path="/platform/analytics" element={<PlatformAnalyticsPage showToast={showToast} />} />
+              <Route path="/platform/engagement" element={<PlatformEngagement showToast={showToast} />} />
               <Route path="/platform/support" element={<PlatformSupport showToast={showToast} />} />
               <Route path="/platform/notifications" element={<PlatformNotifications showToast={showToast} />} />
               <Route path="/platform/email" element={<PlatformEmailCenter showToast={showToast} />} />

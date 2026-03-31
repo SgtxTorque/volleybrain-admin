@@ -7,6 +7,7 @@ const NAV_SECTIONS = [
   { id: 'users', label: 'Users' },
   { id: 'subscriptions', label: 'Subscriptions' },
   { id: 'analytics', label: 'Analytics' },
+  { id: 'engagement', label: 'Engagement' },
   { id: 'support', label: 'Support' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'email', label: 'Email' },
