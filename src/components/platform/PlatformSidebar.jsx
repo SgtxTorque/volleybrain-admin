@@ -33,6 +33,9 @@ const SECTION_NAV = {
   features: [
     { id: 'features', label: 'Feature Requests', icon: Building2 },
   ],
+  compliance: [
+    { id: 'compliance', label: 'Compliance', icon: Shield },
+  ],
   audit: [
     { id: 'audit', label: 'Audit Log', icon: FileText },
   ],
