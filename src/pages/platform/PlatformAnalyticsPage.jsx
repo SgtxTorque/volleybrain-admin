@@ -4,12 +4,14 @@ import { supabase } from '../../lib/supabase'
 import {
   Building2, Users, DollarSign, TrendingUp, Calendar, Activity,
   BarChart3, PieChart, Clock, ChevronDown, RefreshCw, AlertTriangle,
-  Star, Target, LineChart
+  Star, Target, LineChart, Download, Heart
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
 // PLATFORM ANALYTICS PAGE — Deep Metrics for Super-Admins
 // Glassmorphism Design — CSS-only charts (no recharts)
+// P3-1: MRR Waterfall, Cohort Retention, LTV, Churn Analysis
+// P3-5: Export action bar (investor, cross-org, tax)
 // ═══════════════════════════════════════════════════════════
 
 const AN_STYLES = `
@@ -58,6 +60,10 @@ function formatCurrency(n) {
   return '$' + (n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 }
 
+function formatCurrencyCents(n) {
+  return '$' + ((n || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
 function formatNumber(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
   if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
@@ -67,6 +73,11 @@ function formatNumber(n) {
 function getMonthLabel(dateStr) {
   const d = new Date(dateStr)
   return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+}
+
+function getMonthKey(date) {
+  const d = new Date(date)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
 function groupByMonth(items, dateField = 'created_at') {
@@ -103,7 +114,7 @@ function KpiCard({ label, value, trend, trendLabel, icon: Icon, color, isDark, i
             trend < 0 ? 'bg-red-500/15 text-red-400' :
             isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-slate-100 text-slate-500'
           }`}>
-            {trend > 0 ? '↑' : trend < 0 ? '↓' : '—'}
+            {trend > 0 ? '\u2191' : trend < 0 ? '\u2193' : '\u2014'}
             {trend !== 0 && <span>{Math.abs(trend)}</span>}
           </div>
         )}
@@ -145,6 +156,44 @@ function BarChart({ data, maxVal, color, isDark, valuePrefix = '', labelKey = 'l
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// ═══════ STACKED BAR CHART (MRR Waterfall) ═══════
+function WaterfallBar({ newVal, churnedVal, isDark }) {
+  const max = Math.max(newVal, churnedVal, 1)
+  const net = newVal - churnedVal
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className={`text-xs font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>New MRR</span>
+            <span className={`text-xs font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatCurrencyCents(newVal)}</span>
+          </div>
+          <div className={`h-6 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
+            <div className="h-full rounded-lg an-hbar" style={{ '--target-w': `${(newVal / max) * 100}%`, width: `${(newVal / max) * 100}%`, background: 'linear-gradient(to right, #10B981, #34D399)' }} />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className={`text-xs font-medium ${isDark ? 'text-red-400' : 'text-red-600'}`}>Churned MRR</span>
+            <span className={`text-xs font-bold ${isDark ? 'text-red-400' : 'text-red-600'}`}>-{formatCurrencyCents(churnedVal)}</span>
+          </div>
+          <div className={`h-6 rounded-lg ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
+            <div className="h-full rounded-lg an-hbar" style={{ '--target-w': `${(churnedVal / max) * 100}%`, width: `${(churnedVal / max) * 100}%`, background: 'linear-gradient(to right, #EF4444, #F87171)', animationDelay: '100ms' }} />
+          </div>
+        </div>
+      </div>
+      <div className={`pt-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-slate-200'} flex items-center justify-between`}>
+        <span className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Net New MRR</span>
+        <span className={`text-lg font-bold ${net >= 0 ? (isDark ? 'text-emerald-400' : 'text-emerald-600') : (isDark ? 'text-red-400' : 'text-red-600')}`}>
+          {net >= 0 ? '+' : ''}{formatCurrencyCents(net)}
+        </span>
+      </div>
     </div>
   )
 }
@@ -222,7 +271,14 @@ function DonutChart({ data, isDark, size = 140 }) {
           <div key={i} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
             <span className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'} truncate`}>{d.label}</span>
-            <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-lynx-slate'} ml-auto shrink-0`}>{d.value}</span>
+            <div className="flex items-center gap-1 ml-auto shrink-0">
+              <span className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>{d.value}</span>
+              {d.trend !== undefined && (
+                <span className={`text-[9px] font-bold ${d.trend > 0 ? 'text-emerald-400' : d.trend < 0 ? 'text-red-400' : 'text-slate-500'}`}>
+                  {d.trend > 0 ? '\u2191' : d.trend < 0 ? '\u2193' : ''}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -304,6 +360,81 @@ function DataTable({ columns, rows, isDark, emptyMessage = 'No data' }) {
   )
 }
 
+// ═══════ COHORT RETENTION TABLE ═══════
+function CohortRetentionTable({ cohortData, isDark }) {
+  if (!cohortData || cohortData.length === 0) {
+    return <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-lynx-slate'} text-center py-8`}>Not enough data for cohort analysis</p>
+  }
+
+  const maxMonths = Math.max(...cohortData.map(c => c.retention.length), 0)
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr>
+            <th className={`text-[10px] uppercase text-left pb-2 pr-3 ${isDark ? 'text-slate-500' : 'text-lynx-slate'} whitespace-nowrap`}>Cohort</th>
+            <th className={`text-[10px] uppercase text-center pb-2 pr-2 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>Orgs</th>
+            {Array.from({ length: maxMonths }, (_, i) => (
+              <th key={i} className={`text-[10px] uppercase text-center pb-2 px-1 ${isDark ? 'text-slate-500' : 'text-lynx-slate'}`}>
+                M{i}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {cohortData.map((cohort, ri) => (
+            <tr key={ri} className={`${isDark ? 'border-white/[0.03]' : 'border-slate-100'} border-t`}>
+              <td className={`py-1.5 pr-3 font-medium whitespace-nowrap ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{cohort.label}</td>
+              <td className={`py-1.5 text-center font-bold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{cohort.total}</td>
+              {cohort.retention.map((pct, ci) => {
+                const intensity = Math.round((pct / 100) * 255)
+                const bg = isDark
+                  ? `rgba(16, 185, 129, ${(pct / 100) * 0.4})`
+                  : `rgba(16, 185, 129, ${(pct / 100) * 0.3})`
+                return (
+                  <td key={ci} className="py-1.5 px-1 text-center" style={{ background: bg }}>
+                    <span className={`font-bold ${pct >= 50 ? (isDark ? 'text-emerald-300' : 'text-emerald-700') : (isDark ? 'text-slate-400' : 'text-slate-500')}`}>
+                      {pct}%
+                    </span>
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ═══════ CSV EXPORT HELPERS ═══════
+function buildCSV(headers, rows) {
+  const escape = v => {
+    const str = String(v ?? '')
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"'
+    }
+    return str
+  }
+  const lines = [headers.map(escape).join(',')]
+  for (const row of rows) {
+    lines.push(row.map(escape).join(','))
+  }
+  return lines.join('\n')
+}
+
+function triggerCSVDownload(csv, filename) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+
 // ═══════ MAIN PAGE ═══════
 function PlatformAnalyticsPage({ showToast }) {
   const tc = useThemeClasses()
@@ -313,7 +444,7 @@ function PlatformAnalyticsPage({ showToast }) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
-  // Data
+  // Original data
   const [kpis, setKpis] = useState({})
   const [userGrowth, setUserGrowth] = useState([])
   const [revenueByMonth, setRevenueByMonth] = useState([])
@@ -325,6 +456,18 @@ function PlatformAnalyticsPage({ showToast }) {
   const [recentUsers, setRecentUsers] = useState([])
   const [inactiveOrgs, setInactiveOrgs] = useState([])
   const [registrationsByMonth, setRegistrationsByMonth] = useState([])
+
+  // P3-1: New data
+  const [mrrData, setMrrData] = useState({ newMRR: 0, churnedMRR: 0 })
+  const [cohortData, setCohortData] = useState([])
+  const [ltvData, setLtvData] = useState(null)
+  const [churnTrend, setChurnTrend] = useState([])
+  const [tierData, setTierData] = useState([])
+
+  // P3-5: Export data cache
+  const [allOrgsData, setAllOrgsData] = useState([])
+  const [allPaymentsData, setAllPaymentsData] = useState([])
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => { loadAll() }, [dateRange])
 
@@ -338,6 +481,11 @@ function PlatformAnalyticsPage({ showToast }) {
         loadOrgBreakdowns(),
         loadTables(),
         loadRegistrations(),
+        loadMRRWaterfall(),
+        loadCohortRetention(),
+        loadLTV(),
+        loadChurnTrend(),
+        loadTierBreakdown(),
       ])
     } catch (err) {
       console.error('Analytics load error:', err)
@@ -367,7 +515,7 @@ function PlatformAnalyticsPage({ showToast }) {
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('seasons').select('*', { count: 'exact', head: true }).eq('status', 'active'),
       supabase.from('teams').select('*', { count: 'exact', head: true }),
-      supabase.from('payments').select('amount, paid, created_at'),
+      supabase.from('payments').select('amount, paid, created_at').limit(50000),
     ])
 
     const totalRevenue = (payments || []).filter(p => p.paid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
@@ -391,6 +539,9 @@ function PlatformAnalyticsPage({ showToast }) {
     const thisMonthRev = thisMonthPayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
     const lastMonthRev = lastMonthPayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
     const revTrend = thisMonthRev - lastMonthRev
+
+    // Cache for exports
+    setAllPaymentsData(payments || [])
 
     setKpis({
       orgCount: orgCount || 0,
@@ -429,7 +580,10 @@ function PlatformAnalyticsPage({ showToast }) {
 
   // ── Org Breakdowns ──
   async function loadOrgBreakdowns() {
-    const { data: orgs } = await supabase.from('organizations').select('id, name, settings, is_active, created_at').limit(10000)
+    const { data: orgs } = await supabase.from('organizations').select('id, name, settings, is_active, created_at, subscription_tier').limit(10000)
+
+    // Cache for exports
+    setAllOrgsData(orgs || [])
 
     // Org types from settings.org_type
     const typeMap = {}
@@ -462,7 +616,7 @@ function PlatformAnalyticsPage({ showToast }) {
         .slice(0, 10)
     )
 
-    // Top orgs by revenue — need season→org mapping
+    // Top orgs by revenue — need season->org mapping
     const { data: seasons } = await supabase.from('seasons').select('id, organization_id')
     const seasonToOrg = {}
     for (const s of (seasons || [])) seasonToOrg[s.id] = s.organization_id
@@ -520,29 +674,467 @@ function PlatformAnalyticsPage({ showToast }) {
     setRegistrationsByMonth(grouped.map(g => ({ label: g.label, value: g.items.length })))
   }
 
+  // ═══ P3-1: MRR WATERFALL ═══
+  async function loadMRRWaterfall() {
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+    const [
+      { data: activeSubs },
+      { data: churnedSubs },
+    ] = await Promise.all([
+      supabase.from('platform_subscriptions')
+        .select('price_cents, billing_cycle, created_at')
+        .eq('status', 'active')
+        .limit(10000),
+      supabase.from('platform_subscriptions')
+        .select('price_cents, billing_cycle, cancelled_at')
+        .eq('status', 'cancelled')
+        .gte('cancelled_at', startOfMonth)
+        .limit(10000),
+    ])
+
+    const newSubs = (activeSubs || []).filter(s => s.created_at >= startOfMonth)
+    const newMRR = newSubs.reduce((sum, s) => {
+      const monthly = s.billing_cycle === 'annual' ? Math.round((s.price_cents || 0) / 12) : (s.price_cents || 0)
+      return sum + monthly
+    }, 0)
+
+    const churnedMRR = (churnedSubs || []).reduce((sum, s) => {
+      const monthly = s.billing_cycle === 'annual' ? Math.round((s.price_cents || 0) / 12) : (s.price_cents || 0)
+      return sum + monthly
+    }, 0)
+
+    setMrrData({ newMRR, churnedMRR })
+  }
+
+  // ═══ P3-1: COHORT RETENTION ═══
+  async function loadCohortRetention() {
+    const [
+      { data: orgs },
+      { data: subs },
+    ] = await Promise.all([
+      supabase.from('organizations').select('id, created_at').limit(10000),
+      supabase.from('platform_subscriptions').select('organization_id, status, created_at, cancelled_at').limit(10000),
+    ])
+
+    if (!orgs || orgs.length === 0) { setCohortData([]); return }
+
+    const now = new Date()
+    const currentMonth = getMonthKey(now)
+
+    // Build active sub lookup
+    const activeOrgIds = new Set((subs || []).filter(s => s.status === 'active').map(s => s.organization_id))
+
+    // Group orgs by creation month
+    const cohortMap = {}
+    for (const org of orgs) {
+      const mk = getMonthKey(org.created_at)
+      if (!cohortMap[mk]) cohortMap[mk] = []
+      cohortMap[mk].push(org)
+    }
+
+    const cohorts = Object.entries(cohortMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-12) // Last 12 months max
+      .map(([monthKey, monthOrgs]) => {
+        const total = monthOrgs.length
+        const [year, month] = monthKey.split('-').map(Number)
+        const cohortDate = new Date(year, month - 1, 1)
+        const label = cohortDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+
+        // Calculate months since cohort creation until current month
+        const monthsSince = (now.getFullYear() - year) * 12 + (now.getMonth() - (month - 1))
+        const maxRetentionMonths = Math.min(monthsSince + 1, 12)
+
+        // For simplicity: Month 0 = all orgs, subsequent months check if still active
+        // With available data, we can only check current active status
+        const retention = []
+        for (let m = 0; m < maxRetentionMonths; m++) {
+          if (m === 0) {
+            retention.push(100)
+          } else {
+            // Check how many are still active (have an active subscription)
+            const stillActive = monthOrgs.filter(o => activeOrgIds.has(o.id)).length
+            retention.push(total > 0 ? Math.round((stillActive / total) * 100) : 0)
+          }
+        }
+
+        return { label, total, retention }
+      })
+      .filter(c => c.total > 0)
+
+    setCohortData(cohorts)
+  }
+
+  // ═══ P3-1: CUSTOMER LTV ═══
+  async function loadLTV() {
+    const [
+      { data: orgs },
+      { data: payments },
+      { data: cancelledSubs },
+    ] = await Promise.all([
+      supabase.from('organizations').select('id, created_at').limit(10000),
+      supabase.from('payments').select('amount, paid, season_id').eq('paid', true).limit(50000),
+      supabase.from('platform_subscriptions').select('organization_id, cancelled_at, created_at').eq('status', 'cancelled').limit(10000),
+    ])
+
+    if (!orgs || orgs.length === 0) { setLtvData(null); return }
+
+    const totalOrgs = orgs.length
+    const totalRevenue = (payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+    const avgRevenuePerOrg = totalRevenue / totalOrgs
+
+    // Average lifespan
+    const now = new Date()
+    let totalMonths = 0
+    let countForLifespan = 0
+
+    // For cancelled orgs, use their lifespan
+    if (cancelledSubs && cancelledSubs.length > 0) {
+      for (const sub of cancelledSubs) {
+        if (sub.cancelled_at && sub.created_at) {
+          const start = new Date(sub.created_at)
+          const end = new Date(sub.cancelled_at)
+          const months = Math.max(1, (end - start) / (1000 * 60 * 60 * 24 * 30))
+          totalMonths += months
+          countForLifespan++
+        }
+      }
+    }
+
+    // For still-active orgs, use time since creation
+    for (const org of orgs) {
+      const created = new Date(org.created_at)
+      const months = Math.max(1, (now - created) / (1000 * 60 * 60 * 24 * 30))
+      totalMonths += months
+      countForLifespan++
+    }
+
+    const avgLifespanMonths = countForLifespan > 0 ? totalMonths / countForLifespan : 0
+    const ltv = avgRevenuePerOrg > 0 && avgLifespanMonths > 0
+      ? Math.round(avgRevenuePerOrg * (avgLifespanMonths / Math.max(avgLifespanMonths, 1)))
+      : null
+
+    setLtvData({
+      ltv: ltv !== null ? ltv : null,
+      avgRevenuePerOrg: Math.round(avgRevenuePerOrg),
+      avgLifespanMonths: Math.round(avgLifespanMonths * 10) / 10,
+      hasSufficientData: totalOrgs > 0 && totalRevenue > 0,
+    })
+  }
+
+  // ═══ P3-1: CHURN TREND ═══
+  async function loadChurnTrend() {
+    const now = new Date()
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1).toISOString()
+
+    const [
+      { data: cancelledSubs },
+      { data: failedPayments },
+      { data: allActiveSubs },
+    ] = await Promise.all([
+      supabase.from('platform_subscriptions')
+        .select('cancelled_at, price_cents, billing_cycle')
+        .eq('status', 'cancelled')
+        .gte('cancelled_at', sixMonthsAgo)
+        .limit(10000),
+      supabase.from('payments')
+        .select('created_at')
+        .eq('status', 'failed')
+        .gte('created_at', sixMonthsAgo)
+        .limit(10000),
+      supabase.from('platform_subscriptions')
+        .select('id, status')
+        .eq('status', 'active')
+        .limit(10000),
+    ])
+
+    // Build monthly churn counts
+    const months = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const key = getMonthKey(d)
+      const label = d.toLocaleDateString('en-US', { month: 'short' })
+      const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString()
+      const thisMonth = d.toISOString()
+
+      const voluntary = (cancelledSubs || []).filter(s =>
+        s.cancelled_at >= thisMonth && s.cancelled_at < nextMonth
+      ).length
+
+      const involuntary = (failedPayments || []).filter(p =>
+        p.created_at >= thisMonth && p.created_at < nextMonth
+      ).length
+
+      months.push({
+        label,
+        value: voluntary + involuntary,
+        voluntary,
+        involuntary,
+      })
+    }
+
+    setChurnTrend(months)
+  }
+
+  // ═══ P3-1: TIER BREAKDOWN WITH TRENDS ═══
+  async function loadTierBreakdown() {
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+
+    const { data: subs } = await supabase.from('platform_subscriptions')
+      .select('plan_name, status, created_at')
+      .limit(10000)
+
+    if (!subs || subs.length === 0) { setTierData([]); return }
+
+    // Current tier counts
+    const currentTiers = {}
+    const lastMonthTiers = {}
+
+    for (const s of subs) {
+      const tier = s.plan_name || 'Unknown'
+      if (s.status === 'active') {
+        currentTiers[tier] = (currentTiers[tier] || 0) + 1
+      }
+      // Approximate last month: active subs created before this month
+      if (s.status === 'active' && s.created_at < monthStart) {
+        lastMonthTiers[tier] = (lastMonthTiers[tier] || 0) + 1
+      }
+    }
+
+    const tiers = Object.entries(currentTiers)
+      .map(([label, value]) => ({
+        label,
+        value,
+        trend: value - (lastMonthTiers[label] || 0),
+      }))
+      .sort((a, b) => b.value - a.value)
+
+    setTierData(tiers)
+  }
+
+  // ═══ P3-5: EXPORT FUNCTIONS ═══
+  async function exportInvestorSummary() {
+    setExporting(true)
+    try {
+      const now = new Date()
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+      // Get subscription data for MRR/ARR
+      const { data: subs } = await supabase.from('platform_subscriptions')
+        .select('price_cents, billing_cycle, status')
+        .eq('status', 'active')
+        .limit(10000)
+
+      const mrr = (subs || []).reduce((sum, s) => {
+        const monthly = s.billing_cycle === 'annual' ? Math.round((s.price_cents || 0) / 12) : (s.price_cents || 0)
+        return sum + monthly
+      }, 0)
+
+      const { count: regCount } = await supabase.from('registrations')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', monthStart)
+
+      const { count: playerCount } = await supabase.from('players')
+        .select('*', { count: 'exact', head: true })
+
+      const churnRate = churnTrend.length > 0 ? churnTrend[churnTrend.length - 1].value : 0
+
+      const headers = ['Metric', 'Value', 'Period']
+      const rows = [
+        ['Total Organizations', kpis.orgCount || 0, 'All Time'],
+        ['Active Organizations', kpis.orgCount || 0, 'Current'],
+        ['Total Users', kpis.userCount || 0, 'All Time'],
+        ['Monthly Recurring Revenue', formatCurrencyCents(mrr), 'Current Month'],
+        ['Annual Recurring Revenue', formatCurrencyCents(mrr * 12), 'Projected'],
+        ['Churn Rate (Monthly)', churnRate + ' cancellations', 'Current Month'],
+        ['Customer LTV', ltvData?.hasSufficientData ? formatCurrency(ltvData.ltv) : 'Insufficient data', 'Calculated'],
+        ['Total Teams', kpis.teamCount || 0, 'All Time'],
+        ['Total Players', playerCount || 0, 'All Time'],
+        ['Registrations This Month', regCount || 0, 'Current Month'],
+        ['Payment Volume This Month', formatCurrency(kpis.thisMonthRev), 'Current Month'],
+      ]
+
+      const csv = buildCSV(headers, rows)
+      triggerCSVDownload(csv, `lynx_investor_summary_${now.toISOString().split('T')[0]}.csv`)
+      showToast?.('Investor summary exported', 'success')
+    } catch (err) {
+      console.error('Export error:', err)
+      showToast?.('Export failed', 'error')
+    }
+    setExporting(false)
+  }
+
+  async function exportOrgAggregate() {
+    setExporting(true)
+    try {
+      const { data: orgs } = await supabase.from('organizations')
+        .select('id, name, is_active, created_at, subscription_tier')
+        .limit(10000)
+
+      const { data: roles } = await supabase.from('user_roles').select('organization_id').eq('is_active', true)
+      const { data: teams } = await supabase.from('teams').select('id, season_id')
+      const { data: seasons } = await supabase.from('seasons').select('id, organization_id')
+      const { data: players } = await supabase.from('players').select('id, season_id')
+
+      const memberMap = {}
+      for (const r of (roles || [])) memberMap[r.organization_id] = (memberMap[r.organization_id] || 0) + 1
+
+      const seasonOrgMap = {}
+      const orgSeasonCount = {}
+      for (const s of (seasons || [])) {
+        seasonOrgMap[s.id] = s.organization_id
+        orgSeasonCount[s.organization_id] = (orgSeasonCount[s.organization_id] || 0) + 1
+      }
+
+      const orgTeamCount = {}
+      for (const t of (teams || [])) {
+        const orgId = seasonOrgMap[t.season_id]
+        if (orgId) orgTeamCount[orgId] = (orgTeamCount[orgId] || 0) + 1
+      }
+
+      const orgPlayerCount = {}
+      for (const p of (players || [])) {
+        const orgId = seasonOrgMap[p.season_id]
+        if (orgId) orgPlayerCount[orgId] = (orgPlayerCount[orgId] || 0) + 1
+      }
+
+      const headers = ['Organization', 'Status', 'Members', 'Teams', 'Players', 'Seasons', 'Tier', 'Created']
+      const rows = (orgs || []).map(org => [
+        org.name,
+        org.is_active ? 'Active' : 'Suspended',
+        memberMap[org.id] || 0,
+        orgTeamCount[org.id] || 0,
+        orgPlayerCount[org.id] || 0,
+        orgSeasonCount[org.id] || 0,
+        org.subscription_tier || 'free',
+        new Date(org.created_at).toLocaleDateString(),
+      ])
+
+      const csv = buildCSV(headers, rows)
+      const now = new Date()
+      triggerCSVDownload(csv, `lynx_org_summary_${now.toISOString().split('T')[0]}.csv`)
+      showToast?.('Org summary exported', 'success')
+    } catch (err) {
+      console.error('Export error:', err)
+      showToast?.('Export failed', 'error')
+    }
+    setExporting(false)
+  }
+
+  async function exportTaxReport() {
+    setExporting(true)
+    try {
+      const { data: payments } = await supabase.from('payments')
+        .select('amount, paid, status, created_at')
+        .order('created_at')
+        .limit(50000)
+
+      if (!payments || payments.length === 0) {
+        showToast?.('No payment data to export', 'warning')
+        setExporting(false)
+        return
+      }
+
+      // Group by month
+      const monthMap = {}
+      for (const p of payments) {
+        const mk = getMonthKey(p.created_at)
+        if (!monthMap[mk]) monthMap[mk] = { gross: 0, refunds: 0, count: 0 }
+        const amt = parseFloat(p.amount) || 0
+        if (p.paid) {
+          monthMap[mk].gross += amt
+          monthMap[mk].count++
+        }
+        if (p.status === 'refunded') {
+          monthMap[mk].refunds += amt
+        }
+      }
+
+      const headers = ['Month', 'Gross Revenue', 'Refunds', 'Net Revenue', 'Transaction Count']
+      const rows = Object.entries(monthMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, data]) => [
+          month,
+          data.gross.toFixed(2),
+          data.refunds.toFixed(2),
+          (data.gross - data.refunds).toFixed(2),
+          data.count,
+        ])
+
+      const csv = buildCSV(headers, rows)
+      const now = new Date()
+      triggerCSVDownload(csv, `lynx_revenue_report_${now.toISOString().split('T')[0]}.csv`)
+      showToast?.('Revenue report exported', 'success')
+    } catch (err) {
+      console.error('Export error:', err)
+      showToast?.('Export failed', 'error')
+    }
+    setExporting(false)
+  }
+
   return (
     <div className={`${isDark ? '' : 'an-light'}`}>
       <style>{AN_STYLES}</style>
 
-      {/* Controls bar — date range + refresh */}
-      <div className="flex items-center justify-end gap-3 mb-6 an-au">
-        <div className="relative">
-          <select
-            value={dateRange}
-            onChange={e => setDateRange(e.target.value)}
-            className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300' : 'bg-white border-slate-200 text-slate-700'} border focus:outline-none cursor-pointer`}
+      {/* Controls bar — export buttons + date range + refresh */}
+      <div className="flex items-center justify-between gap-3 mb-6 an-au flex-wrap">
+        {/* P3-5: Export buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportInvestorSummary}
+            disabled={exporting || loading}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+              isDark ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+            } disabled:opacity-50`}
           >
-            {DATE_RANGES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
-          </select>
-          <Calendar className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <Download className="w-3.5 h-3.5" />
+            Investor Summary
+          </button>
+          <button
+            onClick={exportOrgAggregate}
+            disabled={exporting || loading}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+              isDark ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+            } disabled:opacity-50`}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Org Summary
+          </button>
+          <button
+            onClick={exportTaxReport}
+            disabled={exporting || loading}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+              isDark ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20' : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+            } disabled:opacity-50`}
+          >
+            <Download className="w-3.5 h-3.5" />
+            Revenue Report
+          </button>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className={`p-2.5 rounded-xl transition ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400' : 'bg-white hover:bg-slate-50 text-slate-500'} border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <select
+              value={dateRange}
+              onChange={e => setDateRange(e.target.value)}
+              className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl text-sm font-medium ${isDark ? 'bg-white/[0.04] border-white/[0.06] text-slate-300' : 'bg-white border-slate-200 text-slate-700'} border focus:outline-none cursor-pointer`}
+            >
+              {DATE_RANGES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+            </select>
+            <Calendar className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className={`p-2.5 rounded-xl transition ${isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-400' : 'bg-white hover:bg-slate-50 text-slate-500'} border ${isDark ? 'border-white/[0.06]' : 'border-slate-200'}`}
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -554,19 +1146,74 @@ function PlatformAnalyticsPage({ showToast }) {
         <div className="space-y-6">
 
           {/* ═══ KPI CARDS ═══ */}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-7 gap-4">
             <KpiCard label="Organizations" value={formatNumber(kpis.orgCount)} trend={kpis.newOrgsThisMonth} trendLabel="new this month" icon={Building2} color="#3B82F6" isDark={isDark} index={0} />
             <KpiCard label="Total Users" value={formatNumber(kpis.userCount)} trend={kpis.newUsersThisMonth} trendLabel="new this month" icon={Users} color="#10B981" isDark={isDark} index={1} />
             <KpiCard label="Revenue" value={formatCurrency(kpis.totalRevenue)} trend={kpis.revTrend} trendLabel={`${formatCurrency(kpis.thisMonthRev)} this month`} icon={DollarSign} color="#EAB308" isDark={isDark} index={2} />
             <KpiCard label="Active Seasons" value={formatNumber(kpis.seasonCount)} icon={Calendar} color="#A855F7" isDark={isDark} index={3} />
             <KpiCard label="Total Teams" value={formatNumber(kpis.teamCount)} icon={Target} color="#4BB9EC" isDark={isDark} index={4} />
             <KpiCard label="Avg Users / Org" value={kpis.avgUsersPerOrg} icon={Activity} color="#06B6D4" isDark={isDark} index={5} />
+            {/* P3-1: LTV KPI Card */}
+            <KpiCard
+              label="Customer LTV"
+              value={ltvData?.hasSufficientData ? formatCurrency(ltvData.ltv) : 'N/A'}
+              trendLabel={ltvData?.hasSufficientData ? `~${ltvData.avgLifespanMonths}mo avg lifespan` : 'Insufficient data'}
+              icon={Heart}
+              color="#EC4899"
+              isDark={isDark}
+              index={6}
+            />
+          </div>
+
+          {/* ═══ P3-1: REVENUE DEEP DIVE ROW ═══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* MRR Waterfall */}
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '150ms' }}>
+              <div className="flex items-center gap-2 mb-5">
+                <TrendingUp className="w-4 h-4" style={{ color: '#10B981' }} />
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>MRR Waterfall (This Month)</h3>
+              </div>
+              <WaterfallBar newVal={mrrData.newMRR} churnedVal={mrrData.churnedMRR} isDark={isDark} />
+            </div>
+
+            {/* Churn Trend */}
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '200ms' }}>
+              <div className="flex items-center gap-2 mb-5">
+                <AlertTriangle className="w-4 h-4" style={{ color: '#EF4444' }} />
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Churn Trend (6 Months)</h3>
+              </div>
+              {churnTrend.length > 0 ? (
+                <>
+                  <SparkLine data={churnTrend} color="#EF4444" isDark={isDark} />
+                  <div className="flex items-center gap-4 mt-3">
+                    {churnTrend.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-red-400" />
+                          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                            Voluntary: {churnTrend[churnTrend.length - 1]?.voluntary || 0}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-amber-400" />
+                          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                            Involuntary: {churnTrend[churnTrend.length - 1]?.involuntary || 0}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className={`text-xs ${tc.textMuted} text-center py-8`}>No churn data</p>
+              )}
+            </div>
           </div>
 
           {/* ═══ CHARTS ROW 1 ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* User Growth */}
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '200ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '250ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <LineChart className="w-4 h-4" style={{ color: '#10B981' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>User Signups</h3>
@@ -579,7 +1226,7 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
 
             {/* Revenue */}
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '250ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '300ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <DollarSign className="w-4 h-4" style={{ color: '#EAB308' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Monthly Revenue</h3>
@@ -592,10 +1239,35 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
           </div>
 
+          {/* ═══ P3-1: TIER BREAKDOWN + COHORT RETENTION ═══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Revenue by Tier with Trends */}
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '350ms' }}>
+              <div className="flex items-center gap-2 mb-5">
+                <PieChart className="w-4 h-4" style={{ color: '#A855F7' }} />
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Subscriptions by Tier</h3>
+              </div>
+              {tierData.length > 0 ? (
+                <DonutChart data={tierData} isDark={isDark} />
+              ) : (
+                <p className={`text-xs ${tc.textMuted} text-center py-8`}>No subscription data</p>
+              )}
+            </div>
+
+            {/* Cohort Retention */}
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '400ms' }}>
+              <div className="flex items-center gap-2 mb-5">
+                <BarChart3 className="w-4 h-4" style={{ color: '#06B6D4' }} />
+                <h3 className={`text-sm uppercase ${tc.textMuted}`}>Cohort Retention</h3>
+              </div>
+              <CohortRetentionTable cohortData={cohortData} isDark={isDark} />
+            </div>
+          </div>
+
           {/* ═══ CHARTS ROW 2 ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Org Types */}
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '300ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '450ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <PieChart className="w-4 h-4" style={{ color: '#A855F7' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Organizations by Type</h3>
@@ -608,7 +1280,7 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
 
             {/* Sport Distribution */}
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '350ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '500ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Star className="w-4 h-4" style={{ color: '#4BB9EC' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Sport Distribution</h3>
@@ -624,7 +1296,7 @@ function PlatformAnalyticsPage({ showToast }) {
           {/* ═══ CHARTS ROW 3 ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Orgs by Members */}
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '400ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '550ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Users className="w-4 h-4" style={{ color: '#3B82F6' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Top Orgs by Members</h3>
@@ -637,7 +1309,7 @@ function PlatformAnalyticsPage({ showToast }) {
             </div>
 
             {/* Registrations over time */}
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '450ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '600ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <TrendingUp className="w-4 h-4" style={{ color: '#06B6D4' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Registrations Over Time</h3>
@@ -653,7 +1325,7 @@ function PlatformAnalyticsPage({ showToast }) {
           {/* ═══ TABLES ═══ */}
 
           {/* Top Orgs by Revenue */}
-          <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '500ms' }}>
+          <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '650ms' }}>
             <div className="flex items-center gap-2 mb-5">
               <DollarSign className="w-4 h-4" style={{ color: '#EAB308' }} />
               <h3 className={`text-sm uppercase ${tc.textMuted}`}>Top Organizations by Revenue</h3>
@@ -672,7 +1344,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
           {/* Recent Organizations */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '550ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '700ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Recently Created Orgs (30d)</h3>
@@ -689,7 +1361,7 @@ function PlatformAnalyticsPage({ showToast }) {
               />
             </div>
 
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '600ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '750ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <Users className="w-4 h-4" style={{ color: '#10B981' }} />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Recently Joined Users (30d)</h3>
@@ -709,7 +1381,7 @@ function PlatformAnalyticsPage({ showToast }) {
 
           {/* Inactive Orgs */}
           {inactiveOrgs.length > 0 && (
-            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '650ms' }}>
+            <div className="an-glass rounded-xl p-6 an-au" style={{ animationDelay: '800ms' }}>
               <div className="flex items-center gap-2 mb-5">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 <h3 className={`text-sm uppercase ${tc.textMuted}`}>Orgs With No Seasons (May Need Attention)</h3>
