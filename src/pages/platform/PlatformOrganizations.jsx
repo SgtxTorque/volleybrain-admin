@@ -9,6 +9,7 @@ import {
   RefreshCw, ArrowLeft, Filter, SortAsc, CheckCircle2, TrendingUp,
   Layers, CalendarCheck, MapPin, FileText
 } from '../../constants/icons'
+import { getScoreColor, RISK_COLORS } from '../../lib/healthScoreCalculator'
 
 // ═══════════════════════════════════════════════════════════
 // PLATFORM ORGANIZATIONS — Standalone Page
@@ -31,12 +32,14 @@ const FILTER_OPTIONS = [
   { id: 'trialing', label: 'Trialing' },
   { id: 'suspended', label: 'Suspended' },
   { id: 'needs_setup', label: 'Needs Setup' },
+  { id: 'at_risk', label: 'At Risk' },
 ]
 
 const SORT_OPTIONS = [
   { id: 'name', label: 'Name' },
   { id: 'created_at', label: 'Created Date' },
   { id: 'member_count', label: 'Member Count' },
+  { id: 'health_score', label: 'Health Score' },
 ]
 
 // ── Setup steps for onboarding health ────────────────────
@@ -310,6 +313,19 @@ function OrgCard({ org, isDark, tc, onClick, onAction, onAddNote }) {
               {setupHealth.completed}/{setupHealth.total} setup
             </div>
 
+            {/* Health score badge */}
+            {org._healthScore != null && (
+              <div
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium ${
+                  isDark ? 'border-white/10' : 'border-slate-200'
+                }`}
+                style={{ color: getScoreColor(org._healthScore) }}
+              >
+                <Activity className="w-3 h-3" />
+                {org._healthScore}
+              </div>
+            )}
+
             {/* Subscription tier */}
             {org.subscription_tier && (
               <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
@@ -548,15 +564,27 @@ function PlatformOrganizations({ showToast }) {
 
   // ── Enrich orgs with meta ──────────────────────────────
   const enrichedOrgs = useMemo(() => {
-    return orgs.map(org => ({
-      ...org,
-      _memberCount: orgMeta[org.id]?.memberCount || 0,
-      _teamCount: orgMeta[org.id]?.teamCount || 0,
-      _activeSeasonCount: orgMeta[org.id]?.activeSeasonCount || 0,
-      _setupHealth: orgMeta[org.id]?.setupHealth || { completed: 0, total: 7 },
-      _lastActivity: orgMeta[org.id]?.lastActivity || null,
-      _subStatus: orgMeta[org.id]?.subStatus || null,
-    }))
+    return orgs.map(org => {
+      const meta = orgMeta[org.id]
+      const setupHealth = meta?.setupHealth || { completed: 0, total: 7 }
+      // Derive a 0-100 health score from available metadata
+      const setupPct = Math.round((setupHealth.completed / 7) * 100)
+      const memberSignal = Math.min(100, (meta?.memberCount || 0) * 10)
+      const activitySignal = meta?.lastActivity
+        ? (Date.now() - new Date(meta.lastActivity).getTime() < 7 * 86400000 ? 100 : 40)
+        : 0
+      const healthScore = Math.round(setupPct * 0.5 + memberSignal * 0.25 + activitySignal * 0.25)
+      return {
+        ...org,
+        _memberCount: meta?.memberCount || 0,
+        _teamCount: meta?.teamCount || 0,
+        _activeSeasonCount: meta?.activeSeasonCount || 0,
+        _setupHealth: setupHealth,
+        _lastActivity: meta?.lastActivity || null,
+        _subStatus: meta?.subStatus || null,
+        _healthScore: healthScore,
+      }
+    })
   }, [orgs, orgMeta])
 
   // ── Filter ─────────────────────────────────────────────
@@ -581,6 +609,8 @@ function PlatformOrganizations({ showToast }) {
       result = result.filter(o => o.is_active === false)
     } else if (activeFilter === 'needs_setup') {
       result = result.filter(o => (o._setupHealth?.completed || 0) < 3)
+    } else if (activeFilter === 'at_risk') {
+      result = result.filter(o => (o._healthScore || 0) < 50)
     }
 
     // Sort
@@ -592,6 +622,8 @@ function PlatformOrganizations({ showToast }) {
         cmp = new Date(a.created_at || 0) - new Date(b.created_at || 0)
       } else if (sortBy === 'member_count') {
         cmp = (a._memberCount || 0) - (b._memberCount || 0)
+      } else if (sortBy === 'health_score') {
+        cmp = (a._healthScore || 0) - (b._healthScore || 0)
       }
       return sortAsc ? cmp : -cmp
     })
@@ -705,6 +737,7 @@ function PlatformOrganizations({ showToast }) {
     trialing: enrichedOrgs.filter(o => o._subStatus === 'trialing').length,
     suspended: enrichedOrgs.filter(o => o.is_active === false).length,
     needs_setup: enrichedOrgs.filter(o => (o._setupHealth?.completed || 0) < 3).length,
+    at_risk: enrichedOrgs.filter(o => (o._healthScore || 0) < 50).length,
   }
 
   // ── Render ─────────────────────────────────────────────

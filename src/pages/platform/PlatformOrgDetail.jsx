@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { calculateHealthScore, getScoreColor, RISK_LABELS, RISK_COLORS } from '../../lib/healthScoreCalculator'
 import {
   ArrowLeft, Building2, Users, Shield, Calendar, DollarSign,
   Activity, AlertTriangle, Trash2, Lock, Unlock, Clock, CheckCircle2,
@@ -219,7 +220,7 @@ function OnboardingChecklist({ org, members, teams, seasons, isDark, tc, showToa
 }
 
 // ═══════ OVERVIEW TAB ═══════
-function OverviewTab({ org, members, teams, seasons, payments, isDark, tc, showToast }) {
+function OverviewTab({ org, members, teams, seasons, payments, isDark, tc, showToast, healthScoreData, onRecalculate }) {
   const paidPayments = payments.filter(p => p.paid)
   const totalRevenue = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   const adminCount = members.filter(m => m.role === 'admin').length
@@ -241,6 +242,100 @@ function OverviewTab({ org, members, teams, seasons, payments, isDark, tc, showT
           <KpiCard key={kpi.label} {...kpi} isDark={isDark} />
         ))}
       </div>
+
+      {/* Health Score Section */}
+      {healthScoreData && (
+        <div className={`rounded-[14px] p-5 shadow-sm border ${isDark ? 'bg-[#1E293B] border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className={`text-sm font-semibold uppercase tracking-wide ${tc.textMuted}`}>Health Score</h3>
+            <div className="flex items-center gap-2">
+              {/* Churn risk badge */}
+              <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${RISK_COLORS[healthScoreData.churn_risk]?.bg} ${RISK_COLORS[healthScoreData.churn_risk]?.text}`}>
+                {RISK_COLORS[healthScoreData.churn_risk]?.label}
+              </span>
+              <button
+                onClick={onRecalculate}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                  isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Recalculate
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Overall Score - Circular Indicator */}
+            <div className="flex flex-col items-center justify-center">
+              <div className="relative w-32 h-32">
+                {/* Background circle */}
+                <svg className="w-32 h-32 -rotate-90" viewBox="0 0 128 128">
+                  <circle cx="64" cy="64" r="56" fill="none" strokeWidth="10" className={isDark ? 'stroke-slate-700' : 'stroke-slate-200'} />
+                  <circle
+                    cx="64" cy="64" r="56" fill="none" strokeWidth="10"
+                    strokeLinecap="round"
+                    stroke={getScoreColor(healthScoreData.overall_score)}
+                    strokeDasharray={`${(healthScoreData.overall_score / 100) * 351.86} 351.86`}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={`text-3xl font-bold ${tc.text}`}>{healthScoreData.overall_score}</span>
+                  <span className={`text-xs ${tc.textMuted}`}>/ 100</span>
+                </div>
+              </div>
+              <p className={`text-xs font-medium mt-2 ${tc.textMuted}`}>Overall Score</p>
+            </div>
+
+            {/* Sub-scores - Horizontal Bars */}
+            <div className="lg:col-span-2 space-y-3">
+              {[
+                { key: 'activity_score', label: 'Activity', weight: '25%' },
+                { key: 'payment_score', label: 'Payment', weight: '25%' },
+                { key: 'engagement_score', label: 'Engagement', weight: '20%' },
+                { key: 'growth_score', label: 'Growth', weight: '15%' },
+                { key: 'setup_score', label: 'Setup', weight: '15%' },
+              ].map(sub => {
+                const val = healthScoreData[sub.key] || 0
+                return (
+                  <div key={sub.key}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-xs font-medium ${tc.textSecondary}`}>{sub.label} <span className={tc.textMuted}>({sub.weight})</span></span>
+                      <span className={`text-xs font-semibold ${tc.text}`}>{val}/100</span>
+                    </div>
+                    <div className={`h-2 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                      <div
+                        className="h-2 rounded-full transition-all"
+                        style={{ width: `${val}%`, background: getScoreColor(val) }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Risk Factors */}
+          {healthScoreData.risk_factors.length > 0 && (
+            <div className="mt-5 pt-4 border-t" style={{ borderColor: isDark ? 'rgb(51 65 85 / 0.5)' : 'rgb(226 232 240)' }}>
+              <p className={`text-xs font-semibold uppercase tracking-wide ${tc.textMuted} mb-2`}>Risk Factors</p>
+              <div className="flex flex-wrap gap-2">
+                {healthScoreData.risk_factors.map(rf => (
+                  <span
+                    key={rf}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
+                      isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'
+                    }`}
+                  >
+                    <AlertTriangle className="w-3 h-3" />
+                    {RISK_LABELS[rf] || rf}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Role Breakdown */}
@@ -1007,6 +1102,7 @@ function PlatformOrgDetail({ showToast }) {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [confirmModal, setConfirmModal] = useState({ open: false })
+  const [healthScoreData, setHealthScoreData] = useState(null)
 
   useEffect(() => {
     if (orgId) loadOrgData()
@@ -1068,6 +1164,7 @@ function PlatformOrgDetail({ showToast }) {
       } else {
         setPayments([])
       }
+      let teamsWithCounts = []
       if (seasonIds.length > 0) {
         const { data: teamsData } = await supabase
           .from('teams')
@@ -1076,7 +1173,7 @@ function PlatformOrgDetail({ showToast }) {
           .order('created_at', { ascending: false })
 
         // Map player counts
-        const teamsWithCounts = (teamsData || []).map(t => ({
+        teamsWithCounts = (teamsData || []).map(t => ({
           ...t,
           player_count: t.team_players?.[0]?.count ?? 0,
         }))
@@ -1084,10 +1181,96 @@ function PlatformOrgDetail({ showToast }) {
       } else {
         setTeams([])
       }
+      // Compute enhanced health score
+      await computeEnhancedHealthScore(orgData, seasonsRes.data || [], membersRes.data || [], teamsWithCounts, subData)
     } catch (err) {
       console.error('Error loading org details:', err)
     }
     setLoading(false)
+  }
+
+  async function computeEnhancedHealthScore(orgData, seasonsData, membersData, teamsData, subData) {
+    try {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const cutoff = thirtyDaysAgo.toISOString()
+
+      const teamIds = teamsData.map(t => t.id)
+
+      // Gather data for the calculator in parallel
+      const [eventsRes, chatRes, attendanceRes] = await Promise.all([
+        // Recent events (schedule_events in last 30 days)
+        supabase
+          .from('schedule_events')
+          .select('id', { count: 'exact', head: true })
+          .eq('org_id', orgData.id)
+          .gte('created_at', cutoff),
+        // Recent chat messages
+        supabase
+          .from('chat_messages')
+          .select('id, chat_channels!inner(org_id)', { count: 'exact', head: true })
+          .eq('chat_channels.org_id', orgData.id)
+          .gte('created_at', cutoff),
+        // Recent attendance (event_rsvps)
+        teamIds.length > 0
+          ? supabase
+              .from('event_rsvps')
+              .select('id', { count: 'exact', head: true })
+              .gte('created_at', cutoff)
+          : Promise.resolve({ count: 0 }),
+      ])
+
+      // Features used: count distinct feature areas with data
+      let featuresUsed = 0
+      if ((eventsRes.count || 0) > 0) featuresUsed++                     // Schedule
+      if ((chatRes.count || 0) > 0) featuresUsed++                       // Chat
+      if (teamsData.length > 0) featuresUsed++                           // Teams
+      if (membersData.some(m => m.role === 'coach')) featuresUsed++       // Coaches
+      const totalPlayers = teamsData.reduce((s, t) => s + (t.player_count || 0), 0)
+      if (totalPlayers > 0) featuresUsed++                               // Players/Registration
+
+      // Milestones (same logic as OnboardingChecklist)
+      const seasonIds = seasonsData.map(s => s.id)
+      let coachAssigned = false
+      let hasRegTemplate = false
+      if (teamIds.length > 0) {
+        const { count: coachCount } = await supabase
+          .from('team_coaches')
+          .select('id', { count: 'exact', head: true })
+          .in('team_id', teamIds)
+        coachAssigned = (coachCount || 0) > 0
+      }
+      const { count: regCount } = await supabase
+        .from('registration_templates')
+        .select('id', { count: 'exact', head: true })
+        .eq('org_id', orgData.id)
+      hasRegTemplate = (regCount || 0) > 0
+
+      let milestonesComplete = 0
+      if (membersData.some(m => m.role === 'admin' || m.role === 'league_admin')) milestonesComplete++
+      if (seasonsData.length > 0) milestonesComplete++
+      if (teamsData.length > 0) milestonesComplete++
+      if (totalPlayers > 0) milestonesComplete++
+      if (coachAssigned) milestonesComplete++
+      if ((eventsRes.count || 0) > 0) milestonesComplete++
+      if (hasRegTemplate) milestonesComplete++
+
+      const result = calculateHealthScore(orgData, {
+        recentEventCount: eventsRes.count || 0,
+        recentChatCount: chatRes.count || 0,
+        recentAttendanceCount: attendanceRes.count || 0,
+        subscriptionStatus: subData?.status || 'none',
+        failedPaymentCount: 0,
+        featuresUsed,
+        playerCountThisMonth: totalPlayers,
+        playerCountLastMonth: totalPlayers, // no historical comparison available
+        milestonesComplete,
+      })
+
+      setHealthScoreData(result)
+    } catch (err) {
+      console.error('Error computing enhanced health score:', err)
+    }
   }
 
   async function logAction(actionType, targetType, targetId, details) {
@@ -1197,7 +1380,7 @@ function PlatformOrgDetail({ showToast }) {
     )
   }
 
-  const healthScore = computeHealthScore()
+  const healthScore = healthScoreData ? healthScoreData.overall_score : computeHealthScore()
   const isSuspended = org.is_active === false
 
   return (
@@ -1243,11 +1426,17 @@ function PlatformOrgDetail({ showToast }) {
                 {/* Health score */}
                 <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${
                   healthScore >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
-                  healthScore >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                  healthScore >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                  healthScore >= 40 ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' :
                   'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                 }`}>
                   Health: {healthScore}%
                 </span>
+                {healthScoreData && (
+                  <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${RISK_COLORS[healthScoreData.churn_risk]?.bg} ${RISK_COLORS[healthScoreData.churn_risk]?.text}`}>
+                    {RISK_COLORS[healthScoreData.churn_risk]?.label}
+                  </span>
+                )}
                 {/* Created date */}
                 <span className={`text-xs ${tc.textMuted} flex items-center gap-1`}>
                   <Clock className="w-3 h-3" />
@@ -1313,7 +1502,7 @@ function PlatformOrgDetail({ showToast }) {
       {/* Tab Content */}
       <div>
         {activeTab === 'overview' && (
-          <OverviewTab org={org} members={members} teams={teams} seasons={seasons} payments={payments} isDark={isDark} tc={tc} showToast={showToast} />
+          <OverviewTab org={org} members={members} teams={teams} seasons={seasons} payments={payments} isDark={isDark} tc={tc} showToast={showToast} healthScoreData={healthScoreData} onRecalculate={loadOrgData} />
         )}
         {activeTab === 'members' && (
           <MembersTab members={members} isDark={isDark} tc={tc} />

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { calculateHealthScore, getScoreColor, RISK_COLORS } from '../../lib/healthScoreCalculator'
 import {
   Building2, Users, Calendar, Shield, DollarSign, CreditCard,
   TrendingUp, ArrowRight, Clock, CheckCircle2, AlertCircle, ChevronRight,
@@ -197,6 +198,25 @@ function PlatformOverview({ showToast }) {
             status = 'yellow'
           }
 
+          // Compute health score using available data
+          const orgSub = allSubs.find(s => s.organization_id === org.id)
+          const milestonesComplete = [
+            orgMembers.length > 0,
+            orgSeasons.length > 0,
+            orgTeams.length > 0,
+          ].filter(Boolean).length
+          const healthResult = calculateHealthScore(org, {
+            recentEventCount: orgTeams.length > 0 ? 1 : 0,
+            recentChatCount: orgMembers.length > 1 ? 1 : 0,
+            recentAttendanceCount: 0,
+            subscriptionStatus: orgSub?.status || 'none',
+            failedPaymentCount: 0,
+            featuresUsed: milestonesComplete,
+            playerCountThisMonth: orgMembers.length,
+            playerCountLastMonth: orgMembers.length,
+            milestonesComplete,
+          })
+
           return {
             id: org.id,
             name: org.name,
@@ -206,6 +226,9 @@ function PlatformOverview({ showToast }) {
             teamCount: orgTeams.length,
             memberCount: orgMembers.length,
             isSuspended: org.is_active === false,
+            healthScore: healthResult.overall_score,
+            churnRisk: healthResult.churn_risk,
+            riskFactors: healthResult.risk_factors,
           }
         })
 
@@ -336,6 +359,7 @@ function PlatformOverview({ showToast }) {
       case 'name': return arr.sort((a, b) => a.name.localeCompare(b.name))
       case 'members': return arr.sort((a, b) => b.memberCount - a.memberCount)
       case 'teams': return arr.sort((a, b) => b.teamCount - a.teamCount)
+      case 'score': return arr.sort((a, b) => (a.healthScore ?? 0) - (b.healthScore ?? 0))
       case 'status':
       default: {
         const order = { red: 0, yellow: 1, green: 2 }
@@ -343,6 +367,15 @@ function PlatformOverview({ showToast }) {
       }
     }
   }, [orgHealth, healthSort])
+
+  // --- At-risk orgs (churn_risk = high or critical) ---
+  const atRiskOrgs = useMemo(() => {
+    return orgHealth.filter(o => o.churnRisk === 'high' || o.churnRisk === 'critical')
+      .sort((a, b) => {
+        const order = { critical: 0, high: 1 }
+        return (order[a.churnRisk] ?? 9) - (order[b.churnRisk] ?? 9)
+      })
+  }, [orgHealth])
 
   // --- Filtered activity ---
   const activityTypes = useMemo(() => {
@@ -506,6 +539,7 @@ function PlatformOverview({ showToast }) {
               }`}
             >
               <option value="status">Sort: Status</option>
+              <option value="score">Sort: Health Score</option>
               <option value="name">Sort: Name</option>
               <option value="members">Sort: Members</option>
               <option value="teams">Sort: Teams</option>
@@ -542,6 +576,18 @@ function PlatformOverview({ showToast }) {
                         : `${org.seasonCount} season${org.seasonCount !== 1 ? 's' : ''}, ${org.teamCount} team${org.teamCount !== 1 ? 's' : ''}, ${org.memberCount} member${org.memberCount !== 1 ? 's' : ''}`}
                     </p>
                   </div>
+                  {/* Health Score Badge */}
+                  {org.healthScore != null && (
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full shrink-0"
+                      style={{
+                        backgroundColor: `${getScoreColor(org.healthScore)}20`,
+                        color: getScoreColor(org.healthScore),
+                      }}
+                    >
+                      {org.healthScore}
+                    </span>
+                  )}
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${
                       org.status === 'green'
@@ -622,6 +668,59 @@ function PlatformOverview({ showToast }) {
           </div>
         </div>
       </div>
+
+      {/* ── At Risk Organizations ── */}
+      {atRiskOrgs.length > 0 && (
+        <div className={`${cardClass} p-5`}>
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+            <h3 className={`text-sm font-semibold uppercase tracking-wide text-red-500`}>
+              At Risk Organizations
+            </h3>
+            <span className={`text-xs ${tc.textMuted} ml-auto`}>
+              {atRiskOrgs.length} org{atRiskOrgs.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="space-y-2 max-h-[320px] overflow-y-auto">
+            {atRiskOrgs.map(org => {
+              const riskStyle = RISK_COLORS[org.churnRisk] || RISK_COLORS.high
+              return (
+                <button
+                  key={org.id}
+                  onClick={() => navigate(`/platform/organizations/${org.id}`)}
+                  className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+                    isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: getScoreColor(org.healthScore) }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium truncate ${tc.text}`}>{org.name}</p>
+                    <p className={`text-xs ${tc.textMuted}`}>
+                      Score: {org.healthScore} &middot; {org.riskFactors?.map(f => f.replace(/_/g, ' ')).join(', ') || 'Multiple factors'}
+                    </p>
+                  </div>
+                  <span
+                    className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0`}
+                    style={{
+                      backgroundColor: `${getScoreColor(org.healthScore)}20`,
+                      color: getScoreColor(org.healthScore),
+                    }}
+                  >
+                    {org.healthScore}
+                  </span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${riskStyle.bg} ${riskStyle.text}`}>
+                    {riskStyle.label}
+                  </span>
+                  <ChevronRight className={`w-4 h-4 ${tc.textMuted} shrink-0`} />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Onboarding Health ── */}
       {onboardingOrgs.length > 0 && (
