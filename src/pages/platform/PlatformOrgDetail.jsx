@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import {
   ArrowLeft, Building2, Users, Shield, Calendar, DollarSign,
   Activity, AlertTriangle, Trash2, Lock, Unlock, Clock, CheckCircle2,
-  XCircle, RefreshCw, FileText, BarChart3, ChevronRight, User
+  XCircle, RefreshCw, FileText, BarChart3, ChevronRight, User, Loader2
 } from '../../constants/icons'
 
 // ═══════════════════════════════════════════════════════════
@@ -105,26 +105,90 @@ function KpiCard({ label, value, icon: Icon, color, isDark }) {
   )
 }
 
-// ═══════ ONBOARDING CHECKLIST ═══════
-function OnboardingChecklist({ org, members, teams, seasons, isDark, tc }) {
+// ═══════ ONBOARDING CHECKLIST (Enhanced 7-milestone system) ═══════
+function OnboardingChecklist({ org, members, teams, seasons, isDark, tc, showToast }) {
+  const [extraData, setExtraData] = useState({ coaches: 0, events: 0, regTemplates: 0, players: 0 })
+  const [sendingReminder, setSendingReminder] = useState(false)
+
+  useEffect(() => {
+    if (org?.id) loadExtraData()
+  }, [org?.id])
+
+  async function loadExtraData() {
+    try {
+      const teamIds = teams.map(t => t.id)
+      const [coachesRes, eventsRes, regsRes, playersRes] = await Promise.all([
+        teamIds.length > 0 ? supabase.from('team_coaches').select('id', { count: 'exact', head: true }).in('team_id', teamIds) : { count: 0 },
+        supabase.from('schedule_events').select('id', { count: 'exact', head: true }).eq('org_id', org.id),
+        supabase.from('registration_templates').select('id', { count: 'exact', head: true }).eq('org_id', org.id),
+        teamIds.length > 0 ? supabase.from('team_players').select('id', { count: 'exact', head: true }).in('team_id', teamIds) : { count: 0 },
+      ])
+      setExtraData({
+        coaches: coachesRes.count || 0,
+        events: eventsRes.count || 0,
+        regTemplates: regsRes.count || 0,
+        players: playersRes.count || 0,
+      })
+    } catch (err) {
+      console.error('Error loading onboarding extra data:', err)
+    }
+  }
+
   const checks = [
-    { label: 'Organization created', done: !!org },
-    { label: 'At least one admin member', done: members.some(m => m.role === 'admin') },
-    { label: 'At least one season created', done: seasons.length > 0 },
-    { label: 'At least one team created', done: teams.length > 0 },
-    { label: 'At least one active season', done: seasons.some(s => s.status === 'active') },
+    { label: 'Admin user', done: members.some(m => m.role === 'admin' || m.role === 'league_admin') },
+    { label: 'First season', done: seasons.length > 0 },
+    { label: 'First team', done: teams.length > 0 },
+    { label: 'First player', done: extraData.players > 0 },
+    { label: 'Coach assigned', done: extraData.coaches > 0 },
+    { label: 'First event', done: extraData.events > 0 },
+    { label: 'Registration template', done: extraData.regTemplates > 0 },
   ]
   const completed = checks.filter(c => c.done).length
+  const daysActive = org?.created_at ? Math.floor((new Date() - new Date(org.created_at)) / 86400000) : 0
+
+  async function handleSendReminder() {
+    setSendingReminder(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('platform_org_events').insert({
+        organization_id: org.id,
+        event_type: 'setup_reminder_sent',
+        details: { sent_by: user?.id, milestones_completed: completed },
+        created_by: user?.id,
+      })
+      await supabase.from('platform_admin_actions').insert({
+        admin_id: user?.id,
+        action_type: 'send_setup_reminder',
+        target_type: 'organization',
+        target_id: org.id,
+        details: { org_name: org.name, milestones: completed },
+        user_agent: navigator.userAgent,
+      })
+      showToast?.('Setup reminder sent', 'success')
+    } catch (err) {
+      console.error('Error sending reminder:', err)
+      showToast?.('Failed to send reminder', 'error')
+    }
+    setSendingReminder(false)
+  }
 
   return (
     <div className={`rounded-[14px] p-5 shadow-sm border ${isDark ? 'bg-[#1E293B] border-slate-700' : 'bg-white border-slate-200'}`}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <h3 className={`text-sm font-semibold uppercase tracking-wide ${tc.textMuted}`}>Onboarding Checklist</h3>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${completed === checks.length ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
           {completed}/{checks.length}
         </span>
       </div>
-      <div className="space-y-2.5">
+      {/* Progress bar */}
+      <div className={`h-2 rounded-full mb-3 ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+        <div className="h-2 rounded-full transition-all" style={{ width: `${(completed / checks.length) * 100}%`, background: completed === checks.length ? '#10B981' : 'var(--accent-primary)' }} />
+      </div>
+      {/* Time to value */}
+      <p className={`text-xs ${tc.textMuted} mb-3`}>
+        Active for {daysActive} day{daysActive !== 1 ? 's' : ''} | {completed}/{checks.length} milestones
+      </p>
+      <div className="space-y-2">
         {checks.map((check, i) => (
           <div key={i} className="flex items-center gap-3">
             {check.done ? (
@@ -138,12 +202,24 @@ function OnboardingChecklist({ org, members, teams, seasons, isDark, tc }) {
           </div>
         ))}
       </div>
+      {completed < checks.length && (
+        <button
+          onClick={handleSendReminder}
+          disabled={sendingReminder}
+          className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
+            isDark ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20' : 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200'
+          }`}
+        >
+          {sendingReminder ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
+          Send Setup Reminder
+        </button>
+      )}
     </div>
   )
 }
 
 // ═══════ OVERVIEW TAB ═══════
-function OverviewTab({ org, members, teams, seasons, payments, isDark, tc }) {
+function OverviewTab({ org, members, teams, seasons, payments, isDark, tc, showToast }) {
   const paidPayments = payments.filter(p => p.paid)
   const totalRevenue = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   const adminCount = members.filter(m => m.role === 'admin').length
@@ -189,7 +265,7 @@ function OverviewTab({ org, members, teams, seasons, payments, isDark, tc }) {
         </div>
 
         {/* Onboarding Checklist */}
-        <OnboardingChecklist org={org} members={members} teams={teams} seasons={seasons} isDark={isDark} tc={tc} />
+        <OnboardingChecklist org={org} members={members} teams={teams} seasons={seasons} isDark={isDark} tc={tc} showToast={showToast} />
       </div>
     </div>
   )
@@ -1237,7 +1313,7 @@ function PlatformOrgDetail({ showToast }) {
       {/* Tab Content */}
       <div>
         {activeTab === 'overview' && (
-          <OverviewTab org={org} members={members} teams={teams} seasons={seasons} payments={payments} isDark={isDark} tc={tc} />
+          <OverviewTab org={org} members={members} teams={teams} seasons={seasons} payments={payments} isDark={isDark} tc={tc} showToast={showToast} />
         )}
         {activeTab === 'members' && (
           <MembersTab members={members} isDark={isDark} tc={tc} />

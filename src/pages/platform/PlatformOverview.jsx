@@ -42,6 +42,8 @@ function PlatformOverview({ showToast }) {
   const [healthSort, setHealthSort] = useState('status')
   // Activity type filter
   const [activityFilter, setActivityFilter] = useState('all')
+  // Onboarding health
+  const [onboardingOrgs, setOnboardingOrgs] = useState([])
 
   useEffect(() => {
     loadOverviewData()
@@ -219,6 +221,81 @@ function PlatformOverview({ showToast }) {
           color: '#F59E0B',
           path: '/platform/organizations',
         })
+      }
+
+      // ── Onboarding Health — orgs created in last 30 days ──
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 86400000).toISOString()
+      const newOrgs = orgs.filter(o => o.created_at && new Date(o.created_at) >= new Date(thirtyDaysAgo))
+      if (newOrgs.length > 0) {
+        const newOrgIds = newOrgs.map(o => o.id)
+        const [rolesRes, seasonsRes2, teamsRes2, coachesRes, eventsRes, regRes] = await Promise.all([
+          supabase.from('user_roles').select('organization_id, role').in('organization_id', newOrgIds).limit(10000),
+          supabase.from('seasons').select('id, organization_id').in('organization_id', newOrgIds).limit(5000),
+          supabase.from('teams').select('id, season_id').limit(10000),
+          supabase.from('team_coaches').select('id, team_id').limit(10000),
+          supabase.from('schedule_events').select('id, org_id').in('org_id', newOrgIds).limit(5000),
+          supabase.from('registration_templates').select('id, org_id').in('org_id', newOrgIds).limit(5000),
+        ])
+
+        const roles = rolesRes.data || []
+        const seasons2 = seasonsRes2.data || []
+        const teams2 = teamsRes2.data || []
+        const coaches = coachesRes.data || []
+        const events = eventsRes.data || []
+        const regs = regRes.data || []
+
+        // Map season -> org for team lookup
+        const seasonOrgMap = {}
+        seasons2.forEach(s => { seasonOrgMap[s.id] = s.organization_id })
+
+        // Get team_players count per org
+        const newOrgSeasonIds = seasons2.map(s => s.id)
+        const orgTeams = teams2.filter(t => newOrgSeasonIds.includes(t.season_id))
+        const orgTeamIds = orgTeams.map(t => t.id)
+        const { data: playerData } = await supabase.from('team_players').select('id, team_id').in('team_id', orgTeamIds.slice(0, 5000)).limit(10000)
+        const players = playerData || []
+
+        const onboarding = newOrgs.map(org => {
+          const orgRoles = roles.filter(r => r.organization_id === org.id)
+          const orgSeasons = seasons2.filter(s => s.organization_id === org.id)
+          const orgSeasonIds = orgSeasons.map(s => s.id)
+          const orgTeamList = orgTeams.filter(t => orgSeasonIds.includes(seasonOrgMap[t.season_id] === org.id ? t.season_id : null) || orgSeasonIds.includes(t.season_id))
+          const orgTeamIdSet = new Set(orgTeamList.map(t => t.id))
+          const orgPlayers = players.filter(p => orgTeamIdSet.has(p.team_id))
+          const orgCoaches = coaches.filter(c => orgTeamIdSet.has(c.team_id))
+          const orgEvents = events.filter(e => e.org_id === org.id)
+          const orgRegs = regs.filter(r => r.org_id === org.id)
+
+          const milestones = [
+            { id: 'admin', label: 'Admin user', done: orgRoles.some(r => r.role === 'admin' || r.role === 'league_admin') },
+            { id: 'season', label: 'First season', done: orgSeasons.length > 0 },
+            { id: 'team', label: 'First team', done: orgTeamList.length > 0 },
+            { id: 'player', label: 'First player', done: orgPlayers.length > 0 },
+            { id: 'coach', label: 'Coach assigned', done: orgCoaches.length > 0 },
+            { id: 'event', label: 'First event', done: orgEvents.length > 0 },
+            { id: 'registration', label: 'Reg template', done: orgRegs.length > 0 },
+          ]
+          const completed = milestones.filter(m => m.done).length
+          const daysAgo = Math.floor((now - new Date(org.created_at)) / 86400000)
+          let stallStatus = null
+          if (daysAgo >= 14 && completed < 3) stallStatus = 'critical'
+          else if (daysAgo >= 7 && completed < 4) stallStatus = 'stalled'
+
+          return { ...org, milestones, completed, total: 7, daysAgo, stallStatus }
+        })
+
+        setOnboardingOrgs(onboarding.sort((a, b) => a.completed - b.completed))
+
+        // Add stalled orgs to attention
+        const stalledCount = onboarding.filter(o => o.stallStatus).length
+        if (stalledCount > 0) {
+          items.push({
+            icon: Clock,
+            label: `${stalledCount} org${stalledCount !== 1 ? 's' : ''} with stalled onboarding`,
+            color: '#EF4444',
+            path: '/platform/organizations',
+          })
+        }
       }
 
       setAttentionItems(items)
@@ -545,6 +622,58 @@ function PlatformOverview({ showToast }) {
           </div>
         </div>
       </div>
+
+      {/* ── Onboarding Health ── */}
+      {onboardingOrgs.length > 0 && (
+        <div className={`${cardClass} p-5`}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-sm font-semibold uppercase tracking-wide ${tc.textMuted}`}>
+              Onboarding Health (Last 30 Days)
+            </h3>
+            <span className={`text-xs ${tc.textMuted}`}>{onboardingOrgs.length} new org{onboardingOrgs.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="space-y-2 max-h-[320px] overflow-y-auto">
+            {onboardingOrgs.map(org => (
+              <button
+                key={org.id}
+                onClick={() => navigate(`/platform/organizations/${org.id}`)}
+                className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+                  isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className={`text-sm font-medium truncate ${tc.text}`}>{org.name}</p>
+                    {org.stallStatus === 'critical' && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400">Critical</span>
+                    )}
+                    {org.stallStatus === 'stalled' && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-500">Stalled</span>
+                    )}
+                  </div>
+                  <p className={`text-xs ${tc.textMuted}`}>Created {org.daysAgo}d ago</p>
+                </div>
+                {/* Progress bar */}
+                <div className="w-28 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex-1 h-1.5 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                      <div
+                        className="h-1.5 rounded-full transition-all"
+                        style={{
+                          width: `${(org.completed / org.total) * 100}%`,
+                          background: org.stallStatus === 'critical' ? '#EF4444' : org.stallStatus === 'stalled' ? '#F59E0B' : '#10B981',
+                        }}
+                      />
+                    </div>
+                    <span className={`text-xs font-bold ${tc.text}`}>{org.completed}/{org.total}</span>
+                  </div>
+                </div>
+                <ChevronRight className={`w-4 h-4 ${tc.textMuted} shrink-0`} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Quick Actions ── */}
       <div className={`${cardClass} p-5`}>
