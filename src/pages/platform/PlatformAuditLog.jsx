@@ -5,7 +5,7 @@ import { exportToCSV } from '../../lib/csv-export'
 import {
   XCircle, CheckCircle2, Trash2, UserMinus, UserCheck, Shield,
   Clock, FileText, Download, Filter, ChevronDown, ChevronUp,
-  RefreshCw, Activity, Search
+  RefreshCw, Activity, Search, Settings, Loader2
 } from '../../constants/icons'
 import { ShieldOff } from 'lucide-react'
 
@@ -30,6 +30,7 @@ const ACTION_TYPES = [
   { value: 'activate_user', label: 'Activate User' },
   { value: 'grant_super_admin', label: 'Grant Super-Admin' },
   { value: 'revoke_super_admin', label: 'Revoke Super-Admin' },
+  { value: 'update_setting', label: 'Update Setting' },
 ]
 
 const ACTION_ICON_MAP = {
@@ -40,6 +41,7 @@ const ACTION_ICON_MAP = {
   activate_user: { icon: UserCheck, color: '#10B981', bg: '#10B981' },
   grant_super_admin: { icon: Shield, color: '#8B5CF6', bg: '#8B5CF6' },
   revoke_super_admin: { icon: ShieldOff, color: '#EF4444', bg: '#EF4444' },
+  update_setting: { icon: Settings, color: '#6366F1', bg: '#6366F1' },
 }
 
 const DEFAULT_ACTION_ICON = { icon: Activity, color: '#6B7280', bg: '#6B7280' }
@@ -115,22 +117,28 @@ function PlatformAuditLog({ showToast }) {
 
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
   const [dateRange, setDateRange] = useState('30days')
   const [actionFilter, setActionFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedId, setExpandedId] = useState(null)
   const [showFilters, setShowFilters] = useState(true)
+  // Export date range
+  const [exportFrom, setExportFrom] = useState('')
+  const [exportTo, setExportTo] = useState('')
 
   useEffect(() => { loadLogs() }, [dateRange, actionFilter])
 
-  async function loadLogs() {
-    setLoading(true)
+  async function loadLogs(offset = 0, append = false) {
+    if (!append) setLoading(true)
+    else setLoadingMore(true)
     try {
       let query = supabase
         .from('platform_admin_actions')
-        .select('*, profiles:admin_id(full_name, email)')
+        .select('*, profiles:admin_id(full_name, email)', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(100)
+        .range(offset, offset + 99)
 
       const rangeStart = getDateRangeStart(dateRange)
       if (rangeStart) {
@@ -141,14 +149,24 @@ function PlatformAuditLog({ showToast }) {
         query = query.eq('action_type', actionFilter)
       }
 
-      const { data, error } = await query
+      const { data, error, count } = await query
       if (error) throw error
-      setLogs(data || [])
+      if (append) {
+        setLogs(prev => [...prev, ...(data || [])])
+      } else {
+        setLogs(data || [])
+      }
+      setTotalCount(count || 0)
     } catch (err) {
       console.error('Audit log error:', err)
       if (showToast) showToast('Failed to load audit log', 'error')
     }
     setLoading(false)
+    setLoadingMore(false)
+  }
+
+  function handleLoadMore() {
+    loadLogs(logs.length, true)
   }
 
   // Client-side search filter
@@ -164,8 +182,22 @@ function PlatformAuditLog({ showToast }) {
     )
   }, [logs, searchQuery])
 
+  function getExportData() {
+    let data = filteredLogs
+    if (exportFrom) {
+      data = data.filter(l => l.created_at >= exportFrom)
+    }
+    if (exportTo) {
+      const toDate = new Date(exportTo)
+      toDate.setDate(toDate.getDate() + 1)
+      data = data.filter(l => l.created_at < toDate.toISOString())
+    }
+    return data
+  }
+
   function handleExportCSV() {
-    if (filteredLogs.length === 0) {
+    const data = getExportData()
+    if (data.length === 0) {
       if (showToast) showToast('No data to export', 'error')
       return
     }
@@ -178,11 +210,44 @@ function PlatformAuditLog({ showToast }) {
       { label: 'Target Name', accessor: row => getTargetName(row) },
       { label: 'Target ID', accessor: row => row.target_id || '' },
       { label: 'Performed By', accessor: row => row.profiles?.full_name || row.profiles?.email || 'Unknown' },
+      { label: 'IP Address', accessor: row => row.ip_address || '' },
+      { label: 'User Agent', accessor: row => row.user_agent || '' },
+      { label: 'Old Values', accessor: row => row.old_values ? JSON.stringify(row.old_values) : '' },
+      { label: 'New Values', accessor: row => row.new_values ? JSON.stringify(row.new_values) : '' },
       { label: 'Details', accessor: row => row.details ? JSON.stringify(row.details) : '' },
     ]
 
-    exportToCSV(filteredLogs, 'platform_audit_log', columns)
+    exportToCSV(data, 'platform_audit_log', columns)
     if (showToast) showToast('Audit log exported', 'success')
+  }
+
+  function handleExportJSON() {
+    const data = getExportData()
+    if (data.length === 0) {
+      if (showToast) showToast('No data to export', 'error')
+      return
+    }
+    const rows = data.map(row => ({
+      timestamp: row.created_at,
+      action: row.action_type,
+      target_type: row.target_type,
+      target_name: getTargetName(row),
+      target_id: row.target_id,
+      performed_by: row.profiles?.full_name || row.profiles?.email || 'Unknown',
+      ip_address: row.ip_address || null,
+      user_agent: row.user_agent || null,
+      old_values: row.old_values || null,
+      new_values: row.new_values || null,
+      details: row.details || null,
+    }))
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `platform_audit_log_${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    if (showToast) showToast('Audit log exported as JSON', 'success')
   }
 
   // Card base classes (no glassmorphism)
@@ -233,7 +298,18 @@ function PlatformAuditLog({ showToast }) {
             style={{ background: accent.primary }}
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            CSV
+          </button>
+          <button
+            onClick={handleExportJSON}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-sm font-medium border transition ${
+              isDark
+                ? 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <Download className="w-4 h-4" />
+            JSON
           </button>
         </div>
       </div>
@@ -300,6 +376,42 @@ function PlatformAuditLog({ showToast }) {
               </select>
               <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${tc.textMuted}`} />
             </div>
+          </div>
+
+          {/* Export date range */}
+          <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-3 pt-3 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+            <span className={`text-xs font-medium ${tc.textMuted} whitespace-nowrap`}>Export range:</span>
+            <input
+              type="date"
+              value={exportFrom}
+              onChange={e => setExportFrom(e.target.value)}
+              className={`px-2 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-2 ${
+                isDark
+                  ? 'bg-slate-800 border-slate-600 text-white'
+                  : 'bg-slate-50 border-slate-300 text-slate-800'
+              }`}
+              style={{ '--tw-ring-color': `${accent.primary}50` }}
+            />
+            <span className={`text-xs ${tc.textMuted}`}>to</span>
+            <input
+              type="date"
+              value={exportTo}
+              onChange={e => setExportTo(e.target.value)}
+              className={`px-2 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-2 ${
+                isDark
+                  ? 'bg-slate-800 border-slate-600 text-white'
+                  : 'bg-slate-50 border-slate-300 text-slate-800'
+              }`}
+              style={{ '--tw-ring-color': `${accent.primary}50` }}
+            />
+            {(exportFrom || exportTo) && (
+              <button
+                onClick={() => { setExportFrom(''); setExportTo('') }}
+                className={`text-xs px-2 py-1 rounded-lg ${isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'} transition`}
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -448,7 +560,64 @@ function PlatformAuditLog({ showToast }) {
                               })}
                             </p>
                           </div>
+                          {log.ip_address && (
+                            <div>
+                              <span className={`text-xs font-semibold uppercase ${tc.textMuted}`}>IP Address</span>
+                              <p className={`${tc.text} mt-0.5 font-mono text-xs`}>{log.ip_address}</p>
+                            </div>
+                          )}
+                          {log.user_agent && (
+                            <div className="sm:col-span-2">
+                              <span className={`text-xs font-semibold uppercase ${tc.textMuted}`}>User Agent</span>
+                              <p className={`${tc.textSecondary} mt-0.5 text-xs break-all`}>{log.user_agent}</p>
+                            </div>
+                          )}
                         </div>
+
+                        {/* Diff display for changes */}
+                        {(log.old_values !== null && log.old_values !== undefined) || (log.new_values !== null && log.new_values !== undefined) ? (
+                          <div className="mt-4">
+                            <span className={`text-xs font-semibold uppercase ${tc.textMuted}`}>Changes</span>
+                            <div className={`mt-1.5 rounded-lg overflow-hidden border ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                              {(() => {
+                                const oldV = log.old_values
+                                const newV = log.new_values
+                                const isOldObj = typeof oldV === 'object' && oldV !== null
+                                const isNewObj = typeof newV === 'object' && newV !== null
+                                if (isOldObj || isNewObj) {
+                                  const oldObj = isOldObj ? oldV : {}
+                                  const newObj = isNewObj ? newV : {}
+                                  const allKeys = [...new Set([...Object.keys(oldObj), ...Object.keys(newObj)])]
+                                  return allKeys.map(k => (
+                                    <div key={k} className={`flex items-stretch text-xs font-mono border-b last:border-b-0 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                                      <div className={`w-28 shrink-0 px-3 py-2 font-semibold ${tc.textMuted} ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                                        {k}
+                                      </div>
+                                      <div className={`flex-1 px-3 py-2 ${isDark ? 'bg-red-900/20 text-red-400' : 'bg-red-50 text-red-700'}`}>
+                                        {oldObj[k] !== undefined ? String(oldObj[k]) : '\u2014'}
+                                      </div>
+                                      <div className={`w-8 flex items-center justify-center ${tc.textMuted} ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>\u2192</div>
+                                      <div className={`flex-1 px-3 py-2 ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-700'}`}>
+                                        {newObj[k] !== undefined ? String(newObj[k]) : '\u2014'}
+                                      </div>
+                                    </div>
+                                  ))
+                                }
+                                return (
+                                  <div className="flex items-stretch text-xs font-mono">
+                                    <div className={`flex-1 px-3 py-2 ${isDark ? 'bg-red-900/20 text-red-400' : 'bg-red-50 text-red-700'}`}>
+                                      {oldV !== null && oldV !== undefined ? String(oldV) : '\u2014'}
+                                    </div>
+                                    <div className={`w-8 flex items-center justify-center ${tc.textMuted} ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>\u2192</div>
+                                    <div className={`flex-1 px-3 py-2 ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-700'}`}>
+                                      {newV !== null && newV !== undefined ? String(newV) : '\u2014'}
+                                    </div>
+                                  </div>
+                                )
+                              })()}
+                            </div>
+                          </div>
+                        ) : null}
 
                         {/* Details JSON */}
                         {log.details && Object.keys(log.details).length > 0 && (
@@ -475,13 +644,33 @@ function PlatformAuditLog({ showToast }) {
           </div>
 
           {/* Footer */}
-          <div className={`px-5 py-3 border-t text-center ${
+          <div className={`px-5 py-3 border-t flex flex-col items-center gap-2 ${
             isDark ? 'border-slate-700 bg-slate-800/30' : 'border-slate-200 bg-slate-50/50'
           }`}>
             <p className={`text-xs ${tc.textMuted}`}>
-              Showing {filteredLogs.length} of {logs.length} entr{logs.length === 1 ? 'y' : 'ies'}
-              {filteredLogs.length >= 100 && ' (limited to last 100)'}
+              Showing {logs.length} of {totalCount} entr{totalCount === 1 ? 'y' : 'ies'}
+              {searchQuery && ` (${filteredLogs.length} matching filter)`}
             </p>
+            {logs.length < totalCount && (
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-[10px] text-sm font-medium border transition ${
+                  isDark
+                    ? 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                    : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                } disabled:opacity-50`}
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  `Load More (${totalCount - logs.length} remaining)`
+                )}
+              </button>
+            )}
           </div>
         </div>
       )}
