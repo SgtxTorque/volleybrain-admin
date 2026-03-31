@@ -48,6 +48,18 @@ const SECTION_NAV = {
   content: [
     { id: 'content', label: 'Content Manager', icon: FileText },
   ],
+  system: [
+    { id: 'system', label: 'System Health', icon: BarChart3 },
+  ],
+  database: [
+    { id: 'database', label: 'Database Tools', icon: BarChart3 },
+  ],
+  team: [
+    { id: 'team', label: 'Team', icon: Users },
+  ],
+  integrations: [
+    { id: 'integrations', label: 'Integrations', icon: Settings },
+  ],
   settings: [
     { id: 'settings', label: 'Settings', icon: Settings },
   ],

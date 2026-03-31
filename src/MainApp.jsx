@@ -111,6 +111,10 @@ const PlatformCompliance = lazy(() => import('./pages/platform/PlatformComplianc
 const PlatformEngagement = lazy(() => import('./pages/platform/PlatformEngagement'))
 const PlatformRegistrationFunnel = lazy(() => import('./pages/platform/PlatformRegistrationFunnel'))
 const PlatformContentManager = lazy(() => import('./pages/platform/PlatformContentManager'))
+const PlatformSystemHealth = lazy(() => import('./pages/platform/PlatformSystemHealth'))
+const PlatformDatabaseTools = lazy(() => import('./pages/platform/PlatformDatabaseTools'))
+const PlatformTeam = lazy(() => import('./pages/platform/PlatformTeam'))
+const PlatformIntegrations = lazy(() => import('./pages/platform/PlatformIntegrations'))
 const PlatformShell = lazy(() => import('./components/platform/PlatformShell'))
 
 // Profile
@@ -1264,6 +1268,10 @@ function MainApp() {
               <Route path="/platform/compliance" element={<PlatformCompliance showToast={showToast} />} />
               <Route path="/platform/audit" element={<PlatformAuditLog showToast={showToast} />} />
               <Route path="/platform/content" element={<PlatformContentManager showToast={showToast} />} />
+              <Route path="/platform/system" element={<PlatformSystemHealth showToast={showToast} />} />
+              <Route path="/platform/database" element={<PlatformDatabaseTools showToast={showToast} />} />
+              <Route path="/platform/team" element={<PlatformTeam showToast={showToast} />} />
+              <Route path="/platform/integrations" element={<PlatformIntegrations showToast={showToast} />} />
               <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
               <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
               <Route path="*" element={<Navigate to="/platform/overview" replace />} />

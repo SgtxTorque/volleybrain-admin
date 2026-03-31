@@ -16,6 +16,10 @@ const NAV_SECTIONS = [
   { id: 'compliance', label: 'Compliance' },
   { id: 'audit', label: 'Audit Log' },
   { id: 'content', label: 'Content' },
+  { id: 'system', label: 'System' },
+  { id: 'database', label: 'Database' },
+  { id: 'team', label: 'Team' },
+  { id: 'integrations', label: 'Integrations' },
   { id: 'settings', label: 'Settings' },
 ]
 
