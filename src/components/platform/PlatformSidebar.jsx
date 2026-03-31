@@ -24,6 +24,9 @@ const SECTION_NAV = {
   engagement: [
     { id: 'engagement', label: 'Engagement', icon: BarChart3 },
   ],
+  funnel: [
+    { id: 'funnel', label: 'Registration Funnel', icon: BarChart3 },
+  ],
   support: [
     { id: 'support', label: 'Support Inbox', icon: MessageSquare },
   ],
