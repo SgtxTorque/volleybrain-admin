@@ -45,6 +45,9 @@ const SECTION_NAV = {
   audit: [
     { id: 'audit', label: 'Audit Log', icon: FileText },
   ],
+  content: [
+    { id: 'content', label: 'Content Manager', icon: FileText },
+  ],
   settings: [
     { id: 'settings', label: 'Settings', icon: Settings },
   ],

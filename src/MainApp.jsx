@@ -110,6 +110,7 @@ const PlatformFeatureRequests = lazy(() => import('./pages/platform/PlatformFeat
 const PlatformCompliance = lazy(() => import('./pages/platform/PlatformCompliance'))
 const PlatformEngagement = lazy(() => import('./pages/platform/PlatformEngagement'))
 const PlatformRegistrationFunnel = lazy(() => import('./pages/platform/PlatformRegistrationFunnel'))
+const PlatformContentManager = lazy(() => import('./pages/platform/PlatformContentManager'))
 const PlatformShell = lazy(() => import('./components/platform/PlatformShell'))
 
 // Profile
@@ -1262,6 +1263,7 @@ function MainApp() {
               <Route path="/platform/features" element={<PlatformFeatureRequests showToast={showToast} />} />
               <Route path="/platform/compliance" element={<PlatformCompliance showToast={showToast} />} />
               <Route path="/platform/audit" element={<PlatformAuditLog showToast={showToast} />} />
+              <Route path="/platform/content" element={<PlatformContentManager showToast={showToast} />} />
               <Route path="/platform/settings" element={<PlatformSettings showToast={showToast} />} />
               <Route path="/platform" element={<Navigate to="/platform/overview" replace />} />
               <Route path="*" element={<Navigate to="/platform/overview" replace />} />
