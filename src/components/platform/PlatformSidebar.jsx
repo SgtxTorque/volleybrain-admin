@@ -30,6 +30,9 @@ const SECTION_NAV = {
   email: [
     { id: 'email', label: 'Email Center', icon: MessageSquare },
   ],
+  features: [
+    { id: 'features', label: 'Feature Requests', icon: Building2 },
+  ],
   audit: [
     { id: 'audit', label: 'Audit Log', icon: FileText },
   ],

@@ -10,6 +10,7 @@ const NAV_SECTIONS = [
   { id: 'support', label: 'Support' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'email', label: 'Email' },
+  { id: 'features', label: 'Features' },
   { id: 'audit', label: 'Audit Log' },
   { id: 'settings', label: 'Settings' },
 ]
