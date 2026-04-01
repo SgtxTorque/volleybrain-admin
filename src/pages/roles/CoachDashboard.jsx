@@ -24,7 +24,6 @@ import CoachStatsTab from '../../components/v2/coach/CoachStatsTab'
 import CoachGamePrepTab from '../../components/v2/coach/CoachGamePrepTab'
 import CoachEngagementTab from '../../components/v2/coach/CoachEngagementTab'
 import { CoachLevelCard, CoachActivityCard, CoachBadgesCard, TeamPulseCard } from '../../components/v2/coach/CoachEngagementColumn'
-import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 
 // ── Event Detail Modal ──
 function EventDetailModal({ event, team, onClose }) {
@@ -221,11 +220,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const [newPlayersCount, setNewPlayersCount] = useState(0)
   const [evalData, setEvalData] = useState([])
   const [activeTab, setActiveTab] = useState('roster')
-
-  // Engagement column state
-  const [coachBadges, setCoachBadges] = useState([])
-  const [totalAchievements, setTotalAchievements] = useState(0)
-  const [gamesWithStats, setGamesWithStats] = useState(0)
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
   const coachTeamAssignments = roleContext?.coachInfo?.team_coaches || []
@@ -592,40 +586,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         } else { setEvalData([]) }
       } catch { setEvalData([]) }
 
-      // 12. Coach badges for engagement column
-      try {
-        const { data: badgeData } = await supabase
-          .from('player_achievements')
-          .select('id, earned_at, achievement:achievement_id(id, name, icon, icon_url, badge_image_url, rarity)')
-          .eq('player_id', user?.id)
-          .order('earned_at', { ascending: false })
-          .limit(10)
-        setCoachBadges((badgeData || []).map(b => ({
-          name: b.achievement?.name,
-          icon: b.achievement?.icon,
-          imageUrl: b.achievement?.badge_image_url || b.achievement?.icon_url,
-        })))
-        // Total achievement count
-        const { count: totalAch } = await supabase
-          .from('achievements')
-          .select('*', { count: 'exact', head: true })
-        setTotalAchievements(totalAch || 0)
-      } catch { setCoachBadges([]); setTotalAchievements(0) }
-
-      // 13. Games with stats entered this week
-      try {
-        const weekAgo = new Date()
-        weekAgo.setDate(weekAgo.getDate() - 7)
-        const { count: statsCount } = await supabase
-          .from('schedule_events')
-          .select('*', { count: 'exact', head: true })
-          .eq('team_id', team.id)
-          .eq('event_type', 'game')
-          .eq('stats_entered', true)
-          .gte('event_date', weekAgo.toISOString().split('T')[0])
-        setGamesWithStats(statsCount || 0)
-      } catch { setGamesWithStats(0) }
-
     } catch (err) { console.error('Error loading team data:', err) }
   }
 
@@ -699,6 +659,28 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // (Old coachWidgets grid array removed — v2 uses fixed layout)
 
+  // ── Engagement column — hardcoded mock data (TODO: wire to real queries) ──
+  const mockEngagement = {
+    levelInfo: { level: 4, progress: 52, nextLevelXp: 2000 },
+    tierName: 'Rising Star',
+    xp: 520,
+    shoutouts: 3,
+    challenges: 1,
+    statsEntered: 2,
+    evalsDone: 5,
+    nextBadgeHint: '2 more shoutouts for Hype Coach',
+    badges: [
+      { name: 'First Win', icon: '🏆' },
+      { name: 'Hype Machine', icon: '⭐' },
+      { name: 'Stat Master', icon: '📊' },
+      { name: 'Full Roster', icon: '👥' },
+      { name: 'Practice Pro', icon: '⚡' },
+    ],
+    earnedCount: 5,
+    totalCount: 42,
+    pulse: { active: 8, drifting: 3, inactive: 1 },
+  }
+
   // ── Loading State ──
   if (loading) {
     return (
@@ -758,37 +740,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const nextGameRsvp = nextGame ? rsvpCounts[nextGame.id] : null
   const attentionCount = needsAttentionItems.length
 
-  // ── Engagement column computed data ──
-  const coachXp = (teamRecord.wins * 100) + (roster.length * 10) + (weeklyShoutouts * 10) + (evalData.length * 25)
-  const coachLevelInfo = getLevelFromXP(coachXp)
-  const coachTier = getLevelTier(coachLevelInfo.level)
-
-  // Team pulse — heuristic based on RSVP activity
-  const teamPulse = useMemo(() => {
-    // Active: has RSVP in any upcoming event; Drifting: has profile but no RSVP; Inactive: none
-    const playerIdsWithRsvp = new Set()
-    Object.values(rsvpCounts).forEach(rsvps => {
-      // rsvpCounts is aggregated, not per-player — use a simpler heuristic
-    })
-    // Simple heuristic: players who have position + jersey = active, missing one = drifting, missing both = inactive
-    let active = 0, drifting = 0, inactive = 0
-    roster.forEach(p => {
-      const hasPosition = !!p.position
-      const hasJersey = !!p.jersey_number
-      if (hasPosition && hasJersey) active++
-      else if (hasPosition || hasJersey) drifting++
-      else inactive++
-    })
-    return { active, drifting, inactive }
-  }, [roster])
-
-  // Next badge hint
-  const nextBadgeHint = weeklyShoutouts < 5
-    ? `${5 - weeklyShoutouts} more shoutout${5 - weeklyShoutouts !== 1 ? 's' : ''} for Hype Coach`
-    : evalData.length < 10
-      ? `${10 - evalData.length} more eval${10 - evalData.length !== 1 ? 's' : ''} for Scout Master`
-      : null
-
   // ── Main Render ──
   return (
     <>
@@ -796,28 +747,28 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         engagementContent={
           <>
             <CoachLevelCard
-              levelInfo={coachLevelInfo}
-              tierName={coachTier.name}
-              xp={coachXp}
+              levelInfo={mockEngagement.levelInfo}
+              tierName={mockEngagement.tierName}
+              xp={mockEngagement.xp}
               onNavigateAchievements={() => onNavigate?.('achievements')}
             />
             <CoachActivityCard
-              shoutouts={weeklyShoutouts}
-              challenges={weeklyEngagement.challenges}
-              statsEntered={gamesWithStats}
-              evalsDone={evalData.length}
-              nextBadgeHint={nextBadgeHint}
+              shoutouts={mockEngagement.shoutouts}
+              challenges={mockEngagement.challenges}
+              statsEntered={mockEngagement.statsEntered}
+              evalsDone={mockEngagement.evalsDone}
+              nextBadgeHint={mockEngagement.nextBadgeHint}
             />
             <CoachBadgesCard
-              earnedCount={coachBadges.length}
-              totalCount={totalAchievements}
-              badges={coachBadges}
+              earnedCount={mockEngagement.earnedCount}
+              totalCount={mockEngagement.totalCount}
+              badges={mockEngagement.badges}
               onNavigateAchievements={() => onNavigate?.('achievements')}
             />
             <TeamPulseCard
-              active={teamPulse.active}
-              drifting={teamPulse.drifting}
-              inactive={teamPulse.inactive}
+              active={mockEngagement.pulse.active}
+              drifting={mockEngagement.pulse.drifting}
+              inactive={mockEngagement.pulse.inactive}
             />
           </>
         }
