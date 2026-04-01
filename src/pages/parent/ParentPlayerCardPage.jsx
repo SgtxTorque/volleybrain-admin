@@ -1119,9 +1119,9 @@ function BadgesTab({ badges, badgesInProgress, shoutouts, challenges, seasonStat
                 <div key={badge.id} className="flex items-center gap-3 rounded-xl p-3 bg-slate-50 border border-[#E8ECF2]">
                   <div className="w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ backgroundColor: `${rColor}10` }}>
                     {imgUrl ? (
-                      <img src={imgUrl} alt="" className="w-10 h-10 object-contain" style={{ filter: 'grayscale(70%) opacity(0.5)' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
+                      <img src={imgUrl} alt="" className="w-10 h-10 object-contain" style={{ opacity: 0.7 }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
                     ) : null}
-                    <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 22, filter: 'grayscale(70%) opacity(0.5)' }}>{badge.icon || '🏅'}</span>
+                    <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 22, opacity: 0.7 }}>{badge.icon || '🏅'}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">

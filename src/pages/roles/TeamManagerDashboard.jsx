@@ -256,6 +256,7 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
                   xpCurrent={tmXp}
                   xpGoal={tmInfo.nextLevelXp}
                   level={tmInfo.level}
+                  onClick={() => onNavigate?.('achievements')}
                 />
               )
             })()}

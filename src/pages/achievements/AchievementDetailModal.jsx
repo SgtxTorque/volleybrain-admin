@@ -175,8 +175,8 @@ export function AchievementDetailModal({
           <div 
             className={`
               relative w-32 h-32 flex items-center justify-center
-              ${isEarned ? '' : 'grayscale opacity-50'}
             `}
+            style={!isEarned ? { opacity: 0.7 } : undefined}
           >
             {hasImages ? (
               <img
@@ -213,11 +213,11 @@ export function AchievementDetailModal({
             
             {/* Lock for unearned */}
             {!isEarned && (
-              <div 
-                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center"
-                style={{ zIndex: 10 }}
+              <div
+                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ zIndex: 10, background: '#1E293B', border: '2px solid #475569' }}
               >
-                <Lock className="w-5 h-5 text-zinc-500" />
+                <Lock className="w-5 h-5" style={{ color: '#94A3B8' }} />
               </div>
             )}
           </div>

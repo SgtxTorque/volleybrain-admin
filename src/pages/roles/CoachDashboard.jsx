@@ -856,7 +856,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               fromLabel={weeklyShoutouts > 0 ? `— ${coachName}` : undefined}
             />
 
-            {/* MILESTONE */}
+            {/* MILESTONE — links to achievements */}
             <MilestoneCard
               trophy="🏐"
               title={`${selectedTeam?.name || 'Team'} Coach`}
@@ -864,6 +864,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               xpCurrent={teamRecord.wins * 100 + roster.length * 10}
               xpTarget={2000}
               variant="sky"
+              onClick={() => onNavigate?.('achievements')}
             />
           </>
         }

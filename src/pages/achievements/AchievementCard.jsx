@@ -218,8 +218,9 @@ export function AchievementCard({
             className={`
               relative flex items-center justify-center
               ${size === 'compact' ? 'w-14 h-14' : size === 'large' ? 'w-20 h-20' : 'w-16 h-16'}
-              ${!isEarned ? 'grayscale opacity-50' : ''}
+              transition-opacity duration-200
             `}
+            style={!isEarned ? { opacity: isHovered ? 0.85 : 0.7 } : undefined}
           >
             {hasImages ? (
               <img
@@ -256,12 +257,12 @@ export function AchievementCard({
             )}
             
             {/* Lock icon for unearned */}
-            {!isEarned && progress === 0 && (
-              <div 
-                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center"
-                style={{ zIndex: 10 }}
+            {!isEarned && (
+              <div
+                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ zIndex: 10, background: '#1E293B', border: '1px solid #475569' }}
               >
-                <Lock className="w-3 h-3 text-zinc-500" />
+                <Lock className="w-3 h-3" style={{ color: '#94A3B8' }} />
               </div>
             )}
           </div>

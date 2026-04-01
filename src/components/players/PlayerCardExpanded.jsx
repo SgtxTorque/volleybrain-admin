@@ -879,7 +879,7 @@ export function PlayerCardExpanded({
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden"
                                   style={{ backgroundColor: `${rc}20` }}>
                                   {imgUrl ? (
-                                    <img src={imgUrl} alt="" style={{ width: 24, height: 24, objectFit: 'contain', filter: 'grayscale(60%) opacity(0.6)' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+                                    <img src={imgUrl} alt="" style={{ width: 24, height: 24, objectFit: 'contain', opacity: 0.7 }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
                                   ) : null}
                                   <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 14 }}>{ach.icon || '🏅'}</span>
                                 </div>
@@ -1064,7 +1064,7 @@ export function PlayerCardExpanded({
                               <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
                                 style={{ backgroundColor: `${rc}20` }}>
                                 {imgUrl ? (
-                                  <img src={imgUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'grayscale(60%) opacity(0.6)' }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
+                                  <img src={imgUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain', opacity: 0.7 }} onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'block' }} />
                                 ) : null}
                                 <span style={{ display: imgUrl ? 'none' : 'block', fontSize: 20 }}>{ach.icon || '🏅'}</span>
                               </div>

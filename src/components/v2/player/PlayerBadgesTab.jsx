@@ -62,12 +62,12 @@ export default function PlayerBadgesTab({
                 padding: '18px 14px',
                 textAlign: 'center',
                 border: '1px dashed rgba(255,255,255,0.08)',
-                opacity: 0.5,
+                opacity: 0.7,
               }}
             >
               <div style={{ fontSize: 32, display: 'flex', justifyContent: 'center', marginBottom: 8, height: 40 }}>
                 {badge.imageUrl ? (
-                  <img src={badge.imageUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'grayscale(80%) opacity(0.5)' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline' }} />
+                  <img src={badge.imageUrl} alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'inline' }} />
                 ) : null}
                 <span style={{ display: badge.imageUrl ? 'none' : 'inline' }}>🔒</span>
               </div>

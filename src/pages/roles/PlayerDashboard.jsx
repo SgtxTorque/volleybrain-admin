@@ -431,6 +431,17 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
             {/* Shoutout Feed */}
             <ShoutoutFeed shoutouts={[]} />
 
+            {/* Trophy Case — links to achievements */}
+            <MilestoneCard
+              trophy="🏆"
+              title={`${badges.length} Badge${badges.length !== 1 ? 's' : ''} Earned`}
+              subtitle={`Level ${level} · ${xp.toLocaleString()} XP`}
+              xpCurrent={xpProgress}
+              xpTarget={xpToNext}
+              variant="gold"
+              onClick={() => onNavigate?.('achievements')}
+            />
+
             {/* The Playbook */}
             <ThePlaybook
               variant="dark"

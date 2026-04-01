@@ -921,8 +921,9 @@ function MainApp() {
     schedule:      ['attendance', 'coach-availability', 'gameprep'],
     attendance:    ['schedule', 'gameprep', 'chats'],
     gameprep:      ['schedule', 'attendance', 'standings'],
-    standings:     ['leaderboards', 'gameprep', 'reports'],
-    leaderboards:  ['standings', 'gameprep', 'reports'],
+    standings:     ['leaderboards', 'achievements', 'reports'],
+    leaderboards:  ['standings', 'achievements', 'reports'],
+    achievements:  ['leaderboards', 'standings', 'gameprep'],
     chats:         ['blasts', 'notifications', 'schedule'],
     blasts:        ['chats', 'notifications'],
     notifications: ['chats', 'blasts'],
@@ -957,8 +958,9 @@ function MainApp() {
     schedule:           ['dashboard', 'attendance', 'chats'],
     gameprep:           ['attendance', 'standings', 'leaderboards'],
     attendance:         ['schedule', 'gameprep', 'standings'],
-    standings:          ['leaderboards', 'gameprep', 'schedule'],
-    leaderboards:       ['standings', 'gameprep', 'schedule'],
+    standings:          ['leaderboards', 'achievements', 'schedule'],
+    leaderboards:       ['standings', 'achievements', 'schedule'],
+    achievements:       ['leaderboards', 'standings', 'gameprep'],
     chats:              ['dashboard', 'schedule', 'roster'],
     blasts:             ['chats', 'schedule', 'dashboard'],
     'coach-availability': ['schedule', 'dashboard', 'season-archives'],
@@ -967,12 +969,13 @@ function MainApp() {
   }
 
   const PARENT_CONTEXTUAL_NAV = {
-    dashboard:          ['schedule', 'payments', 'chats'],
-    schedule:           ['dashboard', 'payments', 'chats'],
+    dashboard:          ['schedule', 'payments', 'achievements'],
+    schedule:           ['dashboard', 'achievements', 'chats'],
     payments:           ['parent-register', 'schedule', 'dashboard'],
     'parent-register':  ['payments', 'schedule', 'dashboard'],
     chats:              ['dashboard', 'schedule', 'team-hub'],
-    'team-hub':         ['chats', 'schedule', 'dashboard'],
+    'team-hub':         ['chats', 'schedule', 'achievements'],
+    achievements:       ['dashboard', 'schedule', 'chats'],
     'my-stuff':         ['dashboard', 'season-archives', 'org-directory'],
     'season-archives':  ['dashboard', 'my-stuff', 'org-directory'],
     'org-directory':    ['dashboard', 'my-stuff', 'season-archives'],
@@ -993,8 +996,9 @@ function MainApp() {
     roster:             ['schedule', 'chats', 'standings'],
     schedule:           ['dashboard', 'attendance', 'chats'],
     attendance:         ['schedule', 'standings', 'leaderboards'],
-    standings:          ['leaderboards', 'schedule', 'attendance'],
-    leaderboards:       ['standings', 'schedule', 'attendance'],
+    standings:          ['leaderboards', 'achievements', 'attendance'],
+    leaderboards:       ['standings', 'achievements', 'attendance'],
+    achievements:       ['leaderboards', 'standings', 'schedule'],
     chats:              ['dashboard', 'schedule', 'roster'],
     blasts:             ['chats', 'schedule', 'dashboard'],
     payments:           ['schedule', 'dashboard', 'chats'],
@@ -1049,6 +1053,7 @@ function MainApp() {
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
     ]},
 
     // --- COMMUNICATION ---
@@ -1096,6 +1101,7 @@ function MainApp() {
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
     ]},
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Team Chat', icon: 'message' },
@@ -1129,6 +1135,7 @@ function MainApp() {
     { id: 'social', label: 'Social', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chat', icon: 'message' },
       { id: 'team-hub', label: 'Team Hub', icon: 'users' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
     ]},
     { id: 'mystuff', label: 'My Stuff', type: 'group', icon: 'user', items: [
       { id: 'my-stuff', label: 'My Stuff', icon: 'user' },
@@ -1177,6 +1184,7 @@ function MainApp() {
     { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
+      { id: 'achievements', label: 'Achievements', icon: 'achievements' },
     ]},
     { id: 'communication', label: 'Communication', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Team Chat', icon: 'message' },
