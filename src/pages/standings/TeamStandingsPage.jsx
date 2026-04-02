@@ -262,7 +262,10 @@ export default function TeamStandingsPage() {
     )
   }
 
-  const winPct = standings?.win_percentage || 0
+  // Normalize win_percentage: team_standings table stores as fraction (0-1),
+  // but calculated fallback stores as percentage (0-100). Normalize to 0-100.
+  const rawWinPct = standings?.win_percentage || 0
+  const winPct = rawWinPct > 0 && rawWinPct <= 1 ? rawWinPct * 100 : rawWinPct
   const isWinning = winPct >= 50
 
   // No team selected state

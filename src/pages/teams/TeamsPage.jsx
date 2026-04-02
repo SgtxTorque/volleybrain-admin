@@ -161,24 +161,27 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
 
   async function createTeam(formData) {
     try {
+      // Clean empty strings to null for nullable Postgres columns
+      const clean = (v) => (v === '' || v === undefined) ? null : v
+
       const { data: newTeam, error } = await supabase
         .from('teams')
         .insert({
           season_id: selectedSeason.id,
           name: formData.name,
-          abbreviation: formData.abbreviation || null,
+          abbreviation: clean(formData.abbreviation),
           color: formData.color,
-          logo_url: formData.logo_url || null,
-          age_group: formData.age_group,
-          age_group_type: formData.age_group_type,
-          team_type: formData.team_type,
-          skill_level: formData.skill_level,
-          gender: formData.gender,
+          logo_url: clean(formData.logo_url),
+          age_group: clean(formData.age_group),
+          age_group_type: clean(formData.age_group_type),
+          team_type: clean(formData.team_type),
+          skill_level: clean(formData.skill_level),
+          gender: clean(formData.gender),
           max_roster_size: formData.max_roster_size,
           min_roster_size: formData.min_roster_size,
           roster_open: formData.roster_open,
-          description: formData.description || null,
-          internal_notes: formData.internal_notes || null
+          description: clean(formData.description),
+          internal_notes: clean(formData.internal_notes)
         })
         .select()
         .single()

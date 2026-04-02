@@ -86,7 +86,7 @@ export default function EditTeamModal({ team, onClose, onSave, showToast }) {
     { id: 'settings', label: 'Settings', icon: '⚙️' },
   ]
 
-  const isValid = form.name.trim() && form.age_group
+  const isValid = form.name.trim()
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
