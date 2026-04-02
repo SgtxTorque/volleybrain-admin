@@ -85,13 +85,25 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         .eq('event_id', event.id)
 
       if (existingLineup?.length > 0) {
-        const lineupMap = {}
+        // Restore formation from saved data
+        const savedFormation = existingLineup[0]?.formation_type
+        if (savedFormation && formations[savedFormation]) {
+          setFormation(savedFormation)
+        }
+
+        // Group by set_number for per-set lineups
+        const grouped = {}
+        let maxSet = 1
         existingLineup.forEach(l => {
-          if (l.rotation_order) lineupMap[l.rotation_order] = l.player_id
+          const setNum = l.set_number || 1
+          if (setNum > maxSet) maxSet = setNum
+          if (!grouped[setNum]) grouped[setNum] = {}
+          if (l.rotation_order) grouped[setNum][l.rotation_order] = l.player_id
           if (l.is_libero) setLiberoId(l.player_id)
         })
-        setLineup(lineupMap)
-        setSetLineups({ 1: lineupMap })
+        setSetLineups(grouped)
+        setLineup(grouped[1] || {})
+        if (maxSet > 1) setTotalSets(maxSet)
       }
     } catch (err) {
       console.error('Error loading lineup data:', err)
@@ -226,7 +238,10 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   async function saveLineup() {
     setSaving(true)
     try {
-      await supabase.from('game_lineups').delete().eq('event_id', event.id)
+      // Delete only records for the current set (per-set save)
+      const deleteQuery = supabase.from('game_lineups').delete().eq('event_id', event.id)
+      // If set_number column exists, scope delete to current set
+      await deleteQuery.eq('set_number', currentSet)
 
       const records = []
       const positionList = formations[formation]?.positions || []
@@ -240,6 +255,10 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           is_starter: true,
           is_libero: playerId === liberoId,
           position: pos?.name,
+          formation_type: formation,
+          set_number: currentSet,
+          team_id: team.id,
+          position_role: pos?.role,
         })
       })
 
@@ -252,6 +271,10 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           is_starter: false,
           is_libero: true,
           position: 'L',
+          formation_type: formation,
+          set_number: currentSet,
+          team_id: team.id,
+          position_role: 'L',
         })
       }
 
@@ -294,6 +317,51 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   }
 
   // ============================================
+  // VALIDATION
+  // ============================================
+  function validateLineup() {
+    const errors = []
+    const warnings = []
+
+    // Check: correct number of starters
+    const starterCount = Object.keys(lineup).length
+    if (starterCount > 0 && starterCount < (sportConfig?.starterCount || 6)) {
+      warnings.push(`Lineup incomplete: ${starterCount}/${sportConfig?.starterCount || 6} starters assigned`)
+    }
+
+    // Check: duplicate players
+    const playerIds = Object.values(lineup)
+    const dupes = playerIds.filter((id, i) => playerIds.indexOf(id) !== i)
+    if (dupes.length > 0) {
+      errors.push('Duplicate player detected in lineup')
+    }
+
+    // Check: multiple setters in 5-1 system
+    if (formation === '5-1') {
+      const setterPositions = Object.entries(lineup).filter(([posId]) => {
+        const player = roster.find(p => p.id === lineup[posId])
+        return player?.team_position?.toUpperCase() === 'S' || player?.team_position?.toUpperCase() === 'SETTER'
+      })
+      if (setterPositions.length > 1) {
+        errors.push('Multiple Setters active in a 5-1 system')
+      }
+    }
+
+    // Check: RSVP status
+    Object.values(lineup).forEach(playerId => {
+      const rsvp = rsvps[playerId]
+      if (rsvp === 'no' || rsvp === 'not_attending') {
+        const player = roster.find(p => p.id === playerId)
+        warnings.push(`${player?.first_name || 'Player'} RSVP'd "No" but is in the lineup`)
+      }
+    })
+
+    return { errors, warnings, isValid: errors.length === 0 }
+  }
+
+  const validation = validateLineup()
+
+  // ============================================
   // RENDER
   // ============================================
   if (loading) {
@@ -326,6 +394,24 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         onSave={saveLineup}
         onClose={onClose}
       />
+
+      {/* Validation Banners */}
+      {validation.errors.map((err, i) => (
+        <div key={`err-${i}`} className={`mx-4 mt-2 px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-medium ${
+          isDark ? 'bg-red-500/15 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
+          <span className="flex-shrink-0">⚠</span>
+          {err}
+        </div>
+      ))}
+      {validation.warnings.map((warn, i) => (
+        <div key={`warn-${i}`} className={`mx-4 mt-2 px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-medium ${
+          isDark ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-700 border border-amber-200'
+        }`}>
+          <span className="flex-shrink-0">⚡</span>
+          {warn}
+        </div>
+      ))}
 
       {/* Main Content: Court + Right Panel */}
       <div className="flex flex-1 overflow-hidden">

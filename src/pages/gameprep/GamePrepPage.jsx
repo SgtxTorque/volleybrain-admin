@@ -7,7 +7,6 @@ import { supabase } from '../../lib/supabase'
 import { BarChart3 } from '../../constants/icons'
 import { getSportConfig } from '../../constants/sportConfigs'
 import { GameStatsModal } from '../../components/games/GameComponents'
-import { AdvancedLineupBuilder } from '../../components/games/AdvancedLineupBuilder'
 import { LineupBuilderV2 } from '../../components/games/lineup-v2'
 import { GameDetailModal } from '../../components/games/GameDetailModal'
 import { GameDayCommandCenter } from './GameDayCommandCenter'
@@ -52,7 +51,6 @@ function GamePrepPage({ showToast }) {
   const [showResultsCard, setShowResultsCard] = useState(null)
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
-  const [useV2Builder, setUseV2Builder] = useState(true)
 
   const sport = selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
   const sportConfig = getSportConfig(sport)
@@ -480,31 +478,17 @@ function GamePrepPage({ showToast }) {
 
       {/* Modals */}
       {showLineupBuilder && selectedGame && selectedTeam && (
-        useV2Builder ? (
-          <LineupBuilderV2
-            event={selectedGame}
-            team={selectedTeam}
-            sport={sport}
-            onClose={() => {
-              setShowLineupBuilder(false)
-              loadGames()
-            }}
-            onSave={() => loadGames()}
-            showToast={showToast}
-          />
-        ) : (
-          <AdvancedLineupBuilder
-            event={selectedGame}
-            team={selectedTeam}
-            sport={sport}
-            onClose={() => {
-              setShowLineupBuilder(false)
-              loadGames()
-            }}
-            onSave={() => loadGames()}
-            showToast={showToast}
-          />
-        )
+        <LineupBuilderV2
+          event={selectedGame}
+          team={selectedTeam}
+          sport={sport}
+          onClose={() => {
+            setShowLineupBuilder(false)
+            loadGames()
+          }}
+          onSave={() => loadGames()}
+          showToast={showToast}
+        />
       )}
 
       {showGameCompletion && selectedGame && selectedTeam && (
