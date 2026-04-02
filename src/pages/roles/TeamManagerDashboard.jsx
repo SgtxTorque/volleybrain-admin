@@ -8,8 +8,12 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import { useTeamManagerData } from '../../hooks/useTeamManagerData'
 import { supabase } from '../../lib/supabase'
-import { getLevelFromXP } from '../../lib/engagement-constants'
+import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 import InviteCodeModal from '../../components/team-manager/InviteCodeModal'
+import EngagementLevelCard from '../../components/engagement/EngagementLevelCard'
+import EngagementActivityCard from '../../components/engagement/EngagementActivityCard'
+import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCard'
+import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
 import { CheckCircle2, Circle } from '../../constants/icons'
 // V2 shared components
 import { useTheme } from '../../contexts/ThemeContext'
@@ -25,10 +29,20 @@ import TMAttendanceTab from '../../components/v2/team-manager/TMAttendanceTab'
 
 // ── Main Dashboard ──
 export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWall, onNavigate, activeView, availableViews = [], onSwitchRole }) {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const { selectedSeason } = useSeason()
   const { isDark, toggleTheme } = useTheme()
   const [showInviteModal, setShowInviteModal] = useState(false)
+
+  // Engagement column state
+  const [tmBadges, setTmBadges] = useState([])
+  const [totalAchievements, setTotalAchievements] = useState(0)
+  const [weeklyEventsCreated, setWeeklyEventsCreated] = useState(0)
+  const [weeklyBlasts, setWeeklyBlasts] = useState(0)
+  const [weeklyPayments, setWeeklyPayments] = useState(0)
+  const [waiversDone, setWaiversDone] = useState(0)
+  const [tmPulseData, setTmPulseData] = useState({ active: 0, drifting: 0, inactive: 0 })
+  const [tmNextBadgeProgress, setTmNextBadgeProgress] = useState(null)
 
   const teamInfo = roleContext?.teamManagerInfo?.[0]
   const teamId = teamInfo?.team_id
@@ -54,6 +68,129 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
   }, [teamId])
 
   useEffect(() => { checkEvents() }, [checkEvents])
+
+  // Load engagement column data
+  useEffect(() => {
+    if (!teamId || !user?.id) return
+    loadTmEngagementData()
+  }, [teamId, user?.id])
+
+  async function loadTmEngagementData() {
+    const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const weekAgoStr = weekAgo.toISOString()
+
+    // E1. TM badges
+    try {
+      const { data: badgeData } = await supabase
+        .from('player_achievements')
+        .select('id, earned_at, achievement:achievement_id(id, name, icon, icon_url, badge_image_url, rarity)')
+        .eq('player_id', user?.id)
+        .order('earned_at', { ascending: false })
+        .limit(10)
+      setTmBadges((badgeData || []).map(b => ({ name: b.achievement?.name || 'Badge', icon: b.achievement?.icon || '🏅', badge_image_url: b.achievement?.badge_image_url, rarity: b.achievement?.rarity })))
+    } catch { setTmBadges([]) }
+
+    // E2. Total active achievements
+    try {
+      const { count: totalAch } = await supabase
+        .from('achievements')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+      setTotalAchievements(totalAch || 0)
+    } catch { setTotalAchievements(0) }
+
+    // E3. Events created this week
+    try {
+      const { count: eventCount } = await supabase
+        .from('schedule_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+        .gte('created_at', weekAgoStr)
+      setWeeklyEventsCreated(eventCount || 0)
+    } catch { setWeeklyEventsCreated(0) }
+
+    // E4. Blasts sent this week
+    try {
+      const { count: blastCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('sender_id', user?.id)
+        .gte('created_at', weekAgoStr)
+      setWeeklyBlasts(blastCount || 0)
+    } catch { setWeeklyBlasts(0) }
+
+    // E5. Payments processed this week
+    try {
+      const { count: payCount } = await supabase
+        .from('payments')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+        .eq('paid', true)
+        .gte('paid_date', weekAgo.toISOString().split('T')[0])
+      setWeeklyPayments(payCount || 0)
+    } catch { setWeeklyPayments(0) }
+
+    // E6. Waivers completed this season
+    try {
+      const { count: waiverCount } = await supabase
+        .from('waiver_signatures')
+        .select('*', { count: 'exact', head: true })
+        .eq('team_id', teamId)
+      setWaiversDone(waiverCount || 0)
+    } catch { setWaiversDone(0) }
+
+    // E7. Team pulse (XP activity per player)
+    try {
+      const { data: allPlayers } = await supabase
+        .from('team_players')
+        .select('player_id')
+        .eq('team_id', teamId)
+      const playerIds = (allPlayers || []).map(p => p.player_id)
+      if (playerIds.length > 0) {
+        const { data: xpActivity } = await supabase
+          .from('xp_ledger')
+          .select('player_id, created_at')
+          .in('player_id', playerIds)
+          .order('created_at', { ascending: false })
+        const now = new Date()
+        const latestByPlayer = {}
+        for (const entry of (xpActivity || [])) {
+          if (!latestByPlayer[entry.player_id]) latestByPlayer[entry.player_id] = entry.created_at
+        }
+        let active = 0, drifting = 0, inactive = 0
+        for (const pid of playerIds) {
+          const last = latestByPlayer[pid]
+          if (!last) { inactive++; continue }
+          const days = Math.floor((now - new Date(last)) / (1000 * 60 * 60 * 24))
+          if (days <= 7) active++
+          else if (days <= 21) drifting++
+          else inactive++
+        }
+        setTmPulseData({ active, drifting, inactive })
+      } else { setTmPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+    } catch { setTmPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+
+    // E8. Next badge hint
+    try {
+      const { data: progressData } = await supabase
+        .from('player_achievement_progress')
+        .select('achievement_id, current_value, target_value, achievements(id, name, stat_key, threshold)')
+        .eq('player_id', user?.id)
+      if (progressData && progressData.length > 0) {
+        let best = null
+        for (const p of progressData) {
+          if (!p.target_value || p.target_value <= 0) continue
+          const ratio = (p.current_value || 0) / p.target_value
+          if (ratio >= 1) continue
+          if (!best || ratio > best.ratio) {
+            best = { ratio, remaining: Math.ceil(p.target_value - (p.current_value || 0)), action: p.achievements?.stat_key || 'actions', badgeName: p.achievements?.name || 'next badge' }
+          }
+        }
+        setTmNextBadgeProgress(best)
+      } else { setTmNextBadgeProgress(null) }
+    } catch { setTmNextBadgeProgress(null) }
+  }
 
   const hasPlayers = rosterCount > 0
   const hasPayments = (paymentHealth?.totalPayments || 0) > 0
@@ -116,6 +253,22 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
     { id: 'schedule', label: 'Schedule' },
     { id: 'attendance', label: 'Attendance' },
   ]
+
+  // ── Engagement column computed values ──
+  const tmXp = profile?.total_xp || 0
+  const tmLevelInfo = getLevelFromXP(tmXp)
+  const tmTier = getLevelTier(tmLevelInfo.level)
+
+  const tmActivities = [
+    { icon: '📅', label: 'Events created', count: weeklyEventsCreated, bg: '#FAEEDA', color: '#B45309' },
+    { icon: '📢', label: 'Blasts sent', count: weeklyBlasts, bg: '#EEEDFE', color: '#7C3AED' },
+    { icon: '💰', label: 'Payments tracked', count: weeklyPayments, bg: '#E6F1FB', color: '#2563EB' },
+    { icon: '📝', label: 'Waivers collected', count: waiversDone, bg: '#E1F5EE', color: '#059669' },
+  ]
+
+  const tmNextBadgeHint = tmNextBadgeProgress
+    ? `${tmNextBadgeProgress.remaining} more ${tmNextBadgeProgress.action} for ${tmNextBadgeProgress.badgeName}`
+    : null
 
   return (
     <>
@@ -196,7 +349,9 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
               </div>
             )}
 
-            {/* Body Tabs */}
+            {/* INNER FLEX: Tabs + Engagement Column side by side */}
+            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
             <BodyTabs
               tabs={tmTabs}
               activeTabId={activeTab}
@@ -215,6 +370,43 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
                 <TMAttendanceTab data={nextEventRsvp} loading={loading} onNavigate={onNavigate} />
               )}
             </BodyTabs>
+            </div>
+
+            {/* ENGAGEMENT COLUMN — 280px fixed, real data */}
+            <div
+              className="tm-engagement-column"
+              style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
+            >
+              <EngagementLevelCard
+                levelInfo={tmLevelInfo}
+                tierName={tmTier.name}
+                xp={tmXp}
+                onNavigateAchievements={() => onNavigate?.('achievements')}
+              />
+              <EngagementActivityCard
+                activities={tmActivities}
+                nextBadgeHint={tmNextBadgeHint}
+              />
+              <EngagementBadgesCard
+                earnedCount={tmBadges.length}
+                totalCount={totalAchievements}
+                badges={tmBadges}
+                onNavigateAchievements={() => onNavigate?.('achievements')}
+              />
+              <EngagementTeamPulseCard
+                active={tmPulseData.active}
+                drifting={tmPulseData.drifting}
+                inactive={tmPulseData.inactive}
+              />
+            </div>
+            </div>
+
+            {/* Responsive: hide engagement column on narrow screens */}
+            <style>{`
+              @media (max-width: 1200px) {
+                .tm-engagement-column { display: none !important; }
+              }
+            `}</style>
           </>
         }
         sideContent={
@@ -245,21 +437,7 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
             {/* The Playbook */}
             <ThePlaybook actions={playbookItems} />
 
-            {/* Milestone Card */}
-            {(() => {
-              const tmXp = rosterCount * 50 + (paymentHealth?.collectedAmount || 0) / 10
-              const tmInfo = getLevelFromXP(tmXp)
-              return (
-                <MilestoneCard
-                  variant="sky"
-                  title="Team Progress"
-                  xpCurrent={tmXp}
-                  xpGoal={tmInfo.nextLevelXp}
-                  level={tmInfo.level}
-                  onClick={() => onNavigate?.('achievements')}
-                />
-              )
-            })()}
+            {/* MilestoneCard removed — replaced by engagement column */}
           </>
         }
       />
