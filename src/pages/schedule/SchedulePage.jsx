@@ -201,16 +201,12 @@ function SchedulePage({ showToast, activeView, roleContext }) {
 
   async function createBulkEvents(eventsData) {
     try {
-      const evts = eventsData.map(e => ({ ...e, season_id: selectedSeason.id, created_at: new Date().toISOString() }))
+      // Strip series_id before insert — column may not exist on table
+      const evts = eventsData.map(({ series_id, ...rest }) => ({
+        ...rest, season_id: selectedSeason.id, created_at: new Date().toISOString()
+      }))
       const { error } = await supabase.from('schedule_events').insert(evts)
-      // If series_id column doesn't exist yet, retry without it
-      if (error && error.message?.includes('series_id')) {
-        const evtsNoSeries = evts.map(({ series_id, ...rest }) => rest)
-        const { error: retryError } = await supabase.from('schedule_events').insert(evtsNoSeries)
-        if (retryError) throw retryError
-      } else if (error) {
-        throw error
-      }
+      if (error) throw error
       showToast(`${evts.length} events created!`, 'success')
       journey?.completeStep('create_schedule')
       loadEvents()

@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from 'react'
 import {
   LayoutDashboard, Users, UserCog, Shield, DollarSign,
   ClipboardList, Megaphone, Settings, Calendar, BarChart3,
-  Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight,
+  Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight, LayoutGrid,
   ChevronDown, Check,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
@@ -38,6 +38,7 @@ const ICON_MAP = {
   'map-pin': MapPin,
   mail: Mail, email: Mail,
   'play-circle': PlayCircle, 'list-ordered': ListOrdered, 'clipboard-list': ClipboardList,
+  'layout-grid': LayoutGrid,
 }
 
 

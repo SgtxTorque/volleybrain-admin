@@ -33,9 +33,11 @@ export default function HeaderBar({
         </button>
         <div className="min-w-0">
           <span className={`font-bold text-sm ${tc.text} truncate`}>{team?.name}</span>
-          {event?.opponent_name && (
+          {event?.opponent_name ? (
             <span className={`text-sm ${tc.textMuted} ml-2`}>vs {event.opponent_name}</span>
-          )}
+          ) : !event?.id ? (
+            <span className={`text-sm ${tc.textMuted} ml-2`}>— Practice Lineup</span>
+          ) : null}
         </div>
       </div>
 
@@ -111,7 +113,7 @@ export default function HeaderBar({
           className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-colors disabled:opacity-50"
           style={{ backgroundColor: 'var(--accent-primary)' }}
         >
-          {saving ? 'Saving...' : 'Save Lineup'}
+          {saving ? 'Saving...' : event?.id ? 'Save Lineup' : 'Save Template'}
         </button>
       </div>
     </div>

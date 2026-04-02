@@ -75,6 +75,7 @@ import { AttendancePage } from './pages/attendance'
 import { ChatsPage } from './pages/chats'
 import { BlastsPage } from './pages/blasts'
 import { GamePrepPage } from './pages/gameprep'
+import LineupsPage from './pages/lineups/LineupsPage'
 import { TeamStandingsPage } from './pages/standings'
 import { SeasonLeaderboardsPage } from './pages/leaderboards'
 import { ReportsPage, RegistrationFunnelPage } from './pages/reports'
@@ -738,6 +739,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
           : <RouteGuard allow={['admin', 'team_manager']} activeView={activeView}><PaymentsPage showToast={showToast} /></RouteGuard>
       } />
       <Route path="/gameprep" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><GamePrepPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/lineups" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><LineupsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
       <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
@@ -1079,6 +1081,7 @@ function MainApp() {
     // --- COMPETE ---
     { id: 'game', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'lineups', label: 'Lineups', icon: 'layout-grid' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
       { id: 'achievements', label: 'Achievements', icon: 'achievements' },
@@ -1132,6 +1135,7 @@ function MainApp() {
     ]},
     { id: 'gameday', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
+      { id: 'lineups', label: 'Lineups', icon: 'layout-grid' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
       { id: 'achievements', label: 'Achievements', icon: 'achievements' },

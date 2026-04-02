@@ -52,13 +52,13 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   // DATA LOADING — ported from V1
   // ============================================
   useEffect(() => {
-    if (event?.id && team?.id) loadData()
+    if (team?.id) loadData()
   }, [event?.id, team?.id])
 
   async function loadData() {
     setLoading(true)
     try {
-      // Load roster
+      // Load roster (always — team-based, works with or without event)
       const { data: players } = await supabase
         .from('team_players')
         .select('*, players(*)')
@@ -76,15 +76,17 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
       setRoster(rosterData)
 
-      // Load RSVPs
-      const { data: rsvpData } = await supabase
-        .from('event_rsvps')
-        .select('player_id, status')
-        .eq('event_id', event.id)
+      // Load RSVPs (only when event exists)
+      if (event?.id) {
+        const { data: rsvpData } = await supabase
+          .from('event_rsvps')
+          .select('player_id, status')
+          .eq('event_id', event.id)
 
-      const rsvpMap = {}
-      rsvpData?.forEach(r => { rsvpMap[r.player_id] = r.status })
-      setRsvps(rsvpMap)
+        const rsvpMap = {}
+        rsvpData?.forEach(r => { rsvpMap[r.player_id] = r.status })
+        setRsvps(rsvpMap)
+      }
 
       // Load skill ratings for overall rating display
       try {
@@ -111,58 +113,60 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         console.warn('Skill ratings fetch error (non-critical):', e)
       }
 
-      // Load existing lineup
-      const { data: existingLineup } = await supabase
-        .from('game_lineups')
-        .select('*')
-        .eq('event_id', event.id)
-
-      if (existingLineup?.length > 0) {
-        // Restore formation from saved data
-        const savedFormation = existingLineup[0]?.formation_type
-        if (savedFormation && formations[savedFormation]) {
-          setFormation(savedFormation)
-        }
-
-        // Group by set_number for per-set lineups
-        const grouped = {}
-        let maxSet = 1
-        existingLineup.forEach(l => {
-          const setNum = l.set_number || 1
-          if (setNum > maxSet) maxSet = setNum
-          if (!grouped[setNum]) grouped[setNum] = {}
-          if (l.rotation_order != null) grouped[setNum][l.rotation_order] = l.player_id
-          if (l.is_libero) setLiberoId(l.player_id)
-        })
-        setSetLineups(grouped)
-        setLineup(grouped[1] || {})
-        if (maxSet > 1) setTotalSets(maxSet)
-      }
-
-      // Load planned subs & bench order metadata
-      try {
-        const { data: metadata } = await supabase
-          .from('game_lineup_metadata')
+      // Load existing lineup (only when event exists)
+      if (event?.id) {
+        const { data: existingLineup } = await supabase
+          .from('game_lineups')
           .select('*')
           .eq('event_id', event.id)
 
-        if (metadata?.length > 0) {
-          const metaForSet1 = metadata.find(m => m.set_number === 1) || metadata[0]
-          if (metaForSet1?.planned_subs) {
-            const subs = typeof metaForSet1.planned_subs === 'string'
-              ? JSON.parse(metaForSet1.planned_subs)
-              : metaForSet1.planned_subs
-            setPlannedSubs(subs)
+        if (existingLineup?.length > 0) {
+          // Restore formation from saved data
+          const savedFormation = existingLineup[0]?.formation_type
+          if (savedFormation && formations[savedFormation]) {
+            setFormation(savedFormation)
           }
-          if (metaForSet1?.bench_order) {
-            const bench = typeof metaForSet1.bench_order === 'string'
-              ? JSON.parse(metaForSet1.bench_order)
-              : metaForSet1.bench_order
-            setBenchQueue(bench)
-          }
+
+          // Group by set_number for per-set lineups
+          const grouped = {}
+          let maxSet = 1
+          existingLineup.forEach(l => {
+            const setNum = l.set_number || 1
+            if (setNum > maxSet) maxSet = setNum
+            if (!grouped[setNum]) grouped[setNum] = {}
+            if (l.rotation_order != null) grouped[setNum][l.rotation_order] = l.player_id
+            if (l.is_libero) setLiberoId(l.player_id)
+          })
+          setSetLineups(grouped)
+          setLineup(grouped[1] || {})
+          if (maxSet > 1) setTotalSets(maxSet)
         }
-      } catch (e) {
-        console.warn('Lineup metadata fetch error (non-critical):', e)
+
+        // Load planned subs & bench order metadata
+        try {
+          const { data: metadata } = await supabase
+            .from('game_lineup_metadata')
+            .select('*')
+            .eq('event_id', event.id)
+
+          if (metadata?.length > 0) {
+            const metaForSet1 = metadata.find(m => m.set_number === 1) || metadata[0]
+            if (metaForSet1?.planned_subs) {
+              const subs = typeof metaForSet1.planned_subs === 'string'
+                ? JSON.parse(metaForSet1.planned_subs)
+                : metaForSet1.planned_subs
+              setPlannedSubs(subs)
+            }
+            if (metaForSet1?.bench_order) {
+              const bench = typeof metaForSet1.bench_order === 'string'
+                ? JSON.parse(metaForSet1.bench_order)
+                : metaForSet1.bench_order
+              setBenchQueue(bench)
+            }
+          }
+        } catch (e) {
+          console.warn('Lineup metadata fetch error (non-critical):', e)
+        }
       }
     } catch (err) {
       console.error('Error loading lineup data:', err)
@@ -374,6 +378,11 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   // SAVE LINEUP — ported from V1
   // ============================================
   async function saveLineup() {
+    // No game attached — prompt to save as template instead
+    if (!event?.id) {
+      setShowSaveTemplate(true)
+      return
+    }
     setSaving(true)
     try {
       // Delete only records for the current set (per-set save)

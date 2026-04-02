@@ -29,6 +29,7 @@ export const ROUTES = {
 
   // Game Day
   'gameprep': '/gameprep',
+  'lineups': '/lineups',
   'standings': '/standings',
   'leaderboards': '/leaderboards',
 
@@ -157,6 +158,7 @@ export const PAGE_TITLES = {
   '/practice-plans': 'Practice Plans',
   '/reflection-templates': 'Reflection Templates',
   '/gameprep': 'Game Prep',
+  '/lineups': 'Lineups',
   '/standings': 'Standings',
   '/leaderboards': 'Leaderboards',
   '/chats': 'Chats',

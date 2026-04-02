@@ -644,11 +644,11 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
           try {
             const { data: coachProfiles } = await supabase
               .from('coaches')
-              .select('id, profile_id, profiles:profile_id(first_name, last_name)')
+              .select('id, profile_id, profiles:profile_id(full_name)')
               .in('id', uniqueCoachIds)
             setCoachesData((coachProfiles || []).map(c => ({
               id: c.id,
-              name: c.profiles ? `${c.profiles.first_name} ${c.profiles.last_name}` : 'Unknown',
+              name: c.profiles?.full_name || 'Unknown',
               teams: (teamCoaches || []).filter(tc => tc.coach_id === c.id).map(tc => {
                 const team = teams?.find(t => t.id === tc.team_id)
                 return team?.name || ''
