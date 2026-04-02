@@ -1,4 +1,5 @@
 import { useTheme, useThemeClasses } from '../../../contexts/ThemeContext'
+import { FORMATION_PHASES, PHASE_CONFIG } from '../../../constants/formationPhases'
 
 const ROLE_COLORS = {
   OH: '#EF4444', S: '#10B981', MB: '#F59E0B', OPP: '#6366F1',
@@ -7,19 +8,24 @@ const ROLE_COLORS = {
   GK: '#F59E0B', DEF: '#3B82F6', MID: '#10B981', FWD: '#EF4444',
 }
 
-function PlayerSlot({ position, player, playerRole, isServing, isDark, tc, onDrop, onDragOver, onDragStart, onDragEnd, onRemove }) {
+function PlayerSlot({ position, player, playerRole, isServing, isSubbedIn, phaseSlot, courtPhase, isDark, tc, onDrop, onDragOver, onDragStart, onDragEnd, onRemove }) {
   // For filled cards, use the player's assigned role; for empty slots, use the position's role
   const displayRole = player ? (playerRole || position.role) : position.role
   const roleColor = ROLE_COLORS[displayRole] || '#64748B'
+  const phaseColor = courtPhase ? (PHASE_CONFIG[courtPhase]?.color || '#64748B') : null
 
   return (
     <div
       className={`relative overflow-hidden rounded-2xl border-2 transition-all cursor-default select-none ${
         player
-          ? 'border-transparent shadow-lg'
+          ? courtPhase ? 'shadow-lg' : 'border-transparent shadow-lg'
           : isDark ? 'border-dashed border-lynx-border-dark bg-lynx-charcoal/50' : 'border-dashed border-lynx-silver bg-lynx-frost/50'
       }`}
-      style={{ width: 'clamp(160px, 14vw, 210px)', height: 'clamp(200px, 18vw, 270px)' }}
+      style={{
+        width: 'clamp(160px, 14vw, 210px)',
+        height: 'clamp(200px, 18vw, 270px)',
+        borderColor: courtPhase && player ? phaseColor + '60' : undefined,
+      }}
       draggable={!!player}
       onDragStart={player ? (e) => onDragStart(e, player) : undefined}
       onDragEnd={player ? onDragEnd : undefined}
@@ -86,6 +92,23 @@ function PlayerSlot({ position, player, playerRole, isServing, isDark, tc, onDro
           {isServing && (
             <span className="absolute top-1.5 left-1.5 text-base drop-shadow-md">🏐</span>
           )}
+
+          {/* Substitution badge */}
+          {isSubbedIn && (
+            <div className="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold shadow-md">
+              SUB
+            </div>
+          )}
+
+          {/* Phase role target badge */}
+          {phaseSlot && courtPhase && (
+            <div
+              className="absolute bottom-[52px] right-2 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold shadow-md"
+              style={{ backgroundColor: phaseColor || '#64748B' }}
+            >
+              {phaseSlot.label}
+            </div>
+          )}
         </>
       ) : (
         /* Empty slot */
@@ -110,7 +133,8 @@ function PlayerSlot({ position, player, playerRole, isServing, isDark, tc, onDro
 export default function CourtView({
   positions, lineup, roster, currentRotation,
   liberoId, sportConfig, playerRoles,
-  getPlayerAtPosition, onDrop, onRemovePlayer,
+  courtPhase, courtPhaseRotation, formation,
+  getPlayerAtPosition, isPositionSubbed, onDrop, onRemovePlayer,
   onDragStart, onDragEnd,
   // Action buttons (moved from ControlBar)
   onAutoFill, onClearLineup, onCopyToAllSets, isComplete, starterCount, maxStarters
@@ -139,6 +163,20 @@ export default function CourtView({
     const playerId = getPlayerAtPosition(positionId)
     if (!playerId || !playerRoles) return null
     return playerRoles[playerId] || null
+  }
+
+  // Get phase slot info for a position when viewing a formation phase
+  function getPhaseSlot(positionId) {
+    if (!courtPhase || !courtPhaseRotation || !formation) return null
+    const phaseData = FORMATION_PHASES[formation]?.[courtPhase]?.[courtPhaseRotation]
+    if (!phaseData) return null
+
+    // Map position IDs to phase position names
+    // P4=front-left, P3=front-center, P2=front-right
+    // P5=back-left, P6=back-center, P1=back-right
+    const posToPhase = { 4: 'front-left', 3: 'front-center', 2: 'front-right', 5: 'back-left', 6: 'back-center', 1: 'back-right' }
+    const phasePos = posToPhase[positionId]
+    return phaseData.slots.find(s => s.position === phasePos) || null
   }
 
   function handleDragOver(e) {
@@ -207,6 +245,9 @@ export default function CourtView({
             player={getPlayer(pos.id)}
             playerRole={getPlayerRole(pos.id)}
             isServing={pos.id === 1}
+            isSubbedIn={isPositionSubbed?.(pos.id)}
+            phaseSlot={getPhaseSlot(pos.id)}
+            courtPhase={courtPhase}
             isDark={isDark}
             tc={tc}
             onDragOver={handleDragOver}
@@ -234,6 +275,9 @@ export default function CourtView({
             player={getPlayer(pos.id)}
             playerRole={getPlayerRole(pos.id)}
             isServing={pos.id === 1}
+            isSubbedIn={isPositionSubbed?.(pos.id)}
+            phaseSlot={getPhaseSlot(pos.id)}
+            courtPhase={courtPhase}
             isDark={isDark}
             tc={tc}
             onDragOver={handleDragOver}

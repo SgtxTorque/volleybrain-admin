@@ -3,6 +3,7 @@ import { useTheme, useThemeClasses } from '../../../contexts/ThemeContext'
 import { useAuth } from '../../../contexts/AuthContext'
 import { supabase } from '../../../lib/supabase'
 import { SPORT_CONFIGS } from '../../../constants/sportConfigs'
+import { PHASE_CONFIG } from '../../../constants/formationPhases'
 import HeaderBar from './HeaderBar'
 import CourtView from './CourtView'
 import RightPanel from './RightPanel'
@@ -39,6 +40,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   const [totalSets, setTotalSets] = useState(1)
 
   const [currentRotation, setCurrentRotation] = useState(0)
+  const [courtPhase, setCourtPhase] = useState(null) // null | 'serve_receive' | 'offense' | 'defense'
+  const [courtPhaseRotation, setCourtPhaseRotation] = useState(null) // 1-6 rotation number for phase view
   const [draggedPlayer, setDraggedPlayer] = useState(null)
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [showLoadTemplate, setShowLoadTemplate] = useState(false)
@@ -135,6 +138,32 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         setLineup(grouped[1] || {})
         if (maxSet > 1) setTotalSets(maxSet)
       }
+
+      // Load planned subs & bench order metadata
+      try {
+        const { data: metadata } = await supabase
+          .from('game_lineup_metadata')
+          .select('*')
+          .eq('event_id', event.id)
+
+        if (metadata?.length > 0) {
+          const metaForSet1 = metadata.find(m => m.set_number === 1) || metadata[0]
+          if (metaForSet1?.planned_subs) {
+            const subs = typeof metaForSet1.planned_subs === 'string'
+              ? JSON.parse(metaForSet1.planned_subs)
+              : metaForSet1.planned_subs
+            setPlannedSubs(subs)
+          }
+          if (metaForSet1?.bench_order) {
+            const bench = typeof metaForSet1.bench_order === 'string'
+              ? JSON.parse(metaForSet1.bench_order)
+              : metaForSet1.bench_order
+            setBenchQueue(bench)
+          }
+        }
+      } catch (e) {
+        console.warn('Lineup metadata fetch error (non-critical):', e)
+      }
     } catch (err) {
       console.error('Error loading lineup data:', err)
     }
@@ -168,6 +197,30 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
     const sourceIndex = (posIndex + currentRotation) % 6
     const sourcePosition = rotationOrder[sourceIndex]
     return lineup[sourcePosition]
+  }
+
+  // Get the effective player at a position considering planned substitutions
+  function getEffectivePlayerAtPosition(positionId) {
+    const basePlayerId = getPlayerAtPosition(positionId)
+    if (!basePlayerId || plannedSubs.length === 0) return basePlayerId
+
+    // Current rotation number is 1-indexed for subs, currentRotation is 0-indexed
+    const rotNum = currentRotation + 1
+
+    // Check if any sub replaces this player at this rotation
+    for (const sub of plannedSubs) {
+      if (sub.outPlayerId === basePlayerId && rotNum >= sub.rotation) {
+        return sub.inPlayerId
+      }
+    }
+    return basePlayerId
+  }
+
+  // Check if a position has a substituted player (for SUB badge display)
+  function isPositionSubbed(positionId) {
+    const basePlayerId = getPlayerAtPosition(positionId)
+    const effectivePlayerId = getEffectivePlayerAtPosition(positionId)
+    return basePlayerId !== effectivePlayerId
   }
 
   function nextRotation() {
@@ -361,6 +414,18 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         if (error) throw error
       }
 
+      // Save planned subs & bench order as metadata
+      if (plannedSubs.length > 0 || benchQueue.length > 0) {
+        await supabase.from('game_lineup_metadata').upsert({
+          event_id: event.id,
+          set_number: currentSet,
+          team_id: team.id,
+          planned_subs: plannedSubs,
+          bench_order: benchQueue,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'event_id,set_number' })
+      }
+
       showToast?.('Lineup saved!', 'success')
       onSave?.()
       onClose()
@@ -380,6 +445,27 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
   function handleRemoveSub(subId) {
     setPlannedSubs(prev => prev.filter(s => s.id !== subId))
+  }
+
+  // ============================================
+  // FORMATION PHASE HANDLERS
+  // ============================================
+  function handlePhaseClick(phaseKey, rotationNum) {
+    if (courtPhase === phaseKey && courtPhaseRotation === rotationNum) {
+      // Toggle off if clicking the same phase+rotation
+      setCourtPhase(null)
+      setCourtPhaseRotation(null)
+    } else {
+      setCourtPhase(phaseKey)
+      setCourtPhaseRotation(rotationNum)
+      // Also jump to the corresponding rotation (0-indexed)
+      setCurrentRotation(rotationNum - 1)
+    }
+  }
+
+  function clearCourtPhase() {
+    setCourtPhase(null)
+    setCourtPhaseRotation(null)
   }
 
   // ============================================
@@ -538,6 +624,30 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         </div>
       ))}
 
+      {/* Phase Banner — shown when viewing a formation phase */}
+      {courtPhase && PHASE_CONFIG[courtPhase] && (
+        <div
+          className={`mx-4 mt-2 px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border`}
+          style={{
+            backgroundColor: PHASE_CONFIG[courtPhase].color + '15',
+            borderColor: PHASE_CONFIG[courtPhase].color + '30',
+            color: PHASE_CONFIG[courtPhase].color,
+          }}
+        >
+          <span>{PHASE_CONFIG[courtPhase].icon}</span>
+          <span className="font-bold">
+            Viewing: {PHASE_CONFIG[courtPhase].label} — Rotation {courtPhaseRotation}
+          </span>
+          <button
+            onClick={clearCourtPhase}
+            className="ml-auto px-2 py-0.5 rounded-lg text-[10px] font-semibold hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: PHASE_CONFIG[courtPhase].color + '20' }}
+          >
+            Back to Base
+          </button>
+        </div>
+      )}
+
       {/* Main Content: Court + Right Panel */}
       <div className="flex flex-1 overflow-hidden">
         {/* Court View */}
@@ -549,7 +659,11 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           liberoId={liberoId}
           sportConfig={sportConfig}
           playerRoles={playerRoles}
-          getPlayerAtPosition={getPlayerAtPosition}
+          courtPhase={courtPhase}
+          courtPhaseRotation={courtPhaseRotation}
+          formation={formation}
+          getPlayerAtPosition={getEffectivePlayerAtPosition}
+          isPositionSubbed={isPositionSubbed}
           onDrop={handleDrop}
           onRemovePlayer={handleRemovePlayer}
           onDragStart={handleDragStart}
@@ -574,6 +688,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           currentRotation={currentRotation}
           sportConfig={sportConfig}
           formations={formations}
+          courtPhase={courtPhase}
           getPlayerAtPosition={getPlayerAtPosition}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
@@ -581,6 +696,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           onRotationClick={goToRotation}
           onAddSub={handleAddSub}
           onRemoveSub={handleRemoveSub}
+          onPhaseClick={handlePhaseClick}
         />
       </div>
 

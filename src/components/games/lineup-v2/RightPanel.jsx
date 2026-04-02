@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTheme, useThemeClasses } from '../../../contexts/ThemeContext'
+import { FORMATION_PHASES, PHASE_CONFIG, PHASE_SUPPORTED_FORMATIONS } from '../../../constants/formationPhases'
 
 const ROLE_COLORS = {
   OH: '#EF4444', S: '#10B981', MB: '#F59E0B', OPP: '#6366F1',
@@ -174,13 +175,15 @@ function RosterTab({ roster, lineup, rsvps, liberoId, formation, isDark, tc, onD
 }
 
 // ============================================
-// ROTATIONS TAB
+// ROTATIONS TAB (with Formation Phase Views)
 // ============================================
-function RotationsTab({ positions, lineup, roster, currentRotation, sportConfig, isDark, tc, onRotationClick }) {
-  const rotationCount = sportConfig?.rotationCount || 6
-  const rotationOrder = [1, 2, 3, 4, 5, 6]
 
-  function getPlayerAtRotation(positionId, rotation) {
+// Mini court grid for base rotations (uses actual player jerseys)
+function BaseRotationGrid({ rotation, lineup, roster, currentRotation, sportConfig, isDark, tc, onRotationClick }) {
+  const rotationOrder = [1, 2, 3, 4, 5, 6]
+  const isActive = rotation === currentRotation
+
+  function getPlayerAtRotation(positionId) {
     const posIndex = rotationOrder.indexOf(positionId)
     const sourceIndex = (posIndex + rotation) % 6
     const sourcePosition = rotationOrder[sourceIndex]
@@ -188,66 +191,191 @@ function RotationsTab({ positions, lineup, roster, currentRotation, sportConfig,
   }
 
   return (
-    <div className="p-3 space-y-3 overflow-y-auto">
-      <div className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wider`}>All Rotations</div>
-      <div className="grid grid-cols-3 gap-2">
-        {Array.from({ length: rotationCount }, (_, i) => i).map(rot => {
-          const isActive = rot === currentRotation
+    <button
+      onClick={() => onRotationClick(rotation)}
+      className={`p-2 rounded-xl border-2 transition-all ${
+        isActive
+          ? 'border-[var(--accent-primary)] shadow-sm'
+          : isDark ? 'border-lynx-border-dark hover:border-slate-500' : 'border-lynx-silver hover:border-slate-300'
+      } ${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'}`}
+      style={{ borderRadius: 'var(--v2-radius)' }}
+    >
+      <div className={`text-[10px] font-bold mb-1 ${isActive ? 'text-[var(--accent-primary)]' : tc.textMuted}`}>
+        Rot {rotation + 1}
+      </div>
+      <div className="grid grid-cols-3 gap-0.5">
+        {[4, 3, 2].map(posId => {
+          const playerId = getPlayerAtRotation(posId)
+          const player = playerId ? roster.find(p => p.id === playerId) : null
           return (
-            <button
-              key={rot}
-              onClick={() => onRotationClick(rot)}
-              className={`p-2 rounded-xl border-2 transition-all ${
-                isActive
-                  ? 'border-[var(--accent-primary)] shadow-sm'
-                  : isDark ? 'border-lynx-border-dark hover:border-slate-500' : 'border-lynx-silver hover:border-slate-300'
-              } ${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'}`}
-              style={{ borderRadius: 'var(--v2-radius)' }}
-            >
-              <div className={`text-[10px] font-bold mb-1 ${isActive ? 'text-[var(--accent-primary)]' : tc.textMuted}`}>
-                Rot {rot + 1}
-              </div>
-              {/* Mini 2x3 grid */}
-              <div className="grid grid-cols-3 gap-0.5">
-                {/* Front row: P4, P3, P2 */}
-                {[4, 3, 2].map(posId => {
-                  const playerId = getPlayerAtRotation(posId, rot)
-                  const player = playerId ? roster.find(p => p.id === playerId) : null
-                  return (
-                    <div
-                      key={posId}
-                      className={`w-7 h-7 rounded text-[8px] font-bold flex items-center justify-center ${
-                        player
-                          ? isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-lynx-navy'
-                          : isDark ? 'bg-lynx-charcoal/50 text-slate-600' : 'bg-white/50 text-slate-300'
-                      }`}
-                    >
-                      {player ? `#${player.jersey_number}` : '—'}
-                    </div>
-                  )
-                })}
-                {/* Back row: P5, P6, P1 */}
-                {[5, 6, 1].map(posId => {
-                  const playerId = getPlayerAtRotation(posId, rot)
-                  const player = playerId ? roster.find(p => p.id === playerId) : null
-                  return (
-                    <div
-                      key={posId}
-                      className={`w-7 h-7 rounded text-[8px] font-bold flex items-center justify-center ${
-                        player
-                          ? isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-lynx-navy'
-                          : isDark ? 'bg-lynx-charcoal/50 text-slate-600' : 'bg-white/50 text-slate-300'
-                      }`}
-                    >
-                      {player ? `#${player.jersey_number}` : '—'}
-                    </div>
-                  )
-                })}
-              </div>
-            </button>
+            <div key={posId} className={`w-7 h-7 rounded text-[8px] font-bold flex items-center justify-center ${
+              player ? isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-lynx-navy'
+                : isDark ? 'bg-lynx-charcoal/50 text-slate-600' : 'bg-white/50 text-slate-300'
+            }`}>
+              {player ? `#${player.jersey_number}` : '—'}
+            </div>
+          )
+        })}
+        {[5, 6, 1].map(posId => {
+          const playerId = getPlayerAtRotation(posId)
+          const player = playerId ? roster.find(p => p.id === playerId) : null
+          return (
+            <div key={posId} className={`w-7 h-7 rounded text-[8px] font-bold flex items-center justify-center ${
+              player ? isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-lynx-navy'
+                : isDark ? 'bg-lynx-charcoal/50 text-slate-600' : 'bg-white/50 text-slate-300'
+            }`}>
+              {player ? `#${player.jersey_number}` : '—'}
+            </div>
           )
         })}
       </div>
+    </button>
+  )
+}
+
+// Mini court grid for formation phase thumbnails (shows role labels instead of jerseys)
+function PhaseRotationGrid({ phaseKey, rotationNum, formation, courtPhase, isDark, tc, onPhaseClick }) {
+  const phaseData = FORMATION_PHASES[formation]?.[phaseKey]?.[rotationNum]
+  const phaseConfig = PHASE_CONFIG[phaseKey]
+  const isActive = courtPhase === phaseKey && rotationNum === (courtPhase ? undefined : undefined) // handled by parent highlight
+
+  if (!phaseData) return null
+
+  // Map slots into front-row and back-row order for the 2x3 grid
+  const frontSlots = ['front-left', 'front-center', 'front-right']
+  const backSlots = ['back-left', 'back-center', 'back-right']
+
+  function getSlotForPosition(posName) {
+    return phaseData.slots.find(s => s.position === posName)
+  }
+
+  const ROLE_COLORS_MINI = {
+    OH: '#EF4444', OH2: '#EF4444', S: '#10B981', S1: '#10B981', S2: '#10B981',
+    MB: '#F59E0B', MB2: '#F59E0B', OPP: '#6366F1', L: '#FFEAA7', DS: '#DDA0DD',
+  }
+
+  return (
+    <button
+      onClick={() => onPhaseClick(phaseKey, rotationNum)}
+      className={`p-2 rounded-xl border-2 transition-all ${
+        isDark ? 'border-lynx-border-dark hover:border-slate-500 bg-lynx-graphite' : 'border-lynx-silver hover:border-slate-300 bg-lynx-frost'
+      }`}
+      style={{ borderRadius: 'var(--v2-radius)' }}
+      title={phaseData.description || `${phaseConfig.label} — Rotation ${rotationNum}`}
+    >
+      <div className={`text-[10px] font-bold mb-1 ${tc.textMuted}`}>
+        R{rotationNum}
+      </div>
+      <div className="grid grid-cols-3 gap-0.5">
+        {frontSlots.map(pos => {
+          const slot = getSlotForPosition(pos)
+          return (
+            <div
+              key={pos}
+              className="w-7 h-7 rounded text-[7px] font-bold flex items-center justify-center"
+              style={{
+                backgroundColor: slot ? (ROLE_COLORS_MINI[slot.role] || '#64748B') + '30' : undefined,
+                color: slot ? (ROLE_COLORS_MINI[slot.role] || '#64748B') : (isDark ? '#475569' : '#cbd5e1'),
+              }}
+            >
+              {slot?.label || '—'}
+            </div>
+          )
+        })}
+        {backSlots.map(pos => {
+          const slot = getSlotForPosition(pos)
+          return (
+            <div
+              key={pos}
+              className="w-7 h-7 rounded text-[7px] font-bold flex items-center justify-center"
+              style={{
+                backgroundColor: slot ? (ROLE_COLORS_MINI[slot.role] || '#64748B') + '30' : undefined,
+                color: slot ? (ROLE_COLORS_MINI[slot.role] || '#64748B') : (isDark ? '#475569' : '#cbd5e1'),
+              }}
+            >
+              {slot?.label || '—'}
+            </div>
+          )
+        })}
+      </div>
+    </button>
+  )
+}
+
+function RotationsTab({ positions, lineup, roster, currentRotation, sportConfig, formation, courtPhase, isDark, tc, onRotationClick, onPhaseClick }) {
+  const rotationCount = sportConfig?.rotationCount || 6
+  const showPhases = PHASE_SUPPORTED_FORMATIONS.includes(formation)
+  const phases = ['serve_receive', 'offense', 'defense']
+
+  return (
+    <div className="p-3 space-y-4 overflow-y-auto" style={{ maxHeight: '100%' }}>
+      {/* Base Rotations */}
+      <div>
+        <div className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wider mb-2`}>
+          {PHASE_CONFIG.base.icon} All Rotations
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {Array.from({ length: rotationCount }, (_, i) => i).map(rot => (
+            <BaseRotationGrid
+              key={rot}
+              rotation={rot}
+              lineup={lineup}
+              roster={roster}
+              currentRotation={currentRotation}
+              sportConfig={sportConfig}
+              isDark={isDark}
+              tc={tc}
+              onRotationClick={onRotationClick}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Formation Phase Sections */}
+      {showPhases && phases.map(phaseKey => {
+        const phaseConfig = PHASE_CONFIG[phaseKey]
+        const phaseData = FORMATION_PHASES[formation]?.[phaseKey]
+        if (!phaseData) return null
+
+        return (
+          <div key={phaseKey}>
+            <div className={`text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5`}
+              style={{ color: phaseConfig.color }}
+            >
+              <span>{phaseConfig.icon}</span>
+              <span>{phaseConfig.label}</span>
+              {courtPhase === phaseKey && (
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-auto"
+                  style={{ backgroundColor: phaseConfig.color + '20', color: phaseConfig.color }}
+                >
+                  VIEWING
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {Array.from({ length: rotationCount }, (_, i) => i + 1).map(rotNum => (
+                <PhaseRotationGrid
+                  key={rotNum}
+                  phaseKey={phaseKey}
+                  rotationNum={rotNum}
+                  formation={formation}
+                  courtPhase={courtPhase}
+                  isDark={isDark}
+                  tc={tc}
+                  onPhaseClick={onPhaseClick}
+                />
+              ))}
+            </div>
+          </div>
+        )
+      })}
+
+      {/* Non-supported formation message */}
+      {!showPhases && (
+        <div className={`text-center py-4 ${tc.textMuted}`}>
+          <div className="text-xs">Formation phase views are available for 5-1 and 6-2 formations.</div>
+        </div>
+      )}
     </div>
   )
 }
@@ -451,8 +579,9 @@ function AnalyticsTab({ isDark, tc }) {
 export default function RightPanel({
   roster, lineup, rsvps, liberoId, plannedSubs, formation,
   positions, currentRotation, sportConfig, formations,
+  courtPhase,
   getPlayerAtPosition, onDragStart, onDragEnd,
-  onSetLibero, onRotationClick, onAddSub, onRemoveSub
+  onSetLibero, onRotationClick, onAddSub, onRemoveSub, onPhaseClick
 }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
@@ -502,7 +631,9 @@ export default function RightPanel({
           <RotationsTab
             positions={positions} lineup={lineup} roster={roster}
             currentRotation={currentRotation} sportConfig={sportConfig}
-            isDark={isDark} tc={tc} onRotationClick={onRotationClick}
+            formation={formation} courtPhase={courtPhase}
+            isDark={isDark} tc={tc}
+            onRotationClick={onRotationClick} onPhaseClick={onPhaseClick}
           />
         )}
         {activeTab === 'subs' && (

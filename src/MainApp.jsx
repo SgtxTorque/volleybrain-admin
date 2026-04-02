@@ -930,11 +930,15 @@ function MainApp() {
     registrations: ['templates', 'registration-funnel', 'payments'],
     payments:      ['paymentsetup', 'registrations', 'reports'],
     schedule:      ['attendance', 'coach-availability', 'gameprep'],
-    attendance:    ['schedule', 'gameprep', 'chats'],
-    gameprep:      ['schedule', 'attendance', 'standings'],
-    standings:     ['leaderboards', 'achievements', 'reports'],
-    leaderboards:  ['standings', 'achievements', 'reports'],
+    // Compete section — shared contextual links
+    gameprep:      ['attendance', 'standings', 'leaderboards'],
+    attendance:    ['gameprep', 'standings', 'leaderboards'],
+    standings:     ['gameprep', 'attendance', 'leaderboards'],
+    leaderboards:  ['gameprep', 'attendance', 'standings'],
     achievements:  ['leaderboards', 'standings', 'gameprep'],
+    // Practice section — shared contextual links
+    drills:            ['practice-plans', 'schedule', 'gameprep'],
+    'practice-plans':  ['drills', 'schedule', 'gameprep'],
     chats:         ['blasts', 'notifications', 'schedule'],
     blasts:        ['chats', 'notifications'],
     notifications: ['chats', 'blasts'],
@@ -960,6 +964,8 @@ function MainApp() {
     subscription: 'Subscription', roster: 'Roster', achievements: 'Achievements',
     stats: 'My Stats', 'my-stuff': 'My Stuff', 'parent-register': 'Registration',
     'team-hub': 'Team Hub',
+    drills: 'Drill Library',
+    'practice-plans': 'Practice Plans',
   }
 
   // ── Contextual nav maps per role ──
@@ -967,11 +973,15 @@ function MainApp() {
     dashboard:          ['schedule', 'attendance', 'gameprep'],
     roster:             ['schedule', 'chats', 'standings'],
     schedule:           ['dashboard', 'attendance', 'chats'],
+    // Compete section
     gameprep:           ['attendance', 'standings', 'leaderboards'],
-    attendance:         ['schedule', 'gameprep', 'standings'],
-    standings:          ['leaderboards', 'achievements', 'schedule'],
-    leaderboards:       ['standings', 'achievements', 'schedule'],
+    attendance:         ['gameprep', 'standings', 'leaderboards'],
+    standings:          ['gameprep', 'attendance', 'leaderboards'],
+    leaderboards:       ['gameprep', 'attendance', 'standings'],
     achievements:       ['leaderboards', 'standings', 'gameprep'],
+    // Practice section
+    drills:             ['practice-plans', 'schedule', 'gameprep'],
+    'practice-plans':   ['drills', 'schedule', 'gameprep'],
     chats:              ['dashboard', 'schedule', 'roster'],
     blasts:             ['chats', 'schedule', 'dashboard'],
     'coach-availability': ['schedule', 'dashboard', 'season-archives'],
