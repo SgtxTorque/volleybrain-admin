@@ -194,7 +194,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
       const { data: org, error: orgError } = await supabase
         .from('organizations')
-        .insert({ name: orgName, slug, type: 'club', settings: {} })
+        .insert({ name: orgName, slug, is_active: true })
         .select()
         .single()
 
@@ -205,6 +205,13 @@ export function SetupWizard({ onComplete, onBack }) {
         role: 'league_admin', is_active: true,
       })
       if (roleError) throw roleError
+
+      // Set current_organization_id so AuthContext knows which org to load
+      const { error: profileOrgError } = await supabase
+        .from('profiles')
+        .update({ current_organization_id: org.id })
+        .eq('id', user.id)
+      if (profileOrgError) throw profileOrgError
 
       await supabase.from('profiles').update({
         onboarding_completed: true,

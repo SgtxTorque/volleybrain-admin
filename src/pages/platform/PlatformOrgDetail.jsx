@@ -223,7 +223,7 @@ function OnboardingChecklist({ org, members, teams, seasons, isDark, tc, showToa
 function OverviewTab({ org, members, teams, seasons, payments, isDark, tc, showToast, healthScoreData, onRecalculate }) {
   const paidPayments = payments.filter(p => p.paid)
   const totalRevenue = paidPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-  const adminCount = members.filter(m => m.role === 'admin').length
+  const adminCount = members.filter(m => m.role === 'admin' || m.role === 'league_admin').length
   const coachCount = members.filter(m => m.role === 'coach').length
   const parentCount = members.filter(m => m.role === 'parent').length
 
@@ -1332,7 +1332,7 @@ function PlatformOrgDetail({ showToast }) {
     let score = 0
     if (org) score += 20
     if (members.length > 0) score += 20
-    if (members.some(m => m.role === 'admin')) score += 10
+    if (members.some(m => m.role === 'admin' || m.role === 'league_admin')) score += 10
     if (seasons.length > 0) score += 20
     if (seasons.some(s => s.status === 'active')) score += 10
     if (teams.length > 0) score += 20
