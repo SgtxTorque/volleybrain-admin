@@ -24,7 +24,7 @@ import SocialCardModal from '../../components/social-cards/SocialCardModal'
 // MAIN GAME PREP PAGE
 // ============================================
 function GamePrepPage({ showToast }) {
-  const { organization } = useAuth()
+  const { user, profile, organization } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
   const tc = useThemeClasses()
@@ -52,12 +52,12 @@ function GamePrepPage({ showToast }) {
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
 
-  const sport = selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
+  const sport = selectedTeam?.sport || selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
   const sportConfig = getSportConfig(sport)
 
   useEffect(() => {
-    if (selectedSeason?.id) loadTeams()
-  }, [selectedSeason, selectedSport?.id])
+    if (user?.id) loadTeams()
+  }, [user?.id])
 
   useEffect(() => {
     if (selectedTeam) {
@@ -68,35 +68,49 @@ function GamePrepPage({ showToast }) {
 
   async function loadTeams() {
     try {
-      let query = supabase
-        .from('teams')
-        .select('id, name, color')
-      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
-        query = query.eq('season_id', selectedSeason.id)
-      } else if (selectedSport?.id) {
-        const sportSeasonIds = (allSeasons || [])
-          .filter(s => s.sport_id === selectedSport.id)
-          .map(s => s.id)
-        if (sportSeasonIds.length === 0) {
-          setTeams([])
-          setLoading(false)
-          return
-        }
-        query = query.in('season_id', sportSeasonIds)
-      } else if (isAllSeasons(selectedSeason)) {
-        // All Seasons + no sport → filter by ALL org season IDs
-        const orgSeasonIds = (allSeasons || []).map(s => s.id)
-        if (orgSeasonIds.length === 0) {
-          setTeams([])
-          setLoading(false)
-          return
-        }
-        query = query.in('season_id', orgSeasonIds)
-      }
-      const { data } = await query.order('name')
+      // Try to find coach record for this user
+      const { data: coachRecord } = await supabase
+        .from('coaches')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle()
 
-      setTeams(data || [])
-      if (data?.length > 0) setSelectedTeam(data[0])
+      if (!coachRecord) {
+        // Admin fallback — load all teams in the org across all seasons
+        const orgId = profile?.current_organization_id || organization?.id
+        if (!orgId) return
+        const { data } = await supabase
+          .from('teams')
+          .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
+          .order('name')
+        const enriched = (data || []).map(t => ({
+          ...t,
+          sport: t.seasons?.sports?.name?.toLowerCase() || 'volleyball',
+          seasonName: t.seasons?.name,
+        }))
+        setTeams(enriched)
+        if (enriched.length > 0 && !selectedTeam) setSelectedTeam(enriched[0])
+        return
+      }
+
+      // Coach — load ALL teams across all seasons via team_coaches
+      const { data: assignments } = await supabase
+        .from('team_coaches')
+        .select('team_id, role, teams(id, name, color, season_id, seasons(id, name, sport_id, sports(id, name)))')
+        .eq('coach_id', coachRecord.id)
+
+      const teams = (assignments || [])
+        .map(a => ({
+          ...a.teams,
+          coachRole: a.role,
+          sport: a.teams?.seasons?.sports?.name?.toLowerCase() || 'volleyball',
+          seasonName: a.teams?.seasons?.name,
+        }))
+        .filter(Boolean)
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      setTeams(teams)
+      if (teams.length > 0 && !selectedTeam) setSelectedTeam(teams[0])
     } catch (err) {
       console.error('Error loading teams:', err)
     }
@@ -362,6 +376,15 @@ function GamePrepPage({ showToast }) {
                 style={{ backgroundColor: team.color }}
               />
               {team.name}
+              <span className="text-xs opacity-60 ml-1">
+                {team.sport === 'basketball' ? '\u{1F3C0}' :
+                 team.sport === 'baseball' ? '\u{26BE}' :
+                 team.sport === 'softball' ? '\u{1F94E}' :
+                 team.sport === 'soccer' ? '\u{26BD}' :
+                 team.sport === 'football' ? '\u{1F3C8}' :
+                 team.sport === 'flag_football' ? '\u{1F3F3}' :
+                 team.sport === 'volleyball' ? '\u{1F3D0}' : ''}
+              </span>
             </button>
           ))}
         </div>

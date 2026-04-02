@@ -400,7 +400,7 @@ function MiniLeaderboardCard({ category, leaders, onViewAll, onPlayerClick }) {
 // ============================================
 function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const { isDark } = useTheme()
-  const { organization } = useAuth()
+  const { user, profile, organization } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
 
@@ -427,35 +427,60 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
     setViewMode('grid')
   }, [sportName])
 
+  // Load ALL teams on mount (not filtered by season)
+  useEffect(() => {
+    if (user?.id) loadTeams()
+  }, [user?.id])
+
+  // Load leaderboard data when season/sport changes
   useEffect(() => {
     loadLeaderboards()
-    loadTeams()
   }, [selectedSeason?.id, selectedSport?.id, sportName])
 
   async function loadTeams() {
-    const sportIds = getSportSeasonIds()
-    // If sport is selected but has no seasons, no data to show
-    if (sportIds && sportIds.length === 0) {
-      setTeams([])
-      return
-    }
-    let query = supabase
-      .from('teams')
-      .select('id, name')
-    if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
-      query = query.eq('season_id', selectedSeason.id)
-    } else if (sportIds && sportIds.length > 0) {
-      query = query.in('season_id', sportIds)
-    } else if (isAllSeasons(selectedSeason)) {
-      // All Seasons + no sport → filter by ALL org season IDs
-      const orgSeasonIds = (allSeasons || []).map(s => s.id)
-      if (orgSeasonIds.length === 0) { setTeams([]); return }
-      query = query.in('season_id', orgSeasonIds)
-    }
-    query = query.order('name')
+    try {
+      // Try to find coach record for this user
+      const { data: coachRecord } = await supabase
+        .from('coaches')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle()
 
-    const { data } = await query
-    setTeams(data || [])
+      if (!coachRecord) {
+        // Admin fallback — load all teams across all seasons
+        const { data } = await supabase
+          .from('teams')
+          .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
+          .order('name')
+        const enriched = (data || []).map(t => ({
+          ...t,
+          sport: t.seasons?.sports?.name?.toLowerCase() || 'volleyball',
+          seasonName: t.seasons?.name,
+        }))
+        setTeams(enriched)
+        return
+      }
+
+      // Coach — load ALL teams via team_coaches
+      const { data: assignments } = await supabase
+        .from('team_coaches')
+        .select('team_id, role, teams(id, name, color, season_id, seasons(id, name, sport_id, sports(id, name)))')
+        .eq('coach_id', coachRecord.id)
+
+      const teams = (assignments || [])
+        .map(a => ({
+          ...a.teams,
+          coachRole: a.role,
+          sport: a.teams?.seasons?.sports?.name?.toLowerCase() || 'volleyball',
+          seasonName: a.teams?.seasons?.name,
+        }))
+        .filter(Boolean)
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      setTeams(teams)
+    } catch (err) {
+      console.error('Error loading teams:', err)
+    }
   }
 
   async function loadLeaderboards() {
@@ -550,9 +575,10 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
         className={`px-4 py-2.5 rounded-xl border text-sm font-medium outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-[#E8ECF2] text-[#10284C]'}`}
       >
         <option value="">All Teams</option>
-        {teams.map(t => (
-          <option key={t.id} value={t.id}>{t.name}</option>
-        ))}
+        {teams.map(t => {
+          const emoji = t.sport === 'basketball' ? '\u{1F3C0}' : t.sport === 'baseball' ? '\u{26BE}' : t.sport === 'soccer' ? '\u{26BD}' : t.sport === 'football' ? '\u{1F3C8}' : t.sport === 'flag_football' ? '\u{1F3F3}' : t.sport === 'softball' ? '\u{1F94E}' : t.sport === 'hockey' ? '\u{1F3D2}' : '\u{1F3D0}'
+          return <option key={t.id} value={t.id}>{emoji} {t.name}{t.seasonName ? ` (${t.seasonName})` : ''}</option>
+        })}
       </select>
 
       {/* View toggle */}

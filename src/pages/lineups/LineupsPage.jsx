@@ -47,10 +47,10 @@ export default function LineupsPage({ showToast }) {
   // DATA LOADING
   // ============================================
 
-  // Load teams when season changes
+  // Load ALL teams on mount (not filtered by season)
   useEffect(() => {
-    if (selectedSeason?.id && user?.id) loadTeams()
-  }, [selectedSeason?.id, user?.id])
+    if (user?.id) loadTeams()
+  }, [user?.id])
 
   // Load games and templates when team changes
   useEffect(() => {
@@ -64,11 +64,10 @@ export default function LineupsPage({ showToast }) {
     setLoading(true)
     try {
       if (isAdmin) {
-        // Admin sees all teams for the season
+        // Admin sees all teams across all seasons
         const { data: allTeams } = await supabase
           .from('teams')
           .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
-          .eq('season_id', selectedSeason?.id)
           .order('name')
 
         const enriched = (allTeams || []).map(t => ({
