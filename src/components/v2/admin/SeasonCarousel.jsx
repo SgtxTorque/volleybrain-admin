@@ -63,7 +63,7 @@ export default function SeasonCarousel({
   return (
     <div style={{ fontFamily: 'var(--v2-font)', position: 'relative' }}>
       {/* Section header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
         <span style={{
           fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
           textTransform: 'uppercase', color: 'var(--v2-text-muted)',
@@ -148,7 +148,7 @@ export default function SeasonCarousel({
                   borderRadius: 'var(--v2-radius)',
                   boxShadow: isSelected ? '0 0 0 2px rgba(75, 185, 236, 0.15), 0 2px 8px rgba(75, 185, 236, 0.12)' : 'var(--v2-card-shadow)',
                   border: isSelected ? '2px solid var(--v2-sky)' : '1px solid var(--v2-border-subtle)',
-                  padding: isSelected ? '11px 15px' : '12px 16px',
+                  padding: isSelected ? '7px 11px' : '8px 12px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -164,7 +164,7 @@ export default function SeasonCarousel({
                 }}
               >
                 {/* Status badge + attention pill */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                   <span style={{
                     display: 'inline-block',
                     fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
@@ -233,29 +233,29 @@ export default function SeasonCarousel({
 
                 {/* Season name */}
                 <div style={{
-                  fontSize: 15, fontWeight: 700, color: 'var(--v2-navy)',
-                  marginBottom: 2,
+                  fontSize: 14, fontWeight: 700, color: 'var(--v2-navy)',
+                  marginBottom: 1,
                 }}>
                   {season.name}
                 </div>
 
                 {/* Date range */}
                 {dateRange && (
-                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginBottom: 3 }}>
                     {dateRange}
                   </div>
                 )}
 
                 {/* Sport name (if available) */}
                 {season.sport_name && (
-                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', marginBottom: 3 }}>
                     {season.sport_name}
                   </div>
                 )}
 
                 {/* Stats row */}
                 <div style={{
-                  display: 'flex', gap: 16, marginBottom: 6,
+                  display: 'flex', gap: 16, marginBottom: 3,
                   fontSize: 12, color: 'var(--v2-text-secondary)',
                 }}>
                   <span><strong style={{ color: 'var(--v2-navy)' }}>{teamCount}</strong> team{teamCount !== 1 ? 's' : ''}</span>
@@ -263,7 +263,7 @@ export default function SeasonCarousel({
                 </div>
 
                 {/* Progress bar */}
-                <div style={{ marginBottom: 4 }}>
+                <div style={{ marginBottom: 1 }}>
                   <div style={{
                     height: 4, borderRadius: 2,
                     background: 'var(--v2-surface)',
@@ -278,10 +278,6 @@ export default function SeasonCarousel({
                   </div>
                 </div>
 
-                {/* Footer arrow */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -2 }}>
-                  <span style={{ fontSize: 12, color: 'var(--v2-sky)' }}>→</span>
-                </div>
               </div>
             )
           })}

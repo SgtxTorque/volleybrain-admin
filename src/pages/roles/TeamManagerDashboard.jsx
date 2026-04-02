@@ -299,8 +299,8 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
             />
 
             {/* INNER FLEX: Content + Engagement Column side by side (starts below nudge) */}
-            <div style={{ display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', gap: 16, marginTop: -10 }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* Attention Strip */}
             {attentionItems.length > 0 && (

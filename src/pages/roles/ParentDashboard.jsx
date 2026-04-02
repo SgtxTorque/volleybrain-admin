@@ -634,22 +634,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               stats={heroStats}
             />
 
-            {/* MY PLAYERS — Kid Cards horizontal scroll */}
-            <div className="v2-parent-players-row">
-              <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                <KidCards
-                  children={kidCardsData}
-                  selectedChildId={activeChild?.id}
-                  onChildSelect={(childId) => {
-                    const idx = registrationData.findIndex(c => c.id === childId)
-                    if (idx >= 0) setActiveChildIdx(idx)
-                  }}
-                  onViewProfile={(playerId) => onNavigate?.(`player-profile-${playerId}`)}
-                  onViewPlayerCard={(playerId) => onNavigate?.(`player-${playerId}`)}
-                />
-              </div>
-            </div>
-
             {/* Mascot Nudge */}
             <MascotNudge
               message={
@@ -661,10 +645,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               }
             />
 
-            {/* INNER FLEX: Content + Engagement Column side by side (starts below nudge) */}
-            <div style={{ display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
               <AttentionStrip
@@ -673,6 +653,24 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 onClick={() => setShowActionSidebar(true)}
               />
             )}
+
+            {/* INNER FLEX: Content + Engagement Column side by side */}
+            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            {/* MY PLAYERS — Kid Cards horizontal scroll */}
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <KidCards
+                children={kidCardsData}
+                selectedChildId={activeChild?.id}
+                onChildSelect={(childId) => {
+                  const idx = registrationData.findIndex(c => c.id === childId)
+                  if (idx >= 0) setActiveChildIdx(idx)
+                }}
+                onViewProfile={(playerId) => onNavigate?.(`player-profile-${playerId}`)}
+                onViewPlayerCard={(playerId) => onNavigate?.(`player-${playerId}`)}
+              />
+            </div>
 
             <BodyTabs
               tabs={parentTabs}

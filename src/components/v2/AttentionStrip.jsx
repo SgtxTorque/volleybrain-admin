@@ -43,7 +43,7 @@ export default function AttentionStrip({
       onMouseEnter={e => { if (onClick) e.currentTarget.style.background = t.hoverBg }}
       onMouseLeave={e => e.currentTarget.style.background = t.bg}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {/* Left — dot + message */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span className="v2-attention-dot" style={{
