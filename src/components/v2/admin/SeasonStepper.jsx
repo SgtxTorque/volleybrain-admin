@@ -18,12 +18,12 @@ export default function SeasonStepper({
       borderRadius: 'var(--v2-radius)',
       boxShadow: 'var(--v2-card-shadow)',
       border: '1px solid var(--v2-border-subtle)',
-      padding: '20px 24px',
+      padding: '12px 16px',
       fontFamily: 'var(--v2-font)',
     }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--v2-text-primary)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--v2-text-primary)' }}>
           Season Journey · {seasonName}
         </span>
         <span style={{
@@ -56,7 +56,7 @@ export default function SeasonStepper({
               {i < steps.length - 1 && (
                 <div style={{
                   position: 'absolute',
-                  top: 12, left: '50%', right: '-50%',
+                  top: 10, left: '50%', right: '-50%',
                   height: 2,
                   background: isDone ? 'var(--v2-green)' : '#E2E8F0',
                   zIndex: 0,
@@ -65,9 +65,9 @@ export default function SeasonStepper({
 
               {/* Dot */}
               <div style={{
-                width: 24, height: 24, borderRadius: '50%',
+                width: 20, height: 20, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 700, color: '#FFFFFF',
+                fontSize: 10, fontWeight: 700, color: '#FFFFFF',
                 zIndex: 1,
                 background: isDone
                   ? 'var(--v2-green)'
@@ -87,10 +87,10 @@ export default function SeasonStepper({
 
               {/* Label */}
               <div style={{
-                fontSize: 9.5, fontWeight: isCurrent ? 700 : 600,
+                fontSize: 9, fontWeight: isCurrent ? 700 : 600,
                 textTransform: 'uppercase',
                 color: isCurrent ? 'var(--v2-sky)' : 'var(--v2-text-muted)',
-                marginTop: 6, textAlign: 'center',
+                marginTop: 4, textAlign: 'center',
                 maxWidth: 70,
               }}>
                 {step.label}

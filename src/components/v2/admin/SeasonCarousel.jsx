@@ -143,12 +143,12 @@ export default function SeasonCarousel({
                 key={season.id}
                 onClick={() => onSeasonSelect?.(season.id)}
                 style={{
-                  minWidth: 240, flex: '1 0 240px',
+                  minWidth: 220, flex: '1 0 220px',
                   background: isSelected ? 'rgba(75, 185, 236, 0.04)' : 'var(--v2-white)',
                   borderRadius: 'var(--v2-radius)',
                   boxShadow: isSelected ? '0 0 0 2px rgba(75, 185, 236, 0.15), 0 2px 8px rgba(75, 185, 236, 0.12)' : 'var(--v2-card-shadow)',
                   border: isSelected ? '2px solid var(--v2-sky)' : '1px solid var(--v2-border-subtle)',
-                  padding: isSelected ? '17px 19px' : '18px 20px',
+                  padding: isSelected ? '11px 15px' : '12px 16px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -164,7 +164,7 @@ export default function SeasonCarousel({
                 }}
               >
                 {/* Status badge + attention pill */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{
                     display: 'inline-block',
                     fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
@@ -255,7 +255,7 @@ export default function SeasonCarousel({
 
                 {/* Stats row */}
                 <div style={{
-                  display: 'flex', gap: 16, marginBottom: 12,
+                  display: 'flex', gap: 16, marginBottom: 6,
                   fontSize: 12, color: 'var(--v2-text-secondary)',
                 }}>
                   <span><strong style={{ color: 'var(--v2-navy)' }}>{teamCount}</strong> team{teamCount !== 1 ? 's' : ''}</span>
@@ -263,7 +263,7 @@ export default function SeasonCarousel({
                 </div>
 
                 {/* Progress bar */}
-                <div style={{ marginBottom: 8 }}>
+                <div style={{ marginBottom: 4 }}>
                   <div style={{
                     height: 4, borderRadius: 2,
                     background: 'var(--v2-surface)',
@@ -279,8 +279,8 @@ export default function SeasonCarousel({
                 </div>
 
                 {/* Footer arrow */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 14, color: 'var(--v2-sky)' }}>→</span>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -2 }}>
+                  <span style={{ fontSize: 12, color: 'var(--v2-sky)' }}>→</span>
                 </div>
               </div>
             )

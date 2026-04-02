@@ -1239,6 +1239,10 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 />
               )}
 
+              {/* INNER FLEX: Content + Engagement Column side by side (starts below nudge) */}
+              <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+
               {/* ATTENTION STRIP */}
               {actionCount > 0 && (
                 <AttentionStrip
@@ -1297,9 +1301,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 />
               )}
 
-              {/* INNER FLEX: Tabs + Engagement Column side by side */}
-              <div style={{ display: 'flex', gap: 16 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
               <BodyTabs
                 tabs={[
                   { id: 'action-items', label: 'Action Items', badge: actionCount || 0 },
