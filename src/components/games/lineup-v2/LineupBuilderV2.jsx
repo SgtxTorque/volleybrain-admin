@@ -7,6 +7,7 @@ import HeaderBar from './HeaderBar'
 import CourtView from './CourtView'
 import RightPanel from './RightPanel'
 import ControlBar from './ControlBar'
+import { SaveTemplateModal, LoadTemplateDropdown, useTemplateAutoLoad } from './TemplateManager'
 
 export default function LineupBuilderV2({ event, team, sport = 'volleyball', onClose, onSave, showToast }) {
   const { isDark } = useTheme()
@@ -37,6 +38,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
   const [currentRotation, setCurrentRotation] = useState(0)
   const [draggedPlayer, setDraggedPlayer] = useState(null)
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+  const [showLoadTemplate, setShowLoadTemplate] = useState(false)
 
   const positions = formations[formation]?.positions || []
 
@@ -109,6 +112,21 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
       console.error('Error loading lineup data:', err)
     }
     setLoading(false)
+  }
+
+  // ============================================
+  // TEMPLATE AUTO-LOAD
+  // ============================================
+  useTemplateAutoLoad({
+    team, roster, formations, lineup,
+    setLineup, setFormation, setLiberoId, setSetLineups, showToast,
+  })
+
+  function handleApplyTemplate({ lineup: newLineup, formation: newFormation, liberoId: newLibero }) {
+    if (newFormation && formations[newFormation]) setFormation(newFormation)
+    setLineup(newLineup)
+    setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
+    if (newLibero) setLiberoId(newLibero)
   }
 
   // ============================================
@@ -393,6 +411,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         onAddSet={addSet}
         onSave={saveLineup}
         onClose={onClose}
+        onSaveTemplate={() => setShowSaveTemplate(true)}
+        onLoadTemplate={() => setShowLoadTemplate(true)}
       />
 
       {/* Validation Banners */}
@@ -465,6 +485,35 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         onClearLineup={clearLineup}
         onCopyToAllSets={copyToAllSets}
       />
+
+      {/* Template Modals */}
+      {showSaveTemplate && (
+        <SaveTemplateModal
+          team={team}
+          formation={formation}
+          lineup={lineup}
+          liberoId={liberoId}
+          formations={formations}
+          sport={sport}
+          userId={user?.id}
+          isDark={isDark}
+          tc={tc}
+          showToast={showToast}
+          onClose={() => setShowSaveTemplate(false)}
+        />
+      )}
+      {showLoadTemplate && (
+        <LoadTemplateDropdown
+          team={team}
+          roster={roster}
+          formations={formations}
+          isDark={isDark}
+          tc={tc}
+          showToast={showToast}
+          onApply={handleApplyTemplate}
+          onClose={() => setShowLoadTemplate(false)}
+        />
+      )}
     </div>
   )
 }

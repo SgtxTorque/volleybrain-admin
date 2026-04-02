@@ -4,7 +4,8 @@ export default function HeaderBar({
   team, event, formation, formations,
   currentSet, totalSets, lineup, sportConfig,
   liberoId, saving,
-  onSetChange, onAddSet, onSave, onClose
+  onSetChange, onAddSet, onSave, onClose,
+  onSaveTemplate, onLoadTemplate
 }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
@@ -84,6 +85,22 @@ export default function HeaderBar({
         }`}>
           {isComplete ? '✓ Valid' : `${starterCount}/${maxStarters}`}
         </span>
+        <button
+          onClick={onLoadTemplate}
+          className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold ${tc.textMuted} ${tc.hoverBg} border ${
+            isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
+          }`}
+        >
+          Load
+        </button>
+        <button
+          onClick={onSaveTemplate}
+          className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold ${tc.textMuted} ${tc.hoverBg} border ${
+            isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
+          }`}
+        >
+          Save As
+        </button>
         <button
           onClick={onSave}
           disabled={saving}
