@@ -744,34 +744,6 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   return (
     <>
       <V2DashboardLayout
-        engagementContent={
-          <>
-            <CoachLevelCard
-              levelInfo={mockEngagement.levelInfo}
-              tierName={mockEngagement.tierName}
-              xp={mockEngagement.xp}
-              onNavigateAchievements={() => onNavigate?.('achievements')}
-            />
-            <CoachActivityCard
-              shoutouts={mockEngagement.shoutouts}
-              challenges={mockEngagement.challenges}
-              statsEntered={mockEngagement.statsEntered}
-              evalsDone={mockEngagement.evalsDone}
-              nextBadgeHint={mockEngagement.nextBadgeHint}
-            />
-            <CoachBadgesCard
-              earnedCount={mockEngagement.earnedCount}
-              totalCount={mockEngagement.totalCount}
-              badges={mockEngagement.badges}
-              onNavigateAchievements={() => onNavigate?.('achievements')}
-            />
-            <TeamPulseCard
-              active={mockEngagement.pulse.active}
-              drifting={mockEngagement.pulse.drifting}
-              inactive={mockEngagement.pulse.inactive}
-            />
-          </>
-        }
         mainContent={
           <>
             {/* HERO CARD */}
@@ -812,42 +784,85 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
               />
             )}
 
-            {/* BODY TABS */}
-            <BodyTabs
-              tabs={[
-                { id: 'roster', label: 'Roster' },
-                { id: 'schedule', label: 'Schedule' },
-                { id: 'stats', label: 'Stats & Evals' },
-                { id: 'gameprep', label: 'Game Prep' },
-                { id: 'engagement', label: 'Engagement' },
-              ]}
-              activeTabId={activeTab}
-              onTabChange={setActiveTab}
-              footerLink={activeTab === 'roster' ? { label: `View full roster (${roster.length}) →`, onClick: () => onNavigate?.('teams') } : undefined}
-            >
-              {activeTab === 'roster' && (
-                <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
-              )}
-              {activeTab === 'schedule' && (
-                <CoachScheduleTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} onNavigate={onNavigate} />
-              )}
-              {activeTab === 'stats' && (
-                <CoachStatsTab topPlayers={topPlayers} roster={roster} evalData={evalData} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
-              )}
-              {activeTab === 'gameprep' && (
-                <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />
-              )}
-              {activeTab === 'engagement' && (
-                <CoachEngagementTab
-                  activeChallenges={activeChallenges}
-                  weeklyShoutouts={weeklyShoutouts}
-                  weeklyEngagement={weeklyEngagement}
-                  onGiveShoutout={() => setShowShoutoutModal(true)}
-                  onCreateChallenge={() => onNavigate?.('teams')}
-                  onNavigate={onNavigate}
+            {/* INNER FLEX: Tabs/Roster + Engagement Column side by side */}
+            <div style={{ display: 'flex', gap: 16 }}>
+              {/* Roster/tabs takes remaining space */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <BodyTabs
+                  tabs={[
+                    { id: 'roster', label: 'Roster' },
+                    { id: 'schedule', label: 'Schedule' },
+                    { id: 'stats', label: 'Stats & Evals' },
+                    { id: 'gameprep', label: 'Game Prep' },
+                    { id: 'engagement', label: 'Engagement' },
+                  ]}
+                  activeTabId={activeTab}
+                  onTabChange={setActiveTab}
+                  footerLink={activeTab === 'roster' ? { label: `View full roster (${roster.length}) →`, onClick: () => onNavigate?.('teams') } : undefined}
+                >
+                  {activeTab === 'roster' && (
+                    <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
+                  )}
+                  {activeTab === 'schedule' && (
+                    <CoachScheduleTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} onNavigate={onNavigate} />
+                  )}
+                  {activeTab === 'stats' && (
+                    <CoachStatsTab topPlayers={topPlayers} roster={roster} evalData={evalData} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
+                  )}
+                  {activeTab === 'gameprep' && (
+                    <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />
+                  )}
+                  {activeTab === 'engagement' && (
+                    <CoachEngagementTab
+                      activeChallenges={activeChallenges}
+                      weeklyShoutouts={weeklyShoutouts}
+                      weeklyEngagement={weeklyEngagement}
+                      onGiveShoutout={() => setShowShoutoutModal(true)}
+                      onCreateChallenge={() => onNavigate?.('teams')}
+                      onNavigate={onNavigate}
+                    />
+                  )}
+                </BodyTabs>
+              </div>
+
+              {/* ENGAGEMENT COLUMN — 220px fixed, mock data */}
+              <div
+                className="coach-engagement-column"
+                style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
+              >
+                <CoachLevelCard
+                  levelInfo={mockEngagement.levelInfo}
+                  tierName={mockEngagement.tierName}
+                  xp={mockEngagement.xp}
+                  onNavigateAchievements={() => onNavigate?.('achievements')}
                 />
-              )}
-            </BodyTabs>
+                <CoachActivityCard
+                  shoutouts={mockEngagement.shoutouts}
+                  challenges={mockEngagement.challenges}
+                  statsEntered={mockEngagement.statsEntered}
+                  evalsDone={mockEngagement.evalsDone}
+                  nextBadgeHint={mockEngagement.nextBadgeHint}
+                />
+                <CoachBadgesCard
+                  earnedCount={mockEngagement.earnedCount}
+                  totalCount={mockEngagement.totalCount}
+                  badges={mockEngagement.badges}
+                  onNavigateAchievements={() => onNavigate?.('achievements')}
+                />
+                <TeamPulseCard
+                  active={mockEngagement.pulse.active}
+                  drifting={mockEngagement.pulse.drifting}
+                  inactive={mockEngagement.pulse.inactive}
+                />
+              </div>
+            </div>
+
+            {/* Responsive: hide engagement column on narrow screens */}
+            <style>{`
+              @media (max-width: 1200px) {
+                .coach-engagement-column { display: none !important; }
+              }
+            `}</style>
           </>
         }
 
