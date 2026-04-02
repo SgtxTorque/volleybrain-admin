@@ -29,7 +29,6 @@ import ParentScheduleTab from '../../components/v2/parent/ParentScheduleTab'
 import ParentPaymentsTab from '../../components/v2/parent/ParentPaymentsTab'
 import ParentFormsTab from '../../components/v2/parent/ParentFormsTab'
 import ParentReportCardTab from '../../components/v2/parent/ParentReportCardTab'
-import BadgeShowcase from '../../components/v2/parent/BadgeShowcase'
 import EngagementLevelCard from '../../components/engagement/EngagementLevelCard'
 import EngagementActivityCard from '../../components/engagement/EngagementActivityCard'
 import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCard'
@@ -574,16 +573,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       : null,
   }))
 
-  // Map childAchievements for BadgeShowcase
-  const showcaseBadges = childAchievements.map(ach => ({
-    name: ach.achievements?.name || 'Badge',
-    emoji: ach.achievements?.icon || '🏅',
-    imageUrl: ach.achievements?.badge_image_url || ach.achievements?.icon_url || null,
-    tier: ach.achievements?.rarity || 'common',
-    childName: activeChild?.first_name,
-    earnedDate: ach.earned_at ? new Date(ach.earned_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
-  }))
-
   // Map priority items for attention strip
   const attentionItems = actionItems.map(item => ({
     icon: item.icon || '⚠️',
@@ -645,9 +634,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               stats={heroStats}
             />
 
-            {/* MY PLAYERS ROW — 3 columns: cards | team buttons | trophy case */}
+            {/* MY PLAYERS — Kid Cards horizontal scroll */}
             <div className="v2-parent-players-row">
-              {/* Column 1: Kid Cards horizontal scroll */}
               <div style={{ minWidth: 0, overflow: 'hidden' }}>
                 <KidCards
                   children={kidCardsData}
@@ -659,120 +647,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                   onViewProfile={(playerId) => onNavigate?.(`player-profile-${playerId}`)}
                   onViewPlayerCard={(playerId) => onNavigate?.(`player-${playerId}`)}
                 />
-              </div>
-
-              {/* Column 2: Team Action Buttons — stacked, fill height */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button
-                  onClick={() => {
-                    const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
-                    if (child?.teamId) onNavigate?.('chats')
-                  }}
-                  style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexDirection: 'column', gap: 6,
-                    padding: '16px 12px', borderRadius: 14, border: 'none',
-                    background: 'var(--v2-navy)', color: 'white',
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
-                >
-                  <span style={{ fontSize: 22 }}>💬</span>
-                  Team Chat
-                </button>
-
-                <button
-                  onClick={() => {
-                    const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
-                    if (child?.teamId) onNavigate?.('teamwall')
-                  }}
-                  style={{
-                    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexDirection: 'column', gap: 6,
-                    padding: '16px 12px', borderRadius: 14, border: 'none',
-                    background: 'var(--v2-navy)', color: 'white',
-                    fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
-                >
-                  <span style={{ fontSize: 22 }}>🏟️</span>
-                  Team Hub
-                </button>
-              </div>
-
-              {/* Column 3: Trophy Case & XP Preview */}
-              <div
-                onClick={() => onNavigate?.('achievements')}
-                style={{
-                  background: 'linear-gradient(145deg, var(--v2-navy) 0%, var(--v2-midnight) 100%)',
-                  borderRadius: 14, padding: 18, color: 'white',
-                  display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                  position: 'relative', overflow: 'hidden', cursor: 'pointer',
-                }}
-              >
-                {/* Ambient glow */}
-                <div style={{
-                  position: 'absolute', top: -30, right: -30, width: 120, height: 120,
-                  background: 'radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%)',
-                  pointerEvents: 'none',
-                }} />
-
-                <div>
-                  <div style={{ fontSize: 24, marginBottom: 6 }}>🏆</div>
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>
-                    {xpData?.tierName || 'Rookie'} Tier
-                  </div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                    Level {xpData?.level || 1}
-                  </div>
-                </div>
-
-                {/* Badge preview */}
-                <div style={{ display: 'flex', gap: 5, margin: '10px 0' }}>
-                  {(childAchievements || []).slice(0, 3).map((badge, i) => {
-                    const badgeImg = badge.achievements?.badge_image_url || badge.achievements?.icon_url
-                    return (
-                      <div key={i} style={{
-                        width: 30, height: 30, borderRadius: 8,
-                        background: 'rgba(255,255,255,0.08)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 15, border: '1px solid rgba(255,255,255,0.06)',
-                        overflow: 'hidden',
-                      }}>
-                        {badgeImg ? (
-                          <img src={badgeImg} alt="" style={{ width: 30, height: 30, objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
-                        ) : null}
-                        <span style={{ display: badgeImg ? 'none' : 'block' }}>{badge.achievements?.icon || '🏅'}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* XP bar */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 3 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.4)' }}>XP</span>
-                    <span style={{ color: 'var(--v2-gold)', fontWeight: 700 }}>
-                      {(xpData?.currentXp || 0).toLocaleString()} / {(xpData?.xpToNext || 1000).toLocaleString()}
-                    </span>
-                  </div>
-                  <div style={{ width: '100%', height: 5, background: 'rgba(255,215,0,0.15)', borderRadius: 3 }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${Math.min(((xpData?.currentXp || 0) / (xpData?.xpToNext || 1000)) * 100, 100)}%`,
-                      background: 'linear-gradient(90deg, var(--v2-gold), #FFA500)',
-                      borderRadius: 3,
-                    }} />
-                  </div>
-                </div>
-
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--v2-gold)', marginTop: 8, letterSpacing: '0.02em' }}>
-                  TROPHY CASE →
-                </div>
               </div>
             </div>
 
@@ -787,6 +661,10 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               }
             />
 
+            {/* INNER FLEX: Content + Engagement Column side by side (starts below nudge) */}
+            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
               <AttentionStrip
@@ -796,9 +674,6 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               />
             )}
 
-            {/* INNER FLEX: Tabs + Engagement Column side by side */}
-            <div style={{ display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
             <BodyTabs
               tabs={parentTabs}
               activeTabId={activeTab}
@@ -914,11 +789,53 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               }
             />
 
-            {/* Badge Showcase */}
-            <BadgeShowcase badges={showcaseBadges} />
-
             {/* The Playbook */}
             <ThePlaybook actions={playbookItems} />
+
+            {/* Team Chat + Team Hub buttons */}
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10,
+              fontFamily: 'var(--v2-font)',
+            }}>
+              <button
+                onClick={() => {
+                  const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
+                  if (child?.teamId) onNavigate?.('chats')
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexDirection: 'column', gap: 6,
+                  padding: '14px 10px', borderRadius: 'var(--v2-radius)', border: 'none',
+                  background: 'var(--v2-navy)', color: 'white',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
+              >
+                <span style={{ fontSize: 20 }}>💬</span>
+                Team Chat
+              </button>
+              <button
+                onClick={() => {
+                  const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
+                  if (child?.teamId) onNavigate?.('teamwall')
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexDirection: 'column', gap: 6,
+                  padding: '14px 10px', borderRadius: 'var(--v2-radius)', border: 'none',
+                  background: 'var(--v2-navy)', color: 'white',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--v2-midnight)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--v2-navy)'}
+              >
+                <span style={{ fontSize: 20 }}>🏟️</span>
+                Team Hub
+              </button>
+            </div>
           </>
         }
       />

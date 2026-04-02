@@ -51,7 +51,7 @@
 /* ---- Parent Players Row ---- */
 .v2-parent-players-row {
   display: grid;
-  grid-template-columns: 1fr 150px 200px;
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: stretch;
   min-height: 220px;
