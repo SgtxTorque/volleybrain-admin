@@ -9,22 +9,25 @@ const ROLE_COLORS = {
   GK: '#F59E0B', DEF: '#3B82F6', MID: '#10B981', FWD: '#EF4444',
 }
 
-const TABS = [
-  { id: 'roster', label: 'Roster' },
-  { id: 'rotations', label: 'Rotations' },
-  { id: 'subs', label: 'Subs' },
-  { id: 'analytics', label: 'Analytics' },
-]
+function getTabs(sportConfig) {
+  return [
+    { id: 'roster', label: 'Roster' },
+    sportConfig?.hasRotations && { id: 'rotations', label: 'Rotations' },
+    { id: 'subs', label: sportConfig?.hasMultipleUnits ? 'Depth Chart' : 'Subs' },
+    sportConfig?.hasBattingOrder && { id: 'batting', label: 'Batting Order' },
+    { id: 'analytics', label: 'Analytics' },
+  ].filter(Boolean)
+}
 
 // ============================================
 // ROSTER TAB
 // ============================================
-function RosterTab({ roster, lineup, rsvps, liberoId, formation, isDark, tc, onDragStart, onDragEnd, onSetLibero }) {
+function RosterTab({ roster, lineup, rsvps, liberoId, formation, sportConfig, isDark, tc, onDragStart, onDragEnd, onSetLibero }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
 
   const onCourtIds = new Set(Object.values(lineup))
-  const showLibero = formation !== '6-6'
+  const showLibero = sportConfig?.hasLibero !== false && formation !== '6-6'
 
   const filtered = roster.filter(p => {
     if (search) {
@@ -559,6 +562,55 @@ function SubstitutionsTab({ plannedSubs, roster, lineup, currentRotation, sportC
 }
 
 // ============================================
+// BATTING ORDER TAB (baseball/softball)
+// ============================================
+function BattingOrderTab({ roster, lineup, sportConfig, isDark, tc }) {
+  const onCourtIds = new Set(Object.values(lineup))
+  const starters = roster.filter(p => onCourtIds.has(p.id))
+  const slots = sportConfig?.battingOrder?.slots || 9
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="p-3 space-y-3 flex-1 overflow-y-auto">
+        <div className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wider`}>Batting Order</div>
+        <div className="space-y-1.5">
+          {Array.from({ length: slots }, (_, i) => {
+            const player = starters[i] || null
+            return (
+              <div
+                key={i}
+                className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${
+                  isDark ? 'bg-lynx-graphite border-lynx-border-dark' : 'bg-lynx-frost border-lynx-silver'
+                }`}
+              >
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  isDark ? 'bg-lynx-charcoal text-white' : 'bg-white text-lynx-navy'
+                }`}>
+                  {i + 1}
+                </span>
+                {player ? (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`text-xs font-bold ${tc.text}`}>#{player.jersey_number}</span>
+                    <span className={`text-xs ${tc.text} truncate`}>{player.first_name} {player.last_name?.[0]}.</span>
+                  </div>
+                ) : (
+                  <span className={`text-xs ${tc.textMuted}`}>Empty slot — drag player here</span>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        {sportConfig?.battingOrder?.hasDH && (
+          <div className={`text-[10px] ${tc.textMuted} text-center mt-2`}>
+            Designated Hitter (DH) available
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================
 // ANALYTICS TAB (PLACEHOLDER)
 // ============================================
 function AnalyticsTab({ isDark, tc }) {
@@ -585,6 +637,7 @@ export default function RightPanel({
 }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
+  const tabs = getTabs(sportConfig)
   const [activeTab, setActiveTab] = useState('roster')
 
   return (
@@ -596,7 +649,7 @@ export default function RightPanel({
     >
       {/* Tab bar */}
       <div className={`flex border-b flex-shrink-0 ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
-        {TABS.map(tab => (
+        {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -622,7 +675,7 @@ export default function RightPanel({
         {activeTab === 'roster' && (
           <RosterTab
             roster={roster} lineup={lineup} rsvps={rsvps} liberoId={liberoId}
-            formation={formation}
+            formation={formation} sportConfig={sportConfig}
             isDark={isDark} tc={tc}
             onDragStart={onDragStart} onDragEnd={onDragEnd} onSetLibero={onSetLibero}
           />
@@ -645,6 +698,9 @@ export default function RightPanel({
             isDark={isDark} tc={tc}
             onAddSub={onAddSub} onRemoveSub={onRemoveSub}
           />
+        )}
+        {activeTab === 'batting' && (
+          <BattingOrderTab roster={roster} lineup={lineup} sportConfig={sportConfig} isDark={isDark} tc={tc} />
         )}
         {activeTab === 'analytics' && (
           <AnalyticsTab isDark={isDark} tc={tc} />

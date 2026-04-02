@@ -52,10 +52,10 @@ export default function HeaderBar({
             }`}
             style={currentSet === setNum ? { backgroundColor: 'var(--accent-primary)' } : {}}
           >
-            Set {setNum}
+            {sportConfig?.timePeriod?.abbrev || 'Set'}{setNum}
           </button>
         ))}
-        {totalSets < (sportConfig?.maxSets || 5) && (
+        {totalSets < (sportConfig?.timePeriod?.max || sportConfig?.maxSets || 5) && (
           <button
             onClick={onAddSet}
             className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${tc.textMuted} ${tc.hoverBg}`}

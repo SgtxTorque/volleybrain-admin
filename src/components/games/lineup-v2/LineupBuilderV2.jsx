@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabase'
 import { SPORT_CONFIGS } from '../../../constants/sportConfigs'
 import { PHASE_CONFIG } from '../../../constants/formationPhases'
 import HeaderBar from './HeaderBar'
-import CourtView from './CourtView'
+import SportFieldView from './SportFieldView'
 import RightPanel from './RightPanel'
 import ControlBar from './ControlBar'
 import { SaveTemplateModal, LoadTemplateDropdown, useTemplateAutoLoad } from './TemplateManager'
@@ -131,7 +131,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           const setNum = l.set_number || 1
           if (setNum > maxSet) maxSet = setNum
           if (!grouped[setNum]) grouped[setNum] = {}
-          if (l.rotation_order) grouped[setNum][l.rotation_order] = l.player_id
+          if (l.rotation_order != null) grouped[setNum][l.rotation_order] = l.player_id
           if (l.is_libero) setLiberoId(l.player_id)
         })
         setSetLineups(grouped)
@@ -256,12 +256,15 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
   function handleDrop(positionId, playerId) {
     const newLineup = { ...lineup }
-    const rotationOrder = [1, 2, 3, 4, 5, 6]
 
-    // Map visual target position to original position
-    const targetPosIndex = rotationOrder.indexOf(positionId)
-    const targetOriginalIndex = (targetPosIndex + currentRotation) % 6
-    const targetOriginalPosition = rotationOrder[targetOriginalIndex]
+    // For sports with rotations (volleyball), map visual position to original
+    let targetOriginalPosition = positionId
+    if (sportConfig.hasRotations && currentRotation > 0) {
+      const rotationOrder = [1, 2, 3, 4, 5, 6]
+      const targetPosIndex = rotationOrder.indexOf(positionId)
+      const targetOriginalIndex = (targetPosIndex + currentRotation) % 6
+      targetOriginalPosition = rotationOrder[targetOriginalIndex]
+    }
 
     // Find if incoming player is already on court (swap scenario)
     const sourceOriginalPosition = Object.keys(newLineup).find(
@@ -297,10 +300,14 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   }
 
   function handleRemovePlayer(positionId) {
-    const rotationOrder = [1, 2, 3, 4, 5, 6]
-    const posIndex = rotationOrder.indexOf(positionId)
-    const originalIndex = (posIndex + currentRotation) % 6
-    const originalPosition = rotationOrder[originalIndex]
+    // For sports with rotations, map visual position to original
+    let originalPosition = positionId
+    if (sportConfig.hasRotations && currentRotation > 0) {
+      const rotationOrder = [1, 2, 3, 4, 5, 6]
+      const posIndex = rotationOrder.indexOf(positionId)
+      const originalIndex = (posIndex + currentRotation) % 6
+      originalPosition = rotationOrder[originalIndex]
+    }
 
     const newLineup = { ...lineup }
     delete newLineup[originalPosition]
@@ -349,7 +356,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   }
 
   function addSet() {
-    if (totalSets < (sportConfig.maxSets || 5)) {
+    if (totalSets < (sportConfig.timePeriod?.max || sportConfig.maxSets || 5)) {
       setTotalSets(prev => prev + 1)
     }
   }
@@ -378,23 +385,25 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
       const positionList = formations[formation]?.positions || []
 
       Object.entries(lineup).forEach(([positionId, playerId]) => {
-        const pos = positionList.find(p => p.id === parseInt(positionId))
+        const posIdParsed = isNaN(parseInt(positionId)) ? positionId : parseInt(positionId)
+        const pos = positionList.find(p => p.id === posIdParsed)
         records.push({
           event_id: event.id,
           player_id: playerId,
-          rotation_order: parseInt(positionId),
+          rotation_order: typeof posIdParsed === 'number' ? posIdParsed : null,
           is_starter: true,
           is_libero: playerId === liberoId,
-          position: pos?.name,
+          position: pos?.name || positionId,
           formation_type: formation,
           set_number: currentSet,
           team_id: team.id,
-          position_role: pos?.role,
+          position_role: pos?.role || pos?.name,
+          sport: sportKey,
         })
       })
 
-      // Add libero if not on court
-      if (liberoId && !Object.values(lineup).includes(liberoId)) {
+      // Add libero if not on court (volleyball only)
+      if (liberoId && sportConfig.hasLibero !== false && !Object.values(lineup).includes(liberoId)) {
         records.push({
           event_id: event.id,
           player_id: liberoId,
@@ -406,6 +415,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           set_number: currentSet,
           team_id: team.id,
           position_role: 'L',
+          sport: sportKey,
         })
       }
 
@@ -422,6 +432,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           team_id: team.id,
           planned_subs: plannedSubs,
           bench_order: benchQueue,
+          sport: sportKey,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'event_id,set_number' })
       }
@@ -650,8 +661,9 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
       {/* Main Content: Court + Right Panel */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Court View */}
-        <CourtView
+        {/* Sport Field View */}
+        <SportFieldView
+          sport={sport}
           positions={positions}
           lineup={lineup}
           roster={roster}
