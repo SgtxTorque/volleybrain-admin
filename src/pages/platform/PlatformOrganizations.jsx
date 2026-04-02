@@ -7,7 +7,7 @@ import {
   Search, X, Building2, Users, Shield, Calendar, CreditCard,
   ChevronRight, AlertTriangle, Eye, Lock, Unlock, Clock, Activity,
   RefreshCw, ArrowLeft, Filter, SortAsc, CheckCircle2, TrendingUp,
-  Layers, CalendarCheck, MapPin, FileText
+  Layers, CalendarCheck, MapPin, FileText, List, Grid
 } from '../../constants/icons'
 import { getScoreColor, RISK_COLORS } from '../../lib/healthScoreCalculator'
 
@@ -390,6 +390,119 @@ function OrgCard({ org, isDark, tc, onClick, onAction, onAddNote }) {
   )
 }
 
+// ── Org List Row (table view) ─────────────────────────────
+function OrgListRow({ org, isDark, tc, onClick, onAction, onAddNote }) {
+  const memberCount = org._memberCount || 0
+  const teamCount = org._teamCount || 0
+  const seasonCount = org._activeSeasonCount || 0
+  const setupHealth = org._setupHealth || { completed: 0, total: 7 }
+  const healthColor = getHealthColor(setupHealth.completed)
+  const lastActivity = org._lastActivity
+
+  const healthBadgeCls = {
+    emerald: isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-700',
+    amber: isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-700',
+    red: isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-700',
+  }
+
+  return (
+    <tr
+      className={`cursor-pointer transition ${
+        isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
+      }`}
+      onClick={onClick}
+    >
+      {/* Org name + slug */}
+      <td className={`px-4 py-3 ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
+            style={{ background: org.primary_color || '#4BB9EC' }}
+          >
+            {org.name?.charAt(0)?.toUpperCase() || '?'}
+          </div>
+          <div className="min-w-0">
+            <p className={`text-sm font-semibold truncate ${tc.text}`}>{org.name}</p>
+            <p className={`text-xs truncate ${tc.textMuted}`}>{org.slug || 'no-slug'}</p>
+          </div>
+        </div>
+      </td>
+      {/* Status */}
+      <td className={`px-4 py-3 ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+          org.is_active === false
+            ? isDark ? 'bg-red-500/15 text-red-400' : 'bg-red-50 text-red-700'
+            : isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
+        }`}>
+          {org.is_active === false ? 'Suspended' : 'Active'}
+        </span>
+      </td>
+      {/* Members */}
+      <td className={`px-4 py-3 text-sm text-center ${tc.textSecondary} ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        {memberCount}
+      </td>
+      {/* Teams */}
+      <td className={`px-4 py-3 text-sm text-center ${tc.textSecondary} ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        {teamCount}
+      </td>
+      {/* Seasons */}
+      <td className={`px-4 py-3 text-sm text-center ${tc.textSecondary} ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        {seasonCount}
+      </td>
+      {/* Health Score */}
+      <td className={`px-4 py-3 text-center ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        {org._healthScore != null && (
+          <span className="text-sm font-semibold" style={{ color: getScoreColor(org._healthScore) }}>
+            {org._healthScore}
+          </span>
+        )}
+      </td>
+      {/* Setup */}
+      <td className={`px-4 py-3 text-center ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${healthBadgeCls[healthColor]}`}>
+          {setupHealth.completed}/7
+        </span>
+      </td>
+      {/* Last Active */}
+      <td className={`px-4 py-3 text-xs ${tc.textMuted} ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        {lastActivity ? formatTimeAgo(lastActivity) : 'Never'}
+      </td>
+      {/* Actions */}
+      <td className={`px-4 py-3 ${isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-100'}`}>
+        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={() => onClick()}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+              isDark ? 'text-sky-400 hover:bg-sky-500/10' : 'text-sky-600 hover:bg-sky-50'
+            }`}
+          >
+            View
+          </button>
+          <button
+            onClick={() => onAction(org.is_active === false ? 'activate' : 'suspend', org)}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+              org.is_active === false
+                ? isDark ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-emerald-600 hover:bg-emerald-50'
+                : isDark ? 'text-amber-400 hover:bg-amber-500/10' : 'text-amber-600 hover:bg-amber-50'
+            }`}
+          >
+            {org.is_active === false ? 'Activate' : 'Suspend'}
+          </button>
+          <button
+            onClick={() => onAddNote?.(org)}
+            title="Add note"
+            className={`p-1 rounded-lg transition ${
+              isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-400'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
 // ── Helpers ──────────────────────────────────────────────
 function formatTimeAgo(dateStr) {
   if (!dateStr) return 'Never'
@@ -424,6 +537,7 @@ function PlatformOrganizations({ showToast }) {
   const [activeFilter, setActiveFilter] = useState('all')
   const [sortBy, setSortBy] = useState('name')
   const [sortAsc, setSortAsc] = useState(true)
+  const [viewMode, setViewMode] = useState('list') // 'list' or 'grid'
   const [confirmModal, setConfirmModal] = useState({ open: false })
   const [noteModal, setNoteModal] = useState({ open: false, org: null })
 
@@ -840,8 +954,35 @@ function PlatformOrganizations({ showToast }) {
           })}
         </div>
 
-        {/* Sort */}
-        <div className="flex items-center gap-1.5">
+        {/* View toggle + Sort */}
+        <div className="flex items-center gap-3">
+          {/* View toggle */}
+          <div className={`flex rounded-lg p-0.5 ${isDark ? 'bg-white/[0.04]' : 'bg-slate-100'}`}>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition ${
+                viewMode === 'list'
+                  ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                  : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
+              }`}
+              title="List view"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-md transition ${
+                viewMode === 'grid'
+                  ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]'
+                  : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
+              }`}
+              title="Grid view"
+            >
+              <Grid className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
           <span className={`text-xs ${tc.textMuted} mr-1`}>Sort:</span>
           {SORT_OPTIONS.map(opt => {
             const isActive = sortBy === opt.id
@@ -866,6 +1007,7 @@ function PlatformOrganizations({ showToast }) {
               </button>
             )
           })}
+          </div>
         </div>
       </div>
 
@@ -895,20 +1037,51 @@ function PlatformOrganizations({ showToast }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((org, i) => (
-            <div key={org.id} className="po-au" style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}>
-              <OrgCard
-                org={org}
-                isDark={isDark}
-                tc={tc}
-                onClick={() => handleCardClick(org)}
-                onAction={handleOrgAction}
-                onAddNote={(o) => setNoteModal({ open: true, org: o })}
-              />
-            </div>
-          ))}
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtered.map((org, i) => (
+              <div key={org.id} className="po-au" style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}>
+                <OrgCard
+                  org={org}
+                  isDark={isDark}
+                  tc={tc}
+                  onClick={() => handleCardClick(org)}
+                  onAction={handleOrgAction}
+                  onAddNote={(o) => setNoteModal({ open: true, org: o })}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={`rounded-[14px] overflow-hidden border ${isDark ? 'border-white/[0.08]' : 'border-slate-200'}`}>
+            <table className="w-full">
+              <thead>
+                <tr className={isDark ? 'bg-white/[0.03]' : 'bg-slate-50'}>
+                  {['Organization', 'Status', 'Members', 'Teams', 'Seasons', 'Health', 'Setup', 'Last Active', 'Actions'].map(h => (
+                    <th key={h} className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-left ${tc.textMuted} ${
+                      isDark ? 'border-b border-white/[0.06]' : 'border-b border-slate-200'
+                    } ${['Members', 'Teams', 'Seasons', 'Health', 'Setup'].includes(h) ? 'text-center' : ''}`}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(org => (
+                  <OrgListRow
+                    key={org.id}
+                    org={org}
+                    isDark={isDark}
+                    tc={tc}
+                    onClick={() => handleCardClick(org)}
+                    onAction={handleOrgAction}
+                    onAddNote={(o) => setNoteModal({ open: true, org: o })}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       )}
 
       {/* Results summary */}
