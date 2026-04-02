@@ -118,11 +118,10 @@ function OnboardingChecklist({ org, members, teams, seasons, isDark, tc, showToa
   async function loadExtraData() {
     try {
       const teamIds = teams.map(t => t.id)
-      const seasonIds = seasons.map(s => s.id)
       const [coachesRes, eventsRes, regsRes, playersRes] = await Promise.all([
         teamIds.length > 0 ? supabase.from('team_coaches').select('id', { count: 'exact', head: true }).in('team_id', teamIds) : { count: 0 },
-        seasonIds.length > 0 ? supabase.from('schedule_events').select('id', { count: 'exact', head: true }).in('season_id', seasonIds) : { count: 0 },
-        supabase.from('registration_templates').select('id', { count: 'exact', head: true }).eq('organization_id', org.id),
+        supabase.from('schedule_events').select('id', { count: 'exact', head: true }).eq('org_id', org.id),
+        supabase.from('registration_templates').select('id', { count: 'exact', head: true }).eq('org_id', org.id),
         teamIds.length > 0 ? supabase.from('team_players').select('id', { count: 'exact', head: true }).in('team_id', teamIds) : { count: 0 },
       ])
       setExtraData({
@@ -1199,24 +1198,19 @@ function PlatformOrgDetail({ showToast }) {
       const teamIds = teamsData.map(t => t.id)
 
       // Gather data for the calculator in parallel
-      const seasonIds = seasonsData.map(s => s.id)
       const [eventsRes, chatRes, attendanceRes] = await Promise.all([
-        // Recent events (schedule_events in last 30 days) — scoped through season_id
-        seasonIds.length > 0
-          ? supabase
-              .from('schedule_events')
-              .select('id', { count: 'exact', head: true })
-              .in('season_id', seasonIds)
-              .gte('created_at', cutoff)
-          : Promise.resolve({ count: 0 }),
-        // Recent chat messages — scoped through season_id on chat_channels
-        seasonIds.length > 0
-          ? supabase
-              .from('chat_messages')
-              .select('id, chat_channels!inner(season_id)', { count: 'exact', head: true })
-              .in('chat_channels.season_id', seasonIds)
-              .gte('created_at', cutoff)
-          : Promise.resolve({ count: 0 }),
+        // Recent events (schedule_events in last 30 days)
+        supabase
+          .from('schedule_events')
+          .select('id', { count: 'exact', head: true })
+          .eq('org_id', orgData.id)
+          .gte('created_at', cutoff),
+        // Recent chat messages
+        supabase
+          .from('chat_messages')
+          .select('id, chat_channels!inner(org_id)', { count: 'exact', head: true })
+          .eq('chat_channels.org_id', orgData.id)
+          .gte('created_at', cutoff),
         // Recent attendance (event_rsvps)
         teamIds.length > 0
           ? supabase
@@ -1236,7 +1230,7 @@ function PlatformOrgDetail({ showToast }) {
       if (totalPlayers > 0) featuresUsed++                               // Players/Registration
 
       // Milestones (same logic as OnboardingChecklist)
-      // seasonIds already defined above
+      const seasonIds = seasonsData.map(s => s.id)
       let coachAssigned = false
       let hasRegTemplate = false
       if (teamIds.length > 0) {
@@ -1249,7 +1243,7 @@ function PlatformOrgDetail({ showToast }) {
       const { count: regCount } = await supabase
         .from('registration_templates')
         .select('id', { count: 'exact', head: true })
-        .eq('organization_id', orgData.id)
+        .eq('org_id', orgData.id)
       hasRegTemplate = (regCount || 0) > 0
 
       let milestonesComplete = 0
@@ -1549,4 +1543,11 @@ function PlatformOrgDetail({ showToast }) {
         title={confirmModal.title || ''}
         message={confirmModal.message || ''}
         destructive={confirmModal.destructive}
-        requireTyping={confirmM
+        requireTyping={confirmModal.requireTyping}
+      />
+    </div>
+  )
+}
+
+export { PlatformOrgDetail }
+export default PlatformOrgDetail
