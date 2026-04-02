@@ -112,9 +112,23 @@ function SeasonsPage({ showToast }) {
   }
 
   async function handleSave() {
-    const data = { organization_id: organization.id, ...form }
+    // Clean form data: convert empty strings to null for date/nullable fields
+    // PostgreSQL rejects empty strings ('') for date, integer, and uuid columns
+    const dateFields = ['start_date', 'end_date', 'registration_opens', 'registration_closes', 'early_bird_deadline', 'late_registration_deadline']
+    const nullableFields = ['sport_id', 'capacity', 'waitlist_capacity', 'registration_template_id', 'registration_config']
+    const cleaned = { ...form }
+    dateFields.forEach(f => { if (cleaned[f] === '' || cleaned[f] === undefined) cleaned[f] = null })
+    nullableFields.forEach(f => { if (cleaned[f] === '' || cleaned[f] === undefined) cleaned[f] = null })
+
+    const data = { organization_id: organization.id, ...cleaned }
+
     if (editingSeason) {
-      await supabase.from('seasons').update(data).eq('id', editingSeason.id)
+      const { error } = await supabase.from('seasons').update(data).eq('id', editingSeason.id)
+      if (error) {
+        console.error('Season update error:', error)
+        showToast(`Error updating season: ${error.message}`, 'error')
+        return
+      }
       showToast('Season updated!', 'success')
       setShowModal(false)
       loadSeasons()
@@ -127,7 +141,8 @@ function SeasonsPage({ showToast }) {
         .single()
 
       if (error) {
-        showToast('Error creating season', 'error')
+        console.error('Season creation error:', error)
+        showToast(`Error creating season: ${error.message}`, 'error')
         return
       }
 
