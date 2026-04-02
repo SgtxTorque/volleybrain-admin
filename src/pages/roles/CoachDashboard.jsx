@@ -24,6 +24,7 @@ import CoachStatsTab from '../../components/v2/coach/CoachStatsTab'
 import CoachGamePrepTab from '../../components/v2/coach/CoachGamePrepTab'
 import CoachEngagementTab from '../../components/v2/coach/CoachEngagementTab'
 import { CoachLevelCard, CoachActivityCard, CoachBadgesCard, TeamPulseCard } from '../../components/v2/coach/CoachEngagementColumn'
+import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 
 // ── Event Detail Modal ──
 function EventDetailModal({ event, team, onClose }) {
@@ -219,6 +220,11 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   // V2.1 Workflow button badges
   const [newPlayersCount, setNewPlayersCount] = useState(0)
   const [evalData, setEvalData] = useState([])
+  const [coachBadges, setCoachBadges] = useState([])
+  const [totalAchievements, setTotalAchievements] = useState(0)
+  const [gamesWithStats, setGamesWithStats] = useState(0)
+  const [teamPulseData, setTeamPulseData] = useState({ active: 0, drifting: 0, inactive: 0 })
+  const [nextBadgeProgress, setNextBadgeProgress] = useState(null)
   const [activeTab, setActiveTab] = useState('roster')
 
   const coachName = profile?.full_name?.split(' ')[0] || 'Coach'
@@ -586,6 +592,95 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         } else { setEvalData([]) }
       } catch { setEvalData([]) }
 
+      // 12. Coach badges (engagement column)
+      try {
+        const { data: badgeData } = await supabase
+          .from('player_achievements')
+          .select('id, earned_at, achievement:achievement_id(id, name, icon, icon_url, badge_image_url, rarity)')
+          .eq('player_id', user?.id)
+          .order('earned_at', { ascending: false })
+          .limit(10)
+        setCoachBadges((badgeData || []).map(b => ({ name: b.achievement?.name || 'Badge', icon: b.achievement?.icon || '🏅', icon_url: b.achievement?.icon_url, badge_image_url: b.achievement?.badge_image_url, rarity: b.achievement?.rarity })))
+      } catch { setCoachBadges([]) }
+
+      // 13. Total active achievements count (engagement column)
+      try {
+        const { count: totalAch } = await supabase
+          .from('achievements')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true)
+        setTotalAchievements(totalAch || 0)
+      } catch { setTotalAchievements(0) }
+
+      // 14. Games with stats entered this week (engagement column)
+      try {
+        const weekAgoDate2 = new Date()
+        weekAgoDate2.setDate(weekAgoDate2.getDate() - 7)
+        const weekAgoStr = weekAgoDate2.toISOString().split('T')[0]
+        const { count: statsCount } = await supabase
+          .from('schedule_events')
+          .select('*', { count: 'exact', head: true })
+          .eq('team_id', team.id)
+          .eq('event_type', 'game')
+          .eq('stats_entered', true)
+          .gte('event_date', weekAgoStr)
+        setGamesWithStats(statsCount || 0)
+      } catch { setGamesWithStats(0) }
+
+      // 15. Team pulse — last XP activity per player (engagement column)
+      try {
+        if (playerIds.length > 0) {
+          const { data: xpActivity } = await supabase
+            .from('xp_ledger')
+            .select('player_id, created_at')
+            .in('player_id', playerIds)
+            .order('created_at', { ascending: false })
+
+          const now = new Date()
+          const latestByPlayer = {}
+          for (const entry of (xpActivity || [])) {
+            if (!latestByPlayer[entry.player_id]) latestByPlayer[entry.player_id] = entry.created_at
+          }
+          let active = 0, drifting = 0, inactive = 0
+          for (const pid of playerIds) {
+            const lastActivity = latestByPlayer[pid]
+            if (!lastActivity) { inactive++; continue }
+            const daysSince = Math.floor((now - new Date(lastActivity)) / (1000 * 60 * 60 * 24))
+            if (daysSince <= 7) active++
+            else if (daysSince <= 21) drifting++
+            else inactive++
+          }
+          setTeamPulseData({ active, drifting, inactive })
+        } else { setTeamPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+      } catch { setTeamPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+
+      // 16. Next badge hint — closest unearned achievement (engagement column)
+      try {
+        const { data: progressData } = await supabase
+          .from('player_achievement_progress')
+          .select('achievement_id, current_value, target_value, achievements(id, name, stat_key, threshold)')
+          .eq('player_id', user?.id)
+
+        if (progressData && progressData.length > 0) {
+          // Find the unearned achievement with highest progress ratio
+          let bestProgress = null
+          for (const p of progressData) {
+            if (!p.target_value || p.target_value <= 0) continue
+            const ratio = (p.current_value || 0) / p.target_value
+            if (ratio >= 1) continue // already earned
+            if (!bestProgress || ratio > bestProgress.ratio) {
+              bestProgress = {
+                ratio,
+                remaining: Math.ceil(p.target_value - (p.current_value || 0)),
+                action: p.achievements?.stat_key || 'actions',
+                badgeName: p.achievements?.name || 'next badge',
+              }
+            }
+          }
+          setNextBadgeProgress(bestProgress)
+        } else { setNextBadgeProgress(null) }
+      } catch { setNextBadgeProgress(null) }
+
     } catch (err) { console.error('Error loading team data:', err) }
   }
 
@@ -659,27 +754,16 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
 
   // (Old coachWidgets grid array removed — v2 uses fixed layout)
 
-  // ── Engagement column — hardcoded mock data (TODO: wire to real queries) ──
-  const mockEngagement = {
-    levelInfo: { level: 4, progress: 52, nextLevelXp: 2000 },
-    tierName: 'Rising Star',
-    xp: 520,
-    shoutouts: 3,
-    challenges: 1,
-    statsEntered: 2,
-    evalsDone: 5,
-    nextBadgeHint: '2 more shoutouts for Hype Coach',
-    badges: [
-      { name: 'First Win', icon: '🏆' },
-      { name: 'Hype Machine', icon: '⭐' },
-      { name: 'Stat Master', icon: '📊' },
-      { name: 'Full Roster', icon: '👥' },
-      { name: 'Practice Pro', icon: '⚡' },
-    ],
-    earnedCount: 5,
-    totalCount: 42,
-    pulse: { active: 8, drifting: 3, inactive: 1 },
-  }
+  // ── Engagement column — real data ──
+  const coachXp = profile?.total_xp || 0
+  const coachLevelInfo = getLevelFromXP(coachXp)
+  const coachTier = getLevelTier(coachLevelInfo.level)
+
+  const nextBadgeHint = nextBadgeProgress
+    ? `${nextBadgeProgress.remaining} more ${nextBadgeProgress.action} for ${nextBadgeProgress.badgeName}`
+    : weeklyShoutouts < 5
+      ? `${5 - weeklyShoutouts} more shoutout${5 - weeklyShoutouts !== 1 ? 's' : ''} for Hype Coach`
+      : null
 
   // ── Loading State ──
   if (loading) {
@@ -825,34 +909,34 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 </BodyTabs>
               </div>
 
-              {/* ENGAGEMENT COLUMN — 220px fixed, mock data */}
+              {/* ENGAGEMENT COLUMN — 280px fixed, real data */}
               <div
                 className="coach-engagement-column"
-                style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
+                style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
               >
                 <CoachLevelCard
-                  levelInfo={mockEngagement.levelInfo}
-                  tierName={mockEngagement.tierName}
-                  xp={mockEngagement.xp}
+                  levelInfo={coachLevelInfo}
+                  tierName={coachTier.name}
+                  xp={coachXp}
                   onNavigateAchievements={() => onNavigate?.('achievements')}
                 />
                 <CoachActivityCard
-                  shoutouts={mockEngagement.shoutouts}
-                  challenges={mockEngagement.challenges}
-                  statsEntered={mockEngagement.statsEntered}
-                  evalsDone={mockEngagement.evalsDone}
-                  nextBadgeHint={mockEngagement.nextBadgeHint}
+                  shoutouts={weeklyShoutouts}
+                  challenges={weeklyEngagement.challenges}
+                  statsEntered={gamesWithStats}
+                  evalsDone={evalData.length}
+                  nextBadgeHint={nextBadgeHint}
                 />
                 <CoachBadgesCard
-                  earnedCount={mockEngagement.earnedCount}
-                  totalCount={mockEngagement.totalCount}
-                  badges={mockEngagement.badges}
+                  earnedCount={coachBadges.length}
+                  totalCount={totalAchievements}
+                  badges={coachBadges}
                   onNavigateAchievements={() => onNavigate?.('achievements')}
                 />
                 <TeamPulseCard
-                  active={mockEngagement.pulse.active}
-                  drifting={mockEngagement.pulse.drifting}
-                  inactive={mockEngagement.pulse.inactive}
+                  active={teamPulseData.active}
+                  drifting={teamPulseData.drifting}
+                  inactive={teamPulseData.inactive}
                 />
               </div>
             </div>
