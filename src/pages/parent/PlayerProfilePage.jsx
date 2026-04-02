@@ -14,8 +14,9 @@ import PlayerProfileInfoTab from './PlayerProfileInfoTab'
 import PlayerProfileUniformTab from './PlayerProfileUniformTab'
 import PlayerProfileMedicalTab from './PlayerProfileMedicalTab'
 import PlayerProfileHistoryTab from './PlayerProfileHistoryTab'
+import PlayerProfileDevelopmentTab from './PlayerProfileDevelopmentTab'
 
-function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
+function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate, activeView }) {
   const { organization } = useAuth()
   const { isDark } = useTheme()
 
@@ -276,6 +277,7 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
     { id: 'jersey', label: 'Uniform', icon: '' },
     { id: 'medical', label: 'Medical', icon: '' },
     { id: 'waivers', label: 'Waivers', icon: '' },
+    { id: 'development', label: 'Development', icon: '' },
     { id: 'history', label: 'History', icon: '' },
   ]
 
@@ -412,6 +414,10 @@ function PlayerProfilePage({ playerId, roleContext, showToast, onNavigate }) {
 
           {activeTab === 'waivers' && (
             <WaiversTab player={player} organization={organization} isDark={isDark} showToast={showToast} teamColor={teamColor} />
+          )}
+
+          {activeTab === 'development' && (
+            <PlayerProfileDevelopmentTab player={player} isDark={isDark} showToast={showToast} activeView={activeView} />
           )}
 
           {activeTab === 'history' && (

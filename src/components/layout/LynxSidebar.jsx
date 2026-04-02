@@ -14,7 +14,7 @@ import {
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
   CheckSquare, CalendarCheck, User, LogOut, MapPin,
-  Search, Heart, Mail
+  Search, Heart, Mail, PlayCircle, ListOrdered
 } from 'lucide-react'
 
 // Icon lookup for nav items
@@ -37,6 +37,7 @@ const ICON_MAP = {
   bell: Bell, shirt: Shirt, shield: Shield, volleyball: Star, users: Users,
   'map-pin': MapPin,
   mail: Mail, email: Mail,
+  'play-circle': PlayCircle, 'list-ordered': ListOrdered, 'clipboard-list': ClipboardList,
 }
 
 

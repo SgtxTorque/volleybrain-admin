@@ -8,6 +8,7 @@ import {
 import { PlayerCardExpanded } from '../../components/players'
 import { CoachDetailModal } from '../../pages/coaches/CoachesPage'
 import { getEventColor, formatTime12 } from './scheduleHelpers'
+import PracticePlanTab from '../../components/practice/PracticePlanTab'
 
 const formatPosition = (pos) => pos?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || pos
 
@@ -242,6 +243,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
               {[
                 { id: 'overview', label: 'Overview' },
                 { id: 'attendance', label: `Attendance (${roster.length})`, badge: rsvpCounts.pending > 0 ? rsvpCounts.pending : null },
+                ...(event.event_type === 'practice' ? [{ id: 'practice-plan', label: 'Practice Plan' }] : []),
               ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                   className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 ${
@@ -406,6 +408,9 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                 </div>
               )}
             </div>
+          ) : activeTab === 'practice-plan' ? (
+            /* ── PRACTICE PLAN TAB ── */
+            <PracticePlanTab event={event} showToast={showToast} activeView={activeView} />
           ) : (
             /* ── ATTENDANCE TAB ── */
             <div className="p-5">

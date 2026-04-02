@@ -89,6 +89,10 @@ import { VenueManagerPage } from './pages/settings/VenueManagerPage'
 // Stats Pages
 import { PlayerStatsPage } from './pages/stats/PlayerStatsPage'
 
+// Drill & Practice Plan Pages
+import { DrillLibraryPage } from './pages/drills'
+import { PracticePlansPage, PracticePlanBuilder, ReflectionTemplatesPage } from './pages/practice-plans'
+
 // Achievements Pages
 import { AchievementsCatalogPage } from './pages/achievements'
 import { NotificationsPage } from './pages/notifications/NotificationsPage'
@@ -654,10 +658,10 @@ function ParentPlayerCardRoute({ roleContext, showToast, activeView }) {
   return <ParentPlayerCardPage playerId={playerId} roleContext={roleContext} showToast={showToast} activeView={activeView} />
 }
 
-function PlayerProfileRoute({ roleContext, showToast }) {
+function PlayerProfileRoute({ roleContext, showToast, activeView }) {
   const { playerId } = useParams()
   const navigate = useNavigate()
-  return <PlayerProfilePage playerId={playerId} roleContext={roleContext} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
+  return <PlayerProfilePage playerId={playerId} roleContext={roleContext} showToast={showToast} activeView={activeView} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} />
 }
 
 // ============================================
@@ -701,7 +705,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       } />
 
       {/* Parent-specific routes */}
-      <Route path="/parent/player/:playerId/profile" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><PlayerProfileRoute roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
+      <Route path="/parent/player/:playerId/profile" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><PlayerProfileRoute roleContext={roleContext} showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/parent/player/:playerId" element={<RouteGuard allow={['parent', 'admin', 'coach']} activeView={activeView}><ParentPlayerCardRoute roleContext={roleContext} showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/messages" element={<RouteGuard allow={['parent']} activeView={activeView}><ParentMessagesPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
       <Route path="/invite" element={<RouteGuard allow={['parent']} activeView={activeView}><InviteFriendsPage roleContext={roleContext} showToast={showToast} /></RouteGuard>} />
@@ -720,6 +724,13 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
       <Route path="/schedule" element={<SchedulePage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/schedule/availability" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><CoachAvailabilityPage showToast={showToast} activeView={activeView} roleContext={roleContext} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
+
+      {/* Practice Planning */}
+      <Route path="/drills" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><DrillLibraryPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/practice-plans" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><PracticePlansPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/practice-plans/:planId" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><PracticePlanBuilder showToast={showToast} /></RouteGuard>} />
+      <Route path="/reflection-templates" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><ReflectionTemplatesPage showToast={showToast} /></RouteGuard>} />
+
       <Route path="/attendance" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><AttendancePage showToast={showToast} /></RouteGuard>} />
       <Route path="/payments" element={
         activeView === 'parent'
@@ -1048,6 +1059,13 @@ function MainApp() {
       { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
     ]},
 
+    // --- PRACTICE ---
+    { id: 'practice', label: 'Practice', type: 'group', icon: 'clipboard-list', items: [
+      { id: 'drills', label: 'Drill Library', icon: 'play-circle' },
+      { id: 'practice-plans', label: 'Practice Plans', icon: 'list-ordered' },
+      { id: 'reflection-templates', label: 'Reflections', icon: 'clipboard-list' },
+    ]},
+
     // --- COMPETE ---
     { id: 'game', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
@@ -1096,6 +1114,11 @@ function MainApp() {
     { id: 'scheduling', label: 'Schedule & Events', type: 'group', icon: 'schedule', items: [
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance', icon: 'check-square' },
+    ]},
+    { id: 'practice', label: 'Practice', type: 'group', icon: 'clipboard-list', items: [
+      { id: 'drills', label: 'Drill Library', icon: 'play-circle' },
+      { id: 'practice-plans', label: 'Practice Plans', icon: 'list-ordered' },
+      { id: 'reflection-templates', label: 'Reflections', icon: 'clipboard-list' },
     ]},
     { id: 'gameday', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },

@@ -22,6 +22,11 @@ export const ROUTES = {
   // Roster
   'roster': '/roster',
 
+  // Practice
+  'drills': '/drills',
+  'practice-plans': '/practice-plans',
+  'reflection-templates': '/reflection-templates',
+
   // Game Day
   'gameprep': '/gameprep',
   'standings': '/standings',
@@ -148,6 +153,9 @@ export const PAGE_TITLES = {
   '/attendance': 'Attendance & RSVP',
   '/payments': 'Payment Admin',
   '/roster': 'Roster Manager',
+  '/drills': 'Drill Library',
+  '/practice-plans': 'Practice Plans',
+  '/reflection-templates': 'Reflection Templates',
   '/gameprep': 'Game Prep',
   '/standings': 'Standings',
   '/leaderboards': 'Leaderboards',
