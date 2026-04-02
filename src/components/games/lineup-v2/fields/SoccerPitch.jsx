@@ -77,15 +77,15 @@ function PositionCard({
 
   return (
     <foreignObject
-      x={-40}
-      y={-30}
-      width={80}
-      height={60}
+      x={-65}
+      y={-45}
+      width={130}
+      height={90}
       style={{ overflow: 'visible' }}
     >
       <div
         xmlns="http://www.w3.org/1999/xhtml"
-        className={`relative rounded-lg border transition-all cursor-default select-none ${
+        className={`relative rounded-xl border transition-all cursor-default select-none ${
           player
             ? 'shadow-md border-transparent'
             : isDark
@@ -93,8 +93,8 @@ function PositionCard({
               : 'border-dashed border-slate-400 bg-white/70'
         }`}
         style={{
-          width: 80,
-          height: 60,
+          width: 130,
+          height: 90,
           backdropFilter: 'blur(4px)',
           WebkitBackdropFilter: 'blur(4px)',
         }}
@@ -108,22 +108,22 @@ function PositionCard({
           <>
             {/* Filled card — colored top strip + jersey + name */}
             <div
-              className="absolute top-0 left-0 right-0 h-[3px] rounded-t-lg"
+              className="absolute top-0 left-0 right-0 h-[4px] rounded-t-xl"
               style={{ backgroundColor: roleColor }}
             />
-            <div className="flex flex-col items-center justify-center h-full px-1 pt-1">
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-black text-white leading-none">
+            <div className="flex flex-col items-center justify-center h-full px-2 pt-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-black text-white leading-none">
                   #{player.jersey_number}
                 </span>
                 <span
-                  className="px-1 py-0 text-[8px] font-bold rounded text-white leading-tight"
+                  className="px-1.5 py-0.5 text-[10px] font-bold rounded text-white leading-tight"
                   style={{ backgroundColor: roleColor }}
                 >
                   {displayRole}
                 </span>
               </div>
-              <span className="text-[10px] font-medium text-white/80 truncate max-w-[72px] leading-tight mt-0.5">
+              <span className="text-xs font-medium text-white/80 truncate max-w-[110px] leading-tight mt-1">
                 {player.first_name}
               </span>
             </div>
@@ -138,7 +138,7 @@ function PositionCard({
             {/* Remove button */}
             <button
               onClick={(e) => { e.stopPropagation(); onRemove() }}
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-black/60 hover:bg-red-500 text-white flex items-center justify-center text-[10px] leading-none opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black/60 hover:bg-red-500 text-white flex items-center justify-center text-xs leading-none opacity-0 hover:opacity-100 transition-opacity"
               onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
             >
@@ -147,19 +147,19 @@ function PositionCard({
           </>
         ) : (
           /* Empty slot */
-          <div className="flex flex-col items-center justify-center h-full gap-0.5 px-1">
+          <div className="flex flex-col items-center justify-center h-full gap-1 px-2">
             <span
-              className="px-1.5 py-0 text-[8px] font-bold rounded text-white"
+              className="px-2 py-0.5 text-[10px] font-bold rounded text-white"
               style={{ backgroundColor: roleColor }}
             >
               {position.role}
             </span>
-            <span className={`text-[9px] font-semibold leading-tight text-center ${
+            <span className={`text-[11px] font-semibold leading-tight text-center ${
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}>
               {position.name}
             </span>
-            <span className={`text-[7px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`text-[9px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               Drop here
             </span>
           </div>
@@ -413,7 +413,7 @@ export default function SoccerPitch({
       <div className="w-full flex-1 flex items-center justify-center min-h-0">
         <svg
           viewBox="0 0 500 600"
-          className="w-full h-full max-w-[540px] max-h-[640px]"
+          className="w-full h-full max-w-[720px]"
           style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))' }}
           preserveAspectRatio="xMidYMid meet"
         >

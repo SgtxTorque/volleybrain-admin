@@ -41,7 +41,7 @@ export default function LineupsPage({ showToast }) {
   const [showBuilder, setShowBuilder] = useState(false)
   const [builderEvent, setBuilderEvent] = useState(null) // null = quick builder, event = game lineup
 
-  const sport = selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
+  const sport = selectedTeam?.sport || selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
 
   // ============================================
   // DATA LOADING
@@ -67,30 +67,52 @@ export default function LineupsPage({ showToast }) {
         // Admin sees all teams for the season
         const { data: allTeams } = await supabase
           .from('teams')
-          .select('id, name, color, season_id')
+          .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
           .eq('season_id', selectedSeason?.id)
           .order('name')
 
-        setTeams(allTeams || [])
-        if (allTeams?.length > 0) {
-          // Keep current selection if still valid
-          const stillValid = selectedTeam && allTeams.find(t => t.id === selectedTeam.id)
-          if (!stillValid) setSelectedTeam(allTeams[0])
+        const enriched = (allTeams || []).map(t => ({
+          ...t,
+          sport: t.seasons?.sports?.name?.toLowerCase() || 'volleyball',
+          seasonName: t.seasons?.name,
+        }))
+
+        setTeams(enriched)
+        if (enriched.length > 0) {
+          const stillValid = selectedTeam && enriched.find(t => t.id === selectedTeam.id)
+          if (!stillValid) setSelectedTeam(enriched[0])
         } else {
           setSelectedTeam(null)
         }
       } else {
-        // Coach sees only their assigned teams
+        // Coach sees only their assigned teams (via coaches → team_coaches → teams)
         const { data: coachRecord } = await supabase
           .from('coaches')
-          .select('id, team_coaches(team_id, role, teams(id, name, color, season_id))')
+          .select('id')
           .eq('profile_id', user.id)
-          .maybeSingle()
+          .single()
 
-        const coachTeams = (coachRecord?.team_coaches || [])
-          .map(tc => tc.teams)
+        if (!coachRecord) {
+          setTeams([])
+          setSelectedTeam(null)
+          setLoading(false)
+          return
+        }
+
+        const { data: assignments } = await supabase
+          .from('team_coaches')
+          .select('team_id, role, teams(id, name, color, season_id, seasons(id, name, sport_id, sports(id, name)))')
+          .eq('coach_id', coachRecord.id)
+
+        const coachTeams = (assignments || [])
+          .map(a => ({
+            ...a.teams,
+            coachRole: a.role,
+            sport: a.teams?.seasons?.sports?.name?.toLowerCase() || 'volleyball',
+            seasonName: a.teams?.seasons?.name,
+          }))
           .filter(Boolean)
-          .filter(t => t.season_id === selectedSeason?.id)
+          .sort((a, b) => a.name.localeCompare(b.name))
 
         setTeams(coachTeams)
         if (coachTeams.length > 0) {
@@ -263,6 +285,15 @@ export default function LineupsPage({ showToast }) {
                       style={{ backgroundColor: team.color || 'var(--accent-primary)' }}
                     />
                     {team.name}
+                    <span className="text-xs opacity-60 ml-1">
+                      {team.sport === 'basketball' ? '\u{1F3C0}' :
+                       team.sport === 'baseball' ? '\u{26BE}' :
+                       team.sport === 'softball' ? '\u{1F94E}' :
+                       team.sport === 'soccer' ? '\u{26BD}' :
+                       team.sport === 'football' ? '\u{1F3C8}' :
+                       team.sport === 'flag_football' ? '\u{1F3F3}' :
+                       team.sport === 'volleyball' ? '\u{1F3D0}' : ''}
+                    </span>
                   </button>
                 ))}
               </div>

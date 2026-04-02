@@ -193,8 +193,8 @@ function PositionSlot({ posId, player, playerRole, isDark, tc, onDrop, onDragOve
               : 'border-dashed border-lynx-silver bg-white/80 backdrop-blur-sm'
         }`}
         style={{
-          width: 'clamp(80px, 9vw, 120px)',
-          height: 'clamp(95px, 11vw, 145px)',
+          width: 'clamp(120px, 11vw, 165px)',
+          height: 'clamp(150px, 14vw, 200px)',
         }}
         draggable={!!player}
         onDragStart={player ? (e) => onDragStart(e, player) : undefined}
@@ -218,7 +218,7 @@ function PositionSlot({ posId, player, playerRole, isDark, tc, onDrop, onDragOve
                   ? 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900'
                   : 'bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400'
               }`}>
-                <span className={`absolute inset-0 flex items-center justify-center text-4xl font-black ${
+                <span className={`absolute inset-0 flex items-center justify-center text-5xl font-black ${
                   isDark ? 'text-white/20' : 'text-slate-500/30'
                 }`}>
                   #{player.jersey_number}
@@ -230,16 +230,16 @@ function PositionSlot({ posId, player, playerRole, isDark, tc, onDrop, onDragOve
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
             {/* Content overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-1.5 text-white">
-              <div className="flex items-end justify-between gap-0.5">
+            <div className="absolute bottom-0 left-0 right-0 p-2.5 text-white">
+              <div className="flex items-end justify-between gap-1">
                 <div className="min-w-0">
-                  <div className="text-lg font-black leading-none">#{player.jersey_number}</div>
-                  <div className="text-[10px] font-medium leading-tight truncate mt-0.5 text-white/90">
+                  <div className="text-xl font-black leading-none">#{player.jersey_number}</div>
+                  <div className="text-xs font-medium leading-tight truncate mt-0.5 text-white/90">
                     {player.first_name}
                   </div>
                 </div>
                 <span
-                  className="px-1.5 py-0.5 text-[8px] font-bold rounded-md text-white flex-shrink-0"
+                  className="px-2 py-0.5 text-[9px] font-bold rounded-md text-white flex-shrink-0"
                   style={{ backgroundColor: displayRoleColor }}
                 >
                   {displayRole}
@@ -259,17 +259,17 @@ function PositionSlot({ posId, player, playerRole, isDark, tc, onDrop, onDragOve
           </>
         ) : (
           /* Empty slot */
-          <div className="flex flex-col items-center justify-center h-full gap-1 px-1">
+          <div className="flex flex-col items-center justify-center h-full gap-1.5 px-2">
             <span
-              className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
               style={{ backgroundColor: roleColor }}
             >
               {posId}
             </span>
-            <span className={`text-[9px] font-semibold text-center leading-tight ${tc.textMuted}`}>
+            <span className={`text-xs font-semibold text-center leading-tight ${tc.textMuted}`}>
               {coords.label}
             </span>
-            <span className={`text-[8px] ${tc.textMuted}`}>Drop here</span>
+            <span className={`text-[10px] ${tc.textMuted}`}>Drop here</span>
           </div>
         )}
       </div>
@@ -366,7 +366,7 @@ export default function BaseballDiamond({
       </div>
 
       {/* Diamond field container */}
-      <div className="relative w-full flex-1 min-h-0" style={{ maxWidth: '720px', maxHeight: '580px' }}>
+      <div className="relative w-full flex-1 min-h-0" style={{ maxWidth: '960px' }}>
         {/* SVG Field */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden shadow-lg">
           <DiamondSVG isDark={isDark} />

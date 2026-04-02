@@ -92,8 +92,8 @@ function PlayerSlot({ position, player, playerRole, isDark, tc, coords, onDrop, 
           : isDark ? 'border-dashed border-white/20 bg-black/30' : 'border-dashed border-white/40 bg-white/20'
       }`}
       style={{
-        width: 80,
-        height: 50,
+        width: 130,
+        height: 75,
         top: coords.top,
         left: coords.left,
         transform: 'translate(-50%, -50%)',
@@ -110,17 +110,17 @@ function PlayerSlot({ position, player, playerRole, isDark, tc, coords, onDrop, 
           <div className="absolute inset-0 bg-gradient-to-b from-slate-800 to-slate-900" />
 
           {/* Content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-0.5">
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-black leading-none">#{player.jersey_number}</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-1">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base font-black leading-none">#{player.jersey_number}</span>
               <span
-                className="px-1 py-0 text-[8px] font-bold rounded text-white flex-shrink-0"
+                className="px-1.5 py-0.5 text-[10px] font-bold rounded text-white flex-shrink-0"
                 style={{ backgroundColor: roleColor }}
               >
                 {displayRole}
               </span>
             </div>
-            <div className="text-[10px] font-medium leading-tight truncate mt-0.5 text-white/80 max-w-full px-1">
+            <div className="text-xs font-medium leading-tight truncate mt-0.5 text-white/80 max-w-full px-1">
               {player.first_name}
             </div>
           </div>
@@ -128,7 +128,7 @@ function PlayerSlot({ position, player, playerRole, isDark, tc, coords, onDrop, 
           {/* Remove button */}
           <button
             onClick={(e) => { e.stopPropagation(); onRemove() }}
-            className="absolute top-0 right-0 w-4 h-4 rounded-bl bg-black/60 hover:bg-red-500 text-white flex items-center justify-center text-[9px] transition-opacity backdrop-blur-sm"
+            className="absolute top-0 right-0 w-5 h-5 rounded-bl bg-black/60 hover:bg-red-500 text-white flex items-center justify-center text-xs transition-opacity backdrop-blur-sm"
             style={{ opacity: 0 }}
             onMouseEnter={e => e.currentTarget.style.opacity = 1}
             onMouseLeave={e => e.currentTarget.style.opacity = 0}
@@ -138,14 +138,14 @@ function PlayerSlot({ position, player, playerRole, isDark, tc, coords, onDrop, 
         </>
       ) : (
         /* Empty slot */
-        <div className="flex flex-col items-center justify-center h-full gap-0">
+        <div className="flex flex-col items-center justify-center h-full gap-0.5">
           <span
-            className="px-1.5 py-0 text-[8px] font-bold rounded text-white"
+            className="px-2 py-0.5 text-[10px] font-bold rounded text-white"
             style={{ backgroundColor: roleColor }}
           >
             {position.role}
           </span>
-          <span className="text-[9px] font-medium text-white/60 leading-tight mt-0.5 text-center px-0.5 truncate max-w-full">
+          <span className="text-[11px] font-medium text-white/60 leading-tight mt-0.5 text-center px-1 truncate max-w-full">
             {position.name}
           </span>
         </div>
@@ -252,8 +252,8 @@ export default function FootballField({
       </div>
 
       {/* Field container */}
-      <div className="relative flex-1 w-full max-w-[720px] flex items-center justify-center min-h-0">
-        <div className="relative w-full" style={{ maxWidth: 600, aspectRatio: '600 / 450' }}>
+      <div className="relative flex-1 w-full flex items-center justify-center min-h-0">
+        <div className="relative w-full" style={{ maxWidth: 960, aspectRatio: '600 / 450' }}>
           {/* SVG Football Field */}
           <svg
             viewBox="0 0 600 450"

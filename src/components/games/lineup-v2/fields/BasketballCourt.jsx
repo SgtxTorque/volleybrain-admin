@@ -198,8 +198,8 @@ export default function BasketballCourt({
       </div>
 
       {/* Court container */}
-      <div className="relative flex-1 w-full max-w-[720px] flex items-center justify-center min-h-0">
-        <div className="relative w-full" style={{ maxWidth: 600, aspectRatio: '600 / 400' }}>
+      <div className="relative flex-1 w-full flex items-center justify-center min-h-0">
+        <div className="relative w-full" style={{ maxWidth: 960, aspectRatio: '600 / 400' }}>
           {/* SVG Half-Court */}
           <svg
             viewBox="0 0 600 400"
