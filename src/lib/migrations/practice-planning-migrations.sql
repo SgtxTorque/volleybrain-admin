@@ -440,8 +440,9 @@ INSERT INTO drill_categories (org_id, sport_id, name, display_name, sort_order) 
 ON CONFLICT DO NOTHING;
 
 -- Volleyball-specific categories (use subquery for sport_id)
+-- NOTE: Use aliased column names to avoid ambiguity with sports.name
 INSERT INTO drill_categories (org_id, sport_id, name, display_name, sort_order)
-SELECT NULL, id, name, display_name, sort_order FROM (VALUES
+SELECT NULL, s.id, v.cat_name, v.cat_display, v.cat_order FROM (VALUES
   ('serving', 'Serving', 10),
   ('passing', 'Passing', 11),
   ('setting', 'Setting', 12),
@@ -450,6 +451,6 @@ SELECT NULL, id, name, display_name, sort_order FROM (VALUES
   ('defense', 'Defense', 15),
   ('transition', 'Transition', 16),
   ('serve_receive', 'Serve Receive', 17)
-) AS v(name, display_name, sort_order)
-CROSS JOIN sports WHERE sports.name ILIKE '%volleyball%'
+) AS v(cat_name, cat_display, cat_order)
+CROSS JOIN sports s WHERE s.name ILIKE '%volleyball%'
 ON CONFLICT DO NOTHING;

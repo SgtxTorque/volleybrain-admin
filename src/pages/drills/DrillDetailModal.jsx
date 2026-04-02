@@ -129,7 +129,7 @@ export default function DrillDetailModal({ drill, visible, onClose, onEdit, onDe
             {/* Equipment */}
             {drill.equipment?.length > 0 && (
               <div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: mutedColor }}>Equipment</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest mb-1.5" style={{ color: mutedColor }}>Equipment</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {drill.equipment.map(e => (
                     <span key={e} className="text-xs px-2 py-0.5 rounded-md font-medium"
@@ -144,10 +144,18 @@ export default function DrillDetailModal({ drill, visible, onClose, onEdit, onDe
             {/* Description */}
             {drill.description && (
               <div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest mb-1.5" style={{ color: mutedColor }}>Description</h4>
+                <h4 className="text-xs font-black uppercase tracking-widest mb-1.5" style={{ color: mutedColor }}>Description</h4>
                 <p className="text-sm whitespace-pre-wrap" style={{ color: isDark ? '#CBD5E1' : '#475569' }}>
                   {drill.description}
                 </p>
+              </div>
+            )}
+
+            {/* Diagram */}
+            {drill.diagram_url && (
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest mb-1.5" style={{ color: mutedColor }}>Court Diagram</h4>
+                <img src={drill.diagram_url} alt="Drill diagram" className="w-full max-h-64 object-contain rounded-lg" style={{ background: isDark ? 'rgba(255,255,255,.04)' : '#f8f9fa' }} />
               </div>
             )}
 
@@ -155,7 +163,7 @@ export default function DrillDetailModal({ drill, visible, onClose, onEdit, onDe
             {drill.tags?.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {drill.tags.map(tag => (
-                  <span key={tag} className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  <span key={tag} className="text-xs font-semibold px-2 py-0.5 rounded-full"
                     style={{ background: isDark ? 'rgba(75,185,236,0.1)' : 'rgba(75,185,236,0.06)', color: 'var(--accent-primary)' }}>
                     #{tag}
                   </span>

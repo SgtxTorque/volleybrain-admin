@@ -91,7 +91,7 @@ export default function RosterManagerPage({ showToast, roleContext, onNavigate }
 
       if (playerIds.length > 0 && !isAllSeasons(selectedSeason) && selectedSeason?.id) {
         try {
-          const { data: ratings } = await supabase.from('player_skill_ratings').select('*').in('player_id', playerIds).eq('season_id', selectedSeason.id).order('rated_at', { ascending: false })
+          const { data: ratings } = await supabase.from('player_skill_ratings').select('*').in('player_id', playerIds).eq('season_id', selectedSeason.id).order('created_at', { ascending: false })
           for (const r of (ratings || [])) { if (!skillRatings[r.player_id]) skillRatings[r.player_id] = r }
         } catch (e) { console.warn('skill_ratings error:', e) }
         try {

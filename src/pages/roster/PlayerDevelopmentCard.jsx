@@ -86,7 +86,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
   async function loadGameStats() {
     try {
       const { data } = await supabase.from('game_player_stats')
-        .select('*, schedule_events!event_id(event_date, opponent_name, our_score, their_score)')
+        .select('*, schedule_events!event_id(event_date, opponent_name, our_score, opponent_score)')
         .eq('player_id', playerId).order('created_at', { ascending: false }).limit(20)
       setGameStats(data || [])
     } catch { setGameStats([]) }
@@ -96,7 +96,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
     try {
       const { data } = await supabase.from('player_skill_ratings').select('*')
         .eq('player_id', playerId).eq('season_id', seasonId)
-        .order('rated_at', { ascending: false }).limit(1).single()
+        .order('created_at', { ascending: false }).limit(1).single()
       setSkillRating(data || null)
     } catch { setSkillRating(null) }
   }
@@ -379,7 +379,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                     <div className={`${cardBg} border rounded-xl p-4`}>
                       <h4 className={`text-xs uppercase tracking-wider font-semibold mb-3 ${secondaryText}`}>Recent Games</h4>
                       {gameStats.length > 0 ? gameStats.slice(0, 4).map((g, i) => {
-                        const isWin = (g.schedule_events?.our_score || 0) > (g.schedule_events?.their_score || 0)
+                        const isWin = (g.schedule_events?.our_score || 0) > (g.schedule_events?.opponent_score || 0)
                         return (
                           <div key={i} className={`flex items-center gap-2 py-2 ${i < 3 ? `border-b ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}` : ''}`}>
                             <span className={`w-6 h-6 rounded text-xs font-bold flex items-center justify-center ${isWin ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
@@ -459,7 +459,7 @@ export default function PlayerDevelopmentCard({ player, teamId, seasonId, onClos
                           </thead>
                           <tbody>
                             {gameStats.map((g, i) => {
-                              const isWin = (g.schedule_events?.our_score || 0) > (g.schedule_events?.their_score || 0)
+                              const isWin = (g.schedule_events?.our_score || 0) > (g.schedule_events?.opponent_score || 0)
                               return (
                                 <tr key={i} className={`border-b ${isDark ? 'border-white/[0.04]' : 'border-lynx-silver/50'}`}>
                                   <td className={`px-3 py-2 text-xs ${secondaryText}`}>{g.schedule_events?.event_date ? new Date(g.schedule_events.event_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</td>

@@ -62,3 +62,24 @@ export function processVideoUrl(url) {
     source: 'youtube',
   }
 }
+
+/**
+ * Fetch video metadata from YouTube oEmbed API (no API key needed).
+ * Returns { title, author, thumbnailUrl } or null on failure.
+ */
+export async function fetchYouTubeMetadata(videoUrl) {
+  try {
+    const response = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(videoUrl)}&format=json`
+    )
+    if (!response.ok) return null
+    const data = await response.json()
+    return {
+      title: data.title || '',
+      author: data.author_name || '',
+      thumbnailUrl: data.thumbnail_url || null,
+    }
+  } catch {
+    return null
+  }
+}

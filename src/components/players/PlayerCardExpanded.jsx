@@ -361,7 +361,7 @@ export function PlayerCardExpanded({
     try {
       const { data, error } = await supabase
         .from('game_player_stats')
-        .select('*, schedule_events!event_id(event_date, opponent_name, our_score, their_score)')
+        .select('*, schedule_events!event_id(event_date, opponent_name, our_score, opponent_score)')
         .eq('player_id', player.id)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -379,8 +379,8 @@ export function PlayerCardExpanded({
       const games = (data || []).map(g => ({
         date: g.schedule_events?.event_date || g.game_date || null,
         opponent: g.schedule_events?.opponent_name || g.opponent_name || 'Unknown',
-        result: (g.schedule_events?.our_score || g.our_score || 0) > (g.schedule_events?.their_score || g.their_score || 0) ? 'W' : 'L',
-        score: `${g.schedule_events?.our_score || g.our_score || 0}-${g.schedule_events?.their_score || g.their_score || 0}`,
+        result: (g.schedule_events?.our_score || g.our_score || 0) > (g.schedule_events?.opponent_score || g.their_score || 0) ? 'W' : 'L',
+        score: `${g.schedule_events?.our_score || g.our_score || 0}-${g.schedule_events?.opponent_score || g.their_score || 0}`,
         kills: g.kills || 0,
         digs: g.digs || 0,
         aces: g.aces || 0,

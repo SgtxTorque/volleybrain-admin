@@ -52,7 +52,7 @@ export default function DrillCard({ drill, isFavorited, onToggleFavorite, onClic
         )}
 
         {/* Duration badge */}
-        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/60 text-white flex items-center gap-1">
+        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-xs font-bold bg-black/60 text-white flex items-center gap-1">
           <Clock className="w-3 h-3" />
           {drill.duration_minutes}m
         </div>
@@ -70,13 +70,13 @@ export default function DrillCard({ drill, isFavorited, onToggleFavorite, onClic
 
       {/* Content */}
       <div className="p-3">
-        <h3 className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+        <h3 className={`text-base font-bold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
           {drill.title}
         </h3>
 
         <div className="flex items-center gap-2 mt-1.5">
           {/* Category pill */}
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
             isDark ? 'bg-white/[0.06] text-slate-400' : 'bg-slate-100 text-slate-500'
           }`}>
             {drill.category?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
@@ -84,7 +84,7 @@ export default function DrillCard({ drill, isFavorited, onToggleFavorite, onClic
 
           {/* Intensity */}
           <span
-            className="text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"
+            className="text-xs font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5"
             style={{ background: intensity.bg, color: intensity.color }}
           >
             <Zap className="w-2.5 h-2.5" />

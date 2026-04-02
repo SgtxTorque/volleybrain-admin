@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useSport } from '../../contexts/SportContext'
-import { X, Play, Upload, Plus, Trash2 } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import { X, Play, Upload, Plus, Trash2, Youtube, Image, Video } from 'lucide-react'
 import { createDrill, updateDrill, fetchDrillCategories } from '../../lib/drill-service'
-import { processVideoUrl } from '../../lib/youtube-helpers'
+import { processVideoUrl, fetchYouTubeMetadata } from '../../lib/youtube-helpers'
 
 const INTENSITY_OPTIONS = [
   { value: 'low', label: 'Low', color: '#10B981' },
@@ -34,6 +35,16 @@ export default function CreateDrillModal({ visible, onClose, onSuccess, editDril
   const [tags, setTags] = useState([])
   const [tagInput, setTagInput] = useState('')
 
+  // Media source mode: 'youtube' | 'video' | 'diagram'
+  const [mediaMode, setMediaMode] = useState('youtube')
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [uploadingDiagram, setUploadingDiagram] = useState(false)
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState('')
+  const [diagramUrl, setDiagramUrl] = useState('')
+  const [fetchingMeta, setFetchingMeta] = useState(false)
+  const videoFileRef = useRef(null)
+  const diagramFileRef = useRef(null)
+
   const isEdit = !!editDrill
 
   useEffect(() => {
@@ -48,8 +59,13 @@ export default function CreateDrillModal({ visible, onClose, onSuccess, editDril
         setIntensity(editDrill.intensity || 'medium')
         setEquipment(editDrill.equipment || [])
         setTags(editDrill.tags || [])
+        setDiagramUrl(editDrill.diagram_url || '')
+        setUploadedVideoUrl('')
         if (editDrill.video_url) {
-          setVideoPreview(processVideoUrl(editDrill.video_url))
+          const preview = processVideoUrl(editDrill.video_url)
+          setVideoPreview(preview.isValid ? preview : null)
+          setMediaMode(preview.isValid ? 'youtube' : 'video')
+          if (!preview.isValid) setUploadedVideoUrl(editDrill.video_url)
         }
       } else {
         resetForm()
@@ -66,12 +82,85 @@ export default function CreateDrillModal({ visible, onClose, onSuccess, editDril
     setTitle(''); setVideoUrl(''); setVideoPreview(null); setDescription('')
     setCategory('general'); setDuration('10'); setIntensity('medium')
     setEquipment([]); setTags([]); setTagInput('')
+    setMediaMode('youtube'); setUploadedVideoUrl(''); setDiagramUrl('')
   }
 
-  function handleVideoUrlChange(url) {
+  async function handleVideoUrlChange(url) {
     setVideoUrl(url)
     const result = processVideoUrl(url)
     setVideoPreview(result.isValid ? result : null)
+
+    // Auto-fill title from YouTube oEmbed if title is empty
+    if (result.isValid && !title.trim()) {
+      setFetchingMeta(true)
+      const meta = await fetchYouTubeMetadata(url)
+      if (meta?.title && !title.trim()) setTitle(meta.title)
+      setFetchingMeta(false)
+    }
+  }
+
+  async function handleVideoFileUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 50 * 1024 * 1024) {
+      showToast?.('Video must be less than 50MB', 'error')
+      return
+    }
+    setUploadingVideo(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `drill-videos/${orgId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('media').upload(path, file, {
+        cacheControl: '3600', contentType: file.type || 'video/mp4',
+      })
+      if (error) {
+        if (error.message?.includes('not found') || error.statusCode === '404') {
+          showToast?.('Storage bucket "media" not found — check Supabase storage settings', 'warning')
+        } else {
+          showToast?.(`Video upload failed: ${error.message}`, 'error')
+        }
+        return
+      }
+      const { data: urlData } = supabase.storage.from('media').getPublicUrl(path)
+      if (urlData?.publicUrl) {
+        setUploadedVideoUrl(urlData.publicUrl)
+        showToast?.('Video uploaded', 'success')
+      }
+    } catch (err) {
+      showToast?.(`Upload failed: ${err.message}`, 'error')
+    }
+    setUploadingVideo(false)
+    if (videoFileRef.current) videoFileRef.current.value = ''
+  }
+
+  async function handleDiagramUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      showToast?.('Image must be less than 10MB', 'error')
+      return
+    }
+    setUploadingDiagram(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `drill-diagrams/${orgId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage.from('media').upload(path, file, {
+        cacheControl: '3600', contentType: file.type || 'image/png',
+      })
+      if (error) {
+        showToast?.(`Diagram upload failed: ${error.message}`, 'error')
+        return
+      }
+      const { data: urlData } = supabase.storage.from('media').getPublicUrl(path)
+      if (urlData?.publicUrl) {
+        setDiagramUrl(urlData.publicUrl)
+        showToast?.('Diagram uploaded', 'success')
+      }
+    } catch (err) {
+      showToast?.(`Upload failed: ${err.message}`, 'error')
+    }
+    setUploadingDiagram(false)
+    if (diagramFileRef.current) diagramFileRef.current.value = ''
   }
 
   function toggleEquipment(item) {
@@ -92,6 +181,11 @@ export default function CreateDrillModal({ visible, onClose, onSuccess, editDril
     if (!title.trim()) return
     setSaving(true)
 
+    // Determine final video URL: YouTube URL takes priority, then uploaded video
+    const finalVideoUrl = mediaMode === 'youtube' ? (videoUrl.trim() || null) : (uploadedVideoUrl || null)
+    const finalThumbnail = mediaMode === 'youtube' ? (videoPreview?.thumbnailUrl || null) : null
+    const finalSource = mediaMode === 'youtube' && videoPreview?.isValid ? 'youtube' : (uploadedVideoUrl ? 'upload' : null)
+
     const drillData = {
       title: title.trim(),
       description: description.trim() || null,
@@ -100,9 +194,10 @@ export default function CreateDrillModal({ visible, onClose, onSuccess, editDril
       intensity,
       equipment: equipment.length > 0 ? equipment : null,
       tags: tags.length > 0 ? tags : null,
-      video_url: videoUrl.trim() || null,
-      video_thumbnail_url: videoPreview?.thumbnailUrl || null,
-      video_source: videoPreview?.source || null,
+      video_url: finalVideoUrl,
+      video_thumbnail_url: finalThumbnail,
+      video_source: finalSource,
+      diagram_url: diagramUrl || null,
     }
 
     try {
@@ -166,24 +261,107 @@ export default function CreateDrillModal({ visible, onClose, onSuccess, editDril
             />
           </div>
 
-          {/* YouTube URL */}
+          {/* Media Source */}
           <div>
-            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>YouTube URL</label>
-            <input
-              type="url" value={videoUrl}
-              onChange={e => handleVideoUrlChange(e.target.value)}
-              placeholder="https://youtube.com/watch?v=..."
-              className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
-              style={inputStyle}
-            />
-            {videoPreview?.isValid && (
-              <div className="mt-2 relative rounded-lg overflow-hidden aspect-video bg-black">
-                <img src={videoPreview.thumbnailUrl} alt="Video preview" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white ml-0.5" fill="white" />
+            <label className="text-sm font-bold mb-1.5 block" style={{ color: textColor }}>Media</label>
+            {/* Mode pills */}
+            <div className="flex gap-1.5 mb-2">
+              {[
+                { id: 'youtube', label: 'YouTube URL', icon: Youtube },
+                { id: 'video', label: 'Upload Video', icon: Video },
+                { id: 'diagram', label: 'Upload Diagram', icon: Image },
+              ].map(m => (
+                <button key={m.id} onClick={() => setMediaMode(m.id)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition"
+                  style={{
+                    border: `1.5px solid ${mediaMode === m.id ? 'var(--accent-primary)' : border}`,
+                    background: mediaMode === m.id ? 'rgba(75,185,236,0.08)' : 'transparent',
+                    color: mediaMode === m.id ? 'var(--accent-primary)' : textColor,
+                  }}>
+                  <m.icon className="w-3.5 h-3.5" /> {m.label}
+                </button>
+              ))}
+            </div>
+
+            {/* YouTube input */}
+            {mediaMode === 'youtube' && (
+              <>
+                <input
+                  type="url" value={videoUrl}
+                  onChange={e => handleVideoUrlChange(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                  style={inputStyle}
+                />
+                {fetchingMeta && (
+                  <p className="text-xs mt-1" style={{ color: 'var(--accent-primary)' }}>Fetching video info...</p>
+                )}
+                {videoPreview?.isValid && (
+                  <div className="mt-2 relative rounded-lg overflow-hidden aspect-video bg-black">
+                    <img src={videoPreview.thumbnailUrl} alt="Video preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
+                        <Play className="w-6 h-6 text-white ml-0.5" fill="white" />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+              </>
+            )}
+
+            {/* Video upload */}
+            {mediaMode === 'video' && (
+              <div>
+                <input ref={videoFileRef} type="file" accept="video/*" className="hidden" onChange={handleVideoFileUpload} />
+                {uploadedVideoUrl ? (
+                  <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: inputBg, border: `1px solid ${border}` }}>
+                    <Video className="w-4 h-4 shrink-0 text-emerald-500" />
+                    <span className="text-xs truncate flex-1" style={{ color: textColor }}>Video uploaded</span>
+                    <button onClick={() => setUploadedVideoUrl('')} className="p-1 rounded hover:bg-red-500/10">
+                      <X className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => videoFileRef.current?.click()}
+                    disabled={uploadingVideo}
+                    className="w-full py-6 rounded-xl border-2 border-dashed text-sm font-semibold transition hover:opacity-80 flex flex-col items-center gap-2"
+                    style={{ borderColor: border, color: mutedColor }}>
+                    {uploadingVideo ? (
+                      <div className="w-5 h-5 border-2 border-[#4BB9EC] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <><Upload className="w-5 h-5" />Click to upload video (max 50MB)</>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Diagram upload */}
+            {mediaMode === 'diagram' && (
+              <div>
+                <input ref={diagramFileRef} type="file" accept="image/*" className="hidden" onChange={handleDiagramUpload} />
+                {diagramUrl ? (
+                  <div className="relative rounded-xl overflow-hidden">
+                    <img src={diagramUrl} alt="Diagram" className="w-full max-h-48 object-contain rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.04)' : '#f8f9fa' }} />
+                    <button onClick={() => setDiagramUrl('')}
+                      className="absolute top-2 right-2 p-1 rounded-full bg-black/50 hover:bg-black/70 transition">
+                      <X className="w-3.5 h-3.5 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => diagramFileRef.current?.click()}
+                    disabled={uploadingDiagram}
+                    className="w-full py-6 rounded-xl border-2 border-dashed text-sm font-semibold transition hover:opacity-80 flex flex-col items-center gap-2"
+                    style={{ borderColor: border, color: mutedColor }}>
+                    {uploadingDiagram ? (
+                      <div className="w-5 h-5 border-2 border-[#4BB9EC] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <><Upload className="w-5 h-5" />Click to upload court diagram or image (max 10MB)</>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </div>

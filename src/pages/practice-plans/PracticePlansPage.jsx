@@ -152,7 +152,7 @@ export default function PracticePlansPage({ showToast }) {
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className={`text-sm font-bold pr-6 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{plan.title}</h3>
+                  <h3 className={`text-base font-bold pr-6 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{plan.title}</h3>
                   <button onClick={e => handleToggleFavorite(e, plan.id)} className="shrink-0 p-1">
                     <Heart className={`w-4 h-4 transition ${isFav ? 'text-red-400 fill-red-400' : isDark ? 'text-slate-600' : 'text-slate-300'}`} />
                   </button>
@@ -177,7 +177,7 @@ export default function PracticePlansPage({ showToast }) {
                 {plan.focus_areas?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {plan.focus_areas.map(area => (
-                      <span key={area} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      <span key={area} className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                         isDark ? 'bg-white/[0.04] text-slate-400' : 'bg-slate-100 text-slate-500'
                       }`}>
                         {area.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
@@ -186,7 +186,7 @@ export default function PracticePlansPage({ showToast }) {
                   </div>
                 )}
 
-                <div className={`text-[10px] mt-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                <div className={`text-xs mt-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
                   Updated {new Date(plan.updated_at).toLocaleDateString()}
                 </div>
 

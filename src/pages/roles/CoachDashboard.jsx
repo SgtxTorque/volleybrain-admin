@@ -580,7 +580,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
         if (playerIds.length > 0) {
           const { data: ratings } = await supabase
             .from('player_skill_ratings')
-            .select('player_id, overall_rating, serve, pass, attack, block, dig, set_skill, created_at')
+            .select('player_id, overall_rating, serving_rating, passing_rating, setting_rating, attacking_rating, blocking_rating, defense_rating, created_at')
             .in('player_id', playerIds)
             .order('created_at', { ascending: false })
           // Group by player_id, keep most recent eval per player

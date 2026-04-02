@@ -376,11 +376,24 @@ export default function PracticePlanBuilder({ showToast }) {
                       </span>
 
                       <div className="flex-1 min-w-0">
-                        <div className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-                          {item.item_type === 'drill' ? (item.drill?.title || item.custom_title || 'Untitled Drill') : item.custom_title}
-                        </div>
+                        {item.item_type === 'drill' ? (
+                          <div className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                            {item.drill?.title || item.custom_title || 'Untitled Drill'}
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            value={item.custom_title || ''}
+                            onChange={e => updateItem(index, 'custom_title', e.target.value)}
+                            placeholder={
+                              item.item_type === 'break' ? 'Water Break' :
+                              item.item_type === 'talk' ? 'Team Talk' : 'Custom Block'
+                            }
+                            className={`text-sm font-semibold bg-transparent outline-none w-full border-b border-transparent focus:border-[var(--accent-primary)] transition ${isDark ? 'text-white placeholder:text-slate-600' : 'text-[#10284C] placeholder:text-slate-400'}`}
+                          />
+                        )}
                         {item.drill?.category && (
-                          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                             {item.drill.category.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                           </span>
                         )}
@@ -395,7 +408,7 @@ export default function PracticePlanBuilder({ showToast }) {
                         style={{ background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: `1px solid ${border}`, color: textColor }}
                         min="1"
                       />
-                      <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>min</span>
+                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>min</span>
 
                       <button onClick={() => removeItem(index)}
                         className="p-1 rounded-lg opacity-0 group-hover:opacity-100 transition hover:bg-red-500/10">
@@ -506,15 +519,15 @@ export default function PracticePlanBuilder({ showToast }) {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className={`text-xs font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                        <div className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
                           {drill.title}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                             {drill.duration_minutes}m
                           </span>
                           <span className="w-1 h-1 rounded-full" style={{ background: intColor }} />
-                          <span className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                             {drill.category?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
                           </span>
                         </div>
@@ -522,7 +535,7 @@ export default function PracticePlanBuilder({ showToast }) {
 
                       <button
                         onClick={() => addDrillToSequence(drill)}
-                        className="shrink-0 px-2 py-1 rounded-md text-[10px] font-bold transition hover:opacity-80"
+                        className="shrink-0 px-2.5 py-1 rounded-md text-xs font-bold transition hover:opacity-80"
                         style={{ background: 'var(--accent-primary)', color: 'white' }}
                       >
                         + Add
