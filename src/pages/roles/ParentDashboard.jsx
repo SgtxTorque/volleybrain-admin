@@ -30,6 +30,10 @@ import ParentPaymentsTab from '../../components/v2/parent/ParentPaymentsTab'
 import ParentFormsTab from '../../components/v2/parent/ParentFormsTab'
 import ParentReportCardTab from '../../components/v2/parent/ParentReportCardTab'
 import BadgeShowcase from '../../components/v2/parent/BadgeShowcase'
+import EngagementLevelCard from '../../components/engagement/EngagementLevelCard'
+import EngagementActivityCard from '../../components/engagement/EngagementActivityCard'
+import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCard'
+import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -73,6 +77,16 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [showActionSidebar, setShowActionSidebar] = useState(false)
   const [quickRsvpEvent, setQuickRsvpEvent] = useState(null)
   const [activeTab, setActiveTab] = useState('schedule')
+
+  // Engagement column state
+  const [parentBadges, setParentBadges] = useState([])
+  const [totalAchievements, setTotalAchievements] = useState(0)
+  const [weeklyRsvps, setWeeklyRsvps] = useState(0)
+  const [weeklyShoutouts, setWeeklyShoutouts] = useState(0)
+  const [weeklyPhotos, setWeeklyPhotos] = useState(0)
+  const [volunteerSignups, setVolunteerSignups] = useState(0)
+  const [parentPulseData, setParentPulseData] = useState({ active: 0, drifting: 0, inactive: 0 })
+  const [parentNextBadgeProgress, setParentNextBadgeProgress] = useState(null)
 
   const initialLoadDone = useRef(false)
 
@@ -118,6 +132,129 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     if (child?.id) loadXpData(child.id)
     else setXpData({ level: 1, currentXp: 0, xpToNext: 1000 })
   }, [activeChildIdx, registrationData.length])
+
+  // Load engagement column data when registrationData is available
+  useEffect(() => {
+    if (registrationData.length === 0 || !profile?.id) return
+    loadParentEngagementData()
+  }, [registrationData.length, profile?.id])
+
+  async function loadParentEngagementData() {
+    const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const weekAgoStr = weekAgo.toISOString()
+    const childIds = registrationData.map(c => c.id).filter(Boolean)
+
+    // E1. Parent badges (from profile user)
+    try {
+      const { data: badgeData } = await supabase
+        .from('player_achievements')
+        .select('id, earned_at, achievement:achievement_id(id, name, icon, icon_url, badge_image_url, rarity)')
+        .eq('player_id', profile.id)
+        .order('earned_at', { ascending: false })
+        .limit(10)
+      setParentBadges((badgeData || []).map(b => ({ name: b.achievement?.name || 'Badge', icon: b.achievement?.icon || '🏅', badge_image_url: b.achievement?.badge_image_url, rarity: b.achievement?.rarity })))
+    } catch { setParentBadges([]) }
+
+    // E2. Total active achievements
+    try {
+      const { count: totalAch } = await supabase
+        .from('achievements')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+      setTotalAchievements(totalAch || 0)
+    } catch { setTotalAchievements(0) }
+
+    // E3. RSVPs submitted this week (for parent's children)
+    try {
+      if (childIds.length > 0) {
+        const { count: rsvpCount } = await supabase
+          .from('event_rsvps')
+          .select('*', { count: 'exact', head: true })
+          .in('player_id', childIds)
+          .gte('created_at', weekAgoStr)
+        setWeeklyRsvps(rsvpCount || 0)
+      } else { setWeeklyRsvps(0) }
+    } catch { setWeeklyRsvps(0) }
+
+    // E4. Shoutouts given by parent this week
+    try {
+      const { count: shoutCount } = await supabase
+        .from('shoutouts')
+        .select('*', { count: 'exact', head: true })
+        .eq('given_by', profile.id)
+        .gte('created_at', weekAgoStr)
+      setWeeklyShoutouts(shoutCount || 0)
+    } catch { setWeeklyShoutouts(0) }
+
+    // E5. Photos uploaded this week
+    try {
+      const { count: photoCount } = await supabase
+        .from('team_posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('author_id', profile.id)
+        .eq('post_type', 'photo')
+        .gte('created_at', weekAgoStr)
+      setWeeklyPhotos(photoCount || 0)
+    } catch { setWeeklyPhotos(0) }
+
+    // E6. Volunteer signups this season
+    try {
+      if (teamIds.length > 0) {
+        const { count: volCount } = await supabase
+          .from('event_volunteers')
+          .select('*', { count: 'exact', head: true })
+          .eq('volunteer_id', profile.id)
+        setVolunteerSignups(volCount || 0)
+      } else { setVolunteerSignups(0) }
+    } catch { setVolunteerSignups(0) }
+
+    // E7. Kids' pulse (based on children's XP activity)
+    try {
+      if (childIds.length > 0) {
+        const { data: xpActivity } = await supabase
+          .from('xp_ledger')
+          .select('player_id, created_at')
+          .in('player_id', childIds)
+          .order('created_at', { ascending: false })
+        const now = new Date()
+        const latestByPlayer = {}
+        for (const entry of (xpActivity || [])) {
+          if (!latestByPlayer[entry.player_id]) latestByPlayer[entry.player_id] = entry.created_at
+        }
+        let active = 0, drifting = 0, inactive = 0
+        for (const pid of childIds) {
+          const last = latestByPlayer[pid]
+          if (!last) { inactive++; continue }
+          const days = Math.floor((now - new Date(last)) / (1000 * 60 * 60 * 24))
+          if (days <= 7) active++
+          else if (days <= 21) drifting++
+          else inactive++
+        }
+        setParentPulseData({ active, drifting, inactive })
+      } else { setParentPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+    } catch { setParentPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+
+    // E8. Next badge hint
+    try {
+      const { data: progressData } = await supabase
+        .from('player_achievement_progress')
+        .select('achievement_id, current_value, target_value, achievements(id, name, stat_key, threshold)')
+        .eq('player_id', profile.id)
+      if (progressData && progressData.length > 0) {
+        let best = null
+        for (const p of progressData) {
+          if (!p.target_value || p.target_value <= 0) continue
+          const ratio = (p.current_value || 0) / p.target_value
+          if (ratio >= 1) continue
+          if (!best || ratio > best.ratio) {
+            best = { ratio, remaining: Math.ceil(p.target_value - (p.current_value || 0)), action: p.achievements?.stat_key || 'actions', badgeName: p.achievements?.name || 'next badge' }
+          }
+        }
+        setParentNextBadgeProgress(best)
+      } else { setParentNextBadgeProgress(null) }
+    } catch { setParentNextBadgeProgress(null) }
+  }
 
   async function loadChildEvals(regData) {
     try {
@@ -465,6 +602,22 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     { icon: '🏅', label: 'Badges', onClick: () => onNavigate?.('achievements') },
   ]
 
+  // ── Engagement column computed values ──
+  const parentXp = profile?.total_xp || 0
+  const parentLevelInfo = getLevelFromXP(parentXp)
+  const parentTier = getLevelTier(parentLevelInfo.level)
+
+  const parentActivities = [
+    { icon: '📅', label: 'RSVPs submitted', count: weeklyRsvps, bg: '#FAEEDA', color: '#B45309' },
+    { icon: '⭐', label: 'Shoutouts given', count: weeklyShoutouts, bg: '#EEEDFE', color: '#7C3AED' },
+    { icon: '📷', label: 'Photos uploaded', count: weeklyPhotos, bg: '#E6F1FB', color: '#2563EB' },
+    { icon: '🤝', label: 'Volunteer signups', count: volunteerSignups, bg: '#E1F5EE', color: '#059669' },
+  ]
+
+  const parentNextBadgeHint = parentNextBadgeProgress
+    ? `${parentNextBadgeProgress.remaining} more ${parentNextBadgeProgress.action} for ${parentNextBadgeProgress.badgeName}`
+    : null
+
   // Tab definitions (BodyTabs expects `id` not `key`)
   const parentTabs = [
     { id: 'schedule', label: 'Schedule' },
@@ -643,7 +796,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               />
             )}
 
-            {/* Body Tabs */}
+            {/* INNER FLEX: Tabs + Engagement Column side by side */}
+            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
             <BodyTabs
               tabs={parentTabs}
               activeTabId={activeTab}
@@ -684,6 +839,44 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 />
               )}
             </BodyTabs>
+            </div>
+
+            {/* ENGAGEMENT COLUMN — 280px fixed, real data */}
+            <div
+              className="parent-engagement-column"
+              style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
+            >
+              <EngagementLevelCard
+                levelInfo={parentLevelInfo}
+                tierName={parentTier.name}
+                xp={parentXp}
+                onNavigateAchievements={() => onNavigate?.('achievements')}
+              />
+              <EngagementActivityCard
+                activities={parentActivities}
+                nextBadgeHint={parentNextBadgeHint}
+              />
+              <EngagementBadgesCard
+                earnedCount={parentBadges.length}
+                totalCount={totalAchievements}
+                badges={parentBadges}
+                onNavigateAchievements={() => onNavigate?.('achievements')}
+              />
+              <EngagementTeamPulseCard
+                active={parentPulseData.active}
+                drifting={parentPulseData.drifting}
+                inactive={parentPulseData.inactive}
+                title="My Kids"
+              />
+            </div>
+            </div>
+
+            {/* Responsive: hide engagement column on narrow screens */}
+            <style>{`
+              @media (max-width: 1200px) {
+                .parent-engagement-column { display: none !important; }
+              }
+            `}</style>
           </>
         }
         sideContent={
