@@ -17,6 +17,11 @@ import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import AdminRegistrationsTab from '../../components/v2/admin/AdminRegistrationsTab'
 import AdminPaymentsTab from '../../components/v2/admin/AdminPaymentsTab'
 import AdminScheduleTab from '../../components/v2/admin/AdminScheduleTab'
+import EngagementLevelCard from '../../components/engagement/EngagementLevelCard'
+import EngagementActivityCard from '../../components/engagement/EngagementActivityCard'
+import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCard'
+import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
+import { getLevelFromXP, getLevelTier } from '../../lib/engagement-constants'
 
 // Old inline widgets (DashCard, CardHeader, DonutChart, SeasonCard, etc.) removed in v2 swap
 
@@ -194,7 +199,7 @@ export function GettingStartedGuide({ onNavigate }) {
 // MAIN DASHBOARD PAGE
 // ============================================
 export function DashboardPage({ onNavigate, activeView, availableViews = [], onSwitchRole }) {
-  const { organization, profile } = useAuth()
+  const { organization, profile, user } = useAuth()
   const { seasons, allSeasons, selectedSeason, selectSeason, loading: seasonLoading } = useSeason()
   const { sports, selectedSport, selectSport } = useSport()
   const { isDark, accent, toggleTheme } = useTheme()
@@ -245,6 +250,15 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [attentionExpanded, setAttentionExpanded] = useState(false)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+
+  // Engagement column state
+  const [adminBadges, setAdminBadges] = useState([])
+  const [totalAchievements, setTotalAchievements] = useState(0)
+  const [adminPulseData, setAdminPulseData] = useState({ active: 0, drifting: 0, inactive: 0 })
+  const [weeklyBlasts, setWeeklyBlasts] = useState(0)
+  const [weeklyRegs, setWeeklyRegs] = useState(0)
+  const [weeklyRevenue, setWeeklyRevenue] = useState(0)
+  const [nextBadgeProgress, setNextBadgeProgress] = useState(null)
 
   // ── Org setup completion detection (onboarding priority) ──
   const orgSetupComplete = Boolean(
@@ -901,6 +915,117 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         setPaymentFamilies([])
       }
 
+      // ── Engagement column queries ──
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      const weekAgoStr = weekAgo.toISOString()
+
+      // E1. Admin badges
+      try {
+        const { data: badgeData } = await supabase
+          .from('player_achievements')
+          .select('id, earned_at, achievement:achievement_id(id, name, icon, icon_url, badge_image_url, rarity)')
+          .eq('player_id', user?.id)
+          .order('earned_at', { ascending: false })
+          .limit(10)
+        setAdminBadges((badgeData || []).map(b => ({ name: b.achievement?.name || 'Badge', icon: b.achievement?.icon || '🏅', badge_image_url: b.achievement?.badge_image_url, rarity: b.achievement?.rarity })))
+      } catch { setAdminBadges([]) }
+
+      // E2. Total active achievements
+      try {
+        const { count: totalAch } = await supabase
+          .from('achievements')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true)
+        setTotalAchievements(totalAch || 0)
+      } catch { setTotalAchievements(0) }
+
+      // E3. Blasts sent this week
+      try {
+        const { count: blastCount } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('sender_id', user?.id)
+          .gte('created_at', weekAgoStr)
+        setWeeklyBlasts(blastCount || 0)
+      } catch { setWeeklyBlasts(0) }
+
+      // E4. Registrations this week
+      try {
+        const { count: regCount } = await supabase
+          .from('players')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', orgId)
+          .gte('created_at', weekAgoStr)
+        setWeeklyRegs(regCount || 0)
+      } catch { setWeeklyRegs(0) }
+
+      // E5. Revenue collected this week
+      try {
+        const { data: weekPayments } = await supabase
+          .from('payments')
+          .select('amount')
+          .eq('organization_id', orgId)
+          .eq('paid', true)
+          .gte('paid_date', weekAgo.toISOString().split('T')[0])
+        const total = (weekPayments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
+        setWeeklyRevenue(Math.round(total))
+      } catch { setWeeklyRevenue(0) }
+
+      // E6. Org-wide player pulse (active/drifting/inactive based on XP activity)
+      try {
+        const allTeamIds2 = teams?.map(t => t.id) || []
+        if (allTeamIds2.length > 0) {
+          const { data: allPlayers } = await supabase
+            .from('team_players')
+            .select('player_id')
+            .in('team_id', allTeamIds2)
+          const playerIds = [...new Set((allPlayers || []).map(p => p.player_id))]
+          if (playerIds.length > 0) {
+            const { data: xpActivity } = await supabase
+              .from('xp_ledger')
+              .select('player_id, created_at')
+              .in('player_id', playerIds)
+              .order('created_at', { ascending: false })
+            const now = new Date()
+            const latestByPlayer = {}
+            for (const entry of (xpActivity || [])) {
+              if (!latestByPlayer[entry.player_id]) latestByPlayer[entry.player_id] = entry.created_at
+            }
+            let active = 0, drifting = 0, inactive = 0
+            for (const pid of playerIds) {
+              const last = latestByPlayer[pid]
+              if (!last) { inactive++; continue }
+              const days = Math.floor((now - new Date(last)) / (1000 * 60 * 60 * 24))
+              if (days <= 7) active++
+              else if (days <= 21) drifting++
+              else inactive++
+            }
+            setAdminPulseData({ active, drifting, inactive })
+          } else { setAdminPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+        } else { setAdminPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+      } catch { setAdminPulseData({ active: 0, drifting: 0, inactive: 0 }) }
+
+      // E7. Next badge hint
+      try {
+        const { data: progressData } = await supabase
+          .from('player_achievement_progress')
+          .select('achievement_id, current_value, target_value, achievements(id, name, stat_key, threshold)')
+          .eq('player_id', user?.id)
+        if (progressData && progressData.length > 0) {
+          let best = null
+          for (const p of progressData) {
+            if (!p.target_value || p.target_value <= 0) continue
+            const ratio = (p.current_value || 0) / p.target_value
+            if (ratio >= 1) continue
+            if (!best || ratio > best.ratio) {
+              best = { ratio, remaining: Math.ceil(p.target_value - (p.current_value || 0)), action: p.achievements?.stat_key || 'actions', badgeName: p.achievements?.name || 'next badge' }
+            }
+          }
+          setNextBadgeProgress(best)
+        } else { setNextBadgeProgress(null) }
+      } catch { setNextBadgeProgress(null) }
+
     } catch (err) {
       console.error('Dashboard load error:', err)
     }
@@ -963,6 +1088,22 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   if ((seasonLoading || loading) && !initialLoadComplete) {
     return <SkeletonDashboard />
   }
+
+  // ── Engagement column computed values ──
+  const adminXp = profile?.total_xp || 0
+  const adminLevelInfo = getLevelFromXP(adminXp)
+  const adminTier = getLevelTier(adminLevelInfo.level)
+
+  const adminActivities = [
+    { icon: '📢', label: 'Blasts sent', count: weeklyBlasts, bg: '#FAEEDA', color: '#B45309' },
+    { icon: '📋', label: 'Registrations', count: weeklyRegs, bg: '#EEEDFE', color: '#7C3AED' },
+    { icon: '💰', label: 'Revenue', count: `$${weeklyRevenue.toLocaleString()}`, bg: '#E6F1FB', color: '#2563EB' },
+    { icon: '👥', label: 'Teams managed', count: stats.teams || 0, bg: '#E1F5EE', color: '#059669' },
+  ]
+
+  const adminNextBadgeHint = nextBadgeProgress
+    ? `${nextBadgeProgress.remaining} more ${nextBadgeProgress.action} for ${nextBadgeProgress.badgeName}`
+    : null
 
   // Build stepper steps from setup tracker logic (7 steps with org setup priority)
   const setupSteps = [
@@ -1156,7 +1297,9 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 />
               )}
 
-              {/* BODY TABS */}
+              {/* INNER FLEX: Tabs + Engagement Column side by side */}
+              <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
               <BodyTabs
                 tabs={[
                   { id: 'action-items', label: 'Action Items', badge: actionCount || 0 },
@@ -1253,6 +1396,44 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                     : <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
                 )}
               </BodyTabs>
+              </div>
+
+              {/* ENGAGEMENT COLUMN — 280px fixed, real data */}
+              <div
+                className="admin-engagement-column"
+                style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
+              >
+                <EngagementLevelCard
+                  levelInfo={adminLevelInfo}
+                  tierName={adminTier.name}
+                  xp={adminXp}
+                  onNavigateAchievements={() => onNavigate?.('achievements')}
+                />
+                <EngagementActivityCard
+                  activities={adminActivities}
+                  nextBadgeHint={adminNextBadgeHint}
+                />
+                <EngagementBadgesCard
+                  earnedCount={adminBadges.length}
+                  totalCount={totalAchievements}
+                  badges={adminBadges}
+                  onNavigateAchievements={() => onNavigate?.('achievements')}
+                />
+                <EngagementTeamPulseCard
+                  active={adminPulseData.active}
+                  drifting={adminPulseData.drifting}
+                  inactive={adminPulseData.inactive}
+                  title="Org Pulse"
+                />
+              </div>
+              </div>
+
+              {/* Responsive: hide engagement column on narrow screens */}
+              <style>{`
+                @media (max-width: 1200px) {
+                  .admin-engagement-column { display: none !important; }
+                }
+              `}</style>
             </>
           }
 
@@ -1341,16 +1522,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 ]}
               />
 
-              {/* MILESTONE — placeholder data (TODO: wire to admin gamification) */}
-              <MilestoneCard
-                trophy="🏆"
-                title={`Season Admin · ${selectedSeason?.name || ''}`}
-                subtitle={`Health Score: ${healthScore}%`}
-                xpCurrent={healthScore * 50}
-                xpTarget={5200}
-                variant="gold"
-                onClick={() => onNavigate?.('achievements')}
-              />
+              {/* MilestoneCard removed — replaced by engagement column */}
             </>
           }
         />
