@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { SPORT_CONFIGS } from '../../constants/sportConfigs'
 
 // ============================================
 // INLINE ICONS
@@ -51,117 +52,7 @@ const UserIcon = ({ className }) => (
   </svg>
 )
 
-// ============================================
-// SPORT CONFIGURATIONS
-// ============================================
-const SPORT_CONFIGS = {
-  volleyball: {
-    name: 'Volleyball',
-    icon: '🏐',
-    starterCount: 6,
-    hasRotations: true,
-    rotationCount: 6,
-    hasLibero: true,
-    hasSets: true,
-    maxSets: 5,
-    formations: {
-      '5-1': {
-        name: '5-1 Offense',
-        description: '1 setter runs all rotations',
-        positions: [
-          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'OH', color: '#EF4444', row: 'back' },
-          { id: 2, name: 'P2', label: 'Right Front', role: 'OPP', color: '#6366F1', row: 'front' },
-          { id: 3, name: 'P3', label: 'Middle Front', role: 'MB', color: '#F59E0B', row: 'front' },
-          { id: 4, name: 'P4', label: 'Left Front', role: 'OH', color: '#EF4444', row: 'front' },
-          { id: 5, name: 'P5', label: 'Left Back', role: 'MB', color: '#F59E0B', row: 'back' },
-          { id: 6, name: 'P6', label: 'Middle Back', role: 'S', color: '#10B981', row: 'back' },
-        ],
-      },
-      '6-2': {
-        name: '6-2 Offense',
-        description: '2 setters, setter always back row',
-        positions: [
-          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'S', color: '#10B981', row: 'back' },
-          { id: 2, name: 'P2', label: 'Right Front', role: 'OH', color: '#EF4444', row: 'front' },
-          { id: 3, name: 'P3', label: 'Middle Front', role: 'MB', color: '#F59E0B', row: 'front' },
-          { id: 4, name: 'P4', label: 'Left Front', role: 'OH', color: '#EF4444', row: 'front' },
-          { id: 5, name: 'P5', label: 'Left Back', role: 'MB', color: '#F59E0B', row: 'back' },
-          { id: 6, name: 'P6', label: 'Middle Back', role: 'S', color: '#10B981', row: 'back' },
-        ],
-      },
-      '4-2': {
-        name: '4-2 Simple',
-        description: 'Simple rotation for beginners',
-        positions: [
-          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'S', color: '#10B981', row: 'back' },
-          { id: 2, name: 'P2', label: 'Right Front', role: 'H', color: '#EF4444', row: 'front' },
-          { id: 3, name: 'P3', label: 'Middle Front', role: 'H', color: '#EF4444', row: 'front' },
-          { id: 4, name: 'P4', label: 'Left Front', role: 'S', color: '#10B981', row: 'front' },
-          { id: 5, name: 'P5', label: 'Left Back', role: 'H', color: '#EF4444', row: 'back' },
-          { id: 6, name: 'P6', label: 'Middle Back', role: 'H', color: '#EF4444', row: 'back' },
-        ],
-      },
-      '6-6': {
-        name: '6-6 Recreational',
-        description: 'Everyone rotates all positions',
-        positions: [
-          { id: 1, name: 'P1', label: 'Right Back (Serve)', role: 'P1', color: '#3B82F6', row: 'back' },
-          { id: 2, name: 'P2', label: 'Right Front', role: 'P2', color: '#10B981', row: 'front' },
-          { id: 3, name: 'P3', label: 'Middle Front', role: 'P3', color: '#F59E0B', row: 'front' },
-          { id: 4, name: 'P4', label: 'Left Front', role: 'P4', color: '#EF4444', row: 'front' },
-          { id: 5, name: 'P5', label: 'Left Back', role: 'P5', color: '#8B5CF6', row: 'back' },
-          { id: 6, name: 'P6', label: 'Middle Back', role: 'P6', color: '#EC4899', row: 'back' },
-        ],
-      },
-    },
-  },
-  basketball: {
-    name: 'Basketball',
-    icon: '🏀',
-    starterCount: 5,
-    hasRotations: false,
-    hasLibero: false,
-    hasSets: false,
-    formations: {
-      'standard': {
-        name: 'Standard',
-        positions: [
-          { id: 1, name: 'PG', label: 'Point Guard', role: 'PG', color: '#3B82F6' },
-          { id: 2, name: 'SG', label: 'Shooting Guard', role: 'SG', color: '#10B981' },
-          { id: 3, name: 'SF', label: 'Small Forward', role: 'SF', color: '#F59E0B' },
-          { id: 4, name: 'PF', label: 'Power Forward', role: 'PF', color: '#EF4444' },
-          { id: 5, name: 'C', label: 'Center', role: 'C', color: '#8B5CF6' },
-        ],
-      },
-    },
-  },
-  soccer: {
-    name: 'Soccer',
-    icon: '⚽',
-    starterCount: 11,
-    hasRotations: false,
-    hasLibero: false,
-    hasSets: false,
-    formations: {
-      '4-4-2': {
-        name: '4-4-2',
-        positions: [
-          { id: 1, name: 'GK', label: 'Goalkeeper', role: 'GK', color: '#F59E0B' },
-          { id: 2, name: 'LB', label: 'Left Back', role: 'DEF', color: '#3B82F6' },
-          { id: 3, name: 'CB1', label: 'Center Back', role: 'DEF', color: '#3B82F6' },
-          { id: 4, name: 'CB2', label: 'Center Back', role: 'DEF', color: '#3B82F6' },
-          { id: 5, name: 'RB', label: 'Right Back', role: 'DEF', color: '#3B82F6' },
-          { id: 6, name: 'LM', label: 'Left Mid', role: 'MID', color: '#10B981' },
-          { id: 7, name: 'CM1', label: 'Center Mid', role: 'MID', color: '#10B981' },
-          { id: 8, name: 'CM2', label: 'Center Mid', role: 'MID', color: '#10B981' },
-          { id: 9, name: 'RM', label: 'Right Mid', role: 'MID', color: '#10B981' },
-          { id: 10, name: 'ST1', label: 'Striker', role: 'FWD', color: '#EF4444' },
-          { id: 11, name: 'ST2', label: 'Striker', role: 'FWD', color: '#EF4444' },
-        ],
-      },
-    },
-  },
-}
+// SPORT_CONFIGS imported from src/constants/sportConfigs.js
 
 // ============================================
 // PLAYER CARD COMPONENT
@@ -1254,4 +1145,4 @@ function AdvancedLineupBuilder({ event, team, sport = 'volleyball', onClose, onS
   )
 }
 
-export { AdvancedLineupBuilder, SPORT_CONFIGS }
+export { AdvancedLineupBuilder }

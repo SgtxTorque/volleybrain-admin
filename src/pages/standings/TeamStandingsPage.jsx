@@ -239,7 +239,7 @@ export default function TeamStandingsPage() {
 
   if (loading) {
     return (
-      <PageShell title="Team Standings" breadcrumb="Game Day" actions={teamSelectorAction}>
+      <PageShell title="Team Standings" breadcrumb="Compete" actions={teamSelectorAction}>
         <div className="animate-pulse space-y-6">
           <div className={`h-8 rounded w-48 ${altBg}`} />
           <div className="grid grid-cols-4 gap-4">
@@ -256,7 +256,7 @@ export default function TeamStandingsPage() {
   // No team selected state
   if (!selectedTeam) {
     return (
-      <PageShell title="Team Standings" breadcrumb="Game Day">
+      <PageShell title="Team Standings" breadcrumb="Compete">
         <div>
           <div className={`${cardCls} rounded-[14px] p-12 text-center`}>
             <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
@@ -273,7 +273,7 @@ export default function TeamStandingsPage() {
   return (
     <PageShell
       title="Team Standings"
-      breadcrumb="Game Day"
+      breadcrumb="Compete"
       subtitle={`${selectedTeam?.name} / ${selectedSeason?.name}`}
       actions={teamSelectorAction}
     >

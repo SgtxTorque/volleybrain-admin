@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { X } from '../../constants/icons'
-import { getSportConfig } from '../../components/games/GameComponents'
+import { getSportConfig } from '../../constants/sportConfigs'
 
 function LineupBuilder({ event, team, onClose, showToast, onSave, sport = 'volleyball' }) {
   const tc = useThemeClasses()

@@ -580,7 +580,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   return (
     <PageShell
       title="Season Leaderboards"
-      breadcrumb="Game Day"
+      breadcrumb="Compete"
       subtitle={selectedSeason?.name || 'No season selected'}
       actions={actionsContent}
     >

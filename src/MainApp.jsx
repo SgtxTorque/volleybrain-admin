@@ -1048,8 +1048,8 @@ function MainApp() {
       { id: 'coach-availability', label: 'Coach Availability', icon: 'calendar-check' },
     ]},
 
-    // --- GAME DAY ---
-    { id: 'game', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+    // --- COMPETE ---
+    { id: 'game', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
@@ -1097,7 +1097,7 @@ function MainApp() {
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance', icon: 'check-square' },
     ]},
-    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+    { id: 'gameday', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'gameprep', label: 'Game Prep', icon: 'target' },
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
@@ -1181,7 +1181,7 @@ function MainApp() {
       { id: 'schedule', label: 'Schedule', icon: 'calendar' },
       { id: 'attendance', label: 'Attendance', icon: 'check-square' },
     ]},
-    { id: 'gameday', label: 'Game Day', type: 'group', icon: 'gameprep', items: [
+    { id: 'gameday', label: 'Compete', type: 'group', icon: 'gameprep', items: [
       { id: 'standings', label: 'Standings', icon: 'star' },
       { id: 'leaderboards', label: 'Leaderboards', icon: 'bar-chart' },
       { id: 'achievements', label: 'Achievements', icon: 'achievements' },
