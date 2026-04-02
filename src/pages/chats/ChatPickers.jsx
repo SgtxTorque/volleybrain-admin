@@ -14,7 +14,7 @@ const EMOJI_CATEGORIES = {
   celebration: ['🎉', '🎊', '🎈', '🎁', '🎀', '🎗️', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🌟', '⭐', '✨', '💫', '🔥', '💥', '💯'],
 }
 
-const TENOR_API_KEY = import.meta.env.VITE_TENOR_API_KEY || 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ'
+const TENOR_API_KEY = import.meta.env.VITE_TENOR_API_KEY || ''
 
 // ═══════════════════════════════════════════════════════════
 // EMOJI PICKER — Glass treatment

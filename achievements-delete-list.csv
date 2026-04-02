@@ -1,0 +1,151 @@
+id,name,stat_key,rarity,reason,kept_id,kept_name
+35a9a789-b373-456d-b738-3f9bf3a617d9,IRON PLAYER,games_played,epic,ALL-CAPS V2 leftover,,(standalone or duplicate)
+96d8f1c6-3ac9-4e7d-97e0-f9e8c27a526b,SCORING MACHINE,total_points,epic,ALL-CAPS V2 leftover,,(standalone or duplicate)
+ff2ab3fe-e438-4254-b929-2d9a1bc40d20,IRON FORTRESS,total_digs,epic,ALL-CAPS V2 leftover,,(standalone or duplicate)
+e2d92ed3-ba08-4fd4-91fc-14368cd2cd80,PUPPET MASTER,total_assists,rare,ALL-CAPS V2 leftover,,(standalone or duplicate)
+30f442ef-5d0a-44c2-911f-a2ea78f63f8f,NEVER QUIT,games_played,rare,ALL-CAPS V2 leftover,,(standalone or duplicate)
+35aeabaa-d445-499a-8d0e-5101e004580a,DIG MACHINE,total_digs,rare,ALL-CAPS V2 leftover,,(standalone or duplicate)
+898b58c0-a44d-48a4-b1e1-19b7cdfce498,INFERNO,total_kills,rare,ALL-CAPS V2 leftover,,(standalone or duplicate)
+33aec9f8-3ca9-451c-8313-108750dbf74b,SERVICE MASTER,total_aces,rare,ALL-CAPS V2 leftover,,(standalone or duplicate)
+a55fa948-1266-4a6e-a4f3-9827ed734f59,SETUP ARTIST,total_assists,uncommon,ALL-CAPS V2 leftover,,(standalone or duplicate)
+2de8b8d4-ea0f-4016-a259-a37cb14fd6f6,GROUND ZERO,total_digs,uncommon,ALL-CAPS V2 leftover,,(standalone or duplicate)
+2c66201a-48c7-4fc8-8598-2c2016b7697d,SHOWING UP,games_played,common,ALL-CAPS V2 leftover,,(standalone or duplicate)
+c29d7d89-1c5e-47dd-83b3-840835f9fdd8,FLOOR GENERAL,total_assists,epic,ALL-CAPS V2 leftover,,(standalone or duplicate)
+5babfb9d-d9e4-40d7-b919-aa007c6506df,ACE SNIPER,total_aces,uncommon,ALL-CAPS V2 leftover,,(standalone or duplicate)
+042a50d1-32ba-42c2-8ebf-e78927b26b9c,DOUBLE-DOUBLE,,epic,ALL-CAPS V2 leftover,,(standalone or duplicate)
+0401f9a4-f6bb-4edb-8c31-d0641b997218,NEON NIGHTS,total_points,epic,ALL-CAPS V2 leftover,,(standalone or duplicate)
+25cd84c3-7acd-4474-87cc-41c2e01761bd,Distributor II,total_assists,common,duplicate stat_key+rarity,99fdf266-d75e-43b4-8bf9-37bde0e4855f,Distributor I
+c460d72a-5415-45cc-8898-eaf61524c85c,50 Games,games_played,rare,duplicate stat_key+rarity,ac266a2b-fffc-4a5d-9355-54709cbd769c,50 Games
+f46b6b7c-0fbb-4893-be3a-2a246ea46a04,Floor General,total_digs,rare,duplicate stat_key+rarity,fc70d8e2-e6a8-405c-863e-4e1c5471dc57,Floor General
+59893b96-3462-4140-922c-7af0d3a8f784,Dig It III,total_digs,uncommon,duplicate stat_key+rarity,9b58fcfd-5b8c-4210-89da-23953e0d7b51,Dig It III
+197d20b7-9809-4faa-be2b-ede5dd891eed,First Game,games_played,common,duplicate stat_key+rarity,764d8ffb-87b0-4bb6-895c-73e194b03df1,10 Games
+3c381306-6088-491d-bf32-96029ac04f4e,First Game,games_played,common,duplicate stat_key+rarity,764d8ffb-87b0-4bb6-895c-73e194b03df1,10 Games
+75748366-f2d6-4b83-8a68-73ee68a2d2a8,Wizard,total_assists,epic,duplicate stat_key+rarity,10cdb689-f9fb-435b-b5fc-26bfa2717cb4,Wizard
+41739690-18d2-44da-88cb-fb99992ce68d,Sniper I,total_aces,common,duplicate stat_key+rarity,8b36bc21-9bfc-4dce-abd9-77ece73497f6,First Ace
+6d280a62-68b5-42cc-a153-d4a3fa9b59ac,Ace Machine,total_aces,epic,duplicate stat_key+rarity,f9983cf2-e53b-4ea6-b7fa-371810d26d04,Ace Machine
+f8be3289-5234-473b-9c34-876e320c9b0b,The Wall II,total_blocks,common,duplicate stat_key+rarity,c326a9ed-9448-4b6e-88cb-478364d101e8,The Wall I
+968ad747-78f6-42bd-b7a8-eae487a5fe1d,Dig It II,total_digs,common,duplicate stat_key+rarity,98b48164-e11b-431d-bd3a-22b332fd22ac,Dig It I
+acdeb532-5277-45db-9442-be22ab3b9096,Shoutout Coach I,shoutouts_given,common,duplicate stat_key+rarity,7e9d7453-067a-4108-8e8d-de3c8414ce84,Hype Machine I
+665a6dfc-9fe0-473b-9634-5fbaa752980b,Hype Parent I,shoutouts_given,common,duplicate stat_key+rarity,7e9d7453-067a-4108-8e8d-de3c8414ce84,Hype Machine I
+69ba3244-3cb5-46c8-83e9-833d072c206c,Shoutout Admin I,shoutouts_given,common,duplicate stat_key+rarity,7e9d7453-067a-4108-8e8d-de3c8414ce84,Hype Machine I
+1c6ab6f7-211e-4c74-9d96-60c5e1a0a534,Shoutout Manager I,shoutouts_given,common,duplicate stat_key+rarity,7e9d7453-067a-4108-8e8d-de3c8414ce84,Hype Machine I
+751fff43-e1a9-4496-a288-7f286cc5166a,Hype Parent I,shoutouts_given,common,duplicate stat_key+rarity,7e9d7453-067a-4108-8e8d-de3c8414ce84,Hype Machine I
+0d07be23-d07e-43dd-887d-526a86ad656b,First Shoutout,shoutouts_given,common,duplicate stat_key+rarity,7e9d7453-067a-4108-8e8d-de3c8414ce84,Hype Machine I
+71c12962-d9f2-4561-9a85-fd65c79c424a,Team Legend,shoutouts_received,rare,duplicate stat_key+rarity,0a99fb11-0e53-486a-8a8a-26f48180f10a,Fan Favorite III
+3ab49e29-a6da-4b72-b27b-2473e47884d3,Shoutout Coach II,shoutouts_given,uncommon,duplicate stat_key+rarity,4e546be7-02aa-4f83-bb2e-671999c84f67,Hype Machine II
+2af1235f-e6cb-4f52-bb17-c0fc5c4a2c6d,Hype Parent II,shoutouts_given,uncommon,duplicate stat_key+rarity,4e546be7-02aa-4f83-bb2e-671999c84f67,Hype Machine II
+eefe1288-8247-4447-9687-d14ec275e00e,Shoutout Admin II,shoutouts_given,uncommon,duplicate stat_key+rarity,4e546be7-02aa-4f83-bb2e-671999c84f67,Hype Machine II
+491465e6-356f-4849-9ce7-14314334ccde,Shoutout Manager II,shoutouts_given,uncommon,duplicate stat_key+rarity,4e546be7-02aa-4f83-bb2e-671999c84f67,Hype Machine II
+6cf36ec8-4db1-4344-a458-36b3dc81a680,Hype Parent II,shoutouts_given,uncommon,duplicate stat_key+rarity,4e546be7-02aa-4f83-bb2e-671999c84f67,Hype Machine II
+9ee1aa1a-a799-45e3-8ede-33529d36ef7f,Hype Machine,shoutouts_given,uncommon,duplicate stat_key+rarity,4e546be7-02aa-4f83-bb2e-671999c84f67,Hype Machine II
+a9dda236-877f-4d5d-857a-503de57269a4,Kill Streak I,total_kills,common,duplicate stat_key+rarity,a8fab567-84e4-4fb8-9d8e-0242e23e4244,First Blood
+841bec70-b0a0-4359-869e-c802d309a37c,5 Shoutouts Received,shoutouts_received,uncommon,duplicate stat_key+rarity,6deb8ad2-33f2-4a59-bfc0-3371dd29efa2,Fan Favorite II
+4eefa96f-b0a1-4c2f-ae80-70797d91fffb,Fan Favorite,shoutouts_received,uncommon,duplicate stat_key+rarity,6deb8ad2-33f2-4a59-bfc0-3371dd29efa2,Fan Favorite II
+de9bc5bf-772e-44af-85a3-ca4944b2ff4a,Shoutout Coach III,shoutouts_given,rare,duplicate stat_key+rarity,fe531134-4efe-4569-ad69-91b789cd69d8,Hype Machine III
+b1b6c098-1bd8-4ab1-94b1-d6d1a4b88be8,Hype Parent III,shoutouts_given,rare,duplicate stat_key+rarity,fe531134-4efe-4569-ad69-91b789cd69d8,Hype Machine III
+fb5631ba-171c-4c77-be5f-e3ca29a837d7,Shoutout Admin III,shoutouts_given,rare,duplicate stat_key+rarity,fe531134-4efe-4569-ad69-91b789cd69d8,Hype Machine III
+30c99d00-1991-4274-890d-dbd53f093db2,Shoutout Manager III,shoutouts_given,rare,duplicate stat_key+rarity,fe531134-4efe-4569-ad69-91b789cd69d8,Hype Machine III
+dbee21ba-d546-4861-8e60-540d06f087a1,Community Builder,shoutouts_given,rare,duplicate stat_key+rarity,fe531134-4efe-4569-ad69-91b789cd69d8,Hype Machine III
+61c53148-7a53-49d7-bf9f-0eeb7a8c8f6e,Stat Tracker,games_with_stats,common,duplicate stat_key+rarity,f8565999-3f82-433d-bf74-0a938f7dbbcf,Stat Keeper I
+c46766c3-7e8e-41f0-90fa-b90e012d1bcf,Team Cheerleader,post_reactions,common,duplicate stat_key+rarity,642f607b-1790-4b1d-ba51-08641e7f8ccc,Superfan I
+0d8f7f1c-c685-49b6-873e-c49c0924bbc8,Photographer II,photos_uploaded,uncommon,duplicate stat_key+rarity,b90fc5c7-4163-4dbf-a012-53f09076653b,Paparazzi
+a8217cc5-cd7d-4e7e-9248-69ccdab02804,Photo Uploader,photos_uploaded,uncommon,duplicate stat_key+rarity,b90fc5c7-4163-4dbf-a012-53f09076653b,Paparazzi
+429150cc-458e-4d85-ac4b-72115ee7a549,Photo Manager,photos_uploaded,uncommon,duplicate stat_key+rarity,b90fc5c7-4163-4dbf-a012-53f09076653b,Paparazzi
+af8f9816-e0a0-4440-a299-1281c36466d6,Photographer II,photos_uploaded,uncommon,duplicate stat_key+rarity,b90fc5c7-4163-4dbf-a012-53f09076653b,Paparazzi
+1eb3a6f9-f791-4732-81c1-9d2fef743607,Photo Contributor,photos_uploaded,uncommon,duplicate stat_key+rarity,b90fc5c7-4163-4dbf-a012-53f09076653b,Paparazzi
+62a13215-0258-4124-91e6-14c77e15b837,Social Butterfly,posts_created,uncommon,duplicate stat_key+rarity,142a423a-60e2-44ed-9aa6-c2c730a2307d,Social Butterfly
+60cce403-53b0-4e46-9522-bae3695dca94,Wall of Fame,posts_created,uncommon,duplicate stat_key+rarity,142a423a-60e2-44ed-9aa6-c2c730a2307d,Social Butterfly
+844da495-43b0-47cd-add8-d631d706a72c,10 Games Coached,games_completed,common,duplicate stat_key+rarity,0ece96b0-a8e2-4238-bab0-6d672a7674b9,First Whistle
+7f2be29b-8884-4536-b0c2-e6731ee1fcb8,Century Club,career_games,epic,duplicate stat_key+rarity,3fd9ee79-ffa5-4400-a14c-fb8ea2776516,100 Games Coached
+8340f547-2d4e-46fb-9c79-2681fb817360,RSVP Pro I,rsvps_going,common,duplicate stat_key+rarity,26229b3e-df22-4de4-87b2-8c16e8518779,RSVP Pro II
+e3bb07b8-6a27-4002-8448-4dfe98c78769,Game Day Ready,rsvps_going,common,duplicate stat_key+rarity,26229b3e-df22-4de4-87b2-8c16e8518779,RSVP Pro II
+ede1fd07-a48f-4d67-9e39-31dd4a327a99,Super Fan,rsvps_going,common,duplicate stat_key+rarity,26229b3e-df22-4de4-87b2-8c16e8518779,RSVP Pro II
+9f746fb1-0cdf-4a54-928d-c5e3af7d9ebf,Super Volunteer I,volunteer_signups,common,duplicate stat_key+rarity,4967085a-f3e2-4fd4-ba9e-634e1b1a2b83,Helping Hand
+79c75c4b-30b6-4f6f-95ca-3efd5645cc82,Helping Hand,volunteer_signups,common,duplicate stat_key+rarity,4967085a-f3e2-4fd4-ba9e-634e1b1a2b83,Helping Hand
+c9a29556-310d-4240-89a6-74c90a2af280,Super Volunteer II,volunteer_signups,uncommon,duplicate stat_key+rarity,ddfa8311-0bb6-4479-a094-768ce2c7ba29,Super Volunteer II
+f1f327bd-6509-410e-a666-f0b8b7e5bd1d,Blast Master I,blasts_sent,common,duplicate stat_key+rarity,9c994219-cdf2-44f3-9e33-28b717302e06,Communicator I
+6f5a8590-a6f0-49a4-89f0-c8c95e416018,First Blast,blasts_sent,common,duplicate stat_key+rarity,9c994219-cdf2-44f3-9e33-28b717302e06,Communicator I
+6d7622b9-5dae-46af-bd5d-f1b266b454a8,First Blast,blasts_sent,common,duplicate stat_key+rarity,9c994219-cdf2-44f3-9e33-28b717302e06,Communicator I
+a054c4c6-1809-4fc4-99f1-e5a4357c082a,Blast Master I,blasts_sent,common,duplicate stat_key+rarity,9c994219-cdf2-44f3-9e33-28b717302e06,Communicator I
+ab1ba0dc-de7f-4914-99ad-8b4b51c2ced4,Challenge Creator II,challenges_created,common,duplicate stat_key+rarity,2d78faf0-17e2-4e63-be9e-9e74615a1ab1,Challenge Creator I
+ea51786b-ec8e-4930-8b43-b50998185364,First Team,teams_created,common,duplicate stat_key+rarity,ce61ca7c-e01c-4220-9aa3-f935e1fef0a4,5 Teams
+09554cf5-8701-4d44-b8d4-371491041b25,Second Season,seasons_created,common,duplicate stat_key+rarity,6da0d2de-152a-48b4-a6a0-508bd16387c7,Launch Day
+8303ef80-9fba-4d42-a7b7-8f82fd4757f5,Full Buy-In II,full_participation_challenges,epic,duplicate stat_key+rarity,5ba19b90-7849-4d63-a709-2251b77176ca,Motivator
+8b0eb9d5-8c9e-4693-a903-9ac99a03e65c,20 Bomb,single_game_kills,legendary,duplicate stat_key+rarity,b2cb7478-fb34-49c8-9124-0475d534c860,20 Bomb
+ec46264f-cd7c-4edd-b2ca-445fa61bd884,Brick Wall,total_blocks,epic,duplicate stat_key+rarity,ecf2f144-2730-444f-921d-768ba8a6959c,Brick Wall
+89f96ffe-cc5d-4911-9fb6-cf64b8a50512,Show Up II,practices_attended,common,duplicate stat_key+rarity,92225b79-149f-4586-aa31-420f904a5ac5,Show Up I
+1407d2fb-f80c-43da-bc7d-55b3bfffe121,On Fire I,attendance_streak,common,duplicate stat_key+rarity,27ed949b-e484-424b-a5d3-afa1b9bd48c9,Iron Player I
+e9a84eb4-b8f9-456e-91dc-a0927a51dc30,On Fire II,attendance_streak,uncommon,duplicate stat_key+rarity,05e65ffd-1a96-4c47-9bc0-73e639c8ec1e,Iron Player II
+b14a1c80-0f1f-4829-9fa7-c6aa90b266e5,On Fire III,attendance_streak,rare,duplicate stat_key+rarity,a1c18127-edca-4f98-9c95-453de9d07cb6,Iron Player III
+2ec59832-dac5-49ce-9b97-70f0c4418f84,Unstoppable,attendance_streak,epic,duplicate stat_key+rarity,e67290f3-a2b4-43c2-89e5-cb473bbe85e3,Iron Player IV
+7460124b-6967-48be-8272-de1f3c35838e,Iron Player IV,attendance_streak,epic,duplicate stat_key+rarity,e67290f3-a2b4-43c2-89e5-cb473bbe85e3,Iron Player IV
+d13d2efb-2738-4981-a864-1d62a276993f,Perfect Attendance,perfect_attendance,epic,duplicate stat_key+rarity,c9db6e2c-f05e-4c8b-ae6e-c075ed2705d3,Perfect Attendance
+090b5d68-91d9-4cf3-b8ce-9a59e94e4da3,First Shoutout Received,shoutouts_received,common,duplicate stat_key+rarity,731980f8-72b7-4745-9148-4d80742d0da9,Fan Favorite I
+731c0f00-024e-45f7-9ac1-967874d66af2,Photographer I,photos_uploaded,common,duplicate stat_key+rarity,2223b077-67ac-4a42-95a9-e6dbd6db6b73,Photographer
+26605e52-29a6-46b0-a30c-187c56aace1a,Photo Day,photos_uploaded,common,duplicate stat_key+rarity,2223b077-67ac-4a42-95a9-e6dbd6db6b73,Photographer
+202a9474-484b-4150-bf08-cbf3e8e6df57,Challenge Accepted I,challenges_completed,common,duplicate stat_key+rarity,2950afc3-f2da-467e-8f05-b9031e4d4e33,Challenge Accepted I
+062cfc1b-3b9e-49ff-8968-ca3afbac4140,Challenge Accepted II,challenges_completed,uncommon,duplicate stat_key+rarity,c02f7bee-f600-4422-9b37-a4d744a4c82d,Challenge Accepted II
+15c39b13-bc64-42fe-90c1-1c9eb9e56984,Challenge Accepted III,challenges_completed,rare,duplicate stat_key+rarity,ec11e461-f8f7-4e77-a76f-65c221d20dd4,Challenge Accepted III
+86a34a14-5b36-4e9b-a16e-5da9ea8a0e5f,25 Games,games_played,uncommon,duplicate stat_key+rarity,322fc1f4-a184-4d00-944c-dc4e59aae9b5,25 Games
+386ffe26-e30c-47b8-b673-c6bf6eb13786,200 Games Coached,career_games,legendary,duplicate stat_key+rarity,ea31a33c-0fb2-4c22-9112-1157a90579ed,200 Club
+7009a550-4d75-4ece-8f92-d66d1b012ca2,Level 20,player_level,legendary,duplicate stat_key+rarity,7ef13706-5151-4557-b35a-f61dd8110c56,Level 20
+6ffe89b5-b350-46e6-9263-e921286903b7,Leaderboard III,leaderboard_top3,epic,duplicate stat_key+rarity,73a67fa4-65aa-4699-8f3a-6fa7df8c0ad2,Leaderboard III
+ebb2e40c-2281-40c0-8b4a-c0aa671a9bf8,Badge Collector I,total_badges,common,duplicate stat_key+rarity,49f0cc9f-1c22-4b4f-ad87-50e2840f1105,Badge Collector I
+fbd5e8e4-4843-4013-b3f4-6f71182d4885,Badge Collector I,total_badges,common,duplicate stat_key+rarity,49f0cc9f-1c22-4b4f-ad87-50e2840f1105,Badge Collector I
+9648e0a3-dec4-41bb-9705-bf1846f6729f,Badge Collector I,total_badges,common,duplicate stat_key+rarity,49f0cc9f-1c22-4b4f-ad87-50e2840f1105,Badge Collector I
+90c8fccc-ad6a-4b5e-bea4-1d08e2065f9e,Badge Collector I,total_badges,common,duplicate stat_key+rarity,49f0cc9f-1c22-4b4f-ad87-50e2840f1105,Badge Collector I
+4733d369-8621-4796-a077-40257f28ea6d,Badge Collector II,total_badges,uncommon,duplicate stat_key+rarity,e1b8d7fd-22bc-4426-a816-fc1e8864fb17,Badge Collector II
+d82a77b7-443b-48f8-abe3-6e3e5bfc1720,Badge Collector II,total_badges,uncommon,duplicate stat_key+rarity,e1b8d7fd-22bc-4426-a816-fc1e8864fb17,Badge Collector II
+d8b50b65-7f9b-4b52-ac54-05b223a93448,Badge Collector II,total_badges,uncommon,duplicate stat_key+rarity,e1b8d7fd-22bc-4426-a816-fc1e8864fb17,Badge Collector II
+a09243ba-c2a2-4027-abd1-713ea3034262,Badge Collector II,total_badges,uncommon,duplicate stat_key+rarity,e1b8d7fd-22bc-4426-a816-fc1e8864fb17,Badge Collector II
+c3c4c8e3-3662-4816-8385-a34d268de919,Badge Collector III,total_badges,rare,duplicate stat_key+rarity,f995b5f9-70d3-415e-859c-62cc96b57651,Badge Collector III
+9ecd429e-129c-476c-8670-ee051d3e9b78,Badge Collector III,total_badges,rare,duplicate stat_key+rarity,f995b5f9-70d3-415e-859c-62cc96b57651,Badge Collector III
+320315f5-4c57-41c6-a500-913c4d89cce0,Badge Collector III,total_badges,rare,duplicate stat_key+rarity,f995b5f9-70d3-415e-859c-62cc96b57651,Badge Collector III
+696545df-ffc5-4586-89e6-2c6148d1ff28,Badge Collector III,total_badges,rare,duplicate stat_key+rarity,f995b5f9-70d3-415e-859c-62cc96b57651,Badge Collector III
+29f6afa1-8661-41a9-b852-62b5ebf062db,Communicator II,blasts_sent,uncommon,duplicate stat_key+rarity,5990fbf9-0430-43e4-ae04-b7f9d47e0936,Blast Master II
+9e596744-fac6-4cb2-ade2-5d5775f1c2b3,Blast Master II,blasts_sent,uncommon,duplicate stat_key+rarity,5990fbf9-0430-43e4-ae04-b7f9d47e0936,Blast Master II
+adf1038a-add7-4523-80a2-abb1f78147a4,Communicator III,blasts_sent,rare,duplicate stat_key+rarity,5de79af5-af5d-4e88-93b0-d02659d22b81,Blast Master III
+e12586a9-6998-467c-82f7-68e4bffda657,Blast Master III,blasts_sent,rare,duplicate stat_key+rarity,5de79af5-af5d-4e88-93b0-d02659d22b81,Blast Master III
+97556754-2173-4b9d-94a1-6af48b1bea3c,Season Ticket,registrations,common,duplicate stat_key+rarity,f546a7ef-221b-437b-bfb7-c150b46ec62b,Welcome Home
+a18c4bf0-c298-48b0-a4ed-20d301b3c9de,Welcome Home,registrations,common,duplicate stat_key+rarity,f546a7ef-221b-437b-bfb7-c150b46ec62b,Welcome Home
+4a236f49-4766-4b07-a5ba-fcbfde124ed1,Sibling Duo,children_registered,common,duplicate stat_key+rarity,0e66d566-0689-4eb6-b588-f38073f0931b,Sibling Duo
+205341e2-42e9-4c1c-8ab2-cff4dd6e9eb7,RSVP Pro III,rsvps_going,uncommon,duplicate stat_key+rarity,4229de6e-cb64-47a6-97f1-b1b029bc0268,RSVP Pro III
+be01b3a9-826b-4799-a9dc-2128fdd5f856,Game Day Warrior I,games_attended,common,duplicate stat_key+rarity,303fae2b-e8bb-4ca4-8a8c-79ea9d0b8a72,Game Day Warrior I
+ff1d2631-8020-4269-8c82-016275be297c,Scorekeeper Pro,scorekeeper_count,uncommon,duplicate stat_key+rarity,91a42017-5a17-4550-97e6-59e4cbedd201,Scorekeeper Pro
+22dfbfcd-e147-46bd-b845-2b70a0156950,Active Poster,posts_created,common,duplicate stat_key+rarity,b9977597-ab43-48e1-ab0f-eb1ea984f4b5,First Post
+dc3c2c1c-17f8-4592-81dc-6f3cbefae7cb,Team Spirit,posts_created,common,duplicate stat_key+rarity,b9977597-ab43-48e1-ab0f-eb1ea984f4b5,First Post
+6eff868c-c02d-46bc-9fc8-1a1870dafe2f,Team Wall MVP,posts_created,common,duplicate stat_key+rarity,b9977597-ab43-48e1-ab0f-eb1ea984f4b5,First Post
+bf7e9ef5-0688-4e67-b57a-bd4330cf7a4b,Team Wall Active,posts_created,common,duplicate stat_key+rarity,b9977597-ab43-48e1-ab0f-eb1ea984f4b5,First Post
+5d2d4a24-b0d6-42af-85cf-ab6416bb8c44,Team Wall Active,posts_created,common,duplicate stat_key+rarity,b9977597-ab43-48e1-ab0f-eb1ea984f4b5,First Post
+201d8693-ac8c-4968-acfb-db7e385f1bb6,First Post,posts_created,common,duplicate stat_key+rarity,b9977597-ab43-48e1-ab0f-eb1ea984f4b5,First Post
+ddccb4e0-d244-4041-bfbe-461ca4329785,Superfan II,post_reactions,uncommon,duplicate stat_key+rarity,c9bbd123-6594-4407-a4d9-fc57c84a0924,Superfan II
+df4bf4d3-d811-4a60-9768-62438b015d68,Ambassador I,referrals_completed,uncommon,duplicate stat_key+rarity,90f139a0-6823-4f8a-8f90-306b4f295a98,Ambassador I
+5766c37b-6aae-429d-97e9-043748e16cc6,XP Milestone: 1K,total_xp,common,duplicate stat_key+rarity,4df25562-52fa-4605-8749-6b727086600d,XP Milestone: 1K
+ee782501-1ee9-4b63-bb05-32187410a435,XP Milestone: 5K,total_xp,uncommon,duplicate stat_key+rarity,cdc147e8-9279-430d-b72d-a0e46eec11f3,XP Milestone: 5K
+932ec6da-16f2-4a59-a55c-24fde2aabe92,XP Milestone: 10K,total_xp,rare,duplicate stat_key+rarity,485bdc09-0a95-420b-8e13-c0093e4f71b9,XP Milestone: 10K
+665efcf2-83fd-4e92-b2ef-c6d1a62f584a,Veteran Admin,seasons_created,rare,duplicate stat_key+rarity,0118c820-4da7-4d6e-8271-c8a4784d7e9d,Veteran Admin
+78d7f75a-0808-496e-b3fe-3157bce7019c,OG Admin,seasons_created,epic,duplicate stat_key+rarity,8edd5a97-7e9a-451c-b089-b89ec3685112,OG Admin
+94bde982-dc89-4e2e-bf7d-2ef59c97cc10,First 25,total_players,common,duplicate stat_key+rarity,4805129e-05a2-4ac6-93a5-25dc10ba2b9f,First 10
+85898077-7a4b-47ce-8b97-edf88545f774,Revenue: $1K,season_revenue,common,duplicate stat_key+rarity,1aad4d2b-d4c4-4a5b-8aba-a50205f60145,First Dollar
+424532af-1339-4e8b-b7ac-d8d81348240a,Waiver Wrangler I,waiver_compliance,common,duplicate stat_key+rarity,9c7a26a0-4fdd-488e-9b35-824bcde4e674,Waiver Compliance 80%
+ce6e255e-ad04-4ebe-8c13-e788aeeef300,Waiver Wrangler II,waiver_compliance,uncommon,duplicate stat_key+rarity,14f8f4ae-44e6-449c-9a3b-97b98704f3f7,Waiver Compliance 95%
+4067c3d2-0b2b-4104-9430-c8a089bb3944,Waiver Wrangler III,waiver_compliance,rare,duplicate stat_key+rarity,defda691-a651-4ba1-916c-3015b6fca78e,Full Compliance
+d79f57fe-a0cd-45f9-80de-0fa67212fe01,Event Creator I,events_created,common,duplicate stat_key+rarity,8bdcda64-92c5-4830-b1e2-796492b88a6f,Event Planner I
+01d5e838-ce7d-4c01-bb60-9e827611033b,Event Creator II,events_created,uncommon,duplicate stat_key+rarity,d60fc4cf-7df1-4a5a-83b7-23d897852fe1,Event Planner II
+ffaabbc6-fe18-49e6-8bf6-85be050df18b,Event Creator III,events_created,rare,duplicate stat_key+rarity,4b9c8c77-4417-43f5-813a-f4cbdc63fc44,Event Planner III
+441a3c9c-93a9-469b-bd0d-bee1efba67a4,Year Two,seasons_completed,common,duplicate stat_key+rarity,c9a9077b-9142-4a71-ae60-fbae0cd88d26,Year One
+86e99f48-4c1b-4183-987a-ecf5498d7d04,Returning Manager,seasons_managed,common,duplicate stat_key+rarity,5bfa3e07-cb45-4b46-9e85-cc0816401f55,First Season
+e8b311a0-8c3f-40b6-bae4-88801bce03bf,Challenge Champion,challenges_won,rare,duplicate stat_key+rarity,6f1fed88-ccb8-4fce-b64f-f0723d0a0d70,Challenge Champion
+f148564c-ec2b-4230-98f5-2eb970e3e63e,Back to Back,consecutive_challenge_wins,epic,duplicate stat_key+rarity,6eaf50ad-3b22-49d0-9a69-5796830c7c2e,Back to Back
+23c76751-486c-4878-9e64-d58b7d7932b1,Multi-Season Vet,seasons_played,rare,duplicate stat_key+rarity,bf5dad89-1ec8-4de4-8e2c-b48ec513dc24,Multi-Season Vet
+c6e9f201-6726-4f58-9251-4ac2ad00df56,Comeback Coach,comeback_wins,epic,duplicate stat_key+rarity,b175af9e-9681-4c7a-b3f4-9937146466ed,Comeback Kid
+aed08458-450b-42ec-8b09-d31830eade84,Comeback Kid,comeback_wins,epic,duplicate stat_key+rarity,b175af9e-9681-4c7a-b3f4-9937146466ed,Comeback Kid
+f9eef799-6f59-4da6-8541-a5192280d732,Profile Complete,profile_complete,common,duplicate stat_key+rarity,e47c96b6-fb40-4920-af21-c27003a2b53f,Profile Complete
+a5f79ece-cc74-45b3-a0f8-c8e46739e2bf,Emergency Ready,emergency_contacts_complete,common,duplicate stat_key+rarity,a2ae2faf-a7c2-482a-a03d-49762a523102,Emergency Ready
+1f63e2b4-99b4-46b9-a6ec-ce57daf72b17,Dark Mode Gang,dark_mode_enabled,common,duplicate stat_key+rarity,412a1721-7fe7-4377-beae-77230e05b6a9,Dark Mode Gang
+fb4e46ca-5b4c-45ae-b3d8-3536c042f2ec,Dark Mode Gang,dark_mode_enabled,common,duplicate stat_key+rarity,412a1721-7fe7-4377-beae-77230e05b6a9,Dark Mode Gang
+29a50f7c-6cfc-4797-8035-06d9bcc74eb4,Dark Mode Gang,dark_mode_enabled,common,duplicate stat_key+rarity,412a1721-7fe7-4377-beae-77230e05b6a9,Dark Mode Gang
+44d51858-ce00-416d-86f0-9723fbc6b910,Lynx OG,membership_days,rare,duplicate stat_key+rarity,2243c1fe-b379-4f15-b7e9-a2bad19bf2ce,Lynx OG
+ded5dadb-4d79-4c31-b734-e9acec2081f5,Bulk Creator,bulk_events_used,common,duplicate stat_key+rarity,8f925239-7bab-46d7-a5b3-5749fb8599da,Bulk Event Pro
+439391db-9aab-434b-a2fc-8feaea42b824,Zero Unrostered,zero_unrostered,rare,duplicate stat_key+rarity,0f294f19-5012-431c-af88-12cf29827d9d,Zero Unrostered
+8e4e846b-3507-4d46-bf52-a02af284f97f,Weekend Warrior,weekend_activity,common,duplicate stat_key+rarity,b035d17d-8c2b-4377-903f-6f382fa97181,Weekend Warrior Admin
