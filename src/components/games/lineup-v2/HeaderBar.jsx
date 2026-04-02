@@ -5,7 +5,7 @@ export default function HeaderBar({
   currentSet, totalSets, lineup, sportConfig,
   liberoId, saving,
   onSetChange, onAddSet, onSave, onClose,
-  onSaveTemplate, onLoadTemplate
+  onSaveTemplate, onLoadTemplate, onFormationChange
 }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
@@ -13,7 +13,6 @@ export default function HeaderBar({
   const starterCount = Object.keys(lineup).length
   const maxStarters = sportConfig?.starterCount || 6
   const isComplete = starterCount >= maxStarters
-  const formationName = formations?.[formation]?.name || formation
 
   return (
     <div
@@ -40,8 +39,8 @@ export default function HeaderBar({
         </div>
       </div>
 
-      {/* Center: Set Tabs */}
-      <div className="flex items-center gap-1">
+      {/* Center: Set Tabs + Formation Selector */}
+      <div className="flex items-center gap-2">
         {Array.from({ length: totalSets }, (_, i) => i + 1).map(setNum => (
           <button
             key={setNum}
@@ -64,26 +63,31 @@ export default function HeaderBar({
             +
           </button>
         )}
+        {/* Formation selector — moved from control bar */}
+        <div className={`w-px h-5 mx-1 ${isDark ? 'bg-lynx-border-dark' : 'bg-lynx-silver'}`} />
+        <select
+          value={formation}
+          onChange={e => onFormationChange(e.target.value)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border outline-none cursor-pointer ${
+            isDark
+              ? 'bg-lynx-graphite border-lynx-border-dark text-white'
+              : 'bg-lynx-frost border-lynx-silver text-lynx-navy'
+          }`}
+        >
+          {Object.entries(formations || {}).map(([key, config]) => (
+            <option key={key} value={key}>{config.name}</option>
+          ))}
+        </select>
       </div>
 
-      {/* Right: Starters + Formation + Save */}
-      <div className="flex items-center gap-3">
-        <span className={`text-xs font-medium ${tc.textMuted}`}>
-          {starterCount}/{maxStarters}
-        </span>
-        <span
-          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-            isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'
-          } ${tc.textSecondary}`}
-        >
-          {formationName}
-        </span>
+      {/* Right: Status + Templates + Save */}
+      <div className="flex items-center gap-2">
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
           isComplete
             ? 'bg-emerald-500/15 text-emerald-400'
             : 'bg-amber-500/15 text-amber-400'
         }`}>
-          {isComplete ? '✓ Valid' : `${starterCount}/${maxStarters}`}
+          {isComplete ? `✓ ${starterCount}/${maxStarters}` : `${starterCount}/${maxStarters}`}
         </span>
         <button
           onClick={onLoadTemplate}

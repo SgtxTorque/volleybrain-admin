@@ -30,7 +30,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   const [formation, setFormation] = useState(defaultFormation)
   const [lineup, setLineup] = useState({})        // { positionId: playerId }
   const [liberoId, setLiberoId] = useState(null)
-  const [subs, setSubs] = useState({})             // { positionId: benchPlayerId }
+  const [plannedSubs, setPlannedSubs] = useState([])  // [{ id, rotation, outPlayerId, inPlayerId }]
+  const [benchQueue, setBenchQueue] = useState([])     // Ordered bench for 6-6 rotation
 
   const [currentSet, setCurrentSet] = useState(1)
   const [setLineups, setSetLineups] = useState({})
@@ -145,11 +146,16 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
   function nextRotation() {
     if (!sportConfig.hasRotations) return
+    if (formation === '6-6') {
+      rotateRecreational()
+      return
+    }
     setCurrentRotation(prev => (prev + 1) % sportConfig.rotationCount)
   }
 
   function prevRotation() {
     if (!sportConfig.hasRotations) return
+    if (formation === '6-6') return // 6-6 doesn't support reverse rotation
     setCurrentRotation(prev => (prev - 1 + sportConfig.rotationCount) % sportConfig.rotationCount)
   }
 
@@ -171,17 +177,35 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
 
   function handleDrop(positionId, playerId) {
     const newLineup = { ...lineup }
-    // Remove player from any existing position
-    Object.keys(newLineup).forEach(key => {
-      if (newLineup[key] === playerId) delete newLineup[key]
-    })
-    // Map visual position to original position for rotated view
     const rotationOrder = [1, 2, 3, 4, 5, 6]
-    const posIndex = rotationOrder.indexOf(positionId)
-    const originalIndex = (posIndex + currentRotation) % 6
-    const originalPosition = rotationOrder[originalIndex]
 
-    newLineup[originalPosition] = playerId
+    // Map visual target position to original position
+    const targetPosIndex = rotationOrder.indexOf(positionId)
+    const targetOriginalIndex = (targetPosIndex + currentRotation) % 6
+    const targetOriginalPosition = rotationOrder[targetOriginalIndex]
+
+    // Find if incoming player is already on court (swap scenario)
+    const sourceOriginalPosition = Object.keys(newLineup).find(
+      key => newLineup[key] === playerId
+    )
+
+    // Who is currently at the target original position?
+    const targetPlayerId = newLineup[targetOriginalPosition]
+
+    if (sourceOriginalPosition) {
+      // Player is already on court — swap or move
+      if (targetPlayerId) {
+        // SWAP: put target player at source position
+        newLineup[sourceOriginalPosition] = targetPlayerId
+      } else {
+        // MOVE: just remove from source
+        delete newLineup[sourceOriginalPosition]
+      }
+    }
+
+    // Place incoming player at target
+    newLineup[targetOriginalPosition] = playerId
+
     setLineup(newLineup)
     setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
   }
@@ -314,16 +338,12 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   // ============================================
   // SUBSTITUTION HANDLERS
   // ============================================
-  function handleAddSub(positionId, benchPlayerId) {
-    setSubs(prev => ({ ...prev, [positionId]: benchPlayerId }))
+  function handleAddSub(sub) {
+    setPlannedSubs(prev => [...prev, sub])
   }
 
-  function handleRemoveSub(positionId) {
-    setSubs(prev => {
-      const next = { ...prev }
-      delete next[positionId]
-      return next
-    })
+  function handleRemoveSub(subId) {
+    setPlannedSubs(prev => prev.filter(s => s.id !== subId))
   }
 
   // ============================================
@@ -331,7 +351,53 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   // ============================================
   function handleFormationChange(newFormation) {
     setFormation(newFormation)
-    // Preserve existing lineup positions — the position IDs (1-6) are the same across formations
+    // Clear libero when switching to 6-6 (no libero in rec)
+    if (newFormation === '6-6') {
+      setLiberoId(null)
+    }
+    // Reset rotation when changing formations
+    setCurrentRotation(0)
+  }
+
+  // ============================================
+  // 6-6 RECREATIONAL ROTATION
+  // ============================================
+  function rotateRecreational() {
+    const newLineup = { ...lineup }
+    const exitingPlayerId = newLineup[1]  // Player leaving P1
+
+    // Shift everyone clockwise: P2→P1, P3→P2, P4→P3, P5→P4, P6→P5
+    newLineup[1] = newLineup[2]
+    newLineup[2] = newLineup[3]
+    newLineup[3] = newLineup[4]
+    newLineup[4] = newLineup[5]
+    newLineup[5] = newLineup[6]
+
+    // Next bench player enters at P6
+    const onCourtIds = new Set(Object.values(newLineup).filter(Boolean))
+    // Use benchQueue if set, otherwise use roster order
+    const availableBench = benchQueue.length > 0
+      ? benchQueue.filter(id => !onCourtIds.has(id))
+      : roster.filter(p => !onCourtIds.has(p.id) && p.id !== exitingPlayerId).map(p => p.id)
+
+    const nextPlayerId = availableBench[0]
+    if (nextPlayerId) {
+      newLineup[6] = nextPlayerId
+      // Rotate bench queue: move used player to end
+      if (benchQueue.length > 0) {
+        setBenchQueue(prev => {
+          const next = prev.filter(id => id !== nextPlayerId)
+          if (exitingPlayerId) next.push(exitingPlayerId)
+          return next
+        })
+      }
+    } else {
+      delete newLineup[6]
+    }
+
+    setLineup(newLineup)
+    setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
+    setCurrentRotation(prev => prev + 1) // 6-6 can go beyond 6
   }
 
   // ============================================
@@ -384,7 +450,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   // ============================================
   if (loading) {
     return (
-      <div className={`fixed inset-0 z-[60] flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+      <div className={`fixed inset-0 z-[300] flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }} />
           <span className={`text-sm ${tc.textMuted}`}>Loading lineup...</span>
@@ -394,7 +460,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   }
 
   return (
-    <div className={`fixed inset-0 z-[60] flex flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+    <div className={`fixed inset-0 z-[300] flex flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
       {/* Header Bar */}
       <HeaderBar
         team={team}
@@ -413,6 +479,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         onClose={onClose}
         onSaveTemplate={() => setShowSaveTemplate(true)}
         onLoadTemplate={() => setShowLoadTemplate(true)}
+        onFormationChange={handleFormationChange}
       />
 
       {/* Validation Banners */}
@@ -446,6 +513,14 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           getPlayerAtPosition={getPlayerAtPosition}
           onDrop={handleDrop}
           onRemovePlayer={handleRemovePlayer}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onAutoFill={autoFillLineup}
+          onClearLineup={clearLineup}
+          onCopyToAllSets={copyToAllSets}
+          isComplete={Object.keys(lineup).length >= (sportConfig?.starterCount || 6)}
+          starterCount={Object.keys(lineup).length}
+          maxStarters={sportConfig?.starterCount || 6}
         />
 
         {/* Right Panel */}
@@ -454,7 +529,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           lineup={lineup}
           rsvps={rsvps}
           liberoId={liberoId}
-          subs={subs}
+          plannedSubs={plannedSubs}
+          formation={formation}
           positions={positions}
           currentRotation={currentRotation}
           sportConfig={sportConfig}
@@ -473,17 +549,12 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
       <ControlBar
         currentRotation={currentRotation}
         sportConfig={sportConfig}
-        formation={formation}
-        formations={formations}
         lineup={lineup}
-        currentSet={currentSet}
+        roster={roster}
+        getPlayerAtPosition={getPlayerAtPosition}
         onNextRotation={nextRotation}
         onPrevRotation={prevRotation}
         onResetRotation={goToRotation}
-        onFormationChange={handleFormationChange}
-        onAutoFill={autoFillLineup}
-        onClearLineup={clearLineup}
-        onCopyToAllSets={copyToAllSets}
       />
 
       {/* Template Modals */}

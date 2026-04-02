@@ -1,33 +1,44 @@
 import { useTheme, useThemeClasses } from '../../../contexts/ThemeContext'
 
 export default function ControlBar({
-  currentRotation, sportConfig, formation, formations,
-  lineup, currentSet,
+  currentRotation, sportConfig, lineup, roster,
+  getPlayerAtPosition,
   onNextRotation, onPrevRotation, onResetRotation,
-  onFormationChange, onAutoFill, onClearLineup, onCopyToAllSets
 }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
 
   const rotationCount = sportConfig?.rotationCount || 6
-  const starterCount = Object.keys(lineup).length
-  const maxStarters = sportConfig?.starterCount || 6
-  const isComplete = starterCount >= maxStarters
+
+  // Calculate next rotation preview
+  const nextRot = (currentRotation + 1) % rotationCount
+  const rotationOrder = [1, 2, 3, 4, 5, 6]
+
+  function getPlayerAtRot(positionId, rot) {
+    const posIndex = rotationOrder.indexOf(positionId)
+    const sourceIndex = (posIndex + rot) % 6
+    const sourcePosition = rotationOrder[sourceIndex]
+    const playerId = lineup[sourcePosition]
+    return playerId ? roster?.find(p => p.id === playerId) : null
+  }
 
   return (
     <div
-      className={`flex items-center justify-between px-4 flex-shrink-0 ${
+      className={`flex items-center justify-between px-6 flex-shrink-0 ${
         isDark ? 'bg-lynx-charcoal border-t border-lynx-border-dark' : 'bg-white border-t border-lynx-silver'
       }`}
-      style={{ height: 56 }}
+      style={{ height: 64 }}
     >
       {/* Left: Rotation Navigation */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {sportConfig?.hasRotations && (
           <>
+            <span className={`text-[10px] font-bold uppercase tracking-widest mr-1 ${tc.textMuted}`}>Rotation</span>
             <button
               onClick={onPrevRotation}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center ${tc.textSecondary} ${tc.hoverBg}`}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center ${tc.textSecondary} ${tc.hoverBg} border ${
+                isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
+              }`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
@@ -35,9 +46,9 @@ export default function ControlBar({
               <button
                 key={rot}
                 onClick={() => onResetRotation(rot)}
-                className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
+                className={`w-9 h-9 rounded-lg text-sm font-bold transition-colors ${
                   currentRotation === rot
-                    ? 'text-white'
+                    ? 'text-white shadow-sm'
                     : `${tc.textMuted} ${tc.hoverBg}`
                 }`}
                 style={currentRotation === rot ? { backgroundColor: 'var(--accent-primary)' } : {}}
@@ -47,7 +58,9 @@ export default function ControlBar({
             ))}
             <button
               onClick={onNextRotation}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center ${tc.textSecondary} ${tc.hoverBg}`}
+              className={`w-9 h-9 rounded-lg flex items-center justify-center ${tc.textSecondary} ${tc.hoverBg} border ${
+                isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
+              }`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
@@ -55,56 +68,44 @@ export default function ControlBar({
         )}
       </div>
 
-      {/* Center: Formation Selector */}
-      <div className="flex items-center gap-2">
-        <select
-          value={formation}
-          onChange={e => onFormationChange(e.target.value)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border outline-none ${
-            isDark
-              ? 'bg-lynx-graphite border-lynx-border-dark text-white'
-              : 'bg-lynx-frost border-lynx-silver text-lynx-navy'
-          }`}
-        >
-          {Object.entries(formations || {}).map(([key, config]) => (
-            <option key={key} value={key}>{config.name}</option>
-          ))}
-        </select>
-      </div>
+      {/* Center: Next Rotation Preview */}
+      {sportConfig?.hasRotations && (
+        <div className="flex items-center gap-2">
+          <span className={`text-[10px] font-semibold ${tc.textMuted}`}>Next:</span>
+          <div className="flex gap-0.5">
+            {/* Mini preview: P4 P3 P2 | P5 P6 P1 */}
+            {[4, 3, 2, 5, 6, 1].map((posId, i) => {
+              const player = getPlayerAtRot(posId, nextRot)
+              return (
+                <div key={posId} className="flex items-center">
+                  {i === 3 && <div className={`w-px h-5 mx-0.5 ${isDark ? 'bg-lynx-border-dark' : 'bg-lynx-silver'}`} />}
+                  <div
+                    className={`w-7 h-7 rounded text-[8px] font-bold flex items-center justify-center ${
+                      player
+                        ? isDark ? 'bg-lynx-graphite text-white' : 'bg-lynx-frost text-lynx-navy'
+                        : isDark ? 'bg-lynx-graphite/50 text-slate-600' : 'bg-lynx-frost/50 text-slate-300'
+                    }`}
+                  >
+                    {player ? `#${player.jersey_number}` : '—'}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
-      {/* Right: Actions + Status */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onCopyToAllSets}
-          className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold ${tc.textMuted} ${tc.hoverBg} border ${
-            isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
-          }`}
-        >
-          Copy to all sets
-        </button>
-        <button
-          onClick={onAutoFill}
-          className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold ${tc.textMuted} ${tc.hoverBg} border ${
-            isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
-          }`}
-        >
-          Auto-Fill
-        </button>
-        <button
-          onClick={onClearLineup}
-          className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold text-red-400 ${tc.hoverBg} border ${
-            isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
-          }`}
-        >
-          Clear
-        </button>
-        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-          isComplete
-            ? 'bg-emerald-500/15 text-emerald-400'
-            : 'bg-amber-500/15 text-amber-400'
-        }`}>
-          {isComplete ? 'Lineup Valid ✓' : `Incomplete ${starterCount}/${maxStarters}`}
-        </span>
+      {/* Right: Current rotation server info */}
+      <div className="flex items-center gap-3">
+        {sportConfig?.hasRotations && (() => {
+          const serverPlayer = getPlayerAtRot(1, currentRotation)
+          return serverPlayer ? (
+            <div className={`flex items-center gap-2 text-xs ${tc.textMuted}`}>
+              <span>🏐</span>
+              <span className="font-semibold">Server: #{serverPlayer.jersey_number} {serverPlayer.first_name}</span>
+            </div>
+          ) : null
+        })()}
       </div>
     </div>
   )

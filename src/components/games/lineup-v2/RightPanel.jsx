@@ -11,11 +11,12 @@ const TABS = [
 // ============================================
 // ROSTER TAB
 // ============================================
-function RosterTab({ roster, lineup, rsvps, liberoId, isDark, tc, onDragStart, onDragEnd, onSetLibero }) {
+function RosterTab({ roster, lineup, rsvps, liberoId, formation, isDark, tc, onDragStart, onDragEnd, onSetLibero }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
 
   const onCourtIds = new Set(Object.values(lineup))
+  const showLibero = formation !== '6-6'
 
   const filtered = roster.filter(p => {
     if (search) {
@@ -73,7 +74,7 @@ function RosterTab({ roster, lineup, rsvps, liberoId, isDark, tc, onDragStart, o
               draggable
               onDragStart={(e) => onDragStart(e, player)}
               onDragEnd={onDragEnd}
-              className={`flex items-center gap-2 p-2 rounded-xl cursor-grab active:cursor-grabbing transition-colors ${
+              className={`flex items-center gap-2.5 p-2 rounded-xl cursor-grab active:cursor-grabbing transition-colors ${
                 isOnCourt
                   ? isDark ? 'bg-lynx-graphite/50 opacity-60' : 'bg-lynx-frost/50 opacity-60'
                   : isDark ? 'bg-lynx-graphite hover:bg-lynx-graphite/80' : 'bg-lynx-frost hover:bg-white'
@@ -81,7 +82,7 @@ function RosterTab({ roster, lineup, rsvps, liberoId, isDark, tc, onDragStart, o
               style={{ borderRadius: 'var(--v2-radius)' }}
             >
               {/* Photo */}
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-600/30 flex-shrink-0">
+              <div className="w-11 h-11 rounded-lg overflow-hidden bg-slate-600/30 flex-shrink-0">
                 {player.photo_url ? (
                   <img src={player.photo_url} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -96,9 +97,11 @@ function RosterTab({ roster, lineup, rsvps, liberoId, isDark, tc, onDragStart, o
                   <span className={`text-xs font-bold ${tc.text}`}>#{player.jersey_number}</span>
                   <span className={`text-xs ${tc.text} truncate`}>{player.first_name} {player.last_name?.[0]}.</span>
                 </div>
-                <div className="flex items-center gap-1 mt-0.5">
+                <div className="flex items-center gap-1.5 mt-0.5">
                   {player.team_position && (
-                    <span className={`text-[10px] ${tc.textMuted}`}>{player.team_position}</span>
+                    <span className={`text-[10px] font-medium px-1.5 py-0 rounded ${
+                      isDark ? 'bg-lynx-charcoal text-slate-400' : 'bg-slate-100 text-slate-500'
+                    }`}>{player.team_position}</span>
                   )}
                   {isLibero && (
                     <span className="text-[9px] font-bold px-1 rounded bg-yellow-400/20 text-yellow-400">L</span>
@@ -106,7 +109,7 @@ function RosterTab({ roster, lineup, rsvps, liberoId, isDark, tc, onDragStart, o
                 </div>
               </div>
               {/* Status indicators */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 flex-shrink-0">
                 {rsvpStatus && (
                   <span className={`w-2.5 h-2.5 rounded-full ${
                     rsvpStatus === 'yes' || rsvpStatus === 'attending' ? 'bg-emerald-400' :
@@ -125,24 +128,26 @@ function RosterTab({ roster, lineup, rsvps, liberoId, isDark, tc, onDragStart, o
       </div>
 
       {/* Libero selector */}
-      <div className={`px-3 py-2 border-t ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
-        <div className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${tc.textMuted}`}>Libero</div>
-        <div className="flex flex-wrap gap-1">
-          {roster.slice(0, 12).map(p => (
-            <button
-              key={p.id}
-              onClick={() => onSetLibero(liberoId === p.id ? null : p.id)}
-              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors ${
-                p.id === liberoId
-                  ? 'bg-yellow-400 text-black'
-                  : `${tc.textMuted} ${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'}`
-              }`}
-            >
-              #{p.jersey_number}
-            </button>
-          ))}
+      {showLibero && (
+        <div className={`px-3 py-2 border-t ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
+          <div className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${tc.textMuted}`}>Libero</div>
+          <div className="flex flex-wrap gap-1">
+            {roster.slice(0, 14).map(p => (
+              <button
+                key={p.id}
+                onClick={() => onSetLibero(liberoId === p.id ? null : p.id)}
+                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors ${
+                  p.id === liberoId
+                    ? 'bg-yellow-400 text-black'
+                    : `${tc.textMuted} ${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'}`
+                }`}
+              >
+                #{p.jersey_number}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -227,46 +232,177 @@ function RotationsTab({ positions, lineup, roster, currentRotation, sportConfig,
 }
 
 // ============================================
-// SUBSTITUTIONS TAB
+// SUBSTITUTIONS TAB (FUNCTIONAL)
 // ============================================
-function SubstitutionsTab({ subs, roster, lineup, isDark, tc, onAddSub, onRemoveSub }) {
-  const subEntries = Object.entries(subs)
+function SubstitutionsTab({ plannedSubs, roster, lineup, currentRotation, sportConfig, formation, isDark, tc, onAddSub, onRemoveSub }) {
+  const [showForm, setShowForm] = useState(false)
+  const [subRotation, setSubRotation] = useState(1)
+  const [outPlayerId, setOutPlayerId] = useState('')
+  const [inPlayerId, setInPlayerId] = useState('')
+
+  const subLimit = formation === '6-6' ? 999 : 12
+
+  // Starters = players currently in lineup
+  const starters = Object.entries(lineup).map(([posId, playerId]) => {
+    const player = roster.find(p => p.id === playerId)
+    return player ? { ...player, positionId: posId } : null
+  }).filter(Boolean)
+
+  // Bench = roster minus starters minus libero
+  const starterIds = new Set(Object.values(lineup))
+  const benchPlayers = roster.filter(p => !starterIds.has(p.id))
+
+  function handleAddSub() {
+    if (!outPlayerId || !inPlayerId) return
+    onAddSub({
+      id: `${Date.now()}`,
+      rotation: subRotation,
+      outPlayerId,
+      inPlayerId,
+    })
+    setOutPlayerId('')
+    setInPlayerId('')
+    setShowForm(false)
+  }
 
   return (
-    <div className="p-3 space-y-3 overflow-y-auto">
-      <div className="flex items-center justify-between">
-        <div className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wider`}>Substitution Plan</div>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'} ${tc.textMuted}`}>
-          {subEntries.length}/12 SUBS
-        </span>
+    <div className="flex flex-col h-full">
+      <div className="p-3 space-y-3 flex-1 overflow-y-auto">
+        <div className="flex items-center justify-between">
+          <div className={`text-xs font-semibold ${tc.textMuted} uppercase tracking-wider`}>Substitution Plan</div>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-lynx-graphite' : 'bg-lynx-frost'} ${tc.textMuted}`}>
+            {plannedSubs.length}/{subLimit === 999 ? '∞' : subLimit} SUBS
+          </span>
+        </div>
+
+        {/* Planned subs list */}
+        {plannedSubs.length === 0 && !showForm ? (
+          <div className={`text-center py-8 ${tc.textMuted}`}>
+            <div className="text-2xl mb-2">🔄</div>
+            <div className="text-xs">No substitutions planned</div>
+            <div className="text-[10px] mt-1">Tap + to plan a substitution</div>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            {plannedSubs.map((sub) => {
+              const outPlayer = roster.find(p => p.id === sub.outPlayerId)
+              const inPlayer = roster.find(p => p.id === sub.inPlayerId)
+              return (
+                <div
+                  key={sub.id}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl text-xs ${
+                    isDark ? 'bg-lynx-graphite border-lynx-border-dark' : 'bg-lynx-frost border-lynx-silver'
+                  } border`}
+                >
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                    isDark ? 'bg-lynx-charcoal' : 'bg-white'
+                  } ${tc.textMuted}`}>R{sub.rotation}</span>
+                  <span className="text-red-400 font-semibold">#{outPlayer?.jersey_number} {outPlayer?.first_name}</span>
+                  <span className={tc.textMuted}>→</span>
+                  <span className="text-emerald-400 font-semibold">#{inPlayer?.jersey_number} {inPlayer?.first_name}</span>
+                  <button onClick={() => onRemoveSub(sub.id)} className="ml-auto text-red-400 hover:text-red-300 text-base leading-none">×</button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Add sub form */}
+        {showForm && (
+          <div className={`p-3 rounded-xl border space-y-2.5 ${
+            isDark ? 'bg-lynx-graphite border-lynx-border-dark' : 'bg-lynx-frost border-lynx-silver'
+          }`}>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${tc.textMuted}`}>New Substitution</div>
+
+            {/* Rotation picker */}
+            <div>
+              <label className={`text-[10px] ${tc.textMuted} block mb-1`}>Rotation</label>
+              <div className="flex gap-1">
+                {Array.from({ length: sportConfig?.rotationCount || 6 }, (_, i) => i + 1).map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setSubRotation(r)}
+                    className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-colors ${
+                      subRotation === r
+                        ? 'text-white'
+                        : `${tc.textMuted} ${isDark ? 'bg-lynx-charcoal' : 'bg-white'}`
+                    }`}
+                    style={subRotation === r ? { backgroundColor: 'var(--accent-primary)' } : {}}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Player OUT */}
+            <div>
+              <label className={`text-[10px] ${tc.textMuted} block mb-1`}>Player OUT</label>
+              <select
+                value={outPlayerId}
+                onChange={e => setOutPlayerId(e.target.value)}
+                className={`w-full px-2 py-1.5 rounded-lg text-xs border outline-none ${
+                  isDark ? 'bg-lynx-charcoal border-lynx-border-dark text-white' : 'bg-white border-lynx-silver text-lynx-navy'
+                }`}
+              >
+                <option value="">Select starter...</option>
+                {starters.map(p => (
+                  <option key={p.id} value={p.id}>#{p.jersey_number} {p.first_name} {p.last_name?.[0]}.</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Player IN */}
+            <div>
+              <label className={`text-[10px] ${tc.textMuted} block mb-1`}>Player IN</label>
+              <select
+                value={inPlayerId}
+                onChange={e => setInPlayerId(e.target.value)}
+                className={`w-full px-2 py-1.5 rounded-lg text-xs border outline-none ${
+                  isDark ? 'bg-lynx-charcoal border-lynx-border-dark text-white' : 'bg-white border-lynx-silver text-lynx-navy'
+                }`}
+              >
+                <option value="">Select bench player...</option>
+                {benchPlayers.map(p => (
+                  <option key={p.id} value={p.id}>#{p.jersey_number} {p.first_name} {p.last_name?.[0]}.</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowForm(false)}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold ${tc.textMuted} border ${
+                  isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddSub}
+                disabled={!outPlayerId || !inPlayerId}
+                className="flex-1 py-1.5 rounded-lg text-[10px] font-semibold text-white disabled:opacity-40"
+                style={{ backgroundColor: 'var(--accent-primary)' }}
+              >
+                Add Sub
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {subEntries.length === 0 ? (
-        <div className={`text-center py-8 ${tc.textMuted}`}>
-          <div className="text-2xl mb-2">🔄</div>
-          <div className="text-xs">No substitutions planned</div>
-          <div className="text-[10px] mt-1">Use the roster tab to set your lineup first</div>
-        </div>
-      ) : (
-        <div className="space-y-1.5">
-          {subEntries.map(([posId, benchPlayerId]) => {
-            const outPlayer = roster.find(p => p.id === lineup[posId])
-            const inPlayer = roster.find(p => p.id === benchPlayerId)
-            return (
-              <div
-                key={posId}
-                className={`flex items-center gap-2 p-2 rounded-xl text-xs ${
-                  isDark ? 'bg-lynx-graphite border-lynx-border-dark' : 'bg-lynx-frost border-lynx-silver'
-                } border`}
-              >
-                <span className={tc.textMuted}>P{posId}:</span>
-                <span className="text-red-400 font-semibold">#{outPlayer?.jersey_number} {outPlayer?.first_name}</span>
-                <span className={tc.textMuted}>→</span>
-                <span className="text-emerald-400 font-semibold">#{inPlayer?.jersey_number} {inPlayer?.first_name}</span>
-                <button onClick={() => onRemoveSub(posId)} className="ml-auto text-red-400 hover:text-red-300">×</button>
-              </div>
-            )
-          })}
+      {/* Add button */}
+      {!showForm && plannedSubs.length < subLimit && (
+        <div className={`p-3 border-t ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
+          <button
+            onClick={() => setShowForm(true)}
+            className={`w-full py-2 rounded-xl text-xs font-semibold transition-colors ${tc.textSecondary} ${tc.hoverBg} border ${
+              isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'
+            }`}
+          >
+            + Plan Substitution
+          </button>
         </div>
       )}
     </div>
@@ -292,7 +428,7 @@ function AnalyticsTab({ isDark, tc }) {
 // RIGHT PANEL (MAIN)
 // ============================================
 export default function RightPanel({
-  roster, lineup, rsvps, liberoId, subs,
+  roster, lineup, rsvps, liberoId, plannedSubs, formation,
   positions, currentRotation, sportConfig, formations,
   getPlayerAtPosition, onDragStart, onDragEnd,
   onSetLibero, onRotationClick, onAddSub, onRemoveSub
@@ -306,7 +442,7 @@ export default function RightPanel({
       className={`flex flex-col h-full border-l ${
         isDark ? 'bg-lynx-charcoal border-lynx-border-dark' : 'bg-white border-lynx-silver'
       }`}
-      style={{ width: 380 }}
+      style={{ width: 420, minWidth: 420, maxWidth: 480, flex: '0 0 420px' }}
     >
       {/* Tab bar */}
       <div className={`flex border-b flex-shrink-0 ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'}`}>
@@ -319,6 +455,11 @@ export default function RightPanel({
             }`}
           >
             {tab.label}
+            {tab.id === 'subs' && plannedSubs?.length > 0 && (
+              <span className="ml-1 text-[9px] font-bold px-1 py-0 rounded-full bg-amber-500/20 text-amber-400">
+                {plannedSubs.length}
+              </span>
+            )}
             {activeTab === tab.id && (
               <div className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full" style={{ backgroundColor: 'var(--accent-primary)' }} />
             )}
@@ -331,6 +472,7 @@ export default function RightPanel({
         {activeTab === 'roster' && (
           <RosterTab
             roster={roster} lineup={lineup} rsvps={rsvps} liberoId={liberoId}
+            formation={formation}
             isDark={isDark} tc={tc}
             onDragStart={onDragStart} onDragEnd={onDragEnd} onSetLibero={onSetLibero}
           />
@@ -344,8 +486,12 @@ export default function RightPanel({
         )}
         {activeTab === 'subs' && (
           <SubstitutionsTab
-            subs={subs} roster={roster} lineup={lineup}
-            isDark={isDark} tc={tc} onAddSub={onAddSub} onRemoveSub={onRemoveSub}
+            plannedSubs={plannedSubs || []}
+            roster={roster} lineup={lineup}
+            currentRotation={currentRotation} sportConfig={sportConfig}
+            formation={formation}
+            isDark={isDark} tc={tc}
+            onAddSub={onAddSub} onRemoveSub={onRemoveSub}
           />
         )}
         {activeTab === 'analytics' && (
