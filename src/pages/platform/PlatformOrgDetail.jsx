@@ -1320,7 +1320,8 @@ function PlatformOrgDetail({ showToast }) {
       requireTyping: true,
       onConfirm: async () => {
         await logAction('delete_org', 'organization', orgId, { org_name: org.name })
-        await supabase.from('organizations').delete().eq('id', orgId)
+        const { error } = await supabase.rpc('delete_organization_cascade', { p_org_id: orgId })
+        if (error) throw error
         showToast?.(`${org.name} deleted`, 'success')
         navigate('/platform/organizations')
       },

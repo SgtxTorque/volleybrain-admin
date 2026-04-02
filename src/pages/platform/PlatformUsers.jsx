@@ -459,6 +459,22 @@ function UserDetailSlideOver({ user: selectedUser, isOpen, onClose, onAction, sh
                 )}
               </div>
             </section>
+
+            {/* Danger Zone */}
+            <section className={`border-t ${tc.border} pt-4 mt-4`}>
+              <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-3">Danger Zone</p>
+              <button
+                onClick={() => onAction('delete', selectedUser)}
+                disabled={selectedUser.is_platform_admin}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors w-full disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-4 h-4" />
+                Permanently Delete User
+              </button>
+              {selectedUser.is_platform_admin && (
+                <p className={`text-xs ${tc.textMuted} mt-1`}>Platform admins cannot be deleted</p>
+              )}
+            </section>
           </div>
         )}
 
@@ -699,12 +715,40 @@ function PlatformUsersPage({ showToast }) {
     setLoadingDuplicates(false)
   }
 
+  // Delete user
+  function handleDeleteUser(targetUser) {
+    setConfirmModal({
+      open: true,
+      title: 'Permanently Delete User',
+      message: `This will permanently delete "${targetUser.full_name || targetUser.email}" and remove all their data, org memberships, and references. This action cannot be undone.`,
+      destructive: true,
+      onConfirm: async () => {
+        try {
+          await logAction('delete_user', targetUser.id, {
+            user_name: targetUser.full_name,
+            email: targetUser.email,
+          })
+          const { error } = await supabase.rpc('delete_profile_cascade', { p_profile_id: targetUser.id })
+          if (error) throw error
+          showToast?.(`${targetUser.full_name || targetUser.email} deleted`, 'success')
+          setSelectedUser(null)
+          loadData()
+        } catch (err) {
+          console.error('Delete user error:', err)
+          showToast?.(`Failed to delete user: ${err.message}`, 'error')
+        }
+      },
+    })
+  }
+
   // Route slide-over actions
   function handleSlideOverAction(action, targetUser) {
     if (action === 'suspend' || action === 'activate') {
       handleSuspendActivate(action, targetUser)
     } else if (action === 'grant_admin' || action === 'revoke_admin') {
       handleToggleSuperAdmin(action, targetUser)
+    } else if (action === 'delete') {
+      handleDeleteUser(targetUser)
     }
   }
 
