@@ -298,6 +298,10 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
               }
             />
 
+            {/* INNER FLEX: Content + Engagement Column side by side (starts below nudge) */}
+            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+
             {/* Attention Strip */}
             {attentionItems.length > 0 && (
               <AttentionStrip items={attentionItems} />
@@ -324,9 +328,9 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
                         {checklistItems.filter(i => i.done).length}/{checklistItems.length}
                       </span>
                     </div>
-                    <p className="text-xs mb-3.5" style={{ color: 'var(--v2-text-secondary)' }}>Complete these steps to get your team running</p>
+                    <p className="text-xs mb-2" style={{ color: 'var(--v2-text-secondary)' }}>Complete these steps to get your team running</p>
                     {checklistItems.map(item => (
-                      <div key={item.id} className="flex items-center gap-3 py-2.5 border-b" style={{ borderColor: 'var(--v2-border-subtle)' }}>
+                      <div key={item.id} className="flex items-center gap-3 py-1.5 border-b" style={{ borderColor: 'var(--v2-border-subtle)' }}>
                         {item.done
                           ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                           : <Circle className="w-5 h-5 shrink-0" style={{ color: 'var(--v2-text-muted)' }} />
@@ -349,9 +353,6 @@ export function TeamManagerDashboard({ roleContext, showToast, navigateToTeamWal
               </div>
             )}
 
-            {/* INNER FLEX: Tabs + Engagement Column side by side */}
-            <div style={{ display: 'flex', gap: 16 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
             <BodyTabs
               tabs={tmTabs}
               activeTabId={activeTab}
