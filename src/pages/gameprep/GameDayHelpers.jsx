@@ -35,9 +35,13 @@ export const GAME_MODES = {
 }
 
 // ═══ THEME ═══
+// Delegates to the real theme system while maintaining the same API shape
+// so callers (GameDayCommandCenter, LineupPanel, etc.) don't need to change.
+import { useTheme } from '../../contexts/ThemeContext'
+
 export function useGameDayTheme() {
-  const isDark = true // Game day is always dark tactical mode
-  return {
+  const { isDark } = useTheme()
+  return isDark ? {
     pageBg: '#0a0a0f',
     cardBg: 'rgba(30, 41, 59, 0.5)',
     cardBgSolid: '#1e293b',
@@ -65,7 +69,36 @@ export function useGameDayTheme() {
     modalBg: '#0f172a',
     accent: '#F59E0B',
     accentLight: 'rgba(245, 158, 11, 0.1)',
-    isDark,
+    isDark: true,
+  } : {
+    pageBg: '#F5F7FA',
+    cardBg: 'rgba(255, 255, 255, 0.9)',
+    cardBgSolid: '#FFFFFF',
+    headerBg: 'rgba(255, 255, 255, 0.95)',
+    sidebarBg: 'rgba(245, 247, 250, 0.9)',
+    courtBg: 'rgba(240, 243, 247, 0.5)',
+    courtBorder: 'rgba(223, 228, 234, 0.8)',
+    netBg: 'linear-gradient(90deg, #DFE4EA, #CBD5E1, #DFE4EA)',
+    attackLine: 'rgba(249, 115, 22, 0.25)',
+    textPrimary: '#10284C',
+    textSecondary: '#5A6B7F',
+    textMuted: '#94A3B8',
+    textInverse: '#FFFFFF',
+    border: 'rgba(223, 228, 234, 0.8)',
+    borderLight: 'rgba(223, 228, 234, 0.5)',
+    buttonBg: '#F0F3F7',
+    buttonBgHover: '#E2E8F0',
+    buttonText: '#10284C',
+    scoreboardBg: 'rgba(255, 255, 255, 0.95)',
+    emptySlotBg: 'rgba(240, 243, 247, 0.5)',
+    emptySlotBorder: '#DFE4EA',
+    playerCardGradient: 'linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0.7), transparent)',
+    statsBg: 'rgba(245, 247, 250, 0.8)',
+    modalOverlay: 'rgba(0, 0, 0, 0.3)',
+    modalBg: '#FFFFFF',
+    accent: '#F59E0B',
+    accentLight: 'rgba(245, 158, 11, 0.08)',
+    isDark: false,
   }
 }
 
