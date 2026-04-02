@@ -32,6 +32,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   const [liberoId, setLiberoId] = useState(null)
   const [plannedSubs, setPlannedSubs] = useState([])  // [{ id, rotation, outPlayerId, inPlayerId }]
   const [benchQueue, setBenchQueue] = useState([])     // Ordered bench for 6-6 rotation
+  const [playerRoles, setPlayerRoles] = useState({})   // { playerId: 'S' } — assigned role follows player through rotations
 
   const [currentSet, setCurrentSet] = useState(1)
   const [setLineups, setSetLineups] = useState({})
@@ -206,6 +207,13 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
     // Place incoming player at target
     newLineup[targetOriginalPosition] = playerId
 
+    // Capture the role from the target visual position for the player
+    // Only set role if player doesn't already have one (first placement)
+    const targetVisualPos = positions.find(p => p.id === positionId)
+    if (targetVisualPos?.role && !playerRoles[playerId]) {
+      setPlayerRoles(prev => ({ ...prev, [playerId]: targetVisualPos.role }))
+    }
+
     setLineup(newLineup)
     setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
   }
@@ -232,14 +240,17 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
     })
 
     const newLineup = {}
+    const newRoles = { ...playerRoles }
     positions.slice(0, sportConfig.starterCount).forEach((pos, i) => {
       if (available[i]) {
         newLineup[pos.id] = available[i].id
+        if (pos.role) newRoles[available[i].id] = pos.role
       }
     })
 
     setLineup(newLineup)
     setSetLineups(prev => ({ ...prev, [currentSet]: newLineup }))
+    setPlayerRoles(newRoles)
     showToast?.('Lineup auto-filled!', 'success')
   }
 
@@ -450,7 +461,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   // ============================================
   if (loading) {
     return (
-      <div className={`fixed inset-0 z-[300] flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+      <div className={`fixed z-[50] flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}
+        style={{ top: 'var(--v2-topbar-height, 56px)', left: 'var(--v2-sidebar-width, 230px)', right: 0, bottom: 0 }}>
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }} />
           <span className={`text-sm ${tc.textMuted}`}>Loading lineup...</span>
@@ -460,7 +472,8 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
   }
 
   return (
-    <div className={`fixed inset-0 z-[300] flex flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}>
+    <div className={`fixed z-[50] flex flex-col ${isDark ? 'bg-lynx-midnight' : 'bg-lynx-cloud'}`}
+      style={{ top: 'var(--v2-topbar-height, 56px)', left: 'var(--v2-sidebar-width, 230px)', right: 0, bottom: 0 }}>
       {/* Header Bar */}
       <HeaderBar
         team={team}
@@ -510,6 +523,7 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
           currentRotation={currentRotation}
           liberoId={liberoId}
           sportConfig={sportConfig}
+          playerRoles={playerRoles}
           getPlayerAtPosition={getPlayerAtPosition}
           onDrop={handleDrop}
           onRemovePlayer={handleRemovePlayer}
@@ -556,6 +570,18 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
         onPrevRotation={prevRotation}
         onResetRotation={goToRotation}
       />
+
+      {/* Expansion Area — reserved for bench strip, substitution timeline, court rating */}
+      <div
+        className={`flex-shrink-0 border-t ${
+          isDark ? 'bg-lynx-graphite/50 border-lynx-border-dark' : 'bg-lynx-frost/50 border-lynx-silver'
+        }`}
+        style={{ height: 120 }}
+      >
+        <div className={`flex items-center justify-center h-full ${tc.textMuted}`}>
+          <span className="text-[11px] font-medium tracking-wide opacity-40">Bench &middot; Substitution Timeline &middot; Court Rating</span>
+        </div>
+      </div>
 
       {/* Template Modals */}
       {showSaveTemplate && (

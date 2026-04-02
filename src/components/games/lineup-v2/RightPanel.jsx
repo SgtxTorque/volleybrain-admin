@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useTheme, useThemeClasses } from '../../../contexts/ThemeContext'
 
+const ROLE_COLORS = {
+  OH: '#EF4444', S: '#10B981', MB: '#F59E0B', OPP: '#6366F1',
+  L: '#FFEAA7', DS: '#DDA0DD', H: '#EF4444',
+  PG: '#3B82F6', SG: '#10B981', SF: '#F59E0B', PF: '#EF4444', C: '#8B5CF6',
+  GK: '#F59E0B', DEF: '#3B82F6', MID: '#10B981', FWD: '#EF4444',
+}
+
 const TABS = [
   { id: 'roster', label: 'Roster' },
   { id: 'rotations', label: 'Rotations' },
@@ -99,9 +106,15 @@ function RosterTab({ roster, lineup, rsvps, liberoId, formation, isDark, tc, onD
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {player.team_position && (
-                    <span className={`text-[10px] font-medium px-1.5 py-0 rounded ${
-                      isDark ? 'bg-lynx-charcoal text-slate-400' : 'bg-slate-100 text-slate-500'
-                    }`}>{player.team_position}</span>
+                    <span className="flex items-center gap-1">
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: ROLE_COLORS[player.team_position?.toUpperCase()] || '#64748B' }}
+                      />
+                      <span className={`text-[10px] font-semibold`} style={{ color: ROLE_COLORS[player.team_position?.toUpperCase()] || (isDark ? '#94a3b8' : '#64748b') }}>
+                        {player.team_position}
+                      </span>
+                    </span>
                   )}
                   {isLibero && (
                     <span className="text-[9px] font-bold px-1 rounded bg-yellow-400/20 text-yellow-400">L</span>

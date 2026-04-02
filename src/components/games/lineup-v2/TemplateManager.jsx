@@ -51,7 +51,7 @@ function SaveTemplateModal({ team, formation, lineup, liberoId, formations, spor
   }
 
   return (
-    <div className="fixed inset-0 z-[310] flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
         className={`w-80 rounded-2xl p-5 shadow-xl ${isDark ? 'bg-lynx-charcoal border border-lynx-border-dark' : 'bg-white border border-lynx-silver'}`}
         onClick={e => e.stopPropagation()}
@@ -166,7 +166,7 @@ function LoadTemplateDropdown({ team, roster, formations, isDark, tc, showToast,
   }
 
   return (
-    <div className="fixed inset-0 z-[310] flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
         className={`w-80 rounded-2xl p-4 shadow-xl max-h-96 flex flex-col ${isDark ? 'bg-lynx-charcoal border border-lynx-border-dark' : 'bg-white border border-lynx-silver'}`}
         onClick={e => e.stopPropagation()}

@@ -7,8 +7,10 @@ const ROLE_COLORS = {
   GK: '#F59E0B', DEF: '#3B82F6', MID: '#10B981', FWD: '#EF4444',
 }
 
-function PlayerSlot({ position, player, isServing, isDark, tc, onDrop, onDragOver, onDragStart, onDragEnd, onRemove }) {
-  const roleColor = ROLE_COLORS[position.role] || '#64748B'
+function PlayerSlot({ position, player, playerRole, isServing, isDark, tc, onDrop, onDragOver, onDragStart, onDragEnd, onRemove }) {
+  // For filled cards, use the player's assigned role; for empty slots, use the position's role
+  const displayRole = player ? (playerRole || position.role) : position.role
+  const roleColor = ROLE_COLORS[displayRole] || '#64748B'
 
   return (
     <div
@@ -17,7 +19,7 @@ function PlayerSlot({ position, player, isServing, isDark, tc, onDrop, onDragOve
           ? 'border-transparent shadow-lg'
           : isDark ? 'border-dashed border-lynx-border-dark bg-lynx-charcoal/50' : 'border-dashed border-lynx-silver bg-lynx-frost/50'
       }`}
-      style={{ width: 140, height: 180 }}
+      style={{ width: 'clamp(160px, 14vw, 210px)', height: 'clamp(200px, 18vw, 270px)' }}
       draggable={!!player}
       onDragStart={player ? (e) => onDragStart(e, player) : undefined}
       onDragEnd={player ? onDragEnd : undefined}
@@ -40,7 +42,7 @@ function PlayerSlot({ position, player, isServing, isDark, tc, onDrop, onDragOve
                 ? 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900'
                 : 'bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400'
             }`}>
-              <span className={`absolute inset-0 flex items-center justify-center text-5xl font-black ${
+              <span className={`absolute inset-0 flex items-center justify-center text-6xl font-black ${
                 isDark ? 'text-white/20' : 'text-slate-500/30'
               }`}>
                 #{player.jersey_number}
@@ -52,19 +54,19 @@ function PlayerSlot({ position, player, isServing, isDark, tc, onDrop, onDragOve
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
           {/* Content overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-2.5 text-white">
+          <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
             <div className="flex items-end justify-between gap-1">
               <div className="min-w-0">
-                <div className="text-xl font-black leading-none">#{player.jersey_number}</div>
-                <div className="text-xs font-medium leading-tight truncate mt-0.5 text-white/90">
+                <div className="text-2xl font-black leading-none">#{player.jersey_number}</div>
+                <div className="text-sm font-medium leading-tight truncate mt-0.5 text-white/90">
                   {player.first_name}
                 </div>
               </div>
               <span
-                className="px-1.5 py-0.5 text-[9px] font-bold rounded-md text-white flex-shrink-0"
+                className="px-2 py-0.5 text-[10px] font-bold rounded-md text-white flex-shrink-0"
                 style={{ backgroundColor: roleColor }}
               >
-                {position.role}
+                {displayRole}
               </span>
             </div>
           </div>
@@ -107,7 +109,7 @@ function PlayerSlot({ position, player, isServing, isDark, tc, onDrop, onDragOve
 
 export default function CourtView({
   positions, lineup, roster, currentRotation,
-  liberoId, sportConfig,
+  liberoId, sportConfig, playerRoles,
   getPlayerAtPosition, onDrop, onRemovePlayer,
   onDragStart, onDragEnd,
   // Action buttons (moved from ControlBar)
@@ -129,7 +131,14 @@ export default function CourtView({
   function getPlayer(positionId) {
     const playerId = getPlayerAtPosition(positionId)
     if (!playerId) return null
-    return roster.find(p => p.id === playerId) || null
+    const player = roster.find(p => p.id === playerId) || null
+    return player
+  }
+
+  function getPlayerRole(positionId) {
+    const playerId = getPlayerAtPosition(positionId)
+    if (!playerId || !playerRoles) return null
+    return playerRoles[playerId] || null
   }
 
   function handleDragOver(e) {
@@ -183,19 +192,20 @@ export default function CourtView({
       </div>
 
       {/* NET label */}
-      <div className={`w-full max-w-[500px] text-center text-xs font-bold tracking-widest uppercase mb-4 flex-shrink-0 ${tc.textMuted}`}>
+      <div className={`w-full max-w-[700px] text-center text-xs font-bold tracking-widest uppercase mb-4 flex-shrink-0 ${tc.textMuted}`}>
         <div className={`border-t-2 ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'} pt-1`}>
           NET
         </div>
       </div>
 
       {/* Front row */}
-      <div className="flex gap-4 mb-4 flex-shrink-0">
+      <div className="flex gap-5 mb-4 flex-shrink-0">
         {frontRow.map(pos => (
           <PlayerSlot
             key={pos.id}
             position={pos}
             player={getPlayer(pos.id)}
+            playerRole={getPlayerRole(pos.id)}
             isServing={pos.id === 1}
             isDark={isDark}
             tc={tc}
@@ -209,19 +219,20 @@ export default function CourtView({
       </div>
 
       {/* Attack line */}
-      <div className={`w-full max-w-[500px] text-center text-[10px] font-semibold tracking-widest uppercase mb-4 flex-shrink-0 ${tc.textMuted}`}>
+      <div className={`w-full max-w-[700px] text-center text-[10px] font-semibold tracking-widest uppercase mb-4 flex-shrink-0 ${tc.textMuted}`}>
         <div className={`border-t border-dashed ${isDark ? 'border-lynx-border-dark' : 'border-lynx-silver'} pt-1`}>
           ATTACK LINE
         </div>
       </div>
 
       {/* Back row */}
-      <div className="flex gap-4 flex-shrink-0">
+      <div className="flex gap-5 flex-shrink-0">
         {backRow.map(pos => (
           <PlayerSlot
             key={pos.id}
             position={pos}
             player={getPlayer(pos.id)}
+            playerRole={getPlayerRole(pos.id)}
             isServing={pos.id === 1}
             isDark={isDark}
             tc={tc}
