@@ -83,6 +83,31 @@ export default function LineupBuilderV2({ event, team, sport = 'volleyball', onC
       rsvpData?.forEach(r => { rsvpMap[r.player_id] = r.status })
       setRsvps(rsvpMap)
 
+      // Load skill ratings for overall rating display
+      try {
+        const playerIds = rosterData.map(p => p.id).filter(Boolean)
+        if (playerIds.length > 0) {
+          const { data: ratings } = await supabase
+            .from('player_skill_ratings')
+            .select('player_id, overall_rating')
+            .in('player_id', playerIds)
+            .order('created_at', { ascending: false })
+
+          // Keep most recent rating per player, merge into roster
+          const ratingMap = {}
+          ;(ratings || []).forEach(r => {
+            if (!ratingMap[r.player_id] && r.overall_rating != null) {
+              ratingMap[r.player_id] = r.overall_rating
+            }
+          })
+          // Enrich roster with ratings
+          rosterData.forEach(p => { p.overall_rating = ratingMap[p.id] || null })
+          setRoster([...rosterData]) // re-set to trigger re-render with ratings
+        }
+      } catch (e) {
+        console.warn('Skill ratings fetch error (non-critical):', e)
+      }
+
       // Load existing lineup
       const { data: existingLineup } = await supabase
         .from('game_lineups')

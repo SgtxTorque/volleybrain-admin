@@ -116,6 +116,14 @@ function RosterTab({ roster, lineup, rsvps, liberoId, formation, isDark, tc, onD
                       </span>
                     </span>
                   )}
+                  {player.overall_rating != null && (
+                    <>
+                      {player.team_position && <span className={`text-[10px] ${tc.textMuted}`}>·</span>}
+                      <span className={`text-[10px] font-medium ${tc.textMuted}`}>
+                        Overall: <span className="font-bold text-[var(--accent-primary)]">{player.overall_rating}</span>
+                      </span>
+                    </>
+                  )}
                   {isLibero && (
                     <span className="text-[9px] font-bold px-1 rounded bg-yellow-400/20 text-yellow-400">L</span>
                   )}
