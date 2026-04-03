@@ -187,6 +187,12 @@ function SchedulePage({ showToast, activeView, roleContext }) {
   }
 
   async function createEvent(eventData) {
+    // Guard: require a selected season before creating an event
+    if (!selectedSeason?.id) {
+      showToast('Please select or create a season first.', 'error')
+      return false
+    }
+
     try {
       const { error } = await supabase.from('schedule_events').insert({
         ...eventData, season_id: selectedSeason.id, created_at: new Date().toISOString()

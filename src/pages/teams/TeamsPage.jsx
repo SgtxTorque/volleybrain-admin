@@ -160,6 +160,12 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   }
 
   async function createTeam(formData) {
+    // Guard: require a selected season before creating a team
+    if (!selectedSeason?.id) {
+      showToast('Please select or create a season before adding teams.', 'error')
+      return
+    }
+
     try {
       // Clean empty strings to null for nullable Postgres columns
       const clean = (v) => (v === '' || v === undefined) ? null : v
