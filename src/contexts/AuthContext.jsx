@@ -37,61 +37,94 @@ export function AuthProvider({ children }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   useEffect(() => {
-    init()
-
-    // Listen for auth changes (for sign up and OAuth callbacks)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        init()
+    // Use onAuthStateChange as the single source of truth for session state.
+    // Do NOT call getSession() directly — it races with the client's internal
+    // localStorage read and can return null before the session is loaded.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            setUser(session.user)
+            await loadProfile(session.user)
+          } else {
+            setUser(null)
+            setProfile(null)
+            setOrganization(null)
+            setIsAdmin(false)
+            setIsPlatformAdmin(false)
+            setLoading(false)
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setProfile(null)
+          setOrganization(null)
+          setIsAdmin(false)
+          setIsPlatformAdmin(false)
+          setNeedsOnboarding(false)
+          setLoading(false)
+        }
       }
-    })
+    )
 
     return () => subscription.unsubscribe()
   }, [])
 
+  // Load profile, roles, and org for a given user object
+  async function loadProfile(authUser) {
+    try {
+      const { data: prof } = await supabase.from('profiles').select('*').eq('id', authUser.id).maybeSingle()
+
+      // OAuth users may not have a profile row yet — create one
+      if (!prof) {
+        const meta = authUser.user_metadata
+        const { data: newProf } = await supabase.from('profiles').upsert({
+          id: authUser.id,
+          email: authUser.email,
+          full_name: meta?.full_name || meta?.name || '',
+          onboarding_completed: false,
+        }, { onConflict: 'id' }).select().single()
+        setProfile(newProf)
+        setIsPlatformAdmin(false)
+        setNeedsOnboarding(true)
+        setLoading(false)
+        return
+      }
+
+      setProfile(prof)
+      setIsPlatformAdmin(!!prof?.is_platform_admin)
+
+      // Check if user needs onboarding
+      if (!prof?.onboarding_completed) {
+        setNeedsOnboarding(true)
+        setLoading(false)
+        return
+      }
+
+      const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', authUser.id).eq('is_active', true)
+      if (roles && roles.length > 0) {
+        setIsAdmin(roles.some(r => r.role === 'league_admin'))
+        const { data: org } = await supabase.from('organizations').select('*').eq('id', roles[0].organization_id).maybeSingle()
+        setOrganization(org)
+      }
+      setNeedsOnboarding(false)
+    } catch (err) { console.error('Auth loadProfile error:', err) }
+    setLoading(false)
+  }
+
+  // init() — called explicitly after signIn/signUp/completeOnboarding
   async function init() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         setUser(session.user)
-        const { data: prof } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle()
-
-        // OAuth users may not have a profile row yet — create one
-        if (!prof && session.user) {
-          const meta = session.user.user_metadata
-          const { data: newProf } = await supabase.from('profiles').upsert({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: meta?.full_name || meta?.name || '',
-            onboarding_completed: false,
-          }, { onConflict: 'id' }).select().single()
-          setProfile(newProf)
-          setIsPlatformAdmin(false)
-          setNeedsOnboarding(true)
-          setLoading(false)
-          return
-        }
-
-        setProfile(prof)
-        setIsPlatformAdmin(!!prof?.is_platform_admin)
-
-        // Check if user needs onboarding
-        if (!prof?.onboarding_completed) {
-          setNeedsOnboarding(true)
-          setLoading(false)
-          return
-        }
-
-        const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', session.user.id).eq('is_active', true)
-        if (roles && roles.length > 0) {
-          setIsAdmin(roles.some(r => r.role === 'league_admin'))
-          const { data: org } = await supabase.from('organizations').select('*').eq('id', roles[0].organization_id).maybeSingle()
-          setOrganization(org)
-        }
-        setNeedsOnboarding(false)
+        await loadProfile(session.user)
+      } else {
+        setLoading(false)
       }
-    } catch (err) { console.error('Init error:', err) }
-    setLoading(false)
+    } catch (err) {
+      console.error('Init error:', err)
+      setLoading(false)
+    }
   }
 
   async function signIn(email, password) {
