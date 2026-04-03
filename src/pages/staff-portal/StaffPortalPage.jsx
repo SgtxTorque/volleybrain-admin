@@ -696,6 +696,7 @@ export function StaffPortalPage({ showToast }) {
         <InviteCoachModal
           orgName={organization?.name || 'My Club'}
           orgId={organization?.id}
+          seasonName={selectedSeason?.name || null}
           onClose={() => setShowInviteCoach(false)}
           showToast={showToast}
         />

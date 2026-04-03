@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { X, Copy, Link, Mail, Share2 } from 'lucide-react'
 import { EmailService } from '../../lib/email-service'
 
-export default function InviteCoachModal({ orgName, orgId, onClose, showToast }) {
+export default function InviteCoachModal({ orgName, orgId, seasonName, onClose, showToast }) {
   const { isDark } = useTheme()
   const { organization, profile } = useAuth()
   const [email, setEmail] = useState('')
@@ -77,6 +77,7 @@ export default function InviteCoachModal({ orgName, orgId, onClose, showToast })
       orgId: orgId || organization?.id,
       orgLogoUrl: organization?.logo_url,
       senderName: profile?.full_name || orgName,
+      seasonName: seasonName || null,
     })
     setSending(false)
     if (result.success) {

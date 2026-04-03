@@ -94,7 +94,7 @@ function buildLynxEmail({
 }
 
 // ── Legacy fallback templates (for emails without branded template data) ─────
-const legacyTemplates: Record<string, (data: any) => { subject: string; heading: string; body: string }> = {
+const legacyTemplates: Record<string, (data: any) => { subject: string; heading: string; body: string; cta_text?: string; cta_url?: string }> = {
   registration_confirmation: (data) => ({
     subject: `Registration Received - ${data.player_name}`,
     heading: 'Registration Received',
@@ -129,6 +129,43 @@ const legacyTemplates: Record<string, (data: any) => { subject: string; heading:
     subject: data.subject || 'Announcement',
     heading: data.heading || data.subject || '',
     body: data.html_body || data.body || '',
+  }),
+  coach_invite: (data) => ({
+    subject: data.subject || `You're invited to coach at ${data.org_name}!`,
+    heading: `\u{1F3D0} You're In! Let's Go!`,
+    body: `
+      <p style="font-size:16px;line-height:1.6">Hey ${data.coach_name || 'Coach'}! \u{1F44B}</p>
+      <p style="font-size:16px;line-height:1.6">
+        Big news — <strong>${data.org_name}</strong> wants you on the coaching staff!
+        ${data.team_name ? `You've been tapped to help lead <strong>${data.team_name}</strong>.` : 'Your experience and energy are exactly what our athletes need.'}
+      </p>
+      ${data.season_name ? `<p style="font-size:16px;line-height:1.6">Season: <strong>${data.season_name}</strong></p>` : ''}
+      <p style="font-size:16px;line-height:1.6">
+        Click below to accept your invite and set up your coach profile. It only takes a couple minutes — then you'll have full access to your roster, schedule, and lineup tools.
+      </p>
+      <p style="font-size:16px;line-height:1.6">Let's build something great together. \u{1F4AA}</p>
+    `,
+    cta_text: 'Accept Invitation',
+    cta_url: data.invite_link || data.app_url || 'https://www.thelynxapp.com',
+  }),
+  registration_invite: (data) => ({
+    subject: data.subject || (data.season_name
+      ? `Register for ${data.org_name} — ${data.season_name}!`
+      : `Register for ${data.org_name}!`),
+    heading: `\u{1F389} Spots Are Open — Let's Play!`,
+    body: `
+      <p style="font-size:16px;line-height:1.6">Hey there! \u{1F44B}</p>
+      <p style="font-size:16px;line-height:1.6">
+        Great news — registration is officially open for <strong>${data.org_name}</strong>${data.season_name ? ` <strong>${data.season_name}</strong>` : ''}!
+      </p>
+      ${data.fee_info ? `<p style="font-size:16px;line-height:1.6">\u{1F4B0} <strong>Fee:</strong> ${data.fee_info}</p>` : ''}
+      <p style="font-size:16px;line-height:1.6">
+        Tap the button below to register your player. You'll fill out a quick form, sign waivers, and you're all set. It takes about 5 minutes.
+      </p>
+      <p style="font-size:16px;line-height:1.6">We can't wait to see your athlete on the court! \u{1F3D0}</p>
+    `,
+    cta_text: 'Register Now',
+    cta_url: data.registration_url || data.app_url || 'https://www.thelynxapp.com',
   }),
 }
 
@@ -246,6 +283,9 @@ serve(async (req) => {
           subject = email.subject || rendered.subject
           heading = rendered.heading
           body = rendered.body
+          // Carry CTA from template if data payload doesn't have them
+          if (!email.data.cta_text && rendered.cta_text) email.data.cta_text = rendered.cta_text
+          if (!email.data.cta_url && rendered.cta_url) email.data.cta_url = rendered.cta_url
         }
 
         // 4. Build branded HTML

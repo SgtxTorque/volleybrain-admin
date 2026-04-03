@@ -331,6 +331,7 @@ export function CoachesPage({ showToast }) {
         <InviteCoachModal
           orgName={organization?.name || 'My Club'}
           orgId={organization?.id}
+          seasonName={selectedSeason?.name || null}
           onClose={() => setShowInviteCoach(false)}
           showToast={showToast}
         />

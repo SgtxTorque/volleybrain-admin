@@ -186,16 +186,22 @@ export const EmailService = {
   },
 
   // Send coach invite email
-  async sendCoachInvite({ recipientEmail, orgName, orgId, orgLogoUrl, senderName }) {
+  async sendCoachInvite({ recipientEmail, coachName, orgName, orgId, orgLogoUrl, senderName, teamName, seasonName, role }) {
     if (!recipientEmail) return { success: false, error: 'No recipient email' }
 
     const inviteLink = `${window.location.origin}/join/coach/${orgId}`
 
-    return this.queueEmail('coach_invite', recipientEmail, null, {
+    return this.queueEmail('coach_invite', recipientEmail, coachName || null, {
       org_name: orgName,
       org_logo_url: orgLogoUrl || null,
       invite_link: inviteLink,
       sender_name: senderName || orgName,
+      coach_name: coachName || null,
+      team_name: teamName || null,
+      season_name: seasonName || null,
+      role: role || 'Coach',
+      cta_text: 'Accept Invitation',
+      cta_url: inviteLink,
       app_url: window.location.origin,
     }, orgId, {
       subject: `You're invited to coach at ${orgName}!`,
@@ -213,6 +219,8 @@ export const EmailService = {
       season_name: seasonName || '',
       registration_url: registrationUrl,
       fee_info: feeInfo || null,
+      cta_text: 'Register Now',
+      cta_url: registrationUrl,
       app_url: window.location.origin,
     }, orgId, {
       subject: seasonName
