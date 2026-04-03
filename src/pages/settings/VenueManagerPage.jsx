@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
@@ -16,6 +17,7 @@ function VenueManagerPage({ showToast }) {
   const { organization } = useAuth()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
+  const navigate = useNavigate()
 
   const [venues, setVenues] = useState([])
   const [loading, setLoading] = useState(true)
@@ -138,6 +140,14 @@ function VenueManagerPage({ showToast }) {
         </button>
       }
     >
+      {/* Back to Org Setup */}
+      <button
+        onClick={() => navigate('/settings/organization')}
+        className="flex items-center gap-2 text-sm font-bold text-[#4BB9EC] mb-4 hover:underline"
+      >
+        {'\u2190'} Back to Organization Setup
+      </button>
+
       {/* Navy Header */}
       <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
         <div className="flex items-center justify-between">

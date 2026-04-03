@@ -365,13 +365,18 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
     try {
       let count = 0
 
+      // Get org season IDs for scoping queries
+      const orgSeasonIds = (allSeasons || []).map(s => s.id)
+
       if (form.target_type === 'all') {
-        // All parents in the season
+        // All parents in the season(s)
         let query = supabase
           .from('players')
           .select('*', { count: 'exact', head: true })
         if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
           query = query.eq('season_id', selectedSeason.id)
+        } else if (orgSeasonIds.length > 0) {
+          query = query.in('season_id', orgSeasonIds)
         }
         const { count: parentCount } = await query
         count = parentCount || 0
@@ -383,12 +388,21 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
           .eq('team_id', form.target_team_id)
         count = teamCount || 0
       } else if (form.target_type === 'coaches') {
-        const { count: coachCount } = await supabase
-          .from('team_coaches')
-          .select('*', { count: 'exact', head: true })
-        count = coachCount || 0
+        // Coaches in org — scope through teams in org seasons
+        const { data: orgTeams } = await supabase
+          .from('teams')
+          .select('id')
+          .in('season_id', orgSeasonIds.length > 0 ? orgSeasonIds : ['__none__'])
+        const orgTeamIds = (orgTeams || []).map(t => t.id)
+        if (orgTeamIds.length > 0) {
+          const { count: coachCount } = await supabase
+            .from('team_coaches')
+            .select('*', { count: 'exact', head: true })
+            .in('team_id', orgTeamIds)
+          count = coachCount || 0
+        }
       }
-      
+
       setRecipientCount(count)
     } catch (err) {
       console.log('Error calculating recipients:', err)

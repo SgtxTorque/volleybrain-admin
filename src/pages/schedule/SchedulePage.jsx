@@ -176,7 +176,27 @@ function SchedulePage({ showToast, activeView, roleContext }) {
 
   async function loadVenues() {
     if (!organization?.id) return
-    setVenues(organization.settings?.venues || [])
+    try {
+      const { data } = await supabase
+        .from('venues')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .order('name')
+      // Map DB venues to the format the dropdown expects (name + address)
+      const dbVenues = (data || []).map(v => ({
+        name: v.name,
+        address: [v.address, v.city, v.state, v.zip].filter(Boolean).join(', '),
+        courts: v.courts_count || '',
+      }))
+      // Merge with legacy settings venues (dedupe by name)
+      const settingsVenues = organization.settings?.venues || []
+      const allNames = new Set(dbVenues.map(v => v.name.toLowerCase()))
+      const merged = [...dbVenues, ...settingsVenues.filter(v => !allNames.has(v.name?.toLowerCase()))]
+      setVenues(merged)
+    } catch {
+      // Fallback to settings venues if DB query fails
+      setVenues(organization.settings?.venues || [])
+    }
   }
 
   async function saveVenues(newVenues) {

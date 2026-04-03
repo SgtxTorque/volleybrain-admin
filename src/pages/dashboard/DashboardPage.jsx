@@ -950,22 +950,22 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         setWeeklyBlasts(blastCount || 0)
       } catch { setWeeklyBlasts(0) }
 
-      // E4. Registrations this week
+      // E4. Registrations this week (players linked via season_id, not organization_id)
       try {
         const { count: regCount } = await supabase
           .from('players')
           .select('*', { count: 'exact', head: true })
-          .eq('organization_id', orgId)
+          .eq('season_id', seasonId)
           .gte('created_at', weekAgoStr)
         setWeeklyRegs(regCount || 0)
       } catch { setWeeklyRegs(0) }
 
-      // E5. Revenue collected this week
+      // E5. Revenue collected this week (payments linked via season_id, not organization_id)
       try {
         const { data: weekPayments } = await supabase
           .from('payments')
           .select('amount')
-          .eq('organization_id', orgId)
+          .eq('season_id', seasonId)
           .eq('paid', true)
           .gte('paid_date', weekAgo.toISOString().split('T')[0])
         const total = (weekPayments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0)
@@ -1519,7 +1519,17 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   { emoji: '👤', label: 'Add Player', onClick: () => onNavigate?.('registrations') },
                   { emoji: '✅', label: 'Approve Regs', onClick: () => onNavigate?.('registrations') },
                   { emoji: '📊', label: 'Reports', onClick: () => onNavigate?.('reports') },
-                  { emoji: '🔗', label: 'Reg Link', onClick: () => onNavigate?.('templates') },
+                  { emoji: '🔗', label: 'Reg Link', onClick: () => {
+                    const slug = organization?.slug || organization?.id
+                    if (slug) {
+                      const url = `${window.location.origin}/register/${slug}`
+                      navigator.clipboard.writeText(url)
+                        .then(() => alert('Registration link copied to clipboard!'))
+                        .catch(() => window.prompt('Copy this registration link:', url))
+                    } else {
+                      onNavigate?.('templates')
+                    }
+                  }},
                 ]}
               />
 

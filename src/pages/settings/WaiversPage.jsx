@@ -236,6 +236,23 @@ function WaiversPage({ showToast }) {
         </div>
       </div>
 
+      {/* Workflow Tip — link waivers to registration */}
+      {templates.length > 0 && dbReady && (
+        <div className={`flex items-start gap-3 px-5 py-3 rounded-[14px] mb-6 ${isDark ? 'bg-sky-500/10 border border-sky-500/20' : 'bg-sky-50 border border-sky-200'}`}>
+          <span className="text-xl">💡</span>
+          <div>
+            <p className={`font-semibold text-sm ${isDark ? 'text-sky-400' : 'text-sky-700'}`}>Next Step: Link to Registration</p>
+            <p className={`text-xs ${isDark ? 'text-sky-400/70' : 'text-sky-600'} mt-0.5`}>
+              Waivers are presented to parents during registration. Go to{' '}
+              <button onClick={() => navigate('/settings/registration-templates')} className="text-[#4BB9EC] font-bold hover:underline">
+                Registration Forms
+              </button>
+              {' '}to add these waivers to your registration flow.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* DB Warning */}
       {!dbReady && (
         <div className={`flex items-center gap-3 px-5 py-3 rounded-[14px] mb-6 ${isDark ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
