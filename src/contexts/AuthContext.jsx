@@ -185,6 +185,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('vb_selected_sport')
     localStorage.removeItem('returnToOrgSetup')
     localStorage.removeItem('lynx-recent-searches')
+    localStorage.removeItem('lynx_active_view')
 
     await supabase.auth.signOut()
     setUser(null)

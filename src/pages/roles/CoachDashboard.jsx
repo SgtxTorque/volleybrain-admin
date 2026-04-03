@@ -885,13 +885,13 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                   footerLink={activeTab === 'roster' ? { label: `View full roster (${roster.length}) →`, onClick: () => onNavigate?.('teams') } : undefined}
                 >
                   {activeTab === 'roster' && (
-                    <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
+                    <CoachRosterTab roster={roster} rsvpCounts={rsvpCounts} nextEventId={nextEvent?.id} onPlayerClick={(player) => onNavigate?.('roster')} />
                   )}
                   {activeTab === 'schedule' && (
                     <CoachScheduleTab upcomingEvents={upcomingEvents} rsvpCounts={rsvpCounts} rosterSize={roster.length} onEventClick={setSelectedEventDetail} onNavigate={onNavigate} />
                   )}
                   {activeTab === 'stats' && (
-                    <CoachStatsTab topPlayers={topPlayers} roster={roster} evalData={evalData} onPlayerClick={(player) => onNavigate?.(`player-${player.id}`)} />
+                    <CoachStatsTab topPlayers={topPlayers} roster={roster} evalData={evalData} onPlayerClick={(player) => onNavigate?.('roster')} />
                   )}
                   {activeTab === 'gameprep' && (
                     <CoachGamePrepTab checklistState={checklistState} onToggleItem={handleToggleManualChecklist} nextEvent={nextEvent} onNavigate={onNavigate} />

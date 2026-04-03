@@ -507,7 +507,7 @@ function UserProfileDropdown({
             <p className={`text-sm ${tc.textMuted} px-2 py-1`}>Switch View</p>
             {getAvailableViews().map(view => (
               <button key={view.id}
-                onClick={() => { setActiveView(view.id); setShowRoleSwitcher(false); navigate('/dashboard'); }}
+                onClick={() => { setActiveView(view.id); localStorage.setItem('lynx_active_view', view.id); setShowRoleSwitcher(false); navigate('/dashboard'); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition ${
                   activeView === view.id ? 'bg-lynx-sky/20' : tc.hoverBg
                 }`}>
@@ -678,15 +678,15 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
     <Routes>
       {/* Dashboard — role-dependent */}
       <Route path="/dashboard" element={
-        activeView === 'admin' ? <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
-        activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
+        activeView === 'admin' ? <DashboardPage onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }} /> :
+        activeView === 'coach' ? <CoachDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }} /> :
         activeView === 'team_manager' ? (
           roleContext?.teamManagerInfo?.length > 0
-            ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} />
+            ? <TeamManagerDashboard roleContext={roleContext} showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }} />
             : <TeamManagerSetup roleContext={roleContext} showToast={showToast} onComplete={() => onRefreshRoles?.()} />
         ) :
-        activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
-        activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard') }} /> :
+        activeView === 'parent' ? <ParentDashboard roleContext={roleContext} navigateToTeamWall={navigateToTeamWall} showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }} /> :
+        activeView === 'player' ? <PlayerDashboard roleContext={{...roleContext, role: roleContext?.isAdmin ? 'admin' : roleContext?.isCoach ? 'head_coach' : 'player'}} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} showToast={showToast} onPlayerChange={setSelectedPlayerForView} activeView={activeView} availableViews={getAvailableViews()} onSwitchRole={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }} /> :
         <div className="flex items-center justify-center h-[50vh] text-center">
           <div>
             <p className="text-lg font-semibold">No dashboard available for this role.</p>
@@ -877,16 +877,22 @@ function MainApp() {
         playerInfo: playerSelf
       })
 
-      if (roles?.some(r => r.role === 'league_admin' || r.role === 'admin')) {
-        setActiveView('admin')
-      } else if (coachLink) {
-        setActiveView('coach')
-      } else if ((teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager')) {
-        setActiveView('team_manager')
-      } else if (children?.length > 0) {
-        setActiveView('parent')
-      } else if (playerSelf) {
-        setActiveView('player')
+      // Build list of available roles for this user
+      const availableRoles = []
+      if (roles?.some(r => r.role === 'league_admin' || r.role === 'admin')) availableRoles.push('admin')
+      if (coachLink) availableRoles.push('coach')
+      if ((teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager')) availableRoles.push('team_manager')
+      if (children?.length > 0) availableRoles.push('parent')
+      if (playerSelf) availableRoles.push('player')
+      if (availableRoles.length === 0) availableRoles.push('player')
+
+      // Check if user previously selected a role (persists across refresh)
+      const savedView = localStorage.getItem('lynx_active_view')
+      if (savedView && availableRoles.includes(savedView)) {
+        setActiveView(savedView)
+      } else {
+        // Default to highest privilege role
+        setActiveView(availableRoles[0])
       }
     } catch (err) {
       console.error('Error loading role context:', err)
@@ -1356,7 +1362,7 @@ function MainApp() {
           profile={profile}
           activeView={activeView}
           availableViews={getAvailableViews()}
-          onSwitchRole={(viewId) => { setActiveView(viewId); navigate('/dashboard'); }}
+          onSwitchRole={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard'); }}
           onToggleTheme={toggleTheme}
           onSignOut={signOut}
           onNavigateToProfile={() => navigate('/profile')}
@@ -1397,7 +1403,7 @@ function MainApp() {
               isDark={isDark}
               availableRoles={getAvailableViews().map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
               activeRoleId={activeView}
-              onRoleSwitch={(viewId) => { setActiveView(viewId); navigate('/dashboard') }}
+              onRoleSwitch={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }}
             />
             <ErrorBoundary>
               <RoutedContent
