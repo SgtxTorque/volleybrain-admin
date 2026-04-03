@@ -251,6 +251,29 @@ function SetupSectionContent({
     if (saveRef) saveRef.current = handleSave
   })
 
+  // Auto-save before navigating away from org settings
+  function navigateWithSave(destination, localStorageKey, localStorageValue) {
+    if (hasChanges) {
+      onSave(localData)
+      setHasChanges(false)
+      showToast?.('Changes saved', 'success')
+    }
+    if (localStorageKey) localStorage.setItem(localStorageKey, localStorageValue)
+    navigate(destination)
+  }
+
+  // Warn about unsaved changes on browser-level navigation (refresh, close tab)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasChanges) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [hasChanges])
+
   // Shared props passed to all extracted form components
   const fp = { localData, updateField, tc, accent }
 
@@ -648,10 +671,7 @@ function SetupSectionContent({
                 <button
                   className="px-4 py-2 rounded-lg text-white font-medium text-sm"
                   style={{ backgroundColor: accent.primary }}
-                  onClick={() => {
-                    localStorage.setItem('returnToOrgSetup', 'legal')
-                    navigate('/settings/waivers')
-                  }}
+                  onClick={() => navigateWithSave('/settings/waivers', 'returnToOrgSetup', 'legal')}
                 >
                   Manage Waivers →
                 </button>
@@ -721,7 +741,7 @@ function SetupSectionContent({
                   <button
                     className="px-3 py-1.5 rounded-lg text-white font-medium text-xs flex-shrink-0"
                     style={{ backgroundColor: accent.primary }}
-                    onClick={() => navigate('/settings/payment-setup')}
+                    onClick={() => navigateWithSave('/settings/payment-setup', 'returnToOrgSetup', 'payments')}
                   >
                     {organization?.stripe_enabled ? 'Manage →' : 'Set Up →'}
                   </button>
@@ -947,7 +967,7 @@ function SetupSectionContent({
               <button
                 className="px-4 py-2 rounded-lg text-white font-medium text-sm"
                 style={{ backgroundColor: accent.primary }}
-                onClick={() => navigate('/settings/venues')}
+                onClick={() => navigateWithSave('/settings/venues', 'returnToOrgSetup', 'facilities')}
               >
                 ➕ Add Venue
               </button>
@@ -1200,10 +1220,7 @@ function SetupSectionContent({
                 <button
                   className="text-sm font-medium transition"
                   style={{ color: accent.primary }}
-                  onClick={() => {
-                    localStorage.setItem('returnToOrgSetup', 'registrationForm')
-                    navigate('/settings/waivers')
-                  }}
+                  onClick={() => navigateWithSave('/settings/waivers', 'returnToOrgSetup', 'registrationForm')}
                 >
                   Manage Waivers →
                 </button>

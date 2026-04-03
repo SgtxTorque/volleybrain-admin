@@ -20,6 +20,8 @@ function OrganizationPage({ showToast }) {
   // Track which sections are expanded
   const [expandedSection, setExpandedSection] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [sectionHasChanges, setSectionHasChanges] = useState(false)
+  const saveRef = useRef(null)
   const [setupData, setSetupData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [waivers, setWaivers] = useState([])
@@ -839,7 +841,7 @@ function OrganizationPage({ showToast }) {
               <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-2xl">{activeSection.icon}</span>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h2 className={`text-xl font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>
                         {activeSection.title}
@@ -850,6 +852,20 @@ function OrganizationPage({ showToast }) {
                     </div>
                     <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeSection.description}</p>
                   </div>
+                  {/* Save Button — always visible */}
+                  <button
+                    onClick={() => sectionHasChanges && saveRef.current?.()}
+                    disabled={!sectionHasChanges || saving}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition shrink-0 ${
+                      saving
+                        ? 'bg-[#4BB9EC] text-white cursor-wait'
+                        : sectionHasChanges
+                          ? 'bg-[#10284C] text-white hover:brightness-110 cursor-pointer'
+                          : isDark ? 'bg-white/[0.06] text-slate-500 cursor-default' : 'bg-[#F0F1F3] text-slate-400 cursor-default'
+                    }`}
+                  >
+                    {saving ? 'Saving...' : sectionHasChanges ? 'Save Changes' : '\u2713 Saved'}
+                  </button>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-slate-400">
                   <span>Est. time: {activeSection.estTime}</span>
@@ -878,6 +894,8 @@ function OrganizationPage({ showToast }) {
                 adminUsers={adminUsers}
                 tc={tc}
                 accent={accent}
+                onChangeStatus={(changes) => setSectionHasChanges(changes)}
+                saveRef={saveRef}
               />
             </>
           ) : (
@@ -926,10 +944,24 @@ function OrganizationPage({ showToast }) {
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xl">{activeSection.icon}</span>
-                <h2 className={`text-lg font-extrabold ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{activeSection.title}</h2>
+                <h2 className={`text-lg font-extrabold flex-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>{activeSection.title}</h2>
                 {activeSection.required && (
                   <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/15 text-red-500">Req</span>
                 )}
+                {/* Mobile Save Button */}
+                <button
+                  onClick={() => sectionHasChanges && saveRef.current?.()}
+                  disabled={!sectionHasChanges || saving}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition shrink-0 ${
+                    saving
+                      ? 'bg-[#4BB9EC] text-white cursor-wait'
+                      : sectionHasChanges
+                        ? 'bg-[#10284C] text-white hover:brightness-110'
+                        : isDark ? 'bg-white/[0.06] text-slate-500' : 'bg-[#F0F1F3] text-slate-400'
+                  }`}
+                >
+                  {saving ? 'Saving...' : sectionHasChanges ? 'Save' : '\u2713 Saved'}
+                </button>
               </div>
               <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{activeSection.description}</p>
             </div>
@@ -948,6 +980,8 @@ function OrganizationPage({ showToast }) {
               adminUsers={adminUsers}
               tc={tc}
               accent={accent}
+              onChangeStatus={(changes) => setSectionHasChanges(changes)}
+              saveRef={saveRef}
             />
           </div>
         )}
