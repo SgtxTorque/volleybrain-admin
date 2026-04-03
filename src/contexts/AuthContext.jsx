@@ -37,36 +37,64 @@ export function AuthProvider({ children }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   useEffect(() => {
-    // Use onAuthStateChange as the single source of truth for session state.
-    // Do NOT call getSession() directly — it races with the client's internal
-    // localStorage read and can return null before the session is loaded.
+    let resolved = false
+
+    const resolveAuth = async (session) => {
+      if (session?.user) {
+        setUser(session.user)
+        await loadProfile(session.user)
+        // loadProfile sets loading: false in its finally block
+      } else {
+        setUser(null)
+        setProfile(null)
+        setOrganization(null)
+        setIsAdmin(false)
+        setIsPlatformAdmin(false)
+        setNeedsOnboarding(false)
+        setLoading(false)
+      }
+    }
+
+    // PRIMARY: onAuthStateChange — fires when Supabase finishes reading localStorage
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            setUser(session.user)
-            await loadProfile(session.user)
-          } else {
-            setUser(null)
-            setProfile(null)
-            setOrganization(null)
-            setIsAdmin(false)
-            setIsPlatformAdmin(false)
-            setLoading(false)
-          }
+        if (event === 'INITIAL_SESSION') {
+          resolved = true
+          await resolveAuth(session)
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          resolved = true
+          await resolveAuth(session)
         } else if (event === 'SIGNED_OUT') {
-          setUser(null)
-          setProfile(null)
-          setOrganization(null)
-          setIsAdmin(false)
-          setIsPlatformAdmin(false)
-          setNeedsOnboarding(false)
-          setLoading(false)
+          resolved = true
+          await resolveAuth(null)
         }
       }
     )
 
-    return () => subscription.unsubscribe()
+    // BACKUP: If onAuthStateChange hasn't fired in 3 seconds, try getSession() directly.
+    // This handles edge cases: corrupted localStorage, Supabase SDK hangs, network issues.
+    const backupTimer = setTimeout(async () => {
+      if (resolved) return  // Primary path already handled it
+      console.warn('Auth: onAuthStateChange did not fire within 3s, falling back to getSession()')
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (resolved) return  // Primary path fired while we were waiting
+        resolved = true
+        await resolveAuth(session)
+      } catch (err) {
+        console.error('Auth: getSession() fallback failed', err)
+        if (!resolved) {
+          resolved = true
+          setUser(null)
+          setLoading(false)
+        }
+      }
+    }, 3000)
+
+    return () => {
+      clearTimeout(backupTimer)
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Load profile, roles, and org for a given user object
@@ -107,8 +135,11 @@ export function AuthProvider({ children }) {
         setOrganization(org)
       }
       setNeedsOnboarding(false)
-    } catch (err) { console.error('Auth loadProfile error:', err) }
-    setLoading(false)
+    } catch (err) {
+      console.error('Auth loadProfile error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   // init() — called explicitly after signIn/signUp/completeOnboarding

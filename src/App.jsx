@@ -67,6 +67,7 @@ function AppContent() {
   return (
     <Routes>
       {/* Public routes — no auth required */}
+      <Route path="/register/:orgIdOrSlug" element={<PublicRegistrationRoute />} />
       <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
 
       {/* All other routes go through the authenticated app */}

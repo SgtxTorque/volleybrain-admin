@@ -42,6 +42,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [showFeeBreakdown, setShowFeeBreakdown] = useState(false)
   const [prefillApplied, setPrefillApplied] = useState(false)
   const [formStartTracked, setFormStartTracked] = useState(false)
+  const [availableSeasons, setAvailableSeasons] = useState(null)
 
   // Preview mode — blocks real submissions
   const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true'
@@ -60,7 +61,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     try {
       await supabase.from('registration_funnel_events').insert({
         organization_id: organization?.id || null,
-        season_id: seasonId || null,
+        season_id: season?.id || seasonId || null,
         event_type: eventType,
         step_name: stepName,
         session_id: getSessionId(),
@@ -125,51 +126,80 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       if (!orgData) { setError('Organization not found'); setLoading(false); return }
       setOrganization(orgData)
 
-      const { data: seasonData } = await supabase
-        .from('seasons')
-        .select('*, sports(name, icon)')
-        .eq('id', seasonId)
-        .eq('organization_id', orgData.id)
-        .single()
+      let seasonData = null
 
-      if (!seasonData) { setError('Season not found'); setLoading(false); return }
+      if (seasonId) {
+        // Season ID provided in URL — look it up directly
+        const { data } = await supabase
+          .from('seasons')
+          .select('*, sports(name, icon)')
+          .eq('id', seasonId)
+          .eq('organization_id', orgData.id)
+          .single()
+        seasonData = data
+        if (!seasonData) { setError('Season not found'); setLoading(false); return }
+      } else {
+        // No seasonId in URL — auto-select active season
+        const { data: seasons } = await supabase
+          .from('seasons')
+          .select('*, sports(name, icon)')
+          .eq('organization_id', orgData.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+
+        if (seasons?.length === 1) {
+          seasonData = seasons[0]
+        } else if (seasons?.length > 1) {
+          setAvailableSeasons(seasons)
+          setLoading(false)
+          return
+        } else {
+          setError('Registration is not currently open.')
+          setLoading(false)
+          return
+        }
+      }
+
       setSeason(seasonData)
-
-      // Merge saved config with defaults — if a section is missing or empty, use DEFAULT_CONFIG
-      const raw = seasonData.registration_config
-      const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0 &&
-        Object.values(obj).some(v => v && typeof v === 'object' && 'enabled' in v)
-      const resolved = (raw && typeof raw === 'object') ? {
-        player_fields: hasFields(raw.player_fields) ? raw.player_fields : DEFAULT_CONFIG.player_fields,
-        parent_fields: hasFields(raw.parent_fields) ? raw.parent_fields : DEFAULT_CONFIG.parent_fields,
-        emergency_fields: hasFields(raw.emergency_fields) ? raw.emergency_fields : DEFAULT_CONFIG.emergency_fields,
-        medical_fields: hasFields(raw.medical_fields) ? raw.medical_fields : DEFAULT_CONFIG.medical_fields,
-        waivers: hasFields(raw.waivers) ? raw.waivers : DEFAULT_CONFIG.waivers,
-        custom_questions: Array.isArray(raw.custom_questions) && raw.custom_questions.length > 0
-          ? raw.custom_questions : DEFAULT_CONFIG.custom_questions,
-      } : DEFAULT_CONFIG
-      setConfig(resolved)
-
-      trackFunnelEvent('page_view', null, { season_name: seasonData.name })
-
-      // Initialize waiver state from resolved config
-      const waiverConfig = resolved.waivers
-      const waiverInit = {}
-      Object.keys(waiverConfig).forEach(key => {
-        if (waiverConfig[key]?.enabled) waiverInit[key] = false
-      })
-      setWaiverState(waiverInit)
-
-      // Initialize custom answers
-      const customQs = resolved.custom_questions || []
-      const customInit = {}
-      customQs.forEach(q => { customInit[q.id] = q.type === 'checkbox' ? false : '' })
-      setCustomAnswers(customInit)
+      loadSeasonConfig(seasonData)
     } catch (err) {
       console.error('Error loading data:', err)
       setError('Could not load registration information')
     }
     setLoading(false)
+  }
+
+  function loadSeasonConfig(seasonData) {
+    // Merge saved config with defaults — if a section is missing or empty, use DEFAULT_CONFIG
+    const raw = seasonData.registration_config
+    const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0 &&
+      Object.values(obj).some(v => v && typeof v === 'object' && 'enabled' in v)
+    const resolved = (raw && typeof raw === 'object') ? {
+      player_fields: hasFields(raw.player_fields) ? raw.player_fields : DEFAULT_CONFIG.player_fields,
+      parent_fields: hasFields(raw.parent_fields) ? raw.parent_fields : DEFAULT_CONFIG.parent_fields,
+      emergency_fields: hasFields(raw.emergency_fields) ? raw.emergency_fields : DEFAULT_CONFIG.emergency_fields,
+      medical_fields: hasFields(raw.medical_fields) ? raw.medical_fields : DEFAULT_CONFIG.medical_fields,
+      waivers: hasFields(raw.waivers) ? raw.waivers : DEFAULT_CONFIG.waivers,
+      custom_questions: Array.isArray(raw.custom_questions) && raw.custom_questions.length > 0
+        ? raw.custom_questions : DEFAULT_CONFIG.custom_questions,
+    } : DEFAULT_CONFIG
+    setConfig(resolved)
+
+    trackFunnelEvent('page_view', null, { season_name: seasonData.name })
+
+    // Initialize waiver state from resolved config
+    const waiverConfig = resolved.waivers
+    const waiverInit = {}
+    Object.keys(waiverConfig).forEach(key => {
+      if (waiverConfig[key]?.enabled) waiverInit[key] = false
+    })
+    setWaiverState(waiverInit)
+
+    // Initialize custom answers
+    const customQs = resolved.custom_questions || []
+    const customInit = {}
+    customQs.forEach(q => { customInit[q.id] = q.type === 'checkbox' ? false : '' })
+    setCustomAnswers(customInit)
   }
 
   // ─── Fee calculation ───────────────────────────────────────────────────
@@ -284,7 +314,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             emergency_name: sharedInfo.emergency_name || null,
             emergency_phone: sharedInfo.emergency_phone || null,
             medical_notes: sharedInfo.medical_conditions || null,
-            status: 'new', season_id: seasonId
+            status: 'new', season_id: season?.id || seasonId
           })
           .select().single()
 
@@ -298,7 +328,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         const { data: registration, error: regError } = await supabase
           .from('registrations')
           .insert({
-            player_id: player.id, season_id: seasonId, status: 'new',
+            player_id: player.id, season_id: season?.id || seasonId, status: 'new',
             submitted_at: new Date().toISOString(),
             waivers_accepted: waiverState, custom_answers: customAnswers,
             signature_name: signature.trim() || null, signature_date: signatureDate,
@@ -356,6 +386,33 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     )
   }
   if (error && !season) return <ErrorScreen message={error} />
+
+  // Season selector when multiple active seasons and no seasonId in URL
+  if (availableSeasons) {
+    return (
+      <div className="min-h-screen bg-[#F5F6F8] flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {organization?.logo_url && (
+            <img src={organization.logo_url} alt={organization.name}
+              className="w-16 h-16 mx-auto rounded-2xl mb-4 object-cover border-2 border-white/20 shadow-lg" />
+          )}
+          <h2 className="text-xl font-bold text-[#10284C] text-center mb-2" style={{ fontFamily: 'var(--v2-font)' }}>
+            {organization?.name}
+          </h2>
+          <p className="text-sm text-slate-500 text-center mb-6">Select a season to register for:</p>
+          <div className="space-y-3">
+            {availableSeasons.map(s => (
+              <button key={s.id} onClick={() => { setSeason(s); setAvailableSeasons(null); loadSeasonConfig(s) }}
+                className="w-full p-4 bg-white rounded-xl border border-slate-200 text-left hover:border-[#4BB9EC] hover:shadow-md transition-all">
+                <p className="font-semibold text-[#10284C]">{s.sports?.icon} {s.name}</p>
+                {s.start_date && <p className="text-xs text-slate-400 mt-1">Starts {new Date(s.start_date).toLocaleDateString()}</p>}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // ─── Org branding ──────────────────────────────────────────────────────
   const orgSettings = organization?.settings || {}

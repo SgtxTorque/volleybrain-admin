@@ -734,9 +734,16 @@ function CoachFormModal({ coach, onSave, onClose, showToast, tc }) {
 
   function handleSubmit() {
     if (!form.first_name || !form.last_name) { showToast?.('First and last name required', 'error'); return }
+    const clean = (v) => (v === '' || v === undefined) ? null : v
     onSave({
       ...form,
-      experience_years: form.experience_years ? parseInt(form.experience_years) : null,
+      date_of_birth: clean(form.date_of_birth),
+      background_check_date: clean(form.background_check_date),
+      background_check_expiry: clean(form.background_check_expiry),
+      experience_years: form.experience_years ? parseInt(form.experience_years, 10) : null,
+      specialization: clean(form.specialization),
+      certification_level: clean(form.certification_level),
+      notes: clean(form.notes),
       waiver_signed_at: form.waiver_signed && !coach?.waiver_signed ? new Date().toISOString() : form.waiver_signed_at,
       code_of_conduct_signed_at: form.code_of_conduct_signed && !coach?.code_of_conduct_signed ? new Date().toISOString() : form.code_of_conduct_signed_at,
     })

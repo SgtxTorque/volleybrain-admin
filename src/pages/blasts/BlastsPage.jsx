@@ -427,7 +427,6 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
       // Create the message/blast
       const insertData = {
         sender_id: user?.id,
-        organization_id: organization.id,
         title: cleanTitle,
         body: plainBody || form.richBody?.replace(/<[^>]+>/g, ' ').trim() || '',
         message_type: form.message_type,
