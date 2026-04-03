@@ -76,13 +76,17 @@ function SetupSectionCard({
           </div>
 
           {/* Header Save Button */}
-          {expanded && sectionHasChanges && (
+          {expanded && (
             <button
               onClick={(e) => { e.stopPropagation(); saveRef.current?.() }}
-              disabled={sectionSaving}
-              className="px-4 py-1.5 rounded-lg bg-[#10284C] text-white text-xs font-bold hover:brightness-110 shrink-0 transition"
+              disabled={!sectionHasChanges || sectionSaving}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold shrink-0 transition ${
+                sectionHasChanges
+                  ? 'bg-[#10284C] text-white hover:brightness-110'
+                  : isDark ? 'bg-white/[0.06] text-slate-500 cursor-default' : 'bg-[#F5F6F8] text-slate-400 cursor-default'
+              }`}
             >
-              {sectionSaving ? 'Saving...' : 'Save'}
+              {sectionSaving ? 'Saving...' : sectionHasChanges ? 'Save' : '✓ Saved'}
             </button>
           )}
 

@@ -173,11 +173,18 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     // Merge saved config with defaults — if a section is missing or empty, use DEFAULT_CONFIG
     let raw = seasonData.registration_config
 
-    // If no config on the season, try to load from the linked template
-    if (!raw && seasonData.registration_template_id) {
+    const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0 &&
+      Object.values(obj).some(v => v && typeof v === 'object' && 'enabled' in v)
+
+    // Check if raw config actually has meaningful field data (not just {} or null)
+    const rawHasContent = raw && typeof raw === 'object' &&
+      ['player_fields', 'parent_fields', 'emergency_fields', 'medical_fields'].some(k => hasFields(raw[k]))
+
+    // If no usable config on the season, try to load from the linked template
+    if (!rawHasContent && seasonData.registration_template_id) {
       const { data: template } = await supabase
         .from('registration_templates')
-        .select('player_fields, parent_fields, emergency_fields, medical_fields, waiver_ids, custom_questions')
+        .select('player_fields, parent_fields, emergency_fields, medical_fields, waivers, custom_questions')
         .eq('id', seasonData.registration_template_id)
         .single()
       if (template) {
@@ -186,17 +193,17 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           parent_fields: template.parent_fields,
           emergency_fields: template.emergency_fields,
           medical_fields: template.medical_fields,
-          waiver_ids: template.waiver_ids,
+          waivers: template.waivers,
           custom_questions: template.custom_questions,
         }
       }
     }
 
-    // If STILL no config (no template linked either), try the org's default template
-    if (!raw) {
+    // If STILL no usable config (no template linked either), try the org's default template
+    if (!rawHasContent && !hasFields(raw?.player_fields)) {
       const { data: defaultTemplate } = await supabase
         .from('registration_templates')
-        .select('player_fields, parent_fields, emergency_fields, medical_fields, waiver_ids, custom_questions')
+        .select('player_fields, parent_fields, emergency_fields, medical_fields, waivers, custom_questions')
         .eq('organization_id', seasonData.organization_id)
         .eq('is_default', true)
         .maybeSingle()
@@ -206,13 +213,11 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           parent_fields: defaultTemplate.parent_fields,
           emergency_fields: defaultTemplate.emergency_fields,
           medical_fields: defaultTemplate.medical_fields,
-          waiver_ids: defaultTemplate.waiver_ids,
+          waivers: defaultTemplate.waivers,
           custom_questions: defaultTemplate.custom_questions,
         }
       }
     }
-    const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0 &&
-      Object.values(obj).some(v => v && typeof v === 'object' && 'enabled' in v)
     const resolved = (raw && typeof raw === 'object') ? {
       player_fields: hasFields(raw.player_fields) ? raw.player_fields : DEFAULT_CONFIG.player_fields,
       parent_fields: hasFields(raw.parent_fields) ? raw.parent_fields : DEFAULT_CONFIG.parent_fields,

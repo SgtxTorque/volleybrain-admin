@@ -1200,7 +1200,10 @@ function SetupSectionContent({
                 <button
                   className="text-sm font-medium transition"
                   style={{ color: accent.primary }}
-                  onClick={() => navigate('/settings/waivers')}
+                  onClick={() => {
+                    localStorage.setItem('returnToOrgSetup', 'registrationForm')
+                    navigate('/settings/waivers')
+                  }}
                 >
                   Manage Waivers →
                 </button>
@@ -1710,21 +1713,6 @@ function SetupSectionContent({
   return (
     <div className="space-y-6">
       {renderContent()}
-
-      {/* Save Button */}
-      <div className={`flex items-center justify-between pt-4 mt-6 border-t ${tc.border}`}>
-        <p className={`text-sm ${hasChanges ? 'text-amber-400' : tc.textMuted}`}>
-          {hasChanges ? '⚠️ You have unsaved changes' : '✓ All changes saved'}
-        </p>
-        <button
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-          className={`px-6 py-2.5 rounded-xl font-semibold transition ${hasChanges ? 'text-white' : 'opacity-50 cursor-not-allowed'}`}
-          style={{ backgroundColor: hasChanges ? accent.primary : 'gray' }}
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-      </div>
     </div>
   )
 }
