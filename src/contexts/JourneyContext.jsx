@@ -9,20 +9,20 @@ import { supabase } from '../lib/supabase'
 export const JOURNEY_BADGES = {
   // Organization badges
   founder: { id: 'founder', icon: '🌟', name: 'Founder', description: 'Created your organization' },
-  season_pro: { id: 'season_pro', icon: 'calendar', name: 'Season Pro', description: 'Created your first season' },
-  team_builder: { id: 'team_builder', icon: 'users', name: 'Team Builder', description: 'Added your first team' },
-  roster_ready: { id: 'roster_ready', icon: 'clipboard', name: 'Roster Ready', description: 'Registered 5+ players' },
-  full_roster: { id: 'full_roster', icon: 'volleyball', name: 'Full House', description: 'Registered 10+ players' },
-  scheduler: { id: 'scheduler', icon: 'calendar', name: 'Scheduler', description: 'Created your first event' },
-  game_day: { id: 'game_day', icon: 'trophy', name: 'Game Day', description: 'Completed your first game' },
-  coach_connector: { id: 'coach_connector', icon: 'target', name: 'Coach Connector', description: 'Added a coach to your team' },
-  payment_pro: { id: 'payment_pro', icon: 'credit-card', name: 'Payment Pro', description: 'Collected your first payment' },
+  season_pro: { id: 'season_pro', icon: '📅', name: 'Season Pro', description: 'Created your first season' },
+  team_builder: { id: 'team_builder', icon: '👥', name: 'Team Builder', description: 'Added your first team' },
+  roster_ready: { id: 'roster_ready', icon: '📋', name: 'Roster Ready', description: 'Registered 5+ players' },
+  full_roster: { id: 'full_roster', icon: '🏐', name: 'Full House', description: 'Registered 10+ players' },
+  scheduler: { id: 'scheduler', icon: '📅', name: 'Scheduler', description: 'Created your first event' },
+  game_day: { id: 'game_day', icon: '🏆', name: 'Game Day', description: 'Completed your first game' },
+  coach_connector: { id: 'coach_connector', icon: '🎯', name: 'Coach Connector', description: 'Added a coach to your team' },
+  payment_pro: { id: 'payment_pro', icon: '💳', name: 'Payment Pro', description: 'Collected your first payment' },
   
   // Coach badges
-  lineup_master: { id: 'lineup_master', icon: 'bar-chart', name: 'Lineup Master', description: 'Created your first lineup' },
+  lineup_master: { id: 'lineup_master', icon: '📊', name: 'Lineup Master', description: 'Created your first lineup' },
   practice_planner: { id: 'practice_planner', icon: '📝', name: 'Practice Planner', description: 'Planned your first practice' },
   game_prepper: { id: 'game_prepper', icon: '🎮', name: 'Game Prepper', description: 'Completed game prep' },
-  stat_tracker: { id: 'stat_tracker', icon: 'trending-up', name: 'Stat Tracker', description: 'Recorded player stats' },
+  stat_tracker: { id: 'stat_tracker', icon: '📈', name: 'Stat Tracker', description: 'Recorded player stats' },
   
   // Parent badges
   registered: { id: 'registered', icon: '✅', name: 'Registered', description: 'Completed player registration' },
@@ -39,8 +39,8 @@ export const JOURNEY_BADGES = {
   beta_tester: { id: 'beta_tester', icon: '🔍', name: 'Beta Tester', description: 'Joined Lynx during the beta — thank you for helping us build!', rarity: 'legendary' },
 
   // Milestone badges
-  week_one: { id: 'week_one', icon: 'calendar', name: 'Week One', description: 'Completed first week' },
-  midseason: { id: 'midseason', icon: 'star', name: 'Midseason Star', description: 'Reached midseason' },
+  week_one: { id: 'week_one', icon: '📅', name: 'Week One', description: 'Completed first week' },
+  midseason: { id: 'midseason', icon: '⭐', name: 'Midseason Star', description: 'Reached midseason' },
   season_complete: { id: 'season_complete', icon: '🏅', name: 'Season Complete', description: 'Finished the season' },
 }
 
@@ -123,8 +123,8 @@ export function JourneyProvider({ children }) {
     try {
       const data = profile?.onboarding_data || {}
       setJourneyData({
-        completedSteps: data.completed_steps || [],
-        earnedBadges: data.earned_badges || [],
+        completedSteps: Array.isArray(data.completed_steps) ? data.completed_steps : [],
+        earnedBadges: Array.isArray(data.earned_badges) ? data.earned_badges : [],
         currentRole: data.role || 'org_director',
         dismissedUntil: data.journey_dismissed_until || null,
         celebrationQueue: [],
@@ -136,9 +136,12 @@ export function JourneyProvider({ children }) {
   }
 
   async function completeStep(stepId) {
+    // Don't fire if journey data hasn't loaded yet
+    if (!journeyData || loading) return
+
     const steps = JOURNEY_STEPS[journeyData.currentRole] || []
     const step = steps.find(s => s.id === stepId)
-    
+
     if (!step || journeyData.completedSteps.includes(stepId)) return
 
     const newCompletedSteps = [...journeyData.completedSteps, stepId]

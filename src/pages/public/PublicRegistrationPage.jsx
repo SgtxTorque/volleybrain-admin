@@ -161,7 +161,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       }
 
       setSeason(seasonData)
-      loadSeasonConfig(seasonData)
+      await loadSeasonConfig(seasonData)
     } catch (err) {
       console.error('Error loading data:', err)
       setError('Could not load registration information')
@@ -169,9 +169,48 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     setLoading(false)
   }
 
-  function loadSeasonConfig(seasonData) {
+  async function loadSeasonConfig(seasonData) {
     // Merge saved config with defaults — if a section is missing or empty, use DEFAULT_CONFIG
-    const raw = seasonData.registration_config
+    let raw = seasonData.registration_config
+
+    // If no config on the season, try to load from the linked template
+    if (!raw && seasonData.registration_template_id) {
+      const { data: template } = await supabase
+        .from('registration_templates')
+        .select('player_fields, parent_fields, emergency_fields, medical_fields, waiver_ids, custom_questions')
+        .eq('id', seasonData.registration_template_id)
+        .single()
+      if (template) {
+        raw = {
+          player_fields: template.player_fields,
+          parent_fields: template.parent_fields,
+          emergency_fields: template.emergency_fields,
+          medical_fields: template.medical_fields,
+          waiver_ids: template.waiver_ids,
+          custom_questions: template.custom_questions,
+        }
+      }
+    }
+
+    // If STILL no config (no template linked either), try the org's default template
+    if (!raw) {
+      const { data: defaultTemplate } = await supabase
+        .from('registration_templates')
+        .select('player_fields, parent_fields, emergency_fields, medical_fields, waiver_ids, custom_questions')
+        .eq('organization_id', seasonData.organization_id)
+        .eq('is_default', true)
+        .maybeSingle()
+      if (defaultTemplate) {
+        raw = {
+          player_fields: defaultTemplate.player_fields,
+          parent_fields: defaultTemplate.parent_fields,
+          emergency_fields: defaultTemplate.emergency_fields,
+          medical_fields: defaultTemplate.medical_fields,
+          waiver_ids: defaultTemplate.waiver_ids,
+          custom_questions: defaultTemplate.custom_questions,
+        }
+      }
+    }
     const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0 &&
       Object.values(obj).some(v => v && typeof v === 'object' && 'enabled' in v)
     const resolved = (raw && typeof raw === 'object') ? {

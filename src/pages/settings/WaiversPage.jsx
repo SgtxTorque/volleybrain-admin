@@ -244,7 +244,7 @@ function WaiversPage({ showToast }) {
             <p className={`font-semibold text-sm ${isDark ? 'text-sky-400' : 'text-sky-700'}`}>Next Step: Link to Registration</p>
             <p className={`text-xs ${isDark ? 'text-sky-400/70' : 'text-sky-600'} mt-0.5`}>
               Waivers are presented to parents during registration. Go to{' '}
-              <button onClick={() => navigate('/settings/registration-templates')} className="text-[#4BB9EC] font-bold hover:underline">
+              <button onClick={() => navigate('/settings/templates')} className="text-[#4BB9EC] font-bold hover:underline">
                 Registration Forms
               </button>
               {' '}to add these waivers to your registration flow.

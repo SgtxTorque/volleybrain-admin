@@ -1522,7 +1522,10 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   { emoji: '🔗', label: 'Reg Link', onClick: () => {
                     const slug = organization?.slug || organization?.id
                     if (slug) {
-                      const url = `${window.location.origin}/register/${slug}`
+                      const sid = selectedSeason?.id
+                      const url = sid
+                        ? `${window.location.origin}/register/${slug}/${sid}`
+                        : `${window.location.origin}/register/${slug}`
                       navigator.clipboard.writeText(url)
                         .then(() => alert('Registration link copied to clipboard!'))
                         .catch(() => window.prompt('Copy this registration link:', url))

@@ -214,7 +214,9 @@ function SetupSectionContent({
   setVenues,
   adminUsers,
   tc,
-  accent
+  accent,
+  onChangeStatus,
+  saveRef
 }) {
   const navigate = useNavigate()
   // Local form state for this section
@@ -229,6 +231,11 @@ function SetupSectionContent({
     }
   }, [sectionKey, setupData])
 
+  // Report changes status to parent for header save button
+  useEffect(() => {
+    onChangeStatus?.(hasChanges, saving)
+  }, [hasChanges, saving])
+
   const updateField = (key, value) => {
     setLocalData(prev => ({ ...prev, [key]: value }))
     setHasChanges(true)
@@ -238,6 +245,11 @@ function SetupSectionContent({
     onSave(localData)
     setHasChanges(false)
   }
+
+  // Expose handleSave to parent via ref for header save button
+  useEffect(() => {
+    if (saveRef) saveRef.current = handleSave
+  })
 
   // Shared props passed to all extracted form components
   const fp = { localData, updateField, tc, accent }
@@ -1700,7 +1712,7 @@ function SetupSectionContent({
       {renderContent()}
 
       {/* Save Button */}
-      <div className={`sticky bottom-0 z-50 flex items-center justify-between pt-4 pb-2 border-t ${tc.border} ${tc.cardBg}`}>
+      <div className={`flex items-center justify-between pt-4 mt-6 border-t ${tc.border}`}>
         <p className={`text-sm ${hasChanges ? 'text-amber-400' : tc.textMuted}`}>
           {hasChanges ? '⚠️ You have unsaved changes' : '✓ All changes saved'}
         </p>

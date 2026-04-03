@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import { SetupSectionContent } from './SetupSectionContent'
 
 // ============================================
@@ -24,6 +25,9 @@ function SetupSectionCard({
   accent,
   isDark
 }) {
+  const [sectionHasChanges, setSectionHasChanges] = useState(false)
+  const [sectionSaving, setSectionSaving] = useState(false)
+  const saveRef = useRef(null)
   const statusConfig = {
     complete: { color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-[#22C55E]', label: 'Complete' },
     partial: { color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/30', dot: 'bg-[#F59E0B]', label: 'In Progress' },
@@ -71,6 +75,17 @@ function SetupSectionCard({
             <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{section.estTime}</p>
           </div>
 
+          {/* Header Save Button */}
+          {expanded && sectionHasChanges && (
+            <button
+              onClick={(e) => { e.stopPropagation(); saveRef.current?.() }}
+              disabled={sectionSaving}
+              className="px-4 py-1.5 rounded-lg bg-[#10284C] text-white text-xs font-bold hover:brightness-110 shrink-0 transition"
+            >
+              {sectionSaving ? 'Saving...' : 'Save'}
+            </button>
+          )}
+
           {/* Status Badge - Pill */}
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${config.bg} ${config.border}`}>
             <span className={`w-2 h-2 rounded-full ${config.dot} inline-block`} />
@@ -105,6 +120,8 @@ function SetupSectionCard({
             adminUsers={adminUsers}
             tc={tc}
             accent={accent}
+            onChangeStatus={(changes, isSaving) => { setSectionHasChanges(changes); setSectionSaving(isSaving) }}
+            saveRef={saveRef}
           />
         </div>
       )}
