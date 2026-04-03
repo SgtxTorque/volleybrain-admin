@@ -186,22 +186,22 @@ export const EmailService = {
   },
 
   // Send coach invite email
-  async sendCoachInvite({ recipientEmail, coachName, orgName, orgId, orgLogoUrl, senderName, teamName, seasonName, role }) {
+  async sendCoachInvite({ recipientEmail, coachName, orgName, orgId, orgLogoUrl, senderName, teamName, seasonName, role, inviteLink }) {
     if (!recipientEmail) return { success: false, error: 'No recipient email' }
 
-    const inviteLink = `${window.location.origin}/join/coach/${orgId}`
+    const link = inviteLink || `${window.location.origin}/join/coach/${orgId}`
 
     return this.queueEmail('coach_invite', recipientEmail, coachName || null, {
       org_name: orgName,
       org_logo_url: orgLogoUrl || null,
-      invite_link: inviteLink,
+      invite_link: link,
       sender_name: senderName || orgName,
       coach_name: coachName || null,
       team_name: teamName || null,
       season_name: seasonName || null,
       role: role || 'Coach',
       cta_text: 'Accept Invitation',
-      cta_url: inviteLink,
+      cta_url: link,
       app_url: window.location.origin,
     }, orgId, {
       subject: `You're invited to coach at ${orgName}!`,

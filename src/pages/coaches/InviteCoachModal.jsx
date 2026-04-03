@@ -101,7 +101,46 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
 
     const selectedTeam = teams?.find(t => t.id === teamId)
 
-    // 1. Queue the invite email
+    // 1. Create a pending coach record with invite code
+    const inviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
+
+    const { data: pendingCoach, error: coachError } = await supabase
+      .from('coaches')
+      .insert({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim(),
+        role: role,
+        invite_status: 'invited',
+        invite_email: email.trim(),
+        invite_code: inviteCode,
+        invited_at: new Date().toISOString(),
+        invited_by: profile?.id || null,
+        season_id: seasonId || null,
+      })
+      .select()
+      .single()
+
+    if (coachError) {
+      console.error('Error creating pending coach record:', coachError)
+      // Continue anyway — we'll still send the email with a generic link
+    }
+
+    // 2. Link to team if selected
+    if (pendingCoach && teamId) {
+      const { error: teamError } = await supabase.from('team_coaches').insert({
+        coach_id: pendingCoach.id,
+        team_id: teamId,
+        role: role,
+      })
+      if (teamError) console.error('Error linking coach to team:', teamError)
+    }
+
+    // 3. Queue the invite email with the real invite URL
+    const inviteUrl = pendingCoach
+      ? `${window.location.origin}/invite/coach/${inviteCode}`
+      : `${window.location.origin}/join/coach/${orgId || organization?.id}`
+
     const result = await EmailService.sendCoachInvite({
       recipientEmail: email.trim(),
       coachName: firstName.trim(),
@@ -112,44 +151,14 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
       seasonName: seasonName || null,
       teamName: selectedTeam?.name || null,
       role: COACH_ROLES.find(r => r.value === role)?.label || 'Coach',
+      inviteLink: inviteUrl,
     })
 
     if (!result.success) {
       setSending(false)
-      showToast?.('Failed to send invite. Please try again.', 'error')
+      showToast?.('Failed to send invite email. The coach record was created but email failed.', 'error')
+      onInviteSent?.()
       return
-    }
-
-    // 2. Create a pending coach record
-    const { data: pendingCoach, error: coachError } = await supabase
-      .from('coaches')
-      .insert({
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim(),
-        role: role,
-        invite_status: 'invited',
-        invite_email: email.trim(),
-        invited_at: new Date().toISOString(),
-        invited_by: profile?.id || null,
-        season_id: seasonId || null,
-      })
-      .select()
-      .single()
-
-    if (coachError) {
-      console.error('Error creating pending coach record:', coachError)
-      // Don't block — email was already sent
-    }
-
-    // 3. Link to team if selected
-    if (pendingCoach && teamId) {
-      const { error: teamError } = await supabase.from('team_coaches').insert({
-        coach_id: pendingCoach.id,
-        team_id: teamId,
-        role: role,
-      })
-      if (teamError) console.error('Error linking coach to team:', teamError)
     }
 
     setSending(false)

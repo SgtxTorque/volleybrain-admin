@@ -389,6 +389,9 @@ export function StaffPortalPage({ showToast }) {
 
   async function handleResendInvite(coach) {
     try {
+      const inviteUrl = coach.invite_code
+        ? `${window.location.origin}/invite/coach/${coach.invite_code}`
+        : undefined
       await EmailService.sendCoachInvite({
         recipientEmail: coach.invite_email || coach.email,
         coachName: coach.first_name,
@@ -399,6 +402,7 @@ export function StaffPortalPage({ showToast }) {
         seasonName: selectedSeason?.name || null,
         role: coach.role,
         senderName: profile?.full_name || organization?.name,
+        inviteLink: inviteUrl,
       })
       await supabase
         .from('coaches')

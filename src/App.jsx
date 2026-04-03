@@ -9,6 +9,7 @@ import { LoginPage, SetupWizard, LandingPage } from './pages/auth'
 
 // Public Pages
 import { PublicRegistrationPage, OrgDirectoryPage } from './pages/public'
+import CoachInviteAcceptPage from './pages/public/CoachInviteAcceptPage'
 
 // Main App
 import { MainApp } from './MainApp'
@@ -69,6 +70,7 @@ function AppContent() {
       {/* Public routes — no auth required */}
       <Route path="/register/:orgIdOrSlug" element={<PublicRegistrationRoute />} />
       <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
+      <Route path="/invite/coach/:inviteCode" element={<CoachInviteAcceptPage />} />
 
       {/* All other routes go through the authenticated app */}
       <Route path="/*" element={<AuthenticatedApp />} />
