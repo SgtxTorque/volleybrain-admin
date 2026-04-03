@@ -185,6 +185,44 @@ export const EmailService = {
     })
   },
 
+  // Send coach invite email
+  async sendCoachInvite({ recipientEmail, orgName, orgId, orgLogoUrl, senderName }) {
+    if (!recipientEmail) return { success: false, error: 'No recipient email' }
+
+    const inviteLink = `${window.location.origin}/join/coach/${orgId}`
+
+    return this.queueEmail('coach_invite', recipientEmail, null, {
+      org_name: orgName,
+      org_logo_url: orgLogoUrl || null,
+      invite_link: inviteLink,
+      sender_name: senderName || orgName,
+      app_url: window.location.origin,
+    }, orgId, {
+      subject: `You're invited to coach at ${orgName}!`,
+      category: 'transactional',
+      templateType: 'coach_invite',
+    })
+  },
+
+  // Send registration invite email to parents
+  async sendRegistrationInvite({ recipientEmail, orgName, orgId, seasonName, registrationUrl, feeInfo }) {
+    if (!recipientEmail) return { success: false, error: 'No recipient email' }
+
+    return this.queueEmail('registration_invite', recipientEmail, null, {
+      org_name: orgName,
+      season_name: seasonName || '',
+      registration_url: registrationUrl,
+      fee_info: feeInfo || null,
+      app_url: window.location.origin,
+    }, orgId, {
+      subject: seasonName
+        ? `Register for ${orgName} — ${seasonName}!`
+        : `Register for ${orgName}!`,
+      category: 'transactional',
+      templateType: 'registration_invite',
+    })
+  },
+
   // Build a branded email preview using org branding
   buildPreview(organization, { heading, body, ctaText, ctaUrl, isBroadcast }) {
     const branding = resolveOrgBranding(organization)

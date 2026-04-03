@@ -4,11 +4,15 @@
 
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { X, Copy, Link, Mail, Share2 } from 'lucide-react'
+import { EmailService } from '../../lib/email-service'
 
 export default function InviteCoachModal({ orgName, orgId, onClose, showToast }) {
   const { isDark } = useTheme()
+  const { organization, profile } = useAuth()
   const [email, setEmail] = useState('')
+  const [sending, setSending] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [messageCopied, setMessageCopied] = useState(false)
 
@@ -56,8 +60,7 @@ export default function InviteCoachModal({ orgName, orgId, onClose, showToast })
     }
   }
 
-  function handleSendEmail() {
-    // Placeholder: just collect the email and show a toast for now
+  async function handleSendEmail() {
     if (!email.trim()) {
       showToast?.('Please enter an email address', 'error')
       return
@@ -67,8 +70,21 @@ export default function InviteCoachModal({ orgName, orgId, onClose, showToast })
       showToast?.('Please enter a valid email address', 'error')
       return
     }
-    showToast?.(`Invite will be sent to ${email.trim()} (coming soon)`, 'success')
-    setEmail('')
+    setSending(true)
+    const result = await EmailService.sendCoachInvite({
+      recipientEmail: email.trim(),
+      orgName: orgName || organization?.name || 'Our Club',
+      orgId: orgId || organization?.id,
+      orgLogoUrl: organization?.logo_url,
+      senderName: profile?.full_name || orgName,
+    })
+    setSending(false)
+    if (result.success) {
+      showToast?.(`Invite sent to ${email.trim()}!`, 'success')
+      setEmail('')
+    } else {
+      showToast?.('Failed to send invite. Please try again.', 'error')
+    }
   }
 
   return (
@@ -129,13 +145,14 @@ export default function InviteCoachModal({ orgName, orgId, onClose, showToast })
               />
               <button
                 onClick={handleSendEmail}
-                className="px-5 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition whitespace-nowrap"
+                disabled={sending}
+                className={`px-5 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-r-sm hover:brightness-110 transition whitespace-nowrap ${sending ? 'opacity-60 cursor-wait' : ''}`}
               >
-                Send Invite
+                {sending ? 'Sending...' : 'Send Invite'}
               </button>
             </div>
             <p className={`text-r-xs mt-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-              Email invites coming soon. For now, share the link below.
+              A branded email invite will be sent from noreply@thelynxapp.com
             </p>
           </div>
 
