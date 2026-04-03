@@ -7,8 +7,9 @@ import { supabase } from '../../lib/supabase'
 import { exportToCSV } from '../../lib/csv-export'
 import {
   Users, Search, Plus, Download, Mail, UserPlus, Grid, List,
-  ChevronDown, X
+  ChevronDown, X, Clock, RefreshCw, Trash2
 } from '../../constants/icons'
+import { EmailService } from '../../lib/email-service'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import PersonCard from './PersonCard'
@@ -256,28 +257,30 @@ export function StaffPortalPage({ showToast }) {
 
   // ── Normalize data into unified people array ──
   function normalizePeople() {
-    const coachPeople = coaches.map(c => ({
-      id: c.id,
-      source: 'coach',
-      firstName: c.first_name,
-      lastName: c.last_name,
-      fullName: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
-      email: c.email,
-      phone: c.phone,
-      role: c.assignments?.some(a => a.role === 'head') ? 'Head Coach'
-        : c.assignments?.some(a => a.role === 'assistant') ? 'Assistant Coach'
-        : c.assignments?.some(a => a.role === 'manager') ? 'Manager'
-        : 'Coach',
-      roleCategory: c.assignments?.some(a => a.role === 'head') ? 'head_coach'
-        : c.assignments?.some(a => a.role === 'assistant') ? 'assistant'
-        : c.assignments?.some(a => a.role === 'manager') ? 'staff'
-        : 'assistant',
-      status: c.status || 'active',
-      teams: (c.assignments || []).map(a => ({ id: a.teams?.id, name: a.teams?.name, color: a.teams?.color })),
-      backgroundCheck: c.background_check_status || 'not_started',
-      photoUrl: c.photo_url || null,
-      _raw: c,
-    }))
+    const coachPeople = coaches
+      .filter(c => c.invite_status !== 'invited')
+      .map(c => ({
+        id: c.id,
+        source: 'coach',
+        firstName: c.first_name,
+        lastName: c.last_name,
+        fullName: `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+        email: c.email,
+        phone: c.phone,
+        role: c.assignments?.some(a => a.role === 'head') ? 'Head Coach'
+          : c.assignments?.some(a => a.role === 'assistant') ? 'Assistant Coach'
+          : c.assignments?.some(a => a.role === 'manager') ? 'Manager'
+          : 'Coach',
+        roleCategory: c.assignments?.some(a => a.role === 'head') ? 'head_coach'
+          : c.assignments?.some(a => a.role === 'assistant') ? 'assistant'
+          : c.assignments?.some(a => a.role === 'manager') ? 'staff'
+          : 'assistant',
+        status: c.status || 'active',
+        teams: (c.assignments || []).map(a => ({ id: a.teams?.id, name: a.teams?.name, color: a.teams?.color })),
+        backgroundCheck: c.background_check_status || 'not_started',
+        photoUrl: c.photo_url || null,
+        _raw: c,
+      }))
 
     const staffPeople = staffMembers.map(s => {
       const roleName = s.role === 'Other' && s.custom_role ? s.custom_role : s.role
@@ -304,6 +307,7 @@ export function StaffPortalPage({ showToast }) {
   }
 
   const allPeople = normalizePeople()
+  const pendingInvites = coaches.filter(c => c.invite_status === 'invited')
 
   // ── Filter ──
   const filteredPeople = allPeople.filter(p => {
@@ -326,8 +330,11 @@ export function StaffPortalPage({ showToast }) {
   const assignedCount = allPeople.filter(p => p.teams.length > 0).length
   const bgClearedCount = allPeople.filter(p => p.backgroundCheck === 'cleared').length
 
+  const pendingCount = pendingInvites.length
+
   const overviewStats = [
     { value: totalActive, label: 'ACTIVE' },
+    ...(pendingCount > 0 ? [{ value: pendingCount, label: 'PENDING', highlight: true }] : []),
     { value: headCoachCount, label: 'HEAD COACHES' },
     { value: assistantCount, label: 'ASSISTANTS' },
     { value: staffCount + volunteerCount, label: 'STAFF/VOL' },
@@ -378,6 +385,42 @@ export function StaffPortalPage({ showToast }) {
 
   function handleDetail(person) {
     if (person.source === 'coach') setShowCoachDetail(person._raw)
+  }
+
+  async function handleResendInvite(coach) {
+    try {
+      await EmailService.sendCoachInvite({
+        recipientEmail: coach.invite_email || coach.email,
+        coachName: coach.first_name,
+        orgName: organization?.name || 'Our Club',
+        orgId: organization?.id,
+        orgLogoUrl: organization?.logo_url,
+        teamName: coach.assignments?.[0]?.teams?.name || null,
+        seasonName: selectedSeason?.name || null,
+        role: coach.role,
+        senderName: profile?.full_name || organization?.name,
+      })
+      await supabase
+        .from('coaches')
+        .update({ invited_at: new Date().toISOString() })
+        .eq('id', coach.id)
+      showToast(`Invite resent to ${coach.invite_email || coach.email}!`, 'success')
+      loadAll()
+    } catch (err) {
+      showToast(`Error resending invite: ${err.message}`, 'error')
+    }
+  }
+
+  async function handleCancelInvite(coach) {
+    if (!confirm(`Cancel the invite for ${coach.first_name} ${coach.last_name}?`)) return
+    try {
+      await supabase.from('team_coaches').delete().eq('coach_id', coach.id)
+      await supabase.from('coaches').delete().eq('id', coach.id)
+      showToast('Invite cancelled.', 'success')
+      loadAll()
+    } catch (err) {
+      showToast(`Error cancelling invite: ${err.message}`, 'error')
+    }
   }
 
   if (!selectedSeason) {
@@ -477,8 +520,8 @@ export function StaffPortalPage({ showToast }) {
       <div className="bg-[#10284C] rounded-2xl p-6 mb-6 flex items-center gap-8 flex-wrap" style={{ fontFamily: 'var(--v2-font)' }}>
         {overviewStats.map(stat => (
           <div key={stat.label} className="text-center min-w-[70px]">
-            <div className="text-2xl font-black text-white">{stat.value}</div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-white/50">{stat.label}</div>
+            <div className={`text-2xl font-black ${stat.highlight ? 'text-amber-400' : 'text-white'}`}>{stat.value}</div>
+            <div className={`text-[10px] font-bold uppercase tracking-widest ${stat.highlight ? 'text-amber-400/70' : 'text-white/50'}`}>{stat.label}</div>
           </div>
         ))}
       </div>
@@ -546,6 +589,29 @@ export function StaffPortalPage({ showToast }) {
           </button>
         </div>
       </div>
+
+      {/* Pending Invites Section */}
+      {pendingInvites.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className={`w-4 h-4 ${isDark ? 'text-amber-400' : 'text-amber-500'}`} />
+            <h3 className={`text-sm font-bold uppercase tracking-wider ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+              Pending Invites ({pendingInvites.length})
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pendingInvites.map(coach => (
+              <PendingInviteCard
+                key={coach.id}
+                coach={coach}
+                isDark={isDark}
+                onResend={handleResendInvite}
+                onCancel={handleCancelInvite}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main content area */}
       <div className="flex gap-5">
@@ -697,11 +763,125 @@ export function StaffPortalPage({ showToast }) {
           orgName={organization?.name || 'My Club'}
           orgId={organization?.id}
           seasonName={selectedSeason?.name || null}
+          seasonId={selectedSeason?.id || null}
+          teams={teams}
           onClose={() => setShowInviteCoach(false)}
+          onInviteSent={() => loadAll()}
           showToast={showToast}
         />
       )}
     </PageShell>
+  )
+}
+
+// ============================================
+// PENDING INVITE CARD — Dashed amber card for invited coaches
+// ============================================
+const roleLabelsMap = {
+  head: 'Head Coach', assistant: 'Assistant Coach', manager: 'Manager', volunteer: 'Volunteer'
+}
+
+function PendingInviteCard({ coach, isDark, onResend, onCancel }) {
+  const [resending, setResending] = useState(false)
+  const teamName = coach.assignments?.[0]?.teams?.name
+  const daysSince = coach.invited_at
+    ? Math.floor((Date.now() - new Date(coach.invited_at).getTime()) / 86400000)
+    : null
+
+  async function handleResend() {
+    setResending(true)
+    await onResend(coach)
+    setResending(false)
+  }
+
+  return (
+    <div className={`border-2 border-dashed rounded-xl p-4 ${
+      isDark
+        ? 'border-amber-500/30 bg-amber-500/[0.04]'
+        : 'border-amber-300 bg-amber-50/50'
+    }`}>
+      {/* Status badge + time */}
+      <div className="flex items-center justify-between mb-3">
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
+          isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
+        }`}>
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          Invite Pending
+        </span>
+        <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          {daysSince === null ? '' : daysSince === 0 ? 'Sent today' : `Sent ${daysSince}d ago`}
+        </span>
+      </div>
+
+      {/* Coach info */}
+      <div className="mb-3">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0 ${
+            isDark ? 'bg-amber-500/40' : 'bg-amber-400'
+          }`}>
+            {coach.first_name?.[0]}{coach.last_name?.[0]}
+          </div>
+          <div className="min-w-0">
+            <h4 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+              {coach.first_name} {coach.last_name}
+            </h4>
+            <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {coach.invite_email || coach.email}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+            isDark ? 'bg-[#4BB9EC]/15 text-[#4BB9EC]' : 'bg-sky-50 text-sky-600'
+          }`}>
+            {roleLabelsMap[coach.role] || coach.role || 'Coach'}
+          </span>
+          {teamName && (
+            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+              isDark ? 'bg-white/[0.06] text-slate-300' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {teamName}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Invited at */}
+      {coach.invited_at && (
+        <div className={`text-xs mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          Invited {new Date(coach.invited_at).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+          })}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={handleResend}
+          disabled={resending}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold transition ${
+            resending ? 'opacity-60 cursor-wait' : ''
+          } ${isDark
+            ? 'bg-[#10284C] text-white hover:brightness-125'
+            : 'bg-[#10284C] text-white hover:brightness-110'
+          }`}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
+          {resending ? 'Sending...' : 'Resend'}
+        </button>
+        <button
+          onClick={() => onCancel(coach)}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+            isDark
+              ? 'text-slate-400 hover:text-red-400 border border-white/[0.06] hover:border-red-500/30'
+              : 'text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-200'
+          }`}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
   )
 }
 

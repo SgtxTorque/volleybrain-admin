@@ -332,7 +332,10 @@ export function CoachesPage({ showToast }) {
           orgName={organization?.name || 'My Club'}
           orgId={organization?.id}
           seasonName={selectedSeason?.name || null}
+          seasonId={selectedSeason?.id || null}
+          teams={teams}
           onClose={() => setShowInviteCoach(false)}
+          onInviteSent={() => loadCoaches()}
           showToast={showToast}
         />
       )}
