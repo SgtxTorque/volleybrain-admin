@@ -37,14 +37,13 @@ export function AuthProvider({ children }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
 
   useEffect(() => {
-    let resolved = false
+    init()
 
-    const resolveAuth = async (session) => {
-      if (session?.user) {
-        setUser(session.user)
-        await loadProfile(session.user)
-        // loadProfile sets loading: false in its finally block
-      } else {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        init()
+      }
+      if (event === 'SIGNED_OUT') {
         setUser(null)
         setProfile(null)
         setOrganization(null)
@@ -53,48 +52,9 @@ export function AuthProvider({ children }) {
         setNeedsOnboarding(false)
         setLoading(false)
       }
-    }
+    })
 
-    // PRIMARY: onAuthStateChange — fires when Supabase finishes reading localStorage
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'INITIAL_SESSION') {
-          resolved = true
-          await resolveAuth(session)
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          resolved = true
-          await resolveAuth(session)
-        } else if (event === 'SIGNED_OUT') {
-          resolved = true
-          await resolveAuth(null)
-        }
-      }
-    )
-
-    // BACKUP: If onAuthStateChange hasn't fired in 3 seconds, try getSession() directly.
-    // This handles edge cases: corrupted localStorage, Supabase SDK hangs, network issues.
-    const backupTimer = setTimeout(async () => {
-      if (resolved) return  // Primary path already handled it
-      console.warn('Auth: onAuthStateChange did not fire within 3s, falling back to getSession()')
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (resolved) return  // Primary path fired while we were waiting
-        resolved = true
-        await resolveAuth(session)
-      } catch (err) {
-        console.error('Auth: getSession() fallback failed', err)
-        if (!resolved) {
-          resolved = true
-          setUser(null)
-          setLoading(false)
-        }
-      }
-    }, 3000)
-
-    return () => {
-      clearTimeout(backupTimer)
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
   // Load profile, roles, and org for a given user object
@@ -142,20 +102,22 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // init() — called explicitly after signIn/signUp/completeOnboarding
+  // init() — called on mount + after signIn/signUp/completeOnboarding
   async function init() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         setUser(session.user)
-        await loadProfile(session.user)
-      } else {
-        setLoading(false)
+        // Race loadProfile against a 10-second timeout to prevent infinite hang
+        await Promise.race([
+          loadProfile(session.user),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Profile load timeout')), 10000))
+        ])
       }
     } catch (err) {
       console.error('Init error:', err)
-      setLoading(false)
     }
+    setLoading(false)
   }
 
   async function signIn(email, password) {
