@@ -44,6 +44,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [prefillApplied, setPrefillApplied] = useState(false)
   const [formStartTracked, setFormStartTracked] = useState(false)
   const [availableSeasons, setAvailableSeasons] = useState(null)
+  const [registrationIds, setRegistrationIds] = useState([])
 
   // Preview mode — blocks real submissions
   const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true'
@@ -448,6 +449,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       }
 
       trackFunnelEvent('form_submitted', null, { children_count: allChildren.length })
+      setRegistrationIds(createdRegistrationIds)
 
       // Send registration confirmation email for each child
       if (sharedInfo.parent1_email) {
@@ -500,6 +502,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           totalFee={totalFee}
           currentChildName={currentChild.first_name}
           organization={organization}
+          registrationIds={registrationIds}
         />
       </>
     )

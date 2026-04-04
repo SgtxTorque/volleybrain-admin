@@ -248,7 +248,7 @@ export function PaymentsPage({ showToast }) {
 
   async function handleMarkPaid(paymentId, details) {
     const payment = showMarkPaidModal
-    await supabase.from('payments').update({
+    const { error: markErr } = await supabase.from('payments').update({
       paid: true,
       paid_date: details.paid_date || new Date().toISOString().split('T')[0],
       payment_method: details.payment_method,
@@ -257,6 +257,7 @@ export function PaymentsPage({ showToast }) {
       verified_at: new Date().toISOString(),
       notes: details.notes || null
     }).eq('id', paymentId)
+    if (markErr) { console.error('Mark paid error:', markErr); showToast('Failed to update payment', 'error'); return }
 
     // Send payment receipt email
     const parentEmail = payment?.players?.parent_email || payment?.family_email
@@ -280,15 +281,17 @@ export function PaymentsPage({ showToast }) {
   }
 
   async function handleMarkUnpaid(paymentId) {
-    await supabase.from('payments').update({
+    const { error: unpaidErr } = await supabase.from('payments').update({
       paid: false, paid_date: null, reference_number: null, status: 'pending'
     }).eq('id', paymentId)
+    if (unpaidErr) { console.error('Mark unpaid error:', unpaidErr); showToast('Failed to update payment', 'error'); return }
     showToast('Payment marked as unpaid', 'success')
     loadPayments()
   }
 
   async function handleDeletePayment(paymentId) {
-    await supabase.from('payments').delete().eq('id', paymentId)
+    const { error: delErr } = await supabase.from('payments').delete().eq('id', paymentId)
+    if (delErr) { console.error('Delete payment error:', delErr); showToast('Failed to remove fee', 'error'); return }
     showToast('Fee removed', 'success')
     setShowDeleteModal(null)
     loadPayments()

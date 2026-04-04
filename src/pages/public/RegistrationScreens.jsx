@@ -149,8 +149,9 @@ function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onT
 }
 
 // ─── Success / confirmation screen ────────────────────────────────────────
-function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization }) {
+function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, organization, registrationIds = [] }) {
   const count = childrenCount + (currentChildName ? 1 : 0)
+  const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
 
   return (
     <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-6">
@@ -162,6 +163,11 @@ function SuccessScreen({ childrenCount, seasonName, totalFee, currentChildName, 
         <p className="mt-3 text-r-sm text-slate-600 leading-relaxed">
           {count} {count === 1 ? 'player' : 'players'} signed up for {seasonName} — you're all set!
         </p>
+        {refId && (
+          <p className="text-r-xs text-slate-400 mt-2">
+            Reference: <span className="font-mono font-bold text-slate-500">#{refId}</span>
+          </p>
+        )}
         <p className="text-r-xs text-slate-400 mt-4">
           We'll send a confirmation email once your registration is reviewed. Hang tight!
         </p>

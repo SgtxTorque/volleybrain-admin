@@ -892,7 +892,8 @@ function MainApp() {
       if ((teamManagerStaff && teamManagerStaff.length > 0) || roles?.some(r => r.role === 'team_manager')) availableRoles.push('team_manager')
       if (children?.length > 0) availableRoles.push('parent')
       if (playerSelf) availableRoles.push('player')
-      if (availableRoles.length === 0) availableRoles.push('player')
+      // Only fall back to 'parent' if no real roles detected — avoids showing Player to non-players
+      if (availableRoles.length === 0) availableRoles.push('parent')
 
       // Check if user previously selected a role (persists across refresh)
       const savedView = localStorage.getItem('lynx_active_view')

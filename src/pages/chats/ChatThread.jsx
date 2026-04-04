@@ -322,12 +322,14 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     } else {
       newReactions = { ...reactions, [emoji]: [...userReactions, user?.id] }
     }
-    await supabase.from('chat_messages').update({ reactions: newReactions }).eq('id', messageId)
+    const { error: rxnErr } = await supabase.from('chat_messages').update({ reactions: newReactions }).eq('id', messageId)
+    if (rxnErr) { console.error('Reaction update error:', rxnErr); return }
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions: newReactions } : m))
   }
 
   async function deleteMessage(messageId) {
-    await supabase.from('chat_messages').update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq('id', messageId)
+    const { error: delErr } = await supabase.from('chat_messages').update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq('id', messageId)
+    if (delErr) { console.error('Delete message error:', delErr); showToast?.('Failed to delete message', 'error'); return }
     setMessages(prev => prev.filter(m => m.id !== messageId))
     showToast?.('Message deleted', 'success')
   }
