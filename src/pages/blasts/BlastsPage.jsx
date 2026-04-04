@@ -174,14 +174,15 @@ function BlastsPage({ showToast, activeView, roleContext }) {
     <PageShell
       title="Announcements"
       breadcrumb="Communication"
-      subtitle="Send messages to teams, parents, and track read receipts"
-      actions={
+      subtitle={activeView === 'parent' ? 'Stay up to date with club announcements' : 'Send messages to teams, parents, and track read receipts'}
+      actions={activeView !== 'parent' ?
         <button
           onClick={() => setShowComposeModal(true)}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition text-sm"
         >
           <Plus className="w-4 h-4" /> New Announcement
         </button>
+        : null
       }
     >
       <SeasonFilterBar />
@@ -230,13 +231,15 @@ function BlastsPage({ showToast, activeView, roleContext }) {
             <Megaphone className="w-7 h-7 text-purple-400" />
           </div>
           <h3 className={`text-lg font-bold mt-4 ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>No announcements yet</h3>
-          <p className="text-slate-400 mt-1 text-sm">Send your first announcement to parents and teams</p>
-          <button
-            onClick={() => setShowComposeModal(true)}
-            className="mt-4 px-6 py-3 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition text-sm"
-          >
-            Create Announcement
-          </button>
+          <p className="text-slate-400 mt-1 text-sm">{activeView === 'parent' ? 'Check back later for club announcements' : 'Send your first announcement to parents and teams'}</p>
+          {activeView !== 'parent' && (
+            <button
+              onClick={() => setShowComposeModal(true)}
+              className="mt-4 px-6 py-3 rounded-xl bg-lynx-navy-subtle text-white font-bold hover:brightness-110 transition text-sm"
+            >
+              Create Announcement
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">

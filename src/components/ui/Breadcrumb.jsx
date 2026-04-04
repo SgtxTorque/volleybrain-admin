@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
-import { PAGE_TITLES } from '../../lib/routes'
+import { supabase } from '../../lib/supabase'
 
 // ============================================
 // BREADCRUMB — Shows navigation path
@@ -56,8 +57,43 @@ export function Breadcrumb({ teamName, playerName }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { isDark, accent } = useTheme()
+  const [resolvedNames, setResolvedNames] = useState({})
 
   const pathname = location.pathname
+
+  // Resolve UUID segments to human-readable names
+  useEffect(() => {
+    const segments = pathname.split('/').filter(Boolean)
+    const uuidsToResolve = []
+
+    for (let i = 0; i < segments.length; i++) {
+      if (isUUID(segments[i]) && !resolvedNames[segments[i]]) {
+        uuidsToResolve.push({ uuid: segments[i], prevSegment: segments[i - 1] || '' })
+      }
+    }
+
+    if (uuidsToResolve.length === 0) return
+
+    async function resolveAll() {
+      const newNames = {}
+      for (const { uuid, prevSegment } of uuidsToResolve) {
+        if (prevSegment === 'teams' || prevSegment === 'team') {
+          const { data } = await supabase
+            .from('teams').select('name').eq('id', uuid).maybeSingle()
+          if (data?.name) newNames[uuid] = data.name
+        } else if (prevSegment === 'player' || prevSegment === 'players') {
+          const { data } = await supabase
+            .from('players').select('first_name, last_name').eq('id', uuid).maybeSingle()
+          if (data) newNames[uuid] = `${data.first_name} ${data.last_name}`
+        }
+      }
+      if (Object.keys(newNames).length > 0) {
+        setResolvedNames(prev => ({ ...prev, ...newNames }))
+      }
+    }
+    resolveAll()
+  }, [pathname])
+
   if (pathname === '/dashboard' || pathname === '/' || pathname.startsWith('/teams/')) return null
 
   const segments = pathname.split('/').filter(Boolean)
@@ -71,11 +107,15 @@ export function Breadcrumb({ teamName, playerName }) {
     const seg = segments[i]
     builtPath += '/' + seg
 
-    // Skip UUIDs (show entity name prop instead)
     if (isUUID(seg)) {
-      // Use the provided team/player name or show a short ID
-      if (segments[i - 1] === 'teams' || (segments[i - 1] === 'player')) {
-        // Don't add — the entity name will be added below
+      // Use resolved name, prop name, or skip
+      const name = resolvedNames[seg] ||
+        (segments[i - 1] === 'teams' && teamName) ||
+        ((segments[i - 1] === 'player') && playerName) ||
+        null
+      if (name) {
+        const isLast = i === segments.length - 1
+        crumbs.push({ label: name, path: builtPath, isLast })
       }
       continue
     }
@@ -84,14 +124,6 @@ export function Breadcrumb({ teamName, playerName }) {
     const isLast = i === segments.length - 1 || (i === segments.length - 2 && isUUID(segments[i + 1]))
 
     crumbs.push({ label, path: builtPath, isLast })
-  }
-
-  // Append team/player name for dynamic routes
-  if (teamName && pathname.match(/^\/teams\/[^/]+$/)) {
-    crumbs.push({ label: teamName, path: pathname, isLast: true })
-  }
-  if (playerName && pathname.includes('/parent/player/')) {
-    crumbs.push({ label: playerName, path: pathname, isLast: true })
   }
 
   // Mark the last crumb

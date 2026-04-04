@@ -208,26 +208,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       } else { setVolunteerSignups(0) }
     } catch { setVolunteerSignups(0) }
 
-    // E7. Kids' pulse (based on children's XP activity)
+    // E7. Kids' pulse (based on registration status — matches player card badge logic)
     try {
-      if (childIds.length > 0) {
-        const { data: xpActivity } = await supabase
-          .from('xp_ledger')
-          .select('player_id, created_at')
-          .in('player_id', childIds)
-          .order('created_at', { ascending: false })
-        const now = new Date()
-        const latestByPlayer = {}
-        for (const entry of (xpActivity || [])) {
-          if (!latestByPlayer[entry.player_id]) latestByPlayer[entry.player_id] = entry.created_at
-        }
+      if (registrationData.length > 0) {
         let active = 0, drifting = 0, inactive = 0
-        for (const pid of childIds) {
-          const last = latestByPlayer[pid]
-          if (!last) { inactive++; continue }
-          const days = Math.floor((now - new Date(last)) / (1000 * 60 * 60 * 24))
-          if (days <= 7) active++
-          else if (days <= 21) drifting++
+        for (const child of registrationData) {
+          const status = child.registrationStatus || child.status || 'active'
+          if (['active', 'rostered', 'assigned'].includes(status)) active++
+          else if (['pending', 'approved'].includes(status)) drifting++
           else inactive++
         }
         setParentPulseData({ active, drifting, inactive })
@@ -824,7 +812,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               <button
                 onClick={() => {
                   const child = kidCardsData.find(c => c.id === activeChild?.id) || kidCardsData[0]
-                  if (child?.teamId) onNavigate?.('teamwall')
+                  if (child?.teamId) onNavigate?.(`teamwall-${child.teamId}`)
                 }}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

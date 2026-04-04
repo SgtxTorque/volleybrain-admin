@@ -23,11 +23,26 @@ const TYPES = [
 // Rarity order for sorting
 const RARITY_ORDER = ['legendary', 'epic', 'rare', 'uncommon', 'common']
 
+// Coach-specific stat keys and categories — hidden for parents/players
+const COACH_ONLY_PATTERNS = [
+  'games_coached', 'practices_coached', 'seasons_coached', 'teams_coached',
+  'coaching', 'coach_milestones', 'coach_leadership', 'mentorship',
+]
+
+function isCoachOnlyAchievement(achievement) {
+  const cat = (achievement.category || '').toLowerCase()
+  const statKey = (achievement.stat_key || '').toLowerCase()
+  const name = (achievement.name || '').toLowerCase()
+  return COACH_ONLY_PATTERNS.some(p => cat.includes(p) || statKey.includes(p)) ||
+    /\bcoach(ed|ing|es)?\b/.test(name) || /\bmentor/.test(name)
+}
+
 export function AchievementsCatalogPage({
   playerId,
   showToast,
   playerName = 'Player',
   isAdminPreview = false,
+  activeView,
 }) {
   const { organization } = useAuth()
   const { colors, isDark } = useTheme()
@@ -75,7 +90,12 @@ export function AchievementsCatalogPage({
       console.log('AchievementsCatalogPage: Achievements loaded:', { count: allAchievements?.length, error: achErr })
 
       if (achErr) throw achErr
-      setAchievements(allAchievements || [])
+      // Filter out coach-only achievements for parents and players
+      let visibleAchievements = allAchievements || []
+      if (activeView === 'parent' || activeView === 'player') {
+        visibleAchievements = visibleAchievements.filter(a => !isCoachOnlyAchievement(a))
+      }
+      setAchievements(visibleAchievements)
 
       // If no playerId, we can still show the catalog (just no earned/progress data)
       if (!playerId) {

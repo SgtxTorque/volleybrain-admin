@@ -152,7 +152,7 @@ export const PAGE_TITLES = {
   '/schedule': 'Schedule',
   '/schedule/availability': 'Coach Availability',
   '/attendance': 'Attendance & RSVP',
-  '/payments': 'Payment Admin',
+  '/payments': 'Payments',
   '/roster': 'Roster Manager',
   '/drills': 'Drill Library',
   '/practice-plans': 'Practice Plans',

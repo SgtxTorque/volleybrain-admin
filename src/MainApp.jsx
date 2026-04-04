@@ -743,7 +743,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
       <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
-      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
+      <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager', 'parent']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
       <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/email" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><EmailPage showToast={showToast} activeView={activeView} /></RouteGuard>} />
       <Route path="/reports" element={<RouteGuard allow={['admin']} activeView={activeView}><ReportsPage showToast={showToast} /></RouteGuard>} />
@@ -756,6 +756,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
           showToast={showToast}
           playerName={activeView === 'player' ? (selectedPlayerForView ? `${selectedPlayerForView.first_name}'s` : 'My') : (roleContext?.children?.[0]?.first_name ? `${roleContext.children[0].first_name}'s` : 'Player')}
           isAdminPreview={activeView === 'player' && roleContext?.isAdmin}
+          activeView={activeView}
         />
       } />
 
@@ -1205,6 +1206,7 @@ function MainApp() {
     ]},
     { id: 'social', label: 'Social', type: 'group', icon: 'chats', items: [
       { id: 'chats', label: 'Chat', icon: 'message' },
+      { id: 'blasts', label: 'Announcements', icon: 'megaphone' },
       { id: 'team-hub', label: 'Team Hub', icon: 'users' },
       { id: 'achievements', label: 'Achievements', icon: 'achievements' },
     ]},
