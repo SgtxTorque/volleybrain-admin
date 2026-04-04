@@ -10,6 +10,7 @@ import {
   ChevronDown, X, Clock, RefreshCw, Trash2
 } from '../../constants/icons'
 import { EmailService } from '../../lib/email-service'
+import { generateInviteCode } from '../../lib/invite-utils'
 import PageShell from '../../components/pages/PageShell'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 import PersonCard from './PersonCard'
@@ -185,7 +186,7 @@ export function StaffPortalPage({ showToast }) {
         if (error) throw error
         showToast('Coach updated', 'success')
       } else {
-        const { error } = await supabase.from('coaches').insert({ ...cleaned, season_id: selectedSeason.id })
+        const { error } = await supabase.from('coaches').insert({ ...cleaned, season_id: selectedSeason.id, invite_code: generateInviteCode() })
         if (error) throw error
         showToast('Coach added', 'success')
       }
@@ -763,6 +764,9 @@ export function StaffPortalPage({ showToast }) {
             setEditingCoach(showCoachDetail)
             setShowCoachForm(true)
           }}
+          showToast={showToast}
+          orgName={organization?.name}
+          onRefresh={loadAll}
         />
       )}
       {showEmailBlast && (
