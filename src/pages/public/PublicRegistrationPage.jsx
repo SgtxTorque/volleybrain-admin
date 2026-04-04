@@ -111,6 +111,12 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     console.log('Prefill applied:', { playerPrefill, sharedPrefill })
   }, [prefillApplied])
 
+  // ─── Force light theme on public route ─────────────────────────────────
+  useEffect(() => {
+    document.body.classList.add('public-route')
+    return () => document.body.classList.remove('public-route')
+  }, [])
+
   // ─── Scroll to top on mount ────────────────────────────────────────────
   useEffect(() => { window.scrollTo({ top: 0 }) }, [])
 
@@ -228,6 +234,22 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       custom_questions: Array.isArray(raw.custom_questions) && raw.custom_questions.length > 0
         ? raw.custom_questions : DEFAULT_CONFIG.custom_questions,
     } : DEFAULT_CONFIG
+    // Inject sport-specific position options if position_preference has empty options
+    if (resolved.player_fields?.position_preference &&
+        (!resolved.player_fields.position_preference.options || resolved.player_fields.position_preference.options.length === 0)) {
+      const sportName = (seasonData?.sports?.name || 'volleyball').toLowerCase()
+      const SPORT_POSITIONS = {
+        volleyball: ['Setter (S)', 'Outside Hitter (OH)', 'Middle Blocker (MB)', 'Opposite (OPP)', 'Libero (L)', 'Defensive Specialist (DS)', 'Right Side Hitter (RS)', 'Utility'],
+        basketball: ['Point Guard (PG)', 'Shooting Guard (SG)', 'Small Forward (SF)', 'Power Forward (PF)', 'Center (C)'],
+        soccer: ['Goalkeeper', 'Defender', 'Midfielder', 'Forward', 'No Preference'],
+        baseball: ['Pitcher', 'Catcher', 'First Base', 'Second Base', 'Shortstop', 'Third Base', 'Outfield', 'No Preference'],
+        softball: ['Pitcher', 'Catcher', 'First Base', 'Second Base', 'Shortstop', 'Third Base', 'Outfield', 'No Preference'],
+        football: ['Quarterback', 'Running Back', 'Wide Receiver', 'Tight End', 'Offensive Line', 'Defensive Line', 'Linebacker', 'Defensive Back', 'Kicker', 'No Preference'],
+      }
+      const positions = SPORT_POSITIONS[sportName] || SPORT_POSITIONS.volleyball
+      resolved.player_fields.position_preference.options = positions
+    }
+
     setConfig(resolved)
 
     trackFunnelEvent('page_view', null, { season_name: seasonData.name })

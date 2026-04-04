@@ -338,6 +338,24 @@ export function PaymentsPage({ showToast }) {
     })
   }
 
+  async function handleMarkFamilyAllPaid(familyEmail) {
+    const familyPayments = payments.filter(p =>
+      (p.family_email || p.players?.parent_email) === familyEmail && !p.paid
+    )
+    if (familyPayments.length === 0) return
+    try {
+      for (const payment of familyPayments) {
+        await supabase.from('payments').update({
+          paid: true, paid_date: new Date().toISOString().split('T')[0], payment_method: 'bulk', status: 'verified'
+        }).eq('id', payment.id)
+      }
+      showToast(`${familyPayments.length} payments marked as paid`, 'success')
+      loadPayments()
+    } catch (err) {
+      showToast(`Error: ${err.message}`, 'error')
+    }
+  }
+
   // ------ Filtering & grouping ------
   const filteredPayments = payments.filter(p => {
     if (statusFilter === 'paid' && !p.paid) return false
@@ -621,6 +639,7 @@ export function PaymentsPage({ showToast }) {
                             expanded={expandedCards.has(family.email)} onToggle={() => toggleCard(family.email)}
                             onMarkPaid={p => setShowMarkPaidModal(p)} onMarkUnpaid={handleMarkUnpaid}
                             onDeletePayment={p => setShowDeleteModal(p)} onSendReminder={f => setShowReminderModal(f)}
+                            onMarkAllPaid={() => handleMarkFamilyAllPaid(family.email)}
                             isSelected={selectedFamily?.email === family.email}
                             onSelect={() => setSelectedFamilyEmail(selectedFamilyEmail === family.email ? null : family.email)}
                             zone={zone.key}

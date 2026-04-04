@@ -46,6 +46,11 @@
     font-optical-sizing: auto;
     @apply bg-dark-darker text-white antialiased;
   }
+
+  body.public-route {
+    background-color: #F5F6F8 !important;
+    color: #1a1a1a !important;
+  }
   
   ::selection {
     @apply bg-gold/30 text-white;

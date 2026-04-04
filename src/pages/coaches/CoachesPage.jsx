@@ -128,16 +128,23 @@ export function CoachesPage({ showToast }) {
     try {
       if (editingCoach) {
         const { error } = await supabase.from('coaches').update(formData).eq('id', editingCoach.id)
-        if (error) throw error
+        if (error) {
+          console.error('Coach update error:', error)
+          throw error
+        }
         showToast('Coach updated', 'success')
       } else {
-        const { error } = await supabase.from('coaches').insert({ ...formData, season_id: selectedSeason.id })
-        if (error) throw error
+        const insertData = { ...formData, season_id: selectedSeason.id }
+        const { error } = await supabase.from('coaches').insert(insertData)
+        if (error) {
+          console.error('Coach creation error:', error, 'Payload:', insertData)
+          throw error
+        }
         showToast('Coach added', 'success')
         journey?.completeStep('add_coaches')
       }
       setShowAddModal(false); setEditingCoach(null); loadCoaches()
-    } catch (err) { showToast(`Error: ${err.message}`, 'error') }
+    } catch (err) { showToast(`Error creating coach: ${err.message}`, 'error') }
   }
 
   async function deleteCoach(coach) {

@@ -142,6 +142,7 @@ export function FamilyPaymentCard({
   onMarkUnpaid,
   onDeletePayment,
   onSendReminder,
+  onMarkAllPaid,
   expanded,
   onToggle,
   isSelected = false,
@@ -225,6 +226,12 @@ export function FamilyPaymentCard({
 
         {/* Expand + actions */}
         <div className="flex items-center gap-1.5 shrink-0" onClick={e => e.stopPropagation()}>
+          {!allPaid && onMarkAllPaid && (
+            <button onClick={onMarkAllPaid}
+              className="text-[11px] px-2.5 py-1 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-bold whitespace-nowrap">
+              Pay All ({family.payments.filter(p => !p.paid).length})
+            </button>
+          )}
           <button onClick={() => onSendReminder(family)} className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-white/[0.04] text-slate-400' : 'hover:bg-slate-100 text-slate-400'} hover:text-lynx-sky`}>
             <Bell className="w-4 h-4" />
           </button>

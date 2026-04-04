@@ -32,6 +32,12 @@ export default function CoachInviteAcceptPage() {
   const [processing, setProcessing] = useState(false)
   const [accepted, setAccepted] = useState(false)
 
+  // Force light theme on public route
+  useEffect(() => {
+    document.body.classList.add('public-route')
+    return () => document.body.classList.remove('public-route')
+  }, [])
+
   useEffect(() => {
     loadInvite()
     checkSession()

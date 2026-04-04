@@ -706,14 +706,18 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
           onClose={() => setRosterTeam(null)}
           onAddPlayer={async (teamId, playerId) => {
             await addPlayerToTeam(teamId, playerId)
-            setRosterTeam(prev => prev ? { ...prev } : null)
+            // Refresh roster team with fresh data
+            const { data: fresh } = await supabase.from('teams').select('*, team_players(*, players(*))').eq('id', teamId).single()
+            if (fresh) setRosterTeam(fresh)
           }}
           onRemovePlayer={async (teamId, playerId) => {
             await supabase.from('team_players').delete().eq('team_id', teamId).eq('player_id', playerId)
             showToast('Player removed from team', 'success')
             loadTeams()
             loadUnrosteredPlayers()
-            setRosterTeam(prev => prev ? { ...prev } : null)
+            // Refresh roster team with fresh data
+            const { data: fresh } = await supabase.from('teams').select('*, team_players(*, players(*))').eq('id', teamId).single()
+            if (fresh) setRosterTeam(fresh)
           }}
           showToast={showToast}
         />
