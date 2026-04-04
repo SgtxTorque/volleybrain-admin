@@ -317,7 +317,7 @@ export function AchievementsCatalogPage({
 
   return (
     <PageShell
-      title={isAdminPreview ? `${playerName}'s Achievements` : 'Achievements'}
+      title={isAdminPreview ? `${playerName ? (playerName.endsWith('s') || playerName.endsWith('S') ? playerName + "'" : playerName + "'s") : "'s"} Achievements` : 'Achievements'}
       breadcrumb="Engagement"
       subtitle="Unlock badges by completing milestones"
       actions={statsPills}

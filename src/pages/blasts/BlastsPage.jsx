@@ -323,7 +323,7 @@ function BlastsPage({ showToast, activeView, roleContext }) {
 // ============================================
 function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
   const { user, profile, organization } = useAuth()
-  const { selectedSeason } = useSeason()
+  const { selectedSeason, allSeasons } = useSeason()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
 

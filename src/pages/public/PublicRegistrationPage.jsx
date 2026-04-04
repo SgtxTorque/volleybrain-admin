@@ -356,8 +356,8 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             parent_name: sharedInfo.parent1_name || null,
             parent_email: sharedInfo.parent1_email || null,
             parent_phone: sharedInfo.parent1_phone || null,
-            emergency_name: sharedInfo.emergency_name || null,
-            emergency_phone: sharedInfo.emergency_phone || null,
+            emergency_contact_name: sharedInfo.emergency_name || null,
+            emergency_contact_phone: sharedInfo.emergency_phone || null,
             medical_notes: sharedInfo.medical_conditions || null,
             status: 'new', season_id: season?.id || seasonId
           })
