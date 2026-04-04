@@ -870,6 +870,12 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         onClose={() => setShowActionSidebar(false)} isOpen={showActionSidebar} />
       {quickRsvpEvent && (
         <QuickRsvpModal event={quickRsvpEvent} userId={profile?.id}
+          playerId={
+            // Find the child player that belongs to this event's team
+            (roleContext?.children || []).find(c =>
+              c.team_players?.some(tp => tp.team_id === quickRsvpEvent?.team_id)
+            )?.id || (roleContext?.children || [])[0]?.id
+          }
           onClose={() => setQuickRsvpEvent(null)}
           onRsvp={() => { priorityEngine.refresh(); setQuickRsvpEvent(null) }}
           showToast={showToast} />

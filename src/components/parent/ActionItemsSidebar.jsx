@@ -164,7 +164,7 @@ function SectionGroup({ title, icon, count, color, children }) {
 // ============================================
 // QUICK RSVP MODAL — for inline RSVP from cards
 // ============================================
-export function QuickRsvpModal({ event, userId, onClose, onRsvp, showToast }) {
+export function QuickRsvpModal({ event, userId, playerId, onClose, onRsvp, showToast }) {
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [submitting, setSubmitting] = useState(false)
@@ -174,21 +174,42 @@ export function QuickRsvpModal({ event, userId, onClose, onRsvp, showToast }) {
   const eventDate = new Date(event.event_date)
 
   async function handleRsvp(status) {
+    if (!playerId) {
+      showToast?.('Unable to RSVP — no player linked to this event.', 'error')
+      return
+    }
     setSubmitting(true)
+    const rsvpStatus = status === 'yes' ? 'going' : status === 'no' ? 'not_going' : 'maybe'
     try {
-      const { error } = await supabase
+      // Check if RSVP already exists for this player + event
+      const { data: existing } = await supabase
         .from('event_rsvps')
-        .upsert({
-          event_id: event.id,
-          user_id: userId,
-          status,
-          responded_at: new Date().toISOString(),
-        }, { onConflict: 'event_id,user_id' })
+        .select('id')
+        .eq('event_id', event.id)
+        .eq('player_id', playerId)
+        .maybeSingle()
 
-      if (error) throw error
+      if (existing) {
+        const { error } = await supabase
+          .from('event_rsvps')
+          .update({ status: rsvpStatus, responded_by: userId, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('event_rsvps')
+          .insert({
+            event_id: event.id,
+            player_id: playerId,
+            responded_by: userId,
+            status: rsvpStatus,
+            responded_at: new Date().toISOString(),
+          })
+        if (error) throw error
+      }
 
       showToast?.(status === 'yes' ? 'RSVP confirmed!' : 'RSVP updated.', 'success')
-      onRsvp?.(event.id, status)
+      onRsvp?.(event.id, rsvpStatus)
       onClose()
     } catch (err) {
       console.error('RSVP error:', err)

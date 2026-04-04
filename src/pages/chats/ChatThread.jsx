@@ -79,7 +79,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       message_type: 'text'
     })
     if (error) {
-      console.error('Chat send error:', error)
+      console.error('Chat send error:', error?.message || JSON.stringify(error))
       if (error.code === '42501' || error.message?.includes('policy')) {
         showToast?.("You don't have permission to send messages in this channel. Contact your admin.", 'error')
       } else {
@@ -230,7 +230,7 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     })
 
     if (error) {
-      console.error('Chat send error:', error)
+      console.error('Chat send error:', error?.message || JSON.stringify(error))
       if (error.code === '42501' || error.message?.includes('policy')) {
         showToast?.("You don't have permission to send messages in this channel. Contact your admin.", 'error')
       } else {

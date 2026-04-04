@@ -207,6 +207,42 @@ function ChatsPage({ showToast, activeView, roleContext }) {
         }
       }))
 
+      // Auto-add parent to team channels they should belong to (self-healing)
+      if (activeView === 'parent' && user?.id) {
+        try {
+          const { data: existingMemberships } = await supabase
+            .from('channel_members')
+            .select('channel_id')
+            .eq('user_id', user.id)
+
+          const existingChannelIds = new Set((existingMemberships || []).map(m => m.channel_id))
+
+          // Find team channels for parent's teams that they're NOT yet a member of
+          const missingChannels = (channelsWithMessages || []).filter(ch =>
+            (ch.channel_type === 'team_chat' || ch.channel_type === 'player_chat') &&
+            ch.team_id &&
+            userTeamIds.includes(ch.team_id) &&
+            !existingChannelIds.has(ch.id)
+          )
+
+          if (missingChannels.length > 0) {
+            const inserts = missingChannels.map(ch => ({
+              channel_id: ch.id,
+              user_id: user.id,
+              member_role: 'parent',
+              display_name: profile?.full_name || profile?.email || 'Parent',
+              can_post: ch.channel_type === 'team_chat',
+              can_moderate: false,
+            }))
+            await supabase.from('channel_members').insert(inserts)
+            // Reload to get updated membership data
+            return loadChats()
+          }
+        } catch (autoJoinErr) {
+          console.error('Auto-join channel_members error:', autoJoinErr)
+        }
+      }
+
       let filtered = channelsWithMessages
       if (activeView === 'parent' || activeView === 'coach' || activeView === 'team_manager') {
         filtered = channelsWithMessages.filter(ch => {

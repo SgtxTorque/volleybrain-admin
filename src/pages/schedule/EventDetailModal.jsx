@@ -449,7 +449,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
                           </span>
                         </div>
                         {/* RSVP status + buttons */}
-                        {isAdminView || isParentView ? (
+                        {isAdminView || (isParentView && parentChildIds?.includes(player.id)) ? (
                           <div className="flex items-center gap-1 shrink-0">
                             {['yes', 'no', 'maybe'].map(s => (
                               <button key={s} onClick={() => updateRsvp(player.id, s)}
@@ -491,6 +491,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
 
         {/* ── FOOTER ── */}
         <div className={`px-5 py-3 border-t ${isDark ? 'border-white/[0.06]' : 'border-[#E8ECF2]'} flex justify-between shrink-0`}>
+          {isAdminView && (
           <div className="relative">
             {event.series_id && onDeleteSeries ? (
               <>
@@ -521,6 +522,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
               </button>
             )}
           </div>
+          )}
           <div className="flex gap-2">
             {isEditing ? (
               <>

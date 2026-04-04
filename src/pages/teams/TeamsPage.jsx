@@ -201,27 +201,43 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
       const createdItems = ['team']
 
       if (formData.create_team_chat) {
-        const { error: chatError } = await supabase.from('chat_channels').insert({
+        const { data: teamChatData, error: chatError } = await supabase.from('chat_channels').insert({
           season_id: selectedSeason.id,
           team_id: newTeam.id,
           name: `${formData.name} - Team Chat`,
           description: 'Chat for parents and coaches',
           channel_type: 'team_chat',
           created_by: user?.id
-        })
-        if (!chatError) createdItems.push('team chat')
+        }).select().single()
+        if (!chatError && teamChatData) {
+          createdItems.push('team chat')
+          // Add creating admin as channel member
+          await supabase.from('channel_members').insert({
+            channel_id: teamChatData.id, user_id: user?.id,
+            member_role: 'admin', display_name: profile?.full_name || 'Admin',
+            can_post: true, can_moderate: true
+          })
+        }
       }
 
       if (formData.create_player_chat) {
-        const { error: playerChatError } = await supabase.from('chat_channels').insert({
+        const { data: playerChatData, error: playerChatError } = await supabase.from('chat_channels').insert({
           season_id: selectedSeason.id,
           team_id: newTeam.id,
           name: `${formData.name} - Player Chat`,
           description: 'Chat for players and coaches',
           channel_type: 'player_chat',
           created_by: user?.id
-        })
-        if (!playerChatError) createdItems.push('player chat')
+        }).select().single()
+        if (!playerChatError && playerChatData) {
+          createdItems.push('player chat')
+          // Add creating admin as channel member
+          await supabase.from('channel_members').insert({
+            channel_id: playerChatData.id, user_id: user?.id,
+            member_role: 'admin', display_name: profile?.full_name || 'Admin',
+            can_post: true, can_moderate: true
+          })
+        }
       }
 
       if (formData.create_team_wall) createdItems.push('team wall')
