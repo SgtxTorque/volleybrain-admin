@@ -86,6 +86,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [volunteerSignups, setVolunteerSignups] = useState(0)
   const [parentPulseData, setParentPulseData] = useState({ active: 0, drifting: 0, inactive: 0 })
   const [parentNextBadgeProgress, setParentNextBadgeProgress] = useState(null)
+  const [teamCoachMap, setTeamCoachMap] = useState({}) // { teamId: { userId, name } }
 
   const initialLoadDone = useRef(false)
 
@@ -296,6 +297,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         if (tIds.length > 0) {
           const { data: teamsData } = await supabase.from('teams').select('*').in('id', tIds)
           setTeams(teamsData || [])
+          loadTeamCoaches(tIds)
         }
         if (regData[0]?.season?.organizations) setOrgDetails(regData[0].season.organizations)
         await loadUpcomingEvents(tIds, currentSeasonId)
@@ -325,6 +327,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         const currentSeasonId = teamsData?.[0]?.season_id
         if (currentSeasonId) setSeasonId(currentSeasonId)
         await loadUpcomingEvents(tIds, currentSeasonId)
+        // Load head coaches for each team
+        loadTeamCoaches(tIds)
       } else {
         await loadUpcomingEvents([], null)
       }
@@ -335,6 +339,96 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       parentTutorial?.loadChecklistData?.(regData)
     } catch (err) { console.warn('Error loading parent data:', err) }
     setLoading(false)
+  }
+
+  async function loadTeamCoaches(tIds) {
+    try {
+      const { data: coaches } = await supabase
+        .from('team_coaches')
+        .select('team_id, role, coaches(id, user_id, first_name, last_name)')
+        .in('team_id', tIds)
+      if (coaches) {
+        const map = {}
+        for (const tc of coaches) {
+          // Prefer head_coach, fallback to any coach
+          if (!map[tc.team_id] || tc.role === 'head_coach') {
+            const c = tc.coaches
+            if (c) {
+              map[tc.team_id] = {
+                userId: c.user_id,
+                name: `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Coach',
+              }
+            }
+          }
+        }
+        setTeamCoachMap(map)
+      }
+    } catch (err) { console.warn('Error loading team coaches:', err) }
+  }
+
+  async function handleMessageCoach(teamId, coachUserId, coachName) {
+    if (!coachUserId) {
+      showToast?.('No coach assigned to this team yet', 'info')
+      return
+    }
+    try {
+      // Check for existing DM channel between this parent and coach
+      const { data: myChannels } = await supabase
+        .from('channel_members')
+        .select('channel_id')
+        .eq('user_id', profile.id)
+      const myChannelIds = (myChannels || []).map(m => m.channel_id)
+
+      let dmChannelId = null
+      if (myChannelIds.length > 0) {
+        const { data: dmChannels } = await supabase
+          .from('chat_channels')
+          .select('id, channel_type, channel_members(user_id)')
+          .eq('channel_type', 'dm')
+          .in('id', myChannelIds)
+        for (const ch of (dmChannels || [])) {
+          const memberIds = (ch.channel_members || []).map(m => m.user_id)
+          if (memberIds.includes(coachUserId)) {
+            dmChannelId = ch.id
+            break
+          }
+        }
+      }
+
+      if (!dmChannelId) {
+        // Create new DM channel
+        const parentName = profile.full_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Parent'
+        const { data: newChannel, error } = await supabase
+          .from('chat_channels')
+          .insert({
+            name: `${parentName} ↔ ${coachName}`,
+            channel_type: 'dm',
+            team_id: teamId,
+            season_id: seasonId,
+            created_by: profile.id,
+          })
+          .select()
+          .single()
+
+        if (error) {
+          showToast?.('Error creating conversation. Please try again.', 'error')
+          return
+        }
+        dmChannelId = newChannel.id
+
+        // Add both members
+        await supabase.from('channel_members').insert([
+          { channel_id: dmChannelId, user_id: profile.id, display_name: parentName, member_role: 'member', can_post: true, can_moderate: false },
+          { channel_id: dmChannelId, user_id: coachUserId, display_name: coachName, member_role: 'member', can_post: true, can_moderate: true },
+        ])
+      }
+
+      // Navigate to chat with this channel selected
+      onNavigate?.(`chat-${dmChannelId}`)
+    } catch (err) {
+      console.error('Error in handleMessageCoach:', err)
+      showToast?.('Error opening conversation. Please try again.', 'error')
+    }
   }
 
   async function loadUpcomingEvents(teamIdsList, passedSeasonId = null) {
@@ -566,6 +660,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     badgeOrStreak: childAchievements.length > 0 && idx === activeChildIdx
       ? `🏅 ${childAchievements.length} badge${childAchievements.length > 1 ? 's' : ''}`
       : null,
+    coachUserId: teamCoachMap[child.team?.id || child.team_players?.[0]?.team_id]?.userId || null,
+    coachName: teamCoachMap[child.team?.id || child.team_players?.[0]?.team_id]?.name || null,
   }))
 
   // Map priority items for attention strip
@@ -664,6 +760,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 }}
                 onViewProfile={(playerId) => onNavigate?.(`player-profile-${playerId}`)}
                 onViewPlayerCard={(playerId) => onNavigate?.(`player-${playerId}`)}
+                onMessageCoach={(teamId, coachUserId, coachName) => handleMessageCoach(teamId, coachUserId, coachName)}
               />
             </div>
 

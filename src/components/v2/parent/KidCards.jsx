@@ -11,6 +11,7 @@ export default function KidCards({
   onChildSelect,
   onViewProfile,
   onViewPlayerCard,
+  onMessageCoach,
 }) {
   const scrollRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -257,6 +258,24 @@ export default function KidCards({
                   Player Card
                 </button>
               </div>
+              {/* Message Coach button */}
+              {child.coachName && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMessageCoach?.(child.teamId, child.coachUserId, child.coachName) }}
+                  style={{
+                    width: '100%', marginTop: 8, padding: '7px 12px', borderRadius: 8,
+                    border: '1px solid rgba(75,185,236,0.25)',
+                    background: 'rgba(75,185,236,0.06)', color: 'var(--v2-sky, #4BB9EC)',
+                    fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'all 0.15s ease',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(75,185,236,0.12)'; e.currentTarget.style.borderColor = 'rgba(75,185,236,0.4)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(75,185,236,0.06)'; e.currentTarget.style.borderColor = 'rgba(75,185,236,0.25)' }}
+                >
+                  💬 Message {child.coachName.split(' ')[0]}
+                </button>
+              )}
             </div>
           )
         })}

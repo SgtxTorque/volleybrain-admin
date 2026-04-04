@@ -742,6 +742,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/lineups" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><LineupsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/standings" element={<TeamStandingsPage showToast={showToast} />} />
       <Route path="/leaderboards" element={<SeasonLeaderboardsPage showToast={showToast} />} />
+      <Route path="/chats/:channelId" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/chats" element={<ChatsPage showToast={showToast} activeView={activeView} roleContext={roleContext} />} />
       <Route path="/blasts" element={<RouteGuard allow={['admin', 'coach', 'team_manager', 'parent']} activeView={activeView}><BlastsPage showToast={showToast} activeView={activeView} roleContext={roleContext} /></RouteGuard>} />
       <Route path="/notifications" element={<RouteGuard allow={['admin']} activeView={activeView}><NotificationsPage showToast={showToast} /></RouteGuard>} />

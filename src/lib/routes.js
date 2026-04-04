@@ -112,6 +112,12 @@ export function getPathForPage(pageId, params) {
     return seasonId ? `/admin/seasons/${seasonId}` : '/admin/seasons'
   }
 
+  // Dynamic: chat with specific channel
+  if (pageId.startsWith('chat-')) {
+    const channelId = pageId.replace('chat-', '')
+    return `/chats/${channelId}`
+  }
+
   // Dynamic: team wall
   if (pageId.startsWith('teamwall-')) {
     const teamId = pageId.replace('teamwall-', '')
@@ -129,6 +135,9 @@ export function getPageIdFromPath(pathname) {
 
   const playerMatch = pathname.match(/^\/parent\/player\/([^/]+)$/)
   if (playerMatch) return `player-${playerMatch[1]}`
+
+  const chatMatch = pathname.match(/^\/chats\/([^/]+)$/)
+  if (chatMatch) return 'chats'
 
   const teamWallMatch = pathname.match(/^\/teams\/([^/]+)$/)
   if (teamWallMatch) return `teamwall-${teamWallMatch[1]}`

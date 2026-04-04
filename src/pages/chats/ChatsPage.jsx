@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
@@ -20,12 +21,14 @@ function ChatsPage({ showToast, activeView, roleContext }) {
   const { selectedSport } = useSport()
   const tc = useThemeClasses()
   const { isDark, accent } = useTheme()
+  const { channelId: urlChannelId } = useParams()
+  const autoSelectedRef = useRef(false)
 
   const [loading, setLoading] = useState(true)
   const [channels, setChannels] = useState([])
   const [selectedChannel, setSelectedChannel] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterType, setFilterType] = useState('all')
+  const [filterType, setFilterType] = useState(urlChannelId ? 'all' : 'all')
   const [showNewChat, setShowNewChat] = useState(false)
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
   const [showRightPanel, setShowRightPanel] = useState(window.innerWidth >= 1100)
@@ -256,6 +259,34 @@ function ChatsPage({ showToast, activeView, roleContext }) {
       }
 
       setChannels(filtered)
+
+      // Auto-select channel from URL param (e.g. /chats/{channelId})
+      if (urlChannelId && !autoSelectedRef.current) {
+        const target = filtered.find(ch => ch.id === urlChannelId)
+        if (target) {
+          setSelectedChannel(target)
+          // Switch to DMs filter if it's a DM channel
+          if (target.channel_type === 'dm' || target.channel_type === 'group_dm') {
+            setFilterType('dms')
+          }
+          autoSelectedRef.current = true
+        } else {
+          // Channel not in loaded list — fetch it directly (DM may not be in season-scoped results)
+          const { data: directChannel } = await supabase
+            .from('chat_channels')
+            .select('*, teams(id, name, color, logo_url), channel_members(id, user_id, display_name, last_read_at)')
+            .eq('id', urlChannelId)
+            .maybeSingle()
+          if (directChannel) {
+            setChannels(prev => [directChannel, ...prev.filter(c => c.id !== directChannel.id)])
+            setSelectedChannel(directChannel)
+            if (directChannel.channel_type === 'dm' || directChannel.channel_type === 'group_dm') {
+              setFilterType('dms')
+            }
+          }
+          autoSelectedRef.current = true
+        }
+      }
     } catch (err) {
       console.error('Error loading chats:', err)
       showToast?.('Error loading chats', 'error')
