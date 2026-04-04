@@ -832,6 +832,25 @@ function MainApp() {
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
   const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
 
+  // ---- Notification bell: poll unread count every 30s ----
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0)
+  useEffect(() => {
+    if (!organization?.id) return
+    async function pollUnread() {
+      try {
+        const { count } = await supabase
+          .from('admin_notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.id)
+          .eq('is_read', false)
+        setNotifUnreadCount(count || 0)
+      } catch (_) { /* table may not exist yet */ }
+    }
+    pollUnread()
+    const interval = setInterval(pollUnread, 30000)
+    return () => clearInterval(interval)
+  }, [organization?.id])
+
   useEffect(() => {
     if (profile?.id && organization?.id) {
       loadRoleContext()
@@ -1376,7 +1395,7 @@ function MainApp() {
           onSignOut={signOut}
           onNavigateToProfile={() => navigate('/profile')}
           isDark={isDark}
-          notificationCount={0}
+          notificationCount={notifUnreadCount}
           onOpenNotifications={() => navigate('/notifications')}
           isPlatformAdmin={isPlatformAdmin}
           onEnterPlatformMode={handleEnterPlatformMode}
@@ -1403,7 +1422,7 @@ function MainApp() {
               ]}
               searchPlaceholder="Search..."
               onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-              hasNotifications={false}
+              hasNotifications={notifUnreadCount > 0}
               onNotificationClick={() => navigate(getPathForPage('notifications'))}
               avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
               onAvatarClick={() => navigate('/profile')}
