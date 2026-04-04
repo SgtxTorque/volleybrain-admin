@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { EmailService } from '../../lib/email-service'
 import { AlertCircle } from '../../constants/icons'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
 import {
@@ -393,6 +394,26 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       }
 
       trackFunnelEvent('form_submitted', null, { children_count: allChildren.length })
+
+      // Send registration confirmation email for each child
+      if (sharedInfo.parent1_email) {
+        for (const child of allChildren) {
+          try {
+            await EmailService.sendRegistrationConfirmation({
+              recipientEmail: sharedInfo.parent1_email,
+              recipientName: sharedInfo.parent1_name || sharedInfo.parent1_email,
+              playerName: `${child.first_name} ${child.last_name}`,
+              seasonName: season?.name || '',
+              organizationId: organization?.id,
+              organizationName: organization?.name || '',
+            })
+          } catch (emailErr) {
+            console.error('Failed to send confirmation email:', emailErr)
+            // Don't block registration success on email failure
+          }
+        }
+      }
+
       setSubmitted(true)
     } catch (err) {
       console.error('Registration error:', err)

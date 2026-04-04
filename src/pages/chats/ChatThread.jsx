@@ -79,7 +79,12 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
       message_type: 'text'
     })
     if (error) {
-      showToast?.('Error sending message', 'error')
+      console.error('Chat send error:', error)
+      if (error.code === '42501' || error.message?.includes('policy')) {
+        showToast?.("You don't have permission to send messages in this channel. Contact your admin.", 'error')
+      } else {
+        showToast?.(`Error sending message: ${error.message}`, 'error')
+      }
     } else {
       playSound('send')
       await supabase.from('chat_channels').update({ updated_at: new Date().toISOString() }).eq('id', channel.id)
@@ -225,7 +230,12 @@ function ChatThread({ channel, onBack, onRefresh, showToast, isDark, accent, act
     })
 
     if (error) {
-      showToast?.('Error sending message', 'error')
+      console.error('Chat send error:', error)
+      if (error.code === '42501' || error.message?.includes('policy')) {
+        showToast?.("You don't have permission to send messages in this channel. Contact your admin.", 'error')
+      } else {
+        showToast?.(`Error sending message: ${error.message}`, 'error')
+      }
     } else {
       playSound('send')
       stopTyping()

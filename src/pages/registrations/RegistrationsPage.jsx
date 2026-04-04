@@ -149,16 +149,8 @@ export function RegistrationsPage({ showToast }) {
           if (result.success && !result.skipped) {
             showToast(`Approved! Generated ${result.feesCreated} fees ($${result.totalAmount.toFixed(2)})`, 'success')
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
-              EmailService.sendRegistrationConfirmation({
-                recipientEmail: playerData.parent_email,
-                recipientName: playerData.parent_name || playerData.parent_email,
-                playerName: `${playerData.first_name} ${playerData.last_name}`,
-                seasonName: selectedSeason?.name || '',
-                teamName: 'TBD',
-                organizationId: organization.id,
-                organizationName: organization.name,
-              })
-                .then(r => r.success && console.log('Registration confirmation email queued'))
+              EmailService.sendApprovalNotification(playerData, selectedSeason, organization, result.fees || [])
+                .then(r => r.success && console.log('Approval notification email queued'))
                 .catch(e => console.error('Email queue error:', e))
             }
           } else if (result.skipped) {
@@ -168,16 +160,8 @@ export function RegistrationsPage({ showToast }) {
               showToast('Registration approved!', 'success')
             }
             if (isEmailEnabled(organization, 'registration_approved') && playerData.parent_email) {
-              EmailService.sendRegistrationConfirmation({
-                recipientEmail: playerData.parent_email,
-                recipientName: playerData.parent_name || playerData.parent_email,
-                playerName: `${playerData.first_name} ${playerData.last_name}`,
-                seasonName: selectedSeason?.name || '',
-                teamName: 'TBD',
-                organizationId: organization.id,
-                organizationName: organization.name,
-              })
-                .then(r => r.success && console.log('Registration confirmation email queued'))
+              EmailService.sendApprovalNotification(playerData, selectedSeason, organization, [])
+                .then(r => r.success && console.log('Approval notification email queued'))
                 .catch(e => console.error('Email queue error:', e))
             }
           } else {
@@ -256,15 +240,7 @@ export function RegistrationsPage({ showToast }) {
           }
         }
         if (isEmailEnabled(organization, 'registration_approved') && player.parent_email) {
-          const emailResult = await EmailService.sendRegistrationConfirmation({
-            recipientEmail: player.parent_email,
-            recipientName: player.parent_name || player.parent_email,
-            playerName: `${player.first_name} ${player.last_name}`,
-            seasonName: selectedSeason?.name || '',
-            teamName: 'TBD',
-            organizationId: organization.id,
-            organizationName: organization.name,
-          })
+          const emailResult = await EmailService.sendApprovalNotification(player, selectedSeason, organization, fees)
           if (emailResult.success) emailsQueued++
         }
       } catch (err) {

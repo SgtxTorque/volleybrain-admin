@@ -113,16 +113,40 @@ export default function CoachInviteAcceptPage() {
     }
   }
 
+  // Verify profile writes committed, then redirect
+  async function verifyAndRedirect(userId, orgId) {
+    // Wait for DB writes to propagate
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // Verify the profile was written correctly
+    const { data: verifyProfile } = await supabase
+      .from('profiles')
+      .select('onboarding_completed, current_organization_id')
+      .eq('id', userId)
+      .single()
+
+    if (!verifyProfile?.onboarding_completed) {
+      // Force it again if the first write didn't stick
+      await supabase.from('profiles').update({
+        onboarding_completed: true,
+        current_organization_id: orgId,
+      }).eq('id', userId)
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    setAccepted(true)
+    setTimeout(() => {
+      window.location.href = '/dashboard'
+    }, 1500)
+  }
+
   async function handleAccept() {
     setProcessing(true)
     setError(null)
     try {
       await acceptInvite(currentUser.id, currentUser.email)
-      setAccepted(true)
-      setTimeout(() => {
-        navigate('/dashboard')
-        window.location.reload()
-      }, 1500)
+      const orgId = invite._season?.organization_id
+      await verifyAndRedirect(currentUser.id, orgId)
     } catch (err) {
       setError('Error accepting invitation: ' + err.message)
     }
@@ -153,22 +177,24 @@ export default function CoachInviteAcceptPage() {
       if (signUpError) throw signUpError
 
       if (authData.user) {
+        const orgId = invite._season?.organization_id || null
+
         // Create/update profile
         await supabase.from('profiles').upsert({
           id: authData.user.id,
           email: formEmail,
           full_name: `${invite.first_name} ${invite.last_name}`,
           phone: formPhone || null,
-          current_organization_id: invite._season?.organization_id || null,
+          current_organization_id: orgId,
           onboarding_completed: true,
         })
 
         await acceptInvite(authData.user.id, formEmail)
-        setAccepted(true)
-        setTimeout(() => {
-          navigate('/dashboard')
-          window.location.reload()
-        }, 1500)
+
+        // Ensure we're signed in (signUp may not auto-login if email confirmation is on)
+        await supabase.auth.signInWithPassword({ email: formEmail, password: formPassword })
+
+        await verifyAndRedirect(authData.user.id, orgId)
       }
     } catch (err) {
       setError(err.message)
@@ -189,11 +215,8 @@ export default function CoachInviteAcceptPage() {
 
       if (data.user) {
         await acceptInvite(data.user.id, data.user.email)
-        setAccepted(true)
-        setTimeout(() => {
-          navigate('/dashboard')
-          window.location.reload()
-        }, 1500)
+        const orgId = invite._season?.organization_id
+        await verifyAndRedirect(data.user.id, orgId)
       }
     } catch (err) {
       setError(err.message)

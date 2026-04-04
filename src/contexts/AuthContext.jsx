@@ -60,22 +60,45 @@ export function AuthProvider({ children }) {
   // Load profile, roles, and org for a given user object
   async function loadProfile(authUser) {
     try {
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', authUser.id).maybeSingle()
+      let { data: prof } = await supabase.from('profiles').select('*').eq('id', authUser.id).maybeSingle()
 
-      // OAuth users may not have a profile row yet — create one
+      // No profile row yet — check if user came from an invite flow (has roles already)
       if (!prof) {
-        const meta = authUser.user_metadata
-        const { data: newProf } = await supabase.from('profiles').upsert({
-          id: authUser.id,
-          email: authUser.email,
-          full_name: meta?.full_name || meta?.name || '',
-          onboarding_completed: false,
-        }, { onConflict: 'id' }).select().single()
-        setProfile(newProf)
-        setIsPlatformAdmin(false)
-        setNeedsOnboarding(true)
-        setLoading(false)
-        return
+        const { data: existingRoles } = await supabase
+          .from('user_roles')
+          .select('role, organization_id')
+          .eq('user_id', authUser.id)
+          .limit(1)
+
+        if (existingRoles?.length > 0) {
+          // User has roles — they came from an invite flow. Don't trigger onboarding.
+          const meta = authUser.user_metadata
+          await supabase.from('profiles').upsert({
+            id: authUser.id,
+            email: authUser.email,
+            full_name: meta?.full_name || meta?.name || '',
+            onboarding_completed: true,
+            current_organization_id: existingRoles[0].organization_id,
+          }, { onConflict: 'id' })
+          // Re-fetch the profile
+          const { data: freshProfile } = await supabase
+            .from('profiles').select('*').eq('id', authUser.id).single()
+          prof = freshProfile
+        } else {
+          // No roles — genuinely new user, create profile and trigger onboarding
+          const meta = authUser.user_metadata
+          const { data: newProf } = await supabase.from('profiles').upsert({
+            id: authUser.id,
+            email: authUser.email,
+            full_name: meta?.full_name || meta?.name || '',
+            onboarding_completed: false,
+          }, { onConflict: 'id' }).select().single()
+          setProfile(newProf)
+          setIsPlatformAdmin(false)
+          setNeedsOnboarding(true)
+          setLoading(false)
+          return
+        }
       }
 
       setProfile(prof)
@@ -86,6 +109,46 @@ export function AuthProvider({ children }) {
         setNeedsOnboarding(true)
         setLoading(false)
         return
+      }
+
+      // Auto-link: if any players have this user's email as parent_email but no parent_account_id, link them
+      try {
+        const { data: unlinkedPlayers } = await supabase
+          .from('players')
+          .select('id, season_id')
+          .eq('parent_email', prof.email || authUser.email)
+          .is('parent_account_id', null)
+
+        if (unlinkedPlayers?.length > 0) {
+          const playerIds = unlinkedPlayers.map(p => p.id)
+          await supabase
+            .from('players')
+            .update({ parent_account_id: authUser.id })
+            .in('id', playerIds)
+
+          // Get org IDs from seasons these players belong to
+          const seasonIds = [...new Set(unlinkedPlayers.map(p => p.season_id).filter(Boolean))]
+          if (seasonIds.length > 0) {
+            const { data: seasons } = await supabase
+              .from('seasons')
+              .select('organization_id')
+              .in('id', seasonIds)
+
+            const orgIds = [...new Set(seasons?.map(s => s.organization_id).filter(Boolean))]
+
+            // Ensure parent role exists for each org
+            for (const orgId of orgIds) {
+              await supabase.from('user_roles').upsert({
+                user_id: authUser.id,
+                organization_id: orgId,
+                role: 'parent',
+                is_active: true,
+              }, { onConflict: 'user_id,organization_id,role' })
+            }
+          }
+        }
+      } catch (linkErr) {
+        console.error('Auto-link children error:', linkErr)
       }
 
       const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', authUser.id).eq('is_active', true)
