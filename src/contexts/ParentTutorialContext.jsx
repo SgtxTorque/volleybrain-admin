@@ -115,7 +115,7 @@ export function useParentTutorial() {
 }
 
 export function ParentTutorialProvider({ children, activeView }) {
-  const { user, profile } = useAuth()
+  const { user, profile, organization } = useAuth()
   const [tutorialState, setTutorialState] = useState({
     isActive: false,
     currentStepIndex: 0,
@@ -199,13 +199,19 @@ export function ParentTutorialProvider({ children, activeView }) {
           checklistData.hasRsvpd = (rsvps?.length || 0) > 0
         }
       } 
-      // Otherwise try to load from profile's children
+      // Otherwise try to load from profile's children (scoped to active org)
       else if (profile?.id) {
-        const { data: players } = await supabase
+        let playerQuery = supabase
           .from('players')
           .select('*, team_players(team_id)')
           .eq('parent_account_id', profile.id)
           .limit(1)
+        if (organization?.id) {
+          const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
+          const ids = orgSeasons?.map(s => s.id) || []
+          if (ids.length > 0) playerQuery = playerQuery.in('season_id', ids)
+        }
+        const { data: players } = await playerQuery
 
         if (players?.length > 0) {
           const player = players[0]

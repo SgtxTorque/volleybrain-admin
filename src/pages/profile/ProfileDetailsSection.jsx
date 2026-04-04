@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import {
   Save, Users, Calendar, MapPin,
   AlertTriangle, UserCog, RefreshCw
@@ -267,19 +268,27 @@ export function CoachSection({ profile, isDark, tc, showToast }) {
 // PARENT SECTION
 // ============================================
 export function ParentSection({ profile, isDark, tc }) {
+  const { organization } = useAuth()
   const [children, setChildren] = useState([])
   const [schedule, setSchedule] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadParentData() }, [profile?.id])
+  useEffect(() => { loadParentData() }, [profile?.id, organization?.id])
 
   async function loadParentData() {
     setLoading(true)
     try {
-      const { data: kids } = await supabase
+      // Scope children to active organization
+      let kidQuery = supabase
         .from('players')
         .select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id))')
         .eq('parent_account_id', profile.id)
+      if (organization?.id) {
+        const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
+        const orgSeasonIds = orgSeasons?.map(s => s.id) || []
+        if (orgSeasonIds.length > 0) kidQuery = kidQuery.in('season_id', orgSeasonIds)
+      }
+      const { data: kids } = await kidQuery
 
       setChildren(kids || [])
 

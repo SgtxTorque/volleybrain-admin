@@ -45,7 +45,7 @@ function formatTime12(timeStr) {
 
 // ═══ MAIN COMPONENT ═══
 function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate, activeView, availableViews = [], onSwitchRole }) {
-  const { profile } = useAuth()
+  const { profile, organization } = useAuth()
   const { orgName } = useOrgBranding()
   const { selectedSport } = useSport()
   const { isDark, toggleTheme } = useTheme()
@@ -58,7 +58,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [teamIds, setTeamIds] = useState([])
   const [seasonId, setSeasonId] = useState(null)
   const [upcomingEvents, setUpcomingEvents] = useState([])
-  const [organization, setOrganization] = useState(null)
+  const [orgDetails, setOrgDetails] = useState(null)
   const [paymentSummary, setPaymentSummary] = useState({ totalDue: 0, totalPaid: 0, unpaidItems: [] })
   const [openSeasons, setOpenSeasons] = useState([])
   const [alerts, setAlerts] = useState([])
@@ -90,7 +90,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const initialLoadDone = useRef(false)
 
   // Priority engine
-  const organizationId = organization?.id || registrationData[0]?.season?.organizations?.id
+  const organizationId = organization?.id || orgDetails?.id || registrationData[0]?.season?.organizations?.id
   const priorityEngine = usePriorityItems({
     children: registrationData, teamIds, seasonId, organizationId,
   })
@@ -280,11 +280,18 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   async function loadParentDataFromProfile() {
     if (!profile?.id) { setLoading(false); return }
     try {
-      const { data: players } = await supabase
+      // Scope children to active organization
+      let playersQuery = supabase
         .from('players')
         .select(`*, team_players(team_id, jersey_number, teams(id, name, color, season_id)),
           season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))`)
         .eq('parent_account_id', profile.id)
+      if (organization?.id) {
+        const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
+        const orgSeasonIds = orgSeasons?.map(s => s.id) || []
+        if (orgSeasonIds.length > 0) playersQuery = playersQuery.in('season_id', orgSeasonIds)
+      }
+      const { data: players } = await playersQuery
 
       if (players && players.length > 0) {
         const regData = players.map(p => {
@@ -302,7 +309,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           const { data: teamsData } = await supabase.from('teams').select('*').in('id', tIds)
           setTeams(teamsData || [])
         }
-        if (regData[0]?.season?.organizations) setOrganization(regData[0].season.organizations)
+        if (regData[0]?.season?.organizations) setOrgDetails(regData[0].season.organizations)
         await loadUpcomingEvents(tIds, currentSeasonId)
         await loadPaymentSummary(regData)
         await loadAlerts(regData[0]?.season?.organizations?.id)
@@ -334,7 +341,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
         await loadUpcomingEvents([], null)
       }
       await loadPaymentSummary(regData)
-      if (children[0]?.season?.organizations) setOrganization(children[0].season.organizations)
+      if (children[0]?.season?.organizations) setOrgDetails(children[0].season.organizations)
       const orgId = children[0]?.season?.organizations?.id || children[0]?.season?.organization_id
       if (orgId) await loadAlerts(orgId)
       parentTutorial?.loadChecklistData?.(regData)
@@ -630,7 +637,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             <HeroCard
               orgLine={familyName}
               greeting={getParentGreeting()}
-              subLine={`${orgName || organization?.name || ''} ${registrationData[0]?.season?.name ? '· ' + registrationData[0].season.name : ''}`}
+              subLine={`${orgName || orgDetails?.name || organization?.name || ''} ${registrationData[0]?.season?.name ? '· ' + registrationData[0].season.name : ''}`}
               stats={heroStats}
             />
 
@@ -844,7 +851,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           onClose={() => setSelectedEventDetail(null)} activeView="parent" />
       )}
       {showPaymentModal && (
-        <PaymentOptionsModal amount={paymentSummary.totalDue} organization={organization}
+        <PaymentOptionsModal amount={paymentSummary.totalDue} organization={orgDetails || organization}
           fees={paymentSummary.unpaidItems} players={registrationData}
           onClose={() => setShowPaymentModal(false)} showToast={showToast} />
       )}

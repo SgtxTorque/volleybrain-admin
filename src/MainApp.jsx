@@ -857,9 +857,17 @@ function MainApp() {
         .eq('staff_role', 'team_manager')
         .eq('is_active', true)
 
-      const { data: children } = await supabase
-        .from('players').select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
-        .eq('parent_account_id', profile.id)
+      // Get org season IDs to scope children to active organization
+      const { data: orgSeasons } = await supabase
+        .from('seasons').select('id').eq('organization_id', organization.id)
+      const orgSeasonIds = orgSeasons?.map(s => s.id) || []
+
+      const { data: children } = orgSeasonIds.length > 0
+        ? await supabase
+            .from('players').select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
+            .eq('parent_account_id', profile.id)
+            .in('season_id', orgSeasonIds)
+        : { data: [] }
 
       // TODO: needs profile_id linkage — players table has no profile_id column to link a profile to a player self-record
       const playerSelf = null

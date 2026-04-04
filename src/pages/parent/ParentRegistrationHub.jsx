@@ -62,12 +62,16 @@ function ParentRegistrationHub({ roleContext, showToast }) {
         .order('start_date', { ascending: true })
       setSeasons(seasonData || [])
 
-      // Load parent's existing players
-      const { data: playerData } = await supabase
+      // Load parent's existing players (scoped to active org via all org seasons)
+      const { data: allOrgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', profile.organization_id)
+      const allOrgSeasonIds = allOrgSeasons?.map(s => s.id) || []
+      let playerQuery = supabase
         .from('players')
         .select('*, team_players (team_id, teams (name))')
         .eq('parent_account_id', user.id)
         .order('created_at', { ascending: false })
+      if (allOrgSeasonIds.length > 0) playerQuery = playerQuery.in('season_id', allOrgSeasonIds)
+      const { data: playerData } = await playerQuery
       setMyPlayers(playerData || [])
     } catch (err) {
       console.error('Load error:', err)
