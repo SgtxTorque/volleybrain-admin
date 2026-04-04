@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import {
-  X, Mail, Phone, Edit, Trash2, Shield, Check, Star, Users
+  X, Mail, Phone, Edit, Trash2, Shield, Check, Star, Users, Copy, Share2, RefreshCw
 } from '../../constants/icons'
+import { supabase } from '../../lib/supabase'
+import { generateInviteCode } from '../../lib/invite-utils'
 
 const bgCheckLabels = {
   not_started: { label: 'Not Started', icon: '⏳', color: 'text-slate-400', bg: 'bg-slate-500/20' },
@@ -10,10 +13,58 @@ const bgCheckLabels = {
   expired: { label: 'Expired', icon: '⚠️', color: 'text-orange-400', bg: 'bg-orange-500/20' },
 }
 
-export default function PersonDetailPanel({ person, isDark, onClose, onEdit, onAssign, onToggleStatus, onDelete, onDetail, onEmail }) {
+export default function PersonDetailPanel({ person, isDark, onClose, onEdit, onAssign, onToggleStatus, onDelete, onDetail, onEmail, showToast, orgName, onRefresh }) {
+  const [inviteCode, setInviteCode] = useState(person?._raw?.invite_code || null)
+  const [regenerating, setRegenerating] = useState(false)
+
   if (!person) return null
   const bgCheck = bgCheckLabels[person.backgroundCheck] || bgCheckLabels.not_started
   const raw = person._raw || {}
+
+  function handleCopyCode() {
+    if (!inviteCode) return
+    navigator.clipboard.writeText(inviteCode)
+    showToast?.('Invite code copied!', 'success')
+  }
+
+  function handleShareCode() {
+    if (!inviteCode) return
+    const message = `Hey ${person.firstName}! You've been added to ${orgName || 'our club'} as a coach on Lynx. Download the app and enter this code to join:\n\nInvite Code: ${inviteCode}\n\nDownload Lynx: https://thelynxapp.com`
+    if (navigator.share) {
+      navigator.share({ title: 'Lynx Coach Invite', text: message })
+    } else {
+      navigator.clipboard.writeText(message)
+      showToast?.('Invite message copied to clipboard!', 'success')
+    }
+  }
+
+  async function handleRegenerateCode() {
+    setRegenerating(true)
+    const newCode = generateInviteCode()
+    const { error } = await supabase.from('coaches').update({ invite_code: newCode }).eq('id', raw.id)
+    if (error) {
+      showToast?.('Error generating new code', 'error')
+    } else {
+      setInviteCode(newCode)
+      showToast?.('New invite code generated!', 'success')
+      onRefresh?.()
+    }
+    setRegenerating(false)
+  }
+
+  async function handleGenerateCode() {
+    setRegenerating(true)
+    const newCode = generateInviteCode()
+    const { error } = await supabase.from('coaches').update({ invite_code: newCode }).eq('id', raw.id)
+    if (error) {
+      showToast?.('Error generating code', 'error')
+    } else {
+      setInviteCode(newCode)
+      showToast?.('Invite code generated!', 'success')
+      onRefresh?.()
+    }
+    setRegenerating(false)
+  }
 
   // Credential items for coaches
   const credentials = []
@@ -167,6 +218,51 @@ export default function PersonDetailPanel({ person, isDark, onClose, onEdit, onA
           )}
         </div>
       </div>
+
+      {/* Invite Code — coaches only */}
+      {person.source === 'coach' && (
+        <div className="px-5 mb-4">
+          <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            Mobile Invite Code
+          </h4>
+          {inviteCode ? (
+            <div className={`p-3 rounded-xl border ${borderColor}`}>
+              <div className={`border-2 border-dashed rounded-lg p-3 text-center mb-2.5 ${borderColor}`}>
+                <span className={`text-xl font-mono font-bold tracking-[0.25em] ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                  {inviteCode}
+                </span>
+              </div>
+              <div className="flex gap-1.5">
+                <button onClick={handleCopyCode}
+                  className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold transition ${
+                    isDark ? 'bg-white/[0.06] text-slate-300 hover:bg-white/[0.1]' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                  }`}>
+                  <Copy className="w-3 h-3" /> Copy
+                </button>
+                <button onClick={handleShareCode}
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-[#4BB9EC] text-white hover:brightness-110 transition">
+                  <Share2 className="w-3 h-3" /> Share
+                </button>
+                <button onClick={handleRegenerateCode} disabled={regenerating}
+                  className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold transition ${
+                    isDark ? 'bg-white/[0.06] text-slate-400 hover:bg-white/[0.1]' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                  } ${regenerating ? 'opacity-50' : ''}`}>
+                  <RefreshCw className={`w-3 h-3 ${regenerating ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={handleGenerateCode} disabled={regenerating}
+              className={`w-full py-2.5 rounded-lg text-xs font-semibold border-2 border-dashed transition ${
+                isDark
+                  ? `${borderColor} text-slate-400 hover:text-white hover:border-white/[0.15]`
+                  : 'border-slate-200 text-slate-400 hover:text-[#10284C] hover:border-slate-300'
+              } ${regenerating ? 'opacity-50' : ''}`}>
+              {regenerating ? 'Generating...' : 'Generate Invite Code'}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className={`px-5 pb-5 pt-3 border-t ${borderColor}`}>

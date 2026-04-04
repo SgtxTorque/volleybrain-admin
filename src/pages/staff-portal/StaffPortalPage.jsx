@@ -725,6 +725,9 @@ export function StaffPortalPage({ showToast }) {
             onDelete={() => handleDelete(selectedPerson)}
             onDetail={() => handleDetail(selectedPerson)}
             onEmail={selectedPerson.email ? () => window.open(`mailto:${selectedPerson.email}`, '_blank') : undefined}
+            showToast={showToast}
+            orgName={organization?.name}
+            onRefresh={loadAll}
           />
         )}
       </div>
