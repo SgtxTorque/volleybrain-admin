@@ -662,23 +662,28 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         }
       }
 
-      // Fetch unsigned waivers count
+      // Fetch unsigned waivers count — scoped to this org's waiver templates
       let unsignedWaivers = 0
       try {
-        const { count: activeWaivers } = await supabase
+        const { data: activeWaivers } = await supabase
           .from('waiver_templates')
-          .select('id', { count: 'exact', head: true })
+          .select('id')
           .eq('organization_id', orgId)
           .eq('is_active', true)
 
-        const { count: signedCount } = await supabase
-          .from('waiver_signatures')
-          .select('id', { count: 'exact', head: true })
+        const activeWaiverIds = (activeWaivers || []).map(w => w.id)
 
-        // Approximate: unsigned = (active waivers * total players) - signed
-        // Simplified: just show waivers that need attention
-        const expectedSigs = (activeWaivers || 0) * (regStats.total || 0)
-        unsignedWaivers = Math.max(0, expectedSigs - (signedCount || 0))
+        let signedCount = 0
+        if (activeWaiverIds.length > 0) {
+          const { count } = await supabase
+            .from('waiver_signatures')
+            .select('id', { count: 'exact', head: true })
+            .in('waiver_template_id', activeWaiverIds)
+          signedCount = count || 0
+        }
+
+        const expectedSigs = activeWaiverIds.length * (regStats.total || 0)
+        unsignedWaivers = Math.max(0, expectedSigs - signedCount)
       } catch {
         // Waivers table may not have org_id column — gracefully degrade
       }

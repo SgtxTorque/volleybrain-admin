@@ -231,10 +231,13 @@ export default function RegistrationsTable({
                     </span>
                   </div>
 
-                  {/* Parent name */}
+                  {/* Parent / Family */}
                   <div className="flex-1 min-w-0">
                     <span className={`text-xs truncate block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       {player.parent_name || '—'}
+                    </span>
+                    <span className={`text-[10px] truncate block ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {player.parent_email || ''}
                     </span>
                   </div>
 

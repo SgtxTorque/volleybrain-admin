@@ -641,14 +641,35 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
           for (const entry of (xpActivity || [])) {
             if (!latestByPlayer[entry.player_id]) latestByPlayer[entry.player_id] = entry.created_at
           }
+
+          // Also fetch player join dates for fallback classification
+          const { data: playerJoinDates } = await supabase
+            .from('team_players')
+            .select('player_id, created_at')
+            .in('player_id', playerIds)
+          const joinDateByPlayer = {}
+          for (const tp of (playerJoinDates || [])) {
+            if (!joinDateByPlayer[tp.player_id]) joinDateByPlayer[tp.player_id] = tp.created_at
+          }
+
           let active = 0, drifting = 0, inactive = 0
           for (const pid of playerIds) {
             const lastActivity = latestByPlayer[pid]
-            if (!lastActivity) { inactive++; continue }
-            const daysSince = Math.floor((now - new Date(lastActivity)) / (1000 * 60 * 60 * 24))
-            if (daysSince <= 7) active++
-            else if (daysSince <= 21) drifting++
-            else inactive++
+            if (lastActivity) {
+              const daysSince = Math.floor((now - new Date(lastActivity)) / (1000 * 60 * 60 * 24))
+              if (daysSince <= 7) active++
+              else if (daysSince <= 21) drifting++
+              else inactive++
+            } else {
+              // Fallback: use join date for players with no XP activity
+              const joinDate = joinDateByPlayer[pid]
+              if (joinDate) {
+                const daysSinceJoin = Math.floor((now - new Date(joinDate)) / (1000 * 60 * 60 * 24))
+                if (daysSinceJoin <= 7) active++
+                else if (daysSinceJoin <= 21) drifting++
+                else inactive++
+              } else { inactive++ }
+            }
           }
           setTeamPulseData({ active, drifting, inactive })
         } else { setTeamPulseData({ active: 0, drifting: 0, inactive: 0 }) }
