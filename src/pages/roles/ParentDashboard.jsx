@@ -746,7 +746,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
             )}
 
             {/* INNER FLEX: Content + Engagement Column side by side */}
-            <div style={{ display: 'flex', gap: 16 }}>
+            <div className="lynx-parent-layout" style={{ display: 'flex', gap: 16 }}>
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* MY PLAYERS — Kid Cards horizontal scroll */}

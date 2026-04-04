@@ -592,3 +592,25 @@
   background: rgba(255, 255, 255, 0.72);
   border-color: rgba(0, 0, 0, 0.06);
 }
+
+/* ── Mobile Responsiveness ── */
+@media (max-width: 1023px) {
+  .lynx-main-content {
+    padding-left: 0 !important;
+    padding-top: 52px;
+    min-width: 0 !important;
+  }
+  .lynx-parent-layout {
+    flex-direction: column !important;
+  }
+  .parent-engagement-column {
+    width: 100% !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .parent-engagement-column > * {
+    flex: 1;
+    min-width: 140px;
+  }
+}

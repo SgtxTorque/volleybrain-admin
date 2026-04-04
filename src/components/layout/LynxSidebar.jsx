@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, UserCog, Shield, DollarSign,
   ClipboardList, Megaphone, Settings, Calendar, BarChart3,
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight, LayoutGrid,
-  ChevronDown, Check,
+  ChevronDown, Check, Menu, X,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
   CheckSquare, CalendarCheck, User, LogOut, MapPin,
@@ -299,7 +299,145 @@ export default function LynxSidebar({
     return activePage === item.id
   }
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Close mobile menu on navigate
+  const handleMobileNavigate = (pageId, params) => {
+    setMobileMenuOpen(false)
+    onNavigate?.(pageId, params)
+  }
+
   return (
+    <>
+    {/* ---- Mobile Header Bar (visible < 1024px) ---- */}
+    <div className="lynx-mobile-header" style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 250,
+      height: 52, background: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+      borderBottom: isPlayer ? '1px solid rgba(255,255,255,0.06)' : '1px solid var(--v2-border-subtle)',
+      display: 'none', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 14px', fontFamily: 'var(--v2-font)',
+    }}>
+      <button onClick={() => setMobileMenuOpen(true)} style={{
+        background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+        color: isPlayer ? 'rgba(255,255,255,0.7)' : 'var(--v2-navy)',
+      }}>
+        <Menu style={{ width: 22, height: 22 }} />
+      </button>
+      <span style={{ fontWeight: 800, fontSize: 14, color: isPlayer ? '#FFFFFF' : 'var(--v2-navy)', letterSpacing: '-0.01em' }}>
+        {orgName || 'Lynx'}
+      </span>
+      <button onClick={() => onOpenNotifications?.()} style={{
+        background: 'none', border: 'none', cursor: 'pointer', padding: 4, position: 'relative',
+        color: isPlayer ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)',
+      }}>
+        <Bell style={{ width: 20, height: 20 }} />
+        {notificationCount > 0 && (
+          <span style={{
+            position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: 8,
+            background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{notificationCount > 9 ? '9+' : notificationCount}</span>
+        )}
+      </button>
+    </div>
+
+    {/* ---- Mobile Slide-Out Overlay ---- */}
+    {mobileMenuOpen && (
+      <div className="lynx-mobile-overlay" style={{ position: 'fixed', inset: 0, zIndex: 300 }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} onClick={() => setMobileMenuOpen(false)} />
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: 280,
+          background: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+          boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+          overflowY: 'auto', display: 'flex', flexDirection: 'column',
+          fontFamily: 'var(--v2-font)',
+        }}>
+          {/* Close header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '14px 16px', borderBottom: isPlayer ? '1px solid rgba(255,255,255,0.06)' : '1px solid var(--v2-border-subtle)',
+          }}>
+            <span style={{ fontWeight: 800, fontSize: 15, color: isPlayer ? '#FFFFFF' : 'var(--v2-navy)' }}>Menu</span>
+            <button onClick={() => setMobileMenuOpen(false)} style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 4,
+              color: isPlayer ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)',
+            }}>
+              <X style={{ width: 20, height: 20 }} />
+            </button>
+          </div>
+          {/* Nav items — reuse the same groups */}
+          <nav style={{ flex: 1, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {navGroups.map((group) => {
+              if (group.type === 'single') {
+                const active = activePage === group.id && !directTeamWallId
+                const IconComp = ICON_MAP[group.icon] || ICON_MAP[group.id] || Home
+                return (
+                  <button key={group.id} onClick={() => handleMobileNavigate(group.id)}
+                    className="v2-sidebar-btn" data-player={isPlayer || undefined}
+                    style={{
+                      width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10,
+                      background: active ? (isPlayer ? 'rgba(245,158,11,0.12)' : 'var(--v2-surface)') : 'transparent',
+                      color: active ? (isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)') : undefined,
+                      fontWeight: active ? 700 : 600,
+                    }}>
+                    <IconComp style={{ width: 18, height: 18, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13 }}>{group.label}</span>
+                  </button>
+                )
+              }
+              // Group with items
+              const isExpanded = expandedGroups.has(group.id)
+              return (
+                <div key={group.id}>
+                  <button onClick={() => toggleGroup(group.id)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '6px 12px', background: 'none', border: 'none', cursor: 'pointer',
+                      color: isPlayer ? 'rgba(255,255,255,0.35)' : 'var(--v2-text-muted)',
+                      fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+                    }}>
+                    <ChevronDown style={{ width: 12, height: 12, transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }} />
+                    {group.label}
+                  </button>
+                  {isExpanded && group.items?.map(item => {
+                    const active = isItemActive(item)
+                    const IconComp = ICON_MAP[item.icon] || ICON_MAP[item.id] || Star
+                    return (
+                      <button key={item.id} onClick={() => {
+                        if (item.teamId) handleMobileNavigate(`teamwall-${item.teamId}`)
+                        else if (item.playerId) handleMobileNavigate(`player-profile-${item.playerId}`)
+                        else handleMobileNavigate(item.id)
+                      }}
+                        className="v2-sidebar-btn" data-player={isPlayer || undefined}
+                        style={{
+                          width: '100%', justifyContent: 'flex-start', paddingLeft: 28, gap: 10,
+                          background: active ? (isPlayer ? 'rgba(245,158,11,0.12)' : 'var(--v2-surface)') : 'transparent',
+                          color: active ? (isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)') : undefined,
+                          fontWeight: active ? 700 : 600,
+                        }}>
+                        <IconComp style={{ width: 16, height: 16, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12.5 }}>{item.label}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </nav>
+          {/* Bottom actions */}
+          <div style={{ padding: '8px 10px 16px', borderTop: isPlayer ? '1px solid rgba(255,255,255,0.06)' : '1px solid var(--v2-border-subtle)' }}>
+            <button onClick={() => { setMobileMenuOpen(false); onSignOut?.() }}
+              className="v2-sidebar-btn"
+              style={{ width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10, color: 'rgba(239,68,68,0.6)' }}>
+              <LogOut style={{ width: 18, height: 18, flexShrink: 0 }} />
+              <span style={{ fontSize: 12.5, fontWeight: 600 }}>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ---- Desktop Sidebar ---- */}
     <div
       className="v2-sidebar lynx-sidebar"
       data-player={isPlayer || undefined}
@@ -511,10 +649,16 @@ export default function LynxSidebar({
         .lynx-sidebar::-webkit-scrollbar { width: 0px; display: none; }
         .lynx-sidebar { scrollbar-width: none; -ms-overflow-style: none; }
         .lynx-sidebar-nav::-webkit-scrollbar { width: 0; display: none; }
-        @media (max-width: 700px) {
+        /* Mobile: hide desktop sidebar, show mobile header */
+        @media (max-width: 1023px) {
           .v2-sidebar { display: none !important; }
+          .lynx-mobile-header { display: flex !important; }
+        }
+        @media (min-width: 1024px) {
+          .lynx-mobile-header { display: none !important; }
         }
       `}</style>
     </div>
+    </>
   )
 }
