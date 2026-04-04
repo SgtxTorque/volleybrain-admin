@@ -147,6 +147,13 @@ export function SetupWizard({ onComplete, onBack }) {
   const [error, setError] = useState(null)
   const [successContext, setSuccessContext] = useState(null) // { type, name, role, badge }
 
+  // Skip wizard if onboarding already completed (e.g. browser back-nav or stale state)
+  useEffect(() => {
+    if (profile?.onboarding_completed) {
+      onComplete()
+    }
+  }, [profile?.onboarding_completed])
+
   // Fire confetti on success
   useEffect(() => {
     if (step === STEPS.SUCCESS) {
@@ -213,7 +220,7 @@ export function SetupWizard({ onComplete, onBack }) {
         .eq('id', user.id)
       if (profileOrgError) throw profileOrgError
 
-      await supabase.from('profiles').update({
+      const { error: onboardError } = await supabase.from('profiles').update({
         onboarding_completed: true,
         onboarding_data: {
           role: 'org_director', organization_id: org.id,
@@ -222,6 +229,7 @@ export function SetupWizard({ onComplete, onBack }) {
           earned_badges: ['founder', 'beta_tester'],
         },
       }).eq('id', user.id)
+      if (onboardError) throw onboardError
 
       if (journey?.completeStep) journey.completeStep('create_org')
 
@@ -325,7 +333,7 @@ export function SetupWizard({ onComplete, onBack }) {
         })
         if (roleError) throw roleError
 
-        await supabase.from('profiles').update({
+        const { error: profileErr1 } = await supabase.from('profiles').update({
           onboarding_completed: true,
           onboarding_data: {
             role: accountInvite.role || 'parent',
@@ -334,6 +342,7 @@ export function SetupWizard({ onComplete, onBack }) {
             earned_badges: ['beta_tester'],
           },
         }).eq('id', user.id)
+        if (profileErr1) throw profileErr1
 
         setSaving(false)
         setSuccessContext({ type: 'invite', name: 'your team', role: accountInvite.role || 'Parent', badge: null })
@@ -348,7 +357,7 @@ export function SetupWizard({ onComplete, onBack }) {
       })
       if (roleError2) throw roleError2
 
-      await supabase.from('profiles').update({
+      const { error: profileErr2 } = await supabase.from('profiles').update({
         onboarding_completed: true,
         onboarding_data: {
           role: 'parent', organization_id: orgId,
@@ -357,6 +366,7 @@ export function SetupWizard({ onComplete, onBack }) {
           earned_badges: ['beta_tester'],
         },
       }).eq('id', user.id)
+      if (profileErr2) throw profileErr2
 
       setSaving(false)
       setSuccessContext({ type: 'invite', name: invite.teams?.name || 'your team', role: 'Parent', badge: null })

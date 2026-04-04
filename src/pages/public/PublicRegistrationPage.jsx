@@ -269,6 +269,38 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     setCustomAnswers(customInit)
   }
 
+  // ─── Parent email pre-fill (returning families) ──────────────────────
+  useEffect(() => {
+    const email = sharedInfo.parent1_email?.trim()?.toLowerCase()
+    if (!email || !email.includes('@') || !organization?.id) return
+
+    const timer = setTimeout(async () => {
+      try {
+        const { data: existing } = await supabase
+          .from('players')
+          .select('parent_name, parent_phone, emergency_contact_name, emergency_contact_phone, medical_notes')
+          .eq('parent_email', email)
+          .order('created_at', { ascending: false })
+          .limit(1)
+
+        if (existing?.[0]) {
+          const prev = existing[0]
+          setSharedInfo(si => ({
+            ...si,
+            // Only fill empty fields — don't overwrite user edits
+            parent1_name: si.parent1_name || prev.parent_name || '',
+            parent1_phone: si.parent1_phone || prev.parent_phone || '',
+            emergency_name: si.emergency_name || prev.emergency_contact_name || '',
+            emergency_phone: si.emergency_phone || prev.emergency_contact_phone || '',
+            medical_conditions: si.medical_conditions || prev.medical_notes || '',
+          }))
+        }
+      } catch (e) { /* silent — prefill is best-effort */ }
+    }, 600) // debounce 600ms
+
+    return () => clearTimeout(timer)
+  }, [sharedInfo.parent1_email, organization?.id])
+
   // ─── Fee calculation ───────────────────────────────────────────────────
   const feePerChild = calculateFeePerChild(season)
   const totalFee = feePerChild * Math.max(children.length, 1)
