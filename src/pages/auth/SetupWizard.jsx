@@ -165,7 +165,7 @@ export function SetupWizard({ onComplete, onBack }) {
           const { data } = await supabase
             .from('players')
             .select('id, first_name, last_name, team_players(teams(name, color)), season:seasons(name, organizations(name))')
-            .or(`parent_email.eq.${email},email.eq.${email}`)
+            .eq('parent_email', email)
             .limit(5)
           if (data?.length > 0) setFoundChildren(data)
         } catch (err) { console.warn('Auto-detect children error:', err) }

@@ -32,13 +32,13 @@ function ClaimAccountPage({ showToast }) {
     setLoading(true)
     try {
       const email = profile?.email || user?.email
-      // Find players whose parent_email or emergency email matches
+      // Find players whose parent_email matches
       // but have no parent_account_id set
       const { data, error } = await supabase
         .from('players')
         .select('id, first_name, last_name, position, jersey_number, season_id, organization_id')
         .is('parent_account_id', null)
-        .or(`parent_email.eq.${email},email.eq.${email}`)
+        .eq('parent_email', email)
       if (error) throw error
       setOrphans(data || [])
     } catch (err) {
@@ -182,7 +182,7 @@ function OrphanPlayerBanner({ onNavigate }) {
         .from('players')
         .select('id', { count: 'exact', head: true })
         .is('parent_account_id', null)
-        .or(`parent_email.eq.${email},email.eq.${email}`)
+        .eq('parent_email', email)
       setCount(c || 0)
     }
     check()

@@ -170,12 +170,22 @@ export function StaffPortalPage({ showToast }) {
   // ── Data operations ──
   async function saveCoach(formData) {
     try {
+      // Null-coerce empty strings for non-text columns to avoid Postgres type errors
+      const clean = (v) => (v === '' || v === undefined) ? null : v
+      const cleaned = { ...formData,
+        date_of_birth: clean(formData.date_of_birth),
+        background_check_date: clean(formData.background_check_date),
+        background_check_expiry: clean(formData.background_check_expiry),
+        experience_years: formData.experience_years ? parseInt(formData.experience_years) : null,
+        invited_at: clean(formData.invited_at),
+        invite_accepted_at: clean(formData.invite_accepted_at),
+      }
       if (editingCoach) {
-        const { error } = await supabase.from('coaches').update(formData).eq('id', editingCoach.id)
+        const { error } = await supabase.from('coaches').update(cleaned).eq('id', editingCoach.id)
         if (error) throw error
         showToast('Coach updated', 'success')
       } else {
-        const { error } = await supabase.from('coaches').insert({ ...formData, season_id: selectedSeason.id })
+        const { error } = await supabase.from('coaches').insert({ ...cleaned, season_id: selectedSeason.id })
         if (error) throw error
         showToast('Coach added', 'success')
       }
