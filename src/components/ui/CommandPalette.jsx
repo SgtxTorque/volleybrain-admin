@@ -6,6 +6,7 @@ import {
   Shirt, CreditCard, BarChart3, Clock, Target, X,
 } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { globalSearch, QUICK_NAV_ITEMS, getRecentSearches, saveRecentSearch } from '../../lib/searchService'
 import { ROUTES, PAGE_TITLES } from '../../lib/routes'
 
@@ -52,6 +53,7 @@ const NAV_ICON_MAP = {
 
 export function CommandPalette({ isOpen, onClose }) {
   const navigate = useNavigate()
+  const { organization } = useAuth()
   const theme = useTheme() || {}
   const { isDark, accent } = theme
   const [query, setQuery] = useState('')
@@ -106,7 +108,7 @@ export function CommandPalette({ isOpen, onClose }) {
     if (lower.length >= 2) {
       setSearching(true)
       try {
-        const dbResults = await globalSearch(q)
+        const dbResults = await globalSearch(q, { organizationId: organization?.id })
         // Merge: pages first, then grouped entity results
         setResults(prev => {
           const pages = prev.filter(r => r.type === 'page')

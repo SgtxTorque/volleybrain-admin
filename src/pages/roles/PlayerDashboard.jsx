@@ -87,7 +87,7 @@ function AdminPlayerSelector({ players, selectedPlayerId, onSelect, onClose }) {
 
 // ── MAIN ──
 function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToast, onPlayerChange, activeView, availableViews = [], onSwitchRole }) {
-  const { user } = useAuth()
+  const { user, organization } = useAuth()
   const { selectedSeason } = useSeason()
   const { isDark, toggleTheme } = useTheme()
 
@@ -123,15 +123,29 @@ function PlayerDashboard({ roleContext, navigateToTeamWall, onNavigate, showToas
 
   async function loadAllPlayers() {
     try {
+      // Get org season IDs for scoping — NEVER return players from other orgs
+      let orgSeasonIds = []
+      if (organization?.id) {
+        const { data: orgSeasons } = await supabase.from('seasons').select('id').eq('organization_id', organization.id)
+        orgSeasonIds = orgSeasons?.map(s => s.id) || []
+      }
+
       let query = supabase.from('players')
         .select('id, first_name, last_name, jersey_number, photo_url, position, team_players(team_id, teams(id, name, season_id, color))')
-      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
-        query = query.eq('team_players.teams.season_id', selectedSeason.id)
+
+      // Always scope to active organization
+      if (orgSeasonIds.length > 0) {
+        query = query.in('season_id', orgSeasonIds)
       }
+
+      // Additionally filter by specific season if selected
+      if (!isAllSeasons(selectedSeason) && selectedSeason?.id) {
+        query = query.eq('season_id', selectedSeason.id)
+      }
+
       const { data } = await query
       if (data) {
-        const seasonPlayers = !isAllSeasons(selectedSeason) ? data.filter(p => p.team_players?.length > 0) : data
-        setAllPlayers(seasonPlayers)
+        setAllPlayers(data)
         if (!previewPlayer && seasonPlayers.length > 0) {
           setPreviewPlayer(seasonPlayers[0])
           setIsAdminPreview(true)

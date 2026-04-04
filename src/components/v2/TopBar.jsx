@@ -25,6 +25,8 @@ export default function TopBar({
   availableRoles = [],
   activeRoleId,
   onRoleSwitch,
+  // Organization context
+  orgName,
 }) {
   const isPlayerDark = isDark
   const [roleOpen, setRoleOpen] = useState(false)
@@ -160,6 +162,25 @@ export default function TopBar({
           </div>
         )}
       </div>
+
+      {/* ---- Organization Name ---- */}
+      {orgName && (
+        <span
+          className="v2-topbar-org"
+          style={{
+            marginLeft: 12,
+            paddingLeft: 12,
+            borderLeft: isPlayerDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid var(--v2-border-subtle)',
+            fontSize: 13,
+            fontWeight: 600,
+            color: isPlayerDark ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-secondary)',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {orgName}
+        </span>
+      )}
 
       {/* ---- Nav Links ---- */}
       <nav className="v2-topbar-nav" style={{ display: 'flex', gap: 4, marginLeft: 16, flexShrink: 0 }}>
@@ -313,6 +334,7 @@ export default function TopBar({
           .v2-topbar-nav { display: none !important; }
           .v2-topbar-kbd { display: none !important; }
           .v2-topbar-brand { padding-left: 16px !important; }
+          .v2-topbar-org { display: none !important; }
         }
       `}</style>
     </header>

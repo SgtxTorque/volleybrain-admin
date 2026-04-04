@@ -18,6 +18,51 @@ export async function globalSearch(query, options = {}) {
   const ilikeTerm = `%${searchTerm}%`
   const { organizationId, seasonId } = options
 
+  // Get org season IDs for scoping — NEVER leak data across organizations
+  let orgSeasonIds = []
+  if (organizationId) {
+    const { data: orgSeasons } = await supabase
+      .from('seasons').select('id').eq('organization_id', organizationId)
+    orgSeasonIds = orgSeasons?.map(s => s.id) || []
+  }
+
+  // Build org-scoped queries
+  let playerQuery = supabase
+    .from('players')
+    .select('id, first_name, last_name, jersey_number, position, photo_url, season_id')
+    .or(`first_name.ilike.${ilikeTerm},last_name.ilike.${ilikeTerm}`)
+  if (orgSeasonIds.length > 0) playerQuery = playerQuery.in('season_id', orgSeasonIds)
+
+  let teamQuery = supabase
+    .from('teams')
+    .select('id, name, color, logo_url, season_id, seasons(name)')
+    .ilike('name', ilikeTerm)
+  if (orgSeasonIds.length > 0) teamQuery = teamQuery.in('season_id', orgSeasonIds)
+
+  let seasonQuery = supabase
+    .from('seasons')
+    .select('id, name, start_date, end_date, status, sports(name, icon)')
+    .ilike('name', ilikeTerm)
+  if (organizationId) seasonQuery = seasonQuery.eq('organization_id', organizationId)
+
+  let eventQuery = supabase
+    .from('schedule_events')
+    .select('id, title, event_type, event_date, event_time, venue_name, team_id, teams!schedule_events_team_id_fkey(id, name, color)')
+    .or(`title.ilike.${ilikeTerm},venue_name.ilike.${ilikeTerm}`)
+  if (orgSeasonIds.length > 0) eventQuery = eventQuery.in('season_id', orgSeasonIds)
+
+  let coachQuery = supabase
+    .from('coaches')
+    .select('id, first_name, last_name, email, phone, status, season_id')
+    .or(`first_name.ilike.${ilikeTerm},last_name.ilike.${ilikeTerm},email.ilike.${ilikeTerm}`)
+  if (orgSeasonIds.length > 0) coachQuery = coachQuery.in('season_id', orgSeasonIds)
+
+  let profileQuery = supabase
+    .from('profiles')
+    .select('id, full_name, first_name, last_name, avatar_url, email, role')
+    .or(`full_name.ilike.${ilikeTerm},first_name.ilike.${ilikeTerm},last_name.ilike.${ilikeTerm},email.ilike.${ilikeTerm}`)
+  if (organizationId) profileQuery = profileQuery.eq('current_organization_id', organizationId)
+
   // Run all searches in parallel — each limited to 5 results
   const [
     playersRes,
@@ -27,47 +72,12 @@ export async function globalSearch(query, options = {}) {
     coachesRes,
     profilesRes,
   ] = await Promise.all([
-    // Players — exact pattern from TeamsPage/RegistrationsPage
-    supabase
-      .from('players')
-      .select('id, first_name, last_name, jersey_number, position, photo_url, season_id')
-      .or(`first_name.ilike.${ilikeTerm},last_name.ilike.${ilikeTerm}`)
-      .limit(8),
-
-    // Teams — exact pattern from TeamsPage/CoachesPage
-    supabase
-      .from('teams')
-      .select('id, name, color, logo_url, season_id, seasons(name)')
-      .ilike('name', ilikeTerm)
-      .limit(5),
-
-    // Seasons — exact pattern from SeasonContext
-    supabase
-      .from('seasons')
-      .select('id, name, start_date, end_date, status, sports(name, icon)')
-      .ilike('name', ilikeTerm)
-      .limit(5),
-
-    // Schedule Events — exact pattern from SchedulePage (uses explicit FK)
-    supabase
-      .from('schedule_events')
-      .select('id, title, event_type, event_date, event_time, venue_name, team_id, teams!schedule_events_team_id_fkey(id, name, color)')
-      .or(`title.ilike.${ilikeTerm},venue_name.ilike.${ilikeTerm}`)
-      .limit(5),
-
-    // Coaches — exact pattern from CoachesPage
-    supabase
-      .from('coaches')
-      .select('id, first_name, last_name, email, phone, status, season_id')
-      .or(`first_name.ilike.${ilikeTerm},last_name.ilike.${ilikeTerm},email.ilike.${ilikeTerm}`)
-      .limit(5),
-
-    // Profiles (parents/users) — exact pattern from AuthContext
-    supabase
-      .from('profiles')
-      .select('id, full_name, first_name, last_name, avatar_url, email, role')
-      .or(`full_name.ilike.${ilikeTerm},first_name.ilike.${ilikeTerm},last_name.ilike.${ilikeTerm},email.ilike.${ilikeTerm}`)
-      .limit(5),
+    playerQuery.limit(8),
+    teamQuery.limit(5),
+    seasonQuery.limit(5),
+    eventQuery.limit(5),
+    coachQuery.limit(5),
+    profileQuery.limit(5),
   ])
 
   const results = []

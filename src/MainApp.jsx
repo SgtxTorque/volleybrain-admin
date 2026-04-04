@@ -1412,6 +1412,7 @@ function MainApp() {
               availableRoles={getAvailableViews().map(v => ({ id: v.id, label: `Lynx ${v.label}`, subtitle: v.description }))}
               activeRoleId={activeView}
               onRoleSwitch={(viewId) => { setActiveView(viewId); localStorage.setItem('lynx_active_view', viewId); navigate('/dashboard') }}
+              orgName={organization?.name}
             />
             <ErrorBoundary>
               <RoutedContent
