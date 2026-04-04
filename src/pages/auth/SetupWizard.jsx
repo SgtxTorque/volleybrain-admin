@@ -146,6 +146,7 @@ export function SetupWizard({ onComplete, onBack }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [successContext, setSuccessContext] = useState(null) // { type, name, role, badge }
+  const [foundChildren, setFoundChildren] = useState(null) // auto-detected children for parent
 
   // Skip wizard if onboarding already completed (e.g. browser back-nav or stale state)
   useEffect(() => {
@@ -153,6 +154,24 @@ export function SetupWizard({ onComplete, onBack }) {
       onComplete()
     }
   }, [profile?.onboarding_completed])
+
+  // Auto-detect registered children when parent reaches PARENT_PATH step
+  useEffect(() => {
+    if (step === STEPS.PARENT_PATH && selectedRole === 'parent') {
+      const email = user?.email || profile?.email
+      if (!email) return
+      ;(async () => {
+        try {
+          const { data } = await supabase
+            .from('players')
+            .select('id, first_name, last_name, team_players(teams(name, color)), season:seasons(name, organizations(name))')
+            .or(`parent_email.eq.${email},email.eq.${email}`)
+            .limit(5)
+          if (data?.length > 0) setFoundChildren(data)
+        } catch (err) { console.warn('Auto-detect children error:', err) }
+      })()
+    }
+  }, [step, selectedRole])
 
   // Fire confetti on success
   useEffect(() => {
@@ -576,18 +595,80 @@ export function SetupWizard({ onComplete, onBack }) {
           {/* ─── STEP: Parent Path ─── */}
           {step === STEPS.PARENT_PATH && (
             <>
-              <MascotImage step={step} className="w-24 h-24 mb-4" />
-              <h1 className="text-2xl font-bold text-center mb-1" style={{ color: BRAND.textPrimary }}>
-                Let's get your family connected!
-              </h1>
-              <p className="text-center mb-6" style={{ color: BRAND.textMuted }}>
-                Your club admin or coach may have given you a code.
-              </p>
+              {foundChildren?.length > 0 ? (
+                <>
+                  {/* Celebration — children auto-detected */}
+                  <div className="text-6xl text-center mb-2" style={{ animation: 'bounce 0.6s ease-in-out' }}>🎉</div>
+                  <h1 className="text-2xl font-bold text-center mb-1" style={{ color: BRAND.textPrimary }}>
+                    We Found Your {foundChildren.length === 1 ? 'Player' : 'Players'}!
+                  </h1>
+                  <p className="text-center mb-5" style={{ color: BRAND.textMuted, fontSize: 14 }}>
+                    {foundChildren.length === 1
+                      ? "Your player is already registered! Let's get you connected."
+                      : "Your players are already registered! Let's get you connected."}
+                  </p>
 
-              <div className="space-y-3">
-                <OptionCard emoji="\ud83d\udd17" title="I have an invite code" desc="Join my team or organization" onClick={() => goTo(STEPS.INVITE_CODE)} />
-                <OptionCard emoji="\u23f3" title="I'll be added later" desc="Someone will assign me to a team" onClick={() => goTo(STEPS.PENDING)} />
-              </div>
+                  <div className="space-y-3 mb-6">
+                    {foundChildren.map(child => {
+                      const teamName = child.team_players?.[0]?.teams?.name
+                      const orgName = child.season?.organizations?.name
+                      return (
+                        <div key={child.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '14px 16px', borderRadius: 14,
+                          background: 'rgba(16, 185, 129, 0.06)',
+                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                        }}>
+                          <div style={{
+                            width: 40, height: 40, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #10B981, #059669)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: '#fff', fontWeight: 800, fontSize: 16, flexShrink: 0,
+                          }}>
+                            {child.first_name?.[0] || '?'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, color: BRAND.textPrimary, fontSize: 15 }}>
+                              {child.first_name} {child.last_name}
+                            </div>
+                            {teamName && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{teamName}</div>}
+                            {orgName && <div style={{ fontSize: 11, color: '#94a3b8' }}>{orgName}</div>}
+                          </div>
+                          <div style={{ color: '#10B981', fontSize: 20, flexShrink: 0 }}>✓</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <PrimaryButton onClick={() => goTo(STEPS.PENDING)}>
+                    Let's Go!
+                  </PrimaryButton>
+
+                  <button
+                    onClick={() => setFoundChildren(null)}
+                    className="mt-3 text-sm underline"
+                    style={{ color: BRAND.textMuted, background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    I also have an invite code
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Default — invite code or wait */}
+                  <MascotImage step={step} className="w-24 h-24 mb-4" />
+                  <h1 className="text-2xl font-bold text-center mb-1" style={{ color: BRAND.textPrimary }}>
+                    Let's get your family connected!
+                  </h1>
+                  <p className="text-center mb-6" style={{ color: BRAND.textMuted }}>
+                    Your club admin or coach may have given you a code.
+                  </p>
+
+                  <div className="space-y-3">
+                    <OptionCard emoji="🔗" title="I have an invite code" desc="Join my team or organization" onClick={() => goTo(STEPS.INVITE_CODE)} />
+                    <OptionCard emoji="⏳" title="I'll be added later" desc="Someone will assign me to a team" onClick={() => goTo(STEPS.PENDING)} />
+                  </div>
+                </>
+              )}
             </>
           )}
 
