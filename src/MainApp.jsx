@@ -828,7 +828,10 @@ function MainApp() {
     else if (isPlatformUrl && !isPlatformAdmin) navigate('/dashboard', { replace: true })
     else if (!isPlatformUrl && appMode === 'platform') setAppMode('org')
   }, [mainLocation.pathname, isPlatformAdmin])
-  const [activeView, setActiveView] = useState('admin')
+  const [activeView, setActiveView] = useState(() => {
+    const saved = localStorage.getItem('lynx_active_view')
+    return saved || 'admin'
+  })
   const [userRoles, setUserRoles] = useState([])
   const [roleContext, setRoleContext] = useState(null)
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false)
