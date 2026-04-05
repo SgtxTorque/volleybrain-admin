@@ -178,6 +178,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   const { isDark, toggleTheme } = useTheme()
 
   const [loading, setLoading] = useState(true)
+  const [loadingTooLong, setLoadingTooLong] = useState(false)
   const [teams, setTeams] = useState([])
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [upcomingEvents, setUpcomingEvents] = useState([])
@@ -242,6 +243,13 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
     availableSeasons.filter(s => coachSeasonIds.has(s.id)),
     [availableSeasons, coachSeasonIds]
   )
+
+  // ── Loading timeout — show helpful message after 5 seconds ──
+  useEffect(() => {
+    if (!loading) { setLoadingTooLong(false); return }
+    const timer = setTimeout(() => setLoadingTooLong(true), 5000)
+    return () => clearTimeout(timer)
+  }, [loading])
 
   // ── Data Loading ──
   useEffect(() => { loadCoachData() }, [coachTeamAssignments?.length, selectedSeason?.id])
@@ -790,9 +798,20 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
   if (loading) {
     return (
       <div className={`flex items-center justify-center ${isDark ? 'bg-lynx-midnight' : 'bg-brand-off-white'}`} style={{ minHeight: '60vh' }}>
-        <div className="text-center">
+        <div className="text-center px-6">
           <div className="w-12 h-12 border-2 border-lynx-sky border-t-transparent rounded-full animate-spin mx-auto" />
           <p className={`mt-4 text-r-base tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Loading dashboard...</p>
+          {loadingTooLong && (
+            <div className="mt-6 space-y-3">
+              <p className={`text-r-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                Having trouble loading your dashboard. This may mean your account setup isn't complete.
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <button onClick={() => loadCoachData()} className="px-4 py-2 rounded-lg text-sm font-semibold bg-lynx-sky text-white hover:brightness-110 transition">Retry</button>
+                <button onClick={() => onNavigate?.('dashboard')} className={`px-4 py-2 rounded-lg text-sm font-semibold ${isDark ? 'border border-white/[0.06] text-slate-300 hover:bg-white/[0.06]' : 'border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Contact your club director</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )

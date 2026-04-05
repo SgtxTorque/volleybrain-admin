@@ -154,8 +154,16 @@ export function AuthProvider({ children }) {
       const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', authUser.id).eq('is_active', true)
       if (roles && roles.length > 0) {
         setIsAdmin(roles.some(r => r.role === 'league_admin'))
-        const { data: org } = await supabase.from('organizations').select('*').eq('id', roles[0].organization_id).maybeSingle()
+        // Prefer the profile's current_organization_id if it matches one of the user's roles
+        const preferredOrgId = prof?.current_organization_id && roles.some(r => r.organization_id === prof.current_organization_id)
+          ? prof.current_organization_id
+          : roles[0].organization_id
+        const { data: org } = await supabase.from('organizations').select('*').eq('id', preferredOrgId).maybeSingle()
         setOrganization(org)
+        // Auto-set current_organization_id on profile if it's null
+        if (!prof?.current_organization_id && preferredOrgId) {
+          await supabase.from('profiles').update({ current_organization_id: preferredOrgId }).eq('id', authUser.id)
+        }
       }
       setNeedsOnboarding(false)
     } catch (err) {

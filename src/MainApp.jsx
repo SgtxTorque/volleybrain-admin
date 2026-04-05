@@ -870,9 +870,24 @@ function MainApp() {
 
       setUserRoles(roles || [])
 
-      const { data: coachLink } = await supabase
-        .from('coaches').select('*, team_coaches(team_id, role, teams(id, name, color))')
-        .eq('profile_id', profile.id).maybeSingle()
+      // Get org season IDs to scope queries to active organization
+      const { data: orgSeasons } = await supabase
+        .from('seasons').select('id').eq('organization_id', organization.id)
+      const orgSeasonIds = orgSeasons?.map(s => s.id) || []
+
+      // Scope coaches query to this org's seasons (a coach may have rows across seasons)
+      let coachLink = null
+      if (orgSeasonIds.length > 0) {
+        const { data: coachRows } = await supabase
+          .from('coaches').select('*, team_coaches(team_id, role, teams(id, name, color, season_id))')
+          .eq('profile_id', profile.id)
+          .in('season_id', orgSeasonIds)
+        if (coachRows && coachRows.length > 0) {
+          // Merge team_coaches from all coach rows into a single coachLink object
+          const allTeamCoaches = coachRows.flatMap(c => c.team_coaches || [])
+          coachLink = { ...coachRows[0], team_coaches: allTeamCoaches }
+        }
+      }
 
       const { data: teamManagerStaff } = await supabase
         .from('team_staff')
@@ -880,11 +895,6 @@ function MainApp() {
         .eq('user_id', profile.id)
         .eq('staff_role', 'team_manager')
         .eq('is_active', true)
-
-      // Get org season IDs to scope children to active organization
-      const { data: orgSeasons } = await supabase
-        .from('seasons').select('id').eq('organization_id', organization.id)
-      const orgSeasonIds = orgSeasons?.map(s => s.id) || []
 
       const { data: children } = orgSeasonIds.length > 0
         ? await supabase
