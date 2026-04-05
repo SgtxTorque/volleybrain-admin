@@ -13,7 +13,7 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
   if (!waivers || !Object.entries(waivers).some(([_, w]) => w?.enabled)) return null
 
   return (
-    <div className={`${CARD_CLASSES} p-6 mb-6`}>
+    <div className={`${CARD_CLASSES} p-6 mb-4`}>
       <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
           <CheckCircle2 className="w-4 h-4 text-[#4BB9EC]" />
@@ -94,7 +94,7 @@ function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onT
   const displayTotal = feePerChild * Math.max(childrenCount, 1)
 
   return (
-    <div className={`${CARD_CLASSES} mb-6 overflow-hidden`}>
+    <div className={`${CARD_CLASSES} mb-4 overflow-hidden`}>
       <button
         type="button"
         className="w-full p-5 flex items-center justify-between text-left"

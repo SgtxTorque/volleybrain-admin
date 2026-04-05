@@ -580,7 +580,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       )}
 
       {/* Form body */}
-      <div className="px-4 py-8 max-w-2xl mx-auto">
+      <div className="px-4 py-6 max-w-2xl mx-auto">
         {/* Fee Preview */}
         <FeePreviewCard
           season={season}

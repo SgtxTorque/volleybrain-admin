@@ -166,7 +166,7 @@ function ChildrenListCard({ children, onEdit, onRemove }) {
   if (children.length === 0) return null
 
   return (
-    <div className={`${CARD_CLASSES} p-6 mb-6`}>
+    <div className={`${CARD_CLASSES} p-6 mb-4`}>
       <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
         <Users className="w-5 h-5 text-[#4BB9EC]" />
         Children to Register ({children.length})
@@ -220,7 +220,7 @@ function PlayerInfoCard({
   if (!showForm) return null
 
   return (
-    <div className={`${CARD_CLASSES} p-6 mb-6`}>
+    <div className={`${CARD_CLASSES} p-6 mb-4`}>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-r-lg font-bold text-slate-900 flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
@@ -305,7 +305,7 @@ function AddChildButton({ visible, onClick }) {
   if (!visible) return null
 
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <button
         type="button"
         onClick={onClick}
@@ -326,7 +326,7 @@ function SharedInfoCard({ config, sharedInfo, setSharedInfo, trackFormStart }) {
   if (!hasParentFields && !hasEmergencyFields && !hasMedicalFields) return null
 
   return (
-    <div className={`${CARD_CLASSES} p-6 mb-6 space-y-8`}>
+    <div className={`${CARD_CLASSES} p-6 mb-4 space-y-6`}>
       {/* Parent/Guardian Section */}
       {hasParentFields && (
         <div>
@@ -419,7 +419,7 @@ function CustomQuestionsCard({ config, customAnswers, setCustomAnswers }) {
   if (!config.custom_questions?.length) return null
 
   return (
-    <div className={`${CARD_CLASSES} p-6 mb-6`}>
+    <div className={`${CARD_CLASSES} p-6 mb-4`}>
       <h2 className="text-r-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-[#4BB9EC]/10 flex items-center justify-center">
           <AlertCircle className="w-4 h-4 text-[#4BB9EC]" />
