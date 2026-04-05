@@ -7,6 +7,27 @@ import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { Search, Trash2, MoreVertical, ExternalLink, Edit, Users, UserCog, Shield, TrendingUp, TrendingDown } from 'lucide-react'
 
+const SPORT_COLORS = {
+  volleyball: { bg: 'bg-blue-500/12', text: 'text-blue-500' },
+  basketball: { bg: 'bg-orange-500/12', text: 'text-orange-500' },
+  soccer: { bg: 'bg-emerald-500/12', text: 'text-emerald-500' },
+  baseball: { bg: 'bg-red-500/12', text: 'text-red-500' },
+  softball: { bg: 'bg-pink-500/12', text: 'text-pink-500' },
+  football: { bg: 'bg-amber-600/12', text: 'text-amber-600' },
+  lacrosse: { bg: 'bg-violet-500/12', text: 'text-violet-500' },
+}
+
+function SportPill({ sportName }) {
+  if (!sportName) return <span className="text-xs text-slate-400">—</span>
+  const key = sportName.toLowerCase()
+  const colors = SPORT_COLORS[key] || { bg: 'bg-slate-500/12', text: 'text-slate-500' }
+  return (
+    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${colors.bg} ${colors.text}`}>
+      {sportName}
+    </span>
+  )
+}
+
 function StatusChip({ roster_open, playerCount, maxRoster }) {
   if (playerCount >= maxRoster) {
     return <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/12 text-red-500">FULL</span>
@@ -89,7 +110,7 @@ export default function TeamsTableView({
         <table className="w-full">
           <thead>
             <tr className={isDark ? 'bg-white/[0.02]' : 'bg-slate-50'}>
-              {['Team', 'Roster', 'Health', 'Type', 'Status', 'Wall', ''].map(h => (
+              {['Team', 'Sport', 'Roster', 'Health', 'Type', 'Status', 'Wall', ''].map(h => (
                 <th key={h} className={`px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                   style={{ fontFamily: 'var(--v2-font)' }}>
                   {h}
@@ -103,7 +124,7 @@ export default function TeamsTableView({
                 {/* Sport section header */}
                 {grouped.length > 1 && (
                   <tr key={`header-${groupType}`}>
-                    <td colSpan={7}>
+                    <td colSpan={8}>
                       <div className="flex items-center gap-2 px-5 py-2 mt-2 first:mt-0">
                         <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                           style={{ fontFamily: 'var(--v2-font)' }}>
@@ -145,6 +166,11 @@ export default function TeamsTableView({
                             </p>
                           </div>
                         </div>
+                      </td>
+
+                      {/* Sport label */}
+                      <td className="px-5 py-3">
+                        <SportPill sportName={team.season?.sport?.name} />
                       </td>
 
                       {/* Roster fill bar */}
@@ -297,7 +323,7 @@ export default function TeamsTableView({
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className={`text-center py-8 text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <td colSpan={8} className={`text-center py-8 text-base ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   No teams match your search
                 </td>
               </tr>
