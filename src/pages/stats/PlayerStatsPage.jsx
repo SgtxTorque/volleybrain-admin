@@ -331,6 +331,8 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
   useEffect(() => {
     if (playerId) {
       loadPlayerData()
+    } else {
+      setLoading(false)
     }
   }, [playerId, teamId, selectedSeason?.id])
 
@@ -436,11 +438,18 @@ function PlayerStatsPage({ playerId, teamId, onBack, showToast }) {
   if (!player) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-sm mx-auto">
           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
             <UserIcon className="w-8 h-8 text-slate-400" />
           </div>
-          <p className="text-slate-400 text-r-sm">Player not found</p>
+          <p className={`font-bold text-lg ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+            {playerId ? 'Player not found' : 'No Stats to Display'}
+          </p>
+          <p className="text-slate-400 text-r-sm mt-2">
+            {playerId
+              ? 'This player may have been removed or is no longer in this season.'
+              : 'Stats will appear here after your coach records game results.'}
+          </p>
         </div>
       </div>
     )
