@@ -85,7 +85,20 @@ export function StaffPortalPage({ showToast }) {
     setLoading(true)
     await Promise.all([loadCoaches(), loadStaffMembers(), loadTeams()])
     setLoading(false)
+    // Re-derive selectedPerson from refreshed data is handled via useEffect below
   }
+
+  // Keep selectedPerson in sync with refreshed data after loadAll()
+  useEffect(() => {
+    if (!selectedPerson) return
+    const refreshed = normalizePeople()
+    const match = refreshed.find(p => p.id === selectedPerson.id && p.source === selectedPerson.source)
+    if (match) {
+      setSelectedPerson(match)
+    } else {
+      setSelectedPerson(null)
+    }
+  }, [coaches, staffMembers])
 
   async function loadCoaches() {
     try {
