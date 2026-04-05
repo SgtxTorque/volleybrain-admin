@@ -719,7 +719,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
 
       {/* Core pages */}
       <Route path="/teams" element={<RouteGuard allow={['admin']} activeView={activeView}><TeamsPage showToast={showToast} navigateToTeamWall={navigateToTeamWall} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
-      <Route path="/coaches" element={<RouteGuard allow={['admin', 'coach']} activeView={activeView}><StaffPortalPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/coaches" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPortalPage showToast={showToast} /></RouteGuard>} />
       <Route path="/staff" element={<RouteGuard allow={['admin']} activeView={activeView}><StaffPortalPage showToast={showToast} /></RouteGuard>} />
       <Route path="/registrations" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/jerseys" element={<RouteGuard allow={['admin']} activeView={activeView}><JerseysPage showToast={showToast} /></RouteGuard>} />
