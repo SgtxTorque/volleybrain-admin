@@ -18,7 +18,7 @@ export function SportProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadSports()
+    if (organization?.id) loadSports()
   }, [organization?.id])
 
   async function loadSports() {
@@ -27,6 +27,7 @@ export function SportProvider({ children }) {
       const { data } = await supabase
         .from('sports')
         .select('*')
+        .eq('organization_id', organization.id)
         .eq('is_active', true)
         .order('sort_order')
       

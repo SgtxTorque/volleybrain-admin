@@ -1,12 +1,12 @@
 import { useSeason, ALL_SEASONS, isAllSeasons } from '../../contexts/SeasonContext'
-import { useSport } from '../../contexts/SportContext'
+import { useProgram } from '../../contexts/ProgramContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { Search, ChevronDown } from 'lucide-react'
 
 export default function SeasonFilterBar({ role: roleProp }) {
   const { seasons, allSeasons, selectedSeason, selectSeason } = useSeason()
-  const { sports, selectedSport, selectSport } = useSport()
+  const { programs, selectedProgram, selectProgram } = useProgram()
   const { isDark } = useTheme()
   const { isAdmin } = useAuth()
 
@@ -42,20 +42,20 @@ export default function SeasonFilterBar({ role: roleProp }) {
         <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
       </div>
 
-      {sports?.length > 1 && (
+      {programs?.length > 1 && (
         <div className="relative">
           <select
-            value={selectedSport?.id || ''}
+            value={selectedProgram?.id || ''}
             onChange={e => {
-              const sport = sports.find(s => s.id === e.target.value) || null
-              selectSport(sport)
+              const program = programs.find(p => p.id === e.target.value) || null
+              selectProgram(program)
             }}
             className={selectCls}
             style={{ fontFamily: 'var(--v2-font)' }}
           >
-            <option value="">All Sports</option>
-            {sports.map(s => (
-              <option key={s.id} value={s.id}>{s.icon} {s.name}</option>
+            <option value="">All Programs</option>
+            {programs.map(p => (
+              <option key={p.id} value={p.id}>{p.icon || p.sport?.icon || '📋'} {p.name}</option>
             ))}
           </select>
           <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />

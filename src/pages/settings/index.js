@@ -1,3 +1,4 @@
+export { ProgramsPage } from './ProgramsPage'
 export { SeasonsPage } from './SeasonsPage'
 export { WaiversPage } from './WaiversPage'
 export { PaymentSetupPage } from './PaymentSetupPage'

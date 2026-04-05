@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { useTheme, useThemeClasses } from './contexts/ThemeContext'
+import { ProgramProvider, useProgram } from './contexts/ProgramContext'
 import { SportProvider, useSport } from './contexts/SportContext'
 import { SeasonProvider, useSeason } from './contexts/SeasonContext'
 import { ParentTutorialProvider } from './contexts/ParentTutorialContext'
@@ -84,7 +85,7 @@ import { ReportsPage, RegistrationFunnelPage } from './pages/reports'
 import SeasonManagementPage from './pages/admin/SeasonManagementPage'
 
 // Settings Pages
-import { SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
+import { ProgramsPage, SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
 import { VenueManagerPage } from './pages/settings/VenueManagerPage'
 
 // Stats Pages
@@ -779,6 +780,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/admin/seasons" element={<RouteGuard allow={['admin']} activeView={activeView}><SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />
 
       {/* Settings — admin only */}
+      <Route path="/settings/programs" element={<RouteGuard allow={['admin']} activeView={activeView}><ProgramsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/seasons" element={<RouteGuard allow={['admin']} activeView={activeView}><SeasonsPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/templates" element={<RouteGuard allow={['admin']} activeView={activeView}><RegistrationTemplatesPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/waivers" element={<RouteGuard allow={['admin']} activeView={activeView}><WaiversPage showToast={showToast} /></RouteGuard>} />
@@ -1153,6 +1155,7 @@ function MainApp() {
 
     // --- SETTINGS ---
     { id: 'setup', label: 'Settings', type: 'group', icon: 'settings', items: [
+      { id: 'programs', label: 'Programs', icon: 'layout-grid' },
       { id: 'seasons', label: 'Season Management', icon: 'calendar' },
       { id: 'waivers', label: 'Waivers', icon: 'file-text' },
       { id: 'venues', label: 'Venues', icon: 'map-pin' },
@@ -1385,6 +1388,7 @@ function MainApp() {
   // ── Org Mode (default) ──
   return (
     <OrgBrandingProvider>
+    <ProgramProvider>
     <SportProvider>
     <SeasonProvider>
     <ParentTutorialProvider activeView={activeView}>
@@ -1477,6 +1481,7 @@ function MainApp() {
     </ParentTutorialProvider>
     </SeasonProvider>
     </SportProvider>
+    </ProgramProvider>
     </OrgBrandingProvider>
   )
 }

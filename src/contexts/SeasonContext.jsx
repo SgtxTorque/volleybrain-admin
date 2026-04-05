@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useAuth } from './AuthContext'
-import { useSport } from './SportContext'
+import { useProgram } from './ProgramContext'
 import { supabase } from '../lib/supabase'
 
 // ============================================
@@ -23,7 +23,7 @@ export function useSeason() {
 
 export function SeasonProvider({ children }) {
   const { organization } = useAuth()
-  const { selectedSport } = useSport()
+  const { selectedProgram } = useProgram()
   const [allSeasons, setAllSeasons] = useState([])
   const [selectedSeason, setSelectedSeason] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -32,7 +32,7 @@ export function SeasonProvider({ children }) {
     if (organization?.id) loadSeasons()
   }, [organization?.id])
 
-  // Re-filter when sport changes
+  // Re-filter when program changes
   useEffect(() => {
     // Don't reset if user is in "All Seasons" mode
     if (isAllSeasons(selectedSeason)) return
@@ -44,19 +44,19 @@ export function SeasonProvider({ children }) {
         setSelectedSeason(activeSeason || filtered[0] || null)
       }
     }
-  }, [selectedSport?.id, allSeasons])
+  }, [selectedProgram?.id, allSeasons])
 
   async function loadSeasons() {
     setLoading(true)
     try {
       const { data } = await supabase
         .from('seasons')
-        .select('*, sports(id, name, icon, color_primary)')
+        .select('*, sports(id, name, icon, color_primary), programs(id, name, icon, sport_id)')
         .eq('organization_id', organization.id)
         .order('created_at', { ascending: false })
-      
+
       setAllSeasons(data || [])
-      
+
       // Try to restore from localStorage, otherwise use active or first season
       const savedSeasonId = localStorage.getItem('vb_selected_season')
       if (savedSeasonId === 'all') {
@@ -72,13 +72,11 @@ export function SeasonProvider({ children }) {
     setLoading(false)
   }
 
-  // Filter seasons by selected sport (or show all if no sport selected)
+  // Filter seasons by selected program (or show all if no program selected)
   function filteredSeasons() {
-    if (!selectedSport) return allSeasons
-    // Filter by sport, but if nothing matches, show all (don't hide everything)
-    const filtered = allSeasons.filter(s => s.sport_id === selectedSport.id)
-    // If no seasons match the sport filter, show all seasons (with a note)
-    // This prevents users from getting stuck with "no seasons" when they have seasons
+    if (!selectedProgram) return allSeasons
+    // Filter by program, but if nothing matches, show all (don't hide everything)
+    const filtered = allSeasons.filter(s => s.program_id === selectedProgram.id)
     return filtered.length > 0 ? filtered : allSeasons
   }
 
@@ -105,7 +103,7 @@ export function SeasonProvider({ children }) {
     try {
       const { data } = await supabase
         .from('seasons')
-        .select('*, sports(id, name, icon, color_primary)')
+        .select('*, sports(id, name, icon, color_primary), programs(id, name, icon, sport_id)')
         .eq('organization_id', organization.id)
         .order('created_at', { ascending: false })
       

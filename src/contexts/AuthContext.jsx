@@ -195,6 +195,7 @@ export function AuthProvider({ children }) {
     // Clear filter preferences so dashboard defaults to "all" on login
     localStorage.removeItem('vb_selected_season')
     localStorage.removeItem('vb_selected_sport')
+    localStorage.removeItem('vb_selected_program')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
     await init()
@@ -247,6 +248,7 @@ export function AuthProvider({ children }) {
     // Clear persisted navigation/filter state to prevent session bleed
     localStorage.removeItem('vb_selected_season')
     localStorage.removeItem('vb_selected_sport')
+    localStorage.removeItem('vb_selected_program')
     localStorage.removeItem('returnToOrgSetup')
     localStorage.removeItem('lynx-recent-searches')
     localStorage.removeItem('lynx_active_view')

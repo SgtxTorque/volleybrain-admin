@@ -4,7 +4,7 @@ import { parseLocalDate } from '../../lib/date-helpers'
 
 export function SeasonFormModal({
   showModal, setShowModal, editingSeason, form, setForm, handleSave,
-  modalTab, setModalTab, sports, templates, tc, isDark
+  modalTab, setModalTab, sports, templates, tc, isDark, selectedProgram
 }) {
   const [showErrors, setShowErrors] = useState(false)
   if (!showModal) return null
@@ -15,7 +15,8 @@ export function SeasonFormModal({
 
   const hasSports = sports && sports.length > 0
   const missingName = !form.name?.trim()
-  const missingSport = hasSports && !form.sport_id
+  // Only require sport if no program is selected AND sports exist
+  const missingSport = !selectedProgram && hasSports && !form.sport_id
   const hasErrors = missingName || missingSport
 
   function handleSaveClick() {
@@ -62,7 +63,7 @@ export function SeasonFormModal({
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           {/* Basic Info Tab */}
           {modalTab === 'basic' && (
-            <BasicInfoTab form={form} setForm={setForm} sports={sports} tc={tc} isDark={isDark} showErrors={showErrors} />
+            <BasicInfoTab form={form} setForm={setForm} sports={sports} tc={tc} isDark={isDark} showErrors={showErrors} selectedProgram={selectedProgram} />
           )}
 
           {/* Registration Tab */}
@@ -125,14 +126,29 @@ export function SeasonFormModal({
 /* ------------------------------------------------------------------ */
 /*  Basic Info Tab                                                      */
 /* ------------------------------------------------------------------ */
-function BasicInfoTab({ form, setForm, sports, tc, isDark, showErrors }) {
+function BasicInfoTab({ form, setForm, sports, tc, isDark, showErrors, selectedProgram }) {
   const missingName = showErrors && !form.name?.trim()
-  const missingSport = showErrors && sports && sports.length > 0 && !form.sport_id
+  // Only require sport when no program is selected
+  const missingSport = showErrors && !selectedProgram && sports && sports.length > 0 && !form.sport_id
 
   return (
     <>
-      {/* Sport Selection */}
-      {sports && sports.length > 0 && (
+      {/* Program badge — shown when a program is selected */}
+      {selectedProgram && (
+        <div className={`flex items-center gap-2 p-3 rounded-[14px] border ${isDark ? 'border-white/10 bg-white/[0.03]' : 'border-[#E8ECF2] bg-slate-50'}`}>
+          <span className="text-lg">{selectedProgram.icon || selectedProgram.sport?.icon || '📋'}</span>
+          <div>
+            <p className={`text-xs font-semibold ${tc.textMuted}`}>Program</p>
+            <p className={`text-sm font-bold ${tc.text}`}>
+              {selectedProgram.name}
+              {selectedProgram.sport?.name && <span className={`ml-1 font-normal ${tc.textMuted}`}>({selectedProgram.sport.name})</span>}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Sport Selection — hidden when program provides the sport */}
+      {!selectedProgram && sports && sports.length > 0 && (
         <div>
           <label className={`block text-sm ${missingSport ? 'text-red-400' : tc.textMuted} mb-2`}>Sport <span className="text-red-400">*</span></label>
           <div className={`grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2 ${missingSport ? 'ring-2 ring-red-400/40 rounded-[14px] p-1' : ''}`}>

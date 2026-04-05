@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason } from '../../contexts/SeasonContext'
+import { useProgram } from '../../contexts/ProgramContext'
 import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
@@ -17,6 +18,7 @@ function SeasonsPage({ showToast }) {
   const journey = useJourney()
   const { organization } = useAuth()
   const { refreshSeasons } = useSeason()
+  const { selectedProgram } = useProgram()
   const { selectedSport, sports } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
@@ -37,7 +39,8 @@ function SeasonsPage({ showToast }) {
     late_registration_fee: 25, capacity: null, waitlist_enabled: true, waitlist_capacity: 20,
     description: '',
     registration_template_id: null,
-    registration_config: null
+    registration_config: null,
+    program_id: null
   })
 
   useEffect(() => {
@@ -70,12 +73,13 @@ function SeasonsPage({ showToast }) {
       name: '', status: 'upcoming', start_date: '', end_date: '',
       fee_registration: 150, fee_uniform: 35, fee_monthly: 50, fee_per_family: 0, months_in_season: 3,
       sibling_discount_type: 'none', sibling_discount_amount: 0, sibling_discount_apply_to: 'additional',
-      sport_id: null, registration_opens: '', registration_closes: '',
+      sport_id: selectedProgram?.sport_id || null, registration_opens: '', registration_closes: '',
       early_bird_deadline: '', early_bird_discount: 25, late_registration_deadline: '',
       late_registration_fee: 25, capacity: null, waitlist_enabled: true, waitlist_capacity: 20,
       description: '',
       registration_template_id: null,
       registration_config: null,
+      program_id: selectedProgram?.id || null,
     })
     setShowModal(true)
   }
@@ -108,6 +112,7 @@ function SeasonsPage({ showToast }) {
       description: season.description || '',
       registration_template_id: season.registration_template_id || null,
       registration_config: season.registration_config || null,
+      program_id: season.program_id || null,
     })
     setShowModal(true)
   }
@@ -116,7 +121,7 @@ function SeasonsPage({ showToast }) {
     // Clean form data: convert empty strings to null for date/nullable fields
     // PostgreSQL rejects empty strings ('') for date, integer, and uuid columns
     const dateFields = ['start_date', 'end_date', 'registration_opens', 'registration_closes', 'early_bird_deadline', 'late_registration_deadline']
-    const nullableFields = ['sport_id', 'capacity', 'waitlist_capacity', 'registration_template_id', 'registration_config']
+    const nullableFields = ['sport_id', 'capacity', 'waitlist_capacity', 'registration_template_id', 'registration_config', 'program_id']
     const cleaned = { ...form }
     dateFields.forEach(f => { if (cleaned[f] === '' || cleaned[f] === undefined) cleaned[f] = null })
     nullableFields.forEach(f => { if (cleaned[f] === '' || cleaned[f] === undefined) cleaned[f] = null })
@@ -172,6 +177,7 @@ function SeasonsPage({ showToast }) {
       name: newName,
       status: 'upcoming',
       sport_id: season.sport_id,
+      program_id: season.program_id || null,
       start_date: null,
       end_date: null,
       fee_registration: season.fee_registration,
@@ -408,6 +414,7 @@ function SeasonsPage({ showToast }) {
         templates={templates}
         tc={tc}
         isDark={isDark}
+        selectedProgram={selectedProgram}
       />
 
       <ShareHubModal

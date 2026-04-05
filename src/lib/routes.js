@@ -48,6 +48,9 @@ export const ROUTES = {
   // Season Management (guided workflow)
   'season-management': '/admin/seasons',
 
+  // Programs
+  'programs': '/settings/programs',
+
   // Settings
   'seasons': '/settings/seasons',
   'templates': '/settings/templates',
@@ -179,6 +182,7 @@ export const PAGE_TITLES = {
   '/archives': 'Season Archives',
   '/directory': 'Org Directory',
   '/admin/seasons': 'Season Management',
+  '/settings/programs': 'Programs',
   '/settings/seasons': 'Season Management',
   '/settings/templates': 'Registration Forms',
   '/settings/waivers': 'Waivers',

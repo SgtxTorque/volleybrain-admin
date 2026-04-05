@@ -1,70 +1,70 @@
 import { useState } from 'react'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
-import { useSport } from '../../contexts/SportContext'
+import { useProgram, isAllPrograms } from '../../contexts/ProgramContext'
 import { useSeason, ALL_SEASONS, isAllSeasons } from '../../contexts/SeasonContext'
 import { useAuth } from '../../contexts/AuthContext'
-import { 
-  Globe, Calendar, Users, User, ChevronDown, Check, ArrowRight
+import {
+  Globe, Calendar, Users, User, ChevronDown, Check, ArrowRight, Layers
 } from '../../constants/icons'
 
 // ============================================
-// HEADER SPORT SELECTOR
+// HEADER PROGRAM SELECTOR (replaces HeaderSportSelector)
 // ============================================
-export function HeaderSportSelector() {
-  const { sports, selectedSport, selectSport, loading } = useSport()
+export function HeaderProgramSelector() {
+  const { programs, selectedProgram, selectProgram, loading } = useProgram()
   const { isDark, colors } = useTheme()
   const [open, setOpen] = useState(false)
 
-  if (loading || sports.length === 0) return null
+  if (loading || programs.length === 0) return null
 
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition hover:bg-black/10 dark:hover:bg-white/10"
         style={{ color: colors.textSecondary }}
       >
-        <Globe className="w-4 h-4" />
+        <Layers className="w-4 h-4" />
         <span className="text-sm font-medium" style={{ color: colors.text }}>
-          {selectedSport?.name || 'All Sports'}
+          {selectedProgram?.name || 'All Programs'}
         </span>
         <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      
+
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div 
-            className="absolute top-full left-0 mt-1 w-48 rounded-lg shadow-xl border overflow-hidden z-50"
+          <div
+            className="absolute top-full left-0 mt-1 w-52 rounded-lg shadow-xl border overflow-hidden z-50"
             style={{ backgroundColor: colors.cardBg, borderColor: colors.border }}
           >
             <button
-              onClick={() => { selectSport(null); setOpen(false); }}
+              onClick={() => { selectProgram(null); setOpen(false); }}
               className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition ${
-                !selectedSport ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
+                !selectedProgram ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
               }`}
-              style={{ color: !selectedSport ? undefined : colors.text }}
-              onMouseEnter={e => !selectedSport || (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
-              onMouseLeave={e => !selectedSport || (e.currentTarget.style.backgroundColor = '')}
+              style={{ color: !selectedProgram ? undefined : colors.text }}
+              onMouseEnter={e => !selectedProgram || (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
+              onMouseLeave={e => !selectedProgram || (e.currentTarget.style.backgroundColor = '')}
             >
               <Globe className="w-4 h-4" />
-              <span>All Sports</span>
-              {!selectedSport && <Check className="w-4 h-4 ml-auto" />}
+              <span>All Programs</span>
+              {!selectedProgram && <Check className="w-4 h-4 ml-auto" />}
             </button>
-            {sports.map(s => (
+            {programs.map(p => (
               <button
-                key={s.id}
-                onClick={() => { selectSport(s); setOpen(false); }}
+                key={p.id}
+                onClick={() => { selectProgram(p); setOpen(false); }}
                 className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition ${
-                  selectedSport?.id === s.id ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
+                  selectedProgram?.id === p.id ? 'bg-[var(--accent-primary)]/20 text-[var(--accent-primary)]' : ''
                 }`}
-                style={{ color: selectedSport?.id === s.id ? undefined : colors.text }}
-                onMouseEnter={e => selectedSport?.id !== s.id && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
-                onMouseLeave={e => selectedSport?.id !== s.id && (e.currentTarget.style.backgroundColor = '')}
+                style={{ color: selectedProgram?.id === p.id ? undefined : colors.text }}
+                onMouseEnter={e => selectedProgram?.id !== p.id && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
+                onMouseLeave={e => selectedProgram?.id !== p.id && (e.currentTarget.style.backgroundColor = '')}
               >
-                <span>{s.icon}</span>
-                <span>{s.name}</span>
-                {selectedSport?.id === s.id && <Check className="w-4 h-4 ml-auto" />}
+                <span>{p.icon || p.sport?.icon || '📋'}</span>
+                <span>{p.name}</span>
+                {selectedProgram?.id === p.id && <Check className="w-4 h-4 ml-auto" />}
               </button>
             ))}
           </div>
@@ -74,12 +74,15 @@ export function HeaderSportSelector() {
   )
 }
 
+// Keep backward-compatible alias
+export const HeaderSportSelector = HeaderProgramSelector
+
 // ============================================
 // HEADER SEASON SELECTOR
 // ============================================
 export function HeaderSeasonSelector() {
   const { seasons, selectedSeason, selectSeason, loading } = useSeason()
-  const { selectedSport } = useSport()
+  const { selectedProgram } = useProgram()
   const { isDark, colors } = useTheme()
   const { isAdmin } = useAuth()
   const [open, setOpen] = useState(false)
@@ -137,7 +140,8 @@ export function HeaderSeasonSelector() {
                 onMouseEnter={e => (isAll || selectedSeason?.id !== s.id) && (e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)')}
                 onMouseLeave={e => (isAll || selectedSeason?.id !== s.id) && (e.currentTarget.style.backgroundColor = '')}
               >
-                {!selectedSport && s.sports?.icon && <span>{s.sports.icon}</span>}
+                {!selectedProgram && s.programs?.icon && <span>{s.programs.icon}</span>}
+                {!selectedProgram && !s.programs?.icon && s.sports?.icon && <span>{s.sports.icon}</span>}
                 <span className="flex-1 text-left">{s.name}</span>
                 {s.status === 'active' && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active" />

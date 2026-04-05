@@ -1,9 +1,10 @@
 export { NavIcon } from './NavIcon'
-export { 
-  HeaderSportSelector, 
-  HeaderSeasonSelector, 
-  HeaderCoachTeamSelector, 
-  HeaderChildSelector 
+export {
+  HeaderSportSelector,
+  HeaderProgramSelector,
+  HeaderSeasonSelector,
+  HeaderCoachTeamSelector,
+  HeaderChildSelector
 } from './HeaderComponents'
 export { 
   ThemeToggleButton, 

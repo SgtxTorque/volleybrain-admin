@@ -6,11 +6,13 @@
 // =============================================================================
 
 import { useState, useRef, useEffect } from 'react'
+import { useProgram } from '../../contexts/ProgramContext'
+import { useSeason } from '../../contexts/SeasonContext'
 import {
   LayoutDashboard, Users, UserCog, Shield, DollarSign,
   ClipboardList, Megaphone, Settings, Calendar, BarChart3,
   Trophy, Star, Zap, Target, Shirt, FileText, ChevronRight, LayoutGrid,
-  ChevronDown, Check, Menu, X,
+  ChevronDown, Check, Menu, X, Layers,
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
   CheckSquare, CalendarCheck, User, LogOut, MapPin,
@@ -226,6 +228,155 @@ function NavItem({ item, isActive, onNavigate, isPlayer }) {
   )
 }
 
+
+// =============================================================================
+// ProgramsSidebarSection — shows programs with nested seasons
+// =============================================================================
+const STATUS_PRIORITY = { active: 0, upcoming: 1, draft: 2, completed: 3, archived: 4 }
+
+function ProgramsSidebarSection({ isPlayer, onNavigate }) {
+  const { programs, selectedProgram, selectProgram } = useProgram()
+  const { allSeasons, selectedSeason, selectSeason } = useSeason()
+  const [expandedPrograms, setExpandedPrograms] = useState(new Set())
+
+  // Auto-expand the program that contains the selected season
+  useEffect(() => {
+    if (selectedSeason?.program_id) {
+      setExpandedPrograms(prev => {
+        if (prev.has(selectedSeason.program_id)) return prev
+        const next = new Set(prev)
+        next.add(selectedSeason.program_id)
+        return next
+      })
+    }
+  }, [selectedSeason?.program_id])
+
+  if (!programs || programs.length === 0) return null
+
+  const toggleProgram = (programId) => {
+    setExpandedPrograms(prev => {
+      const next = new Set(prev)
+      if (next.has(programId)) next.delete(programId)
+      else next.add(programId)
+      return next
+    })
+  }
+
+  const getSeasonsForProgram = (programId) => {
+    return (allSeasons || [])
+      .filter(s => s.program_id === programId)
+      .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99))
+  }
+
+  const statusDot = (status) => {
+    if (status === 'active') return { background: '#10B981', boxShadow: '0 0 4px rgba(16,185,129,0.4)' }
+    if (status === 'upcoming') return { background: '#F59E0B' }
+    if (status === 'draft') return { background: '#94A3B8' }
+    return { background: '#64748B', opacity: 0.5 }
+  }
+
+  return (
+    <div style={{ marginBottom: 4 }}>
+      {/* Section header */}
+      <div style={{
+        padding: '6px 12px 4px',
+        fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+        color: isPlayer ? 'rgba(255,255,255,0.25)' : 'var(--v2-text-muted)',
+      }}>
+        Programs
+      </div>
+
+      {programs.map(program => {
+        const seasons = getSeasonsForProgram(program.id)
+        const isExpanded = expandedPrograms.has(program.id)
+        const isSelected = selectedProgram?.id === program.id
+        const icon = program.icon || program.sport?.icon || '📋'
+
+        return (
+          <div key={program.id}>
+            {/* Program row */}
+            <button
+              onClick={() => {
+                selectProgram(program)
+                toggleProgram(program.id)
+              }}
+              className="v2-sidebar-btn"
+              data-player={isPlayer || undefined}
+              style={{
+                width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 8,
+                ...(isSelected ? {
+                  background: isPlayer ? 'rgba(245,158,11,0.12)' : 'var(--v2-surface)',
+                  color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+                  fontWeight: 700,
+                } : {}),
+              }}
+            >
+              <span style={{ fontSize: 14, flexShrink: 0, width: 18, textAlign: 'center' }}>{icon}</span>
+              <span style={{
+                flex: 1, textAlign: 'left',
+                fontSize: 12.5, fontWeight: isSelected ? 700 : 600,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {program.name}
+              </span>
+              {seasons.length > 0 && (
+                <ChevronRight style={{
+                  width: 11, height: 11, flexShrink: 0,
+                  transition: 'transform 0.15s ease',
+                  transform: isExpanded ? 'rotate(90deg)' : 'none',
+                  opacity: 0.35,
+                }} />
+              )}
+            </button>
+
+            {/* Nested seasons */}
+            {isExpanded && seasons.length > 0 && (
+              <div style={{ paddingLeft: 12 }}>
+                {seasons.map(season => {
+                  const isActiveSeason = selectedSeason?.id === season.id
+                  return (
+                    <button
+                      key={season.id}
+                      onClick={() => {
+                        selectProgram(program)
+                        selectSeason(season)
+                      }}
+                      className="v2-sidebar-btn"
+                      data-player={isPlayer || undefined}
+                      style={{
+                        width: '100%', justifyContent: 'flex-start', paddingLeft: 16, gap: 8,
+                        height: 30,
+                        ...(isActiveSeason ? {
+                          background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
+                          color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
+                          fontWeight: 700,
+                          borderLeft: `3px solid ${isPlayer ? 'var(--v2-gold)' : '#4BB9EC'}`,
+                        } : {
+                          borderLeft: '3px solid transparent',
+                        }),
+                      }}
+                    >
+                      <span style={{
+                        width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+                        ...statusDot(season.status),
+                      }} />
+                      <span style={{
+                        fontSize: 11.5, fontWeight: isActiveSeason ? 700 : 500,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}>
+                        {season.name}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 // =============================================================================
 // LynxSidebar — V2
@@ -470,18 +621,22 @@ export default function LynxSidebar({
 
       {/* ---- Nav Items with Section Headers ---- */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="lynx-sidebar-nav">
-        {navGroups.map((group) => {
+        {navGroups.map((group, groupIndex) => {
           if (group.type === 'single') {
             const singleItem = { ...group, icon: group.icon || group.id }
             const active = activePage === group.id && !directTeamWallId
+            // Show Programs section after Dashboard for admin/coach views
+            const showPrograms = groupIndex === 0 && (activeView === 'admin' || activeView === 'coach')
             return (
-              <NavItem
-                key={group.id}
-                item={singleItem}
-                isActive={active}
-                onNavigate={onNavigate}
-                isPlayer={isPlayer}
-              />
+              <div key={group.id}>
+                <NavItem
+                  item={singleItem}
+                  isActive={active}
+                  onNavigate={onNavigate}
+                  isPlayer={isPlayer}
+                />
+                {showPrograms && <ProgramsSidebarSection isPlayer={isPlayer} onNavigate={onNavigate} />}
+              </div>
             )
           }
 
