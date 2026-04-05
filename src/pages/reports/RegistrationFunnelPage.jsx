@@ -139,7 +139,7 @@ function RegistrationFunnelPage({ showToast }) {
     }).length
     const approved = filteredPlayers.filter(p => {
       const reg = regMap[p.id]
-      return reg && ['approved', 'active'].includes(reg.status)
+      return reg && ['approved', 'active', 'rostered'].includes(reg.status)
     }).length
     const denied = filteredPlayers.filter(p => {
       const reg = regMap[p.id]

@@ -68,7 +68,7 @@ export function RegistrationsPage({ showToast }) {
 
   useEffect(() => {
     loadRegistrations()
-  }, [selectedSeason?.id, statusFilter, selectedSport?.id])
+  }, [selectedSeason?.id, selectedSport?.id])
 
   useEffect(() => {
     setSelectedIds(new Set())
@@ -112,17 +112,7 @@ export function RegistrationsPage({ showToast }) {
     if (error) {
       console.error('Error loading registrations:', error)
     } else {
-      let filtered = data || []
-      if (statusFilter !== 'all') {
-        if (statusFilter === 'pending') {
-          filtered = filtered.filter(p => ['submitted', 'pending', 'new'].includes(p.registrations?.[0]?.status))
-        } else if (statusFilter === 'denied') {
-          filtered = filtered.filter(p => p.registrations?.[0]?.status === 'withdrawn')
-        } else {
-          filtered = filtered.filter(p => p.registrations?.[0]?.status === statusFilter)
-        }
-      }
-      setRegistrations(filtered)
+      setRegistrations(data || [])
     }
     setLoading(false)
   }
@@ -329,6 +319,18 @@ export function RegistrationsPage({ showToast }) {
   // ========== DERIVED STATE ==========
 
   const filteredRegs = registrations.filter(p => {
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      const regStatus = p.registrations?.[0]?.status
+      if (statusFilter === 'pending') {
+        if (!['submitted', 'pending', 'new'].includes(regStatus)) return false
+      } else if (statusFilter === 'denied') {
+        if (regStatus !== 'withdrawn') return false
+      } else {
+        if (regStatus !== statusFilter) return false
+      }
+    }
+    // Apply search filter
     if (!searchQuery) return true
     const search = searchQuery.toLowerCase()
     return (
@@ -355,7 +357,18 @@ export function RegistrationsPage({ showToast }) {
   // Waiver stats for stat row
   const waiverStats = {
     total: registrations.length,
-    signed: registrations.filter(p => p.waiver_liability && p.waiver_conduct).length,
+    signed: registrations.filter(p => {
+      // Check boolean fields on players table (legacy)
+      if (p.waiver_liability && p.waiver_conduct) return true
+      // Check registration record for waivers_accepted (public form)
+      const reg = p.registrations?.[0]
+      if (reg?.waivers_accepted && typeof reg.waivers_accepted === 'object') {
+        const vals = Object.values(reg.waivers_accepted)
+        return vals.length > 0 && vals.every(v => v === true)
+      }
+      if (reg?.signature_name) return true
+      return false
+    }).length,
   }
   const returningCount = registrations.filter(p => p.is_returning).length
   const newCount = registrations.length - returningCount
