@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import { calculateHealthScore, getScoreColor, RISK_LABELS, RISK_COLORS } from '../../lib/healthScoreCalculator'
 import {
   ArrowLeft, Building2, Users, Shield, Calendar, DollarSign,
@@ -529,9 +530,9 @@ function SeasonsTab({ seasons, isDark, tc }) {
             <div className="flex items-center gap-1.5">
               <Clock className={`w-3.5 h-3.5 ${tc.textMuted}`} />
               <span className={`text-xs ${tc.textMuted}`}>
-                {season.start_date ? new Date(season.start_date).toLocaleDateString() : 'No start date'}
+                {season.start_date ? parseLocalDate(season.start_date).toLocaleDateString() : 'No start date'}
                 {' - '}
-                {season.end_date ? new Date(season.end_date).toLocaleDateString() : 'Ongoing'}
+                {season.end_date ? parseLocalDate(season.end_date).toLocaleDateString() : 'Ongoing'}
               </span>
             </div>
             {season.sports?.name && (

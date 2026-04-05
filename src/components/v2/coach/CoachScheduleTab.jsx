@@ -4,6 +4,8 @@
 // Props-only.
 // =============================================================================
 
+import { parseLocalDate } from '../../../lib/date-helpers'
+
 export default function CoachScheduleTab({
   upcomingEvents = [],
   rsvpCounts = {},
@@ -51,7 +53,7 @@ export default function CoachScheduleTab({
         const rsvp = rsvpCounts[evt.id] || {}
         const going = rsvp.going || 0
         const pending = Math.max(0, rosterSize - (rsvp.total || 0))
-        const eventDate = new Date(evt.event_date)
+        const eventDate = parseLocalDate(evt.event_date)
         const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'short' })
         const dayNum = eventDate.getDate()
         const evtType = evt.event_type || 'event'

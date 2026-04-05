@@ -3,6 +3,8 @@
 // Props-only.
 // =============================================================================
 
+import { parseLocalDate } from '../../../lib/date-helpers'
+
 export default function ParentPaymentsTab({
   paymentSummary = {},
   onPayNow,
@@ -59,7 +61,7 @@ export default function ParentPaymentsTab({
                 </div>
                 {item.due_date && (
                   <div style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>
-                    Due {new Date(item.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    Due {parseLocalDate(item.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </div>
                 )}
               </div>

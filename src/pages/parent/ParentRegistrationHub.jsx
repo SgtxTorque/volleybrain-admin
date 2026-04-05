@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import {
   Calendar, Clock, DollarSign, Users, ChevronRight, Check,
   FileText, AlertTriangle, User, Loader2, Shield,
@@ -333,7 +334,7 @@ function SeasonCard({ season, isDark, tc, expanded, onToggle, form, set,
   waivers, waiverSigs, waiverScrolled, signedWaivers, setWaiverSigs,
   setWaiverScrolled, onSubmit, submitting, myPlayers }) {
 
-  const regEnd = season.registration_end ? new Date(season.registration_end) : null
+  const regEnd = season.registration_end ? parseLocalDate(season.registration_end) : null
   const daysLeft = regEnd ? Math.max(0, Math.ceil((regEnd - new Date()) / 86400000)) : null
   const spotsLeft = season.max_players
     ? Math.max(0, season.max_players - (season.player_count || 0))
@@ -378,7 +379,7 @@ function SeasonCard({ season, isDark, tc, expanded, onToggle, form, set,
         {season.start_date && (
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
-            {new Date(season.start_date).toLocaleDateString()} - {season.end_date ? new Date(season.end_date).toLocaleDateString() : 'TBD'}
+            {parseLocalDate(season.start_date).toLocaleDateString()} - {season.end_date ? parseLocalDate(season.end_date).toLocaleDateString() : 'TBD'}
           </span>
         )}
         {spotsLeft !== null && (

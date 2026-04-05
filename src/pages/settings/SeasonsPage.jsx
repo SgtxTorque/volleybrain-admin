@@ -5,6 +5,7 @@ import { useSport } from '../../contexts/SportContext'
 import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import {
   Plus, Edit, Trash2, Calendar, DollarSign, Users, Settings,
   Share2, Copy, Check, ExternalLink, X
@@ -286,8 +287,8 @@ function SeasonsPage({ showToast }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {seasons.map(season => {
             const isRegOpen = season.status === 'active' ||
-              (season.registration_opens && new Date(season.registration_opens) <= new Date() &&
-               (!season.registration_closes || new Date(season.registration_closes) >= new Date()))
+              (season.registration_opens && parseLocalDate(season.registration_opens) <= new Date() &&
+               (!season.registration_closes || parseLocalDate(season.registration_closes) >= new Date()))
             const registrationBaseUrl = organization.settings?.registration_url || window.location.origin
             const regLink = `${registrationBaseUrl}/register/${organization.slug}/${season.id}`
             const sportColor = getSportColor(season)
@@ -338,7 +339,7 @@ function SeasonsPage({ showToast }) {
                     {season.start_date && (
                       <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                         <Calendar className="w-3.5 h-3.5" />
-                        <span>{new Date(season.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {season.end_date ? new Date(season.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</span>
+                        <span>{parseLocalDate(season.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {season.end_date ? parseLocalDate(season.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}</span>
                       </div>
                     )}
                     <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
@@ -354,7 +355,7 @@ function SeasonsPage({ showToast }) {
                     {season.registration_opens && (
                       <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                         <Settings className="w-3.5 h-3.5" />
-                        <span>Reg: {new Date(season.registration_opens).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {season.registration_closes ? new Date(season.registration_closes).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Open'}</span>
+                        <span>Reg: {parseLocalDate(season.registration_opens).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — {season.registration_closes ? parseLocalDate(season.registration_closes).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Open'}</span>
                       </div>
                     )}
                   </div>

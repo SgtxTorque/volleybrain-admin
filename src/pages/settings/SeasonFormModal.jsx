@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, AlertCircle } from '../../constants/icons'
+import { parseLocalDate } from '../../lib/date-helpers'
 
 export function SeasonFormModal({
   showModal, setShowModal, editingSeason, form, setForm, handleSave,
@@ -704,9 +705,9 @@ Hi [Parent Name]!
 
 Registration is now open for ${organization.name} ${shareSeason.name}!
 
-Season: ${shareSeason.start_date ? new Date(shareSeason.start_date).toLocaleDateString() : 'TBD'} - ${shareSeason.end_date ? new Date(shareSeason.end_date).toLocaleDateString() : 'TBD'}
+Season: ${shareSeason.start_date ? parseLocalDate(shareSeason.start_date).toLocaleDateString() : 'TBD'} - ${shareSeason.end_date ? parseLocalDate(shareSeason.end_date).toLocaleDateString() : 'TBD'}
 Fee: $${totalFee}
-${shareSeason.early_bird_deadline ? `Early Bird Deadline: ${new Date(shareSeason.early_bird_deadline).toLocaleDateString()} (Save $${shareSeason.early_bird_discount || 0}!)` : ''}
+${shareSeason.early_bird_deadline ? `Early Bird Deadline: ${parseLocalDate(shareSeason.early_bird_deadline).toLocaleDateString()} (Save $${shareSeason.early_bird_discount || 0}!)` : ''}
 
 Register now: ${shareLink}
 
@@ -717,7 +718,7 @@ ${organization.name}`}
               </div>
               <button
                 onClick={() => {
-                  const template = `Subject: Registration Open - ${shareSeason.name}\n\nHi [Parent Name]!\n\nRegistration is now open for ${organization.name} ${shareSeason.name}!\n\nSeason: ${shareSeason.start_date ? new Date(shareSeason.start_date).toLocaleDateString() : 'TBD'} - ${shareSeason.end_date ? new Date(shareSeason.end_date).toLocaleDateString() : 'TBD'}\nFee: $${totalFee}\n${shareSeason.early_bird_deadline ? `Early Bird Deadline: ${new Date(shareSeason.early_bird_deadline).toLocaleDateString()} (Save $${shareSeason.early_bird_discount || 0}!)` : ''}\n\nRegister now: ${shareLink}\n\nQuestions? Reply to this email.\n\nSee you on the court!\n${organization.name}`
+                  const template = `Subject: Registration Open - ${shareSeason.name}\n\nHi [Parent Name]!\n\nRegistration is now open for ${organization.name} ${shareSeason.name}!\n\nSeason: ${shareSeason.start_date ? parseLocalDate(shareSeason.start_date).toLocaleDateString() : 'TBD'} - ${shareSeason.end_date ? parseLocalDate(shareSeason.end_date).toLocaleDateString() : 'TBD'}\nFee: $${totalFee}\n${shareSeason.early_bird_deadline ? `Early Bird Deadline: ${parseLocalDate(shareSeason.early_bird_deadline).toLocaleDateString()} (Save $${shareSeason.early_bird_discount || 0}!)` : ''}\n\nRegister now: ${shareLink}\n\nQuestions? Reply to this email.\n\nSee you on the court!\n${organization.name}`
                   navigator.clipboard.writeText(template)
                   showToast('Email template copied!', 'success')
                 }}
@@ -744,13 +745,13 @@ Fun team environment
 Register now:
 ${shareLink}
 
-${shareSeason.early_bird_deadline ? `Early bird pricing ends ${new Date(shareSeason.early_bird_deadline).toLocaleDateString()}!` : ''}
+${shareSeason.early_bird_deadline ? `Early bird pricing ends ${parseLocalDate(shareSeason.early_bird_deadline).toLocaleDateString()}!` : ''}
 
 #youth${shareSeason.sports?.name || 'sports'} #${organization.name.replace(/\s+/g, '')} #registration`}
               </div>
               <button
                 onClick={() => {
-                  const post = `Registration is OPEN!\n\n${shareSeason.name} is here! Join ${organization.name} for an amazing season.\n\nAll skill levels welcome\nExpert coaching\nFun team environment\n\nRegister now:\n${shareLink}\n\n${shareSeason.early_bird_deadline ? `Early bird pricing ends ${new Date(shareSeason.early_bird_deadline).toLocaleDateString()}!` : ''}\n\n#youth${shareSeason.sports?.name || 'sports'} #${organization.name.replace(/\s+/g, '')} #registration`
+                  const post = `Registration is OPEN!\n\n${shareSeason.name} is here! Join ${organization.name} for an amazing season.\n\nAll skill levels welcome\nExpert coaching\nFun team environment\n\nRegister now:\n${shareLink}\n\n${shareSeason.early_bird_deadline ? `Early bird pricing ends ${parseLocalDate(shareSeason.early_bird_deadline).toLocaleDateString()}!` : ''}\n\n#youth${shareSeason.sports?.name || 'sports'} #${organization.name.replace(/\s+/g, '')} #registration`
                   navigator.clipboard.writeText(post)
                   showToast('Social post copied!', 'success')
                 }}

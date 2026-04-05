@@ -5,6 +5,7 @@
 
 import { useTheme } from '../../contexts/ThemeContext'
 import { ChevronDown, ChevronRight, Check, Clock, Trash2, Bell } from 'lucide-react'
+import { parseLocalDate } from '../../lib/date-helpers'
 
 // ============================================
 // PLAYER PAYMENT CARD
@@ -71,7 +72,7 @@ export function PlayerPaymentCard({
                   <div className="flex-1">
                     <p className={`font-medium text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{payment.fee_name || payment.fee_type}</p>
                     <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {payment.description || ''}{payment.due_date && ` · Due: ${new Date(payment.due_date).toLocaleDateString()}`}
+                      {payment.description || ''}{payment.due_date && ` · Due: ${parseLocalDate(payment.due_date).toLocaleDateString()}`}
                     </p>
                   </div>
                 </div>
@@ -120,7 +121,7 @@ export function PlayerPaymentCard({
                   <div key={p.id} className="flex items-center justify-between text-sm">
                     <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>{p.fee_name} - ${parseFloat(p.amount).toFixed(2)}</span>
                     <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>
-                      {p.paid_date ? new Date(p.paid_date).toLocaleDateString() : 'N/A'}{p.payment_method && ` via ${p.payment_method}`}
+                      {p.paid_date ? parseLocalDate(p.paid_date).toLocaleDateString() : 'N/A'}{p.payment_method && ` via ${p.payment_method}`}
                     </span>
                   </div>
                 ))}
@@ -254,7 +255,7 @@ export function FamilyPaymentCard({
                       {payment.players?.first_name} {payment.players?.last_name} — {payment.fee_name || payment.fee_type}
                     </p>
                     <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {payment.description || ''}{payment.due_date && ` · Due: ${new Date(payment.due_date).toLocaleDateString()}`}
+                      {payment.description || ''}{payment.due_date && ` · Due: ${parseLocalDate(payment.due_date).toLocaleDateString()}`}
                     </p>
                   </div>
                 </div>

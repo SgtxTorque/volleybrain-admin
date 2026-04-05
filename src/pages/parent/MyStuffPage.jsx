@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import {
   User, DollarSign, FileText, Settings, Users, ChevronRight,
   Camera, Save, Mail, Phone, Check, X, RefreshCw, Bell,
@@ -269,7 +270,7 @@ function PaymentsTab({ roleContext, showToast }) {
                   <p className={`font-semibold text-r-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.fee_name || p.description || 'Fee'}</p>
                   <p className="text-r-xs text-slate-400">
                     {p.players?.first_name} {p.players?.last_name}
-                    {p.due_date && ` - Due ${new Date(p.due_date).toLocaleDateString()}`}
+                    {p.due_date && ` - Due ${parseLocalDate(p.due_date).toLocaleDateString()}`}
                   </p>
                 </div>
                 <span className="text-r-lg font-bold text-red-500">${parseFloat(p.amount).toFixed(2)}</span>

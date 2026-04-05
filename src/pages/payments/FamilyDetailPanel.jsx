@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { X, Bell, Plus, Check, Clock, DollarSign, AlertTriangle, ChevronDown } from 'lucide-react'
+import { parseLocalDate } from '../../lib/date-helpers'
 
 // ---------- Payment timeline dot ----------
 function TimelineDot({ status }) {
@@ -215,7 +216,7 @@ export default function FamilyDetailPanel({
             <div className={`rounded-xl overflow-hidden border ${divider}`}>
               <div className={`divide-y ${divider}`}>
                 {currentPayments.map(p => {
-                  const isOverdue = !p.paid && p.due_date && new Date(p.due_date) < new Date()
+                  const isOverdue = !p.paid && p.due_date && parseLocalDate(p.due_date) < new Date()
                   return (
                     <div key={p.id} className={`px-3 py-2.5 flex items-center gap-3 ${
                       p.paid ? (isDark ? 'bg-emerald-500/5' : 'bg-emerald-50/50') : ''
@@ -226,8 +227,8 @@ export default function FamilyDetailPanel({
                           {activeTab === 'overview' && p.players ? `${p.players.first_name} — ` : ''}{p.fee_name || p.fee_type}
                         </p>
                         <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                          {p.due_date && `Due ${new Date(p.due_date).toLocaleDateString()}`}
-                          {p.paid && p.paid_date && ` · Paid ${new Date(p.paid_date).toLocaleDateString()}`}
+                          {p.due_date && `Due ${parseLocalDate(p.due_date).toLocaleDateString()}`}
+                          {p.paid && p.paid_date && ` · Paid ${parseLocalDate(p.paid_date).toLocaleDateString()}`}
                           {p.paid && p.payment_method && ` via ${p.payment_method}`}
                         </p>
                       </div>
@@ -265,8 +266,8 @@ export default function FamilyDetailPanel({
             <div className={`${cardBg} rounded-xl p-3`}>
               {timeline.map((p, i) => {
                 const dateStr = p.paid_date || p.due_date || p.created_at
-                const date = dateStr ? new Date(dateStr).toLocaleDateString() : '—'
-                const status = p.paid ? 'paid' : (p.due_date && new Date(p.due_date) < new Date() ? 'overdue' : 'pending')
+                const date = dateStr ? parseLocalDate(dateStr).toLocaleDateString() : '—'
+                const status = p.paid ? 'paid' : (p.due_date && parseLocalDate(p.due_date) < new Date() ? 'overdue' : 'pending')
                 return (
                   <div key={p.id} className="flex items-start gap-3 py-1.5">
                     <div className="flex flex-col items-center">

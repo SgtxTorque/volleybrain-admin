@@ -3,6 +3,8 @@
 // Props-only. Summary row + family table + monthly trend + footer.
 // =============================================================================
 
+import { parseLocalDate } from '../../../lib/date-helpers'
+
 export default function AdminPaymentsTab({
   stats = {},
   monthlyPayments = [],
@@ -14,13 +16,13 @@ export default function AdminPaymentsTab({
   const totalExpected = stats.totalExpected || 0
   const collectionRate = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0
   const overdueCount = paymentFamilies.filter(f =>
-    f.earliestDueDate && new Date(f.earliestDueDate) < new Date()
+    f.earliestDueDate && parseLocalDate(f.earliestDueDate) < new Date()
   ).length
 
   const getStatus = (family) => {
     if (family.needsApproval) return { label: 'Needs Approval', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED' }
     if (family.totalDue === 0 && family.totalPaid > 0) return { label: 'Paid', bg: 'rgba(16,185,129,0.1)', color: '#059669' }
-    if (family.earliestDueDate && new Date(family.earliestDueDate) < new Date()) return { label: 'Overdue', bg: 'rgba(239,68,68,0.1)', color: '#DC2626' }
+    if (family.earliestDueDate && parseLocalDate(family.earliestDueDate) < new Date()) return { label: 'Overdue', bg: 'rgba(239,68,68,0.1)', color: '#DC2626' }
     if (family.totalPaid > 0 && family.totalDue > 0) return { label: 'Partial', bg: 'rgba(59,130,246,0.1)', color: '#2563EB' }
     return { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706' }
   }
@@ -46,7 +48,7 @@ export default function AdminPaymentsTab({
 
   const formatDueDate = (family) => {
     if (!family.earliestDueDate) return '—'
-    const due = new Date(family.earliestDueDate)
+    const due = parseLocalDate(family.earliestDueDate)
     const now = new Date()
     const diffDays = Math.floor((now - due) / (1000 * 60 * 60 * 24))
     if (diffDays > 0) return `Overdue ${diffDays}d`
@@ -140,7 +142,7 @@ export default function AdminPaymentsTab({
             const unpaidItems = getUnpaidLineItems(family)
             const primaryMethod = getPrimaryMethod(family)
             const mBadge = primaryMethod ? methodBadge(primaryMethod) : null
-            const isOverdue = family.earliestDueDate && new Date(family.earliestDueDate) < new Date()
+            const isOverdue = family.earliestDueDate && parseLocalDate(family.earliestDueDate) < new Date()
 
             return (
               <div

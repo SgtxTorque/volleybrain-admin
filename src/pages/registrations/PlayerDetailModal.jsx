@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import { Edit } from 'lucide-react'
 
 // ============================================
@@ -14,7 +15,7 @@ import { Edit } from 'lucide-react'
 export function calculateAge(birthDate) {
   if (!birthDate) return 'N/A'
   const today = new Date()
-  const birth = new Date(birthDate)
+  const birth = parseLocalDate(birthDate)
   let age = today.getFullYear() - birth.getFullYear()
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--

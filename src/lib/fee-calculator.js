@@ -1,3 +1,5 @@
+import { parseLocalDate } from './date-helpers'
+
 // ============================================
 // FEE GENERATION UTILITIES
 // ============================================
@@ -18,12 +20,12 @@ export function calculateFeesForPlayer(player, season, options = {}) {
   const registrationDate = player.registrations?.[0]?.created_at ? new Date(player.registrations[0].created_at) : now
   
   // Determine if early bird pricing applies
-  const earlyBirdDeadline = season.early_bird_deadline ? new Date(season.early_bird_deadline) : null
+  const earlyBirdDeadline = season.early_bird_deadline ? parseLocalDate(season.early_bird_deadline) : null
   const isEarlyBird = earlyBirdDeadline && registrationDate <= earlyBirdDeadline
   const earlyBirdDiscount = isEarlyBird ? (parseFloat(season.early_bird_discount) || 0) : 0
   
   // Determine if late fee applies
-  const lateDeadline = season.late_registration_deadline ? new Date(season.late_registration_deadline) : null
+  const lateDeadline = season.late_registration_deadline ? parseLocalDate(season.late_registration_deadline) : null
   const isLate = lateDeadline && registrationDate > lateDeadline
   const lateFee = isLate ? (parseFloat(season.late_registration_fee) || 0) : 0
   
@@ -143,7 +145,7 @@ export function calculateFeesForPlayer(player, season, options = {}) {
     const monthlyDiscountPerMonth = perMonthSiblingResult.discountApplied / monthsInSeason
     
     // Determine start month from season start_date or default to current month
-    const seasonStart = season.start_date ? new Date(season.start_date) : new Date()
+    const seasonStart = season.start_date ? parseLocalDate(season.start_date) : new Date()
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                         'July', 'August', 'September', 'October', 'November', 'December']
     
@@ -492,7 +494,7 @@ Great news! ${player?.first_name}'s registration for ${organization?.name || 'ou
 
 Player: ${player?.first_name} ${player?.last_name}
 Season: ${season?.name}
-${season?.start_date ? `Start Date: ${new Date(season.start_date).toLocaleDateString()}` : ''}
+${season?.start_date ? `Start Date: ${parseLocalDate(season.start_date).toLocaleDateString()}` : ''}
 
 ${totalDue > 0 ? `
 PAYMENT DUE: $${totalDue.toFixed(2)}

@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSeason } from '../contexts/SeasonContext'
 import { supabase } from '../lib/supabase'
+import { parseLocalDate } from '../lib/date-helpers'
 
 export function useTeamManagerData(teamId) {
   const { selectedSeason } = useSeason()
@@ -44,8 +45,8 @@ export function useTeamManagerData(teamId) {
       const teamPayments = (payments || []).filter(p => teamPlayerIds.has(p.player_id))
 
       const now = new Date()
-      const overdue = teamPayments.filter(p => p.status === 'overdue' || (p.status === 'pending' && p.due_date && new Date(p.due_date) < now))
-      const pending = teamPayments.filter(p => p.status === 'pending' && (!p.due_date || new Date(p.due_date) >= now))
+      const overdue = teamPayments.filter(p => p.status === 'overdue' || (p.status === 'pending' && p.due_date && parseLocalDate(p.due_date) < now))
+      const pending = teamPayments.filter(p => p.status === 'pending' && (!p.due_date || parseLocalDate(p.due_date) >= now))
       const paid = teamPayments.filter(p => p.status === 'paid')
 
       const paymentHealth = {

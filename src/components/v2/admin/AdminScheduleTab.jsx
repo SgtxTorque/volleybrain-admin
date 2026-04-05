@@ -3,6 +3,8 @@
 // Props-only.
 // =============================================================================
 
+import { parseLocalDate } from '../../../lib/date-helpers'
+
 export default function AdminScheduleTab({
   events = [],
   onNavigate,
@@ -26,7 +28,7 @@ export default function AdminScheduleTab({
   return (
     <div style={{ fontFamily: 'var(--v2-font)' }}>
       {events.slice(0, 8).map((evt, i) => {
-        const eventDate = new Date(evt.event_date)
+        const eventDate = parseLocalDate(evt.event_date)
         const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'short' })
         const dayNum = eventDate.getDate()
         const monthName = eventDate.toLocaleDateString('en-US', { month: 'short' })

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import {
   DollarSign, FileText, Calendar, Clock, ChevronRight,
   AlertTriangle, Check, X, Bell
@@ -52,7 +53,7 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
           console.warn('PriorityCards: payments query failed:', paymentsErr.message)
         } else if (payments) {
           for (const p of payments) {
-            const isOverdue = p.due_date && new Date(p.due_date) < new Date()
+            const isOverdue = p.due_date && parseLocalDate(p.due_date) < new Date()
             const childName = p.players?.first_name || 'Player'
             const amt = parseFloat(p.amount) || 0
             allItems.push({
@@ -190,7 +191,7 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
 
               // Missing RSVP
               if (!hasRsvp && event.rsvp_enabled !== false) {
-                const dateStr = new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                const dateStr = parseLocalDate(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                 allItems.push({
                   id: `rsvp-${event.id}`,
                   type: 'rsvp',
@@ -207,7 +208,7 @@ export function usePriorityItems({ children, teamIds, seasonId, organizationId }
 
               // Upcoming game in <48hrs
               if (isGame && hoursUntil > 0 && hoursUntil <= 48) {
-                const gameDateStr = new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                const gameDateStr = parseLocalDate(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
                 const gameTime = event.event_time ? ' ' + formatTime12(event.event_time) : ''
                 allItems.push({
                   id: `game-${event.id}`,

@@ -3,6 +3,8 @@
 // Props-only. Compact 1x6 stat chips + funnel + player list + view all.
 // =============================================================================
 
+import { parseLocalDate } from '../../../lib/date-helpers'
+
 export default function AdminRegistrationsTab({
   stats = {},
   registrationPlayers = [],
@@ -58,7 +60,7 @@ export default function AdminRegistrationsTab({
 
   const getAge = (dob) => {
     if (!dob) return null
-    const d = new Date(dob)
+    const d = parseLocalDate(dob)
     const diff = Date.now() - d.getTime()
     return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000))
   }

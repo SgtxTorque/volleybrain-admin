@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useSport } from '../../contexts/SportContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import { Calendar, MapPin, Users, AlertTriangle, Megaphone } from '../../constants/icons'
 
 function formatTime12(timeStr) {
@@ -27,7 +28,7 @@ export function EventDetailModal({ event, teams, venues, onClose, activeView }) 
 
   const team = teams?.find(t => t.id === event.team_id)
   const venue = venues?.find(v => v.id === event.venue_id)
-  const eventDate = event.event_date ? new Date(event.event_date) : null
+  const eventDate = event.event_date ? parseLocalDate(event.event_date) : null
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>

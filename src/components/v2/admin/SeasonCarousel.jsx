@@ -5,6 +5,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { parseLocalDate } from '../../../lib/date-helpers'
 
 export default function SeasonCarousel({
   seasons = [],
@@ -52,7 +53,7 @@ export default function SeasonCarousel({
   }
 
   const formatDateRange = (season) => {
-    const fmt = (d) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null
+    const fmt = (d) => d ? parseLocalDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null
     const start = fmt(season.start_date)
     const end = fmt(season.end_date)
     if (start && end) return `${start} – ${end}`

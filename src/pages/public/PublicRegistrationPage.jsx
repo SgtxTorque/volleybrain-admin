@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import { EmailService } from '../../lib/email-service'
 import { AlertCircle } from '../../constants/icons'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
@@ -527,7 +528,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
               <button key={s.id} onClick={() => { setSeason(s); setAvailableSeasons(null); loadSeasonConfig(s) }}
                 className="w-full p-4 bg-white rounded-xl border border-slate-200 text-left hover:border-[#4BB9EC] hover:shadow-md transition-all">
                 <p className="font-semibold text-[#10284C]">{s.sports?.icon} {s.name}</p>
-                {s.start_date && <p className="text-xs text-slate-400 mt-1">Starts {new Date(s.start_date).toLocaleDateString()}</p>}
+                {s.start_date && <p className="text-xs text-slate-400 mt-1">Starts {parseLocalDate(s.start_date).toLocaleDateString()}</p>}
               </button>
             ))}
           </div>
@@ -566,7 +567,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           </p>
           {season?.start_date && (
             <p className="text-r-xs text-white/50 mt-1">
-              Starts {new Date(season.start_date).toLocaleDateString()}
+              Starts {parseLocalDate(season.start_date).toLocaleDateString()}
             </p>
           )}
         </div>

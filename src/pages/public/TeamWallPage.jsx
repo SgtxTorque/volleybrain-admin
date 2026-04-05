@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import { PlayerCardExpanded } from '../../components/players'
 import { CommentSection } from '../../components/teams/CommentSection'
 import { ReactionBar } from '../../components/teams/ReactionBar'
@@ -648,7 +649,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
             {activeTab === 'schedule' && (
               <div className={`overflow-hidden rounded-xl shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 {upcomingEvents.map((event, i) => {
-                  const eventDate = new Date(event.event_date)
+                  const eventDate = parseLocalDate(event.event_date)
                   const isGame = event.event_type === 'game'
                   return (
                     <div
@@ -752,7 +753,7 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
                       )}
                     </p>
                     <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {new Date(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      {parseLocalDate(event.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                       {event.event_time && ` · ${formatTime12(event.event_time)}`}
                     </p>
                   </div>

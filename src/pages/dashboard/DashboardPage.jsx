@@ -6,6 +6,7 @@ import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { supabase } from '../../lib/supabase'
+import { parseLocalDate } from '../../lib/date-helpers'
 import { SkeletonDashboard } from '../../components/ui'
 import {
   HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
@@ -576,7 +577,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
       const nextGameEvent = events?.find(e => e.event_type === 'game')
       let nextGame = null
       if (nextGameEvent) {
-        const gameDate = new Date(nextGameEvent.event_date)
+        const gameDate = parseLocalDate(nextGameEvent.event_date)
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         const time = nextGameEvent.event_time ?
           new Date(`2000-01-01T${nextGameEvent.event_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : ''
@@ -880,8 +881,8 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
           } else {
             family.totalDue += (parseFloat(payment.amount) || 0)
             if (payment.due_date) {
-              const dueDate = new Date(payment.due_date)
-              if (!family.earliestDueDate || dueDate < new Date(family.earliestDueDate)) {
+              const dueDate = parseLocalDate(payment.due_date)
+              if (!family.earliestDueDate || dueDate < parseLocalDate(family.earliestDueDate)) {
                 family.earliestDueDate = payment.due_date
               }
             }
@@ -907,8 +908,8 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
             return false
           })
           .sort((a, b) => {
-            const aOverdue = a.earliestDueDate && new Date(a.earliestDueDate) < now
-            const bOverdue = b.earliestDueDate && new Date(b.earliestDueDate) < now
+            const aOverdue = a.earliestDueDate && parseLocalDate(a.earliestDueDate) < now
+            const bOverdue = b.earliestDueDate && parseLocalDate(b.earliestDueDate) < now
             if (aOverdue && !bOverdue) return -1
             if (!aOverdue && bOverdue) return 1
             if (a.needsApproval && !b.needsApproval) return -1
@@ -1043,12 +1044,12 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   // Calculate season week
   const getSeasonWeek = () => {
     if (!selectedSeason?.start_date) return null
-    const start = new Date(selectedSeason.start_date)
+    const start = parseLocalDate(selectedSeason.start_date)
     const now = new Date()
     const diffMs = now - start
     const weekNum = Math.max(1, Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)))
     if (selectedSeason.end_date) {
-      const end = new Date(selectedSeason.end_date)
+      const end = parseLocalDate(selectedSeason.end_date)
       const totalWeeks = Math.ceil((end - start) / (7 * 24 * 60 * 60 * 1000))
       return { current: Math.min(weekNum, totalWeeks), total: totalWeeks }
     }
@@ -1081,7 +1082,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const nowDate = new Date()
   const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1)
   const monthEnd = new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 0)
-  const eventsThisMonth = upcomingEvents.filter(e => { const d = new Date(e.event_date); return d >= monthStart && d <= monthEnd }).length
+  const eventsThisMonth = upcomingEvents.filter(e => { const d = parseLocalDate(e.event_date); return d >= monthStart && d <= monthEnd }).length
   const overdueCount = stats.unpaidCount || 0
   const unrosteredCount = Math.max(0, totalPlayers - (stats.rosteredPlayers || 0))
   const teamsNoSchedule = Math.max(0, totalTeams - teamsWithSchedule)
@@ -1497,9 +1498,9 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   title="Weekly Load"
                   dateRange="This Week"
                   events={(upcomingEvents || []).slice(0, 5).map(evt => ({
-                    dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
-                    dayNum: new Date(evt.event_date).getDate(),
-                    isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
+                    dayName: parseLocalDate(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
+                    dayNum: parseLocalDate(evt.event_date).getDate(),
+                    isToday: parseLocalDate(evt.event_date).toDateString() === new Date().toDateString(),
                     title: evt.title || evt.event_type || 'Event',
                     meta: `${evt.location || 'TBD'} · ${evt.event_time || evt.start_time || ''}`,
                   }))}

@@ -3,6 +3,8 @@
 // Props-only.
 // =============================================================================
 
+import { parseLocalDate } from '../../../lib/date-helpers'
+
 export default function CoachGamePrepTab({
   checklistState = {},
   onToggleItem,
@@ -14,7 +16,7 @@ export default function CoachGamePrepTab({
       key: 'lineupSet',
       label: 'Set lineup for next game',
       detail: nextEvent?.event_type === 'game'
-        ? `${nextEvent.title || 'Game'} — ${new Date(nextEvent.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`
+        ? `${nextEvent.title || 'Game'} — ${parseLocalDate(nextEvent.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`
         : 'No upcoming game',
       page: 'gameprep',
     },

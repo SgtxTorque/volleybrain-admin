@@ -2,6 +2,20 @@
  * Shared date/time formatting helpers used across coach dashboard components.
  */
 
+/**
+ * Parse a date-only string (YYYY-MM-DD) as local midnight, not UTC midnight.
+ * This avoids the off-by-one-day bug where "2026-04-01" shows as "March 31"
+ * in US timezones. Full ISO timestamps (containing 'T') are passed through as-is.
+ */
+export function parseLocalDate(dateStr) {
+  if (!dateStr) return null
+  if (typeof dateStr !== 'string') return new Date(dateStr)
+  // If it already has a time component, parse as-is
+  if (dateStr.includes('T')) return new Date(dateStr)
+  // Date-only: append T00:00:00 to force local timezone interpretation
+  return new Date(dateStr + 'T00:00:00')
+}
+
 export function formatTime12(timeStr) {
   if (!timeStr) return ''
   try {
@@ -42,7 +56,7 @@ export function formatDateLong(dateStr) {
 export function timeAgo(dateStr) {
   if (!dateStr) return ''
   const now = new Date()
-  const date = new Date(dateStr)
+  const date = parseLocalDate(dateStr)
   const diffMs = now - date
   const diffMins = Math.floor(diffMs / 60000)
   if (diffMins < 1) return 'Just now'
