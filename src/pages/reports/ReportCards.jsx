@@ -165,7 +165,7 @@ export function ColumnPicker({ allColumns, visibleColumns, setVisibleColumns, is
               onChange={e => setVisibleColumns({ ...visibleColumns, [col.id]: e.target.checked })}
               className="sr-only"
             />
-            <span>{visibleColumns[col.id] ? '\u2713' : '\u25CB'}</span>
+            <span>{visibleColumns[col.id] ? '✓' : '○'}</span>
             <span>{col.label}</span>
           </label>
         ))}
@@ -298,7 +298,7 @@ export function ReportDataTable({
                 >
                   {col.label}
                   {col.sortable && sortField === col.id && (
-                    <span className="ml-1">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
+                    <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
                   )}
                 </th>
               ))}
@@ -401,10 +401,10 @@ export function ExportMenu({
       <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
       <div className={`absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden shadow-2xl rounded-[14px] border ${isDark ? 'bg-[#0B1D35] border-white/[0.08]' : 'bg-white border-[#E8ECF2]'}`}>
         {[
-          { id: 'csv', label: 'Download CSV', icon: '\uD83D\uDCCA', action: exportCSV },
-          { id: 'pdf', label: 'Download PDF', icon: '\uD83D\uDCC4', action: exportPDF },
-          { id: 'print', label: 'Print', icon: '\uD83D\uDDA8\uFE0F', action: printReport },
-          { id: 'email', label: 'Email', icon: '\uD83D\uDCE7', action: emailReport },
+          { id: 'csv', label: 'Download CSV', icon: '📊', action: exportCSV },
+          { id: 'pdf', label: 'Download PDF', icon: '📄', action: exportPDF },
+          { id: 'print', label: 'Print', icon: '🖨️', action: printReport },
+          { id: 'email', label: 'Email', icon: '📧', action: emailReport },
         ].map(opt => (
           <button
             key={opt.id}

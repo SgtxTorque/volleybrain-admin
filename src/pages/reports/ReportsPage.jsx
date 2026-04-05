@@ -20,29 +20,29 @@ import {
 
 const REPORT_CATEGORIES = {
   people: {
-    label: 'People', icon: '\uD83D\uDC65',
+    label: 'People', icon: '👥',
     reports: [
-      { id: 'players', label: 'Player Roster', icon: '\uD83C\uDFD0', description: 'All players with contact info' },
-      { id: 'teams', label: 'Team Composition', icon: '\u26A1', description: 'Teams with roster counts' },
-      { id: 'coaches', label: 'Coach Directory', icon: '\uD83E\uDDD1\u200D\uD83C\uDFEB', description: 'All coaches and assignments' },
-      { id: 'emergency', label: 'Emergency Contacts', icon: '\uD83D\uDEA8', description: 'Emergency contact list' },
-      { id: 'jerseys', label: 'Jersey Assignment', icon: '\uD83D\uDC55', description: 'Jersey numbers and sizes' },
+      { id: 'players', label: 'Player Roster', icon: '🏐', description: 'All players with contact info' },
+      { id: 'teams', label: 'Team Composition', icon: '⚡', description: 'Teams with roster counts' },
+      { id: 'coaches', label: 'Coach Directory', icon: '🧑‍🏫', description: 'All coaches and assignments' },
+      { id: 'emergency', label: 'Emergency Contacts', icon: '🚨', description: 'Emergency contact list' },
+      { id: 'jerseys', label: 'Jersey Assignment', icon: '👕', description: 'Jersey numbers and sizes' },
     ]
   },
   financial: {
-    label: 'Financial', icon: '\uD83D\uDCB0',
+    label: 'Financial', icon: '💰',
     reports: [
-      { id: 'payments', label: 'Payment Summary', icon: '\uD83D\uDCB3', description: 'Payment status by player' },
-      { id: 'financial', label: 'Financial Overview', icon: '\uD83D\uDCCA', description: 'Revenue and collections' },
-      { id: 'outstanding', label: 'Outstanding Balances', icon: '\u26A0\uFE0F', description: 'Unpaid balances' },
+      { id: 'payments', label: 'Payment Summary', icon: '💳', description: 'Payment status by player' },
+      { id: 'financial', label: 'Financial Overview', icon: '📊', description: 'Revenue and collections' },
+      { id: 'outstanding', label: 'Outstanding Balances', icon: '⚠️', description: 'Unpaid balances' },
     ]
   },
   operations: {
-    label: 'Operations', icon: '\uD83D\uDCCB',
+    label: 'Operations', icon: '📋',
     reports: [
-      { id: 'schedule', label: 'Schedule Summary', icon: '\uD83D\uDCC5', description: 'Events by type and team' },
-      { id: 'registrations', label: 'Registration Report', icon: '\uD83D\uDCDD', description: 'Registration pipeline' },
-      { id: 'season_summary', label: 'Season Summary', icon: '\uD83C\uDFC6', description: 'High-level season overview' },
+      { id: 'schedule', label: 'Schedule Summary', icon: '📅', description: 'Events by type and team' },
+      { id: 'registrations', label: 'Registration Report', icon: '📝', description: 'Registration pipeline' },
+      { id: 'season_summary', label: 'Season Summary', icon: '🏆', description: 'High-level season overview' },
     ]
   },
 }
@@ -401,7 +401,7 @@ function ReportsPage({ showToast }) {
   const buildStatItems = () => {
     if (!stats.labels) return []
     const keys = Object.keys(stats).filter(k => k !== 'labels')
-    const icons = ['\uD83D\uDCCA', '\u2705', '\u26A0\uFE0F', '\uD83D\uDD0D']
+    const icons = ['📊', '✅', '⚠️', '🔍']
     return stats.labels.map((label, i) => {
       const v = stats[keys[i]]
       const isMon = ['totalRevenue','collected','outstanding','totalExpected','totalOutstanding','avgBalance'].includes(keys[i])
@@ -409,7 +409,7 @@ function ReportsPage({ showToast }) {
       return {
         label,
         value: isMon ? `$${Number(v).toLocaleString()}` : isRate ? `${v}%` : v,
-        icon: icons[i] || '\uD83D\uDCCA',
+        icon: icons[i] || '📊',
       }
     })
   }
@@ -438,7 +438,7 @@ function ReportsPage({ showToast }) {
           )}
           <select value={selectedSeasonId || ''} onChange={e => setSelectedSeasonId(e.target.value)} className={`min-w-[180px] ${v2Select}`}>
             <option value="">Select Season</option>
-            {seasons.filter(s => selectedSportId === 'all' || s.sport_id === selectedSportId).map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '\u25CF' : s.status === 'upcoming' ? '\u25CB' : '\u25CC'}</option>)}
+            {seasons.filter(s => selectedSportId === 'all' || s.sport_id === selectedSportId).map(s => <option key={s.id} value={s.id}>{s.name} {s.status === 'active' ? '●' : s.status === 'upcoming' ? '○' : '◌'}</option>)}
           </select>
         </div>
       }
@@ -493,7 +493,7 @@ function ReportsPage({ showToast }) {
         <div className="flex items-center justify-center py-24">
           <div className="text-center">
             <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-              <span className="text-2xl">\uD83D\uDCC5</span>
+              <span className="text-2xl">📅</span>
             </div>
             <p className={`font-bold text-r-lg mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Select a Season</p>
             <p className="mt-2 text-r-sm text-slate-400">Choose a season to view reports</p>
@@ -514,13 +514,13 @@ function ReportsPage({ showToast }) {
                 onClick={() => setShowColumnPicker(!showColumnPicker)}
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
               >
-                \u2699\uFE0F Columns
+                ⚙️ Columns
               </button>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition ${isDark ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]' : 'bg-white border border-[#E8ECF2] text-[#10284C] hover:bg-[#F5F6F8]'}`}
               >
-                \uD83D\uDD0D Filters
+                🔍 Filters
                 {(filters.team !== 'all' || filters.status !== 'all' || filters.search) && (
                   <span className="w-2 h-2 rounded-full bg-[#4BB9EC]" />
                 )}
@@ -531,7 +531,7 @@ function ReportsPage({ showToast }) {
                   disabled={loading || data.length === 0}
                   className="px-5 py-2.5 rounded-xl bg-lynx-navy-subtle text-white font-bold text-sm flex items-center gap-2 disabled:opacity-40 hover:brightness-110 transition"
                 >
-                  \uD83D\uDCE4 Export \u25BC
+                  📤 Export ▼
                 </button>
                 <ExportMenu
                   showExportMenu={showExportMenu}
