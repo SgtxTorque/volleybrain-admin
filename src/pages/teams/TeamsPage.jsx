@@ -34,7 +34,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
   const journey = useJourney()
   const { selectedSeason, allSeasons, seasons, loading: seasonLoading, selectSeason } = useSeason()
   const { selectedSport } = useSport()
-  const { user, organization } = useAuth()
+  const { user, organization, profile } = useAuth()
   const { isDark } = useTheme()
   const [teams, setTeams] = useState([])
   const [loading, setLoading] = useState(true)
