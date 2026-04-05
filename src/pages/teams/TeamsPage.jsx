@@ -30,7 +30,7 @@ import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 // ============================================
 // TEAMS PAGE
 // ============================================
-export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
+export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefreshRoles }) {
   const journey = useJourney()
   const { selectedSeason, allSeasons, seasons, loading: seasonLoading, selectSeason } = useSeason()
   const { selectedSport } = useSport()
@@ -761,6 +761,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate }) {
             setCoachAssignTeam(null)
             loadTeams()
             loadCoaches()
+            onRefreshRoles?.()
           }}
           showToast={showToast}
         />

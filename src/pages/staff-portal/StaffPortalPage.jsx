@@ -38,7 +38,7 @@ const TYPE_TABS = [
 // ============================================
 // STAFF PORTAL PAGE — Unified Coaches + Staff
 // ============================================
-export function StaffPortalPage({ showToast }) {
+export function StaffPortalPage({ showToast, onRefreshRoles }) {
   const { organization, profile } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
@@ -239,7 +239,7 @@ export function StaffPortalPage({ showToast }) {
         else await supabase.from('team_coaches').insert({ coach_id: coachId, team_id: a.team_id, role: a.role })
       }
       showToast('Team assignments saved', 'success')
-      setAssigningCoach(null); loadAll()
+      setAssigningCoach(null); loadAll(); onRefreshRoles?.()
     } catch (err) { showToast(`Error: ${err.message}`, 'error') }
   }
 
@@ -445,7 +445,7 @@ export function StaffPortalPage({ showToast }) {
       await supabase.from('team_coaches').delete().eq('coach_id', coach.id)
       await supabase.from('coaches').delete().eq('id', coach.id)
       showToast('Invite cancelled.', 'success')
-      loadAll()
+      loadAll(); onRefreshRoles?.()
     } catch (err) {
       showToast(`Error cancelling invite: ${err.message}`, 'error')
     }
