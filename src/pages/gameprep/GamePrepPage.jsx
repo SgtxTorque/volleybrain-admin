@@ -76,12 +76,15 @@ function GamePrepPage({ showToast }) {
         .maybeSingle()
 
       if (!coachRecord) {
-        // Admin fallback — load all teams in the org across all seasons
+        // Admin fallback — load all teams in the org's seasons
         const orgId = profile?.current_organization_id || organization?.id
         if (!orgId) return
+        const orgSeasonIds = (allSeasons || []).map(s => s.id)
+        if (orgSeasonIds.length === 0) return
         const { data } = await supabase
           .from('teams')
           .select('id, name, color, season_id, seasons(id, name, sport_id, sports(id, name))')
+          .in('season_id', orgSeasonIds)
           .order('name')
         const enriched = (data || []).map(t => ({
           ...t,
