@@ -1005,14 +1005,12 @@ export default function ProgramPage({ showToast }) {
                       const h = parseInt(hours)
                       return `${h % 12 || 12}:${minutes} ${h >= 12 ? 'PM' : 'AM'}`
                     }
-                    const typeConfig = {
-                      game: { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', label: 'GAME' },
-                      practice: { color: '#4BB9EC', bg: 'rgba(75,185,236,0.1)', label: 'PRACTICE' },
-                      tournament: { color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', label: 'TOURNAMENT' },
-                      meeting: { color: '#22C55E', bg: 'rgba(34,197,94,0.1)', label: 'MEETING' },
-                      team_event: { color: '#3B82F6', bg: 'rgba(59,130,246,0.1)', label: 'TEAM EVENT' },
+                    const typeColors = {
+                      game: { bg: '#FFEBEE', text: '#C62828', label: 'GAME' },
+                      practice: { bg: '#E8F5E9', text: '#2E7D32', label: 'PRACTICE' },
+                      tournament: { bg: '#E3F2FD', text: '#1565C0', label: 'TOURNAMENT' },
                     }
-                    const defaultType = { color: '#94A3B8', bg: 'rgba(148,163,184,0.1)', label: 'EVENT' }
+                    const defaultTypeStyle = (evtType) => ({ bg: 'var(--v2-surface)', text: 'var(--v2-text-muted)', label: evtType?.toUpperCase() || 'EVENT' })
 
                     return (
                       <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
@@ -1022,94 +1020,63 @@ export default function ProgramPage({ showToast }) {
                             <p style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>Create events from the schedule page</p>
                           </div>
                         ) : (
-                          <div style={{
-                            borderRadius: 10,
-                            border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
-                            overflow: 'hidden', marginBottom: 16,
-                          }}>
+                          <div>
                             {tabEvents.slice(0, 8).map((evt, i) => {
                               const eventDate = parseLocalDate(evt.event_date)
                               const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
                               const dayNum = eventDate.getDate()
                               const monthName = eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()
-                              const isToday = eventDate.toDateString() === new Date().toDateString()
-                              const type = (evt.event_type || 'other').toLowerCase()
-                              const isGame = type === 'game'
-                              const config = typeConfig[type] || defaultType
+                              const time = evt.event_time || evt.start_time
+                              const typeStyle = typeColors[evt.event_type?.toLowerCase()] || defaultTypeStyle(evt.event_type)
 
                               return (
-                                <div
-                                  key={evt.id || i}
-                                  onClick={() => navigate('/schedule')}
-                                  style={{
-                                    display: 'flex', alignItems: 'stretch', cursor: 'pointer',
-                                    borderBottom: i < Math.min(tabEvents.length, 8) - 1 ? '1px solid var(--v2-border-subtle, rgba(148,163,184,0.15))' : 'none',
-                                    background: isGame ? 'var(--v2-navy, #10284C)' : 'transparent',
-                                    transition: 'background 0.15s ease',
-                                  }}
-                                  onMouseEnter={e => { if (!isGame) e.currentTarget.style.background = 'var(--v2-surface)' }}
-                                  onMouseLeave={e => { if (!isGame) e.currentTarget.style.background = 'transparent' }}
+                                <div key={evt.id || i} style={{
+                                  display: 'flex', alignItems: 'center', padding: '12px 0',
+                                  borderBottom: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+                                  gap: 16, cursor: 'pointer',
+                                }}
+                                onClick={() => navigate('/schedule')}
                                 >
-                                  {/* Left accent bar */}
-                                  <div style={{ width: 3, flexShrink: 0, background: config.color, borderRadius: '3px 0 0 3px' }} />
-
                                   {/* Date column */}
-                                  <div style={{ width: 48, textAlign: 'center', flexShrink: 0, padding: '10px 4px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', color: isGame ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)' }}>{dayName}</div>
-                                    <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.1, color: isToday ? '#4BB9EC' : isGame ? '#FFFFFF' : 'var(--v2-text-primary)' }}>{dayNum}</div>
-                                    <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.05em', color: isGame ? 'rgba(255,255,255,0.4)' : 'var(--v2-text-muted)' }}>{monthName}</div>
+                                  <div style={{ width: 45, textAlign: 'center', flexShrink: 0 }}>
+                                    <p style={{ fontSize: 10, color: 'var(--v2-text-muted)', margin: 0 }}>{dayName}</p>
+                                    <p style={{ fontSize: 22, fontWeight: 600, margin: 0, lineHeight: 1, color: 'var(--v2-text-primary)' }}>{dayNum}</p>
+                                    <p style={{ fontSize: 10, color: 'var(--v2-text-muted)', margin: 0 }}>{monthName}</p>
                                   </div>
 
                                   {/* Event details */}
-                                  <div style={{ flex: 1, minWidth: 0, padding: '10px 8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 1 }}>
-                                      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#4BB9EC' }}>{evt.teams?.name || 'All Teams'}</span>
-                                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: isGame ? 'rgba(255,255,255,0.4)' : 'var(--v2-text-muted)' }}>{type}</span>
-                                    </div>
-                                    <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: isGame ? '#FFFFFF' : 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                      {evt.title || evt.event_type}
-                                    </div>
-                                    <div style={{ fontSize: 11, marginTop: 1, color: isGame ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)' }}>
-                                      {formatTime12(evt.event_time || evt.start_time)}
-                                      {evt.end_time && ` — ${formatTime12(evt.end_time)}`}
-                                      {(evt.venue_name || evt.location) && ` · ${evt.venue_name || evt.location}`}
-                                    </div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ fontSize: 14, fontWeight: 500, margin: '0 0 2px', color: 'var(--v2-text-primary)' }}>
+                                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: typeStyle.text, display: 'inline-block', marginRight: 6 }} />
+                                      {evt.title || evt.opponent_name || 'Event'}
+                                    </p>
+                                    <p style={{ fontSize: 12, color: 'var(--v2-text-muted)', margin: 0 }}>
+                                      {evt.teams?.name || ''}{time ? ` · ${formatTime12(time)}` : ''}{evt.location ? ` · ${evt.location}` : ''}
+                                    </p>
                                   </div>
 
-                                  {/* Event type badge pill */}
-                                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', flexShrink: 0 }}>
-                                    <span style={{
-                                      fontSize: 9, fontWeight: 800, textTransform: 'uppercase',
-                                      letterSpacing: '0.05em', padding: '3px 8px', borderRadius: 6,
-                                      background: isGame ? 'rgba(255,255,255,0.1)' : config.bg,
-                                      color: isGame ? '#FFFFFF' : config.color, whiteSpace: 'nowrap',
-                                    }}>
-                                      {config.label}
-                                    </span>
-                                  </div>
+                                  {/* Type badge */}
+                                  <span style={{
+                                    fontSize: 10, fontWeight: 600, padding: '3px 10px',
+                                    borderRadius: 6, background: typeStyle.bg, color: typeStyle.text,
+                                    letterSpacing: '0.3px', flexShrink: 0,
+                                  }}>
+                                    {typeStyle.label}
+                                  </span>
                                 </div>
                               )
                             })}
                           </div>
                         )}
 
-                        {tabEvents.length > 8 && (
-                          <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                            <span style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>+{tabEvents.length - 8} more events</span>
+                        <div style={{ marginTop: 12 }}>
+                          <div onClick={() => navigate('/schedule')} style={{
+                            background: '#10284C', color: 'white', textAlign: 'center',
+                            padding: 10, borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                          }}>
+                            View Full Schedule &rarr;
                           </div>
-                        )}
-
-                        <button
-                          onClick={() => navigate('/schedule')}
-                          style={{
-                            width: '100%', padding: 10, borderRadius: 10,
-                            fontSize: 12, fontWeight: 700,
-                            background: 'var(--v2-navy)', color: '#FFFFFF',
-                            border: 'none', cursor: 'pointer',
-                          }}
-                        >
-                          View Full Schedule &rarr;
-                        </button>
+                        </div>
                       </div>
                     )
                   })()}
