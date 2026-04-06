@@ -8,6 +8,7 @@ import { parseLocalDate } from '../../lib/date-helpers'
 import { EmailService } from '../../lib/email-service'
 import { AlertCircle } from '../../constants/icons'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
+import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
   SharedInfoCard, CustomQuestionsCard
@@ -46,6 +47,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   const [formStartTracked, setFormStartTracked] = useState(false)
   const [availableSeasons, setAvailableSeasons] = useState(null)
   const [registrationIds, setRegistrationIds] = useState([])
+  const [capacityInfo, setCapacityInfo] = useState(null)
 
   // Preview mode — blocks real submissions
   const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true'
@@ -170,6 +172,51 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       }
 
       setSeason(seasonData)
+
+      // ─── Registration date enforcement ─────────────────────────────────
+      const today = new Date().toISOString().split('T')[0]
+
+      if (seasonData.registration_opens && today < seasonData.registration_opens) {
+        const opensDate = parseLocalDate(seasonData.registration_opens).toLocaleDateString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric'
+        })
+        setError(`Registration opens on ${opensDate}. Check back then!`)
+        setLoading(false)
+        return
+      }
+
+      if (seasonData.registration_closes && today > seasonData.registration_closes) {
+        setError('Registration for this season has closed.')
+        setLoading(false)
+        return
+      }
+
+      // ─── Capacity info ──────────────────────────────────────────────────
+      if (seasonData.capacity) {
+        const { count } = await supabase
+          .from('registrations')
+          .select('id', { count: 'exact', head: true })
+          .eq('season_id', seasonData.id)
+          .not('status', 'eq', 'denied')
+
+        const filled = count || 0
+        const remaining = seasonData.capacity - filled
+        setCapacityInfo({
+          total: seasonData.capacity,
+          filled,
+          remaining,
+          waitlistEnabled: seasonData.waitlist_enabled || false,
+          waitlistCapacity: seasonData.waitlist_capacity || 0,
+        })
+
+        // Block registration if full and no waitlist
+        if (remaining <= 0 && !seasonData.waitlist_enabled) {
+          setError('This season is currently full. Registration is not available.')
+          setLoading(false)
+          return
+        }
+      }
+
       await loadSeasonConfig(seasonData)
     } catch (err) {
       console.error('Error loading data:', err)
@@ -303,9 +350,29 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
     return () => clearTimeout(timer)
   }, [sharedInfo.parent1_email, organization?.id])
 
-  // ─── Fee calculation ───────────────────────────────────────────────────
+  // ─── Fee calculation (full engine with discounts) ──────────────────────
   const feePerChild = calculateFeePerChild(season)
-  const totalFee = feePerChild * Math.max(children.length, 1)
+  const allChildrenForFee = [...children, ...(currentChild?.first_name ? [currentChild] : [])]
+  const childCountForFee = Math.max(allChildrenForFee.length, 1)
+
+  const feeBreakdowns = allChildrenForFee.length > 0
+    ? allChildrenForFee.map((child, index) => {
+        const fees = previewFeesForPlayer(
+          { ...child, parent_email: sharedInfo.parent1_email },
+          season || {},
+          index  // siblingIndex: 0 = first child, 1 = second child, etc.
+        )
+        return { fees, summary: getFeeSummary(fees) }
+      })
+    : season ? [{ fees: previewFeesForPlayer({ parent_email: sharedInfo.parent1_email }, season, 0), summary: getFeeSummary(previewFeesForPlayer({ parent_email: sharedInfo.parent1_email }, season, 0)) }] : []
+
+  const totalFee = feeBreakdowns.reduce((sum, fb) => sum + fb.summary.total, 0)
+  const totalDiscounts = feeBreakdowns.reduce((sum, fb) => {
+    // Calculate discount as diff between base fee and actual charged fee
+    const baseFee = calculateFeePerChild(season)
+    return sum + Math.max(0, baseFee - fb.summary.total)
+  }, 0)
+  const hasDiscounts = feeBreakdowns.some(fb => fb.summary.hasEarlyBird || fb.summary.hasSiblingDiscount)
 
   // ─── Child validation / management ─────────────────────────────────────
   function validateCurrentChild() {
@@ -379,6 +446,32 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         allChildren = [...children, currentChild]
       }
       if (allChildren.length === 0) throw new Error('Please add at least one child to register')
+
+      // ─── Capacity enforcement before submission ──────────────────────
+      if (season?.capacity) {
+        const { count: existingCount } = await supabase
+          .from('registrations')
+          .select('id', { count: 'exact', head: true })
+          .eq('season_id', season.id)
+          .not('status', 'eq', 'denied')
+
+        const spotsRemaining = season.capacity - (existingCount || 0)
+
+        if (allChildren.length > spotsRemaining) {
+          if (spotsRemaining <= 0) {
+            if (!season.waitlist_enabled) {
+              throw new Error('This season is currently full. Registration is not available.')
+            }
+            // Waitlist enabled — will set status to 'waitlisted' in the loop below
+          } else {
+            throw new Error(`Only ${spotsRemaining} spot${spotsRemaining > 1 ? 's' : ''} remaining. You are trying to register ${allChildren.length} child${allChildren.length > 1 ? 'ren' : ''}.`)
+          }
+        }
+      }
+
+      // Determine registration status based on capacity
+      const isWaitlisted = season?.capacity && capacityInfo && capacityInfo.remaining <= 0 && season.waitlist_enabled
+      const registrationStatus = isWaitlisted ? 'waitlisted' : 'new'
 
       // Validate shared info
       const parentFields = config.parent_fields || {}
@@ -538,7 +631,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             family_id: familyId,
 
             // Status and metadata
-            status: 'new',
+            status: registrationStatus,
             season_id: season?.id || seasonId,
             registration_date: new Date().toISOString(),
             registration_source: 'public_form',
@@ -556,7 +649,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         const { data: registration, error: regError } = await supabase
           .from('registrations')
           .insert({
-            player_id: player.id, season_id: season?.id || seasonId, status: 'new',
+            player_id: player.id, season_id: season?.id || seasonId, status: registrationStatus,
             family_id: familyId,
             submitted_at: new Date().toISOString(),
             waivers_accepted: waiverState, custom_answers: customAnswers,
@@ -719,11 +812,69 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
         <FeePreviewCard
           season={season}
           feePerChild={feePerChild}
-          childrenCount={children.length}
+          childrenCount={childCountForFee}
+          totalFee={totalFee}
+          hasDiscounts={hasDiscounts}
+          totalDiscounts={totalDiscounts}
+          feeBreakdowns={feeBreakdowns}
           showBreakdown={showFeeBreakdown}
           onToggleBreakdown={() => setShowFeeBreakdown(!showFeeBreakdown)}
           accentColor={accentColor}
         />
+
+        {/* Capacity indicator */}
+        {capacityInfo && (
+          <div className={`mb-4 p-4 rounded-[14px] border flex items-center gap-3 ${
+            capacityInfo.remaining <= 0
+              ? 'bg-red-50 border-red-200'
+              : capacityInfo.remaining <= Math.ceil(capacityInfo.total * 0.2)
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex-1">
+              <p className={`text-r-sm font-semibold ${
+                capacityInfo.remaining <= 0 ? 'text-red-700' : capacityInfo.remaining <= Math.ceil(capacityInfo.total * 0.2) ? 'text-amber-700' : 'text-blue-700'
+              }`}>
+                {capacityInfo.remaining <= 0
+                  ? (capacityInfo.waitlistEnabled ? 'Season is full — waitlist available' : 'Season is full')
+                  : `${capacityInfo.filled} of ${capacityInfo.total} spots filled`
+                }
+              </p>
+              {capacityInfo.remaining > 0 && (
+                <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      capacityInfo.remaining <= Math.ceil(capacityInfo.total * 0.2) ? 'bg-amber-500' : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.min(100, (capacityInfo.filled / capacityInfo.total) * 100)}%` }}
+                  />
+                </div>
+              )}
+              {capacityInfo.remaining > 0 && capacityInfo.remaining <= Math.ceil(capacityInfo.total * 0.2) && (
+                <p className="text-r-xs text-amber-600 mt-1">
+                  Only {capacityInfo.remaining} spot{capacityInfo.remaining > 1 ? 's' : ''} remaining — register now!
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Registration closing soon banner */}
+        {season?.registration_closes && (() => {
+          const today = new Date()
+          const closes = parseLocalDate(season.registration_closes)
+          const daysUntilClose = Math.ceil((closes - today) / (1000 * 60 * 60 * 24))
+          if (daysUntilClose > 0 && daysUntilClose <= 7) {
+            return (
+              <div className="mb-4 p-4 rounded-[14px] bg-amber-50 border border-amber-200">
+                <p className="text-r-sm font-semibold text-amber-700">
+                  Registration closes on {closes.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} — don't miss out!
+                </p>
+              </div>
+            )
+          }
+          return null
+        })()}
 
         {/* Inline error */}
         {error && (

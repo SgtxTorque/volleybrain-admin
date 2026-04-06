@@ -88,10 +88,22 @@ function WaiversCard({ config, waiverState, setWaiverState, signature, setSignat
 }
 
 // ─── Fee preview card (collapsible) ───────────────────────────────────────
-function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onToggleBreakdown }) {
-  if (feePerChild <= 0) return null
+function FeePreviewCard({ season, feePerChild, childrenCount, totalFee, hasDiscounts, totalDiscounts, feeBreakdowns, showBreakdown, onToggleBreakdown, accentColor }) {
+  // Use enhanced fee data if available, fall back to simple calculation
+  const displayTotal = totalFee != null ? totalFee : (feePerChild * Math.max(childrenCount, 1))
+  if (displayTotal <= 0 && !hasDiscounts) return null
 
-  const displayTotal = feePerChild * Math.max(childrenCount, 1)
+  const subtotalBeforeDiscounts = feeBreakdowns?.length > 0
+    ? feeBreakdowns.reduce((sum, fb) => {
+        // Sum base fees from the season for each child
+        const baseFee = (parseFloat(season?.fee_registration) || 0)
+          + (parseFloat(season?.fee_uniform) || 0)
+          + ((parseFloat(season?.fee_monthly) || 0) * (season?.months_in_season || 1))
+        return sum + baseFee
+      }, 0)
+    : displayTotal
+
+  const accent = accentColor || '#4BB9EC'
 
   return (
     <div className={`${CARD_CLASSES} mb-4 overflow-hidden`}>
@@ -104,9 +116,21 @@ function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onT
           <p className="text-r-xs font-medium text-slate-500">
             {childrenCount > 0 ? `Total for ${childrenCount} ${childrenCount === 1 ? 'child' : 'children'}` : 'Fee per child'}
           </p>
-          <p className="text-r-3xl font-bold text-[#10284C] mt-0.5">
-            ${displayTotal.toFixed(2)}
-          </p>
+          <div className="flex items-baseline gap-2 mt-0.5">
+            {hasDiscounts && totalDiscounts > 0 && (
+              <p className="text-r-lg text-slate-400 line-through">
+                ${subtotalBeforeDiscounts.toFixed(2)}
+              </p>
+            )}
+            <p className="text-r-3xl font-bold text-[#10284C]">
+              ${displayTotal.toFixed(2)}
+            </p>
+          </div>
+          {hasDiscounts && totalDiscounts > 0 && (
+            <p className="text-r-xs font-semibold text-green-600 mt-0.5">
+              You save ${totalDiscounts.toFixed(2)}!
+            </p>
+          )}
         </div>
         <div className="p-2 rounded-lg bg-[#F5F6F8] border border-slate-200">
           {showBreakdown
@@ -118,27 +142,75 @@ function FeePreviewCard({ season, feePerChild, childrenCount, showBreakdown, onT
 
       {showBreakdown && (
         <div className="px-5 pb-5 space-y-2 border-t border-slate-200">
-          <div className="pt-3">
-            <p className="text-r-sm font-semibold text-slate-900 mb-2">Per child:</p>
-            {season?.fee_registration > 0 && (
-              <div className="flex justify-between py-1.5 text-r-sm">
-                <span className="text-slate-500">Registration Fee</span>
-                <span className="font-medium text-slate-700">${season.fee_registration}</span>
+          {/* Per-child breakdowns from fee engine */}
+          {feeBreakdowns?.length > 0 ? (
+            feeBreakdowns.map((fb, idx) => (
+              <div key={idx} className="pt-3">
+                {feeBreakdowns.length > 1 && (
+                  <p className="text-r-sm font-semibold text-slate-900 mb-2">Child {idx + 1}:</p>
+                )}
+                {fb.fees.map((fee, fIdx) => {
+                  const isDiscount = fee.amount < 0 || fee.fee_name?.includes('Sibling') || fee.fee_name?.includes('Early Bird')
+                  return (
+                    <div key={fIdx} className="flex justify-between py-1.5 text-r-sm">
+                      <span className={isDiscount ? 'text-green-600' : 'text-slate-500'}>
+                        {fee.fee_name || fee.fee_type || 'Fee'}
+                      </span>
+                      <span className={`font-medium ${isDiscount ? 'text-green-600' : 'text-slate-700'}`}>
+                        ${fee.amount.toFixed(2)}
+                      </span>
+                    </div>
+                  )
+                })}
+                {fb.summary.hasEarlyBird && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wide">
+                      Early Bird
+                    </span>
+                  </div>
+                )}
+                {fb.summary.hasSiblingDiscount && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="inline-block px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wide">
+                      Sibling Discount
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-            {season?.fee_uniform > 0 && (
-              <div className="flex justify-between py-1.5 text-r-sm">
-                <span className="text-slate-500">Uniform Fee</span>
-                <span className="font-medium text-slate-700">${season.fee_uniform}</span>
-              </div>
-            )}
-            {season?.fee_monthly > 0 && (
-              <div className="flex justify-between py-1.5 text-r-sm">
-                <span className="text-slate-500">Monthly Dues ({season.months_in_season || 1} months)</span>
-                <span className="font-medium text-slate-700">${season.fee_monthly * (season.months_in_season || 1)}</span>
-              </div>
-            )}
-          </div>
+            ))
+          ) : (
+            /* Fallback: simple per-child breakdown from season fields */
+            <div className="pt-3">
+              <p className="text-r-sm font-semibold text-slate-900 mb-2">Per child:</p>
+              {season?.fee_registration > 0 && (
+                <div className="flex justify-between py-1.5 text-r-sm">
+                  <span className="text-slate-500">Registration Fee</span>
+                  <span className="font-medium text-slate-700">${season.fee_registration}</span>
+                </div>
+              )}
+              {season?.fee_uniform > 0 && (
+                <div className="flex justify-between py-1.5 text-r-sm">
+                  <span className="text-slate-500">Uniform Fee</span>
+                  <span className="font-medium text-slate-700">${season.fee_uniform}</span>
+                </div>
+              )}
+              {season?.fee_monthly > 0 && (
+                <div className="flex justify-between py-1.5 text-r-sm">
+                  <span className="text-slate-500">Monthly Dues ({season.months_in_season || 1} months)</span>
+                  <span className="font-medium text-slate-700">${season.fee_monthly * (season.months_in_season || 1)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Total line when multiple children */}
+          {feeBreakdowns?.length > 1 && (
+            <div className="flex justify-between py-2 border-t border-slate-200 mt-2">
+              <span className="text-r-sm font-bold text-slate-900">Total</span>
+              <span className="text-r-sm font-bold text-slate-900">${displayTotal.toFixed(2)}</span>
+            </div>
+          )}
+
           <p className="text-r-xs text-slate-400 pt-2">
             Payment due after registration is approved
           </p>
