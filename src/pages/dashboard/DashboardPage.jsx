@@ -12,7 +12,7 @@ import { parseLocalDate } from '../../lib/date-helpers'
 import { SkeletonDashboard } from '../../components/ui'
 import {
   HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
-  WeeklyLoad, OrgHealthCard, ThePlaybook, MilestoneCard, MascotNudge,
+  WeeklyLoad, ThePlaybook, MilestoneCard, MascotNudge,
   V2DashboardLayout,
 } from '../../components/v2'
 import ProgramCard from '../../components/v2/admin/ProgramCard'
@@ -1083,15 +1083,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   // ── Pre-compute derived data for widgets ──
   const totalPlayers = stats.totalRegistrations || 0
   const totalTeams = stats.teams || 0
-  const regPct = totalPlayers > 0 ? Math.min(100, Math.round(((totalPlayers - (stats.pending || 0)) / totalPlayers) * 100)) : 100
-  const paymentPct = (stats.totalExpected || 0) > 0 ? Math.min(100, Math.round(((stats.totalCollected || 0) / stats.totalExpected) * 100)) : 100
-  const waiverTotal = (stats.unsignedWaivers || 0) + totalPlayers
-  const waiverPct = waiverTotal > 0 ? Math.round(((waiverTotal - (stats.unsignedWaivers || 0)) / waiverTotal) * 100) : 100
-  const rosterPct = totalPlayers > 0 ? Math.min(100, Math.round(((stats.rosteredPlayers || 0) / totalPlayers) * 100)) : 100
   const teamsWithSchedule = upcomingEvents.length > 0 ? Math.min(totalTeams, new Set(upcomingEvents.map(e => e.team_id).filter(Boolean)).size) : 0
-  const schedulePct = totalTeams > 0 ? Math.min(100, Math.round((teamsWithSchedule / totalTeams) * 100)) : 100
-  const coachPct = totalTeams > 0 ? Math.round(((stats.teamsWithCoach || 0) / totalTeams) * 100) : 100
-  const healthScore = Math.round(regPct * 0.15 + paymentPct * 0.20 + waiverPct * 0.15 + rosterPct * 0.10 + schedulePct * 0.10 + 100 * 0.10 + 100 * 0.05 + coachPct * 0.05 + 100 * 0.10)
   const nowDate = new Date()
   const monthStart = new Date(nowDate.getFullYear(), nowDate.getMonth(), 1)
   const monthEnd = new Date(nowDate.getFullYear(), nowDate.getMonth() + 1, 0)
@@ -1612,6 +1604,16 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 secondaryAction={{ label: 'View Ledger', onClick: () => onNavigate?.('payments') }}
               />
 
+              {/* THE PLAYBOOK — org-level quick actions */}
+              <ThePlaybook
+                actions={[
+                  { emoji: '📁', label: 'New Program', onClick: () => navigate('/settings/programs'), isPrimary: true },
+                  { emoji: '📢', label: 'Send Blast', onClick: () => onNavigate?.('blasts') },
+                  { emoji: '📊', label: 'Reports', onClick: () => onNavigate?.('reports') },
+                  { emoji: '⚙️', label: 'Settings', onClick: () => onNavigate?.('organization') },
+                ]}
+              />
+
               {/* WEEKLY LOAD */}
               {(upcomingEvents || []).length === 0 ? (
                 <div className={`rounded-[14px] p-5 text-center ${isDark ? 'bg-[#132240] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
@@ -1637,28 +1639,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   }))}
                 />
               )}
-
-              {/* ORG HEALTH */}
-              <OrgHealthCard
-                subtitle={`Season: ${selectedSeason?.name || 'Current'}`}
-                metrics={[
-                  { label: 'Roster Fill', value: `${stats.rosteredPlayers || 0}/${totalPlayers}`, percentage: rosterPct, color: 'sky' },
-                  { label: 'Payments', value: `${paymentPct}%`, percentage: paymentPct, color: 'green' },
-                  { label: 'Overdue', value: String(overdueCount), percentage: Math.min(overdueCount * 5, 100), color: 'red', isAlert: overdueCount > 0 },
-                  { label: 'Registrations', value: String(stats.pending || 0), percentage: Math.min((stats.pending || 0) * 10, 100), color: 'purple' },
-                  { label: 'Teams Active', value: String(stats.teams || 0), percentage: Math.min((stats.teams || 0) * 10, 100), color: 'amber' },
-                ]}
-              />
-
-              {/* THE PLAYBOOK — org-level quick actions (Phase 3.2) */}
-              <ThePlaybook
-                actions={[
-                  { emoji: '📁', label: 'New Program', onClick: () => navigate('/settings/programs'), isPrimary: true },
-                  { emoji: '📢', label: 'Send Blast', onClick: () => onNavigate?.('blasts') },
-                  { emoji: '📊', label: 'Reports', onClick: () => onNavigate?.('reports') },
-                  { emoji: '⚙️', label: 'Settings', onClick: () => onNavigate?.('organization') },
-                ]}
-              />
 
               {/* MilestoneCard removed — replaced by engagement column */}
             </>
