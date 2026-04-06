@@ -7,11 +7,12 @@ import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
+import { EmailService } from '../../lib/email-service'
 import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
   SharedInfoCard, CustomQuestionsCard,
 } from './RegistrationFormSteps'
-import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2 } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2, CheckCircle2, ExternalLink } from 'lucide-react'
 
 const CARD = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
 
@@ -374,6 +375,251 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
           >
             Continue — Assign Programs
             <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Cart Success Screen ──────────────────────────────────────────────────
+function CartSuccessScreen({ children, childProgramMap, selectedPrograms, registrationIds, organization, totalFee }) {
+  const refId = registrationIds[0]?.slice(0, 8).toUpperCase()
+  const totalRegs = registrationIds.length
+
+  // Build per-child program list
+  const childSummaries = children.map((child, idx) => {
+    const programIds = childProgramMap[idx] || []
+    const programNames = programIds.map(pid => {
+      const sp = selectedPrograms.find(p => p.programId === pid)
+      return sp ? `${sp.program.sport?.icon || sp.program.icon || '🏆'} ${sp.program.name}` : ''
+    }).filter(Boolean)
+    return { child, programNames }
+  })
+
+  return (
+    <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-6">
+      <div className={`${CARD} p-10 max-w-md text-center animate-fade-in`}>
+        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-10 h-10 text-green-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-[#10284C] mb-2">
+          Welcome to the {organization?.settings?.branding?.team_name || organization?.name || 'Team'}!
+        </h1>
+        <p className="text-sm text-slate-500 mb-6">
+          You registered {children.length} {children.length === 1 ? 'child' : 'children'} for {selectedPrograms.length} {selectedPrograms.length === 1 ? 'program' : 'programs'}.
+        </p>
+
+        {/* Per-child summary */}
+        <div className="text-left space-y-3 mb-6">
+          {childSummaries.map(({ child, programNames }, i) => (
+            <div key={i} className="p-3 rounded-xl bg-[#F5F6F8] border border-slate-200">
+              <p className="font-bold text-sm text-slate-900">{child.first_name} {child.last_name}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{programNames.join(' · ')}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Fee note */}
+        {totalFee > 0 && (
+          <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 mb-6 text-left">
+            <p className="text-sm text-blue-800 font-medium">
+              Estimated total: <span className="font-bold">${totalFee.toFixed(2)}</span>
+            </p>
+            <p className="text-xs text-blue-600 mt-0.5">
+              Payment details will be sent after registration is approved.
+            </p>
+          </div>
+        )}
+
+        {/* Reference */}
+        {refId && (
+          <p className="text-xs text-slate-400 mb-6">
+            Reference: <span className="font-mono font-bold">{refId}</span>
+            {totalRegs > 1 && ` (+${totalRegs - 1} more)`}
+          </p>
+        )}
+
+        {/* Create account CTA */}
+        <div className="p-4 rounded-xl bg-[#10284C] text-white text-left mb-4">
+          <p className="font-bold text-sm mb-1">Create Your Parent Account</p>
+          <p className="text-xs text-white/70 mb-3">
+            Track registrations, view schedules, and manage payments — all in one place.
+          </p>
+          <a
+            href="/claim-account"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-[#10284C] text-sm font-bold hover:bg-slate-100 transition-colors"
+          >
+            Create Account <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        {/* Org contact */}
+        {organization?.contact_email && (
+          <p className="text-xs text-slate-400">
+            Questions? Contact {organization.name} at{' '}
+            <a href={`mailto:${organization.contact_email}`} className="text-[#4BB9EC] underline">
+              {organization.contact_email}
+            </a>
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Step 5: Review + Submit ──────────────────────────────────────────────
+function ReviewSubmitStep({ children, childProgramMap, selectedPrograms, sharedInfo, waiverState, customAnswers, signature, organization, accentColor, onBack, onSubmit, submitting, error }) {
+  // Build cart items grouped by program
+  const programGroups = {}
+  let grandSubtotal = 0
+  let grandTotal = 0
+  let totalDiscountAmount = 0
+
+  children.forEach((child, childIndex) => {
+    const assignedIds = childProgramMap[childIndex] || []
+    assignedIds.forEach(programId => {
+      const sp = selectedPrograms.find(p => p.programId === programId)
+      if (!sp) return
+      const fees = previewFeesForPlayer(
+        { ...child, parent_email: sharedInfo.parent1_email },
+        sp.season,
+        childIndex
+      )
+      const summary = getFeeSummary(fees)
+      const baseFee = calculateFeePerChild(sp.season)
+
+      if (!programGroups[programId]) {
+        programGroups[programId] = {
+          program: sp.program,
+          season: sp.season,
+          items: [],
+        }
+      }
+      const discount = Math.max(0, baseFee - summary.total)
+      programGroups[programId].items.push({
+        child,
+        childIndex,
+        fees,
+        summary,
+        baseFee,
+        discount,
+      })
+      grandSubtotal += baseFee
+      grandTotal += summary.total
+      totalDiscountAmount += discount
+    })
+  })
+
+  const totalRegistrations = Object.values(programGroups).reduce((sum, g) => sum + g.items.length, 0)
+
+  return (
+    <div>
+      <div className="px-4 pt-6 pb-2 max-w-2xl mx-auto">
+        <h2 className="text-lg font-bold text-[#10284C]">Review Your Registration</h2>
+        <p className="text-sm text-slate-500 mt-1">
+          {totalRegistrations} registration{totalRegistrations !== 1 ? 's' : ''} for {children.length} {children.length === 1 ? 'child' : 'children'}
+        </p>
+      </div>
+
+      <div className="px-4 pb-40 max-w-2xl mx-auto space-y-4">
+        {error && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        {/* Program groups */}
+        {Object.values(programGroups).map(group => {
+          const sportIcon = group.program.sport?.icon || group.program.icon || '🏆'
+          const sportColor = group.program.sport?.color_primary || accentColor
+          return (
+            <div key={group.program.id} className={`${CARD} overflow-hidden`}>
+              <div className="px-4 py-3 flex items-center gap-2" style={{ backgroundColor: `${sportColor}10` }}>
+                <span className="text-lg">{sportIcon}</span>
+                <div>
+                  <p className="font-bold text-sm text-slate-900">{group.program.name}</p>
+                  <p className="text-[11px] text-slate-500">{group.season.name}</p>
+                </div>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {group.items.map(({ child, summary, discount }, i) => (
+                  <div key={i} className="px-4 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">{child.first_name} {child.last_name}</p>
+                      {discount > 0 && (
+                        <p className="text-[10px] text-green-600 font-semibold mt-0.5">
+                          {summary.hasEarlyBird && summary.hasSiblingDiscount ? 'Early Bird + Sibling' :
+                           summary.hasEarlyBird ? 'Early Bird Discount' :
+                           summary.hasSiblingDiscount ? 'Sibling Discount' : 'Discount'} (-${discount.toFixed(2)})
+                        </p>
+                      )}
+                    </div>
+                    <p className="font-bold text-sm text-slate-900">${summary.total.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Family info summary */}
+        <div className={`${CARD} p-4`}>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Parent / Guardian</p>
+          <p className="text-sm font-medium text-slate-800">{sharedInfo.parent1_name}</p>
+          <p className="text-xs text-slate-500">{sharedInfo.parent1_email} · {sharedInfo.parent1_phone}</p>
+        </div>
+
+        {/* Totals */}
+        <div className={`${CARD} p-4`}>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Subtotal ({totalRegistrations} registrations)</span>
+              <span className="text-slate-700">${grandSubtotal.toFixed(2)}</span>
+            </div>
+            {totalDiscountAmount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">Discounts</span>
+                <span className="text-green-600 font-semibold">-${totalDiscountAmount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-base font-bold pt-2 border-t border-slate-200">
+              <span className="text-[#10284C]">Total</span>
+              <span className="text-[#10284C]">${grandTotal.toFixed(2)}</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2">
+            Payment details will be sent after registration is approved.
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button type="button" onClick={onBack} disabled={submitting}
+            className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-white flex items-center gap-1 disabled:opacity-40">
+            <ChevronLeft className="w-4 h-4" /> Family Info
+          </button>
+          <button
+            type="button"
+            disabled={submitting}
+            onClick={onSubmit}
+            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-60 flex items-center gap-2"
+            style={{ backgroundColor: accentColor }}
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                Submit Registration
+                <Check className="w-4 h-4" />
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -989,6 +1235,242 @@ export function RegistrationCartPage() {
     loadTemplates()
   }, [selectedPrograms, organization])
 
+  // ─── Compute cart total for success screen ────────────────────────────
+  const cartTotal = (() => {
+    let total = 0
+    children.forEach((child, childIndex) => {
+      const assignedIds = childProgramMap[childIndex] || []
+      assignedIds.forEach(programId => {
+        const sp = selectedPrograms.find(p => p.programId === programId)
+        if (!sp) return
+        const fees = previewFeesForPlayer({ ...child, parent_email: sharedInfo.parent1_email }, sp.season, childIndex)
+        total += getFeeSummary(fees).total
+      })
+    })
+    return total
+  })()
+
+  // ─── Submit — adapted from PublicRegistrationPage ────────────────────
+  async function handleSubmit() {
+    setSubmitting(true)
+    setError(null)
+
+    const createdPlayerIds = []
+    const createdRegistrationIds = []
+    let familyId = null
+    let familyIsNew = false
+
+    try {
+      // 1. Find or create family
+      const parentEmail = sharedInfo.parent1_email?.trim().toLowerCase()
+      if (parentEmail) {
+        const { data: existingFamily } = await supabase
+          .from('families').select('id').eq('primary_email', parentEmail).maybeSingle()
+
+        if (existingFamily) {
+          familyId = existingFamily.id
+          await supabase.from('families').update({
+            name: sharedInfo.parent1_name ? `${sharedInfo.parent1_name} Family` : null,
+            primary_contact_name: sharedInfo.parent1_name || null,
+            primary_contact_phone: sharedInfo.parent1_phone || null,
+            primary_contact_email: parentEmail,
+            secondary_contact_name: sharedInfo.parent2_name || null,
+            secondary_contact_phone: sharedInfo.parent2_phone || null,
+            secondary_contact_email: sharedInfo.parent2_email?.trim().toLowerCase() || null,
+            address: sharedInfo.address || null,
+            emergency_contact_name: sharedInfo.emergency_name || null,
+            emergency_contact_phone: sharedInfo.emergency_phone || null,
+            emergency_contact_relation: sharedInfo.emergency_relation || null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', existingFamily.id)
+        } else {
+          const { data: newFamily, error: familyError } = await supabase
+            .from('families').insert({
+              name: sharedInfo.parent1_name ? `${sharedInfo.parent1_name} Family` : 'Family',
+              primary_email: parentEmail,
+              primary_phone: sharedInfo.parent1_phone || null,
+              primary_contact_name: sharedInfo.parent1_name || null,
+              primary_contact_phone: sharedInfo.parent1_phone || null,
+              primary_contact_email: parentEmail,
+              secondary_contact_name: sharedInfo.parent2_name || null,
+              secondary_contact_phone: sharedInfo.parent2_phone || null,
+              secondary_contact_email: sharedInfo.parent2_email?.trim().toLowerCase() || null,
+              address: sharedInfo.address || null,
+              emergency_contact_name: sharedInfo.emergency_name || null,
+              emergency_contact_phone: sharedInfo.emergency_phone || null,
+              emergency_contact_relation: sharedInfo.emergency_relation || null,
+            }).select('id').single()
+          if (!familyError && newFamily) { familyId = newFamily.id; familyIsNew = true }
+        }
+      }
+
+      // 2. For each child × assigned program, create player + registration
+      for (let childIndex = 0; childIndex < children.length; childIndex++) {
+        const child = children[childIndex]
+        const assignedProgramIds = childProgramMap[childIndex] || []
+
+        for (const programId of assignedProgramIds) {
+          const sp = selectedPrograms.find(p => p.programId === programId)
+          if (!sp) continue
+
+          // Check capacity
+          let registrationStatus = 'new'
+          if (sp.season.capacity) {
+            const { count } = await supabase
+              .from('registrations').select('id', { count: 'exact', head: true })
+              .eq('season_id', sp.season.id).not('status', 'eq', 'denied')
+            const spotsRemaining = sp.season.capacity - (count || 0)
+            if (spotsRemaining <= 0) {
+              if (!sp.season.waitlist_enabled) {
+                throw new Error(`${sp.program.name} is full and not accepting waitlist entries.`)
+              }
+              registrationStatus = 'waitlisted'
+            }
+          }
+
+          const gradeValue = child.grade ? (child.grade === 'K' ? 0 : parseInt(child.grade)) : null
+          const medicalNotesParts = [
+            sharedInfo.medical_conditions,
+            sharedInfo.allergies ? `Allergies: ${sharedInfo.allergies}` : null,
+            sharedInfo.medications ? `Medications: ${sharedInfo.medications}` : null,
+          ].filter(Boolean)
+
+          const waiverEntries = Object.entries(waiverState || {})
+          const waiverLiability = waiverEntries.some(([k, v]) => v === true && (k.includes('liability') || k === 'waiver_liability'))
+          const waiverPhoto = waiverEntries.some(([k, v]) => v === true && (k.includes('photo') || k === 'photo_release'))
+          const waiverConduct = waiverEntries.some(([k, v]) => v === true && (k.includes('conduct') || k === 'code_of_conduct'))
+          const waiverAnySigned = Object.values(waiverState || {}).some(v => v === true)
+
+          const { data: player, error: playerError } = await supabase
+            .from('players')
+            .insert({
+              first_name: child.first_name,
+              last_name: child.last_name,
+              birth_date: child.birth_date || null,
+              grade: gradeValue,
+              gender: child.gender || null,
+              school: child.school || null,
+              jersey_size: child.jersey_size || null,
+              jersey_pref_1: child.preferred_number ? parseInt(child.preferred_number) : null,
+              position: child.position_preference || null,
+              experience_level: child.experience_level || null,
+              experience_details: child.previous_teams || null,
+              parent_name: sharedInfo.parent1_name || null,
+              parent_email: parentEmail,
+              parent_phone: sharedInfo.parent1_phone || null,
+              parent_2_name: sharedInfo.parent2_name || null,
+              parent_2_email: sharedInfo.parent2_email || null,
+              parent_2_phone: sharedInfo.parent2_phone || null,
+              parent2_name: sharedInfo.parent2_name || null,
+              parent2_email: sharedInfo.parent2_email || null,
+              parent2_phone: sharedInfo.parent2_phone || null,
+              address: sharedInfo.address || null,
+              city: sharedInfo.city || null,
+              state: sharedInfo.state || null,
+              zip: sharedInfo.zip || null,
+              emergency_contact_name: sharedInfo.emergency_name || null,
+              emergency_contact_phone: sharedInfo.emergency_phone || null,
+              emergency_contact_relation: sharedInfo.emergency_relation || null,
+              medical_conditions: sharedInfo.medical_conditions || null,
+              allergies: sharedInfo.allergies || null,
+              medications: sharedInfo.medications || null,
+              medical_notes: medicalNotesParts.join('; ') || null,
+              waiver_liability: waiverLiability,
+              waiver_photo: waiverPhoto,
+              waiver_conduct: waiverConduct,
+              waiver_signed: waiverAnySigned,
+              waiver_signed_by: signature?.trim() || null,
+              waiver_signed_date: signature?.trim() ? new Date().toISOString() : null,
+              family_id: familyId,
+              status: registrationStatus,
+              season_id: sp.season.id,
+              registration_date: new Date().toISOString(),
+              registration_source: 'shopping_cart',
+              sport_id: sp.season.sport_id || null,
+            })
+            .select().single()
+
+          if (playerError) {
+            if (playerError.code === '23505') {
+              throw new Error(`${child.first_name} ${child.last_name} may already be registered for ${sp.program.name}.`)
+            }
+            throw new Error(`Failed to register ${child.first_name} for ${sp.program.name}.`)
+          }
+          createdPlayerIds.push(player.id)
+
+          const signatureDate = new Date().toISOString()
+          const { data: registration, error: regError } = await supabase
+            .from('registrations')
+            .insert({
+              player_id: player.id,
+              season_id: sp.season.id,
+              family_id: familyId,
+              status: registrationStatus,
+              submitted_at: signatureDate,
+              waivers_accepted: waiverState,
+              custom_answers: customAnswers,
+              signature_name: signature.trim() || null,
+              signature_date: signatureDate,
+              registration_source: 'shopping_cart',
+              registration_data: {
+                player: child,
+                shared: sharedInfo,
+                waivers: waiverState,
+                custom_questions: customAnswers,
+                signature: { name: signature.trim(), date: signatureDate },
+                program: { id: sp.programId, name: sp.program.name },
+                cart_context: { totalChildren: children.length, totalPrograms: selectedPrograms.length },
+              },
+            })
+            .select().single()
+
+          if (regError) throw regError
+          createdRegistrationIds.push(registration.id)
+
+          // Confirmation email (fire and forget)
+          try {
+            await EmailService.sendRegistrationConfirmation({
+              recipientEmail: parentEmail,
+              recipientName: sharedInfo.parent1_name || parentEmail,
+              playerName: `${child.first_name} ${child.last_name}`,
+              seasonName: sp.season.name,
+              organizationId: organization?.id,
+              organizationName: organization?.name || '',
+            })
+          } catch (emailErr) {
+            console.error('Email send failed:', emailErr)
+          }
+
+          // Funnel event (fire and forget)
+          supabase.from('registration_funnel_events').insert({
+            event_type: 'form_submitted',
+            season_id: sp.season.id,
+            organization_id: organization?.id,
+            metadata: { source: 'shopping_cart', program: sp.program.name },
+          }).catch(() => {})
+        }
+      }
+
+      setRegistrationIds(createdRegistrationIds)
+      setSubmitted(true)
+    } catch (err) {
+      console.error('Cart submission error:', err)
+      // Rollback
+      if (createdRegistrationIds.length > 0) {
+        await supabase.from('registrations').delete().in('id', createdRegistrationIds)
+      }
+      if (createdPlayerIds.length > 0) {
+        await supabase.from('players').delete().in('id', createdPlayerIds)
+      }
+      if (familyId && familyIsNew) {
+        await supabase.from('families').delete().eq('id', familyId)
+      }
+      setError(err.message || 'Registration failed. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   // ─── Load org + programs with open registration ──────────────────────
   useEffect(() => {
     async function loadData() {
@@ -1085,7 +1567,7 @@ export function RegistrationCartPage() {
     )
   }
 
-  if (error) {
+  if (error && !organization) {
     return (
       <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center p-6">
         <div className={`${CARD} p-8 max-w-md text-center`}>
@@ -1094,6 +1576,19 @@ export function RegistrationCartPage() {
           <p className="text-sm text-slate-500">{error}</p>
         </div>
       </div>
+    )
+  }
+
+  if (submitted) {
+    return (
+      <CartSuccessScreen
+        children={children}
+        childProgramMap={childProgramMap}
+        selectedPrograms={selectedPrograms}
+        registrationIds={registrationIds}
+        organization={organization}
+        totalFee={cartTotal}
+      />
     )
   }
 
@@ -1179,9 +1674,21 @@ export function RegistrationCartPage() {
       )}
 
       {currentStep === 5 && (
-        <div className="px-4 py-8 max-w-2xl mx-auto text-center text-slate-400 text-sm">
-          Step 5: Review & Submit — coming in Phase 5
-        </div>
+        <ReviewSubmitStep
+          children={children}
+          childProgramMap={childProgramMap}
+          selectedPrograms={selectedPrograms}
+          sharedInfo={sharedInfo}
+          waiverState={waiverState}
+          customAnswers={customAnswers}
+          signature={signature}
+          organization={organization}
+          accentColor={accentColor}
+          onBack={() => setCurrentStep(4)}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+          error={error}
+        />
       )}
     </div>
   )
