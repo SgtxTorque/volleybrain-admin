@@ -9,6 +9,7 @@ import { LoginPage, SetupWizard, LandingPage } from './pages/auth'
 
 // Public Pages
 import { PublicRegistrationPage, OrgDirectoryPage } from './pages/public'
+import { RegistrationCartPage } from './pages/public/RegistrationCartPage'
 import CoachInviteAcceptPage from './pages/public/CoachInviteAcceptPage'
 
 // Main App
@@ -19,6 +20,10 @@ import './styles/v2-tokens.css'
 
 function PublicRegistrationRoute() {
   return <PublicRegistrationPage />
+}
+
+function RegistrationCartRoute() {
+  return <RegistrationCartPage />
 }
 
 function PublicDirectoryRoute() {
@@ -68,7 +73,7 @@ function AppContent() {
   return (
     <Routes>
       {/* Public routes — no auth required */}
-      <Route path="/register/:orgIdOrSlug" element={<PublicRegistrationRoute />} />
+      <Route path="/register/:orgIdOrSlug" element={<RegistrationCartRoute />} />
       <Route path="/register/:orgIdOrSlug/:seasonId" element={<PublicRegistrationRoute />} />
       <Route path="/invite/coach/:inviteCode" element={<CoachInviteAcceptPage />} />
 
