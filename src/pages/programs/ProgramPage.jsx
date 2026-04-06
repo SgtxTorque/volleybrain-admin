@@ -768,6 +768,7 @@ export default function ProgramPage({ showToast }) {
                       stats={tabRegStats}
                       registrationPlayers={tabRegistrationPlayers}
                       onNavigate={(pageId) => navigate(`/${pageId}`)}
+                      compact
                     />
                   )}
                   {activeTab === 'payments' && (

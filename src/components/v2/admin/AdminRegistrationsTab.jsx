@@ -9,6 +9,7 @@ export default function AdminRegistrationsTab({
   stats = {},
   registrationPlayers = [],
   onNavigate,
+  compact = false,
 }) {
   const items = [
     { label: 'Total', value: stats.totalRegistrations || 0, color: 'var(--v2-text-primary)', bg: 'var(--v2-surface)' },
@@ -75,81 +76,118 @@ export default function AdminRegistrationsTab({
 
   return (
     <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
-      {/* Compact 1x6 stat chips */}
-      <div style={{
-        display: 'flex', gap: 8, marginBottom: 20,
-        flexWrap: 'wrap',
-      }}>
-        {items.map((item, i) => (
-          <div key={i} style={{
-            flex: '1 1 0',
-            minWidth: 80,
-            background: item.bg,
-            borderRadius: 10, padding: '12px 8px',
-            textAlign: 'center',
+      {/* Stats row */}
+      {compact ? (
+        <>
+          <div style={{
+            display: 'flex', borderRadius: 10,
+            border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+            overflow: 'hidden', marginBottom: 12,
           }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: item.color }}>
-              {item.value}
+            {[
+              { value: stats.totalRegistrations || 0, label: 'TOTAL', color: 'var(--v2-text-primary)' },
+              { value: stats.pending || 0, label: 'PENDING', color: '#FF9800' },
+              { value: stats.approved || 0, label: 'APPROVED', color: '#4CAF50' },
+              { value: stats.rostered || stats.rosteredPlayers || 0, label: 'ROSTERED', color: '#2196F3' },
+              { value: stats.waitlisted || 0, label: 'WAITLISTED', color: '#FF9800' },
+              { value: stats.denied || 0, label: 'DENIED', color: '#F44336' },
+            ].map((stat, i) => (
+              <div key={stat.label} style={{
+                flex: 1, textAlign: 'center', padding: '12px 8px',
+                borderRight: i < 5 ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
+              }}>
+                <p style={{ fontSize: 20, fontWeight: 600, margin: 0, color: stat.color }}>{stat.value}</p>
+                <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', margin: '2px 0 0', letterSpacing: '0.5px' }}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
+          {stats.capacity > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 11, color: 'var(--v2-text-muted)' }}>Capacity</span>
+              <div style={{ flex: 1, height: 6, background: 'var(--v2-surface)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%`, height: '100%', background: ((stats.totalRegistrations || 0) / stats.capacity) > 0.8 ? '#4CAF50' : ((stats.totalRegistrations || 0) / stats.capacity) > 0.4 ? '#FF9800' : '#F44336', borderRadius: 3 }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 500 }}>{stats.totalRegistrations || 0} / {stats.capacity}</span>
             </div>
-            <div style={{ fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)', marginTop: 2, letterSpacing: '0.03em' }}>
-              {item.label}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Capacity bar */}
-      {stats.capacity > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--v2-text-muted)', marginBottom: 6 }}>
-            <span>Capacity</span>
-            <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
-          </div>
-          <div style={{ height: 6, borderRadius: 3, background: 'var(--v2-surface)', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: 3,
-              background: 'var(--v2-sky)',
-              width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%`,
-              transition: 'width 0.5s ease',
-            }} />
-          </div>
-        </div>
-      )}
-
-      {/* Registration funnel visual */}
-      <div style={{
-        padding: 16, background: 'var(--v2-surface)', borderRadius: 10,
-        marginBottom: 20,
-      }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--v2-text-muted)', marginBottom: 10, letterSpacing: '0.04em' }}>
-          Registration Funnel
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {[
-            { label: 'Submitted', count: stats.totalRegistrations || 0, color: 'var(--v2-text-primary)' },
-            { label: 'Approved', count: stats.approved || 0, color: 'var(--v2-green)' },
-            { label: 'Rostered', count: stats.rostered || stats.rosteredPlayers || 0, color: 'var(--v2-sky)' },
-          ].map((step, i) => {
-            const total = stats.totalRegistrations || 1
-            const pct = Math.max(4, (step.count / total) * 100)
-            return (
-              <div key={i} style={{ flex: `${pct} 0 0`, minWidth: 40 }}>
-                <div style={{
-                  height: 6, borderRadius: 3,
-                  background: step.color, opacity: 0.7,
-                  marginBottom: 4,
-                }} />
-                <div style={{ fontSize: 10, fontWeight: 600, color: step.color, textAlign: 'center' }}>
-                  {step.count}
+          )}
+        </>
+      ) : (
+        <>
+          <div style={{
+            display: 'flex', gap: 8, marginBottom: 20,
+            flexWrap: 'wrap',
+          }}>
+            {items.map((item, i) => (
+              <div key={i} style={{
+                flex: '1 1 0',
+                minWidth: 80,
+                background: item.bg,
+                borderRadius: 10, padding: '12px 8px',
+                textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 20, fontWeight: 800, color: item.color }}>
+                  {item.value}
                 </div>
-                <div style={{ fontSize: 9, color: 'var(--v2-text-muted)', textAlign: 'center' }}>
-                  {step.label}
+                <div style={{ fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)', marginTop: 2, letterSpacing: '0.03em' }}>
+                  {item.label}
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </div>
+            ))}
+          </div>
+
+          {stats.capacity > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--v2-text-muted)', marginBottom: 6 }}>
+                <span>Capacity</span>
+                <span>{stats.totalRegistrations || 0} / {stats.capacity}</span>
+              </div>
+              <div style={{ height: 6, borderRadius: 3, background: 'var(--v2-surface)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 3,
+                  background: 'var(--v2-sky)',
+                  width: `${Math.min(100, ((stats.totalRegistrations || 0) / stats.capacity) * 100)}%`,
+                  transition: 'width 0.5s ease',
+                }} />
+              </div>
+            </div>
+          )}
+
+          {/* Registration funnel visual */}
+          <div style={{
+            padding: 16, background: 'var(--v2-surface)', borderRadius: 10,
+            marginBottom: 20,
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--v2-text-muted)', marginBottom: 10, letterSpacing: '0.04em' }}>
+              Registration Funnel
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {[
+                { label: 'Submitted', count: stats.totalRegistrations || 0, color: 'var(--v2-text-primary)' },
+                { label: 'Approved', count: stats.approved || 0, color: 'var(--v2-green)' },
+                { label: 'Rostered', count: stats.rostered || stats.rosteredPlayers || 0, color: 'var(--v2-sky)' },
+              ].map((step, i) => {
+                const total = stats.totalRegistrations || 1
+                const pct = Math.max(4, (step.count / total) * 100)
+                return (
+                  <div key={i} style={{ flex: `${pct} 0 0`, minWidth: 40 }}>
+                    <div style={{
+                      height: 6, borderRadius: 3,
+                      background: step.color, opacity: 0.7,
+                      marginBottom: 4,
+                    }} />
+                    <div style={{ fontSize: 10, fontWeight: 600, color: step.color, textAlign: 'center' }}>
+                      {step.count}
+                    </div>
+                    <div style={{ fontSize: 9, color: 'var(--v2-text-muted)', textAlign: 'center' }}>
+                      {step.label}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Player registration list */}
       {allComplete ? (
