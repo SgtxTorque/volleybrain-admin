@@ -606,21 +606,6 @@ export default function ProgramPage({ showToast }) {
         variant="light"
       />
 
-      {/* ---- ATTENTION STRIP ---- */}
-      {!loading && actionItemCount > 0 && (
-        <div className="mt-4">
-          <AttentionStrip
-            message={`${actionItemCount} item${actionItemCount !== 1 ? 's' : ''} need attention across your ${program.name} program`}
-            ctaLabel="Review Now"
-            variant={actionItemCount > 5 ? 'urgent' : 'warning'}
-            onClick={() => {
-              if (pendingRegs > 0) setActiveTab('registrations')
-              else if (overduePayments > 0) setActiveTab('payments')
-            }}
-          />
-        </div>
-      )}
-
       {/* ---- LOADING SKELETON OVERLAY ---- */}
       {loading && hasSeasons && (
         <div className="mt-6">
@@ -643,39 +628,50 @@ export default function ProgramPage({ showToast }) {
         </div>
       )}
 
-      {/* ---- QUICK ACTIONS BAR ---- */}
-      {!loading && hasSeasons && (
-        <div className="mt-4" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {quickActions.map((action, i) => (
-            <button
-              key={i}
-              onClick={action.onClick}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 8,
-                fontSize: 13, fontWeight: 500,
-                border: '1px solid var(--color-border-secondary, #E2E8F0)',
-                background: 'var(--color-background-primary, #FFFFFF)',
-                color: 'var(--color-text-primary, #334155)',
-                cursor: 'pointer',
-                transition: 'background 0.15s, border-color 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary, #F1F5F9)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-background-primary, #FFFFFF)' }}
-            >
-              {action.icon && <action.icon style={{ width: 14, height: 14, color: 'var(--color-text-primary, #334155)' }} />}
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* ---- MAIN CONTENT (only when seasons exist) ---- */}
       {!loading && hasSeasons && (
         <div className="mt-6">
           <V2DashboardLayout
             mainContent={
               <div className="space-y-6">
+                {/* Attention Strip */}
+                {actionItemCount > 0 && (
+                  <AttentionStrip
+                    message={`${actionItemCount} item${actionItemCount !== 1 ? 's' : ''} need attention across your ${program.name} program`}
+                    ctaLabel="Review Now"
+                    variant={actionItemCount > 5 ? 'urgent' : 'warning'}
+                    onClick={() => {
+                      if (pendingRegs > 0) setActiveTab('registrations')
+                      else if (overduePayments > 0) setActiveTab('payments')
+                    }}
+                  />
+                )}
+
+                {/* Quick Actions Bar */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {quickActions.map((action, i) => (
+                    <button
+                      key={i}
+                      onClick={action.onClick}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        padding: '8px 16px', borderRadius: 8,
+                        fontSize: 13, fontWeight: 500,
+                        border: '1px solid var(--color-border-secondary, #E2E8F0)',
+                        background: 'var(--color-background-primary, #FFFFFF)',
+                        color: 'var(--color-text-primary, #334155)',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s, border-color 0.15s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-background-secondary, #F1F5F9)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-background-primary, #FFFFFF)' }}
+                    >
+                      {action.icon && <action.icon style={{ width: 14, height: 14, color: 'var(--color-text-primary, #334155)' }} />}
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Season Carousel */}
                 <SeasonCarousel
                   seasons={programSeasons}
