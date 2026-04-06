@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import {
   HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
-  ThePlaybook, V2DashboardLayout,
+  V2DashboardLayout,
 } from '../../components/v2'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
@@ -626,6 +626,33 @@ export default function ProgramPage({ showToast }) {
         </div>
       )}
 
+      {/* ---- QUICK ACTIONS BAR ---- */}
+      {!loading && hasSeasons && (
+        <div className="mt-4" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {quickActions.map((action, i) => (
+            <button
+              key={i}
+              onClick={action.onClick}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 14px', borderRadius: 14,
+                fontSize: 12.5, fontWeight: 600,
+                border: '1px solid var(--color-border-tertiary, rgba(148,163,184,0.2))',
+                background: 'var(--v2-surface, rgba(255,255,255,0.04))',
+                color: 'var(--v2-text, inherit)',
+                cursor: 'pointer',
+                transition: 'background 0.15s, border-color 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--v2-surface-hover, rgba(75,185,236,0.08))'; e.currentTarget.style.borderColor = '#4BB9EC' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--v2-surface, rgba(255,255,255,0.04))'; e.currentTarget.style.borderColor = 'var(--color-border-tertiary, rgba(148,163,184,0.2))' }}
+            >
+              {action.icon && <action.icon style={{ width: 14, height: 14, opacity: 0.7 }} />}
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ---- MAIN CONTENT (only when seasons exist) ---- */}
       {!loading && hasSeasons && (
         <div className="mt-6">
@@ -697,11 +724,6 @@ export default function ProgramPage({ showToast }) {
                   primaryAction={isAdmin ? { label: 'View All Payments', onClick: () => navigate('/payments') } : undefined}
                 />
 
-                <ThePlaybook
-                  title="Quick Actions"
-                  actions={quickActions}
-                  columns={3}
-                />
               </div>
             }
           />
