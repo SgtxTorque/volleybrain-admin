@@ -909,8 +909,17 @@ function MainApp() {
             .in('season_id', orgSeasonIds)
         : { data: [] }
 
-      // TODO: needs profile_id linkage — players table has no profile_id column to link a profile to a player self-record
-      const playerSelf = null
+      // Detect player account: find a player record linked to this auth user's profile_id
+      let playerSelf = null
+      if (profile?.account_type === 'player_child') {
+        const { data: selfPlayer } = await supabase
+          .from('players')
+          .select('*, team_players(team_id, jersey_number, teams(id, name, color, season_id)), season:seasons(id, name, sports(name, icon), organizations(id, name, slug, settings))')
+          .eq('profile_id', profile.id)
+          .eq('player_account_enabled', true)
+          .maybeSingle()
+        playerSelf = selfPlayer
+      }
 
       setRoleContext({
         roles: roles || [],
