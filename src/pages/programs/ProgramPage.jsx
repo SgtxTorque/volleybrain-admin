@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import {
   HeroCard, AttentionStrip, BodyTabs, FinancialSnapshot,
-  OrgHealthCard, ThePlaybook, V2DashboardLayout,
+  ThePlaybook, V2DashboardLayout,
 } from '../../components/v2'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
@@ -315,11 +315,8 @@ export default function ProgramPage({ showToast }) {
   // Waivers
   const totalWaivers = waiverSignatures.length
   const signedWaivers = waiverSignatures.filter(w => w.status === 'signed').length
-  const waiverPct = totalWaivers > 0 ? Math.round((signedWaivers / totalWaivers) * 100) : 100
-
-  // Roster fill
+  // Roster capacity
   const totalRosterSpots = teams.reduce((sum, t) => sum + (t.max_roster_size || t.max_players || 12), 0)
-  const rosterFillPct = totalRosterSpots > 0 ? Math.round((totalPlayers / totalRosterSpots) * 100) : 0
 
   // Upcoming events this week
   const now = new Date()
@@ -683,32 +680,6 @@ export default function ProgramPage({ showToast }) {
                   )}
                 </BodyTabs>
               </div>
-            }
-            engagementContent={
-              <OrgHealthCard
-                title="Program Health"
-                subtitle={program.name}
-                metrics={[
-                  {
-                    label: 'Roster Fill',
-                    percentage: rosterFillPct,
-                    color: rosterFillPct > 80 ? '#10B981' : '#F59E0B',
-                    value: `${totalPlayers}/${totalRosterSpots}`,
-                  },
-                  {
-                    label: 'Payment Collection',
-                    percentage: collectedPct,
-                    color: collectedPct > 70 ? '#10B981' : '#F59E0B',
-                    value: fmt(totalCollected),
-                  },
-                  {
-                    label: 'Waiver Completion',
-                    percentage: waiverPct,
-                    color: waiverPct > 90 ? '#10B981' : '#F59E0B',
-                    value: `${signedWaivers}/${totalWaivers || 0}`,
-                  },
-                ]}
-              />
             }
             sideContent={
               <div className="space-y-6">
