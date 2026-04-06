@@ -768,90 +768,65 @@ export default function ProgramPage({ showToast }) {
                   )}
                   {activeTab === 'registrations' && (
                     <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
-                      {/* Stats + Funnel/Waiver block */}
+                      {/* Inline stat strip */}
                       <div style={{
                         display: 'flex',
-                        border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
-                        borderRadius: 10,
-                        overflow: 'hidden',
-                        marginBottom: 14,
+                        alignItems: 'baseline',
+                        gap: 16,
+                        padding: '10px 14px',
+                        background: 'var(--v2-surface)',
+                        borderRadius: 8,
+                        marginBottom: 6,
+                        flexWrap: 'wrap',
                       }}>
-                        {/* Left: 3x2 stat grid */}
-                        <div style={{
-                          flex: 1,
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr 1fr',
-                          gridTemplateRows: '1fr 1fr',
-                          borderRight: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
-                        }}>
-                          {[
-                            { value: tabRegStats.totalRegistrations, label: 'TOTAL', color: 'var(--v2-text-primary)' },
-                            { value: tabRegStats.pending, label: 'PENDING', color: '#FF9800' },
-                            { value: tabRegStats.approved, label: 'APPROVED', color: '#4CAF50' },
-                            { value: tabRegStats.rostered, label: 'ROSTERED', color: '#2196F3' },
-                            { value: tabRegStats.waitlisted, label: 'WAITLISTED', color: '#FF9800' },
-                            { value: tabRegStats.denied, label: 'DENIED', color: '#F44336' },
-                          ].map((stat, i) => (
-                            <div key={stat.label} style={{
-                              textAlign: 'center',
-                              padding: '14px 8px',
-                              borderRight: (i % 3 !== 2) ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
-                              borderBottom: i < 3 ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
-                            }}>
-                              <p style={{ fontSize: 22, fontWeight: 600, margin: 0, color: stat.color }}>{stat.value}</p>
-                              <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', margin: '2px 0 0', letterSpacing: '0.5px' }}>{stat.label}</p>
-                            </div>
-                          ))}
+                        {[
+                          { value: tabRegStats.totalRegistrations, label: 'total', color: 'var(--v2-text-primary)' },
+                          { value: tabRegStats.pending, label: 'pending', color: '#FF9800' },
+                          { value: tabRegStats.approved, label: 'approved', color: '#4CAF50' },
+                          { value: tabRegStats.rostered, label: 'rostered', color: '#2196F3' },
+                          { value: tabRegStats.waitlisted, label: 'waitlist', color: '#FF9800' },
+                          { value: tabRegStats.denied, label: 'denied', color: '#F44336' },
+                        ].map((stat, i) => (
+                          <span key={stat.label} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
+                            {i > 0 && <span style={{ color: 'var(--v2-border-subtle, rgba(148,163,184,0.3))', marginRight: 12 }}>|</span>}
+                            <span style={{ fontSize: 20, fontWeight: 600, color: stat.color }}>{stat.value}</span>
+                            <span style={{ fontSize: 10, color: 'var(--v2-text-muted)' }}>{stat.label}</span>
+                          </span>
+                        ))}
+                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                          <span style={{ fontSize: 10, color: 'var(--v2-text-muted)' }}>Capacity</span>
+                          <span style={{ fontSize: 14, fontWeight: 500 }}>{tabRegStats.totalRegistrations}/{tabRegStats.capacity || 96}</span>
                         </div>
+                      </div>
 
-                        {/* Right: Funnel bar + Waiver bar stacked */}
-                        <div style={{
-                          flex: '0 0 220px',
-                          padding: '12px 16px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          gap: 12,
-                        }}>
-                          {/* Registration Funnel */}
-                          <div>
-                            <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', letterSpacing: '0.5px', margin: '0 0 4px' }}>REGISTRATION FUNNEL</p>
-                            <div style={{ display: 'flex', height: 18, borderRadius: 4, overflow: 'hidden', background: 'var(--v2-surface)' }}>
-                              {tabRegStats.totalRegistrations > 0 && (
-                                <>
-                                  <div style={{ width: `${(tabRegStats.totalRegistrations / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#10284C', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <span style={{ fontSize: 8, color: 'white', fontWeight: 500 }}>{tabRegStats.totalRegistrations}</span>
-                                  </div>
-                                  {tabRegStats.approved > 0 && (
-                                    <div style={{ width: `${(tabRegStats.approved / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#4CAF50', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      <span style={{ fontSize: 8, color: 'white', fontWeight: 500 }}>{tabRegStats.approved}</span>
-                                    </div>
-                                  )}
-                                  {tabRegStats.rostered > 0 && (
-                                    <div style={{ width: `${(tabRegStats.rostered / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#4BB9EC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      <span style={{ fontSize: 8, color: 'white', fontWeight: 500 }}>{tabRegStats.rostered}</span>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-                              <span style={{ fontSize: 8, color: 'var(--v2-text-muted)' }}>Submitted</span>
-                              <span style={{ fontSize: 8, color: 'var(--v2-text-muted)' }}>Approved</span>
-                              <span style={{ fontSize: 8, color: 'var(--v2-text-muted)' }}>Rostered</span>
-                            </div>
+                      {/* Two thin bars side by side */}
+                      <div style={{ display: 'flex', gap: 8, padding: '0 2px', marginBottom: 14 }}>
+                        {/* Funnel bar */}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', background: 'var(--v2-surface)' }}>
+                            {tabRegStats.totalRegistrations > 0 && (
+                              <>
+                                <div style={{ width: `${((tabRegStats.totalRegistrations - tabRegStats.approved - tabRegStats.rostered) / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#10284C' }} />
+                                <div style={{ width: `${(tabRegStats.approved / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#4CAF50' }} />
+                                <div style={{ width: `${(tabRegStats.rostered / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#4BB9EC' }} />
+                              </>
+                            )}
                           </div>
-
-                          {/* Waiver Bar */}
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                              <span style={{ fontSize: 9, color: 'var(--v2-text-muted)', letterSpacing: '0.5px' }}>WAIVERS SIGNED</span>
-                              <span style={{ fontSize: 9, color: 'var(--v2-text-muted)' }}>NOT SIGNED</span>
-                            </div>
-                            <div style={{ display: 'flex', height: 18, borderRadius: 4, overflow: 'hidden', background: 'var(--v2-surface)' }}>
-                              <div style={{ width: `${tabWaiverPct}%`, background: '#10284C' }} />
-                              {(100 - tabWaiverPct) > 0 && <div style={{ width: `${100 - tabWaiverPct}%`, background: '#F44336' }} />}
-                            </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+                            <span style={{ fontSize: 7, color: 'var(--v2-text-muted)' }}>Submitted</span>
+                            <span style={{ fontSize: 7, color: 'var(--v2-text-muted)' }}>Approved</span>
+                            <span style={{ fontSize: 7, color: 'var(--v2-text-muted)' }}>Rostered</span>
+                          </div>
+                        </div>
+                        {/* Waiver bar */}
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', background: 'var(--v2-surface)' }}>
+                            <div style={{ width: `${tabWaiverPct}%`, background: '#10284C' }} />
+                            {(100 - tabWaiverPct) > 0 && <div style={{ width: `${100 - tabWaiverPct}%`, background: '#F44336' }} />}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+                            <span style={{ fontSize: 7, color: 'var(--v2-text-muted)' }}>Waivers signed</span>
+                            <span style={{ fontSize: 7, color: 'var(--v2-text-muted)' }}>Not signed</span>
                           </div>
                         </div>
                       </div>
