@@ -935,15 +935,97 @@ export default function ProgramPage({ showToast }) {
                       </button>
                     </div>
                   )}
-                  {activeTab === 'payments' && (
-                    <AdminPaymentsTab
-                      stats={tabPayStats}
-                      monthlyPayments={tabMonthlyPayments}
-                      paymentFamilies={tabPaymentFamilies}
-                      onNavigate={(pageId) => navigate(`/${pageId}`)}
-                      compact
-                    />
-                  )}
+                  {activeTab === 'payments' && (() => {
+                    const collected = tabCollected
+                    const outstanding = tabExpected - tabCollected
+                    const collectionPct = tabExpected > 0 ? Math.round((tabCollected / tabExpected) * 100) : 0
+                    const overdue = tabOverduePayments
+
+                    const getPayStatus = (fam) => {
+                      if (fam.totalDue === 0 && fam.totalPaid > 0) return { label: 'Paid', bg: 'rgba(16,185,129,0.1)', color: '#059669' }
+                      if (fam.totalPaid > 0 && fam.totalDue > fam.totalPaid) return { label: 'Partial', bg: 'rgba(59,130,246,0.1)', color: '#2563EB' }
+                      return { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706' }
+                    }
+
+                    return (
+                      <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
+                        {/* 4-stat single row */}
+                        <div style={{
+                          display: 'flex',
+                          border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                          marginBottom: 14,
+                        }}>
+                          {[
+                            { value: `$${collected.toLocaleString()}`, label: 'COLLECTED', color: '#4CAF50' },
+                            { value: `$${outstanding.toLocaleString()}`, label: 'OUTSTANDING', color: outstanding > 0 ? '#F44336' : 'var(--v2-text-primary)' },
+                            { value: `${collectionPct}%`, label: 'COLLECTION RATE', color: collectionPct >= 75 ? '#4CAF50' : collectionPct >= 50 ? '#FF9800' : '#F44336' },
+                            { value: overdue, label: 'OVERDUE', color: overdue > 0 ? '#F44336' : 'var(--v2-text-primary)' },
+                          ].map((stat, i) => (
+                            <div key={stat.label} style={{
+                              flex: 1, textAlign: 'center', padding: '14px 8px',
+                              borderRight: i < 3 ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
+                            }}>
+                              <p style={{ fontSize: 20, fontWeight: 600, margin: 0, color: stat.color }}>{stat.value}</p>
+                              <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', margin: '2px 0 0', letterSpacing: '0.5px' }}>{stat.label}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Family payment list */}
+                        {tabPaymentFamilies.length > 0 && (
+                          <div style={{ marginBottom: 14 }}>
+                            <div style={{
+                              display: 'grid', gridTemplateColumns: '1fr 100px 100px 80px',
+                              gap: 8, padding: '10px 12px',
+                              background: 'var(--v2-surface)', borderRadius: '10px 10px 0 0',
+                              borderBottom: '1px solid var(--v2-border-subtle)',
+                            }}>
+                              {['Family', 'Players', 'Amount Due', 'Status'].map(h => (
+                                <span key={h} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--v2-text-muted)', letterSpacing: '0.05em' }}>{h}</span>
+                              ))}
+                            </div>
+                            {tabPaymentFamilies.slice(0, 10).map((fam, i) => {
+                              const st = getPayStatus(fam)
+                              return (
+                                <div key={fam.parentKey || i} style={{
+                                  display: 'grid', gridTemplateColumns: '1fr 100px 100px 80px',
+                                  gap: 8, padding: '10px 12px', alignItems: 'center',
+                                  borderBottom: i < Math.min(tabPaymentFamilies.length, 10) - 1 ? '1px solid var(--v2-border-subtle)' : 'none',
+                                }}>
+                                  <div>
+                                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fam.parentName}</div>
+                                    {fam.parentEmail && <div style={{ fontSize: 11, color: 'var(--v2-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fam.parentEmail}</div>}
+                                  </div>
+                                  <div style={{ fontSize: 12.5, color: 'var(--v2-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fam.children?.join(', ') || '—'}</div>
+                                  <div style={{ fontSize: 14, fontWeight: 700, color: fam.totalDue > fam.totalPaid ? 'var(--v2-text-primary)' : 'var(--v2-green)' }}>${fam.totalDue.toLocaleString()}</div>
+                                  <div><span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: st.bg, color: st.color, whiteSpace: 'nowrap' }}>{st.label}</span></div>
+                                </div>
+                              )
+                            })}
+                            {tabPaymentFamilies.length > 10 && (
+                              <div style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                <span style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>+{tabPaymentFamilies.length - 10} more families</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => navigate('/payments')}
+                          style={{
+                            width: '100%', padding: 10, borderRadius: 10,
+                            fontSize: 12, fontWeight: 700,
+                            background: 'var(--v2-navy)', color: '#FFFFFF',
+                            border: 'none', cursor: 'pointer',
+                          }}
+                        >
+                          View All Payments &rarr;
+                        </button>
+                      </div>
+                    )
+                  })()}
                   {activeTab === 'schedule' && (
                     <AdminScheduleTab
                       events={tabEvents}
