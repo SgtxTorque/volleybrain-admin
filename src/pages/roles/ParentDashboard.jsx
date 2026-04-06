@@ -34,6 +34,7 @@ import EngagementActivityCard from '../../components/engagement/EngagementActivi
 import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCard'
 import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
 import CreatePlayerPassModal from '../../components/parent/CreatePlayerPassModal'
+import ManagePlayerPassModal from '../../components/parent/ManagePlayerPassModal'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -986,6 +987,14 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           onSuccess={() => {
             showToast?.('Player Pass created!', 'success')
           }}
+        />
+      )}
+      {managePassChild && (
+        <ManagePlayerPassModal
+          player={managePassChild}
+          onClose={() => setManagePassChild(null)}
+          onRefresh={() => loadParentData()}
+          showToast={showToast}
         />
       )}
     </>
