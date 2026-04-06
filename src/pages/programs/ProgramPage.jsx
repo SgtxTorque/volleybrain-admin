@@ -233,15 +233,15 @@ export default function ProgramPage({ showToast }) {
           .order('name'),
 
         supabase.from('players')
-          .select('id, first_name, last_name, status, season_id, date_of_birth, grade, jersey_number, position, photo_url')
+          .select('id, first_name, last_name, status, season_id, birth_date, grade, jersey_number, position, photo_url')
           .in('season_id', programSeasonIds),
 
         supabase.from('registrations')
-          .select('id, status, season_id, created_at, player_id, players(id, first_name, last_name, date_of_birth, grade), profiles:parent_id(full_name, email, phone)')
+          .select('id, status, season_id, created_at, player_id, players(id, first_name, last_name, birth_date, grade, parent_name, parent_email, parent_phone)')
           .in('season_id', programSeasonIds),
 
         supabase.from('payments')
-          .select('id, amount, paid, status, fee_type, season_id, due_date, created_at, player_id, profiles:player_id(full_name, email)')
+          .select('id, amount, paid, status, fee_type, season_id, due_date, created_at, player_id, players(id, first_name, last_name, parent_name, parent_email)')
           .in('season_id', programSeasonIds),
 
         supabase.from('schedule_events')
@@ -256,7 +256,19 @@ export default function ProgramPage({ showToast }) {
           .in('season_id', programSeasonIds),
       ])
 
-      if (teamsRes.error) throw teamsRes.error
+      const allResults = [
+        { name: 'teams', res: teamsRes },
+        { name: 'players', res: playersRes },
+        { name: 'registrations', res: regsRes },
+        { name: 'payments', res: paymentsRes },
+        { name: 'events', res: eventsRes },
+        { name: 'waivers', res: waiversRes }
+      ]
+      const errors = allResults.filter(r => r.res.error)
+      if (errors.length > 0) {
+        errors.forEach(e => console.error(`ProgramPage ${e.name} query error:`, e.res.error))
+        throw new Error(`Failed to load program data: ${errors.map(e => e.name).join(', ')}`)
+      }
 
       setTeams(teamsRes.data || [])
       setPlayers(playersRes.data || [])
@@ -287,7 +299,7 @@ export default function ProgramPage({ showToast }) {
   const totalPlayers = players.length
 
   // Registrations
-  const pendingRegs = registrations.filter(r => r.status === 'pending').length
+  const pendingRegs = registrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length
   const approvedRegs = registrations.filter(r => r.status === 'approved').length
   const rosteredRegs = registrations.filter(r => r.status === 'rostered').length
   const waitlistedRegs = registrations.filter(r => r.status === 'waitlisted').length
@@ -362,11 +374,11 @@ export default function ProgramPage({ showToast }) {
     id: r.player_id,
     first_name: r.players?.first_name || '',
     last_name: r.players?.last_name || '',
-    date_of_birth: r.players?.date_of_birth,
+    date_of_birth: r.players?.birth_date,
     grade: r.players?.grade,
-    parent_name: r.profiles?.full_name || '',
-    parent_phone: r.profiles?.phone || '',
-    parent_email: r.profiles?.email || '',
+    parent_name: r.players?.parent_name || '',
+    parent_phone: r.players?.parent_phone || '',
+    parent_email: r.players?.parent_email || '',
     registrations: [r],
   }))
 
@@ -399,8 +411,8 @@ export default function ProgramPage({ showToast }) {
       if (!fams[key]) {
         fams[key] = {
           parentKey: key,
-          parentName: p.profiles?.full_name || 'Unknown',
-          parentEmail: p.profiles?.email || '',
+          parentName: p.players?.parent_name || p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown',
+          parentEmail: p.players?.parent_email || '',
           children: [],
           totalDue: 0,
           totalPaid: 0,
