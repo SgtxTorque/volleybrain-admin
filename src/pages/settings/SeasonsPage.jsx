@@ -19,7 +19,7 @@ function SeasonsPage({ showToast }) {
   const { organization } = useAuth()
   const { refreshSeasons } = useSeason()
   const { selectedProgram } = useProgram()
-  const { selectedSport, sports } = useSport()
+  const { sports } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
   const [seasons, setSeasons] = useState([])

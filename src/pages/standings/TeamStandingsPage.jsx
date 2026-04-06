@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
-import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { Trophy, Calendar, ChevronRight, ChevronDown } from '../../constants/icons'
@@ -19,7 +18,6 @@ export default function TeamStandingsPage() {
   const { isDark } = useTheme()
   const { user, profile } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
-  const { selectedSport } = useSport()
 
   const [loading, setLoading] = useState(true)
   const [standings, setStandings] = useState(null)

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
-import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { BarChart3 } from '../../constants/icons'
@@ -26,7 +25,6 @@ import SocialCardModal from '../../components/social-cards/SocialCardModal'
 function GamePrepPage({ showToast }) {
   const { user, profile, organization } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
-  const { selectedSport } = useSport()
   const tc = useThemeClasses()
   const { isDark } = useTheme()
 
