@@ -175,6 +175,9 @@ export default function ProgramPage({ showToast }) {
   const [events, setEvents] = useState([])
   const [waiverSignatures, setWaiverSignatures] = useState([])
 
+  // Selected season in carousel (null = show all program seasons)
+  const [selectedProgramSeason, setSelectedProgramSeason] = useState(null)
+
   // Modals
   const [showSeasonModal, setShowSeasonModal] = useState(false)
   const [showTeamModal, setShowTeamModal] = useState(false)
@@ -531,9 +534,12 @@ export default function ProgramPage({ showToast }) {
 
   // --- Season selection in carousel ---
   function handleSeasonSelect(seasonId) {
-    const season = programSeasons.find(s => s.id === seasonId)
-    if (season) {
-      selectSeason(season)
+    if (selectedProgramSeason?.id === seasonId) {
+      setSelectedProgramSeason(null) // deselect — show all
+    } else {
+      const season = programSeasons.find(s => s.id === seasonId)
+      setSelectedProgramSeason(season || null)
+      if (season) selectSeason(season)
     }
   }
 
@@ -586,12 +592,72 @@ export default function ProgramPage({ showToast }) {
     { value: actionItemCount, label: 'Action Items', color: actionItemCount > 0 ? '#F59E0B' : '#4BB9EC' },
   ]
 
-  // Tabs configuration
+  // Filtered data for tabs (scoped to selected season or all program seasons)
+  const tabSeasonIds = selectedProgramSeason
+    ? [selectedProgramSeason.id]
+    : programSeasonIds
+  const tabTeams = teams.filter(t => tabSeasonIds.includes(t.season_id))
+  const tabPlayers = players.filter(p => tabSeasonIds.includes(p.season_id))
+  const tabRegistrations = registrations.filter(r => tabSeasonIds.includes(r.season_id))
+  const tabPayments = payments.filter(p => tabSeasonIds.includes(p.season_id))
+  const tabEvents = events.filter(e => tabSeasonIds.includes(e.season_id))
+
+  const tabPendingRegs = tabRegistrations.filter(r => ['pending', 'submitted', 'new'].includes(r.status)).length
+  const tabOverduePayments = tabPayments.filter(p => !p.paid && p.due_date && new Date(p.due_date) < new Date()).length
+
+  // Filtered stats for tabs
+  const tabRegStats = {
+    totalRegistrations: tabRegistrations.length,
+    pending: tabPendingRegs,
+    approved: tabRegistrations.filter(r => r.status === 'approved').length,
+    rostered: tabRegistrations.filter(r => r.status === 'rostered').length,
+    waitlisted: tabRegistrations.filter(r => r.status === 'waitlisted').length,
+    denied: tabRegistrations.filter(r => r.status === 'denied').length,
+    capacity: tabTeams.reduce((sum, t) => sum + (t.max_roster_size || t.max_players || 12), 0),
+  }
+  const tabRegistrationPlayers = tabRegistrations.map(r => ({
+    id: r.player_id,
+    first_name: r.players?.first_name || '',
+    last_name: r.players?.last_name || '',
+    date_of_birth: r.players?.birth_date,
+    grade: r.players?.grade,
+    parent_name: r.players?.parent_name || '',
+    parent_phone: r.players?.parent_phone || '',
+    parent_email: r.players?.parent_email || '',
+    registrations: [r],
+  }))
+  const tabCollected = tabPayments.filter(p => p.paid).reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+  const tabExpected = tabPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+  const tabPayStats = { totalCollected: tabCollected, pastDue: tabOverduePayments, totalExpected: tabExpected }
+  const tabMonthlyPayments = (() => {
+    const months = {}
+    tabPayments.filter(p => p.paid).forEach(p => {
+      const d = new Date(p.created_at)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      months[key] = (months[key] || 0) + (Number(p.amount) || 0)
+    })
+    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).slice(-6).map(([label, value]) => ({ label, value }))
+  })()
+  const tabPaymentFamilies = (() => {
+    const fams = {}
+    tabPayments.forEach(p => {
+      const key = p.player_id || 'unknown'
+      if (!fams[key]) {
+        fams[key] = { parentKey: key, parentName: p.players?.parent_name || (p.players ? `${p.players.first_name} ${p.players.last_name}` : 'Unknown'), parentEmail: p.players?.parent_email || '', children: [], totalDue: 0, totalPaid: 0, lineItems: [] }
+      }
+      fams[key].totalDue += Number(p.amount) || 0
+      if (p.paid) fams[key].totalPaid += Number(p.amount) || 0
+      fams[key].lineItems.push(p)
+    })
+    return Object.values(fams)
+  })()
+
+  // Tabs configuration (badges reflect filtered data)
   const tabs = [
-    { id: 'teams', label: 'Teams', badge: totalTeams > 0 ? totalTeams : undefined },
-    { id: 'registrations', label: 'Registrations', badge: pendingRegs > 0 ? pendingRegs : undefined },
-    { id: 'payments', label: 'Payments', badge: overduePayments > 0 ? overduePayments : undefined },
-    { id: 'schedule', label: 'Schedule', badge: upcomingThisWeek > 0 ? upcomingThisWeek : undefined },
+    { id: 'teams', label: 'Teams', badge: tabTeams.length > 0 ? tabTeams.length : undefined },
+    { id: 'registrations', label: 'Registrations', badge: tabPendingRegs > 0 ? tabPendingRegs : undefined },
+    { id: 'payments', label: 'Payments', badge: tabOverduePayments > 0 ? tabOverduePayments : undefined },
+    { id: 'schedule', label: 'Schedule', badge: tabEvents.length > 0 ? tabEvents.length : undefined },
   ]
 
   return (
@@ -678,7 +744,7 @@ export default function ProgramPage({ showToast }) {
                   perSeasonTeamCounts={perSeasonTeamCounts}
                   perSeasonPlayerCounts={perSeasonPlayerCounts}
                   perSeasonActionCounts={perSeasonActionCounts}
-                  selectedSeasonId={selectedSeason?.id}
+                  selectedSeasonId={selectedProgramSeason?.id}
                   onSeasonSelect={handleSeasonSelect}
                   onViewAll={() => navigate('/settings/seasons')}
                 />
@@ -691,7 +757,7 @@ export default function ProgramPage({ showToast }) {
                 >
                   {activeTab === 'teams' && (
                     <AdminTeamsTab
-                      teamsData={teams}
+                      teamsData={tabTeams}
                       teamStats={teamStats}
                       onTeamClick={(teamId) => navigate(`/teams/${teamId}`)}
                       onViewAll={() => navigate('/teams')}
@@ -699,22 +765,22 @@ export default function ProgramPage({ showToast }) {
                   )}
                   {activeTab === 'registrations' && (
                     <AdminRegistrationsTab
-                      stats={regStats}
-                      registrationPlayers={registrationPlayers}
+                      stats={tabRegStats}
+                      registrationPlayers={tabRegistrationPlayers}
                       onNavigate={(pageId) => navigate(`/${pageId}`)}
                     />
                   )}
                   {activeTab === 'payments' && (
                     <AdminPaymentsTab
-                      stats={payStats}
-                      monthlyPayments={monthlyPayments}
-                      paymentFamilies={paymentFamilies}
+                      stats={tabPayStats}
+                      monthlyPayments={tabMonthlyPayments}
+                      paymentFamilies={tabPaymentFamilies}
                       onNavigate={(pageId) => navigate(`/${pageId}`)}
                     />
                   )}
                   {activeTab === 'schedule' && (
                     <AdminScheduleTab
-                      events={events}
+                      events={tabEvents}
                       onNavigate={(pageId) => navigate(`/${pageId}`)}
                     />
                   )}
