@@ -626,6 +626,12 @@ export default function ProgramPage({ showToast }) {
     parent_email: r.players?.parent_email || '',
     registrations: [r],
   }))
+  // Waiver stats (filtered by tab season)
+  const tabWaivers = waiverSignatures.filter(w => tabSeasonIds.includes(w.season_id))
+  const tabSignedWaivers = tabWaivers.filter(w => w.status === 'signed').length
+  const tabTotalWaivers = tabWaivers.length
+  const tabWaiverPct = tabTotalWaivers > 0 ? Math.round((tabSignedWaivers / tabTotalWaivers) * 100) : 0
+
   const tabCollected = tabPayments.filter(p => p.paid).reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
   const tabExpected = tabPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
   const tabPayStats = { totalCollected: tabCollected, pastDue: tabOverduePayments, totalExpected: tabExpected }
@@ -764,12 +770,170 @@ export default function ProgramPage({ showToast }) {
                     />
                   )}
                   {activeTab === 'registrations' && (
-                    <AdminRegistrationsTab
-                      stats={tabRegStats}
-                      registrationPlayers={tabRegistrationPlayers}
-                      onNavigate={(pageId) => navigate(`/${pageId}`)}
-                      compact
-                    />
+                    <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
+                      {/* Stats + Funnel/Waiver block */}
+                      <div style={{
+                        display: 'flex',
+                        border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+                        borderRadius: 10,
+                        overflow: 'hidden',
+                        marginBottom: 14,
+                      }}>
+                        {/* Left: 3x2 stat grid */}
+                        <div style={{
+                          flex: 1,
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr 1fr',
+                          gridTemplateRows: '1fr 1fr',
+                          borderRight: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+                        }}>
+                          {[
+                            { value: tabRegStats.totalRegistrations, label: 'TOTAL', color: 'var(--v2-text-primary)' },
+                            { value: tabRegStats.pending, label: 'PENDING', color: '#FF9800' },
+                            { value: tabRegStats.approved, label: 'APPROVED', color: '#4CAF50' },
+                            { value: tabRegStats.rostered, label: 'ROSTERED', color: '#2196F3' },
+                            { value: tabRegStats.waitlisted, label: 'WAITLISTED', color: '#FF9800' },
+                            { value: tabRegStats.denied, label: 'DENIED', color: '#F44336' },
+                          ].map((stat, i) => (
+                            <div key={stat.label} style={{
+                              textAlign: 'center',
+                              padding: '14px 8px',
+                              borderRight: (i % 3 !== 2) ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
+                              borderBottom: i < 3 ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
+                            }}>
+                              <p style={{ fontSize: 22, fontWeight: 600, margin: 0, color: stat.color }}>{stat.value}</p>
+                              <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', margin: '2px 0 0', letterSpacing: '0.5px' }}>{stat.label}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Right: Funnel bar + Waiver bar stacked */}
+                        <div style={{
+                          flex: '0 0 220px',
+                          padding: '12px 16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          gap: 12,
+                        }}>
+                          {/* Registration Funnel */}
+                          <div>
+                            <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', letterSpacing: '0.5px', margin: '0 0 4px' }}>REGISTRATION FUNNEL</p>
+                            <div style={{ display: 'flex', height: 18, borderRadius: 4, overflow: 'hidden', background: 'var(--v2-surface)' }}>
+                              {tabRegStats.totalRegistrations > 0 && (
+                                <>
+                                  <div style={{ width: `${(tabRegStats.totalRegistrations / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#10284C', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <span style={{ fontSize: 8, color: 'white', fontWeight: 500 }}>{tabRegStats.totalRegistrations}</span>
+                                  </div>
+                                  {tabRegStats.approved > 0 && (
+                                    <div style={{ width: `${(tabRegStats.approved / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#4CAF50', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <span style={{ fontSize: 8, color: 'white', fontWeight: 500 }}>{tabRegStats.approved}</span>
+                                    </div>
+                                  )}
+                                  {tabRegStats.rostered > 0 && (
+                                    <div style={{ width: `${(tabRegStats.rostered / Math.max(tabRegStats.totalRegistrations, 1)) * 100}%`, background: '#4BB9EC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      <span style={{ fontSize: 8, color: 'white', fontWeight: 500 }}>{tabRegStats.rostered}</span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+                              <span style={{ fontSize: 8, color: 'var(--v2-text-muted)' }}>Submitted</span>
+                              <span style={{ fontSize: 8, color: 'var(--v2-text-muted)' }}>Approved</span>
+                              <span style={{ fontSize: 8, color: 'var(--v2-text-muted)' }}>Rostered</span>
+                            </div>
+                          </div>
+
+                          {/* Waiver Bar */}
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <span style={{ fontSize: 9, color: 'var(--v2-text-muted)', letterSpacing: '0.5px' }}>WAIVERS SIGNED</span>
+                              <span style={{ fontSize: 9, color: 'var(--v2-text-muted)' }}>NOT SIGNED</span>
+                            </div>
+                            <div style={{ display: 'flex', height: 18, borderRadius: 4, overflow: 'hidden', background: 'var(--v2-surface)' }}>
+                              <div style={{ width: `${tabWaiverPct}%`, background: '#10284C' }} />
+                              {(100 - tabWaiverPct) > 0 && <div style={{ width: `${100 - tabWaiverPct}%`, background: '#F44336' }} />}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Player registration list */}
+                      {tabRegistrationPlayers.length > 0 && (() => {
+                        const statusOrder = { pending: 0, submitted: 0, new: 0, approved: 1, waitlisted: 2, withdrawn: 3, denied: 3, rostered: 4, active: 4 }
+                        const sorted = [...tabRegistrationPlayers].sort((a, b) => {
+                          const sa = a.registrations?.[0]?.status || ''
+                          const sb = b.registrations?.[0]?.status || ''
+                          return (statusOrder[sa] ?? 9) - (statusOrder[sb] ?? 9)
+                        }).slice(0, 10)
+                        const statusBadge = (status) => {
+                          const map = {
+                            pending: { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
+                            submitted: { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
+                            new: { label: 'New', bg: 'rgba(245,158,11,0.1)', color: '#D97706' },
+                            approved: { label: 'Approved', bg: 'rgba(59,130,246,0.1)', color: '#2563EB' },
+                            rostered: { label: 'Rostered', bg: 'rgba(16,185,129,0.1)', color: '#059669' },
+                            active: { label: 'Rostered', bg: 'rgba(16,185,129,0.1)', color: '#059669' },
+                            waitlisted: { label: 'Waitlisted', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED' },
+                            denied: { label: 'Denied', bg: 'rgba(239,68,68,0.1)', color: '#DC2626' },
+                            withdrawn: { label: 'Withdrawn', bg: 'rgba(239,68,68,0.1)', color: '#DC2626' },
+                          }
+                          const s = map[status] || { label: status || '—', bg: 'var(--v2-surface)', color: 'var(--v2-text-muted)' }
+                          return <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{s.label}</span>
+                        }
+                        return (
+                          <div style={{ marginBottom: 14 }}>
+                            {/* Table header */}
+                            <div style={{
+                              display: 'grid', gridTemplateColumns: '1fr 140px 120px 80px',
+                              gap: 8, padding: '10px 12px',
+                              background: 'var(--v2-surface)', borderRadius: '10px 10px 0 0',
+                              borderBottom: '1px solid var(--v2-border-subtle)',
+                            }}>
+                              {['Player', 'Parent', 'Contact', 'Status'].map(h => (
+                                <span key={h} style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: 'var(--v2-text-muted)', letterSpacing: '0.05em' }}>{h}</span>
+                              ))}
+                            </div>
+                            {sorted.map((p, i) => {
+                              const status = p.registrations?.[0]?.status
+                              return (
+                                <div key={p.id || i} style={{
+                                  display: 'grid', gridTemplateColumns: '1fr 140px 120px 80px',
+                                  gap: 8, padding: '10px 12px', alignItems: 'center',
+                                  borderBottom: i < sorted.length - 1 ? '1px solid var(--v2-border-subtle)' : 'none',
+                                }}>
+                                  <div>
+                                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--v2-text-primary)' }}>{p.first_name} {p.last_name}</div>
+                                  </div>
+                                  <div style={{ fontSize: 13, color: 'var(--v2-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.parent_name || '—'}</div>
+                                  <div style={{ fontSize: 12, color: 'var(--v2-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.parent_phone || p.parent_email || '—'}</div>
+                                  <div>{statusBadge(status)}</div>
+                                </div>
+                              )
+                            })}
+                            {tabRegistrationPlayers.length > 10 && (
+                              <div style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                <span style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>+{tabRegistrationPlayers.length - 10} more</span>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })()}
+
+                      {/* Action */}
+                      <button
+                        onClick={() => navigate('/registrations')}
+                        style={{
+                          width: '100%', padding: 10, borderRadius: 10,
+                          fontSize: 12, fontWeight: 700,
+                          background: 'var(--v2-navy)', color: '#FFFFFF',
+                          border: 'none', cursor: 'pointer',
+                        }}
+                      >
+                        View All Registrations &rarr;
+                      </button>
+                    </div>
                   )}
                   {activeTab === 'payments' && (
                     <AdminPaymentsTab
