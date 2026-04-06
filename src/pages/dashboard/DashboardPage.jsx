@@ -17,7 +17,6 @@ import {
 } from '../../components/v2'
 import ProgramCard from '../../components/v2/admin/ProgramCard'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
-import SeasonStepper from '../../components/v2/admin/SeasonStepper'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import AdminRegistrationsTab from '../../components/v2/admin/AdminRegistrationsTab'
 import AdminPaymentsTab from '../../components/v2/admin/AdminPaymentsTab'
@@ -1171,20 +1170,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
     ? `${nextBadgeProgress.remaining} more ${nextBadgeProgress.action} for ${nextBadgeProgress.badgeName}`
     : null
 
-  // Build stepper steps from setup tracker logic (7 steps with org setup priority)
-  const setupSteps = [
-    { label: 'Org Profile', page: 'organization', status: orgSetupComplete ? 'done' : 'upcoming' },
-    { label: 'Payment Setup', page: 'payment-setup', status: paymentSetupComplete ? 'done' : 'upcoming' },
-    { label: 'Create Season', page: 'seasons', status: selectedSeason ? 'done' : 'upcoming' },
-    { label: 'Add Teams', page: 'teams', status: (stats.teams || 0) > 0 ? 'done' : 'upcoming' },
-    { label: 'Add Coaches', page: 'coaches', status: (stats.coachCount || 0) > 0 ? 'done' : 'upcoming' },
-    { label: 'Create Schedule', page: 'schedule', status: upcomingEvents.length > 0 ? 'done' : 'upcoming' },
-    { label: 'Open Registration', page: 'registration-templates', status: (stats.totalRegistrations || 0) > 0 ? 'done' : 'upcoming' },
-  ]
-  // Mark the first non-done step as current
-  const firstNonDone = setupSteps.findIndex(s => s.status !== 'done')
-  if (firstNonDone >= 0 && setupSteps[firstNonDone].status === 'upcoming') setupSteps[firstNonDone].status = 'current'
-  const setupComplete = setupSteps.filter(s => s.status === 'done').length
 
   // Compute categorized items for attention strip
   const isAll = isAllSeasons(selectedSeason)
@@ -1415,16 +1400,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 )}
               </div>
 
-              {/* Season Journey — kept for onboarding tracking */}
-              {!isAll && setupComplete < 7 && (
-                <SeasonStepper
-                  seasonName={selectedSeason?.name || ''}
-                  steps={setupSteps}
-                  completedCount={setupComplete}
-                  totalCount={7}
-                  onNavigate={onNavigate}
-                />
-              )}
 
               {/*
                 ── COMMENTED OUT: Old BodyTabs (Phase 3 — moved to ProgramPage) ──

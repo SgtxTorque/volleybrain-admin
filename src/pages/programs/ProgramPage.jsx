@@ -11,6 +11,7 @@ import {
   V2DashboardLayout,
 } from '../../components/v2'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
+import SeasonStepper from '../../components/v2/admin/SeasonStepper'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
 import AdminRegistrationsTab from '../../components/v2/admin/AdminRegistrationsTab'
 import AdminPaymentsTab from '../../components/v2/admin/AdminPaymentsTab'
@@ -457,6 +458,22 @@ export default function ProgramPage({ showToast }) {
     { label: 'Registrations', icon: ClipboardList, onClick: () => navigate('/registrations') },
   )
 
+  // --- Season Journey Stepper (scoped to selected season) ---
+  const seasonSetupSteps = (() => {
+    const steps = [
+      { label: 'Add Teams', page: 'teams', status: teams.length > 0 ? 'done' : 'upcoming' },
+      { label: 'Add Players', page: 'registrations', status: totalPlayers > 0 ? 'done' : 'upcoming' },
+      { label: 'Create Schedule', page: 'schedule', status: events.length > 0 ? 'done' : 'upcoming' },
+      { label: 'Open Registration', page: 'registration-templates', status: registrations.length > 0 ? 'done' : 'upcoming' },
+      { label: 'Set Up Payments', page: 'payment-setup', status: payments.length > 0 ? 'done' : 'upcoming' },
+    ]
+    const first = steps.findIndex(s => s.status !== 'done')
+    if (first >= 0) steps[first].status = 'current'
+    return steps
+  })()
+  const setupComplete = seasonSetupSteps.filter(s => s.status === 'done').length
+  const setupTotal = seasonSetupSteps.length
+
   // --- Season Modal Helpers ---
   function openSeasonModal() {
     setSeasonForm({
@@ -706,6 +723,17 @@ export default function ProgramPage({ showToast }) {
                     />
                   )}
                 </BodyTabs>
+
+                {/* Season Journey Stepper — admin only, hidden when all steps complete */}
+                {isAdmin && selectedSeason && setupComplete < setupTotal && (
+                  <SeasonStepper
+                    seasonName={selectedSeason?.name || ''}
+                    steps={seasonSetupSteps}
+                    completedCount={setupComplete}
+                    totalCount={setupTotal}
+                    onNavigate={(pageId) => navigate(`/${pageId}`)}
+                  />
+                )}
               </div>
             }
             sideContent={
