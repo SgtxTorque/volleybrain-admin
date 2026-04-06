@@ -1026,12 +1026,121 @@ export default function ProgramPage({ showToast }) {
                       </div>
                     )
                   })()}
-                  {activeTab === 'schedule' && (
-                    <AdminScheduleTab
-                      events={tabEvents}
-                      onNavigate={(pageId) => navigate(`/${pageId}`)}
-                    />
-                  )}
+                  {activeTab === 'schedule' && (() => {
+                    const formatTime12 = (timeStr) => {
+                      if (!timeStr) return ''
+                      const [hours, minutes] = timeStr.split(':')
+                      const h = parseInt(hours)
+                      return `${h % 12 || 12}:${minutes} ${h >= 12 ? 'PM' : 'AM'}`
+                    }
+                    const typeConfig = {
+                      game: { color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', label: 'GAME' },
+                      practice: { color: '#4BB9EC', bg: 'rgba(75,185,236,0.1)', label: 'PRACTICE' },
+                      tournament: { color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', label: 'TOURNAMENT' },
+                      meeting: { color: '#22C55E', bg: 'rgba(34,197,94,0.1)', label: 'MEETING' },
+                      team_event: { color: '#3B82F6', bg: 'rgba(59,130,246,0.1)', label: 'TEAM EVENT' },
+                    }
+                    const defaultType = { color: '#94A3B8', bg: 'rgba(148,163,184,0.1)', label: 'EVENT' }
+
+                    return (
+                      <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
+                        {tabEvents.length === 0 ? (
+                          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--v2-text-muted)' }}>
+                            <p style={{ fontSize: 14, margin: '0 0 4px' }}>No upcoming events</p>
+                            <p style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>Create events from the schedule page</p>
+                          </div>
+                        ) : (
+                          <div style={{
+                            borderRadius: 10,
+                            border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+                            overflow: 'hidden', marginBottom: 16,
+                          }}>
+                            {tabEvents.slice(0, 8).map((evt, i) => {
+                              const eventDate = parseLocalDate(evt.event_date)
+                              const dayName = eventDate.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+                              const dayNum = eventDate.getDate()
+                              const monthName = eventDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()
+                              const isToday = eventDate.toDateString() === new Date().toDateString()
+                              const type = (evt.event_type || 'other').toLowerCase()
+                              const isGame = type === 'game'
+                              const config = typeConfig[type] || defaultType
+
+                              return (
+                                <div
+                                  key={evt.id || i}
+                                  onClick={() => navigate('/schedule')}
+                                  style={{
+                                    display: 'flex', alignItems: 'stretch', cursor: 'pointer',
+                                    borderBottom: i < Math.min(tabEvents.length, 8) - 1 ? '1px solid var(--v2-border-subtle, rgba(148,163,184,0.15))' : 'none',
+                                    background: isGame ? 'var(--v2-navy, #10284C)' : 'transparent',
+                                    transition: 'background 0.15s ease',
+                                  }}
+                                  onMouseEnter={e => { if (!isGame) e.currentTarget.style.background = 'var(--v2-surface)' }}
+                                  onMouseLeave={e => { if (!isGame) e.currentTarget.style.background = 'transparent' }}
+                                >
+                                  {/* Left accent bar */}
+                                  <div style={{ width: 3, flexShrink: 0, background: config.color, borderRadius: '3px 0 0 3px' }} />
+
+                                  {/* Date column */}
+                                  <div style={{ width: 48, textAlign: 'center', flexShrink: 0, padding: '10px 4px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', color: isGame ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)' }}>{dayName}</div>
+                                    <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.1, color: isToday ? '#4BB9EC' : isGame ? '#FFFFFF' : 'var(--v2-text-primary)' }}>{dayNum}</div>
+                                    <div style={{ fontSize: 8, fontWeight: 600, letterSpacing: '0.05em', color: isGame ? 'rgba(255,255,255,0.4)' : 'var(--v2-text-muted)' }}>{monthName}</div>
+                                  </div>
+
+                                  {/* Event details */}
+                                  <div style={{ flex: 1, minWidth: 0, padding: '10px 8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 1 }}>
+                                      <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#4BB9EC' }}>{evt.teams?.name || 'All Teams'}</span>
+                                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: isGame ? 'rgba(255,255,255,0.4)' : 'var(--v2-text-muted)' }}>{type}</span>
+                                    </div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '-0.01em', color: isGame ? '#FFFFFF' : 'var(--v2-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {evt.title || evt.event_type}
+                                    </div>
+                                    <div style={{ fontSize: 11, marginTop: 1, color: isGame ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)' }}>
+                                      {formatTime12(evt.event_time || evt.start_time)}
+                                      {evt.end_time && ` — ${formatTime12(evt.end_time)}`}
+                                      {(evt.venue_name || evt.location) && ` · ${evt.venue_name || evt.location}`}
+                                    </div>
+                                  </div>
+
+                                  {/* Event type badge pill */}
+                                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', flexShrink: 0 }}>
+                                    <span style={{
+                                      fontSize: 9, fontWeight: 800, textTransform: 'uppercase',
+                                      letterSpacing: '0.05em', padding: '3px 8px', borderRadius: 6,
+                                      background: isGame ? 'rgba(255,255,255,0.1)' : config.bg,
+                                      color: isGame ? '#FFFFFF' : config.color, whiteSpace: 'nowrap',
+                                    }}>
+                                      {config.label}
+                                    </span>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {tabEvents.length > 8 && (
+                          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+                            <span style={{ fontSize: 12, color: 'var(--v2-text-muted)' }}>+{tabEvents.length - 8} more events</span>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => navigate('/schedule')}
+                          style={{
+                            width: '100%', padding: 10, borderRadius: 10,
+                            fontSize: 12, fontWeight: 700,
+                            background: 'var(--v2-navy)', color: '#FFFFFF',
+                            border: 'none', cursor: 'pointer',
+                          }}
+                        >
+                          View Full Schedule &rarr;
+                        </button>
+                      </div>
+                    )
+                  })()}
                 </BodyTabs>
 
                 {/* Season Journey Stepper — admin only, hidden when all steps complete */}
