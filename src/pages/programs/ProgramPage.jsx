@@ -777,6 +777,7 @@ export default function ProgramPage({ showToast }) {
                       monthlyPayments={tabMonthlyPayments}
                       paymentFamilies={tabPaymentFamilies}
                       onNavigate={(pageId) => navigate(`/${pageId}`)}
+                      compact
                     />
                   )}
                   {activeTab === 'schedule' && (

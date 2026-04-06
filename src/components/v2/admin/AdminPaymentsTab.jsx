@@ -10,6 +10,7 @@ export default function AdminPaymentsTab({
   monthlyPayments = [],
   paymentFamilies = [],
   onNavigate,
+  compact = false,
 }) {
   const totalCollected = stats.totalCollected || 0
   const totalOutstanding = stats.pastDue || 0
@@ -80,41 +81,66 @@ export default function AdminPaymentsTab({
   return (
     <div style={{ padding: '20px 24px', fontFamily: 'var(--v2-font)' }}>
       {/* Summary row */}
-      <div style={{
-        display: 'flex', gap: 16, marginBottom: 20,
-        background: 'var(--v2-surface)', borderRadius: 10, padding: '16px 20px',
-        flexWrap: 'wrap',
-      }}>
-        {[
-          { label: 'Collected', value: `$${totalCollected.toLocaleString()}`, color: 'var(--v2-green)' },
-          { label: 'Outstanding', value: `$${totalOutstanding.toLocaleString()}`, color: 'var(--v2-coral)' },
-          { label: 'Collection Rate', value: `${collectionRate}%`, color: collectionRate >= 75 ? 'var(--v2-green)' : collectionRate >= 50 ? '#D97706' : 'var(--v2-coral)' },
-          { label: 'Overdue', value: overdueCount, color: overdueCount > 0 ? 'var(--v2-coral)' : 'var(--v2-text-muted)' },
-        ].map((m, i) => (
-          <div key={i} style={{ flex: '1 1 0', minWidth: 80, textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.value}</div>
-            <div style={{ fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)', marginTop: 2, letterSpacing: '0.03em' }}>
-              {m.label}
+      {compact ? (
+        <div style={{
+          display: 'flex', borderRadius: 10,
+          border: '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))',
+          overflow: 'hidden', marginBottom: 12,
+        }}>
+          {[
+            { label: 'COLLECTED', value: `$${totalCollected.toLocaleString()}`, color: 'var(--v2-green)' },
+            { label: 'OUTSTANDING', value: `$${totalOutstanding.toLocaleString()}`, color: overdueCount > 0 ? '#F44336' : 'var(--v2-coral)' },
+            { label: 'COLLECTION RATE', value: `${collectionRate}%`, color: collectionRate >= 75 ? '#4CAF50' : collectionRate >= 50 ? '#FF9800' : '#F44336' },
+            { label: 'OVERDUE', value: overdueCount, color: overdueCount > 0 ? '#F44336' : 'var(--v2-text-muted)' },
+          ].map((stat, i) => (
+            <div key={stat.label} style={{
+              flex: 1, textAlign: 'center', padding: '12px 8px',
+              borderRight: i < 3 ? '0.5px solid var(--v2-border-subtle, rgba(148,163,184,0.2))' : 'none',
+            }}>
+              <p style={{ fontSize: 20, fontWeight: 600, margin: 0, color: stat.color }}>{stat.value}</p>
+              <p style={{ fontSize: 9, color: 'var(--v2-text-muted)', margin: '2px 0 0', letterSpacing: '0.5px' }}>{stat.label}</p>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          display: 'flex', gap: 16, marginBottom: 20,
+          background: 'var(--v2-surface)', borderRadius: 10, padding: '16px 20px',
+          flexWrap: 'wrap',
+        }}>
+          {[
+            { label: 'Collected', value: `$${totalCollected.toLocaleString()}`, color: 'var(--v2-green)' },
+            { label: 'Outstanding', value: `$${totalOutstanding.toLocaleString()}`, color: 'var(--v2-coral)' },
+            { label: 'Collection Rate', value: `${collectionRate}%`, color: collectionRate >= 75 ? 'var(--v2-green)' : collectionRate >= 50 ? '#D97706' : 'var(--v2-coral)' },
+            { label: 'Overdue', value: overdueCount, color: overdueCount > 0 ? 'var(--v2-coral)' : 'var(--v2-text-muted)' },
+          ].map((m, i) => (
+            <div key={i} style={{ flex: '1 1 0', minWidth: 80, textAlign: 'center' }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: m.color }}>{m.value}</div>
+              <div style={{ fontSize: 9.5, fontWeight: 600, textTransform: 'uppercase', color: 'var(--v2-text-muted)', marginTop: 2, letterSpacing: '0.03em' }}>
+                {m.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Family payments table */}
       {paymentFamilies.length === 0 ? (
-        <div style={{
-          padding: '28px 16px', textAlign: 'center', marginBottom: 20,
-          background: 'rgba(16,185,129,0.06)', borderRadius: 10,
-          border: '1px solid rgba(16,185,129,0.15)',
-        }}>
-          <div style={{ fontSize: 24, marginBottom: 4 }}>&#10003;</div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--v2-green)' }}>
-            All payments are current
+        !compact && (
+          <div style={{
+            padding: '28px 16px', textAlign: 'center', marginBottom: 20,
+            background: 'rgba(16,185,129,0.06)', borderRadius: 10,
+            border: '1px solid rgba(16,185,129,0.15)',
+          }}>
+            <div style={{ fontSize: 24, marginBottom: 4 }}>&#10003;</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--v2-green)' }}>
+              All payments are current
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--v2-text-muted)', marginTop: 2 }}>
+              No outstanding balances for this season.
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--v2-text-muted)', marginTop: 2 }}>
-            No outstanding balances for this season.
-          </div>
-        </div>
+        )
       ) : (
         <div style={{ marginBottom: 20 }}>
           {/* Table header */}
