@@ -96,9 +96,25 @@ function buildLynxEmail({
 // ── Legacy fallback templates (for emails without branded template data) ─────
 const legacyTemplates: Record<string, (data: any) => { subject: string; heading: string; body: string; cta_text?: string; cta_url?: string }> = {
   registration_confirmation: (data) => ({
-    subject: `Registration Received - ${data.player_name}`,
-    heading: 'Registration Received',
-    body: `<p>Thank you for registering <strong>${data.player_name}</strong> for <strong>${data.season_name}</strong>.</p><p>Your registration is being reviewed. You'll receive another email once it's approved.</p>`,
+    subject: data.invite_url
+      ? `${data.player_name} is registered! Create your account`
+      : `Registration Received - ${data.player_name}`,
+    heading: data.invite_url ? `${data.player_name} Is Registered!` : 'Registration Received',
+    body: data.invite_url
+      ? `
+        <p style="font-size:16px;line-height:1.6">Hey ${data.parent_name || 'there'}! 👋</p>
+        <p style="font-size:16px;line-height:1.6">
+          Great news — <strong>${data.player_name}</strong> is officially registered for
+          <strong>${data.season_name}</strong>${data.org_name ? ` with ${data.org_name}` : ''}.
+        </p>
+        <p style="font-size:16px;line-height:1.6">
+          Create your parent account to track schedules, payments, and everything else
+          for ${data.player_name}'s season. It takes less than a minute.
+        </p>
+      `
+      : `<p>Thank you for registering <strong>${data.player_name}</strong> for <strong>${data.season_name}</strong>.</p><p>Your registration is being reviewed. You'll receive another email once it's approved.</p>`,
+    cta_text: data.invite_url ? 'Create Your Account' : undefined,
+    cta_url: data.invite_url || undefined,
   }),
   registration_approved: (data) => ({
     subject: `Registration Approved - ${data.player_name}`,
@@ -120,10 +136,12 @@ const legacyTemplates: Record<string, (data: any) => { subject: string; heading:
     heading: 'Team Assignment',
     body: `<p><strong>${data.player_name}</strong> has been assigned to <strong>${data.team_name}</strong> for ${data.season_name}!</p>${data.coach_name ? `<p>Coach: ${data.coach_name}</p>` : ''}`,
   }),
-  waitlist: (data) => ({
-    subject: `Waitlist Notification - ${data.player_name}`,
-    heading: 'Waitlist Status',
-    body: `<p><strong>${data.player_name}</strong> has been added to the waitlist for ${data.season_name}.</p><p>We'll contact you as soon as a spot becomes available.</p>`,
+  waitlist_spot_available: (data) => ({
+    subject: `Spot Available! - ${data.player_name}`,
+    heading: 'A Spot Has Opened Up!',
+    body: `<p>Great news! A spot is now available for <strong>${data.player_name}</strong> in <strong>${data.season_name}</strong>.</p><p><strong>This spot will expire in ${data.expires_in || '48 hours'}.</strong></p><p>If you no longer wish to join, simply ignore this email and the spot will go to the next person on the waitlist.</p>`,
+    cta_text: data.registration_url ? 'Claim Your Spot' : undefined,
+    cta_url: data.registration_url || undefined,
   }),
   blast_announcement: (data) => ({
     subject: data.subject || 'Announcement',
@@ -166,6 +184,23 @@ const legacyTemplates: Record<string, (data: any) => { subject: string; heading:
     `,
     cta_text: 'Register Now',
     cta_url: data.registration_url || data.app_url || 'https://www.thelynxapp.com',
+  }),
+  role_elevation: (data) => ({
+    subject: `You're now a ${data.new_role || 'Coach'} at ${data.organization_name}!`,
+    heading: `🎉 Welcome to the Coaching Staff!`,
+    body: `
+      <p style="font-size:16px;line-height:1.6">Hey ${data.recipient_name || 'there'}! 👋</p>
+      <p style="font-size:16px;line-height:1.6">
+        Great news — you've been added as a <strong>${data.new_role || 'Coach'}</strong> at <strong>${data.organization_name}</strong>!
+        ${data.team_name ? `You'll be working with <strong>${data.team_name}</strong>.` : ''}
+      </p>
+      <p style="font-size:16px;line-height:1.6">
+        Log in to access your coach dashboard — you'll have full access to your roster, schedule, attendance, and lineup tools.
+      </p>
+      <p style="font-size:16px;line-height:1.6">Let's build something great together. 💪</p>
+    `,
+    cta_text: 'Open Dashboard',
+    cta_url: data.app_url || 'https://www.thelynxapp.com',
   }),
 }
 
