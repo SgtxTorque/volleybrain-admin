@@ -15,7 +15,9 @@ function formatTime12(timeStr) {
 }
 
 function formatDate(dateStr) {
-  const date = new Date(dateStr)
+  if (!dateStr) return ''
+  // Append T00:00:00 to date-only strings to force local time interpretation (not UTC)
+  const date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00')
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -24,20 +26,24 @@ function formatDate(dateStr) {
 }
 
 function isToday(dateStr) {
-  return new Date(dateStr).toDateString() === new Date().toDateString()
+  if (!dateStr) return false
+  const date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00')
+  return date.toDateString() === new Date().toDateString()
 }
 
 function isTomorrow(dateStr) {
+  if (!dateStr) return false
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
-  return new Date(dateStr).toDateString() === tomorrow.toDateString()
+  const date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00')
+  return date.toDateString() === tomorrow.toDateString()
 }
 
 // ============================================
 // GAME CARD COMPONENT
 // ============================================
 function GameCard({ game, team, status, isSelected, isDark, onClick, onPrepClick, onCompleteClick, onGameDayClick, onEnterStats, onShareResults, checkpoints, currentCheckpoint }) {
-  const gameDate = new Date(game.event_date)
+  const gameDate = new Date(game.event_date?.includes?.('T') ? game.event_date : (game.event_date || '') + 'T00:00:00')
   const today = isToday(game.event_date)
   const tomorrow = isTomorrow(game.event_date)
   const isCompleted = game.game_status === 'completed'
