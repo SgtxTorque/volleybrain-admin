@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import { EmailService } from '../../lib/email-service'
+import { createInvitation, checkExistingAccount } from '../../lib/invite-utils'
 import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
   SharedInfoCard, CustomQuestionsCard,
@@ -1314,7 +1315,30 @@ export function RegistrationCartPage() {
         }
       }
 
-      // 2. For each child × assigned program, create player + registration
+      // 2a. Create parent invite for magic link (before the loop so invite_code is ready)
+      let parentInviteUrl = null
+      try {
+        if (parentEmail && organization?.id) {
+          const existingProfile = await checkExistingAccount(parentEmail)
+          if (!existingProfile) {
+            // Will fill playerIds after they're created — metadata updated later
+            const invite = await createInvitation({
+              organizationId: organization.id,
+              email: parentEmail,
+              inviteType: 'parent',
+              role: 'parent',
+              invitedBy: null,
+              metadata: { source: 'shopping_cart' },
+              expiresInHours: 168, // 7 days for parent invites
+            })
+            parentInviteUrl = `${window.location.origin}/invite/parent/${invite.invite_code}`
+          }
+        }
+      } catch (inviteErr) {
+        console.error('Failed to create parent invite:', inviteErr)
+      }
+
+      // 2b. For each child × assigned program, create player + registration
       for (let childIndex = 0; childIndex < children.length; childIndex++) {
         const child = children[childIndex]
         const assignedProgramIds = childProgramMap[childIndex] || []
@@ -1437,7 +1461,7 @@ export function RegistrationCartPage() {
           if (regError) throw regError
           createdRegistrationIds.push(registration.id)
 
-          // Confirmation email (fire and forget)
+          // Confirmation email with optional magic link (fire and forget)
           try {
             await EmailService.sendRegistrationConfirmation({
               recipientEmail: parentEmail,
@@ -1446,6 +1470,7 @@ export function RegistrationCartPage() {
               seasonName: sp.season.name,
               organizationId: organization?.id,
               organizationName: organization?.name || '',
+              inviteUrl: parentInviteUrl,
             })
           } catch (emailErr) {
             console.error('Email send failed:', emailErr)

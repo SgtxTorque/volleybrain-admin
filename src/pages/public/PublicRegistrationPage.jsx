@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { EmailService } from '../../lib/email-service'
+import { createInvitation, checkExistingAccount } from '../../lib/invite-utils'
 import { AlertCircle } from '../../constants/icons'
 import { DEFAULT_CONFIG, PLAYER_FIELD_MAP, SHARED_FIELD_MAP, calculateFeePerChild } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
@@ -683,8 +684,35 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       trackFunnelEvent('form_submitted', null, { children_count: allChildren.length })
       setRegistrationIds(createdRegistrationIds)
 
-      // Send registration confirmation email for each child
+      // Create parent invite + send registration confirmation email
       if (sharedInfo.parent1_email) {
+        let inviteUrl = null
+        try {
+          const parentEmail = sharedInfo.parent1_email.trim().toLowerCase()
+          const existingProfile = await checkExistingAccount(parentEmail)
+
+          if (!existingProfile && organization?.id) {
+            const invite = await createInvitation({
+              organizationId: organization.id,
+              email: parentEmail,
+              inviteType: 'parent',
+              role: 'parent',
+              invitedBy: null,  // self-initiated via registration
+              metadata: {
+                playerIds: createdPlayerIds,
+                registrationIds: createdRegistrationIds,
+                seasonId: season?.id,
+                source: 'registration',
+              },
+              expiresInHours: 168,  // 7 days for parent invites
+            })
+            inviteUrl = `${window.location.origin}/invite/parent/${invite.invite_code}`
+          }
+        } catch (inviteErr) {
+          console.error('Failed to create parent invite:', inviteErr)
+          // Don't block registration success if invite creation fails
+        }
+
         for (const child of allChildren) {
           try {
             await EmailService.sendRegistrationConfirmation({
@@ -694,10 +722,10 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
               seasonName: season?.name || '',
               organizationId: organization?.id,
               organizationName: organization?.name || '',
+              inviteUrl,
             })
           } catch (emailErr) {
             console.error('Failed to send confirmation email:', emailErr)
-            // Don't block registration success on email failure
           }
         }
       }

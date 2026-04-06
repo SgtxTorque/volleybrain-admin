@@ -54,9 +54,11 @@ export const EmailService = {
     }
   },
 
-  // Send registration confirmation email
-  async sendRegistrationConfirmation({ recipientEmail, recipientName, playerName, seasonName, teamName, startDate, organizationId, organizationName }) {
+  // Send registration confirmation email (with optional magic link for account creation)
+  async sendRegistrationConfirmation({ recipientEmail, recipientName, playerName, seasonName, teamName, startDate, organizationId, organizationName, inviteUrl }) {
     if (!recipientEmail) return { success: false, error: 'No recipient email' }
+
+    const hasInvite = !!inviteUrl
 
     return this.queueEmail('registration_confirmation', recipientEmail, recipientName, {
       player_name: playerName,
@@ -65,9 +67,12 @@ export const EmailService = {
       team_name: teamName || 'TBD',
       start_date: startDate || 'TBD',
       org_name: organizationName,
+      invite_url: inviteUrl || null,
       app_url: window.location.origin,
     }, organizationId, {
-      subject: `${playerName} is on the roster. Let's go.`,
+      subject: hasInvite
+        ? `${playerName} is registered! Create your account`
+        : `${playerName} is on the roster. Let's go.`,
       category: 'transactional',
       templateType: 'registration_confirmation',
     })
@@ -228,6 +233,23 @@ export const EmailService = {
         : `Register for ${orgName}!`,
       category: 'transactional',
       templateType: 'registration_invite',
+    })
+  },
+
+  // Send role elevation notification (existing user gets a new role — no magic link needed)
+  async sendRoleElevationNotification({ to, recipientName, orgName, orgId, newRole, teamName }) {
+    if (!to) return { success: false, error: 'No recipient email' }
+
+    return this.queueEmail('role_elevation', to, recipientName, {
+      recipient_name: recipientName,
+      organization_name: orgName,
+      new_role: newRole,
+      team_name: teamName || null,
+      app_url: window.location.origin,
+    }, orgId, {
+      subject: `You're now a ${newRole} at ${orgName}!`,
+      category: 'transactional',
+      templateType: 'role_elevation',
     })
   },
 
