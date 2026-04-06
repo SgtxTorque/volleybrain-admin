@@ -341,8 +341,9 @@ function ProgramsSidebarSection({ isPlayer, onNavigate }) {
                     <button
                       key={season.id}
                       onClick={() => {
-                        selectProgram(program)
                         selectSeason(season)
+                        selectProgram(program)
+                        navigate(`/programs/${program.id}`)
                       }}
                       className="v2-sidebar-btn"
                       data-player={isPlayer || undefined}
