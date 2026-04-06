@@ -211,7 +211,26 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
       if (teamError) console.error('Error linking coach to team:', teamError)
     }
 
-    // 3. Queue the invite email with the real invite URL
+    // 3. Track in invitations table with expiration (non-critical)
+    if (pendingCoach) {
+      try {
+        await createInvitation({
+          organizationId: orgId || organization?.id,
+          email: email.trim(),
+          inviteType: 'coach',
+          role: 'coach',
+          invitedBy: profile?.id,
+          coachId: pendingCoach.id,
+          teamId: teamId || null,
+          metadata: { coachRole: role, seasonId },
+          expiresInHours: 72,  // 3 days
+        })
+      } catch {
+        // Non-critical tracking
+      }
+    }
+
+    // 4. Queue the invite email with the real invite URL
     const inviteUrl = pendingCoach
       ? `${window.location.origin}/invite/coach/${inviteCode}`
       : `${window.location.origin}/join/coach/${orgId || organization?.id}`

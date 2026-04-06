@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { acceptInvitation as acceptInvitationRecord } from '../../lib/invite-utils'
 
 const ROLE_LABELS = {
   head: 'Head Coach', assistant: 'Assistant Coach', manager: 'Manager', volunteer: 'Volunteer'
@@ -31,6 +32,7 @@ export default function CoachInviteAcceptPage() {
   const [formPhone, setFormPhone] = useState('')
   const [processing, setProcessing] = useState(false)
   const [accepted, setAccepted] = useState(false)
+  const [warning, setWarning] = useState(null)
 
   // Force light theme on public route
   useEffect(() => {
@@ -78,6 +80,20 @@ export default function CoachInviteAcceptPage() {
         }
       }
 
+      // Check invitations table for expiration
+      const { data: invitation } = await supabase
+        .from('invitations')
+        .select('expires_at, status')
+        .eq('coach_id', coach.id)
+        .eq('status', 'pending')
+        .maybeSingle()
+
+      if (invitation?.expires_at && new Date(invitation.expires_at) < new Date()) {
+        setError('This invitation has expired. Please ask the admin to send a new one.')
+        setLoading(false)
+        return
+      }
+
       setInvite(coach)
       setOrgInfo(org)
       setFormEmail(coach.invite_email || '')
@@ -87,7 +103,17 @@ export default function CoachInviteAcceptPage() {
     setLoading(false)
   }
 
+  function checkEmailMismatch(userEmail) {
+    const inviteEmail = invite.invite_email?.toLowerCase()
+    if (userEmail.toLowerCase() !== inviteEmail) {
+      setWarning(`This invitation was sent to ${invite.invite_email}. You're accepting with ${userEmail}.`)
+    }
+  }
+
   async function acceptInvite(userId, userEmail) {
+    // Check email mismatch
+    checkEmailMismatch(userEmail)
+
     // Link the coach record to the user
     const { error: updateError } = await supabase
       .from('coaches')
@@ -100,6 +126,21 @@ export default function CoachInviteAcceptPage() {
       .eq('id', invite.id)
 
     if (updateError) throw updateError
+
+    // Mark invitation as accepted in invitations table (non-critical)
+    try {
+      const { data: invitation } = await supabase
+        .from('invitations')
+        .select('invite_code')
+        .eq('coach_id', invite.id)
+        .eq('status', 'pending')
+        .maybeSingle()
+      if (invitation?.invite_code) {
+        await acceptInvitationRecord(invitation.invite_code, userId)
+      }
+    } catch {
+      // Non-critical
+    }
 
     // Add coach role to user_roles
     const orgId = invite._season?.organization_id
@@ -347,6 +388,13 @@ export default function CoachInviteAcceptPage() {
             )}
           </div>
         </div>
+
+        {/* Warning alert */}
+        {warning && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+            <p className="text-sm text-amber-700">{warning}</p>
+          </div>
+        )}
 
         {/* Error alert */}
         {error && (

@@ -12,7 +12,8 @@ import {
   Award, AlertTriangle, Search, Filter, Upload, Eye, Plus,
   MoreVertical, Download, UserPlus, Copy, Share2, RefreshCw
 } from '../../constants/icons'
-import { generateInviteCode } from '../../lib/invite-utils'
+import { generateInviteCode, createInvitation } from '../../lib/invite-utils'
+import { EmailService } from '../../lib/email-service'
 import PageShell from '../../components/pages/PageShell'
 import InnerStatRow from '../../components/pages/InnerStatRow'
 import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
@@ -174,6 +175,50 @@ export function CoachesPage({ showToast }) {
     loadCoaches()
   }
 
+  async function resendInvite(coach) {
+    try {
+      // Generate a new invite code
+      const newInviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
+
+      // Update the coaches record with new code
+      await supabase.from('coaches').update({
+        invite_code: newInviteCode,
+        invited_at: new Date().toISOString(),
+      }).eq('id', coach.id)
+
+      // Create new invitation record (expires old ones automatically)
+      try {
+        await createInvitation({
+          organizationId: organization?.id,
+          email: coach.invite_email || coach.email,
+          inviteType: 'coach',
+          role: 'coach',
+          invitedBy: profile?.id,
+          coachId: coach.id,
+          metadata: { coachRole: coach.role, resent: true },
+          expiresInHours: 72,
+        })
+      } catch { /* non-critical */ }
+
+      // Send new invite email
+      const inviteUrl = `${window.location.origin}/invite/coach/${newInviteCode}`
+      await EmailService.sendCoachInvite({
+        recipientEmail: coach.invite_email || coach.email,
+        coachName: coach.first_name,
+        orgName: organization?.name || 'Our Club',
+        orgId: organization?.id,
+        orgLogoUrl: organization?.logo_url,
+        senderName: profile?.full_name || organization?.name,
+        role: coach.role || 'Coach',
+        inviteLink: inviteUrl,
+      })
+
+      showToast(`Invite resent to ${coach.invite_email || coach.email}`, 'success')
+    } catch (err) {
+      showToast(`Error resending invite: ${err.message}`, 'error')
+    }
+  }
+
   async function saveAssignments(coachId, assignments) {
     try {
       const { data: existing } = await supabase.from('team_coaches').select('id, team_id').eq('coach_id', coachId)
@@ -329,7 +374,8 @@ export function CoachesPage({ showToast }) {
               onEdit={() => { setEditingCoach(coach); setShowAddModal(true) }}
               onAssign={() => setAssigningCoach(coach)}
               onToggleStatus={() => toggleCoachStatus(coach)}
-              onDelete={() => deleteCoach(coach)} />
+              onDelete={() => deleteCoach(coach)}
+              onResendInvite={() => resendInvite(coach)} />
           ))}
         </div>
       )}
@@ -364,7 +410,7 @@ export function CoachesPage({ showToast }) {
 // ============================================
 // COACH CARD — Redesigned (no gradient banner, kebab menu, compact layout)
 // ============================================
-function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStatus, onDelete }) {
+function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStatus, onDelete, onResendInvite }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const bgCheck = bgCheckLabels[coach.background_check_status] || bgCheckLabels.not_started
 
@@ -445,6 +491,12 @@ function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStat
                       <Mail className="w-4 h-4 opacity-60" /> Send Email
                     </a>
                   )}
+                  {coach.invite_status === 'invited' && (
+                    <button onClick={() => { onResendInvite?.(); setMenuOpen(false) }}
+                      className={`w-full px-4 py-2 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-lynx-sky hover:bg-white/[0.04]' : 'text-sky-600 hover:bg-sky-50'}`}>
+                      <RefreshCw className="w-4 h-4 opacity-60" /> Resend Invite
+                    </button>
+                  )}
                   <div className={`my-1 border-t ${isDark ? 'border-white/[0.06]' : 'border-lynx-silver'}`} />
                   <button onClick={() => { onToggleStatus?.(); setMenuOpen(false) }}
                     className={`w-full px-4 py-2 text-left text-r-sm flex items-center gap-2.5 ${isDark ? 'text-amber-400 hover:bg-white/[0.04]' : 'text-amber-600 hover:bg-amber-50'}`}>
@@ -477,6 +529,13 @@ function CoachCard({ coach, tc, isDark, onDetail, onEdit, onAssign, onToggleStat
 
         {/* Badges row: experience + bg check + waiver */}
         <div className="flex flex-wrap items-center gap-1.5 mt-3">
+          {coach.invite_status === 'invited' && (
+            <span className={`px-2 py-0.5 rounded-full text-r-xs font-semibold ${
+              isDark ? 'bg-amber-500/15 text-amber-400' : 'bg-amber-50 text-amber-600'
+            }`}>
+              Invite Pending
+            </span>
+          )}
           {coach.experience_years && (
             <span className={`px-2 py-0.5 rounded-full text-r-xs font-semibold ${
               isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
