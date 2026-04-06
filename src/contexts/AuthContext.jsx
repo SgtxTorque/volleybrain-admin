@@ -151,7 +151,7 @@ export function AuthProvider({ children }) {
         console.error('Auto-link children error:', linkErr)
       }
 
-      const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', authUser.id).eq('is_active', true)
+      const { data: roles } = await supabase.from('user_roles').select('role, organization_id').eq('user_id', authUser.id).eq('is_active', true).order('granted_at', { ascending: false })
       if (roles && roles.length > 0) {
         setIsAdmin(roles.some(r => r.role === 'league_admin'))
         // Prefer the profile's current_organization_id if it matches one of the user's roles

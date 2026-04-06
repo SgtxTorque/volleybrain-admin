@@ -62,7 +62,13 @@ export function SeasonProvider({ children }) {
       if (savedSeasonId === 'all') {
         setSelectedSeason(ALL_SEASONS)
       } else {
+        // savedSeason will be undefined if the saved ID belongs to a different org
+        // (data is already filtered by organization.id)
         const savedSeason = data?.find(s => s.id === savedSeasonId)
+        if (savedSeasonId && !savedSeason) {
+          // Clear stale cross-org saved season
+          localStorage.removeItem('vb_selected_season')
+        }
         const activeSeason = data?.find(s => s.status === 'active')
         setSelectedSeason(savedSeason || activeSeason || data?.[0] || null)
       }
