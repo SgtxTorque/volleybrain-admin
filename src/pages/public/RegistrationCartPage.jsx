@@ -6,7 +6,10 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
-import { Check, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  ChildrenListCard, PlayerInfoCard, AddChildButton,
+} from './RegistrationFormSteps'
+import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2 } from 'lucide-react'
 
 const CARD = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
 
@@ -203,6 +206,179 @@ function MultiSeasonProgramCard({ program, seasons, selectedSeasonId, onSelectSe
   )
 }
 
+// ─── Merge registration configs from multiple programs ────────────────────
+function mergeRegistrationConfigs(selectedPrograms) {
+  if (selectedPrograms.length === 0) return DEFAULT_CONFIG
+  const merged = {
+    player_fields: {},
+    parent_fields: {},
+    emergency_fields: {},
+    medical_fields: {},
+    waivers: {},
+    custom_questions: [],
+  }
+  for (const { season } of selectedPrograms) {
+    const config = season._resolvedConfig || DEFAULT_CONFIG
+    for (const section of ['player_fields', 'parent_fields', 'emergency_fields', 'medical_fields']) {
+      for (const [key, field] of Object.entries(config[section] || {})) {
+        if (!merged[section][key]) {
+          merged[section][key] = { ...field }
+        } else {
+          if (field.required) merged[section][key].required = true
+          if (field.enabled) merged[section][key].enabled = true
+        }
+      }
+    }
+    // Merge waivers
+    for (const [key, waiver] of Object.entries(config.waivers || {})) {
+      if (!merged.waivers[key]) merged.waivers[key] = { ...waiver }
+      else if (waiver.required) merged.waivers[key].required = true
+    }
+    // Merge custom questions (deduplicate by question text)
+    const existingQs = new Set(merged.custom_questions.map(q => q.question?.toLowerCase().trim()))
+    for (const q of (config.custom_questions || [])) {
+      if (q.question && !existingQs.has(q.question.toLowerCase().trim())) {
+        merged.custom_questions.push(q)
+        existingQs.add(q.question.toLowerCase().trim())
+      }
+    }
+  }
+  // Fill gaps from DEFAULT_CONFIG
+  const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0
+  return {
+    player_fields: hasFields(merged.player_fields) ? merged.player_fields : DEFAULT_CONFIG.player_fields,
+    parent_fields: hasFields(merged.parent_fields) ? merged.parent_fields : DEFAULT_CONFIG.parent_fields,
+    emergency_fields: hasFields(merged.emergency_fields) ? merged.emergency_fields : DEFAULT_CONFIG.emergency_fields,
+    medical_fields: hasFields(merged.medical_fields) ? merged.medical_fields : DEFAULT_CONFIG.medical_fields,
+    waivers: hasFields(merged.waivers) ? merged.waivers : DEFAULT_CONFIG.waivers,
+    custom_questions: merged.custom_questions.length > 0 ? merged.custom_questions : DEFAULT_CONFIG.custom_questions,
+  }
+}
+
+// ─── Step 2: Add Children ─────────────────────────────────────────────────
+function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild, editingChildIndex, setEditingChildIndex, showAddChildForm, setShowAddChildForm, mergedConfig, selectedPrograms, accentColor, onContinue, onBack, error, setError }) {
+
+  function validateCurrentChild() {
+    const playerFields = mergedConfig.player_fields || {}
+    for (const [key, field] of Object.entries(playerFields)) {
+      if (field.enabled && field.required && !currentChild[key]) {
+        return `${field.label} is required`
+      }
+    }
+    return null
+  }
+
+  function addChild() {
+    const validationError = validateCurrentChild()
+    if (validationError) { setError(validationError); return }
+    if (editingChildIndex !== null) {
+      const updated = [...children]
+      updated[editingChildIndex] = { ...currentChild }
+      setChildren(updated)
+      setEditingChildIndex(null)
+    } else {
+      setChildren([...children, { ...currentChild }])
+    }
+    setCurrentChild({})
+    setShowAddChildForm(false)
+    setError(null)
+  }
+
+  function editChild(index) {
+    setCurrentChild({ ...children[index] })
+    setEditingChildIndex(index)
+    setShowAddChildForm(true)
+  }
+
+  function removeChild(index) {
+    setChildren(children.filter((_, i) => i !== index))
+    if (editingChildIndex === index) {
+      setCurrentChild({})
+      setEditingChildIndex(null)
+    }
+  }
+
+  function cancelChildEdit() {
+    setCurrentChild({})
+    setEditingChildIndex(null)
+    setShowAddChildForm(false)
+    setError(null)
+  }
+
+  const programIcons = selectedPrograms.map(sp => {
+    const icon = sp.program.sport?.icon || sp.program.icon || '🏆'
+    return `${icon} ${sp.program.name}`
+  })
+
+  const savedCount = children.length
+  const hasUnsaved = currentChild.first_name?.trim()
+
+  return (
+    <div>
+      <div className="px-4 pt-6 pb-2 max-w-2xl mx-auto">
+        <h2 className="text-lg font-bold text-[#10284C]">Add Your Children</h2>
+        <p className="text-sm text-slate-500 mt-1">
+          Each child can be assigned to: {programIcons.join(', ')}
+        </p>
+      </div>
+
+      <div className="px-4 pb-32 max-w-2xl mx-auto">
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
+        <ChildrenListCard children={children} onEdit={editChild} onRemove={removeChild} />
+
+        <PlayerInfoCard
+          config={mergedConfig}
+          currentChild={currentChild}
+          setCurrentChild={setCurrentChild}
+          editingChildIndex={editingChildIndex}
+          childrenCount={savedCount}
+          showAddChildForm={showAddChildForm}
+          onSaveChild={addChild}
+          onCancel={cancelChildEdit}
+          trackFormStart={() => {}}
+        />
+
+        <AddChildButton
+          visible={savedCount > 0 && !showAddChildForm && editingChildIndex === null}
+          onClick={() => { setShowAddChildForm(true); setCurrentChild({}) }}
+        />
+      </div>
+
+      {/* Bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button type="button" onClick={onBack}
+            className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-white flex items-center gap-1">
+            <ChevronLeft className="w-4 h-4" /> Programs
+          </button>
+          <div className="text-right mr-3">
+            <p className="text-xs text-slate-500">{savedCount} {savedCount === 1 ? 'child' : 'children'} added</p>
+          </div>
+          <button
+            type="button"
+            disabled={savedCount === 0}
+            onClick={() => {
+              if (hasUnsaved && savedCount === 0) { setError('Please save the child before continuing'); return }
+              onContinue()
+            }}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            style={{ backgroundColor: savedCount > 0 ? accentColor : '#94a3b8' }}
+          >
+            Continue — Assign Programs
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Step 1: Program Catalog ──────────────────────────────────────────────
 function ProgramCatalogStep({ availablePrograms, selectedPrograms, setSelectedPrograms, accentColor, onContinue }) {
   function toggleProgram(program, season) {
@@ -329,11 +505,71 @@ export function RegistrationCartPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Merged registration config (built from selected programs' templates)
+  const [mergedConfig, setMergedConfig] = useState(DEFAULT_CONFIG)
+
   // ─── Accent color ────────────────────────────────────────────────────
   const orgSettings = organization?.settings || {}
   const orgBranding = orgSettings.branding || {}
   const accentColor = orgBranding.primary_color || orgSettings.primary_color || '#4BB9EC'
   const orgLogo = orgBranding.logo_url || orgSettings.logo_url || null
+
+  // ─── Load registration templates for selected programs ───────────────
+  useEffect(() => {
+    async function loadTemplates() {
+      if (selectedPrograms.length === 0 || !organization) return
+      const hasFields = (obj) => obj && typeof obj === 'object' && Object.keys(obj).length > 0
+
+      for (const sp of selectedPrograms) {
+        if (sp.season._resolvedConfig) continue // already loaded
+
+        let raw = sp.season.registration_config
+        let rawHasContent = raw && typeof raw === 'object' &&
+          (hasFields(raw.player_fields) || hasFields(raw.parent_fields))
+
+        // Tier 1: season's linked template
+        if (!rawHasContent && sp.season.registration_template_id) {
+          const { data: template } = await supabase
+            .from('registration_templates')
+            .select('player_fields, parent_fields, emergency_fields, medical_fields, waivers, custom_questions')
+            .eq('id', sp.season.registration_template_id)
+            .single()
+          if (template) {
+            raw = template
+            rawHasContent = hasFields(raw.player_fields) || hasFields(raw.parent_fields)
+          }
+        }
+
+        // Tier 2: org's default template
+        if (!rawHasContent) {
+          const { data: defaultTemplate } = await supabase
+            .from('registration_templates')
+            .select('player_fields, parent_fields, emergency_fields, medical_fields, waivers, custom_questions')
+            .eq('organization_id', organization.id)
+            .eq('is_default', true)
+            .maybeSingle()
+          if (defaultTemplate) {
+            raw = defaultTemplate
+            rawHasContent = hasFields(raw.player_fields) || hasFields(raw.parent_fields)
+          }
+        }
+
+        // Tier 3: merge with DEFAULT_CONFIG
+        sp.season._resolvedConfig = (raw && rawHasContent) ? {
+          player_fields: hasFields(raw.player_fields) ? raw.player_fields : DEFAULT_CONFIG.player_fields,
+          parent_fields: hasFields(raw.parent_fields) ? raw.parent_fields : DEFAULT_CONFIG.parent_fields,
+          emergency_fields: hasFields(raw.emergency_fields) ? raw.emergency_fields : DEFAULT_CONFIG.emergency_fields,
+          medical_fields: hasFields(raw.medical_fields) ? raw.medical_fields : DEFAULT_CONFIG.medical_fields,
+          waivers: hasFields(raw.waivers) ? raw.waivers : DEFAULT_CONFIG.waivers,
+          custom_questions: Array.isArray(raw.custom_questions) && raw.custom_questions.length > 0
+            ? raw.custom_questions : DEFAULT_CONFIG.custom_questions,
+        } : DEFAULT_CONFIG
+      }
+
+      setMergedConfig(mergeRegistrationConfigs(selectedPrograms))
+    }
+    loadTemplates()
+  }, [selectedPrograms, organization])
 
   // ─── Load org + programs with open registration ──────────────────────
   useEffect(() => {
@@ -471,15 +707,23 @@ export function RegistrationCartPage() {
       )}
 
       {currentStep === 2 && (
-        <div className="px-4 py-8 max-w-2xl mx-auto text-center text-slate-400 text-sm">
-          Step 2: Add Children — coming in Phase 2
-          <div className="mt-4 flex gap-3 justify-center">
-            <button type="button" onClick={() => setCurrentStep(1)}
-              className="px-4 py-2 rounded-xl border border-slate-300 text-sm font-medium text-slate-600 hover:bg-white">
-              Back
-            </button>
-          </div>
-        </div>
+        <AddChildrenStep
+          children={children}
+          setChildren={setChildren}
+          currentChild={currentChild}
+          setCurrentChild={setCurrentChild}
+          editingChildIndex={editingChildIndex}
+          setEditingChildIndex={setEditingChildIndex}
+          showAddChildForm={showAddChildForm}
+          setShowAddChildForm={setShowAddChildForm}
+          mergedConfig={mergedConfig}
+          selectedPrograms={selectedPrograms}
+          accentColor={accentColor}
+          onContinue={() => setCurrentStep(3)}
+          onBack={() => setCurrentStep(1)}
+          error={error}
+          setError={setError}
+        />
       )}
 
       {currentStep >= 3 && currentStep <= 5 && (
