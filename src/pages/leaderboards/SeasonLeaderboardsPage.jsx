@@ -412,7 +412,7 @@ function SeasonLeaderboardsPage({ onPlayerClick, showToast }) {
   const [teams, setTeams] = useState([])
 
   // Sport-aware leaderboard categories
-  const sportName = selectedSeason?.sports?.name || selectedSeason?.sport || selectedSport?.name || ''
+  const sportName = selectedSeason?.sports?.name || selectedSport?.name || ''
   const LEADERBOARD_CATEGORIES = getLeaderboardCategories(sportName)
 
   // Helper: get season IDs filtered by sport

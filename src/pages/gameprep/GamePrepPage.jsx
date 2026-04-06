@@ -50,7 +50,7 @@ function GamePrepPage({ showToast }) {
   const [roster, setRoster] = useState([])
   const [activeTab, setActiveTab] = useState('upcoming')
 
-  const sport = selectedTeam?.sport || selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
+  const sport = selectedTeam?.sport || selectedSeason?.sports?.name || 'volleyball'
   const sportConfig = getSportConfig(sport)
 
   useEffect(() => {

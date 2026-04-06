@@ -151,7 +151,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
       // Get coach participation
       const { data: coachRecords } = await supabase
         .from('coaches')
-        .select('id, first_name, last_name, season_id, seasons(id, name, sport, start_date, end_date, status, organization_id, organizations(id, name))')
+        .select('id, first_name, last_name, season_id, seasons(id, name, start_date, end_date, status, organization_id, sports(id, name, icon), organizations(id, name))')
         .eq('profile_id', profile.id)
 
       if (coachRecords) {
@@ -169,7 +169,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
             seasonId: c.seasons.id,
             orgName: c.seasons.organizations?.name || 'Unknown Org',
             seasonName: c.seasons.name,
-            sport: c.seasons.sport,
+            sport: c.seasons.sports?.name,
             role: 'Coach',
             teamNames,
             startDate: c.seasons.start_date,
@@ -182,7 +182,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
       // Get player participation (for users who are also players)
       const { data: playerRecords } = await supabase
         .from('players')
-        .select('id, first_name, last_name, team_players(team_id, teams(name, season_id, seasons(id, name, sport, start_date, end_date, status, organization_id, organizations(id, name))))')
+        .select('id, first_name, last_name, team_players(team_id, teams(name, season_id, seasons(id, name, start_date, end_date, status, organization_id, sports(id, name, icon), organizations(id, name))))')
         .eq('parent_account_id', profile.id)
 
       if (playerRecords) {
@@ -203,7 +203,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
               seasonId: s.id,
               orgName: s.organizations?.name || 'Unknown Org',
               seasonName: s.name,
-              sport: s.sport,
+              sport: s.sports?.name,
               role: 'Parent',
               playerName: `${p.first_name} ${p.last_name}`,
               teamNames,
@@ -240,7 +240,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
           // Get seasons for this org
           const { data: orgSeasons } = await supabase
             .from('seasons')
-            .select('id, name, sport, start_date, end_date, status')
+            .select('id, name, start_date, end_date, status, sports(id, name, icon)')
             .eq('organization_id', r.organization_id)
             .not('status', 'in', '("active","upcoming")')
 
@@ -252,7 +252,7 @@ export function MyHistorySection({ profile, isDark, tc, onNavigateToArchive }) {
               seasonId: s.id,
               orgName: r.organizations?.name || 'Unknown Org',
               seasonName: s.name,
-              sport: s.sport,
+              sport: s.sports?.name,
               role: 'Admin',
               teamNames: [],
               startDate: s.start_date,

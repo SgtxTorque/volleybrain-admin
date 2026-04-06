@@ -701,7 +701,7 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
           context="roster"
           viewerRole="admin"
           seasonId={selectedSeason?.id}
-          sport={selectedSeason?.sport || 'volleyball'}
+          sport={selectedSeason?.sports?.name || 'volleyball'}
           isOwnChild={false}
         />
       )}

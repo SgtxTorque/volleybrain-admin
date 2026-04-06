@@ -211,7 +211,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
     try {
       const { data } = await supabase
         .from('seasons')
-        .select('id, name, sport, start_date, end_date, status')
+        .select('id, name, start_date, end_date, status, sports(id, name, icon)')
         .eq('organization_id', org.id)
         .eq('status', 'active')
         .order('start_date', { ascending: false })
@@ -393,7 +393,7 @@ function OrgDetailPanel({ org, isOpen, onClose, isDark, onJoin }) {
                   {seasons.map(season => (
                     <div key={season.id} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-black/[0.02]'}`}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center text-sm" style={{ background: `${ACCENT}15` }}>
-                        {SPORT_ICONS[season.sport?.toLowerCase()] || '🏆'}
+                        {SPORT_ICONS[season.sports?.name?.toLowerCase()] || '🏆'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'} truncate`}>{season.name}</p>

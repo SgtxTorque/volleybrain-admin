@@ -41,7 +41,7 @@ export default function LineupsPage({ showToast }) {
   const [showBuilder, setShowBuilder] = useState(false)
   const [builderEvent, setBuilderEvent] = useState(null) // null = quick builder, event = game lineup
 
-  const sport = selectedTeam?.sport || selectedSeason?.sport || selectedSeason?.sports?.name || 'volleyball'
+  const sport = selectedTeam?.sport || selectedSeason?.sports?.name || 'volleyball'
 
   // ============================================
   // DATA LOADING

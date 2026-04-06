@@ -585,7 +585,7 @@ function EventDetailModal({ event, teams, venues, onClose, onUpdate, onDelete, o
       {/* Sub-modals */}
       {selectedPlayer && (
         <PlayerCardExpanded player={selectedPlayer} visible={!!selectedPlayer} onClose={() => setSelectedPlayer(null)}
-          context="roster" viewerRole="admin" seasonId={selectedSeason?.id} sport={selectedSeason?.sport || ''} isOwnChild={false} />
+          context="roster" viewerRole="admin" seasonId={selectedSeason?.id} sport={selectedSeason?.sports?.name || ''} isOwnChild={false} />
       )}
       {selectedCoach && <CoachDetailModal coach={selectedCoach} onClose={() => setSelectedCoach(null)} />}
 
