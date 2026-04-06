@@ -33,6 +33,7 @@ import EngagementLevelCard from '../../components/engagement/EngagementLevelCard
 import EngagementActivityCard from '../../components/engagement/EngagementActivityCard'
 import EngagementBadgesCard from '../../components/engagement/EngagementBadgesCard'
 import EngagementTeamPulseCard from '../../components/engagement/EngagementTeamPulseCard'
+import CreatePlayerPassModal from '../../components/parent/CreatePlayerPassModal'
 
 function formatTime12(timeStr) {
   if (!timeStr) return ''
@@ -87,6 +88,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
   const [parentPulseData, setParentPulseData] = useState({ active: 0, drifting: 0, inactive: 0 })
   const [parentNextBadgeProgress, setParentNextBadgeProgress] = useState(null)
   const [teamCoachMap, setTeamCoachMap] = useState({}) // { teamId: { userId, name } }
+  const [playerPassChild, setPlayerPassChild] = useState(null) // child to create Player Pass for
+  const [managePassChild, setManagePassChild] = useState(null) // child to manage Player Pass for
 
   const initialLoadDone = useRef(false)
 
@@ -662,6 +665,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
       : null,
     coachUserId: teamCoachMap[child.team?.id || child.team_players?.[0]?.team_id]?.userId || null,
     coachName: teamCoachMap[child.team?.id || child.team_players?.[0]?.team_id]?.name || null,
+    playerAccountEnabled: !!child.player_account_enabled,
+    playerUsername: child.player_username || null,
   }))
 
   // Map priority items for attention strip
@@ -761,6 +766,8 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
                 onViewProfile={(playerId) => onNavigate?.(`player-profile-${playerId}`)}
                 onViewPlayerCard={(playerId) => onNavigate?.(`player-${playerId}`)}
                 onMessageCoach={(teamId, coachUserId, coachName) => handleMessageCoach(teamId, coachUserId, coachName)}
+                onCreatePlayerPass={(child) => setPlayerPassChild(child)}
+                onManagePlayerPass={(child) => setManagePassChild(child)}
               />
             </div>
 
@@ -964,6 +971,22 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
           onClose={() => setQuickRsvpEvent(null)}
           onRsvp={() => { priorityEngine.refresh(); setQuickRsvpEvent(null) }}
           showToast={showToast} />
+      )}
+      {playerPassChild && (
+        <CreatePlayerPassModal
+          player={playerPassChild}
+          seasonId={seasonId}
+          organizationId={organization?.id}
+          parentProfileId={profile?.id}
+          onClose={() => {
+            setPlayerPassChild(null)
+            // Refresh registration data to pick up the new player_account_enabled flag
+            loadParentData()
+          }}
+          onSuccess={() => {
+            showToast?.('Player Pass created!', 'success')
+          }}
+        />
       )}
     </>
   )

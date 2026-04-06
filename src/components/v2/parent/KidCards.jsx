@@ -12,6 +12,8 @@ export default function KidCards({
   onViewProfile,
   onViewPlayerCard,
   onMessageCoach,
+  onCreatePlayerPass,
+  onManagePlayerPass,
 }) {
   const scrollRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
@@ -274,6 +276,40 @@ export default function KidCards({
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(75,185,236,0.06)'; e.currentTarget.style.borderColor = 'rgba(75,185,236,0.25)' }}
                 >
                   💬 Message {child.coachName.split(' ')[0]}
+                </button>
+              )}
+              {/* Player Pass button */}
+              {child.playerAccountEnabled ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onManagePlayerPass?.(child) }}
+                  style={{
+                    width: '100%', marginTop: 8, padding: '7px 12px', borderRadius: 8,
+                    border: '1px solid rgba(16,185,129,0.25)',
+                    background: 'rgba(16,185,129,0.06)', color: '#10B981',
+                    fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'all 0.15s ease',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.12)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.06)' }}
+                >
+                  &#9889; Manage Player Login
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onCreatePlayerPass?.(child) }}
+                  style={{
+                    width: '100%', marginTop: 8, padding: '7px 12px', borderRadius: 8,
+                    border: '1px solid rgba(139,92,246,0.25)',
+                    background: 'rgba(139,92,246,0.06)', color: '#8B5CF6',
+                    fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--v2-font)',
+                    transition: 'all 0.15s ease',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.12)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.06)' }}
+                >
+                  &#9889; Create Player Login
                 </button>
               )}
             </div>
