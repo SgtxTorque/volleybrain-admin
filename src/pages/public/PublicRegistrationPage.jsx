@@ -17,7 +17,7 @@ import {
   WaiversCard, FeePreviewCard, SuccessScreen, LoadingScreen, ErrorScreen
 } from './RegistrationScreens'
 
-function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId }) {
+function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId, preloadedSeason, preloadedOrganization }) {
   const params = useParams()
   const orgIdOrSlug = propOrgId || params.orgIdOrSlug
   const seasonId = propSeasonId || params.seasonId
@@ -63,6 +63,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   }
 
   async function trackFunnelEvent(eventType, stepName = null, metadata = {}) {
+    if (isPreview) return
     try {
       await supabase.from('registration_funnel_events').insert({
         organization_id: organization?.id || null,
@@ -125,9 +126,18 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
   useEffect(() => { window.scrollTo({ top: 0 }) }, [])
 
   // ─── Load season data ──────────────────────────────────────────────────
-  useEffect(() => { loadSeasonData() }, [orgIdOrSlug, seasonId])
+  useEffect(() => { loadSeasonData() }, [orgIdOrSlug, seasonId, preloadedSeason, preloadedOrganization])
 
   async function loadSeasonData() {
+    // If preloaded data provided (template preview), skip Supabase queries
+    if (preloadedSeason && preloadedOrganization) {
+      setOrganization(preloadedOrganization)
+      setSeason(preloadedSeason)
+      await loadSeasonConfig(preloadedSeason)
+      setLoading(false)
+      return
+    }
+
     try {
       let orgQuery = supabase.from('organizations').select('*')
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orgIdOrSlug)

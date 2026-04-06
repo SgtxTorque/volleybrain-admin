@@ -1545,6 +1545,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               <ThePlaybook
                 actions={[
                   { emoji: '📁', label: 'New Program', onClick: () => navigate('/settings/programs'), isPrimary: true },
+                  { emoji: '🔗', label: 'Registration Link', onClick: () => setRegLinkModal(true) },
                   { emoji: '📢', label: 'Send Blast', onClick: () => onNavigate?.('blasts') },
                   { emoji: '📊', label: 'Reports', onClick: () => onNavigate?.('reports') },
                   { emoji: '⚙️', label: 'Settings', onClick: () => onNavigate?.('organization') },

@@ -1137,6 +1137,12 @@ function ProgramCatalogStep({ availablePrograms, selectedPrograms, setSelectedPr
 export function RegistrationCartPage() {
   const { orgIdOrSlug } = useParams()
 
+  // ─── Query params: preview mode, template override, program pre-select ──
+  const searchParams = new URLSearchParams(window.location.search)
+  const isPreview = searchParams.get('preview') === 'true'
+  const previewTemplateId = searchParams.get('template')
+  const preSelectedProgramId = searchParams.get('program')
+
   // Step management
   const [currentStep, setCurrentStep] = useState(1)
 
@@ -1252,6 +1258,10 @@ export function RegistrationCartPage() {
 
   // ─── Submit — adapted from PublicRegistrationPage ────────────────────
   async function handleSubmit() {
+    if (isPreview) {
+      setSubmitted(true)
+      return
+    }
     setSubmitting(true)
     setError(null)
 
@@ -1544,6 +1554,64 @@ export function RegistrationCartPage() {
         }
 
         setAvailablePrograms(allPrograms)
+
+        // ─── Template preview: create a synthetic "Preview" program ─────
+        if (isPreview && previewTemplateId) {
+          const { data: tmpl } = await supabase
+            .from('registration_templates')
+            .select('*, sports(id, name, icon)')
+            .eq('id', previewTemplateId)
+            .single()
+
+          if (tmpl) {
+            const mockSeason = {
+              id: 'preview-template',
+              name: `${tmpl.name} (Preview)`,
+              organization_id: orgData.id,
+              sport_id: tmpl.sport_id || null,
+              sports: tmpl.sports || null,
+              registration_config: null,
+              registration_template_id: tmpl.id,
+              registration_fee: 0,
+              early_bird_fee: null,
+              sibling_discount: null,
+              capacity: null,
+              start_date: null,
+              end_date: null,
+              registration_opens: null,
+              registration_closes: null,
+              status: 'active',
+              _resolvedConfig: {
+                player_fields: tmpl.player_fields || DEFAULT_CONFIG.player_fields,
+                parent_fields: tmpl.parent_fields || DEFAULT_CONFIG.parent_fields,
+                emergency_fields: tmpl.emergency_fields || DEFAULT_CONFIG.emergency_fields,
+                medical_fields: tmpl.medical_fields || DEFAULT_CONFIG.medical_fields,
+                waivers: tmpl.waivers || DEFAULT_CONFIG.waivers,
+                custom_questions: tmpl.custom_questions || DEFAULT_CONFIG.custom_questions,
+              },
+            }
+            const previewProgram = {
+              id: `preview_${tmpl.id}`,
+              name: tmpl.name,
+              icon: tmpl.sports?.icon || '📋',
+              sport: tmpl.sports ? { id: tmpl.sports.id, name: tmpl.sports.name, icon: tmpl.sports.icon } : null,
+              seasons: [mockSeason],
+            }
+            // Replace the catalog with just this preview program and auto-select it
+            setAvailablePrograms([previewProgram])
+            setSelectedPrograms([{ programId: previewProgram.id, seasonId: mockSeason.id, program: previewProgram, season: mockSeason }])
+            setMergedConfig(mockSeason._resolvedConfig)
+          }
+        }
+
+        // ─── Pre-select program from ?program= query param ──────────────
+        if (preSelectedProgramId && !isPreview) {
+          const match = allPrograms.find(p => p.id === preSelectedProgramId)
+          if (match && match.seasons.length > 0) {
+            const season = match.seasons[0]
+            setSelectedPrograms([{ programId: match.id, seasonId: season.id, program: match, season }])
+          }
+        }
       } catch (err) {
         console.error('Failed to load registration data:', err)
         setError('Failed to load registration data. Please try again.')
@@ -1581,22 +1649,36 @@ export function RegistrationCartPage() {
 
   if (submitted) {
     return (
-      <CartSuccessScreen
-        children={children}
-        childProgramMap={childProgramMap}
-        selectedPrograms={selectedPrograms}
-        registrationIds={registrationIds}
-        organization={organization}
-        totalFee={cartTotal}
-      />
+      <>
+        {isPreview && (
+          <div className="bg-amber-500 text-white text-center py-2 font-bold text-sm">
+            PREVIEW MODE — No data was submitted
+          </div>
+        )}
+        <CartSuccessScreen
+          children={children}
+          childProgramMap={childProgramMap}
+          selectedPrograms={selectedPrograms}
+          registrationIds={registrationIds}
+          organization={organization}
+          totalFee={cartTotal}
+        />
+      </>
     )
   }
 
   // ─── Render ──────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#F5F6F8]">
+      {/* Preview mode banner */}
+      {isPreview && (
+        <div className="bg-amber-500 text-white text-center py-2 font-bold text-sm sticky top-0 z-50">
+          PREVIEW MODE — This form will NOT submit real data
+        </div>
+      )}
+
       {/* Header bar */}
-      <div className="sticky top-0 z-40" style={{ backgroundColor: accentColor }}>
+      <div className={`sticky ${isPreview ? 'top-[36px]' : 'top-0'} z-40`} style={{ backgroundColor: accentColor }}>
         <div className="max-w-2xl mx-auto px-4">
           {/* Org branding */}
           <div className="flex items-center justify-center gap-3 pt-4 pb-2">

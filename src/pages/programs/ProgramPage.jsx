@@ -18,7 +18,7 @@ import { SeasonFormModal } from '../settings/SeasonFormModal'
 import NewTeamModal from '../teams/NewTeamModal'
 import {
   Calendar, CalendarPlus, Users, Megaphone, BarChart3,
-  ClipboardList, AlertTriangle, RefreshCw, ArrowLeft, Layers,
+  ClipboardList, AlertTriangle, RefreshCw, ArrowLeft, Layers, Link2,
 } from 'lucide-react'
 
 // ============================================================================
@@ -456,6 +456,14 @@ export default function ProgramPage({ showToast }) {
     { label: 'Send Blast', icon: Megaphone, onClick: () => navigate('/blasts') },
     { label: 'View Reports', icon: BarChart3, onClick: () => navigate('/reports') },
     { label: 'Registrations', icon: ClipboardList, onClick: () => navigate('/registrations') },
+    { label: 'Registration Link', icon: Link2, onClick: () => {
+      const slug = organization?.slug || organization?.id
+      const url = `${window.location.origin}/register/${slug}?program=${program?.id}`
+      navigator.clipboard.writeText(url).then(
+        () => showToast?.('Registration link copied!', 'success'),
+        () => { window.prompt('Copy this registration link:', url) }
+      )
+    }},
   )
 
   // --- Season Journey Stepper (scoped to selected season) ---

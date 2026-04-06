@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
-import { Plus, Edit, Trash2, Copy } from '../../constants/icons'
+import { Plus, Edit, Trash2, Copy, Eye } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import { RegistrationTemplateModal, SPORT_POSITIONS, DEFAULT_CONFIG } from './RegistrationTemplateModal'
 
@@ -405,6 +405,18 @@ function RegistrationTemplatesPage({ showToast }) {
                     >
                       <Edit className="w-3.5 h-3.5" />
                       Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        const slug = organization?.slug || organization?.id
+                        window.open(`/register/${slug}?preview=true&template=${template.id}`, '_blank')
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition ${
+                        isDark ? 'bg-white/[0.06] hover:bg-white/[0.1] text-slate-400' : 'bg-[#F5F6F8] hover:bg-[#E8ECF2] text-slate-500'
+                      }`}
+                      title="Preview"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDuplicate(template)}
