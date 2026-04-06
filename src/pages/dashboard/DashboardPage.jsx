@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { EmailService } from '../../lib/email-service'
 import { useSeason, isAllSeasons } from '../../contexts/SeasonContext'
 import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
+import { useProgram } from '../../contexts/ProgramContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { SkeletonDashboard } from '../../components/ui'
@@ -13,6 +15,7 @@ import {
   WeeklyLoad, OrgHealthCard, ThePlaybook, MilestoneCard, MascotNudge,
   V2DashboardLayout,
 } from '../../components/v2'
+import ProgramCard from '../../components/v2/admin/ProgramCard'
 import SeasonCarousel from '../../components/v2/admin/SeasonCarousel'
 import SeasonStepper from '../../components/v2/admin/SeasonStepper'
 import AdminTeamsTab from '../../components/v2/admin/AdminTeamsTab'
@@ -206,6 +209,8 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const { sports, selectedSport, selectSport } = useSport()
   const { isDark, accent, toggleTheme } = useTheme()
   const { orgName, orgLogo } = useOrgBranding()
+  const { programs, selectProgram } = useProgram()
+  const navigate = useNavigate()
   const [filterTeam, setFilterTeam] = useState('all')
   const [stats, setStats] = useState({
     // Season stats
@@ -253,6 +258,11 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const [nudgeDismissed, setNudgeDismissed] = useState(false)
   const [attentionExpanded, setAttentionExpanded] = useState(false)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+
+  // Raw data for per-program card computation (Phase 3.2)
+  const [allTeamsRaw, setAllTeamsRaw] = useState([])
+  const [allPlayersRaw, setAllPlayersRaw] = useState([])
+  const [allPaymentsRaw, setAllPaymentsRaw] = useState([])
 
   // Engagement column state
   const [adminBadges, setAdminBadges] = useState([])
@@ -324,6 +334,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
         const tMap = {}
         ;(allTeams || []).forEach(t => { tMap[t.season_id] = (tMap[t.season_id] || 0) + 1 })
         setPerSeasonTeamCounts(tMap)
+        setAllTeamsRaw(allTeams || [])
 
         // Players per season (include registration status for action counts)
         const { data: allPlayers } = await supabase
@@ -340,6 +351,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
           }
         })
         setPerSeasonPlayerCounts(pMap)
+        setAllPlayersRaw(allPlayers || [])
 
         // All payments across all seasons (for global financial + per-season action counts)
         const { data: globalPaymentsRaw } = await supabase
@@ -347,6 +359,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
           .select('id, season_id, amount, paid, fee_type')
           .in('season_id', seasonIds)
 
+        setAllPaymentsRaw(globalPaymentsRaw || [])
         const gPaid = (globalPaymentsRaw || []).filter(p => p.paid)
         const gUnpaid = (globalPaymentsRaw || []).filter(p => !p.paid)
         const globalCollected = gPaid.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
@@ -1165,6 +1178,59 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
     ? Object.values(perSeasonActionCounts || {}).reduce((sum, n) => sum + n, 0)
     : attentionItems.reduce((sum, item) => sum + item.count, 0)
 
+  // ── Per-program card stats (Phase 3.2) ──
+  const programCards = useMemo(() => {
+    return (programs || []).map(program => {
+      const progSeasons = (allSeasons || seasons || []).filter(s => s.program_id === program.id)
+      const progSeasonIds = new Set(progSeasons.map(s => s.id))
+
+      const progTeams = allTeamsRaw.filter(t => progSeasonIds.has(t.season_id))
+      const progPlayers = allPlayersRaw.filter(p => progSeasonIds.has(p.season_id))
+      const progPayments = allPaymentsRaw.filter(p => progSeasonIds.has(p.season_id))
+
+      const collected = progPayments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const totalExpected = progPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const outstanding = totalExpected - collected
+      const collectionPct = totalExpected > 0 ? Math.round((collected / totalExpected) * 100) : 0
+
+      const rosterTotal = progTeams.reduce((sum, t) => sum + (t.max_players || t.max_roster_size || 12), 0)
+      const rosterFillPct = rosterTotal > 0 ? Math.round((progPlayers.length / rosterTotal) * 100) : 0
+
+      const pendingRegs = progPlayers.filter(p => {
+        const status = p.registrations?.[0]?.status
+        return ['pending', 'submitted', 'new'].includes(status)
+      }).length
+      const overduePayments = progPayments.filter(p => !p.paid).length
+
+      const seasonStatuses = { active: 0, upcoming: 0, draft: 0, completed: 0 }
+      progSeasons.forEach(s => {
+        if (s.status === 'active') seasonStatuses.active++
+        else if (s.status === 'upcoming' || s.status === 'open') seasonStatuses.upcoming++
+        else if (s.status === 'draft') seasonStatuses.draft++
+        else if (s.status === 'completed' || s.status === 'archived') seasonStatuses.completed++
+        else seasonStatuses.active++
+      })
+
+      return {
+        program,
+        stats: {
+          seasonCount: progSeasons.length,
+          teamCount: progTeams.length,
+          playerCount: progPlayers.length,
+          collected, outstanding, collectionPct,
+          rosterFilled: progPlayers.length,
+          rosterTotal, rosterFillPct,
+        },
+        actionItems: {
+          total: pendingRegs + overduePayments,
+          pendingRegs, overduePayments,
+          eventsThisWeek: 0,
+        },
+        seasonStatuses,
+      }
+    })
+  }, [programs, allSeasons, seasons, allTeamsRaw, allPlayersRaw, allPaymentsRaw])
+
   // Dynamic contextual messages — rotates per session (Tweak 1)
   const globalTotalTeams = Object.values(perSeasonTeamCounts || {}).reduce((s, c) => s + c, 0)
   const globalTotalPlayers = Object.values(perSeasonPlayerCounts || {}).reduce((s, c) => s + c, 0)
@@ -1223,16 +1289,18 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 greeting={
                   !foundationReady
                     ? `Welcome to Lynx, ${profile?.first_name || 'Admin'}! Let's set up your club.`
-                    : (allSeasons || seasons || []).length === 0
-                      ? `Great start, ${profile?.first_name || 'Admin'}. Now let's create your first season.`
-                      : `${getGreeting()}, ${profile?.first_name || 'Admin'}. ${ctxMsg}`
+                    : (programs || []).length === 0
+                      ? `Great start, ${profile?.first_name || 'Admin'}. Now let's create your first program.`
+                      : globalStats.actionCount > 10
+                        ? `${getGreeting()}, ${profile?.first_name || 'Admin'}. ${globalStats.actionCount} items need your attention.`
+                        : `${getGreeting()}, ${profile?.first_name || 'Admin'}. ${(programs || []).length} program${(programs || []).length !== 1 ? 's' : ''} running across ${(allSeasons || seasons || []).filter(s => s.status === 'active').length} active season${(allSeasons || seasons || []).filter(s => s.status === 'active').length !== 1 ? 's' : ''}.`
                 }
-                subLine={`${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 1) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
+                subLine={`${(programs || []).length} program${(programs || []).length !== 1 ? 's' : ''} · ${(allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 0} active season${((allSeasons || seasons || []).filter(s => s.status === 'active' || s.status === 'open').length || 0) !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 stats={[
                   { value: globalTotalTeams || stats.teams || 0, label: 'Teams', onClick: () => onNavigate?.('teams') },
                   { value: globalTotalPlayers || totalPlayers, label: 'Players', onClick: () => onNavigate?.('registrations') },
                   { value: globalStats.coachCount || stats.coachCount || 0, label: 'Coaches', onClick: () => onNavigate?.('coaches') },
-                  { value: (allSeasons || seasons || []).length, label: 'Seasons', onClick: () => onNavigate?.('seasons') },
+                  { value: (programs || []).length, label: 'Programs', onClick: () => navigate('/settings/programs') },
                   { value: globalStats.totalCollected ? `$${(globalStats.totalCollected / 1000).toFixed(1)}k` : '$0', label: 'Collected', color: 'green', onClick: () => onNavigate?.('payments') },
                   { value: globalStats.actionCount || 0, label: 'Action Items', color: globalStats.actionCount > 0 ? 'red' : undefined, onClick: () => setActiveTab('action-items') },
                 ]}
@@ -1283,22 +1351,80 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 />
               )}
 
-              {/* SEASON CAROUSEL */}
-              <SeasonCarousel
-                seasons={allSeasons || seasons || []}
-                perSeasonTeamCounts={perSeasonTeamCounts}
-                perSeasonPlayerCounts={perSeasonPlayerCounts}
-                perSeasonActionCounts={perSeasonActionCounts}
-                perSeasonActionDetails={perSeasonActionDetails}
-                selectedSeasonId={isAll ? null : selectedSeason?.id}
-                onSeasonSelect={(id) => {
-                  const season = (allSeasons || seasons || []).find(s => s.id === id)
-                  if (season) selectSeason(season)
-                }}
-                onViewAll={() => onNavigate?.('season-management')}
-              />
+              {/* Phase 3: SeasonCarousel + BodyTabs moved to ProgramPage. Program cards below. */}
 
-              {/* SEASON STEPPER — hidden in "All Seasons" mode */}
+              {/* ── PROGRAM CARDS GRID ── */}
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <h3 style={{
+                    fontSize: 13, fontWeight: 600,
+                    color: 'var(--v2-text-muted, #8C96A8)',
+                    letterSpacing: '0.5px', margin: 0,
+                    textTransform: 'uppercase',
+                    fontFamily: 'var(--v2-font)',
+                  }}>
+                    YOUR PROGRAMS
+                  </h3>
+                  <button
+                    onClick={() => navigate('/settings/programs')}
+                    style={{
+                      fontSize: 12, color: '#4BB9EC', background: 'none',
+                      border: 'none', cursor: 'pointer', fontWeight: 500,
+                      fontFamily: 'var(--v2-font)',
+                    }}
+                  >
+                    Manage Programs →
+                  </button>
+                </div>
+
+                {programCards.length === 0 ? (
+                  <div style={{
+                    border: '2px dashed var(--color-border-tertiary, #E8ECF2)',
+                    borderRadius: 14, padding: '32px 24px', textAlign: 'center',
+                    fontFamily: 'var(--v2-font)',
+                  }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📁</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--v2-text-primary)', marginBottom: 4 }}>
+                      No programs yet
+                    </div>
+                    <div style={{ fontSize: 13, color: 'var(--v2-text-muted)', marginBottom: 16 }}>
+                      Programs group your seasons by sport or activity. Create your first one to organize your club.
+                    </div>
+                    <button
+                      onClick={() => navigate('/settings/programs')}
+                      style={{
+                        background: '#4BB9EC', color: '#FFFFFF', fontWeight: 700,
+                        padding: '10px 20px', borderRadius: 10, border: 'none',
+                        cursor: 'pointer', fontSize: 13,
+                      }}
+                    >
+                      + Create Program
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: programCards.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(340px, 1fr))',
+                    gap: 14,
+                  }}>
+                    {programCards.map(({ program, stats: pStats, actionItems: pActions, seasonStatuses: pStatuses }) => (
+                      <ProgramCard
+                        key={program.id}
+                        program={program}
+                        stats={pStats}
+                        actionItems={pActions}
+                        seasonStatuses={pStatuses}
+                        onClick={() => {
+                          selectProgram(program)
+                          navigate(`/programs/${program.id}`)
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Season Journey — kept for onboarding tracking */}
               {!isAll && setupComplete < 7 && (
                 <SeasonStepper
                   seasonName={selectedSeason?.name || ''}
@@ -1308,6 +1434,10 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                   onNavigate={onNavigate}
                 />
               )}
+
+              {/*
+                ── COMMENTED OUT: Old BodyTabs (Phase 3 — moved to ProgramPage) ──
+                To restore: uncomment this section and remove the Program Cards grid above.
 
               <BodyTabs
                 tabs={[
@@ -1405,6 +1535,7 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                     : <AdminScheduleTab events={upcomingEvents} onNavigate={onNavigate} />
                 )}
               </BodyTabs>
+              */}
               </div>
 
               {/* ENGAGEMENT COLUMN — 280px fixed, real data */}
@@ -1519,22 +1650,13 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 ]}
               />
 
-              {/* THE PLAYBOOK */}
+              {/* THE PLAYBOOK — org-level quick actions (Phase 3.2) */}
               <ThePlaybook
                 actions={[
-                  { emoji: '📅', label: 'Create Event', onClick: () => onNavigate?.('schedule'), isPrimary: true },
+                  { emoji: '📁', label: 'New Program', onClick: () => navigate('/settings/programs'), isPrimary: true },
                   { emoji: '📢', label: 'Send Blast', onClick: () => onNavigate?.('blasts') },
-                  { emoji: '👤', label: 'Add Player', onClick: () => onNavigate?.('registrations') },
-                  { emoji: '✅', label: 'Approve Regs', onClick: () => onNavigate?.('registrations') },
                   { emoji: '📊', label: 'Reports', onClick: () => onNavigate?.('reports') },
-                  { emoji: '🔗', label: 'Reg Link', onClick: () => {
-                    const slug = organization?.slug || organization?.id
-                    if (slug) {
-                      setRegLinkModal(true)
-                    } else {
-                      onNavigate?.('templates')
-                    }
-                  }},
+                  { emoji: '⚙️', label: 'Settings', onClick: () => onNavigate?.('organization') },
                 ]}
               />
 
