@@ -400,6 +400,69 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
 
       const signatureDate = new Date().toISOString()
 
+      // ─── Find or create family record ─────────────────────────────────
+      let familyId = null
+      let familyIsNew = false
+      const parentEmail = sharedInfo.parent1_email?.trim().toLowerCase()
+
+      if (parentEmail) {
+        // Check if family already exists for this email
+        const { data: existingFamily } = await supabase
+          .from('families')
+          .select('id')
+          .eq('primary_email', parentEmail)
+          .maybeSingle()
+
+        if (existingFamily) {
+          familyId = existingFamily.id
+          // Update family record with latest info
+          await supabase
+            .from('families')
+            .update({
+              name: sharedInfo.parent1_name ? `${sharedInfo.parent1_name} Family` : null,
+              primary_contact_name: sharedInfo.parent1_name || null,
+              primary_contact_phone: sharedInfo.parent1_phone || null,
+              primary_contact_email: parentEmail,
+              secondary_contact_name: sharedInfo.parent2_name || null,
+              secondary_contact_phone: sharedInfo.parent2_phone || null,
+              secondary_contact_email: sharedInfo.parent2_email?.trim().toLowerCase() || null,
+              address: sharedInfo.address || null,
+              emergency_contact_name: sharedInfo.emergency_name || null,
+              emergency_contact_phone: sharedInfo.emergency_phone || null,
+              emergency_contact_relation: sharedInfo.emergency_relation || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingFamily.id)
+        } else {
+          // Create new family record
+          const { data: newFamily, error: familyError } = await supabase
+            .from('families')
+            .insert({
+              name: sharedInfo.parent1_name ? `${sharedInfo.parent1_name} Family` : 'Family',
+              primary_email: parentEmail,
+              primary_phone: sharedInfo.parent1_phone || null,
+              primary_contact_name: sharedInfo.parent1_name || null,
+              primary_contact_phone: sharedInfo.parent1_phone || null,
+              primary_contact_email: parentEmail,
+              secondary_contact_name: sharedInfo.parent2_name || null,
+              secondary_contact_phone: sharedInfo.parent2_phone || null,
+              secondary_contact_email: sharedInfo.parent2_email?.trim().toLowerCase() || null,
+              address: sharedInfo.address || null,
+              emergency_contact_name: sharedInfo.emergency_name || null,
+              emergency_contact_phone: sharedInfo.emergency_phone || null,
+              emergency_contact_relation: sharedInfo.emergency_relation || null,
+            })
+            .select('id')
+            .single()
+
+          if (!familyError && newFamily) {
+            familyId = newFamily.id
+            familyIsNew = true
+          }
+          // If family creation fails, continue without — registration should still work
+        }
+      }
+
       for (const child of allChildren) {
         const gradeValue = child.grade ? (child.grade === 'K' ? 0 : parseInt(child.grade)) : null
 
@@ -471,6 +534,9 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
             waiver_signed_by: signature?.trim() || null,
             waiver_signed_date: signature?.trim() ? new Date().toISOString() : null,
 
+            // Family link
+            family_id: familyId,
+
             // Status and metadata
             status: 'new',
             season_id: season?.id || seasonId,
@@ -491,6 +557,7 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
           .from('registrations')
           .insert({
             player_id: player.id, season_id: season?.id || seasonId, status: 'new',
+            family_id: familyId,
             submitted_at: new Date().toISOString(),
             waivers_accepted: waiverState, custom_answers: customAnswers,
             signature_name: signature.trim() || null, signature_date: signatureDate,
@@ -542,6 +609,11 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       if (createdPlayerIds.length > 0) {
         console.log('Rolling back players:', createdPlayerIds)
         await supabase.from('players').delete().in('id', createdPlayerIds)
+      }
+      // Only delete the family if we just created it AND all children were rolled back
+      if (familyId && familyIsNew) {
+        console.log('Rolling back newly created family:', familyId)
+        await supabase.from('families').delete().eq('id', familyId)
       }
       setError(err.message || 'Registration failed. Please try again.')
     }
