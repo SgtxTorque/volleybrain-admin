@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
+import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
 } from './RegistrationFormSteps'
@@ -379,6 +380,176 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
   )
 }
 
+// ─── Step 3: Assign Programs Per Child ────────────────────────────────────
+function AssignProgramsStep({ children, selectedPrograms, childProgramMap, setChildProgramMap, sharedInfo, accentColor, onContinue, onBack }) {
+  // Default: all children get all selected programs
+  useEffect(() => {
+    if (children.length > 0 && Object.keys(childProgramMap).length === 0) {
+      const defaultMap = {}
+      children.forEach((_, index) => {
+        defaultMap[index] = selectedPrograms.map(sp => sp.programId)
+      })
+      setChildProgramMap(defaultMap)
+    }
+  }, []) // Only on mount
+
+  function toggleProgram(childIndex, programId) {
+    setChildProgramMap(prev => {
+      const current = prev[childIndex] || []
+      const exists = current.includes(programId)
+      return {
+        ...prev,
+        [childIndex]: exists ? current.filter(id => id !== programId) : [...current, programId]
+      }
+    })
+  }
+
+  // Compute fees per child
+  const childSummaries = children.map((child, childIndex) => {
+    const assignedIds = childProgramMap[childIndex] || []
+    let childTotal = 0
+    const items = assignedIds.map(programId => {
+      const sp = selectedPrograms.find(p => p.programId === programId)
+      if (!sp) return null
+      const fees = previewFeesForPlayer(
+        { ...child, parent_email: sharedInfo.parent1_email },
+        sp.season,
+        childIndex
+      )
+      const summary = getFeeSummary(fees)
+      childTotal += summary.total
+      return { sp, summary }
+    }).filter(Boolean)
+    return { child, childIndex, items, total: childTotal, programCount: assignedIds.length }
+  })
+
+  const grandTotal = childSummaries.reduce((sum, cs) => sum + cs.total, 0)
+  const totalRegistrations = childSummaries.reduce((sum, cs) => sum + cs.programCount, 0)
+
+  // Validation: every child needs at least 1 program
+  const childrenWithNoPrograms = childSummaries.filter(cs => cs.programCount === 0)
+  const canContinue = childrenWithNoPrograms.length === 0 && totalRegistrations > 0
+
+  // Initials color based on child index
+  const INITIALS_COLORS = ['#4BB9EC', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444', '#EC4899']
+
+  return (
+    <div>
+      <div className="px-4 pt-6 pb-2 max-w-2xl mx-auto">
+        <h2 className="text-lg font-bold text-[#10284C]">Assign Programs</h2>
+        <p className="text-sm text-slate-500 mt-1">Choose which programs each child will join. All are pre-selected — deselect as needed.</p>
+      </div>
+
+      <div className="px-4 pb-40 max-w-2xl mx-auto space-y-4">
+        {childSummaries.map(({ child, childIndex, items, total, programCount }) => {
+          const initials = `${child.first_name?.[0] || ''}${child.last_name?.[0] || ''}`.toUpperCase()
+          const color = INITIALS_COLORS[childIndex % INITIALS_COLORS.length]
+          const assignedIds = childProgramMap[childIndex] || []
+          const hasWarning = programCount === 0
+
+          return (
+            <div key={childIndex} className={`${CARD} p-4 ${hasWarning ? 'ring-2 ring-amber-400' : ''}`}>
+              {/* Child header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: color }}>
+                    {initials}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-slate-900">{child.first_name} {child.last_name}</p>
+                    <p className="text-[11px] text-slate-400">
+                      {child.grade && `Grade ${child.grade}`}
+                      {child.grade && child.birth_date && ' · '}
+                      {child.birth_date && `${new Date(child.birth_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-slate-500">{programCount} selected</span>
+              </div>
+
+              {/* Program toggle chips */}
+              <div className="flex flex-wrap gap-2">
+                {selectedPrograms.map(sp => {
+                  const isOn = assignedIds.includes(sp.programId)
+                  const sportIcon = sp.program.sport?.icon || sp.program.icon || '🏆'
+                  const sportColor = sp.program.sport?.color_primary || accentColor
+                  const fee = calculateFeePerChild(sp.season)
+                  return (
+                    <button
+                      key={sp.programId}
+                      type="button"
+                      onClick={() => toggleProgram(childIndex, sp.programId)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
+                        isOn
+                          ? 'bg-white shadow-sm'
+                          : 'border-slate-200 text-slate-400 bg-slate-50'
+                      }`}
+                      style={isOn ? { borderColor: sportColor, color: sportColor } : {}}
+                    >
+                      {isOn && <Check className="w-3.5 h-3.5" />}
+                      <span>{sportIcon}</span>
+                      <span>{sp.program.name}</span>
+                      <span className="text-[10px] opacity-60">${fee.toFixed(0)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Warning */}
+              {hasWarning && (
+                <div className="mt-3 p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <p className="text-xs text-amber-700">
+                    {child.first_name} has no programs selected. Assign at least one or go back and remove this child.
+                  </p>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Bottom summary bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
+        <div className="max-w-2xl mx-auto px-4 py-3">
+          {/* Per-child line items */}
+          <div className="space-y-1 mb-2">
+            {childSummaries.map(({ child, programCount, total }, i) => (
+              <div key={i} className="flex justify-between text-xs">
+                <span className="text-slate-500">{child.first_name}: {programCount} program{programCount !== 1 ? 's' : ''}</span>
+                <span className="font-semibold text-slate-700">${total.toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div>
+              <p className="text-xs text-slate-500">{totalRegistrations} registration{totalRegistrations !== 1 ? 's' : ''}</p>
+              <p className="text-sm font-bold text-[#10284C]">Est. Total: ${grandTotal.toFixed(2)}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={onBack}
+                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-white flex items-center gap-1">
+                <ChevronLeft className="w-4 h-4" /> Children
+              </button>
+              <button
+                type="button"
+                disabled={!canContinue}
+                onClick={onContinue}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                style={{ backgroundColor: canContinue ? accentColor : '#94a3b8' }}
+              >
+                Continue — Family Info
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Step 1: Program Catalog ──────────────────────────────────────────────
 function ProgramCatalogStep({ availablePrograms, selectedPrograms, setSelectedPrograms, accentColor, onContinue }) {
   function toggleProgram(program, season) {
@@ -726,7 +897,20 @@ export function RegistrationCartPage() {
         />
       )}
 
-      {currentStep >= 3 && currentStep <= 5 && (
+      {currentStep === 3 && (
+        <AssignProgramsStep
+          children={children}
+          selectedPrograms={selectedPrograms}
+          childProgramMap={childProgramMap}
+          setChildProgramMap={setChildProgramMap}
+          sharedInfo={sharedInfo}
+          accentColor={accentColor}
+          onContinue={() => setCurrentStep(4)}
+          onBack={() => setCurrentStep(2)}
+        />
+      )}
+
+      {currentStep >= 4 && currentStep <= 5 && (
         <div className="px-4 py-8 max-w-2xl mx-auto text-center text-slate-400 text-sm">
           Step {currentStep} — coming in later phases
         </div>
