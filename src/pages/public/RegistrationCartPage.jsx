@@ -9,6 +9,7 @@ import { calculateFeePerChild, DEFAULT_CONFIG } from './registrationConstants'
 import { previewFeesForPlayer, getFeeSummary } from '../../lib/fee-calculator'
 import {
   ChildrenListCard, PlayerInfoCard, AddChildButton,
+  SharedInfoCard, CustomQuestionsCard,
 } from './RegistrationFormSteps'
 import { Check, ChevronLeft, ChevronRight, ShoppingCart, Users, GitBranch, FileText, CreditCard, AlertCircle, Loader2 } from 'lucide-react'
 
@@ -372,6 +373,252 @@ function AddChildrenStep({ children, setChildren, currentChild, setCurrentChild,
             style={{ backgroundColor: savedCount > 0 ? accentColor : '#94a3b8' }}
           >
             Continue — Assign Programs
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Group waivers: shared vs program-specific ───────────────────────────
+function groupWaivers(selectedPrograms, childProgramMap, children) {
+  const waiverMap = new Map()
+
+  for (const sp of selectedPrograms) {
+    const config = sp.season._resolvedConfig || DEFAULT_CONFIG
+    const waivers = config.waivers || {}
+    for (const [key, waiver] of Object.entries(waivers)) {
+      if (!waiver?.enabled) continue
+      const normalizedTitle = waiver.title?.toLowerCase().trim() || key
+      if (waiverMap.has(normalizedTitle)) {
+        const existing = waiverMap.get(normalizedTitle)
+        existing.programs.push(sp.program.name)
+        existing.programIds.push(sp.programId)
+      } else {
+        waiverMap.set(normalizedTitle, {
+          key: `${sp.programId}_${key}`,
+          title: waiver.title || key,
+          text: waiver.text || '',
+          required: waiver.required || false,
+          programs: [sp.program.name],
+          programIds: [sp.programId],
+        })
+      }
+    }
+  }
+
+  const shared = []
+  const programSpecific = {}
+
+  for (const waiver of waiverMap.values()) {
+    if (waiver.programs.length > 1 || selectedPrograms.length === 1) {
+      shared.push({ ...waiver, category: 'organization' })
+    } else {
+      const programName = waiver.programs[0]
+      if (!programSpecific[programName]) programSpecific[programName] = []
+      programSpecific[programName].push(waiver)
+    }
+  }
+
+  // Add applicable children to program-specific waivers
+  for (const [programName, waivers] of Object.entries(programSpecific)) {
+    const programId = waivers[0]?.programIds[0]
+    const applicableChildren = children.filter((_, idx) =>
+      (childProgramMap[idx] || []).includes(programId)
+    ).map(c => c.first_name)
+    waivers.forEach(w => w.applicableChildren = applicableChildren)
+  }
+
+  return { shared, programSpecific }
+}
+
+// ─── Step 4: Family Info + Waivers ────────────────────────────────────────
+function FamilyInfoStep({ mergedConfig, sharedInfo, setSharedInfo, waiverState, setWaiverState, customAnswers, setCustomAnswers, signature, setSignature, selectedPrograms, childProgramMap, children, organization, accentColor, onContinue, onBack }) {
+  const { shared: sharedWaivers, programSpecific: programWaivers } = groupWaivers(selectedPrograms, childProgramMap, children)
+  const allWaivers = [...sharedWaivers, ...Object.values(programWaivers).flat()]
+
+  // Pre-fill logic
+  useEffect(() => {
+    const email = sharedInfo.parent1_email?.trim()?.toLowerCase()
+    if (!email || !email.includes('@') || !organization?.id) return
+    const timer = setTimeout(async () => {
+      try {
+        const { data: existing } = await supabase
+          .from('players')
+          .select('parent_name, parent_phone, emergency_contact_name, emergency_contact_phone, medical_notes')
+          .eq('parent_email', email)
+          .order('created_at', { ascending: false })
+          .limit(1)
+        if (existing?.[0]) {
+          const prev = existing[0]
+          setSharedInfo(si => ({
+            ...si,
+            parent1_name: si.parent1_name || prev.parent_name || '',
+            parent1_phone: si.parent1_phone || prev.parent_phone || '',
+            emergency_name: si.emergency_name || prev.emergency_contact_name || '',
+            emergency_phone: si.emergency_phone || prev.emergency_contact_phone || '',
+            medical_conditions: si.medical_conditions || prev.medical_notes || '',
+          }))
+        }
+      } catch (e) { /* silent prefill */ }
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [sharedInfo.parent1_email, organization?.id])
+
+  // Validation
+  const requiredWaiversMissing = allWaivers.filter(w => w.required && !waiverState[w.key])
+  const signatureMissing = allWaivers.length > 0 && !signature.trim()
+  const parentEmailMissing = !sharedInfo.parent1_email?.trim()
+  const canContinue = requiredWaiversMissing.length === 0 && !signatureMissing && !parentEmailMissing
+
+  const CARD_CLS = 'bg-white rounded-2xl border border-[#E8ECF2] shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
+  const INPUT_CLS = 'w-full px-4 py-3 rounded-xl border border-[#E8ECF2] text-sm font-medium bg-white text-slate-700 focus:outline-none focus:border-[#4BB9EC] focus:ring-2 focus:ring-[#4BB9EC]/10 transition-colors'
+  const LABEL_CLS = 'block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5'
+
+  return (
+    <div>
+      <div className="px-4 pt-6 pb-2 max-w-2xl mx-auto">
+        <h2 className="text-lg font-bold text-[#10284C]">Family Information</h2>
+        <p className="text-sm text-slate-500 mt-1">Enter your info once — it applies to all children and programs.</p>
+      </div>
+
+      <div className="px-4 pb-32 max-w-2xl mx-auto">
+        {/* Parent/Emergency/Medical fields */}
+        <SharedInfoCard
+          config={mergedConfig}
+          sharedInfo={sharedInfo}
+          setSharedInfo={setSharedInfo}
+          trackFormStart={() => {}}
+        />
+
+        {/* Custom questions */}
+        <CustomQuestionsCard
+          config={mergedConfig}
+          customAnswers={customAnswers}
+          setCustomAnswers={setCustomAnswers}
+        />
+
+        {/* Grouped Waivers */}
+        {(sharedWaivers.length > 0 || Object.keys(programWaivers).length > 0) && (
+          <div className={`${CARD_CLS} p-6 mb-4`}>
+            <h2 className="text-r-lg font-bold text-slate-900 mb-1">Waivers & Agreements</h2>
+            <p className="text-xs text-slate-400 mb-4">Review and accept each waiver to continue.</p>
+
+            {/* Shared / Org-level waivers */}
+            {sharedWaivers.length > 0 && (
+              <div className="mb-4">
+                {selectedPrograms.length > 1 && (
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                    Organization Waivers — sign once for all programs
+                  </p>
+                )}
+                <div className="space-y-3">
+                  {sharedWaivers.map(waiver => (
+                    <div key={waiver.key} className="p-4 rounded-lg bg-[#F5F6F8] border border-slate-200">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={waiverState[waiver.key] || false}
+                          onChange={e => setWaiverState({ ...waiverState, [waiver.key]: e.target.checked })}
+                          className="w-5 h-5 rounded mt-0.5 accent-[#4BB9EC]"
+                        />
+                        <div>
+                          <p className="font-semibold text-sm text-slate-900">
+                            {waiver.title} {waiver.required && <span className="text-red-500">*</span>}
+                          </p>
+                          {waiver.text && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{waiver.text}</p>}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Program-specific waivers */}
+            {Object.entries(programWaivers).map(([programName, waivers]) => (
+              <div key={programName} className="mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                  {programName}-Specific
+                </p>
+                {waivers[0]?.applicableChildren?.length > 0 && (
+                  <p className="text-[10px] text-slate-400 mb-2">
+                    Required for: {waivers[0].applicableChildren.join(', ')}
+                  </p>
+                )}
+                <div className="space-y-3">
+                  {waivers.map(waiver => (
+                    <div key={waiver.key} className="p-4 rounded-lg bg-[#F5F6F8] border border-slate-200">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={waiverState[waiver.key] || false}
+                          onChange={e => setWaiverState({ ...waiverState, [waiver.key]: e.target.checked })}
+                          className="w-5 h-5 rounded mt-0.5 accent-[#4BB9EC]"
+                        />
+                        <div>
+                          <p className="font-semibold text-sm text-slate-900">
+                            {waiver.title} {waiver.required && <span className="text-red-500">*</span>}
+                          </p>
+                          {waiver.text && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{waiver.text}</p>}
+                        </div>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Signature */}
+            <div className="mt-6 pt-6 border-t border-slate-200">
+              <h3 className="font-bold text-sm text-slate-900 mb-3">
+                Electronic Signature <span className="text-red-500">*</span>
+              </h3>
+              <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                By typing your name below, you acknowledge that you have read and agree to all waivers above.
+              </p>
+              <div className="mb-3">
+                <label className={LABEL_CLS}>Type your full legal name</label>
+                <input
+                  type="text"
+                  value={signature}
+                  onChange={e => setSignature(e.target.value)}
+                  placeholder="e.g., John Smith"
+                  className={`${INPUT_CLS} text-lg font-[cursive,serif] ${signature.trim() ? 'border-[#4BB9EC] ring-2 ring-[#4BB9EC]/20' : ''}`}
+                />
+              </div>
+              {signature.trim() && (
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                  <p className="text-sm text-green-700">
+                    <Check className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+                    I, <strong className="font-[cursive,serif]">{signature}</strong>, agree to all waivers listed above.
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1 ml-6">
+                    Signed on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button type="button" onClick={onBack}
+            className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-300 hover:bg-white flex items-center gap-1">
+            <ChevronLeft className="w-4 h-4" /> Assign
+          </button>
+          <button
+            type="button"
+            disabled={!canContinue}
+            onClick={onContinue}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            style={{ backgroundColor: canContinue ? accentColor : '#94a3b8' }}
+          >
+            Review & Submit
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -910,9 +1157,30 @@ export function RegistrationCartPage() {
         />
       )}
 
-      {currentStep >= 4 && currentStep <= 5 && (
+      {currentStep === 4 && (
+        <FamilyInfoStep
+          mergedConfig={mergedConfig}
+          sharedInfo={sharedInfo}
+          setSharedInfo={setSharedInfo}
+          waiverState={waiverState}
+          setWaiverState={setWaiverState}
+          customAnswers={customAnswers}
+          setCustomAnswers={setCustomAnswers}
+          signature={signature}
+          setSignature={setSignature}
+          selectedPrograms={selectedPrograms}
+          childProgramMap={childProgramMap}
+          children={children}
+          organization={organization}
+          accentColor={accentColor}
+          onContinue={() => setCurrentStep(5)}
+          onBack={() => setCurrentStep(3)}
+        />
+      )}
+
+      {currentStep === 5 && (
         <div className="px-4 py-8 max-w-2xl mx-auto text-center text-slate-400 text-sm">
-          Step {currentStep} — coming in later phases
+          Step 5: Review & Submit — coming in Phase 5
         </div>
       )}
     </div>
