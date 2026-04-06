@@ -1307,9 +1307,8 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 />
               )}
 
-              {/* INNER FLEX: Content + Engagement Column side by side (starts below nudge) */}
-              <div style={{ display: 'flex', gap: 16, marginTop: -10 }}>
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Main content column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: -10 }}>
 
               {/* ATTENTION STRIP */}
               {actionCount > 0 && (
@@ -1529,43 +1528,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
               </BodyTabs>
               */}
               </div>
-
-              {/* ENGAGEMENT COLUMN — 280px fixed, real data */}
-              <div
-                className="admin-engagement-column"
-                style={{ width: 280, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12 }}
-              >
-                <EngagementLevelCard
-                  levelInfo={adminLevelInfo}
-                  tierName={adminTier.name}
-                  xp={adminXp}
-                  onNavigateAchievements={() => onNavigate?.('achievements')}
-                />
-                <EngagementActivityCard
-                  activities={adminActivities}
-                  nextBadgeHint={adminNextBadgeHint}
-                />
-                <EngagementBadgesCard
-                  earnedCount={adminBadges.length}
-                  totalCount={totalAchievements}
-                  badges={adminBadges}
-                  onNavigateAchievements={() => onNavigate?.('achievements')}
-                />
-                <EngagementTeamPulseCard
-                  active={adminPulseData.active}
-                  drifting={adminPulseData.drifting}
-                  inactive={adminPulseData.inactive}
-                  title="Org Pulse"
-                />
-              </div>
-              </div>
-
-              {/* Responsive: hide engagement column on narrow screens */}
-              <style>{`
-                @media (max-width: 1200px) {
-                  .admin-engagement-column { display: none !important; }
-                }
-              `}</style>
             </>
           }
 
@@ -1640,7 +1602,29 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
                 />
               )}
 
-              {/* MilestoneCard removed — replaced by engagement column */}
+              {/* ENGAGEMENT SECTION */}
+              <EngagementLevelCard
+                levelInfo={adminLevelInfo}
+                tierName={adminTier.name}
+                xp={adminXp}
+                onNavigateAchievements={() => onNavigate?.('achievements')}
+              />
+              <EngagementActivityCard
+                activities={adminActivities}
+                nextBadgeHint={adminNextBadgeHint}
+              />
+              <EngagementBadgesCard
+                earnedCount={adminBadges.length}
+                totalCount={totalAchievements}
+                badges={adminBadges}
+                onNavigateAchievements={() => onNavigate?.('achievements')}
+              />
+              <EngagementTeamPulseCard
+                active={adminPulseData.active}
+                drifting={adminPulseData.drifting}
+                inactive={adminPulseData.inactive}
+                title="Org Pulse"
+              />
             </>
           }
         />
