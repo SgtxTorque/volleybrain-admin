@@ -1102,6 +1102,59 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
 
   // (Old adminWidgets grid array removed — v2 uses fixed layout)
 
+  // ── Per-program card stats (Phase 3.2) — must be before early returns (hooks rule) ──
+  const programCards = useMemo(() => {
+    return (programs || []).map(program => {
+      const progSeasons = (allSeasons || seasons || []).filter(s => s.program_id === program.id)
+      const progSeasonIds = new Set(progSeasons.map(s => s.id))
+
+      const progTeams = allTeamsRaw.filter(t => progSeasonIds.has(t.season_id))
+      const progPlayers = allPlayersRaw.filter(p => progSeasonIds.has(p.season_id))
+      const progPayments = allPaymentsRaw.filter(p => progSeasonIds.has(p.season_id))
+
+      const collected = progPayments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const totalExpected = progPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+      const outstanding = totalExpected - collected
+      const collectionPct = totalExpected > 0 ? Math.round((collected / totalExpected) * 100) : 0
+
+      const rosterTotal = progTeams.reduce((sum, t) => sum + (t.max_players || t.max_roster_size || 12), 0)
+      const rosterFillPct = rosterTotal > 0 ? Math.round((progPlayers.length / rosterTotal) * 100) : 0
+
+      const pendingRegs = progPlayers.filter(p => {
+        const status = p.registrations?.[0]?.status
+        return ['pending', 'submitted', 'new'].includes(status)
+      }).length
+      const overduePayments = progPayments.filter(p => !p.paid).length
+
+      const seasonStatuses = { active: 0, upcoming: 0, draft: 0, completed: 0 }
+      progSeasons.forEach(s => {
+        if (s.status === 'active') seasonStatuses.active++
+        else if (s.status === 'upcoming' || s.status === 'open') seasonStatuses.upcoming++
+        else if (s.status === 'draft') seasonStatuses.draft++
+        else if (s.status === 'completed' || s.status === 'archived') seasonStatuses.completed++
+        else seasonStatuses.active++
+      })
+
+      return {
+        program,
+        stats: {
+          seasonCount: progSeasons.length,
+          teamCount: progTeams.length,
+          playerCount: progPlayers.length,
+          collected, outstanding, collectionPct,
+          rosterFilled: progPlayers.length,
+          rosterTotal, rosterFillPct,
+        },
+        actionItems: {
+          total: pendingRegs + overduePayments,
+          pendingRegs, overduePayments,
+          eventsThisWeek: 0,
+        },
+        seasonStatuses,
+      }
+    })
+  }, [programs, allSeasons, seasons, allTeamsRaw, allPlayersRaw, allPaymentsRaw])
+
   if (!seasonLoading && !selectedSeason) {
     return <GettingStartedGuide onNavigate={onNavigate} />
   }
@@ -1177,59 +1230,6 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
   const actionCount = isAll
     ? Object.values(perSeasonActionCounts || {}).reduce((sum, n) => sum + n, 0)
     : attentionItems.reduce((sum, item) => sum + item.count, 0)
-
-  // ── Per-program card stats (Phase 3.2) ──
-  const programCards = useMemo(() => {
-    return (programs || []).map(program => {
-      const progSeasons = (allSeasons || seasons || []).filter(s => s.program_id === program.id)
-      const progSeasonIds = new Set(progSeasons.map(s => s.id))
-
-      const progTeams = allTeamsRaw.filter(t => progSeasonIds.has(t.season_id))
-      const progPlayers = allPlayersRaw.filter(p => progSeasonIds.has(p.season_id))
-      const progPayments = allPaymentsRaw.filter(p => progSeasonIds.has(p.season_id))
-
-      const collected = progPayments.filter(p => p.paid).reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-      const totalExpected = progPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-      const outstanding = totalExpected - collected
-      const collectionPct = totalExpected > 0 ? Math.round((collected / totalExpected) * 100) : 0
-
-      const rosterTotal = progTeams.reduce((sum, t) => sum + (t.max_players || t.max_roster_size || 12), 0)
-      const rosterFillPct = rosterTotal > 0 ? Math.round((progPlayers.length / rosterTotal) * 100) : 0
-
-      const pendingRegs = progPlayers.filter(p => {
-        const status = p.registrations?.[0]?.status
-        return ['pending', 'submitted', 'new'].includes(status)
-      }).length
-      const overduePayments = progPayments.filter(p => !p.paid).length
-
-      const seasonStatuses = { active: 0, upcoming: 0, draft: 0, completed: 0 }
-      progSeasons.forEach(s => {
-        if (s.status === 'active') seasonStatuses.active++
-        else if (s.status === 'upcoming' || s.status === 'open') seasonStatuses.upcoming++
-        else if (s.status === 'draft') seasonStatuses.draft++
-        else if (s.status === 'completed' || s.status === 'archived') seasonStatuses.completed++
-        else seasonStatuses.active++
-      })
-
-      return {
-        program,
-        stats: {
-          seasonCount: progSeasons.length,
-          teamCount: progTeams.length,
-          playerCount: progPlayers.length,
-          collected, outstanding, collectionPct,
-          rosterFilled: progPlayers.length,
-          rosterTotal, rosterFillPct,
-        },
-        actionItems: {
-          total: pendingRegs + overduePayments,
-          pendingRegs, overduePayments,
-          eventsThisWeek: 0,
-        },
-        seasonStatuses,
-      }
-    })
-  }, [programs, allSeasons, seasons, allTeamsRaw, allPlayersRaw, allPaymentsRaw])
 
   // Dynamic contextual messages — rotates per session (Tweak 1)
   const globalTotalTeams = Object.values(perSeasonTeamCounts || {}).reduce((s, c) => s + c, 0)
