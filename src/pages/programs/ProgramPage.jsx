@@ -595,7 +595,7 @@ export default function ProgramPage({ showToast }) {
   // Filtered data for tabs (scoped to selected season or all program seasons)
   const tabSeasonIds = selectedProgramSeason
     ? [selectedProgramSeason.id]
-    : programSeasonIds
+    : programSeasons.map(s => s.id)
   const tabTeams = teams.filter(t => tabSeasonIds.includes(t.season_id))
   const tabPlayers = players.filter(p => tabSeasonIds.includes(p.season_id))
   const tabRegistrations = registrations.filter(r => tabSeasonIds.includes(r.season_id))
