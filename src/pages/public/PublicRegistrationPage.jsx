@@ -403,19 +403,80 @@ function PublicRegistrationPage({ orgIdOrSlug: propOrgId, seasonId: propSeasonId
       for (const child of allChildren) {
         const gradeValue = child.grade ? (child.grade === 'K' ? 0 : parseInt(child.grade)) : null
 
+        // Build consolidated medical_notes from all medical fields
+        const medicalNotesParts = [
+          sharedInfo.medical_conditions,
+          sharedInfo.allergies ? `Allergies: ${sharedInfo.allergies}` : null,
+          sharedInfo.medications ? `Medications: ${sharedInfo.medications}` : null,
+        ].filter(Boolean)
+
+        // Map waiver booleans — check waiver keys dynamically since template keys may vary
+        const waiverEntries = Object.entries(waiverState || {})
+        const waiverLiability = waiverEntries.some(([k, v]) => v === true && (k.includes('liability') || k === 'waiver_liability'))
+        const waiverPhoto = waiverEntries.some(([k, v]) => v === true && (k.includes('photo') || k === 'photo_release'))
+        const waiverConduct = waiverEntries.some(([k, v]) => v === true && (k.includes('conduct') || k === 'code_of_conduct'))
+        const waiverAnySigned = Object.values(waiverState || {}).some(v => v === true)
+
         const { data: player, error: playerError } = await supabase
           .from('players')
           .insert({
-            first_name: child.first_name, last_name: child.last_name,
-            birth_date: child.birth_date || null, grade: gradeValue,
-            gender: child.gender || null, school: child.school || null,
+            // Player info
+            first_name: child.first_name,
+            last_name: child.last_name,
+            birth_date: child.birth_date || null,
+            grade: gradeValue,
+            gender: child.gender || null,
+            school: child.school || null,
+            jersey_size: child.jersey_size || null,
+            jersey_pref_1: child.preferred_number ? parseInt(child.preferred_number) : null,
+            position: child.position_preference || null,
+            experience_level: child.experience_level || null,
+            experience_details: child.previous_teams || null,
+
+            // Parent 1
             parent_name: sharedInfo.parent1_name || null,
             parent_email: sharedInfo.parent1_email || null,
             parent_phone: sharedInfo.parent1_phone || null,
+
+            // Parent 2 (both column variants exist in schema)
+            parent_2_name: sharedInfo.parent2_name || null,
+            parent_2_email: sharedInfo.parent2_email || null,
+            parent_2_phone: sharedInfo.parent2_phone || null,
+            parent2_name: sharedInfo.parent2_name || null,
+            parent2_email: sharedInfo.parent2_email || null,
+            parent2_phone: sharedInfo.parent2_phone || null,
+
+            // Address
+            address: sharedInfo.address || null,
+            city: sharedInfo.city || null,
+            state: sharedInfo.state || null,
+            zip: sharedInfo.zip || null,
+
+            // Emergency contact
             emergency_contact_name: sharedInfo.emergency_name || null,
             emergency_contact_phone: sharedInfo.emergency_phone || null,
-            medical_notes: sharedInfo.medical_conditions || null,
-            status: 'new', season_id: season?.id || seasonId
+            emergency_contact_relation: sharedInfo.emergency_relation || null,
+
+            // Medical
+            medical_conditions: sharedInfo.medical_conditions || null,
+            allergies: sharedInfo.allergies || null,
+            medications: sharedInfo.medications || null,
+            medical_notes: medicalNotesParts.join('; ') || null,
+
+            // Waiver booleans (so admin views can read them)
+            waiver_liability: waiverLiability,
+            waiver_photo: waiverPhoto,
+            waiver_conduct: waiverConduct,
+            waiver_signed: waiverAnySigned,
+            waiver_signed_by: signature?.trim() || null,
+            waiver_signed_date: signature?.trim() ? new Date().toISOString() : null,
+
+            // Status and metadata
+            status: 'new',
+            season_id: season?.id || seasonId,
+            registration_date: new Date().toISOString(),
+            registration_source: 'public_form',
+            sport_id: season?.sport_id || null,
           })
           .select().single()
 
