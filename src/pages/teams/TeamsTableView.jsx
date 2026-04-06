@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { Search, Trash2, MoreVertical, ExternalLink, Edit, Users, UserCog, Shield, TrendingUp, TrendingDown } from 'lucide-react'
 
+// Hardcoded fallback for sports without color_primary in DB
 const SPORT_COLORS = {
   volleyball: { bg: 'bg-blue-500/12', text: 'text-blue-500' },
   basketball: { bg: 'bg-orange-500/12', text: 'text-orange-500' },
@@ -17,8 +18,26 @@ const SPORT_COLORS = {
   lacrosse: { bg: 'bg-violet-500/12', text: 'text-violet-500' },
 }
 
-function SportPill({ sportName }) {
+function SportPill({ sportName, sportColor }) {
   if (!sportName) return <span className="text-xs text-slate-400">—</span>
+  // Dynamic color from DB takes priority
+  if (sportColor) {
+    return (
+      <span
+        style={{
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          padding: '4px 10px',
+          borderRadius: '9999px',
+          backgroundColor: `${sportColor}1A`,
+          color: sportColor,
+        }}
+      >
+        {sportName}
+      </span>
+    )
+  }
+  // Fallback to hardcoded map
   const key = sportName.toLowerCase()
   const colors = SPORT_COLORS[key] || { bg: 'bg-slate-500/12', text: 'text-slate-500' }
   return (
@@ -170,7 +189,7 @@ export default function TeamsTableView({
 
                       {/* Sport label */}
                       <td className="px-5 py-3">
-                        <SportPill sportName={team.season?.sport?.name} />
+                        <SportPill sportName={team.season?.sport?.name} sportColor={team.season?.sport?.color_primary} />
                       </td>
 
                       {/* Roster fill bar */}
