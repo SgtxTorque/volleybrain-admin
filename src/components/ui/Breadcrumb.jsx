@@ -43,6 +43,7 @@ const SEGMENT_LABELS = {
   admin: 'Admin',
   analytics: 'Analytics',
   subscriptions: 'Subscriptions',
+  programs: 'Programs',
   parent: 'Parent',
   player: 'Player',
   messages: 'Messages',
@@ -80,6 +81,10 @@ export function Breadcrumb({ teamName, playerName }) {
         if (prevSegment === 'teams' || prevSegment === 'team') {
           const { data } = await supabase
             .from('teams').select('name').eq('id', uuid).maybeSingle()
+          if (data?.name) newNames[uuid] = data.name
+        } else if (prevSegment === 'programs') {
+          const { data } = await supabase
+            .from('programs').select('name').eq('id', uuid).maybeSingle()
           if (data?.name) newNames[uuid] = data.name
         } else if (prevSegment === 'player' || prevSegment === 'players') {
           const { data } = await supabase

@@ -6,6 +6,7 @@
 // =============================================================================
 
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useProgram } from '../../contexts/ProgramContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import {
@@ -235,6 +236,7 @@ function NavItem({ item, isActive, onNavigate, isPlayer }) {
 const STATUS_PRIORITY = { active: 0, upcoming: 1, draft: 2, completed: 3, archived: 4 }
 
 function ProgramsSidebarSection({ isPlayer, onNavigate }) {
+  const navigate = useNavigate()
   const { programs, selectedProgram, selectProgram } = useProgram()
   const { allSeasons, selectedSeason, selectSeason } = useSeason()
   const [expandedPrograms, setExpandedPrograms] = useState(new Set())
@@ -299,6 +301,7 @@ function ProgramsSidebarSection({ isPlayer, onNavigate }) {
               onClick={() => {
                 selectProgram(program)
                 toggleProgram(program.id)
+                navigate(`/programs/${program.id}`)
               }}
               className="v2-sidebar-btn"
               data-player={isPlayer || undefined}

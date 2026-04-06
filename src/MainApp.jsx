@@ -83,6 +83,7 @@ import { ReportsPage, RegistrationFunnelPage } from './pages/reports'
 
 // Admin Pages
 import SeasonManagementPage from './pages/admin/SeasonManagementPage'
+import ProgramPage from './pages/programs/ProgramPage'
 
 // Settings Pages
 import { ProgramsPage, SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
@@ -774,6 +775,9 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
           <PlayerStatsPage showToast={showToast} />
         </RouteGuard>
       } />
+
+      {/* Programs — Program Detail Page */}
+      <Route path="/programs/:programId" element={<RouteGuard allow={['admin', 'coach', 'team_manager']} activeView={activeView}><ProgramPage showToast={showToast} /></RouteGuard>} />
 
       {/* Admin — Season Management */}
       <Route path="/admin/seasons/:seasonId" element={<RouteGuard allow={['admin']} activeView={activeView}><SeasonManagementPage showToast={showToast} onNavigate={(pageId, params) => navigate(getPathForPage(pageId, params))} /></RouteGuard>} />

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
+import { useProgram } from '../../contexts/ProgramContext'
 import { globalSearch, QUICK_NAV_ITEMS, getRecentSearches, saveRecentSearch } from '../../lib/searchService'
 import { ROUTES, PAGE_TITLES } from '../../lib/routes'
 
@@ -54,6 +55,7 @@ const NAV_ICON_MAP = {
 export function CommandPalette({ isOpen, onClose }) {
   const navigate = useNavigate()
   const { organization } = useAuth()
+  const { programs } = useProgram()
   const theme = useTheme() || {}
   const { isDark, accent } = theme
   const [query, setQuery] = useState('')
@@ -101,7 +103,20 @@ export function CommandPalette({ isOpen, onClose }) {
     const pageMatches = PAGE_ENTRIES.filter(e =>
       e.label.toLowerCase().includes(lower) || e.id.includes(lower)
     ).slice(0, 5)
-    setResults(pageMatches)
+
+    // Add dynamic program entries
+    const programMatches = (programs || [])
+      .filter(p => !p.isSentinel && p.name?.toLowerCase().includes(lower))
+      .map(p => ({
+        type: 'page',
+        id: `program-${p.id}`,
+        label: p.name,
+        path: `/programs/${p.id}`,
+        section: 'Programs',
+      }))
+      .slice(0, 3)
+
+    setResults([...pageMatches, ...programMatches])
     setSelectedIdx(0)
 
     // Then: search all entities via service (only if 2+ chars)

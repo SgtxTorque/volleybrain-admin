@@ -50,6 +50,7 @@ export const ROUTES = {
 
   // Programs
   'programs': '/settings/programs',
+  'program-detail': '/programs/:programId',
 
   // Settings
   'seasons': '/settings/seasons',
@@ -145,6 +146,10 @@ export function getPageIdFromPath(pathname) {
   const teamWallMatch = pathname.match(/^\/teams\/([^/]+)$/)
   if (teamWallMatch) return `teamwall-${teamWallMatch[1]}`
 
+  // Program detail page
+  const programMatch = pathname.match(/^\/programs\/([^/]+)$/)
+  if (programMatch) return 'program-detail'
+
   // Season management with optional seasonId
   const seasonMatch = pathname.match(/^\/admin\/seasons\/([^/]+)$/)
   if (seasonMatch) return 'season-management'
@@ -183,6 +188,7 @@ export const PAGE_TITLES = {
   '/directory': 'Org Directory',
   '/admin/seasons': 'Season Management',
   '/settings/programs': 'Programs',
+  '/programs': 'Programs',
   '/settings/seasons': 'Season Management',
   '/settings/templates': 'Registration Forms',
   '/settings/waivers': 'Waivers',
