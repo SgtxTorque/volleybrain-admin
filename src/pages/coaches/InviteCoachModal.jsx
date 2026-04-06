@@ -1,13 +1,16 @@
 // =============================================================================
 // InviteCoachModal — Invite coaches via email or shareable link
 // =============================================================================
+// Supports role elevation: if the email already has a Lynx account (e.g., a parent),
+// the system detects it and adds the coach role directly — no signup needed.
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { X, Copy, Link, Mail, Share2, UserPlus, ChevronDown } from 'lucide-react'
+import { X, Copy, Link, Mail, Share2, UserPlus, CheckCircle2 } from 'lucide-react'
 import { EmailService } from '../../lib/email-service'
+import { checkExistingAccount, createInvitation, acceptInvitation, grantRole } from '../../lib/invite-utils'
 
 const COACH_ROLES = [
   { value: 'head', label: 'Head Coach' },
@@ -28,6 +31,11 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
   const [linkCopied, setLinkCopied] = useState(false)
   const [messageCopied, setMessageCopied] = useState(false)
 
+  // Role elevation state
+  const [existingUser, setExistingUser] = useState(null)
+  const [checkingEmail, setCheckingEmail] = useState(false)
+  const debounceRef = useRef(null)
+
   const inviteLink = `thelynxapp.com/join/coach/${orgId}`
 
   const recruitmentMessage =
@@ -44,6 +52,29 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
       ? 'bg-white/[0.06] border border-white/[0.06] text-white focus:border-lynx-sky'
       : 'bg-white border border-lynx-silver text-lynx-navy focus:border-lynx-sky'
   } outline-none`
+
+  // Debounced email check for existing account detection
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setExistingUser(null)
+
+    const trimmed = email.trim().toLowerCase()
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!trimmed || !emailRegex.test(trimmed)) return
+
+    debounceRef.current = setTimeout(async () => {
+      setCheckingEmail(true)
+      try {
+        const account = await checkExistingAccount(trimmed)
+        setExistingUser(account || null)
+      } catch {
+        // Silently fail — not critical
+      }
+      setCheckingEmail(false)
+    }, 600)
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [email])
 
   async function handleCopyLink() {
     try {
@@ -82,23 +113,68 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
     }
   }
 
-  async function handleSendEmail() {
-    if (!firstName.trim() || !lastName.trim()) {
-      showToast?.('Please enter the coach\'s first and last name', 'error')
-      return
-    }
-    if (!email.trim()) {
-      showToast?.('Please enter an email address', 'error')
-      return
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email.trim())) {
-      showToast?.('Please enter a valid email address', 'error')
-      return
+  async function handleRoleElevation() {
+    const selectedTeam = teams?.find(t => t.id === teamId)
+    const effectiveOrgId = orgId || organization?.id
+
+    // 1. Grant coach role directly
+    await grantRole(existingUser.id, effectiveOrgId, 'coach')
+
+    // 2. Create coaches record linked to existing profile
+    const { data: newCoach, error: coachError } = await supabase.from('coaches').insert({
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      email: email.trim(),
+      role,
+      profile_id: existingUser.id,
+      invite_status: 'active',
+      invite_email: email.trim(),
+      invite_accepted_at: new Date().toISOString(),
+      invited_by: profile?.id || null,
+      season_id: seasonId || null,
+    }).select().single()
+
+    if (coachError) throw coachError
+
+    // 3. Assign to team if selected
+    if (newCoach && teamId) {
+      await supabase.from('team_coaches').insert({
+        coach_id: newCoach.id,
+        team_id: teamId,
+        role,
+      })
     }
 
-    setSending(true)
+    // 4. Track in invitations table (non-critical)
+    try {
+      const invite = await createInvitation({
+        organizationId: effectiveOrgId,
+        email: email.trim(),
+        inviteType: 'role_elevation',
+        role: 'coach',
+        invitedBy: profile?.id,
+        teamId: teamId || null,
+        coachId: newCoach?.id || null,
+        metadata: { existingProfileId: existingUser.id, elevatedFrom: existingUser.role || 'parent' },
+        expiresInHours: 0,
+      })
+      await acceptInvitation(invite.invite_code, existingUser.id)
+    } catch {
+      // Non-critical tracking
+    }
 
+    // 5. Send notification email
+    await EmailService.sendRoleElevationNotification({
+      to: email.trim(),
+      recipientName: existingUser.full_name || firstName.trim(),
+      orgName: orgName || organization?.name || 'Our Club',
+      orgId: effectiveOrgId,
+      newRole: 'Coach',
+      teamName: selectedTeam?.name || null,
+    })
+  }
+
+  async function handleNewUserInvite() {
     const selectedTeam = teams?.find(t => t.id === teamId)
 
     // 1. Create a pending coach record with invite code
@@ -123,7 +199,6 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
 
     if (coachError) {
       console.error('Error creating pending coach record:', coachError)
-      // Continue anyway — we'll still send the email with a generic link
     }
 
     // 2. Link to team if selected
@@ -155,20 +230,51 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
     })
 
     if (!result.success) {
-      setSending(false)
-      showToast?.('Failed to send invite email. The coach record was created but email failed.', 'error')
-      onInviteSent?.()
+      throw new Error('Failed to send invite email. The coach record was created but email failed.')
+    }
+  }
+
+  async function handleSendEmail() {
+    if (!firstName.trim() || !lastName.trim()) {
+      showToast?.('Please enter the coach\'s first and last name', 'error')
+      return
+    }
+    if (!email.trim()) {
+      showToast?.('Please enter an email address', 'error')
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      showToast?.('Please enter a valid email address', 'error')
       return
     }
 
+    setSending(true)
+
+    try {
+      if (existingUser) {
+        // ROLE ELEVATION — existing account, no magic link needed
+        await handleRoleElevation()
+        showToast?.(`Coach role added for ${existingUser.full_name || firstName.trim()}! They'll see Coach view in their role switcher.`, 'success')
+      } else {
+        // NEW USER — send magic link invite (existing flow)
+        await handleNewUserInvite()
+        showToast?.(`Invite sent to ${firstName.trim()} (${email.trim()})!`, 'success')
+      }
+
+      onInviteSent?.()
+      setFirstName('')
+      setLastName('')
+      setEmail('')
+      setRole('assistant')
+      setTeamId('')
+      setExistingUser(null)
+    } catch (err) {
+      console.error('Invite error:', err)
+      showToast?.(err.message || 'Something went wrong sending the invite.', 'error')
+    }
+
     setSending(false)
-    showToast?.(`Invite sent to ${firstName.trim()} (${email.trim()})!`, 'success')
-    onInviteSent?.()
-    setFirstName('')
-    setLastName('')
-    setEmail('')
-    setRole('assistant')
-    setTeamId('')
   }
 
   return (
@@ -266,15 +372,37 @@ export default function InviteCoachModal({ orgName, orgId, seasonName, seasonId,
               />
               <button
                 onClick={handleSendEmail}
-                disabled={sending}
-                className={`px-5 py-2.5 rounded-lg bg-lynx-navy text-white font-bold text-sm hover:brightness-110 transition whitespace-nowrap ${sending ? 'opacity-60 cursor-wait' : ''}`}
+                disabled={sending || checkingEmail}
+                className={`px-5 py-2.5 rounded-lg font-bold text-sm hover:brightness-110 transition whitespace-nowrap ${
+                  sending || checkingEmail ? 'opacity-60 cursor-wait' : ''
+                } ${existingUser ? 'bg-emerald-600 text-white' : 'bg-lynx-navy text-white'}`}
               >
-                {sending ? 'Sending...' : 'Send Invite'}
+                {sending ? (existingUser ? 'Adding Role...' : 'Sending...') : (existingUser ? 'Add Coach Role' : 'Send Invite')}
               </button>
             </div>
-            <p className={`text-xs mt-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-              A branded email invite will be sent from noreply@thelynxapp.com
-            </p>
+
+            {/* Existing account detection banner */}
+            {existingUser && (
+              <div className={`mt-2 flex items-start gap-2 px-3 py-2 rounded-lg ${
+                isDark ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-200'
+              }`}>
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className={`text-xs font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                    {existingUser.full_name || email.trim()} already has a Lynx account
+                  </p>
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-emerald-400/70' : 'text-emerald-600'}`}>
+                    They'll be notified and can switch to Coach view immediately.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!existingUser && (
+              <p className={`text-xs mt-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                A branded email invite will be sent from noreply@thelynxapp.com
+              </p>
+            )}
           </div>
 
           {/* Divider */}
