@@ -7,6 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import { useProgram } from '../../contexts/ProgramContext'
 import { useSeason } from '../../contexts/SeasonContext'
 import {
@@ -17,8 +18,23 @@ import {
   MessageCircle, Bell, Award, Flame, UserCheck, Home,
   Building2, CreditCard, PieChart, TrendingUp, Download,
   CheckSquare, CalendarCheck, User, LogOut, MapPin,
-  Search, Heart, Mail, PlayCircle, ListOrdered
+  Search, Heart, Mail, PlayCircle, ListOrdered, Lock
 } from 'lucide-react'
+
+// =============================================================================
+// PROGRESSIVE NAV PREREQUISITES (admin only)
+// Groups with prereqs are shown muted + locked until the requirement is met
+// =============================================================================
+const ADMIN_NAV_PREREQS = {
+  'teams-rosters': { needs: 'season', tooltip: 'Create a season to unlock teams & rosters' },
+  'registration':  { needs: 'season', tooltip: 'Create a season to open registration' },
+  'scheduling':    { needs: 'season', tooltip: 'Create a season to schedule events' },
+  'practice':      { needs: 'season', tooltip: 'Create a season to plan practices' },
+  'game':          { needs: 'season', tooltip: 'Create a season to access game day' },
+  'communication': { needs: 'orgSetup', tooltip: 'Finish club setup to unlock messaging' },
+  'money':         { needs: 'orgSetup', tooltip: 'Finish club setup to unlock payments' },
+  'insights':      { needs: 'season', tooltip: 'Reports appear once you have a season' },
+}
 
 // Icon lookup for nav items
 const ICON_MAP = {
@@ -194,15 +210,22 @@ function RoleSwitcher({ activeView, availableViews, onSwitchRole, isPlayer }) {
 // =============================================================================
 // NavItem — always expanded with label, left border accent for active state
 // =============================================================================
-function NavItem({ item, isActive, onNavigate, isPlayer }) {
+function NavItem({ item, isActive, onNavigate, isPlayer, isLocked = false, lockTooltip = '' }) {
   const Icon = ICON_MAP[item.icon] || ICON_MAP[item.id] || LayoutDashboard
+
+  const handleClick = () => {
+    if (isLocked) return // swallowed — tooltip communicates why
+    onNavigate?.(item.id, item)
+  }
 
   return (
     <button
-      onClick={() => onNavigate?.(item.id, item)}
+      onClick={handleClick}
       className="v2-sidebar-btn"
       data-active={isActive || undefined}
       data-player={isPlayer || undefined}
+      title={isLocked ? lockTooltip : ''}
+      aria-disabled={isLocked || undefined}
       style={{
         width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10,
         borderLeft: isActive ? `3px solid ${isPlayer ? 'var(--v2-gold)' : '#4BB9EC'}` : '3px solid transparent',
@@ -210,19 +233,27 @@ function NavItem({ item, isActive, onNavigate, isPlayer }) {
           background: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
           color: isPlayer ? 'var(--v2-midnight)' : '#FFFFFF',
         } : {}),
+        ...(isLocked ? {
+          opacity: 0.45,
+          cursor: 'not-allowed',
+        } : {}),
       }}
     >
       <Icon style={{ width: 18, height: 18, flexShrink: 0 }} />
       <span style={{
+        flex: 1, textAlign: 'left',
         fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
         overflow: 'hidden', textOverflow: 'ellipsis',
       }}>
         {item.label}
       </span>
-      {item.badge > 0 && (
+      {isLocked && (
+        <Lock style={{ width: 11, height: 11, flexShrink: 0, opacity: 0.7 }} />
+      )}
+      {!isLocked && item.badge > 0 && (
         <span className="v2-sidebar-badge">{item.badge > 9 ? '9+' : item.badge}</span>
       )}
-      {item.hasBadge && !item.badge && (
+      {!isLocked && item.hasBadge && !item.badge && (
         <span className="v2-sidebar-dot" />
       )}
     </button>
@@ -395,6 +426,47 @@ export default function LynxSidebar({
   onSettingsClick,
 }) {
   const isPlayer = activeView === 'player'
+
+  // ---- Progressive unlock state (admin only) ----
+  const { organization } = useAuth()
+  const { allSeasons } = useSeason()
+  const hasOrgSetup = Boolean(organization?.settings?.setup_complete)
+  const hasSeason = Boolean((allSeasons || []).length > 0)
+  const unlockState = { orgSetup: hasOrgSetup, season: hasSeason }
+
+  // Compute lock state for a given group id (admin view only)
+  const getGroupLock = (groupId) => {
+    if (activeView !== 'admin') return null
+    const req = ADMIN_NAV_PREREQS[groupId]
+    if (!req) return null
+    return unlockState[req.needs] ? null : { tooltip: req.tooltip }
+  }
+
+  // Track previously-locked groups so we can highlight ones that just unlocked
+  const [previouslyLocked, setPreviouslyLocked] = useState(null)
+  const [justUnlocked, setJustUnlocked] = useState(new Set())
+
+  useEffect(() => {
+    if (activeView !== 'admin') return
+    const currentlyLocked = new Set(
+      Object.keys(ADMIN_NAV_PREREQS).filter(groupId => getGroupLock(groupId))
+    )
+    if (previouslyLocked === null) {
+      // First run — just capture state, no celebration
+      setPreviouslyLocked(currentlyLocked)
+      return
+    }
+    // Find items that were locked but are now unlocked
+    const unlocked = [...previouslyLocked].filter(id => !currentlyLocked.has(id))
+    if (unlocked.length > 0) {
+      setJustUnlocked(new Set(unlocked))
+      // Clear the celebration after 2.5s
+      const t = setTimeout(() => setJustUnlocked(new Set()), 2500)
+      setPreviouslyLocked(currentlyLocked)
+      return () => clearTimeout(t)
+    }
+    setPreviouslyLocked(currentlyLocked)
+  }, [activeView, hasOrgSetup, hasSeason])
 
   // Accordion state — track which groups are expanded
   // Auto-expand the group containing the active page
@@ -653,18 +725,25 @@ export default function LynxSidebar({
           )
           const GroupIcon = ICON_MAP[group.icon] || ICON_MAP[group.id] || LayoutDashboard
 
+          // Progressive unlock (admin only): is this group locked?
+          const groupLock = getGroupLock(group.id)
+          const isGroupLocked = Boolean(groupLock)
+          const isJustUnlocked = justUnlocked.has(group.id)
+
           return (
             <div key={group.id}>
               <button
                 onClick={() => toggleGroup(group.id)}
-                className="v2-sidebar-btn"
+                className={`v2-sidebar-btn${isJustUnlocked ? ' v2-sidebar-unlock-pulse' : ''}`}
                 data-player={isPlayer || undefined}
+                title={isGroupLocked ? groupLock.tooltip : ''}
                 style={{
                   width: '100%', justifyContent: 'flex-start', paddingLeft: 12, gap: 10,
                   ...(hasActiveChild && !isExpanded ? {
                     color: isPlayer ? 'var(--v2-gold)' : 'var(--v2-navy)',
                     fontWeight: 700,
                   } : {}),
+                  ...(isGroupLocked ? { opacity: 0.45 } : {}),
                 }}
               >
                 <GroupIcon style={{ width: 18, height: 18, flexShrink: 0 }} />
@@ -675,12 +754,16 @@ export default function LynxSidebar({
                 }}>
                   {group.label}
                 </span>
-                <ChevronRight style={{
-                  width: 12, height: 12, flexShrink: 0,
-                  transition: 'transform 0.15s ease',
-                  transform: isExpanded ? 'rotate(90deg)' : 'none',
-                  opacity: 0.4,
-                }} />
+                {isGroupLocked ? (
+                  <Lock style={{ width: 11, height: 11, flexShrink: 0, opacity: 0.7 }} />
+                ) : (
+                  <ChevronRight style={{
+                    width: 12, height: 12, flexShrink: 0,
+                    transition: 'transform 0.15s ease',
+                    transform: isExpanded ? 'rotate(90deg)' : 'none',
+                    opacity: 0.4,
+                  }} />
+                )}
               </button>
               {isExpanded && (
                 <div style={{ paddingLeft: 8, overflow: 'hidden' }}>
@@ -691,6 +774,8 @@ export default function LynxSidebar({
                       isActive={isItemActive(item)}
                       onNavigate={onNavigate}
                       isPlayer={isPlayer}
+                      isLocked={isGroupLocked}
+                      lockTooltip={isGroupLocked ? groupLock.tooltip : ''}
                     />
                   ))}
                 </div>
@@ -808,6 +893,16 @@ export default function LynxSidebar({
         .lynx-sidebar::-webkit-scrollbar { width: 0px; display: none; }
         .lynx-sidebar { scrollbar-width: none; -ms-overflow-style: none; }
         .lynx-sidebar-nav::-webkit-scrollbar { width: 0; display: none; }
+        /* Progressive unlock celebration — pulse + glow briefly */
+        @keyframes lynxUnlockPulse {
+          0%   { box-shadow: 0 0 0 0 rgba(75,185,236,0.6); transform: scale(1); }
+          40%  { box-shadow: 0 0 0 6px rgba(75,185,236,0); transform: scale(1.02); }
+          100% { box-shadow: 0 0 0 0 rgba(75,185,236,0); transform: scale(1); }
+        }
+        .v2-sidebar-unlock-pulse {
+          animation: lynxUnlockPulse 1.2s ease-out 2;
+          background: rgba(75,185,236,0.08) !important;
+        }
         /* Mobile: hide desktop sidebar, show mobile header */
         @media (max-width: 1023px) {
           .v2-sidebar { display: none !important; }
