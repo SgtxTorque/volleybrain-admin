@@ -31,6 +31,7 @@ const BRAND = {
 const STEPS = {
   ROLE: 'role',
   ORG_NAME: 'org_name',
+  SPORTS: 'sports',  // NEW — sport selection for org directors
   COACH_PATH: 'coach_path',
   PARENT_PATH: 'parent_path',
   TEAM_NAME: 'team_name',
@@ -43,6 +44,7 @@ const STEPS = {
 const STEP_META = {
   [STEPS.ROLE]:        { progress: 25, mascot: '/images/mascots/waving.png',              mascotFallback: '/images/Meet-Lynx.png', time: 'Quick setup — just the basics' },
   [STEPS.ORG_NAME]:    { progress: 60, mascot: '/images/coachlynxmale.png',               mascotFallback: '/images/coachlynxmale.png', time: '~30 sec' },
+  [STEPS.SPORTS]:      { progress: 75, mascot: '/images/mascots/clipboard-checklist.png', mascotFallback: '/images/laptoplynx.png', time: 'Almost done!' },
   [STEPS.COACH_PATH]:  { progress: 40, mascot: '/images/mascots/lightbulb.png',           mascotFallback: '/images/laptoplynx.png', time: null },
   [STEPS.PARENT_PATH]: { progress: 40, mascot: '/images/mascots/duo-high-five.png',       mascotFallback: '/images/celebrate.png', time: null },
   [STEPS.TEAM_NAME]:   { progress: 60, mascot: '/images/mascots/clipboard-checklist.png', mascotFallback: '/images/laptoplynx.png', time: '~30 sec' },
@@ -148,6 +150,8 @@ export function SetupWizard({ onComplete, onBack }) {
   const [orgName, setOrgName] = useState('')
   const [teamName, setTeamName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const [selectedSport, setSelectedSport] = useState(null)
+  const [createdOrgId, setCreatedOrgId] = useState(null)
 
   // UI state
   const [saving, setSaving] = useState(false)
@@ -259,13 +263,68 @@ export function SetupWizard({ onComplete, onBack }) {
 
       if (journey?.completeStep) journey.completeStep('create_org')
 
+      setCreatedOrgId(org.id)
       setSaving(false)
       setSuccessContext({ type: 'org', name: orgName, role: 'Organization Director', badge: 'Founder' })
-      goTo(STEPS.SUCCESS)
+      goTo(STEPS.SPORTS)
     } catch (err) {
       console.error('Error creating organization:', err)
       setSaving(false)
       setError(err.message)
+    }
+  }
+
+  // Save sport selection from wizard step 3
+  const handleSportContinue = async () => {
+    if (!selectedSport || !createdOrgId) {
+      goTo(STEPS.SUCCESS)
+      return
+    }
+    setSaving(true)
+    setError(null)
+    try {
+      // Load current settings so we don't clobber anything
+      const { data: orgRow } = await supabase
+        .from('organizations')
+        .select('settings')
+        .eq('id', createdOrgId)
+        .maybeSingle()
+
+      const enabledSports = selectedSport === 'other' ? [] : [selectedSport]
+
+      await supabase.from('organizations').update({
+        settings: {
+          ...(orgRow?.settings || {}),
+          enabled_sports: enabledSports,
+        },
+      }).eq('id', createdOrgId)
+
+      // Create a starter program for the selected sport
+      if (selectedSport !== 'other') {
+        const { data: sportRecord } = await supabase
+          .from('sports')
+          .select('id, name')
+          .ilike('name', selectedSport)
+          .maybeSingle()
+
+        if (sportRecord) {
+          await supabase.from('programs').insert({
+            organization_id: createdOrgId,
+            sport_id: sportRecord.id,
+            name: sportRecord.name,
+            is_active: true,
+            display_order: 0,
+          })
+        }
+      }
+
+      setSaving(false)
+      goTo(STEPS.SUCCESS)
+    } catch (err) {
+      console.error('Error saving sport selection:', err)
+      setSaving(false)
+      // Don't block the user — go to celebration anyway
+      goTo(STEPS.SUCCESS)
     }
   }
 
@@ -439,7 +498,7 @@ export function SetupWizard({ onComplete, onBack }) {
 
   // Step counter — each role has its own flow, so the step number and total
   // should match what the user is actually walking through. No phantom "Step 3 of 4".
-  const directorSteps = [STEPS.ROLE, STEPS.ORG_NAME, STEPS.SUCCESS]
+  const directorSteps = [STEPS.ROLE, STEPS.ORG_NAME, STEPS.SPORTS, STEPS.SUCCESS]
   const coachSteps = [STEPS.ROLE, STEPS.COACH_PATH, STEPS.INVITE_CODE, STEPS.SUCCESS]
   const parentSteps = [STEPS.ROLE, STEPS.PARENT_PATH, STEPS.INVITE_CODE, STEPS.SUCCESS]
   const playerSteps = [STEPS.ROLE, STEPS.PENDING]
@@ -577,6 +636,61 @@ export function SetupWizard({ onComplete, onBack }) {
               <PrimaryButton onClick={createOrganization} disabled={!orgName.trim()} saving={saving}>
                 Create Organization
               </PrimaryButton>
+
+              {meta.time && <TimeLabel time={meta.time} />}
+            </>
+          )}
+
+          {/* ─── STEP: Sport Picker (org director) ─── */}
+          {step === STEPS.SPORTS && (
+            <>
+              <MascotImage step={step} className="w-24 h-24 mb-4" />
+              <h1 className="text-2xl font-bold text-center mb-1" style={{ color: BRAND.textPrimary }}>
+                What does {orgName || 'your club'} play? {'\ud83c\udfc6'}
+              </h1>
+              <p className="text-center mb-6" style={{ color: BRAND.textMuted }}>
+                Pick your main sport. You can add more later.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[
+                  { id: 'volleyball', emoji: '\ud83c\udfd0', name: 'Volleyball', color: '#FFB800' },
+                  { id: 'basketball', emoji: '\ud83c\udfc0', name: 'Basketball', color: '#EF6C00' },
+                  { id: 'soccer',     emoji: '\u26bd',       name: 'Soccer',     color: '#2E7D32' },
+                  { id: 'baseball',   emoji: '\u26be',       name: 'Baseball',   color: '#C62828' },
+                  { id: 'softball',   emoji: '\ud83e\udd4e', name: 'Softball',   color: '#E91E63' },
+                  { id: 'football',   emoji: '\ud83c\udfc8', name: 'Football',   color: '#6A1B9A' },
+                  { id: 'lacrosse',   emoji: '\ud83e\udd4d', name: 'Lacrosse',   color: '#00838F' },
+                  { id: 'other',      emoji: '\ud83c\udfaf', name: 'Other / Multiple', color: '#546E7A' },
+                ].map(sport => (
+                  <button
+                    key={sport.id}
+                    onClick={() => setSelectedSport(sport.id)}
+                    className="p-4 rounded-[14px] text-left transition-all"
+                    style={{
+                      background: selectedSport === sport.id ? `${sport.color}20` : '#FAFBFC',
+                      border: selectedSport === sport.id ? `2px solid ${sport.color}` : '2px solid #E8ECF2',
+                    }}
+                  >
+                    <span className="text-3xl block mb-1">{sport.emoji}</span>
+                    <span className="text-sm font-bold" style={{ color: BRAND.textPrimary }}>{sport.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {error && <ErrorMessage message={error} />}
+
+              <PrimaryButton onClick={handleSportContinue} disabled={!selectedSport} saving={saving}>
+                Continue
+              </PrimaryButton>
+
+              <button
+                onClick={() => goTo(STEPS.SUCCESS)}
+                className="block mx-auto mt-4 text-sm font-medium transition-colors hover:underline"
+                style={{ color: BRAND.textMuted }}
+              >
+                Skip for now — I'll pick later
+              </button>
 
               {meta.time && <TimeLabel time={meta.time} />}
             </>
