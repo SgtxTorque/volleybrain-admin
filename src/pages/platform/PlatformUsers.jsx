@@ -715,12 +715,15 @@ function PlatformUsersPage({ showToast }) {
     setLoadingDuplicates(false)
   }
 
-  // Delete user
+  // Delete user — calls the delete-user-account Edge Function which runs with
+  // the service role key and removes BOTH the profiles/roles/etc. rows AND
+  // the auth.users record. Deleting only the profile leaves a ghost auth
+  // account behind and locks the email permanently.
   function handleDeleteUser(targetUser) {
     setConfirmModal({
       open: true,
       title: 'Permanently Delete User',
-      message: `This will permanently delete "${targetUser.full_name || targetUser.email}" and remove all their data, org memberships, and references. This action cannot be undone.`,
+      message: `This will permanently delete "${targetUser.full_name || targetUser.email}" and remove their auth account, profile, roles, and all references. The email will be free to reuse. This action cannot be undone.`,
       destructive: true,
       onConfirm: async () => {
         try {
@@ -728,9 +731,12 @@ function PlatformUsersPage({ showToast }) {
             user_name: targetUser.full_name,
             email: targetUser.email,
           })
-          const { error } = await supabase.rpc('delete_profile_cascade', { p_profile_id: targetUser.id })
+          const { data, error } = await supabase.functions.invoke('delete-user-account', {
+            body: { userId: targetUser.id },
+          })
           if (error) throw error
-          showToast?.(`${targetUser.full_name || targetUser.email} deleted`, 'success')
+          if (data?.error) throw new Error(data.error)
+          showToast?.(`${targetUser.full_name || targetUser.email} fully deleted (auth + data)`, 'success')
           setSelectedUser(null)
           loadData()
         } catch (err) {
