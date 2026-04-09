@@ -309,7 +309,7 @@ function ProgramsSidebarSection({ isPlayer, onNavigate }) {
   }
 
   return (
-    <div style={{ marginBottom: 4 }}>
+    <div data-coachmark="sidebar-programs" style={{ marginBottom: 4 }}>
       {/* Section header */}
       <div style={{
         padding: '6px 12px 4px',

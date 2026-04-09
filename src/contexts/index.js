@@ -4,3 +4,4 @@ export { ProgramProvider, useProgram, isAllPrograms, ALL_PROGRAMS } from './Prog
 export { SportProvider, useSport } from './SportContext'
 export { SeasonProvider, useSeason } from './SeasonContext'
 export { JourneyProvider, useJourney, JOURNEY_BADGES, JOURNEY_STEPS } from './JourneyContext'
+export { CoachMarkProvider, useCoachMarks, COACH_MARKS } from './CoachMarkContext'

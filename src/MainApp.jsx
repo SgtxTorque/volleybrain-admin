@@ -22,7 +22,7 @@ import {
 import { VolleyballIcon } from './constants/icons'
 
 // UI Components
-import { ToastContainer, useToast, Icon, ErrorBoundary, CommandPalette, useCommandPalette } from './components/ui'
+import { ToastContainer, useToast, Icon, ErrorBoundary, CommandPalette, useCommandPalette, CoachMarkOverlay } from './components/ui'
 
 // Layout Components
 import { 
@@ -1413,6 +1413,7 @@ function MainApp() {
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
+        <CoachMarkOverlay />
 
         {/* Parent Tutorial Spotlight Overlay */}
         {activeView === 'parent' && <SpotlightOverlay />}

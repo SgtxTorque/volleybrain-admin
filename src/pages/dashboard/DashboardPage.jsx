@@ -8,6 +8,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { useProgram } from '../../contexts/ProgramContext'
 import { useJourney, JOURNEY_STEPS } from '../../contexts/JourneyContext'
+import { useCoachMarks } from '../../contexts/CoachMarkContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { SkeletonDashboard } from '../../components/ui'
@@ -58,7 +59,24 @@ export function GettingStartedGuide({ onNavigate }) {
   const { isDark } = useTheme()
   const navigate = useNavigate()
   const journey = useJourney()
+  const coachMarks = useCoachMarks()
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Admin'
+
+  // First-load coach-marks (admin day-zero) — fire once per profile.
+  // Only fires when the foundation isn't done yet (the day-zero CTA is showing).
+  useEffect(() => {
+    if (!coachMarks) return
+    const foundationDone = Boolean(organization?.settings?.setup_complete)
+      || (journey?.completedSteps || []).includes('org_setup')
+    if (foundationDone) return
+    if (!coachMarks.hasUnseenMarks('admin', 'dashboard_first_load')) return
+    // Small delay so the page renders first and targets mount
+    const t = setTimeout(() => {
+      coachMarks.showMarks('admin', 'dashboard_first_load')
+    }, 900)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachMarks, organization?.settings?.setup_complete, journey?.completedSteps?.length])
 
   // Tier 2: dedicated /setup flow tracks its own completion via setup_complete flag
   const setupFlowComplete = Boolean(organization?.settings?.setup_complete)
@@ -147,7 +165,7 @@ export function GettingStartedGuide({ onNavigate }) {
           </div>
 
           {/* The ONE CTA — big card, single button, honest time, escape hatch */}
-          <div className={`rounded-2xl p-6 mb-6 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
+          <div data-coachmark="setup-cta" className={`rounded-2xl p-6 mb-6 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-[#4BB9EC]/10 flex items-center justify-center text-2xl shrink-0">
                 {'\uD83C\uDFE2'}
@@ -171,7 +189,7 @@ export function GettingStartedGuide({ onNavigate }) {
           </div>
 
           {/* Setup Roadmap — secondary, subtle, shows the full path */}
-          <div className={`rounded-[14px] p-4 ${isDark ? 'bg-[#132240]/40 border border-white/[0.04]' : 'bg-white border border-[#E8ECF2]'}`}>
+          <div data-coachmark="setup-roadmap" className={`rounded-[14px] p-4 ${isDark ? 'bg-[#132240]/40 border border-white/[0.04]' : 'bg-white border border-[#E8ECF2]'}`}>
             <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: 'var(--v2-text-muted)' }}>
               Your setup roadmap
             </p>
