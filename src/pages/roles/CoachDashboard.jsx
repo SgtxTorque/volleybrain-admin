@@ -998,7 +998,7 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 overline="Next Game"
                 countdownText={getGameCountdown() ? `⏱ ${getGameCountdown()}` : undefined}
                 matchup={`${selectedTeam?.name || 'Your Team'} vs. ${nextGame.opponent_name || 'TBD'}`}
-                details={`${new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} · ${nextGame.location || 'TBD'} · ${nextGame.event_time ? formatTime12(nextGame.event_time) : ''}`}
+                details={`${new Date((nextGame.event_date || '') + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} · ${nextGame.location || 'TBD'} · ${nextGame.event_time ? formatTime12(nextGame.event_time) : ''}`}
                 confirmed={nextGameRsvp?.going || 0}
                 pending={Math.max(0, roster.length - (nextGameRsvp?.total || 0))}
                 seasonRecord={`${teamRecord.wins}-${teamRecord.losses}`}
@@ -1016,12 +1016,12 @@ function CoachDashboard({ roleContext, navigateToTeamWall, showToast, onNavigate
                 const endOfWeek = new Date(now)
                 endOfWeek.setDate(now.getDate() + (7 - now.getDay()))
                 return (upcomingEvents || [])
-                  .filter(evt => new Date(evt.event_date) <= endOfWeek)
+                  .filter(evt => new Date((evt.event_date || '') + 'T00:00:00') <= endOfWeek)
                   .slice(0, 7)
                   .map(evt => ({
-                    dayName: new Date(evt.event_date).toLocaleDateString('en-US', { weekday: 'short' }),
-                    dayNum: new Date(evt.event_date).getDate(),
-                    isToday: new Date(evt.event_date).toDateString() === new Date().toDateString(),
+                    dayName: new Date((evt.event_date || '') + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short' }),
+                    dayNum: new Date((evt.event_date || '') + 'T00:00:00').getDate(),
+                    isToday: new Date((evt.event_date || '') + 'T00:00:00').toDateString() === new Date().toDateString(),
                     title: evt.title || evt.event_type?.replace('_', ' ') || 'Event',
                     meta: `${evt.location || 'TBD'} · ${evt.event_time ? formatTime12(evt.event_time) : ''}`,
                   }))

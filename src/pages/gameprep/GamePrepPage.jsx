@@ -118,14 +118,20 @@ function GamePrepPage({ showToast }) {
   }
 
   async function loadGames() {
-    if (!selectedTeam?.id) return
+    if (!selectedTeam?.id || !selectedSeason?.id) return
+    // Safety: verify team belongs to current season (prevents cross-org leak)
+    if (selectedTeam.season_id && selectedTeam.season_id !== selectedSeason.id && !isAllSeasons(selectedSeason)) {
+      console.warn('[GamePrep] Team/season mismatch detected — clearing team selection')
+      setSelectedTeam(null)
+      return
+    }
     setLoading(true)
 
     try {
       const today = new Date().toISOString().split('T')[0]
 
       // Load upcoming games
-      const { data: upcomingData } = await supabase
+      let upcomingQuery = supabase
         .from('schedule_events')
         .select('*')
         .eq('team_id', selectedTeam.id)
@@ -135,11 +141,15 @@ function GamePrepPage({ showToast }) {
         .order('event_date')
         .order('event_time')
         .limit(20)
+      if (!isAllSeasons(selectedSeason)) {
+        upcomingQuery = upcomingQuery.eq('season_id', selectedSeason.id)
+      }
+      const { data: upcomingData } = await upcomingQuery
 
       setGames(upcomingData || [])
 
       // Load past/completed games
-      const { data: pastData } = await supabase
+      let pastQuery = supabase
         .from('schedule_events')
         .select('*')
         .eq('team_id', selectedTeam.id)
@@ -147,6 +157,10 @@ function GamePrepPage({ showToast }) {
         .or(`game_status.eq.completed,event_date.lt.${today}`)
         .order('event_date', { ascending: false })
         .limit(10)
+      if (!isAllSeasons(selectedSeason)) {
+        pastQuery = pastQuery.eq('season_id', selectedSeason.id)
+      }
+      const { data: pastData } = await pastQuery
 
       setPastGames(pastData || [])
 

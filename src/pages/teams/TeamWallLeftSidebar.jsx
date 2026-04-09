@@ -116,7 +116,7 @@ export default function TeamWallLeftSidebar({
               <p style={{ fontSize: 16, fontWeight: 500, color: 'rgba(255,255,255,.8)' }}>{nextGame.event_type === 'practice' ? 'Practice' : 'Game Day'}</p>
               <p style={{ fontSize: 24, fontWeight: 700, color: '#fff' }}>{nextGame.opponent ? `vs ${nextGame.opponent}` : nextGame.title || 'Practice'}</p>
               <div style={{ fontSize: 16, color: 'rgba(255,255,255,.7)', marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {nextGame.event_date && <span>📅 {new Date(nextGame.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>}
+                {nextGame.event_date && <span>📅 {new Date(nextGame.event_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>}
                 {nextGame.event_time && <span>🕐 {formatTime12(nextGame.event_time)}</span>}
                 {nextGame.location && <span>📍 {nextGame.location}</span>}
               </div>
@@ -146,7 +146,7 @@ export default function TeamWallLeftSidebar({
         </div>
         <div style={{ background: cardBg, border: `1px solid ${borderColor}`, borderRadius: 14, boxShadow: shadow, overflow: 'hidden' }}>
           {upcomingEvents.slice(0, 3).map((event, i) => {
-            const ed = new Date(event.event_date)
+            const ed = new Date((event.event_date || '') + 'T00:00:00')
             return (
               <div key={event.id} className="flex items-center gap-3 p-3.5"
                 style={{ borderBottom: i < Math.min(upcomingEvents.length, 3) - 1 ? `1px solid ${borderColor}` : 'none' }}>

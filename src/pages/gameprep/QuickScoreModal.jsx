@@ -226,7 +226,7 @@ export default function QuickScoreModal({ event, team, roster, sport = 'volleyba
           <div>
             <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-lynx-navy'}`}>Enter Scores</h2>
             <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-lynx-slate'}`}>
-              vs {event?.opponent_name} · {new Date(event?.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              vs {event?.opponent_name} · {new Date((event?.event_date || '') + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </p>
           </div>
           <button onClick={onClose} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-lynx-frost'}`}>

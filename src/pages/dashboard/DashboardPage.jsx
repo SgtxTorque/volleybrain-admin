@@ -714,28 +714,27 @@ export function DashboardPage({ onNavigate, activeView, availableViews = [], onS
           perTeamStats[tid] = { playerCount: count, record: '0W-0L' }
         })
 
-        // Try to get game records per team
+        // Get game records per team from schedule_events (the active pipeline)
         try {
           const { data: gameResults } = await supabase
-            .from('games')
-            .select('home_team_id, away_team_id, home_score, away_score, status')
-            .or(`home_team_id.in.(${teamIds.join(',')}),away_team_id.in.(${teamIds.join(',')})`)
-            .eq('status', 'completed')
+            .from('schedule_events')
+            .select('team_id, our_score, opponent_score, game_result, game_status')
+            .in('team_id', teamIds)
+            .eq('event_type', 'game')
+            .eq('game_status', 'completed')
 
           if (gameResults) {
             teamIds.forEach(tid => {
               let wins = 0, losses = 0
-              gameResults.forEach(g => {
-                if (g.home_team_id === tid && g.home_score > g.away_score) wins++
-                else if (g.home_team_id === tid && g.home_score < g.away_score) losses++
-                else if (g.away_team_id === tid && g.away_score > g.home_score) wins++
-                else if (g.away_team_id === tid && g.away_score < g.home_score) losses++
+              gameResults.filter(g => g.team_id === tid).forEach(g => {
+                if (g.game_result === 'win' || (g.our_score > g.opponent_score)) wins++
+                else if (g.game_result === 'loss' || (g.our_score < g.opponent_score)) losses++
               })
               perTeamStats[tid].record = `${wins}W-${losses}L`
             })
           }
         } catch {
-          // games table may not exist — gracefully degrade
+          // gracefully degrade if query fails
         }
       }
       // Count open spots (max_players - current players) across filtered teams

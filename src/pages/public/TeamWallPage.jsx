@@ -168,19 +168,19 @@ function TeamWallPage({ teamId, showToast, onBack, onNavigate }) {
         setDocuments([])
       }
 
-      // Load game record
+      // Load game record from schedule_events (the active pipeline)
       try {
         const { data: games } = await supabase
-          .from('games')
-          .select('id, home_team_id, away_team_id, home_score, away_score, status')
-          .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
-          .eq('status', 'completed')
+          .from('schedule_events')
+          .select('our_score, opponent_score, game_result, game_status')
+          .eq('team_id', teamId)
+          .eq('event_type', 'game')
+          .eq('game_status', 'completed')
 
         let w = 0, l = 0
         ;(games || []).forEach(game => {
-          const isHome = game.home_team_id === teamId
-          const won = isHome ? game.home_score > game.away_score : game.away_score > game.home_score
-          if (won) w++; else l++
+          if (game.game_result === 'win' || (game.our_score > game.opponent_score)) w++
+          else if (game.game_result === 'loss' || (game.our_score < game.opponent_score)) l++
         })
         setGameRecord({ wins: w, losses: l })
       } catch (err) {

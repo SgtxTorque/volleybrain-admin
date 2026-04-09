@@ -241,7 +241,7 @@ function GameCompleteModal({
     onClose()
   }
 
-  const gameDate = game?.event_date ? new Date(game.event_date) : null
+  const gameDate = game?.event_date ? new Date(game.event_date + 'T00:00:00') : null
 
   // Step 1: Enter Score
   if (step === 'score') {
@@ -626,7 +626,7 @@ function StatsEntryModal({
   }
 
   const totals = calculateTotals()
-  const gameDate = actualGame?.event_date ? new Date(actualGame.event_date) : null
+  const gameDate = actualGame?.event_date ? new Date(actualGame.event_date + 'T00:00:00') : null
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
@@ -811,15 +811,15 @@ function GameCard({
   const { isDark } = useTheme()
   
   const isCompleted = game.game_status === 'completed'
-  const isUpcoming = !isCompleted && new Date(game.event_date) >= new Date(new Date().setHours(0,0,0,0))
-  const isPast = !isCompleted && new Date(game.event_date) < new Date(new Date().setHours(0,0,0,0))
+  const isUpcoming = !isCompleted && new Date((game.event_date || '') + 'T00:00:00') >= new Date(new Date().setHours(0,0,0,0))
+  const isPast = !isCompleted && new Date((game.event_date || '') + 'T00:00:00') < new Date(new Date().setHours(0,0,0,0))
   const needsStats = isCompleted && !game.stats_entered
-  
+
   const sportConfig = getSportConfig(sport)
   const canComplete = (viewerRole === 'coach' || viewerRole === 'admin') && !isCompleted
   const canEditStats = (viewerRole === 'coach' || viewerRole === 'admin') && isCompleted
-  
-  const gameDate = new Date(game.event_date)
+
+  const gameDate = new Date((game.event_date || '') + 'T00:00:00')
   const dateStr = gameDate.toLocaleDateString('en-US', { 
     weekday: compact ? 'short' : 'long', 
     month: 'short', 
