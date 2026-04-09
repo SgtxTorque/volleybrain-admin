@@ -184,29 +184,43 @@ export default function TopBar({
 
       {/* ---- Nav Links ---- */}
       <nav className="v2-topbar-nav" style={{ display: 'flex', gap: 4, marginLeft: 16, flexShrink: 0 }}>
-        {navLinks.map(link => (
-          <button
-            key={link.pageId}
-            onClick={link.onClick}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 8,
-              fontSize: 13.5,
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              background: link.isActive
-                ? (isPlayerDark ? 'rgba(255,215,0,0.08)' : 'var(--v2-surface)')
-                : 'transparent',
-              color: link.isActive
-                ? (isPlayerDark ? 'var(--v2-gold)' : 'var(--v2-navy)')
-                : 'var(--v2-text-secondary)',
-            }}
-          >
-            {link.label}
-          </button>
-        ))}
+        {navLinks.map(link => {
+          const locked = Boolean(link.isLocked)
+          return (
+            <button
+              key={link.pageId}
+              onClick={locked ? (e) => { e.preventDefault(); e.stopPropagation() } : link.onClick}
+              title={locked ? (link.lockTooltip || 'Not available yet') : undefined}
+              aria-disabled={locked}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                fontSize: 13.5,
+                fontWeight: 600,
+                border: 'none',
+                cursor: locked ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
+                background: link.isActive
+                  ? (isPlayerDark ? 'rgba(255,215,0,0.08)' : 'var(--v2-surface)')
+                  : 'transparent',
+                color: locked
+                  ? 'var(--v2-text-muted)'
+                  : link.isActive
+                    ? (isPlayerDark ? 'var(--v2-gold)' : 'var(--v2-navy)')
+                    : 'var(--v2-text-secondary)',
+                opacity: locked ? 0.55 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              {locked && (
+                <span aria-hidden="true" style={{ fontSize: 11, lineHeight: 1, opacity: 0.8 }}>🔒</span>
+              )}
+              {link.label}
+            </button>
+          )
+        })}
       </nav>
 
       {/* ---- Spacer ---- */}
