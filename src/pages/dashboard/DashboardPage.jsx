@@ -82,118 +82,151 @@ export function GettingStartedGuide({ onNavigate }) {
     { label: 'Open Registration', page: 'registration-templates', done: false },
   ]
 
-  // Greeting changes based on foundation readiness
-  const greeting = !foundationDone
-    ? `Welcome to Lynx, ${firstName}! Let's set up your club.`
-    : `Great start, ${firstName}. Now let's create your first season.`
-
   return (
     <div style={{ padding: '32px 32px 80px', fontFamily: 'var(--v2-font)', maxWidth: 900, margin: '0 auto' }}>
-      {/* Greeting */}
-      <div className="text-center mb-8">
-        <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
-        <h1 className="text-2xl font-extrabold mb-2" style={{ color: 'var(--v2-text-primary)' }}>
-          {greeting}
-        </h1>
-        <p className="text-sm" style={{ color: 'var(--v2-text-muted)' }}>
-          {!foundationDone
-            ? 'Complete your organization setup first — it feeds into seasons, registration, and payments.'
-            : 'Follow the steps below to launch your organization. Your dashboard will come alive as data flows in.'}
-        </p>
-      </div>
-
-      {/* Setup Journey Stepper */}
-      <div className={`rounded-[14px] p-6 mb-8 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
-        <h2 className="text-sm font-extrabold uppercase tracking-widest mb-4" style={{ color: 'var(--v2-text-muted)' }}>Setup Progress</h2>
-        <div className="flex items-center gap-2 flex-wrap">
-          {setupSteps.map((step, i) => {
-            const isCurrent = !step.done && setupSteps.slice(0, i).every(s => s.done)
-            // Steps beyond prerequisites are grayed out and not clickable
-            const prerequisitesMet = setupSteps.slice(0, i).every(s => s.done)
-            const isLocked = !step.done && !isCurrent && !prerequisitesMet
-            return (
-              <button key={step.label}
-                onClick={() => !isLocked && onNavigate?.(step.page)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg transition hover:brightness-95"
-                style={{
-                  background: step.done ? '#22C55E20' : isCurrent ? '#4BB9EC20' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
-                  border: isCurrent ? '2px solid #4BB9EC' : '2px solid transparent',
-                  cursor: isLocked ? 'not-allowed' : 'pointer',
-                  opacity: isLocked ? 0.4 : 1,
-                }}>
-                <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
-                  style={{
-                    background: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1',
-                    color: step.done || isCurrent ? '#FFFFFF' : 'var(--v2-text-muted)',
-                  }}>
-                  {step.done ? '✓' : i + 1}
-                </span>
-                <span className="text-xs font-bold" style={{ color: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : 'var(--v2-text-muted)' }}>
-                  {step.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Primary CTA: Org Setup when foundation not ready */}
+      {/* ───────────────────────────────────────────────────────────────────
+          DAY ZERO — one voice, one direction.
+          Show a warm hero, ONE primary card with ONE button, and the
+          stepper as a subtle secondary roadmap. No grayed tiles.
+      ─────────────────────────────────────────────────────────────────── */}
       {!foundationDone && (
-        <div className={`rounded-2xl border-2 border-dashed border-[#4BB9EC]/40 p-8 mb-6 text-center ${isDark ? 'bg-[#4BB9EC]/[0.04]' : 'bg-[#4BB9EC]/[0.03]'}`}>
-          <div className="text-4xl mb-3">{'\uD83C\uDFE2'}</div>
-          <h3 className={`text-xl font-extrabold mb-2 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
-            Complete Your Organization Setup
-          </h3>
-          <p className={`text-sm mb-4 max-w-md mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Set up your club's identity, contact info, sports, payment methods, and fees. This information feeds into seasons, registration, and payments.
-          </p>
-          <button onClick={() => onNavigate?.('organization')}
-            className="px-8 py-3 bg-lynx-navy-subtle text-white font-bold rounded-xl hover:brightness-110 transition text-sm">
-            Start Organization Setup {'\u2192'}
-          </button>
-          <p className={`text-xs mt-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            Takes about 5-10 minutes to complete the essentials
-          </p>
-        </div>
+        <>
+          {/* Hero — welcome + acknowledge what they just did */}
+          <div className="text-center mb-6">
+            <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
+            <h1 className="text-2xl font-extrabold mb-2" style={{ color: 'var(--v2-text-primary)' }}>
+              Welcome to Lynx, {firstName}!
+            </h1>
+            <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--v2-text-muted)' }}>
+              {organization?.name ? `${organization.name} is created.` : "Your club is created."} Now let's give it everything it needs to run like a pro.
+            </p>
+          </div>
+
+          {/* The ONE CTA — big card, single button, honest time, escape hatch */}
+          <div className={`rounded-2xl p-6 mb-6 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#4BB9EC]/10 flex items-center justify-center text-2xl shrink-0">
+                {'\uD83C\uDFE2'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className={`text-lg font-extrabold mb-1 ${isDark ? 'text-white' : 'text-[#10284C]'}`}>
+                  Set up your club
+                </h2>
+                <p className="text-sm mb-4" style={{ color: 'var(--v2-text-muted)' }}>
+                  Add your contact info, pick your sport, set up payments and fees. About 15–30 minutes if you have everything handy — or knock it out in pieces, no rush.
+                </p>
+                <button onClick={() => onNavigate?.('organization')}
+                  className="bg-[#10284C] hover:brightness-110 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
+                  Let's do it {'\u2192'}
+                </button>
+                <p className="text-xs mt-3" style={{ color: 'var(--v2-text-muted)' }}>
+                  Don't have everything right now? No worries — come back anytime. We'll remember where you left off.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Setup Roadmap — secondary, subtle, shows the full path */}
+          <div className={`rounded-[14px] p-4 ${isDark ? 'bg-[#132240]/40 border border-white/[0.04]' : 'bg-white border border-[#E8ECF2]'}`}>
+            <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: 'var(--v2-text-muted)' }}>
+              Your setup roadmap
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {setupSteps.map((step, i) => {
+                const isCurrent = !step.done && setupSteps.slice(0, i).every(s => s.done)
+                const prerequisitesMet = setupSteps.slice(0, i).every(s => s.done)
+                const isLocked = !step.done && !isCurrent && !prerequisitesMet
+                return (
+                  <button key={step.label}
+                    onClick={() => !isLocked && onNavigate?.(step.page)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:brightness-95"
+                    style={{
+                      background: step.done ? '#22C55E15' : isCurrent ? '#4BB9EC15' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
+                      border: isCurrent ? '1.5px solid #4BB9EC' : '1.5px solid transparent',
+                      color: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : 'var(--v2-text-muted)',
+                      cursor: isLocked ? 'not-allowed' : 'pointer',
+                      // No 0.4 opacity — locked state is communicated via muted color alone
+                    }}>
+                    <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                      style={{
+                        background: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : isDark ? 'rgba(255,255,255,0.15)' : '#CBD5E1',
+                        color: step.done || isCurrent ? '#FFFFFF' : isDark ? '#64748B' : '#64748B',
+                      }}>
+                      {step.done ? '✓' : i + 1}
+                    </span>
+                    {step.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </>
       )}
 
-      {/* When foundation is NOT ready, show grayed-out preview of upcoming steps */}
-      {!foundationDone && (
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <div className={`rounded-[14px] border border-dashed p-4 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ opacity: 0.5 }}>
-            <div className="text-xl mb-1">{'\uD83D\uDCC5'}</div>
-            <p className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create Season</p>
-            <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>After org setup</p>
-          </div>
-          <div className={`rounded-[14px] border border-dashed p-4 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ opacity: 0.5 }}>
-            <div className="text-xl mb-1">{'\uD83D\uDC65'}</div>
-            <p className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Add Teams</p>
-            <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>After creating a season</p>
-          </div>
-          <div className={`rounded-[14px] border border-dashed p-4 text-center ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ opacity: 0.5 }}>
-            <div className="text-xl mb-1">{'\uD83D\uDCCB'}</div>
-            <p className={`text-xs font-bold ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Open Registration</p>
-            <p className={`text-[10px] ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>After adding teams</p>
-          </div>
-        </div>
-      )}
-
-      {/* When foundation IS ready, show full CTA grid */}
+      {/* ───────────────────────────────────────────────────────────────────
+          FOUNDATION READY — original CTA grid for created-but-empty orgs.
+      ─────────────────────────────────────────────────────────────────── */}
       {foundationDone && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <EmptyStateCTA emoji={'\uD83D\uDCC5'} title="Create Your First Season"
-            description="Define your season dates, fees, and registration windows"
-            buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
-          <EmptyStateCTA emoji={'\uD83D\uDC65'} title="Add Your First Team"
-            description="Create teams and start building your rosters"
-            buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
-          <EmptyStateCTA emoji={'\uD83D\uDCCB'} title="Open Registration"
-            description="Create a season first, then open registration for families"
-            buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
-          <EmptyStateCTA emoji={'\uD83D\uDCC6'} title="Create Schedule"
-            description="Add practices, games, and events for your teams"
-            buttonLabel="Go to Schedule" onClick={() => onNavigate?.('schedule')} isDark={isDark} />
-        </div>
+        <>
+          {/* Greeting */}
+          <div className="text-center mb-8">
+            <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
+            <h1 className="text-2xl font-extrabold mb-2" style={{ color: 'var(--v2-text-primary)' }}>
+              Great start, {firstName}. Now let's create your first season.
+            </h1>
+            <p className="text-sm" style={{ color: 'var(--v2-text-muted)' }}>
+              Follow the steps below to launch your organization. Your dashboard will come alive as data flows in.
+            </p>
+          </div>
+
+          {/* Setup Journey Stepper */}
+          <div className={`rounded-[14px] p-6 mb-8 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`} style={{ boxShadow: 'var(--v2-card-shadow)' }}>
+            <h2 className="text-sm font-extrabold uppercase tracking-widest mb-4" style={{ color: 'var(--v2-text-muted)' }}>Setup Progress</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              {setupSteps.map((step, i) => {
+                const isCurrent = !step.done && setupSteps.slice(0, i).every(s => s.done)
+                const prerequisitesMet = setupSteps.slice(0, i).every(s => s.done)
+                const isLocked = !step.done && !isCurrent && !prerequisitesMet
+                return (
+                  <button key={step.label}
+                    onClick={() => !isLocked && onNavigate?.(step.page)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg transition hover:brightness-95"
+                    style={{
+                      background: step.done ? '#22C55E20' : isCurrent ? '#4BB9EC20' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
+                      border: isCurrent ? '2px solid #4BB9EC' : '2px solid transparent',
+                      cursor: isLocked ? 'not-allowed' : 'pointer',
+                    }}>
+                    <span className="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                      style={{
+                        background: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : isDark ? 'rgba(255,255,255,0.1)' : '#CBD5E1',
+                        color: step.done || isCurrent ? '#FFFFFF' : 'var(--v2-text-muted)',
+                      }}>
+                      {step.done ? '✓' : i + 1}
+                    </span>
+                    <span className="text-xs font-bold" style={{ color: step.done ? '#22C55E' : isCurrent ? '#4BB9EC' : 'var(--v2-text-muted)' }}>
+                      {step.label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <EmptyStateCTA emoji={'\uD83D\uDCC5'} title="Create Your First Season"
+              description="Define your season dates, fees, and registration windows"
+              buttonLabel="+ Create Season" onClick={() => onNavigate?.('seasons')} isDark={isDark} />
+            <EmptyStateCTA emoji={'\uD83D\uDC65'} title="Add Your First Team"
+              description="Create teams and start building your rosters"
+              buttonLabel="+ Create Team" onClick={() => onNavigate?.('teams')} isDark={isDark} />
+            <EmptyStateCTA emoji={'\uD83D\uDCCB'} title="Open Registration"
+              description="Create a season first, then open registration for families"
+              buttonLabel="Set Up Registration" onClick={() => onNavigate?.('registration-templates')} isDark={isDark} />
+            <EmptyStateCTA emoji={'\uD83D\uDCC6'} title="Create Schedule"
+              description="Add practices, games, and events for your teams"
+              buttonLabel="Go to Schedule" onClick={() => onNavigate?.('schedule')} isDark={isDark} />
+          </div>
+        </>
       )}
     </div>
   )
