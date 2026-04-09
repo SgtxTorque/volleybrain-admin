@@ -16,9 +16,21 @@ export function isAllPrograms(p) {
   return p?.id === 'all' || p?.isSentinel === true
 }
 
+// Safe default shape for consumers that run outside ProgramProvider (e.g., the
+// CommandPalette rendered under Platform Admin, which is not wrapped in the
+// org-level provider tree). Returning no-op defaults keeps those components
+// working without needing to drill a provider into every shell.
+const PROGRAM_CONTEXT_FALLBACK = Object.freeze({
+  programs: [],
+  selectedProgram: null,
+  selectProgram: () => {},
+  loading: false,
+  refreshPrograms: async () => {},
+})
+
 export function useProgram() {
   const context = useContext(ProgramContext)
-  if (!context) throw new Error('useProgram must be used within ProgramProvider')
+  if (!context) return PROGRAM_CONTEXT_FALLBACK
   return context
 }
 
