@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
+import { useJourney } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
 import { Plus, Edit, Trash2, Copy, Eye } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
@@ -12,6 +13,7 @@ function RegistrationTemplatesPage({ showToast }) {
   const { isDark } = useTheme()
   const tc = useThemeClasses()
   const navigate = useNavigate()
+  const journey = useJourney()
 
   const [templates, setTemplates] = useState([])
   const [sports, setSports] = useState([])
@@ -137,6 +139,9 @@ function RegistrationTemplatesPage({ showToast }) {
     }
 
     showToast?.(editingTemplate ? 'Template updated!' : 'Template created!', 'success')
+    if (!editingTemplate) {
+      journey?.completeStep?.('open_registration')
+    }
     setShowModal(false)
     loadTemplates()
   }

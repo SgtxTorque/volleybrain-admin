@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase'
 export const JOURNEY_BADGES = {
   // Organization badges
   founder: { id: 'founder', icon: '🌟', name: 'Founder', description: 'Created your organization' },
+  open_for_business: { id: 'open_for_business', icon: '🏢', name: 'Open for Business', description: 'Finished your club setup — your doors are open!' },
   season_pro: { id: 'season_pro', icon: '📅', name: 'Season Pro', description: 'Created your first season' },
   team_builder: { id: 'team_builder', icon: '👥', name: 'Team Builder', description: 'Added your first team' },
   roster_ready: { id: 'roster_ready', icon: '📋', name: 'Roster Ready', description: 'Registered 5+ players' },
@@ -47,13 +48,13 @@ export const JOURNEY_BADGES = {
 // Journey steps by role
 export const JOURNEY_STEPS = {
   org_director: [
-    { id: 'create_org', title: 'Create Organization', description: 'Set up your club', icon: 'building', badge: 'founder' },
-    { id: 'create_season', title: 'Create Season', description: 'Define your season dates and fees', icon: 'calendar', badge: 'season_pro' },
+    { id: 'create_org', title: 'Create Organization', description: 'Start your club', icon: 'building', badge: 'founder' },
+    { id: 'org_setup', title: 'Set Up Your Club', description: 'Identity, contact, sports, payments, and fees', icon: 'settings', badge: 'open_for_business' },
+    { id: 'create_season', title: 'Create First Season', description: 'Define your season dates and fees', icon: 'calendar', badge: 'season_pro' },
     { id: 'add_teams', title: 'Add Teams', description: 'Create teams for your organization', icon: 'users', badge: 'team_builder' },
-    { id: 'add_coaches', title: 'Add Coaches', description: 'Assign coaches to teams', icon: 'target', badge: 'coach_connector' },
-    { id: 'register_players', title: 'Register Players', description: 'Add players to your roster', icon: 'volleyball', badge: 'roster_ready' },
+    { id: 'add_coaches', title: 'Invite Coaches', description: 'Assign coaches to teams', icon: 'target', badge: 'coach_connector' },
     { id: 'create_schedule', title: 'Create Schedule', description: 'Add practices and games', icon: 'calendar', badge: 'scheduler' },
-    { id: 'first_game', title: 'First Game', description: 'Complete your first game', icon: 'trophy', badge: 'game_day' },
+    { id: 'open_registration', title: 'Open Registration', description: 'Open your doors to families', icon: 'clipboard', badge: null },
   ],
   team_manager: [
     { id: 'join_create_team', title: 'Set Up Team', description: 'Create or join a team', icon: 'users', badge: 'team_builder' },

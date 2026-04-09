@@ -7,6 +7,7 @@ import { useSport } from '../../contexts/SportContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useOrgBranding } from '../../contexts/OrgBrandingContext'
 import { useProgram } from '../../contexts/ProgramContext'
+import { useJourney, JOURNEY_STEPS } from '../../contexts/JourneyContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
 import { SkeletonDashboard } from '../../components/ui'
@@ -55,32 +56,52 @@ function EmptyStateCTA({ emoji, title, description, buttonLabel, onClick, isDark
 export function GettingStartedGuide({ onNavigate }) {
   const { organization, profile } = useAuth()
   const { isDark } = useTheme()
-  const { sports } = useSport()
+  const navigate = useNavigate()
+  const journey = useJourney()
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Admin'
 
-  // Org setup completion detection
-  const orgSetupDone = Boolean(
-    organization?.name &&
-    organization?.contact_email &&
-    sports?.length > 0
-  )
-  const paymentSetupDone = Boolean(
-    organization?.stripe_enabled ||
-    organization?.payment_venmo ||
-    organization?.payment_zelle ||
-    organization?.payment_cashapp
-  )
-  const foundationDone = orgSetupDone && paymentSetupDone
+  // Tier 2: dedicated /setup flow tracks its own completion via setup_complete flag
+  const setupFlowComplete = Boolean(organization?.settings?.setup_complete)
+  // Resume banner: show if they started the org but never marked setup complete
+  const showResumeBanner = !setupFlowComplete && Boolean(organization?.name)
 
-  const setupSteps = [
-    { label: 'Org Profile', page: 'organization', done: orgSetupDone },
-    { label: 'Payment Setup', page: 'payment-setup', done: paymentSetupDone },
-    { label: 'Create Season', page: 'seasons', done: false },
-    { label: 'Add Teams', page: 'teams', done: false },
-    { label: 'Add Coaches', page: 'coaches', done: false },
-    { label: 'Create Schedule', page: 'schedule', done: false },
-    { label: 'Open Registration', page: 'registration-templates', done: false },
-  ]
+  // Single source of truth: JourneyContext
+  // Step → nav target mapping
+  const STEP_NAV = {
+    create_org: null, // already done by the time they see this
+    org_setup: { type: 'route', path: '/setup' },
+    create_season: { type: 'page', page: 'seasons' },
+    add_teams: { type: 'page', page: 'teams' },
+    add_coaches: { type: 'page', page: 'coaches' },
+    create_schedule: { type: 'page', page: 'schedule' },
+    open_registration: { type: 'page', page: 'registration-templates' },
+  }
+
+  const journeyCompletedSteps = journey?.completedSteps || []
+  // create_org is implicitly done if we're viewing the dashboard (org exists)
+  const setupSteps = (JOURNEY_STEPS.org_director || []).map(step => ({
+    id: step.id,
+    label: step.title,
+    nav: STEP_NAV[step.id] || null,
+    done: step.id === 'create_org'
+      ? Boolean(organization?.id)
+      : step.id === 'org_setup'
+        ? setupFlowComplete || journeyCompletedSteps.includes('org_setup')
+        : journeyCompletedSteps.includes(step.id),
+  }))
+
+  // Foundation ready when org is set up (identity/contact/sports/payments/fees)
+  const foundationDone = setupFlowComplete || journeyCompletedSteps.includes('org_setup')
+
+  // Navigation helper honoring the step's nav target
+  const goToStep = (step) => {
+    if (!step?.nav) return
+    if (step.nav.type === 'route') {
+      navigate(step.nav.path)
+    } else if (step.nav.type === 'page') {
+      onNavigate?.(step.nav.page)
+    }
+  }
 
   return (
     <div style={{ padding: '32px 32px 80px', fontFamily: 'var(--v2-font)', maxWidth: 900, margin: '0 auto' }}>
@@ -91,6 +112,29 @@ export function GettingStartedGuide({ onNavigate }) {
       ─────────────────────────────────────────────────────────────────── */}
       {!foundationDone && (
         <>
+          {/* Resume Setup Banner — show if they started setup but never finished */}
+          {showResumeBanner && (
+            <div className={`rounded-xl p-4 mb-4 flex items-center justify-between gap-3 ${isDark ? 'bg-[#4BB9EC]/10 border border-[#4BB9EC]/20' : 'bg-[#4BB9EC]/[0.08] border border-[#4BB9EC]/30'}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl shrink-0">{'\uD83D\uDC3E'}</span>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm" style={{ color: 'var(--v2-text-primary)' }}>
+                    Pick up where you left off
+                  </p>
+                  <p className="text-xs truncate" style={{ color: 'var(--v2-text-muted)' }}>
+                    Your club setup is waiting \u2014 a few more minutes and you're open for business.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/setup')}
+                className="bg-[#4BB9EC] text-white font-bold px-4 py-2 rounded-lg text-sm hover:brightness-110 transition shrink-0"
+              >
+                Resume {'\u2192'}
+              </button>
+            </div>
+          )}
+
           {/* Hero — welcome + acknowledge what they just did */}
           <div className="text-center mb-6">
             <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
@@ -115,7 +159,7 @@ export function GettingStartedGuide({ onNavigate }) {
                 <p className="text-sm mb-4" style={{ color: 'var(--v2-text-muted)' }}>
                   Add your contact info, pick your sport, set up payments and fees. About 15–30 minutes if you have everything handy — or knock it out in pieces, no rush.
                 </p>
-                <button onClick={() => onNavigate?.('organization')}
+                <button onClick={() => navigate('/setup')}
                   className="bg-[#10284C] hover:brightness-110 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
                   Let's do it {'\u2192'}
                 </button>
@@ -137,8 +181,8 @@ export function GettingStartedGuide({ onNavigate }) {
                 const prerequisitesMet = setupSteps.slice(0, i).every(s => s.done)
                 const isLocked = !step.done && !isCurrent && !prerequisitesMet
                 return (
-                  <button key={step.label}
-                    onClick={() => !isLocked && onNavigate?.(step.page)}
+                  <button key={step.id}
+                    onClick={() => !isLocked && goToStep(step)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:brightness-95"
                     style={{
                       background: step.done ? '#22C55E15' : isCurrent ? '#4BB9EC15' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',
@@ -188,8 +232,8 @@ export function GettingStartedGuide({ onNavigate }) {
                 const prerequisitesMet = setupSteps.slice(0, i).every(s => s.done)
                 const isLocked = !step.done && !isCurrent && !prerequisitesMet
                 return (
-                  <button key={step.label}
-                    onClick={() => !isLocked && onNavigate?.(step.page)}
+                  <button key={step.id}
+                    onClick={() => !isLocked && goToStep(step)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg transition hover:brightness-95"
                     style={{
                       background: step.done ? '#22C55E20' : isCurrent ? '#4BB9EC20' : isDark ? 'rgba(255,255,255,0.04)' : '#F5F6F8',

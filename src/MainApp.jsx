@@ -89,6 +89,9 @@ import ProgramPage from './pages/programs/ProgramPage'
 import { ProgramsPage, SeasonsPage, WaiversPage, PaymentSetupPage, OrganizationPage, RegistrationTemplatesPage, DataExportPage, SubscriptionPage } from './pages/settings'
 import { VenueManagerPage } from './pages/settings/VenueManagerPage'
 
+// First-run guided setup
+import FirstRunSetupPage from './pages/setup/FirstRunSetupPage'
+
 // Stats Pages
 import { PlayerStatsPage } from './pages/stats/PlayerStatsPage'
 
@@ -790,6 +793,7 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
       <Route path="/settings/waivers" element={<RouteGuard allow={['admin']} activeView={activeView}><WaiversPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/payment-setup" element={<RouteGuard allow={['admin']} activeView={activeView}><PaymentSetupPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/organization" element={<RouteGuard allow={['admin']} activeView={activeView}><OrganizationPage showToast={showToast} /></RouteGuard>} />
+      <Route path="/setup" element={<RouteGuard allow={['admin']} activeView={activeView}><FirstRunSetupPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/data-export" element={<RouteGuard allow={['admin']} activeView={activeView}><DataExportPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/subscription" element={<RouteGuard allow={['admin']} activeView={activeView}><SubscriptionPage showToast={showToast} /></RouteGuard>} />
       <Route path="/settings/venues" element={<RouteGuard allow={['admin']} activeView={activeView}><VenueManagerPage showToast={showToast} /></RouteGuard>} />
