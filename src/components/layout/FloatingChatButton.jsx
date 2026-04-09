@@ -6,10 +6,12 @@ import { useAuth } from '../../contexts/AuthContext'
 export default function FloatingChatButton({ onNavigate }) {
   const { user, organization } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [hasChannels, setHasChannels] = useState(false)
 
   useEffect(() => {
     if (!user?.id || !organization?.id) {
       setUnreadCount(0)
+      setHasChannels(false)
       return
     }
     loadUnread()
@@ -19,7 +21,11 @@ export default function FloatingChatButton({ onNavigate }) {
 
   async function loadUnread() {
     try {
-      if (!organization?.id) { setUnreadCount(0); return }
+      if (!organization?.id) {
+        setUnreadCount(0)
+        setHasChannels(false)
+        return
+      }
 
       // Step 1: Get channels that belong to the CURRENT organization only.
       // Without this filter, the badge counted unread messages across every
@@ -30,9 +36,15 @@ export default function FloatingChatButton({ onNavigate }) {
         .eq('organization_id', organization.id)
 
       if (!orgChannels || orgChannels.length === 0) {
+        // No channels in this org → hide the widget entirely. No bubble, no
+        // badge, no mystery "6" count on day zero. The bubble reappears the
+        // moment the first channel is created (team with chat enabled, admin
+        // creates a channel manually, etc.).
+        setHasChannels(false)
         setUnreadCount(0)
         return
       }
+      setHasChannels(true)
       const orgChannelIds = orgChannels.map(c => c.id)
 
       // Step 2: Get this user's memberships scoped to the current org's channels.
@@ -71,8 +83,15 @@ export default function FloatingChatButton({ onNavigate }) {
         total += (count || 0)
       }
       setUnreadCount(total)
-    } catch { setUnreadCount(0) }
+    } catch {
+      setUnreadCount(0)
+      setHasChannels(false)
+    }
   }
+
+  // Day-zero orgs have no channels → render nothing at all. The bubble
+  // reappears once the first chat_channels row exists for this org.
+  if (!hasChannels) return null
 
   return (
     <button
