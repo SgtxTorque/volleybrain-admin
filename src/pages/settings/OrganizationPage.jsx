@@ -428,66 +428,82 @@ function OrganizationPage({ showToast }) {
   }
 
   // Calculate section completion status
+  // IMPORTANT: Checks read from raw DB values (organization.settings), NOT from
+  // setupData which has client-side defaults baked in. A brand-new org should
+  // show 0%, not 69%.
   function getSectionStatus(sectionKey) {
     if (!setupData) return { status: 'loading', progress: 0, total: 1 }
-    
+
+    const rawSettings = organization?.settings || {}
+    const rawBranding = rawSettings?.branding || {}
+
     const checks = {
       identity: [
-        setupData.name,
-        setupData.shortName,
-        setupData.logoUrl,
-        setupData.primaryColor,
+        organization?.name,
+        rawSettings.short_name,
+        organization?.logo_url,
+        rawSettings.primary_color,
       ],
       contact: [
-        setupData.contactName,
-        setupData.email,
-        setupData.phone,
-        setupData.city,
-        setupData.state,
+        rawSettings.contact_name,
+        organization?.contact_email,
+        rawSettings.phone,
+        rawSettings.city,
+        rawSettings.state,
       ],
       sports: [
-        (setupData.enabledSports || []).length > 0,
+        // Only count if the user explicitly saved sports (not the default ['volleyball'])
+        Array.isArray(rawSettings.enabled_sports) && rawSettings.enabled_sports.length > 0,
       ],
       online: [
-        setupData.website || setupData.facebook || setupData.instagram,
+        rawSettings.website || rawSettings.facebook || rawSettings.instagram,
       ],
       legal: [
-        setupData.legalName || setupData.name,
+        // Only count if legal name was explicitly set (not defaulted to org name)
+        Boolean(rawSettings.legal_name),
       ],
       payments: [
-        Object.values(setupData.paymentMethods || {}).some(m => m?.enabled),
+        Object.values(rawSettings.payment_methods || {}).some(m => m?.enabled),
       ],
       fees: [
-        setupData.defaultRegistrationFee > 0,
+        // Only count if fee was explicitly saved (not defaulted to 150)
+        Boolean(rawSettings.default_registration_fee > 0),
       ],
       facilities: [
         venues.length > 0,
       ],
       staff: [
-        true, // Admin exists by definition (they're logged in)
+        // Staff is optional — complete only if an additional admin exists beyond the creator
+        adminUsers.length > 1,
       ],
       coaches: [
-        true, // Settings are optional
+        // Optional — complete only when coach requirement settings were explicitly saved
+        'require_background_check' in rawSettings,
       ],
       registration: [
-        true, // Has defaults
+        // Optional — complete only when registration settings were explicitly saved
+        'auto_approve_registrations' in rawSettings,
       ],
       registrationForm: [
-        (setupData.registrationFields?.player?.first_name?.visible),
-        (setupData.registrationFields?.parent?.parent1_name?.visible),
+        // Only count if form fields were explicitly saved or a template is assigned
+        Boolean(rawSettings.registration_fields) ||
+        Boolean(organization?.registration_template_id),
       ],
       jerseys: [
-        true, // Has defaults
+        // Optional — complete only when jersey config was explicitly saved
+        Boolean(rawSettings.jersey_vendor) || 'jersey_number_start' in rawSettings,
       ],
       notifications: [
-        true, // Has defaults
+        // Optional — complete only when notification settings were explicitly saved
+        'email_notifications_enabled' in rawSettings || 'game_reminder_hours' in rawSettings,
       ],
       volunteers: [
-        true, // Optional
+        // Optional — complete only when volunteer settings were explicitly saved
+        'require_volunteer_hours' in rawSettings,
       ],
       branding: [
-        setupData.brandingPrimaryColor,
-        setupData.logoUrl,
+        rawBranding.primary_color,
+        organization?.logo_url,
       ],
     }
 
@@ -648,14 +664,18 @@ function OrganizationPage({ showToast }) {
     },
   ]
 
-  // Calculate overall progress
-  const overallProgress = sections.reduce((acc, section) => {
+  // Calculate overall progress — only REQUIRED sections count toward the percentage.
+  // Optional sections still display in the list, but they don't inflate the number.
+  const requiredSections = sections.filter(s => s.required)
+  const overallProgress = requiredSections.reduce((acc, section) => {
     const status = getSectionStatus(section.key)
     if (status.status === 'complete') return acc + 1
     if (status.status === 'partial') return acc + 0.5
     return acc
   }, 0)
-  const overallPercent = Math.round((overallProgress / sections.length) * 100)
+  const overallPercent = requiredSections.length > 0
+    ? Math.round((overallProgress / requiredSections.length) * 100)
+    : 0
 
   // Group sections by category
   const foundationSections = sections.filter(s => s.category === 'foundation')
@@ -717,10 +737,10 @@ function OrganizationPage({ showToast }) {
     )
   }
 
-  // Count statuses
-  const completedCount = sections.filter(s => getSectionStatus(s.key).status === 'complete').length
-  const inProgressCount = sections.filter(s => getSectionStatus(s.key).status === 'partial').length
-  const notStartedCount = sections.filter(s => getSectionStatus(s.key).status === 'not_started').length
+  // Count statuses — drive the copy under the progress bar from required sections only
+  const completedCount = requiredSections.filter(s => getSectionStatus(s.key).status === 'complete').length
+  const inProgressCount = requiredSections.filter(s => getSectionStatus(s.key).status === 'partial').length
+  const notStartedCount = requiredSections.filter(s => getSectionStatus(s.key).status === 'not_started').length
 
   // Active section metadata
   const activeSection = sections.find(s => s.key === expandedSection)
@@ -795,19 +815,24 @@ function OrganizationPage({ showToast }) {
             style={{ width: `${overallPercent}%` }}
           />
         </div>
-        <div className="flex gap-6 mt-3 text-xs font-bold text-white/50">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#22C55E] inline-block" />
-            {completedCount} Complete
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#F59E0B] inline-block" />
-            {inProgressCount} In Progress
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-slate-500 inline-block" />
-            {notStartedCount} Not Started
-          </span>
+        <div className="mt-3">
+          {overallPercent === 0 ? (
+            <p className="text-sm text-white/70">
+              Fresh start! Let's get your club dialed in. {'\ud83d\udc3e'}
+            </p>
+          ) : overallPercent < 50 ? (
+            <p className="text-sm text-white/70">
+              Nice progress — {completedCount} of {requiredSections.length} essentials done.
+            </p>
+          ) : overallPercent < 100 ? (
+            <p className="text-sm text-white/70">
+              Almost there — {requiredSections.length - completedCount} {requiredSections.length - completedCount === 1 ? 'essential' : 'essentials'} left.
+            </p>
+          ) : (
+            <p className="text-sm text-white/70">
+              All set! Your club is ready to rock. {'\ud83c\udf89'}
+            </p>
+          )}
         </div>
       </div>
 
