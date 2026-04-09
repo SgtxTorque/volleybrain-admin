@@ -7,8 +7,120 @@ import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 // We don't want them to fire a second celebration modal on the dashboard.
 const WIZARD_BADGE_IDS = new Set(['founder', 'beta_tester', 'team_builder'])
 
+// Tier 3: Onboarding/milestone badges that should render as a corner toast
+// instead of a blocking full-screen modal. Quick, warm, then gone.
+const TOAST_BADGE_IDS = new Set([
+  'founder', 'beta_tester', 'open_for_business',
+  'season_pro', 'team_builder', 'coach_connector',
+  'roster_ready', 'scheduler',
+])
+
 // ============================================
-// BADGE CELEBRATION
+// BADGE TOAST (Tier 3)
+// ============================================
+// Lightweight corner toast for onboarding badges. Auto-dismisses after 5s,
+// doesn't block UI, has a close button. Lynx voice, playful but compact.
+function BadgeToast({ badge, onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  if (!badge) return null
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 9999,
+        background: '#10284C',
+        borderRadius: '14px',
+        padding: '14px 18px',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        boxShadow: '0 12px 36px rgba(0,0,0,0.28)',
+        border: '1px solid rgba(75, 185, 236, 0.25)',
+        maxWidth: '340px',
+        animation: 'lynxBadgeToastIn 0.32s cubic-bezier(0.2, 0.9, 0.25, 1.05)',
+      }}
+    >
+      {/* Badge visual */}
+      <div
+        style={{
+          width: '42px',
+          height: '42px',
+          borderRadius: '11px',
+          background: 'rgba(255, 215, 0, 0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '22px',
+          flexShrink: 0,
+        }}
+      >
+        {(badge.badge_image_url || badge.icon_url) ? (
+          <img
+            src={badge.badge_image_url || badge.icon_url}
+            alt={badge.name || 'Badge'}
+            style={{ width: 28, height: 28, objectFit: 'contain' }}
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        ) : (
+          <span>{badge.icon || '\uD83C\uDFC6'}</span>
+        )}
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 2px' }}>
+          {badge.name || 'Badge earned!'}
+        </p>
+        <p
+          style={{
+            fontSize: '11px',
+            opacity: 0.75,
+            margin: 0,
+            lineHeight: 1.35,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {badge.description || 'Keep building — more achievements ahead.'}
+        </p>
+      </div>
+
+      <button
+        onClick={onClose}
+        aria-label="Dismiss"
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'rgba(255, 255, 255, 0.5)',
+          cursor: 'pointer',
+          fontSize: '15px',
+          padding: '4px',
+          lineHeight: 1,
+          flexShrink: 0,
+        }}
+      >
+        {'\u2715'}
+      </button>
+
+      <style>{`
+        @keyframes lynxBadgeToastIn {
+          from { transform: translateX(calc(100% + 40px)); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// ============================================
+// BADGE CELEBRATION (full-screen modal, reserved for bigger milestones)
 // ============================================
 function BadgeCelebration({ badge, onClose }) {
   const tc = useThemeClasses()
@@ -18,7 +130,7 @@ function BadgeCelebration({ badge, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-      <div 
+      <div
         className={`text-center p-8 rounded-xl max-w-sm ${tc.pageBg}`}
         style={{ animation: 'bounceIn 0.5s ease-out' }}
       >
@@ -80,8 +192,8 @@ export function JourneyCelebrations() {
 
   if (!journey || !celebration) return null
 
-  // If the effect above is about to clear this celebration, don't render the
-  // modal at all — this prevents a single-frame flash.
+  // If the effect above is about to clear this celebration, don't render
+  // anything — this prevents a single-frame flash of either modal or toast.
   const badgeId = celebration.badge?.id
   if (celebration.type === 'badge' && badgeId && WIZARD_BADGE_IDS.has(badgeId)) {
     return null
@@ -96,6 +208,13 @@ export function JourneyCelebrations() {
   }
 
   if (celebration.type === 'badge') {
+    // Tier 3: onboarding/milestone badges render as corner toasts, not modals.
+    // Bigger milestones (game_day, full_roster, payment_pro, season_complete)
+    // still get the full-screen celebration.
+    const isToast = badgeId && TOAST_BADGE_IDS.has(badgeId)
+    if (isToast) {
+      return <BadgeToast badge={celebration.badge} onClose={journey.clearCelebration} />
+    }
     return <BadgeCelebration badge={celebration.badge} onClose={journey.clearCelebration} />
   }
 
