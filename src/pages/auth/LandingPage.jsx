@@ -50,7 +50,7 @@ export function LandingPage({ onNavigate }) {
               onClick={() => onNavigate('signup')}
               className="text-sm font-bold text-white bg-lynx-navy-subtle px-6 py-2.5 rounded-full hover:brightness-110 transition"
             >
-              Secure Your Spot
+              Get Started
             </button>
           </div>
         </div>
@@ -91,7 +91,14 @@ export function LandingPage({ onNavigate }) {
                   className="text-[15px] font-extrabold text-white px-8 py-3.5 rounded-full hover:brightness-110 hover:scale-[1.03] transition-all"
                   style={{ background: SKY, boxShadow: `0 4px 16px ${SKY}40` }}
                 >
-                  Secure Your Spot on the Roster &rarr;
+                  Join a Team &rarr;
+                </button>
+                <button
+                  onClick={() => onNavigate('signup')}
+                  className="text-[15px] font-extrabold text-white px-8 py-3.5 rounded-full hover:brightness-110 hover:scale-[1.03] transition-all"
+                  style={{ background: NAVY_MID, boxShadow: `0 4px 16px rgba(16,40,76,0.25)` }}
+                >
+                  Run a Club &rarr;
                 </button>
                 <button
                   onClick={() => onNavigate('login')}

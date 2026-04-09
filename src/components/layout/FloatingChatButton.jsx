@@ -4,22 +4,43 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
 export default function FloatingChatButton({ onNavigate }) {
-  const { user } = useAuth()
+  const { user, organization } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id || !organization?.id) {
+      setUnreadCount(0)
+      return
+    }
     loadUnread()
     const interval = setInterval(loadUnread, 30000)
     return () => clearInterval(interval)
-  }, [user?.id])
+  }, [user?.id, organization?.id])
 
   async function loadUnread() {
     try {
+      if (!organization?.id) { setUnreadCount(0); return }
+
+      // Step 1: Get channels that belong to the CURRENT organization only.
+      // Without this filter, the badge counted unread messages across every
+      // org the user belongs to — a brand-new org would show phantom counts.
+      const { data: orgChannels } = await supabase
+        .from('chat_channels')
+        .select('id')
+        .eq('organization_id', organization.id)
+
+      if (!orgChannels || orgChannels.length === 0) {
+        setUnreadCount(0)
+        return
+      }
+      const orgChannelIds = orgChannels.map(c => c.id)
+
+      // Step 2: Get this user's memberships scoped to the current org's channels.
       const { data: memberships } = await supabase
         .from('channel_members')
         .select('channel_id, last_read_at')
         .eq('user_id', user.id)
+        .in('channel_id', orgChannelIds)
 
       if (!memberships || memberships.length === 0) {
         setUnreadCount(0)
@@ -28,13 +49,25 @@ export default function FloatingChatButton({ onNavigate }) {
 
       let total = 0
       for (const membership of memberships) {
-        const since = membership.last_read_at || new Date(Date.now() - 86400000).toISOString()
+        // If the user has never opened this channel, initialize last_read_at
+        // to "now" so existing history doesn't inflate the badge. The old
+        // behavior was to count the last 24 hours — which picked up any
+        // auto-generated welcome/system messages.
+        if (!membership.last_read_at) {
+          await supabase
+            .from('channel_members')
+            .update({ last_read_at: new Date().toISOString() })
+            .eq('channel_id', membership.channel_id)
+            .eq('user_id', user.id)
+          continue
+        }
+
         const { count } = await supabase
           .from('chat_messages')
           .select('*', { count: 'exact', head: true })
           .eq('channel_id', membership.channel_id)
           .neq('sender_id', user.id)
-          .gt('created_at', since)
+          .gt('created_at', membership.last_read_at)
         total += (count || 0)
       }
       setUnreadCount(total)
