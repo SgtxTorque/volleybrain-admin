@@ -41,7 +41,7 @@ const STEPS = {
 
 // ─── Step metadata (progress, mascot, time) ───
 const STEP_META = {
-  [STEPS.ROLE]:        { progress: 25, mascot: '/images/mascots/waving.png',              mascotFallback: '/images/Meet-Lynx.png', time: '~2 min total' },
+  [STEPS.ROLE]:        { progress: 25, mascot: '/images/mascots/waving.png',              mascotFallback: '/images/Meet-Lynx.png', time: 'Quick setup — just the basics' },
   [STEPS.ORG_NAME]:    { progress: 60, mascot: '/images/coachlynxmale.png',               mascotFallback: '/images/coachlynxmale.png', time: '~30 sec' },
   [STEPS.COACH_PATH]:  { progress: 40, mascot: '/images/mascots/lightbulb.png',           mascotFallback: '/images/laptoplynx.png', time: null },
   [STEPS.PARENT_PATH]: { progress: 40, mascot: '/images/mascots/duo-high-five.png',       mascotFallback: '/images/celebrate.png', time: null },
@@ -113,12 +113,19 @@ function MascotImage({ step, className = '' }) {
   )
 }
 
-// ─── Journey step time estimates ───
+// ─── Journey step time estimates (honest — match the reality of org setup) ───
 const JOURNEY_TIME = {
-  create_org: '~3 min', create_season: '~3 min', add_teams: '~2 min',
-  add_coaches: '~2 min', register_players: '~5 min', create_schedule: '~5 min',
-  first_game: '~1 hr', join_create_team: '~2 min', add_roster: '~3 min',
-  assign_coach: '~1 min', first_practice: '~1 hr',
+  create_org: '~15 min with everything handy',
+  create_season: '~3 min',
+  add_teams: '~2 min per team',
+  add_coaches: '~1 min each',
+  register_players: '~5 min',
+  create_schedule: '~5 min',
+  first_game: '~1 hr',
+  join_create_team: '~2 min',
+  add_roster: '~3 min',
+  assign_coach: '~1 min',
+  first_practice: '~1 hr',
 }
 
 // =============================================================================
@@ -429,11 +436,25 @@ export function SetupWizard({ onComplete, onBack }) {
 
   // Progress data
   const meta = STEP_META[step] || { progress: 0 }
-  const stepCount = step === STEPS.ROLE ? 1
-    : (step === STEPS.SUCCESS || step === STEPS.PENDING) ? 4
-    : step === STEPS.ORG_NAME || step === STEPS.COACH_PATH || step === STEPS.PARENT_PATH ? 2
-    : 3
-  const totalSteps = step === STEPS.SUCCESS || step === STEPS.PENDING ? 4 : 4
+
+  // Step counter — each role has its own flow, so the step number and total
+  // should match what the user is actually walking through. No phantom "Step 3 of 4".
+  const directorSteps = [STEPS.ROLE, STEPS.ORG_NAME, STEPS.SUCCESS]
+  const coachSteps = [STEPS.ROLE, STEPS.COACH_PATH, STEPS.INVITE_CODE, STEPS.SUCCESS]
+  const parentSteps = [STEPS.ROLE, STEPS.PARENT_PATH, STEPS.INVITE_CODE, STEPS.SUCCESS]
+  const playerSteps = [STEPS.ROLE, STEPS.PENDING]
+
+  const activeStepList = selectedRole === 'org_director' ? directorSteps
+    : selectedRole === 'team_manager' ? coachSteps
+    : selectedRole === 'parent' ? parentSteps
+    : selectedRole === 'player' ? playerSteps
+    : directorSteps
+
+  // Fallback: if the current step isn't in the active list (e.g., pre-role, PENDING
+  // reached from any path), default stepCount to 1 so we never show "Step 0 of N".
+  const rawStepIndex = activeStepList.indexOf(step)
+  const stepCount = rawStepIndex >= 0 ? rawStepIndex + 1 : 1
+  const totalSteps = activeStepList.length
 
   // ============================================
   // RENDER
@@ -714,12 +735,16 @@ export function SetupWizard({ onComplete, onBack }) {
             <>
               <MascotImage step={step} className="w-28 h-28 mb-4" />
               <h1 className="text-2xl font-bold text-center mb-1" style={{ color: BRAND.textPrimary }}>
-                {successContext.type === 'org' ? 'Your organization is live! \ud83c\udf89'
+                {successContext.type === 'org' ? "You're in! \ud83c\udf89"
                   : successContext.type === 'team' ? 'Your team is ready! \ud83c\udfd0'
                   : "You're in! Welcome to the team! \ud83c\udf89"}
               </h1>
               <p className="text-center mb-6" style={{ color: BRAND.textMuted }}>
-                {successContext.type === 'invite' ? `You've joined ${successContext.name}.` : `${successContext.name} has been created.`}
+                {successContext.type === 'org'
+                  ? `${successContext.name} is created and ready to set up. Here's what's next — take it at your own pace.`
+                  : successContext.type === 'invite'
+                  ? `You've joined ${successContext.name}.`
+                  : `${successContext.name} has been created.`}
               </p>
 
               {/* Summary card */}
@@ -752,6 +777,9 @@ export function SetupWizard({ onComplete, onBack }) {
                       </div>
                     ))}
                   </div>
+                  <p className="text-center text-sm mt-4" style={{ color: BRAND.textMuted }}>
+                    No rush — you can always pick up where you left off. {'\u23f0'}
+                  </p>
                 </div>
               )}
 
