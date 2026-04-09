@@ -56,6 +56,7 @@ export function GettingStartedGuide({ onNavigate }) {
   const { organization, profile } = useAuth()
   const { isDark } = useTheme()
   const { sports } = useSport()
+  const navigate = useNavigate()
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || 'Admin'
 
   // Org setup completion detection
@@ -71,6 +72,11 @@ export function GettingStartedGuide({ onNavigate }) {
     organization?.payment_cashapp
   )
   const foundationDone = orgSetupDone && paymentSetupDone
+
+  // Tier 2: dedicated /setup flow tracks its own completion via setup_complete flag
+  const setupFlowComplete = Boolean(organization?.settings?.setup_complete)
+  // Resume banner: show if they started the org but never marked setup complete
+  const showResumeBanner = !setupFlowComplete && Boolean(organization?.name)
 
   const setupSteps = [
     { label: 'Org Profile', page: 'organization', done: orgSetupDone },
@@ -91,6 +97,29 @@ export function GettingStartedGuide({ onNavigate }) {
       ─────────────────────────────────────────────────────────────────── */}
       {!foundationDone && (
         <>
+          {/* Resume Setup Banner — show if they started setup but never finished */}
+          {showResumeBanner && (
+            <div className={`rounded-xl p-4 mb-4 flex items-center justify-between gap-3 ${isDark ? 'bg-[#4BB9EC]/10 border border-[#4BB9EC]/20' : 'bg-[#4BB9EC]/[0.08] border border-[#4BB9EC]/30'}`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-2xl shrink-0">{'\uD83D\uDC3E'}</span>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm" style={{ color: 'var(--v2-text-primary)' }}>
+                    Pick up where you left off
+                  </p>
+                  <p className="text-xs truncate" style={{ color: 'var(--v2-text-muted)' }}>
+                    Your club setup is waiting \u2014 a few more minutes and you're open for business.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/setup')}
+                className="bg-[#4BB9EC] text-white font-bold px-4 py-2 rounded-lg text-sm hover:brightness-110 transition shrink-0"
+              >
+                Resume {'\u2192'}
+              </button>
+            </div>
+          )}
+
           {/* Hero — welcome + acknowledge what they just did */}
           <div className="text-center mb-6">
             <img src="/images/mascots/waving.png" alt="" className="w-24 h-24 mx-auto mb-4 object-contain" onError={e => { e.target.style.display = 'none' }} />
@@ -115,7 +144,7 @@ export function GettingStartedGuide({ onNavigate }) {
                 <p className="text-sm mb-4" style={{ color: 'var(--v2-text-muted)' }}>
                   Add your contact info, pick your sport, set up payments and fees. About 15–30 minutes if you have everything handy — or knock it out in pieces, no rush.
                 </p>
-                <button onClick={() => onNavigate?.('organization')}
+                <button onClick={() => navigate('/setup')}
                   className="bg-[#10284C] hover:brightness-110 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
                   Let's do it {'\u2192'}
                 </button>
