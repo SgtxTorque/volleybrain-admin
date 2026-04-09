@@ -6,6 +6,8 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useThemeClasses, useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { exportToCSV } from '../../lib/csv-export'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import {
   Users, User, Mail, Phone, Edit, Trash2, X, Check, Star, UserCog,
   Camera, Shield, FileText, Calendar, ChevronDown, ChevronRight,
@@ -147,13 +149,26 @@ export function CoachesPage({ showToast }) {
         showToast('Coach updated', 'success')
       } else {
         const insertData = { ...cleaned, season_id: selectedSeason.id, invite_code: generateInviteCode() }
-        const { error } = await supabase.from('coaches').insert(insertData)
+        const { data: newCoach, error } = await supabase.from('coaches').insert(insertData).select().single()
         if (error) {
           console.error('Coach creation error:', error, 'Payload:', insertData)
           throw error
         }
         showToast('Coach added', 'success')
         journey?.completeStep('add_coaches')
+        if (profile?.id) {
+          try {
+            await awardXP({
+              profileId: profile.id,
+              baseAmount: XP_BY_SOURCE.coach_invited,
+              sourceType: 'coach_invited',
+              sourceId: newCoach?.id || null,
+              seasonId: selectedSeason?.id || null,
+              organizationId: organization?.id || null,
+              description: `Invited coach: ${newCoach?.first_name || ''} ${newCoach?.last_name || ''}`.trim(),
+            })
+          } catch (_) { /* non-critical */ }
+        }
       }
       setShowAddModal(false); setEditingCoach(null); loadCoaches()
     } catch (err) { showToast(`Error creating coach: ${err.message}`, 'error') }

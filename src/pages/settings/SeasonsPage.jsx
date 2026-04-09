@@ -7,6 +7,8 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { parseLocalDate } from '../../lib/date-helpers'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import {
   Plus, Edit, Trash2, Calendar, DollarSign, Users, Settings,
   Share2, Copy, Check, ExternalLink, X
@@ -16,7 +18,7 @@ import { SeasonFormModal, ShareHubModal } from './SeasonFormModal'
 
 function SeasonsPage({ showToast }) {
   const journey = useJourney()
-  const { organization } = useAuth()
+  const { organization, profile } = useAuth()
   const { refreshSeasons } = useSeason()
   const { selectedProgram } = useProgram()
   const { sports } = useSport()
@@ -154,6 +156,20 @@ function SeasonsPage({ showToast }) {
 
       showToast('Season created!', 'success')
       journey?.completeStep('create_season')
+      // Admin XP — award for creating a new season
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.season_created,
+            sourceType: 'season_created',
+            sourceId: newSeason.id,
+            seasonId: newSeason.id,
+            organizationId: organization?.id || null,
+            description: `Created season: ${newSeason.name}`,
+          })
+        } catch (_) { /* non-critical */ }
+      }
       setShowModal(false)
       loadSeasons()
       refreshSeasons(newSeason.id)

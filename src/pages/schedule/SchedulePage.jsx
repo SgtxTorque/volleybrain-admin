@@ -6,6 +6,8 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useParentTutorial } from '../../contexts/ParentTutorialContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import { ChevronLeft, ChevronRight, ChevronDown, BarChart3, Share2 } from '../../constants/icons'
 import { SkeletonSchedulePage } from '../../components/ui'
 import SchedulePosterModal from './SchedulePosterModal'
@@ -31,7 +33,7 @@ import SeasonFilterBar from '../../components/pages/SeasonFilterBar'
 function SchedulePage({ showToast, activeView, roleContext }) {
   const journey = useJourney()
   const parentTutorial = useParentTutorial()
-  const { organization } = useAuth()
+  const { organization, profile } = useAuth()
   const { selectedSeason, allSeasons } = useSeason()
   const { selectedSport } = useSport()
   const { isDark } = useTheme()
@@ -214,12 +216,25 @@ function SchedulePage({ showToast, activeView, roleContext }) {
     }
 
     try {
-      const { error } = await supabase.from('schedule_events').insert({
+      const { data: newEvent, error } = await supabase.from('schedule_events').insert({
         ...eventData, season_id: selectedSeason.id, created_at: new Date().toISOString()
-      })
+      }).select().single()
       if (error) throw error
       showToast('Event created!', 'success')
       journey?.completeStep('create_schedule')
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.event_created,
+            sourceType: 'event_created',
+            sourceId: newEvent?.id || null,
+            seasonId: selectedSeason?.id || null,
+            organizationId: organization?.id || null,
+            description: `Created event: ${newEvent?.title || 'New event'}`,
+          })
+        } catch (_) { /* non-critical */ }
+      }
       loadEvents()
       return true
     } catch (err) { showToast('Error: ' + err.message, 'error'); return false }
@@ -235,6 +250,19 @@ function SchedulePage({ showToast, activeView, roleContext }) {
       if (error) throw error
       showToast(`${evts.length} events created!`, 'success')
       journey?.completeStep('create_schedule')
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.schedule_created,
+            sourceType: 'schedule_created',
+            sourceId: null,
+            seasonId: selectedSeason?.id || null,
+            organizationId: organization?.id || null,
+            description: `Built schedule: ${evts.length} events`,
+          })
+        } catch (_) { /* non-critical */ }
+      }
       loadEvents()
       return true
     } catch (err) { showToast('Error: ' + err.message, 'error'); return false }

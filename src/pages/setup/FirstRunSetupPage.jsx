@@ -17,6 +17,8 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useCoachMarks } from '../../contexts/CoachMarkContext'
 import { supabase } from '../../lib/supabase'
 import { SetupSectionContent } from '../settings/SetupSectionContent'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 
 // ─── The 5 setup steps (Lynx voice — warm, encouraging, honest) ───
 const SETUP_STEPS = [
@@ -59,7 +61,7 @@ const SETUP_STEPS = [
 
 export default function FirstRunSetupPage({ showToast }) {
   const navigate = useNavigate()
-  const { organization, setOrganization } = useAuth()
+  const { organization, setOrganization, profile } = useAuth()
   const { isDark, accent } = useTheme()
   const tc = useThemeClasses()
   const journey = useJourney()
@@ -346,6 +348,19 @@ export default function FirstRunSetupPage({ showToast }) {
 
       // Award the "Open for Business" milestone via journey
       if (journey?.completeStep) journey.completeStep('org_setup')
+
+      // Admin XP — completing setup is a big deal
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.org_setup_complete,
+            sourceType: 'org_setup_complete',
+            organizationId: organization?.id || null,
+            description: 'Completed organization setup',
+          })
+        } catch (_) { /* non-critical */ }
+      }
     } catch (err) {
       console.error('Error marking setup complete:', err)
     }
