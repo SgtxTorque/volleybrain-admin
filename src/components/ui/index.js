@@ -13,6 +13,7 @@ export {
 export { MetricCard } from './MetricCard'
 export { ProgressRing } from './ProgressRing'
 export { EmptyState } from './EmptyState'
+export { CoachMarkOverlay } from './CoachMarkTooltip'
 
 // Additional UI components
 export { 

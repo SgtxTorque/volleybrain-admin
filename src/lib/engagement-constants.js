@@ -52,12 +52,26 @@ export const XP_BY_RARITY = {
 
 /** XP awarded for engagement actions */
 export const XP_BY_SOURCE = {
+  // Player / coach engagement sources
   shoutout_given: 10,
   shoutout_received: 15,
   challenge_completed: 50,
   challenge_won: 100,
   game_played: 10,
   practice_attended: 5,
+
+  // Admin / director sources — First-Run Tier 3
+  // Admins earn XP for the work they do building their club.
+  org_setup_complete: 100,
+  season_created: 50,
+  team_added: 30,
+  coach_invited: 20,
+  player_registered: 10,
+  schedule_created: 25,
+  registration_opened: 40,
+  first_payment_collected: 50,
+  blast_sent: 10,
+  event_created: 5,
 }
 
 /** V2 level tier visual config — 7 tiers */

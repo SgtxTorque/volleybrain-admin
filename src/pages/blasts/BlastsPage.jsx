@@ -5,6 +5,8 @@ import { useSport } from '../../contexts/SportContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { sanitizeText } from '../../lib/validation'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import {
   Megaphone, DollarSign, Calendar, Clock, Users, Check, X, Plus, Mail
 } from '../../constants/icons'
@@ -547,6 +549,19 @@ function ComposeBlastModal({ teams, isCoach, onClose, onSent, showToast }) {
 
       const emailMsg = emailCount > 0 ? ` ${emailCount} emails queued.` : ''
       showToast?.(`Announcement sent to ${recipients.length} recipients!${emailMsg}`, 'success')
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.blast_sent,
+            sourceType: 'blast_sent',
+            sourceId: blast?.id || null,
+            seasonId: selectedSeason?.id || null,
+            organizationId: organization?.id || null,
+            description: `Sent announcement: ${cleanTitle}`,
+          })
+        } catch (_) { /* non-critical */ }
+      }
       onSent?.()
     } catch (err) {
       console.error('Error sending blast:', err)

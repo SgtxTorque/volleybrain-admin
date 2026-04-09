@@ -14,8 +14,11 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme, useThemeClasses } from '../../contexts/ThemeContext'
 import { useJourney } from '../../contexts/JourneyContext'
+import { useCoachMarks } from '../../contexts/CoachMarkContext'
 import { supabase } from '../../lib/supabase'
 import { SetupSectionContent } from '../settings/SetupSectionContent'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 
 // ─── The 5 setup steps (Lynx voice — warm, encouraging, honest) ───
 const SETUP_STEPS = [
@@ -58,10 +61,20 @@ const SETUP_STEPS = [
 
 export default function FirstRunSetupPage({ showToast }) {
   const navigate = useNavigate()
-  const { organization, setOrganization } = useAuth()
+  const { organization, setOrganization, profile } = useAuth()
   const { isDark, accent } = useTheme()
   const tc = useThemeClasses()
   const journey = useJourney()
+  const coachMarks = useCoachMarks()
+
+  // Fire setup-flow coach-mark on first visit to /setup
+  useEffect(() => {
+    if (!coachMarks) return
+    if (!coachMarks.hasUnseenMarks('admin', 'setup_first_load')) return
+    const t = setTimeout(() => coachMarks.showMarks('admin', 'setup_first_load'), 600)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachMarks])
 
   // Step state
   const [currentStep, setCurrentStep] = useState(0)
@@ -335,6 +348,19 @@ export default function FirstRunSetupPage({ showToast }) {
 
       // Award the "Open for Business" milestone via journey
       if (journey?.completeStep) journey.completeStep('org_setup')
+
+      // Admin XP — completing setup is a big deal
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.org_setup_complete,
+            sourceType: 'org_setup_complete',
+            organizationId: organization?.id || null,
+            description: 'Completed organization setup',
+          })
+        } catch (_) { /* non-critical */ }
+      }
     } catch (err) {
       console.error('Error marking setup complete:', err)
     }
@@ -452,6 +478,7 @@ export default function FirstRunSetupPage({ showToast }) {
 
         {/* Card with section form */}
         <div
+          data-coachmark="setup-step"
           className={`rounded-2xl p-6 sm:p-8 mb-6 ${isDark ? 'bg-[#132240]/80 border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}
           style={{ boxShadow: 'var(--v2-card-shadow, 0 4px 24px rgba(0,0,0,0.06))' }}
         >

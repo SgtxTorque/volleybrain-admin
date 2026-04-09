@@ -22,7 +22,7 @@ import {
 import { VolleyballIcon } from './constants/icons'
 
 // UI Components
-import { ToastContainer, useToast, Icon, ErrorBoundary, CommandPalette, useCommandPalette } from './components/ui'
+import { ToastContainer, useToast, Icon, ErrorBoundary, CommandPalette, useCommandPalette, CoachMarkOverlay } from './components/ui'
 
 // Layout Components
 import { 
@@ -814,6 +814,56 @@ function RoutedContent({ activeView, roleContext, showToast, selectedPlayerForVi
 }
 
 // ============================================
+// TOP NAV GATING — mirrors LynxSidebar ADMIN_NAV_PREREQS
+// ============================================
+// Admin top-nav contextual link IDs → prerequisite + tooltip.
+// Dashboard, profile, and settings-like pages are intentionally omitted → always unlocked.
+const TOP_NAV_PREREQS = {
+  // Needs at least one season
+  teams:                 { needs: 'season', tooltip: 'Create your first season to unlock Teams' },
+  coaches:               { needs: 'season', tooltip: 'Create your first season to add staff' },
+  jerseys:               { needs: 'season', tooltip: 'Create your first season to manage jerseys' },
+  registrations:         { needs: 'season', tooltip: 'Create your first season to open registration' },
+  templates:             { needs: 'season', tooltip: 'Create your first season to build reg forms' },
+  'registration-funnel': { needs: 'season', tooltip: 'The funnel appears once you have a season' },
+  schedule:              { needs: 'season', tooltip: 'Create your first season to schedule events' },
+  attendance:            { needs: 'season', tooltip: 'Attendance unlocks with your first season' },
+  'coach-availability':  { needs: 'season', tooltip: 'Availability unlocks with your first season' },
+  gameprep:              { needs: 'season', tooltip: 'Game prep unlocks with your first season' },
+  standings:             { needs: 'season', tooltip: 'Standings appear once games are scheduled' },
+  leaderboards:          { needs: 'season', tooltip: 'Leaderboards appear once a season exists' },
+  reports:               { needs: 'season', tooltip: 'Reports appear once you have a season' },
+  venues:                { needs: 'season', tooltip: 'Venues unlock with your first season' },
+  // Needs finished org setup
+  payments:              { needs: 'orgSetup', tooltip: 'Finish club setup to unlock payments' },
+  paymentsetup:          { needs: 'orgSetup', tooltip: 'Finish club setup to configure payments' },
+  chats:                 { needs: 'orgSetup', tooltip: 'Finish club setup to unlock messaging' },
+  blasts:                { needs: 'orgSetup', tooltip: 'Finish club setup to unlock announcements' },
+  notifications:         { needs: 'orgSetup', tooltip: 'Finish club setup to unlock notifications' },
+}
+
+// Wrapper component that sits inside SeasonProvider so it can call useSeason().
+// MainApp's body cannot, because MainApp renders SeasonProvider.
+function GatedTopBar({ activeView, organization, navLinks, ...rest }) {
+  const { allSeasons } = useSeason()
+  const hasSeason = Boolean((allSeasons || []).length > 0)
+  const hasOrgSetup = Boolean(organization?.settings?.setup_complete)
+  const unlockState = { season: hasSeason, orgSetup: hasOrgSetup }
+
+  const gatedLinks = (navLinks || []).map(link => {
+    // Only gate admin contextual links. The active page itself is never locked.
+    if (link.isActive) return link
+    if (activeView !== 'admin') return link
+    const req = TOP_NAV_PREREQS[link.pageId]
+    if (!req) return link
+    if (unlockState[req.needs]) return link
+    return { ...link, isLocked: true, lockTooltip: req.tooltip }
+  })
+
+  return <TopBar navLinks={gatedLinks} {...rest} />
+}
+
+// ============================================
 // MAIN APP COMPONENT
 // ============================================
 function MainApp() {
@@ -1413,6 +1463,7 @@ function MainApp() {
         {/* Background layer — org branding or default gradient */}
         <OrgBackgroundLayer isDark={isDark} />
         <JourneyCelebrations />
+        <CoachMarkOverlay />
 
         {/* Parent Tutorial Spotlight Overlay */}
         {activeView === 'parent' && <SpotlightOverlay />}
@@ -1446,7 +1497,9 @@ function MainApp() {
               ? 'overflow-hidden'
               : 'overflow-auto animate-slide-up'
           }`}>
-            <TopBar
+            <GatedTopBar
+              activeView={activeView}
+              organization={organization}
               roleLabel={`Lynx ${activeView === 'team_manager' ? 'Team Manager' : activeView.charAt(0).toUpperCase() + activeView.slice(1)}`}
               navLinks={[
                 { label: PAGE_LABELS[page] || page, pageId: page, isActive: true, onClick: () => {} },

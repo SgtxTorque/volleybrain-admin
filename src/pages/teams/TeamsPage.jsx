@@ -11,6 +11,8 @@ import { useJourney } from '../../contexts/JourneyContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { supabase } from '../../lib/supabase'
 import { exportToCSV } from '../../lib/csv-export'
+import { awardXP } from '../../lib/xp-award-service'
+import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import {
   Users, Calendar, Download, Plus, Shield, TrendingUp
 } from 'lucide-react'
@@ -244,6 +246,19 @@ export function TeamsPage({ showToast, navigateToTeamWall, onNavigate, onRefresh
 
       showToast(`Created: ${createdItems.join(', ')}!`, 'success')
       journey?.completeStep('add_teams')
+      if (profile?.id) {
+        try {
+          await awardXP({
+            profileId: profile.id,
+            baseAmount: XP_BY_SOURCE.team_added,
+            sourceType: 'team_added',
+            sourceId: newTeam.id,
+            seasonId: selectedSeason?.id || null,
+            organizationId: organization?.id || null,
+            description: `Added team: ${newTeam.name}`,
+          })
+        } catch (_) { /* non-critical */ }
+      }
       setShowNewTeamModal(false)
       loadTeams()
     } catch (err) {

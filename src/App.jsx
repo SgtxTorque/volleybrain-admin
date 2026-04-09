@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { JourneyProvider } from './contexts/JourneyContext'
+import { CoachMarkProvider } from './contexts/CoachMarkContext'
 
 // Auth Pages
 import { LoginPage, SetupWizard, LandingPage } from './pages/auth'
@@ -62,11 +63,13 @@ function AuthenticatedApp() {
 
   return (
     <JourneyProvider>
-      {needsOnboarding ? (
-        <SetupWizard onComplete={handleOnboardingComplete} />
-      ) : (
-        <MainApp />
-      )}
+      <CoachMarkProvider>
+        {needsOnboarding ? (
+          <SetupWizard onComplete={handleOnboardingComplete} />
+        ) : (
+          <MainApp />
+        )}
+      </CoachMarkProvider>
     </JourneyProvider>
   )
 }
