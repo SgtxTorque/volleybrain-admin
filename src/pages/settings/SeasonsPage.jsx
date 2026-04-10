@@ -10,8 +10,8 @@ import { parseLocalDate } from '../../lib/date-helpers'
 import { awardXP } from '../../lib/xp-award-service'
 import { XP_BY_SOURCE } from '../../lib/engagement-constants'
 import {
-  Plus, Edit, Trash2, Calendar, DollarSign, Users, Settings,
-  Share2, Copy, Check, ExternalLink, X
+  Edit, Trash2, Calendar, DollarSign, Users, Settings,
+  Share2, Copy, Check, ExternalLink, X, Info
 } from '../../constants/icons'
 import PageShell from '../../components/pages/PageShell'
 import { SeasonFormModal, ShareHubModal } from './SeasonFormModal'
@@ -67,31 +67,6 @@ function SeasonsPage({ showToast }) {
       .eq('is_active', true)
       .order('is_default', { ascending: false })
     setTemplates(data || [])
-  }
-
-  function openNew() {
-    setEditingSeason(null)
-    // Inherit fee defaults from org-level settings when creating a new season.
-    // Falls back to hardcoded defaults only when the org hasn't set them yet.
-    const orgSettings = organization?.settings || {}
-    setForm({
-      name: '', status: 'upcoming', start_date: '', end_date: '',
-      fee_registration: orgSettings.default_registration_fee ?? 150,
-      fee_uniform: orgSettings.default_uniform_fee ?? 35,
-      fee_monthly: orgSettings.default_monthly_fee ?? 50,
-      fee_per_family: 0, months_in_season: 3,
-      sibling_discount_type: 'none', sibling_discount_amount: 0, sibling_discount_apply_to: 'additional',
-      sport_id: selectedProgram?.sport_id || null, registration_opens: '', registration_closes: '',
-      early_bird_deadline: '',
-      early_bird_discount: orgSettings.early_bird_discount ?? 25,
-      late_registration_deadline: '',
-      late_registration_fee: 25, capacity: null, waitlist_enabled: true, waitlist_capacity: 20,
-      description: '',
-      registration_template_id: null,
-      registration_config: null,
-      program_id: selectedProgram?.id || null,
-    })
-    setShowModal(true)
   }
 
   function openEdit(season) {
@@ -193,6 +168,11 @@ function SeasonsPage({ showToast }) {
   }
 
   async function handleClone(season) {
+    if (!season.program_id) {
+      showToast("This season isn't linked to a program. Please edit it and assign a program before cloning.", 'error')
+      return
+    }
+
     const newName = prompt('Name for the new season:', `${season.name} (Copy)`)
     if (!newName) return
 
@@ -264,11 +244,6 @@ function SeasonsPage({ showToast }) {
       title="Seasons"
       subtitle="Manage league seasons"
       breadcrumb="Setup > Seasons"
-      actions={
-        <button onClick={openNew} className="bg-[#10284C] text-white font-bold px-5 py-2.5 rounded-xl hover:brightness-110 flex items-center gap-2" style={{ fontFamily: 'var(--v2-font)' }}>
-          <Plus className="w-4 h-4" /> New Season
-        </button>
-      }
     >
       {/* Navy Overview Header */}
       <div className="bg-[#10284C] rounded-2xl p-6 mb-6">
@@ -277,7 +252,7 @@ function SeasonsPage({ showToast }) {
             <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'var(--v2-font)' }}>
               Season Management
             </h2>
-            <p className="text-sm text-white/50">Create, manage, and track your seasons</p>
+            <p className="text-sm text-white/50">View, edit, and manage your seasons across all programs</p>
           </div>
           <div className="text-right">
             <span className="text-4xl font-black italic text-[#4BB9EC]">{seasons.length}</span>
@@ -300,6 +275,12 @@ function SeasonsPage({ showToast }) {
         </div>
       </div>
 
+      {/* Helper text — season creation lives on ProgramPage */}
+      <div className={`flex items-center gap-2 mb-4 px-1 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+        <Info className="w-4 h-4 flex-shrink-0" />
+        <p className="text-sm">To create a new season, go to the program you want to add it to.</p>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-2 border-[#4BB9EC] border-t-transparent rounded-full animate-spin" />
@@ -308,10 +289,9 @@ function SeasonsPage({ showToast }) {
         <div className={`rounded-[14px] p-12 text-center ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-white border border-[#E8ECF2]'}`}>
           <Calendar className="w-16 h-16 mx-auto text-slate-400 mb-3" />
           <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-[#10284C]'}`} style={{ fontFamily: 'var(--v2-font)' }}>No seasons yet</h3>
-          <p className={`text-sm mt-1 mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Create your first season to get started</p>
-          <button onClick={openNew} className="bg-[#10284C] text-white font-bold px-6 py-2.5 rounded-xl hover:brightness-110">
-            Create Season
-          </button>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            Seasons are created within programs. Go to a program page to add your first season.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
