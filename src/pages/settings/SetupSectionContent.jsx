@@ -544,7 +544,10 @@ function SetupSectionContent({
                 <label className={`block text-xs font-bold uppercase tracking-wider ${tc.textMuted} mb-2`}>
                   Age Divisions
                 </label>
-                <div className="flex gap-2">
+                <p className={`text-[11px] ${tc.textMuted} mb-2`}>
+                  Select the age groups your club offers, or add your own.
+                </p>
+                <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => updateField('ageSystem', 'grade')}
                     className={`flex-1 px-3 py-2 rounded-lg border-2 text-center transition-all text-sm ${
@@ -566,6 +569,38 @@ function SetupSectionContent({
                     🎂 Age-Based
                   </button>
                 </div>
+                {/* Quick-pick division chips */}
+                {(() => {
+                  const presets = localData.ageSystem === 'grade'
+                    ? ['K-2nd', '3rd-5th', '6th-8th', '9th-12th']
+                    : ['8U', '10U', '12U', '14U', '16U', '18U']
+                  const current = localData.ageDivisions || []
+                  return (
+                    <div className="flex flex-wrap gap-1.5">
+                      {presets.map(div => {
+                        const isActive = current.includes(div)
+                        return (
+                          <button
+                            key={div}
+                            onClick={() => {
+                              const updated = isActive
+                                ? current.filter(d => d !== div)
+                                : [...current, div]
+                              updateField('ageDivisions', updated)
+                            }}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${
+                              isActive
+                                ? 'bg-[#4BB9EC] text-white border-[#4BB9EC]'
+                                : `${tc.border} ${tc.textMuted} hover:border-[#4BB9EC]/40`
+                            }`}
+                          >
+                            {isActive && '✓ '}{div}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
                 {localData.ageSystem === 'age' && (
                   <div className="mt-2">
                     <label className={`block text-xs ${tc.textMuted} mb-1`}>Age cutoff (MM-DD)</label>
