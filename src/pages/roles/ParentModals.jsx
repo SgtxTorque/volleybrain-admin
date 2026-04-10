@@ -295,7 +295,7 @@ export function AddChildModal({ existingChildren, onClose, showToast }) {
   const templateChild = existingChildren?.[0]
 
   function getSiblingRegistrationUrl(season) {
-    const orgSlug = season.organizations?.slug || 'black-hornets'
+    const orgSlug = season.organizations?.slug || 'my-club'
     const registrationBaseUrl = season.organizations?.settings?.registration_url || window.location.origin
     const prefillParams = new URLSearchParams({
       prefill: 'true',
@@ -367,7 +367,7 @@ export function ReRegisterModal({ player, season, onClose, showToast }) {
   const { isDark } = useTheme()
   const [copied, setCopied] = useState(false)
 
-  const orgSlug = season.organizations?.slug || 'black-hornets'
+  const orgSlug = season.organizations?.slug || 'my-club'
   const registrationBaseUrl = season.organizations?.settings?.registration_url || window.location.origin
 
   const prefillParams = new URLSearchParams({

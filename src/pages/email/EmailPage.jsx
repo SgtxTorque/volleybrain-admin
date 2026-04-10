@@ -1022,7 +1022,7 @@ function EmailSettingsTab({ showToast }) {
         {/* Footer */}
         <div>
           <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-400' : 'text-slate-500'} mb-1`}>Footer Text</label>
-          <textarea value={footerText} onChange={e => setFooterText(e.target.value)} placeholder="e.g. Black Hornets Volleyball Club · Dallas, TX" rows={2} className={`${inputCls} resize-none`} />
+          <textarea value={footerText} onChange={e => setFooterText(e.target.value)} placeholder="e.g. Your Club Name · Your City, ST" rows={2} className={`${inputCls} resize-none`} />
         </div>
 
         {/* Social Links */}

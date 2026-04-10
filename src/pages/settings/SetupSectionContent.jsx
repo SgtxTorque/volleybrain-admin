@@ -284,7 +284,7 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Organization Name" field="name" placeholder="Black Hornets Volleyball Club" required />
+              <SectionInput {...fp} label="Organization Name" field="name" placeholder="e.g., Metro Youth Athletics" required />
               <SectionInput {...fp} label="Short Name / Abbreviation" field="shortName" placeholder="BHVC" helpText="Used on jerseys and reports" />
             </div>
             <SectionInput {...fp} label="Tagline / Slogan" field="tagline" placeholder="Building Champions On & Off the Court" />
@@ -363,8 +363,8 @@ function SetupSectionContent({
               <SectionInput {...fp} label="Title" field="contactTitle" placeholder="League Director" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Primary Email" field="email" type="email" placeholder="info@blackhornets.com" required />
-              <SectionInput {...fp} label="Secondary Email" field="secondaryEmail" type="email" placeholder="backup@blackhornets.com" />
+              <SectionInput {...fp} label="Primary Email" field="email" type="email" placeholder="info@yourclub.com" required />
+              <SectionInput {...fp} label="Secondary Email" field="secondaryEmail" type="email" placeholder="backup@yourclub.com" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <SectionInput {...fp} label="Primary Phone" field="phone" type="tel" placeholder="(555) 123-4567" required />
@@ -373,7 +373,7 @@ function SetupSectionContent({
             <SectionInput {...fp} label="Street Address" field="address" placeholder="123 Main Street" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="col-span-2">
-                <SectionInput {...fp} label="City" field="city" placeholder="Dallas" required />
+                <SectionInput {...fp} label="City" field="city" placeholder="Your City" required />
               </div>
               <SectionSelect {...fp}
                 label="State"
@@ -409,10 +409,10 @@ function SetupSectionContent({
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.blackhornets.com" />
-              <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/blackhornetsVB" />
-              <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@blackhornetsVB" helpText="Just the handle, no URL needed" />
-              <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@blackhornetsVB" />
+              <SectionInput {...fp} label="Website URL" field="website" placeholder="https://www.yourclub.com" />
+              <SectionInput {...fp} label="Facebook Page" field="facebook" placeholder="https://facebook.com/yourclub" />
+              <SectionInput {...fp} label="Instagram Handle" field="instagram" placeholder="@yourclub" helpText="Just the handle, no URL needed" />
+              <SectionInput {...fp} label="Twitter / X Handle" field="twitter" placeholder="@yourclub" />
             </div>
             <div className={`p-3 rounded-xl ${tc.cardBgAlt}`}>
               <p className={`text-sm font-medium ${tc.text} mb-1`}>📎 Your Registration Link</p>
@@ -637,7 +637,7 @@ function SetupSectionContent({
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SectionInput {...fp} label="Legal Entity Name" field="legalName" placeholder="Black Hornets Volleyball LLC" helpText="If different from org name" />
+              <SectionInput {...fp} label="Legal Entity Name" field="legalName" placeholder="Your Club LLC" helpText="If different from org name" />
               <SectionSelect {...fp}
                 label="Entity Type"
                 field="entityType"

@@ -127,7 +127,7 @@ export default function EditTeamModal({ team, onClose, onSave, showToast }) {
                   type="text"
                   value={form.name}
                   onChange={e => setForm({...form, name: e.target.value})}
-                  placeholder="e.g., Black Hornets Elite"
+                  placeholder="e.g., Varsity Elite"
                   className={`w-full rounded-[14px] px-4 py-3 text-r-base ${isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white' : 'bg-slate-50 border border-lynx-silver text-lynx-navy'}`}
                 />
               </div>

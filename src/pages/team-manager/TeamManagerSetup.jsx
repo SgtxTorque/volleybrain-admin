@@ -252,7 +252,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
 
               <div>
                 <label className={labelClass}>Team Name</label>
-                <input type="text" value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="e.g., Black Hornets 14U" className={inputClass} />
+                <input type="text" value={teamName} onChange={e => setTeamName(e.target.value)} placeholder="e.g., Storm 14U" className={inputClass} />
               </div>
 
               <div>

@@ -162,7 +162,7 @@ export function BlastReminderModal({ families, onSend, onClose }) {
   const unpaidFamilies = families.filter(f => f.payments.some(p => !p.paid))
   const targetCount = targetGroup === 'unpaid' ? unpaidFamilies.length : families.length
 
-  const defaultMessage = `Hi,\n\nThis is a friendly reminder about outstanding payments for the current season. Please log in to view your balance and make a payment.\n\nThank you for your support!\n\n- Black Hornets Volleyball`
+  const defaultMessage = `Hi,\n\nThis is a friendly reminder about outstanding payments for the current season. Please log in to view your balance and make a payment.\n\nThank you for your support!\n\n- The Team`
   useEffect(() => { setMessage(defaultMessage) }, [])
 
   const inputCls = isDark ? 'bg-white/[0.06] border border-white/[0.06] text-white' : 'bg-slate-50 border border-slate-200 text-slate-900'
