@@ -81,16 +81,29 @@ export function AchievementsCatalogPage({
 
     try {
       // Load all achievements (always - this is the catalog)
-      const { data: allAchievements, error: achErr } = await supabase
+      let achQuery = supabase
         .from('achievements')
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true })
 
+      // Server-side role filter using target_role column (null = earnable by any role)
+      if (activeView === 'parent') {
+        achQuery = achQuery.or('target_role.in.(parent,player,all),target_role.is.null')
+      } else if (activeView === 'player') {
+        achQuery = achQuery.or('target_role.in.(player,all),target_role.is.null')
+      } else if (activeView === 'coach') {
+        achQuery = achQuery.or('target_role.in.(coach,player,all),target_role.is.null')
+      }
+      // admin: no filter — show all
+
+      const { data: allAchievements, error: achErr } = await achQuery
+
       console.log('AchievementsCatalogPage: Achievements loaded:', { count: allAchievements?.length, error: achErr })
 
       if (achErr) throw achErr
-      // Filter out coach-only achievements for parents and players
+      // Client-side fallback: filter out coach-only achievements for parents/players
+      // (catches badges with null target_role but coach-specific category/name)
       let visibleAchievements = allAchievements || []
       if (activeView === 'parent' || activeView === 'player') {
         visibleAchievements = visibleAchievements.filter(a => !isCoachOnlyAchievement(a))
