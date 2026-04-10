@@ -26,35 +26,35 @@ const SETUP_STEPS = [
     key: 'identity',
     title: 'Your Club',
     subtitle: "First things first — let's make it yours.",
-    icon: '\uD83C\uDFE2',
+    icon: '🏢',
     fields: 'Name, logo, colors',
   },
   {
     key: 'contact',
     title: 'Contact Info',
     subtitle: 'How should families reach you?',
-    icon: '\uD83D\uDCE7',
+    icon: '📧',
     fields: 'Email, phone, address',
   },
   {
     key: 'sports',
     title: 'Sports & Programs',
     subtitle: 'What does your club play?',
-    icon: '\uD83C\uDFC6',
+    icon: '🏆',
     fields: 'Sports, age groups',
   },
   {
     key: 'payments',
     title: 'Money Stuff',
     subtitle: 'How do you want to get paid?',
-    icon: '\uD83D\uDCB0',
+    icon: '💰',
     fields: 'Payment methods',
   },
   {
     key: 'fees',
     title: 'Fee Structure',
     subtitle: 'Set your prices — discounts included.',
-    icon: '\uD83C\uDFF7\uFE0F',
+    icon: '🏷️',
     fields: 'Registration, uniforms, monthly dues',
   },
 ]
@@ -80,6 +80,7 @@ export default function FirstRunSetupPage({ showToast }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState(() => new Set())
   const [showCelebration, setShowCelebration] = useState(false)
+  const prefilledSteps = useRef(new Set()) // steps that were done before the user started
 
   // Section form state (mirrors OrganizationPage's structure)
   const [setupData, setSetupData] = useState(null)
@@ -178,6 +179,7 @@ export default function FirstRunSetupPage({ showToast }) {
       if (settings.default_registration_fee != null && settings.default_registration_fee > 0
           && 'default_registration_fee' in settings) done.add('fees')
       setCompletedSteps(done)
+      prefilledSteps.current = new Set(done) // snapshot — these were done before the wizard
 
       // Auto-skip to first incomplete step
       const firstIncomplete = SETUP_STEPS.findIndex(s => !done.has(s.key))
@@ -450,6 +452,7 @@ export default function FirstRunSetupPage({ showToast }) {
             {SETUP_STEPS.map((s, i) => {
               const isDone = completedSteps.has(s.key)
               const isCurrent = i === currentStep
+              const isPrefilled = isDone && prefilledSteps.current.has(s.key)
               return (
                 <button
                   key={s.key}
@@ -460,6 +463,7 @@ export default function FirstRunSetupPage({ showToast }) {
                     border: isCurrent ? '1.5px solid #4BB9EC' : isDone ? '1.5px solid #22C55E40' : isDark ? '1.5px solid rgba(255,255,255,0.06)' : '1.5px solid #E8ECF2',
                     color: isCurrent ? '#4BB9EC' : isDone ? '#22C55E' : 'var(--v2-text-muted)',
                   }}
+                  title={isPrefilled ? 'Prefilled from signup — tap to review' : undefined}
                 >
                   <span className="w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
                     style={{
@@ -470,6 +474,9 @@ export default function FirstRunSetupPage({ showToast }) {
                     {isDone ? '✓' : i + 1}
                   </span>
                   {s.title}
+                  {isPrefilled && (
+                    <span className="text-[10px] font-medium opacity-70 ml-0.5">Prefilled</span>
+                  )}
                 </button>
               )
             })}
