@@ -671,8 +671,9 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
     playerUsername: child.player_username || null,
   }))
 
-  // Map priority items for attention strip
-  const attentionItems = actionItems.map(item => ({
+  // Map priority items for attention strip (use all children so count matches sidebar)
+  const allActionItems = priorityEngine?.items || []
+  const attentionItems = allActionItems.map(item => ({
     icon: item.icon || '⚠️',
     label: item.title,
     type: item.actionType === 'payment' ? 'coral' : item.actionType === 'waiver' ? 'amber' : 'sky',
