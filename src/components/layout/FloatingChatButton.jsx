@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { MessageCircle } from '../../constants/icons'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSeason } from '../../contexts/SeasonContext'
 
 export default function FloatingChatButton({ onNavigate }) {
   const { user, organization } = useAuth()
+  const { allSeasons } = useSeason()
   const [unreadCount, setUnreadCount] = useState(0)
   const [hasChannels, setHasChannels] = useState(false)
 
@@ -17,7 +19,7 @@ export default function FloatingChatButton({ onNavigate }) {
     loadUnread()
     const interval = setInterval(loadUnread, 30000)
     return () => clearInterval(interval)
-  }, [user?.id, organization?.id])
+  }, [user?.id, organization?.id, allSeasons])
 
   async function loadUnread() {
     try {
@@ -27,13 +29,20 @@ export default function FloatingChatButton({ onNavigate }) {
         return
       }
 
-      // Step 1: Get channels that belong to the CURRENT organization only.
-      // Without this filter, the badge counted unread messages across every
-      // org the user belongs to — a brand-new org would show phantom counts.
+      // Step 1: Get channels scoped to the current org's seasons.
+      // chat_channels has no organization_id column — scope via season_id
+      // using the same pattern as ChatsPage.jsx.
+      const seasonIds = (allSeasons || []).map(s => s.id)
+      if (seasonIds.length === 0) {
+        setHasChannels(false)
+        setUnreadCount(0)
+        return
+      }
+
       const { data: orgChannels } = await supabase
         .from('chat_channels')
         .select('id')
-        .eq('organization_id', organization.id)
+        .in('season_id', seasonIds)
 
       if (!orgChannels || orgChannels.length === 0) {
         // No channels in this org → hide the widget entirely. No bubble, no
