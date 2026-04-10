@@ -144,7 +144,31 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
         .eq('id', profile.id)
       if (profileOrgError) throw profileOrgError
 
-      // ── Step 4: Create season (use `sport` text column, not sport_id) ──
+      // ── Step 4a: Create program for the team manager's micro-org ──
+      let sportId = null
+      const sportLabel = SPORT_OPTIONS.find(s => s.value === sport)?.label || sport
+      const { data: sportRecord } = await supabase
+        .from('sports')
+        .select('id, name')
+        .ilike('name', sport)
+        .maybeSingle()
+      if (sportRecord) sportId = sportRecord.id
+
+      const { data: program, error: programError } = await supabase
+        .from('programs')
+        .insert({
+          organization_id: orgId,
+          sport_id: sportId,
+          name: sportRecord?.name || sportLabel,
+          is_active: true,
+          display_order: 0,
+        })
+        .select()
+        .single()
+
+      if (programError) throw programError
+
+      // ── Step 4b: Create season linked to program ──
       const { data: newSeason, error: seasonError } = await supabase
         .from('seasons')
         .insert({
@@ -154,6 +178,7 @@ export default function TeamManagerSetup({ roleContext, showToast, onComplete })
           start_date: startDate,
           end_date: endDate,
           status: 'active',
+          program_id: program.id,
         })
         .select()
         .single()
