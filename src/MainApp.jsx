@@ -1546,10 +1546,10 @@ function MainApp() {
 
         {/* Floating buttons — vertical stack, bottom-right. Hidden when SetupHelper panel is open. */}
         {activeView === 'parent' && !setupPanelOpen && <FloatingHelpButton />}
-        <SetupHelper
+        {activeView === 'admin' && <SetupHelper
           onNavigate={(pageId) => navigate(getPathForPage(pageId))}
           onPanelToggle={setSetupPanelOpen}
-        />
+        />}
         {!setupPanelOpen && <FloatingChatButton onNavigate={(pageId) => navigate(getPathForPage(pageId))} />}
       </div>
     </ParentTutorialProvider>
