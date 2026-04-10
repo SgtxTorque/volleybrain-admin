@@ -43,19 +43,33 @@ const TIME_ESTIMATES = {
   first_game: '~10 min',
 }
 
+// TODO: Add a "Show Setup Helper" toggle in Settings > Preferences
+// to allow users to re-enable after dismissing
+const DISMISS_KEY = 'lynx-setup-helper-dismissed'
+
 export default function SetupHelper({ onNavigate, onPanelToggle }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isDismissed, setIsDismissed] = useState(() => {
+    return localStorage.getItem(DISMISS_KEY) === 'true'
+  })
 
   // Notify parent when panel open/close state changes
   const togglePanel = (open) => {
     setIsOpen(open)
     onPanelToggle?.(open)
   }
+
+  const dismiss = () => {
+    localStorage.setItem(DISMISS_KEY, 'true')
+    setIsDismissed(true)
+    togglePanel(false)
+  }
   const journey = useJourney()
   const { profile } = useAuth()
   const { isDark } = useTheme()
 
   if (!journey || !profile) return null
+  if (isDismissed) return null
 
   const role = journey.journeyData?.currentRole || profile?.onboarding_data?.role || 'org_director'
   const steps = JOURNEY_STEPS[role] || []
@@ -74,6 +88,12 @@ export default function SetupHelper({ onNavigate, onPanelToggle }) {
       {/* Floating Button */}
       <button
         onClick={() => togglePanel(true)}
+        onContextMenu={(e) => {
+          e.preventDefault()
+          if (window.confirm('Hide the setup helper? You can bring it back from Settings.')) {
+            dismiss()
+          }
+        }}
         className="fixed z-40 flex items-center justify-center group"
         style={{ bottom: 96, right: 24, width: 52, height: 52 }}
         title={remaining.length > 0
@@ -191,6 +211,12 @@ export default function SetupHelper({ onNavigate, onPanelToggle }) {
               <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                 {remaining.length === 1 ? 'Almost there! One more step.' : `${remaining.length} steps to go — you've got this!`}
               </p>
+              <button
+                onClick={dismiss}
+                className={`text-xs mt-3 transition ${isDark ? 'text-slate-600 hover:text-slate-400' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                Don't show this again
+              </button>
             </div>
           </div>
         </>
