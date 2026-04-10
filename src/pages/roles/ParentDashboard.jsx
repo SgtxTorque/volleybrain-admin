@@ -800,6 +800,7 @@ function ParentDashboard({ roleContext, navigateToTeamWall, showToast, onNavigat
               {activeTab === 'payments' && (
                 <ParentPaymentsTab
                   paymentSummary={paymentSummary}
+                  children={registrationData}
                   onPayNow={() => setShowPaymentModal(true)}
                   onViewAll={() => onNavigate?.('payments')}
                 />
