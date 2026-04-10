@@ -281,7 +281,8 @@ export default function TopBar({
         {isDark ? <Sun style={{ width: 18, height: 18 }} /> : <Moon style={{ width: 18, height: 18 }} />}
       </button>
 
-      {/* ---- Notification Bell ---- */}
+      {/* ---- Notification Bell (admin only) ---- */}
+      {onNotificationClick && (
       <button
         onClick={onNotificationClick}
         title="Notifications"
@@ -306,6 +307,7 @@ export default function TopBar({
           }} />
         )}
       </button>
+      )}
 
       {/* ---- Settings Gear ---- */}
       <button

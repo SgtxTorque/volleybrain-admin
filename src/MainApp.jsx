@@ -898,10 +898,10 @@ function MainApp() {
   const [selectedPlayerForView, setSelectedPlayerForView] = useState(null)
   const [setupPanelOpen, setSetupPanelOpen] = useState(false)
 
-  // ---- Notification bell: poll unread count every 30s ----
+  // ---- Notification bell: poll unread count every 30s (admin only) ----
   const [notifUnreadCount, setNotifUnreadCount] = useState(0)
   useEffect(() => {
-    if (!organization?.id) return
+    if (!organization?.id || activeView !== 'admin') { setNotifUnreadCount(0); return }
     async function pollUnread() {
       try {
         const { count } = await supabase
@@ -915,7 +915,7 @@ function MainApp() {
     pollUnread()
     const interval = setInterval(pollUnread, 30000)
     return () => clearInterval(interval)
-  }, [organization?.id])
+  }, [organization?.id, activeView])
 
   useEffect(() => {
     if (profile?.id && organization?.id) {
@@ -1484,8 +1484,8 @@ function MainApp() {
           onSignOut={signOut}
           onNavigateToProfile={() => navigate('/profile')}
           isDark={isDark}
-          notificationCount={notifUnreadCount}
-          onOpenNotifications={() => navigate('/notifications')}
+          notificationCount={activeView === 'admin' ? notifUnreadCount : 0}
+          onOpenNotifications={activeView === 'admin' ? () => navigate('/notifications') : undefined}
           isPlatformAdmin={isPlatformAdmin}
           onEnterPlatformMode={handleEnterPlatformMode}
           onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}
@@ -1513,8 +1513,8 @@ function MainApp() {
               ]}
               searchPlaceholder="Search..."
               onSearchClick={() => document.dispatchEvent(new CustomEvent('command-palette-open'))}
-              hasNotifications={notifUnreadCount > 0}
-              onNotificationClick={() => navigate(getPathForPage('notifications'))}
+              hasNotifications={activeView === 'admin' && notifUnreadCount > 0}
+              onNotificationClick={activeView === 'admin' ? () => navigate(getPathForPage('notifications')) : undefined}
               avatarInitials={`${profile?.first_name?.[0] || ''}${profile?.last_name?.[0] || ''}`}
               onAvatarClick={() => navigate('/profile')}
               onSettingsClick={() => navigate(activeView === 'admin' ? getPathForPage('organization') : '/profile')}

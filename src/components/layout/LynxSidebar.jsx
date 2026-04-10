@@ -604,7 +604,8 @@ export default function LynxSidebar({
       <span style={{ fontWeight: 800, fontSize: 14, color: isPlayer ? '#FFFFFF' : 'var(--v2-navy)', letterSpacing: '-0.01em' }}>
         {orgName || 'Lynx'}
       </span>
-      <button onClick={() => onOpenNotifications?.()} style={{
+      {onOpenNotifications && (
+      <button onClick={() => onOpenNotifications()} style={{
         background: 'none', border: 'none', cursor: 'pointer', padding: 4, position: 'relative',
         color: isPlayer ? 'rgba(255,255,255,0.5)' : 'var(--v2-text-muted)',
       }}>
@@ -617,6 +618,7 @@ export default function LynxSidebar({
           }}>{notificationCount > 9 ? '9+' : notificationCount}</span>
         )}
       </button>
+      )}
     </div>
 
     {/* ---- Mobile Slide-Out Overlay ---- */}
